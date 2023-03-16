@@ -56,8 +56,6 @@ func (cmd *ListServicesCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	// The following is modified from the 'service list' command.
-
 	text.PrintConfigStoreServicesTbl(out, o)
 
 	return nil

@@ -23,7 +23,6 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	c.CmdClause = parent.Command("update", "Update a config store")
 
 	// Required.
-	c.RegisterFlag(cmd.StoreIDFlag(&c.input.ID)) // --store-id
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
@@ -31,6 +30,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 		Dst:         &c.input.Name,
 		Required:    true,
 	})
+	c.RegisterFlag(cmd.StoreIDFlag(&c.input.ID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json

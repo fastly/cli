@@ -10,7 +10,7 @@ import (
 
 func fmtStore(s configstore.ConfigStoreWithMetadata) string {
 	var b bytes.Buffer
-	text.PrintConfigStore(&b, "", s)
+	text.PrintConfigStore(&b, s)
 	return b.String()
 }
 

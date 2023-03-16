@@ -35,8 +35,8 @@ type configStoreWithMetdata interface {
 }
 
 // PrintConfigStore displays store data.
-func PrintConfigStore(out io.Writer, prefix string, s configStoreWithMetdata) {
-	out = textio.NewPrefixWriter(out, prefix)
+func PrintConfigStore(out io.Writer, s configStoreWithMetdata) {
+	out = textio.NewPrefixWriter(out, "")
 
 	cs := s.GetConfigStore()
 

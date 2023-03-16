@@ -41,7 +41,7 @@ type ListCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *ListCommand) Exec(in io.Reader, out io.Writer) error {
+func (cmd *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

@@ -26,13 +26,13 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.RegisterFlag(cmd.StoreIDFlag(&c.input.ID)) // --store-id
 
 	// Optional.
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        "metadata",
 		Short:       'm',
 		Description: "Include config store metadata",
 		Dst:         &c.metadata,
 	})
-	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
@@ -56,10 +56,12 @@ type ConfigStoreWithMetadata struct {
 	Metdata *fastly.ConfigStoreMetadata `json:"metadata,omitempty"`
 }
 
+// GetConfigStore returns the ConfigStore.
 func (c ConfigStoreWithMetadata) GetConfigStore() *fastly.ConfigStore {
 	return c.ConfigStore
 }
 
+// GetConfigStoreMetadata returns the ConfigStoreMetadata, which may be nil.
 func (c ConfigStoreWithMetadata) GetConfigStoreMetadata() *fastly.ConfigStoreMetadata {
 	return c.Metdata
 }
@@ -95,7 +97,7 @@ func (cmd *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.PrintConfigStore(out, "", o)
+	text.PrintConfigStore(out, o)
 
 	return nil
 }
