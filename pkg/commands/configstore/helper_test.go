@@ -3,14 +3,13 @@ package configstore_test
 import (
 	"bytes"
 
-	"github.com/fastly/cli/pkg/commands/configstore"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-func fmtStore(s configstore.ConfigStoreWithMetadata) string {
+func fmtStore(cs *fastly.ConfigStore, csm *fastly.ConfigStoreMetadata) string {
 	var b bytes.Buffer
-	text.PrintConfigStore(&b, s)
+	text.PrintConfigStore(&b, cs, csm)
 	return b.String()
 }
 

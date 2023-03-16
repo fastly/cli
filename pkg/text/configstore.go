@@ -29,23 +29,16 @@ func PrintConfigStoresTbl(out io.Writer, stores []*fastly.ConfigStore) {
 	tbl.Print()
 }
 
-type configStoreWithMetdata interface {
-	GetConfigStore() *fastly.ConfigStore
-	GetConfigStoreMetadata() *fastly.ConfigStoreMetadata // May be nil.
-}
-
-// PrintConfigStore displays store data.
-func PrintConfigStore(out io.Writer, s configStoreWithMetdata) {
+// PrintConfigStore displays store data and optional metadata (may be nil).
+func PrintConfigStore(out io.Writer, cs *fastly.ConfigStore, csm *fastly.ConfigStoreMetadata) {
 	out = textio.NewPrefixWriter(out, "")
-
-	cs := s.GetConfigStore()
 
 	fmt.Fprintf(out, "Name: %s\n", cs.Name)
 	fmt.Fprintf(out, "ID: %s\n", cs.ID)
 	fmt.Fprintf(out, "Created (UTC): %s\n", fmtConfigStoreTime(cs.CreatedAt))
 	fmt.Fprintf(out, "Updated (UTC): %s\n", fmtConfigStoreTime(cs.UpdatedAt))
-	if meta := s.GetConfigStoreMetadata(); meta != nil {
-		fmt.Fprintf(out, "Item Count: %d\n", meta.ItemCount)
+	if csm != nil {
+		fmt.Fprintf(out, "Item Count: %d\n", csm.ItemCount)
 	}
 }
 

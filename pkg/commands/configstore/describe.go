@@ -47,44 +47,21 @@ type DescribeCommand struct {
 	metadata bool
 }
 
-// ConfigStoreWithMetadata combines ConfigStore and ConfigStoreMetadata
-// for rendering as JSON and text.
-// The included methods allow for the text package to define a matching
-// interface, which eliminates the circular dependency.
-type ConfigStoreWithMetadata struct {
-	*fastly.ConfigStore
-	Metdata *fastly.ConfigStoreMetadata `json:"metadata,omitempty"`
-}
-
-// GetConfigStore returns the ConfigStore.
-func (c ConfigStoreWithMetadata) GetConfigStore() *fastly.ConfigStore {
-	return c.ConfigStore
-}
-
-// GetConfigStoreMetadata returns the ConfigStoreMetadata, which may be nil.
-func (c ConfigStoreWithMetadata) GetConfigStoreMetadata() *fastly.ConfigStoreMetadata {
-	return c.Metdata
-}
-
 // Exec invokes the application logic for the command.
 func (cmd *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	var (
-		o   ConfigStoreWithMetadata
-		err error
-	)
-
-	o.ConfigStore, err = cmd.Globals.APIClient.GetConfigStore(&cmd.input)
+	cs, err := cmd.Globals.APIClient.GetConfigStore(&cmd.input)
 	if err != nil {
 		cmd.Globals.ErrLog.Add(err)
 		return err
 	}
 
+	var csm *fastly.ConfigStoreMetadata
 	if cmd.metadata {
-		o.Metdata, err = cmd.Globals.APIClient.GetConfigStoreMetadata(&fastly.GetConfigStoreMetadataInput{
+		csm, err = cmd.Globals.APIClient.GetConfigStoreMetadata(&fastly.GetConfigStoreMetadataInput{
 			ID: cmd.input.ID,
 		})
 		if err != nil {
@@ -93,11 +70,23 @@ func (cmd *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	if ok, err := cmd.WriteJSON(out, o); ok {
-		return err
+	if cmd.JSONOutput.Enabled {
+		// Create an ad-hoc structure for JSON representation of the config store
+		// and its metadata.
+		data := struct {
+			*fastly.ConfigStore
+			Metadata *fastly.ConfigStoreMetadata `json:"metadata,omitempty"`
+		}{
+			ConfigStore: cs,
+			Metadata:    csm,
+		}
+
+		if ok, err := cmd.WriteJSON(out, data); ok {
+			return err
+		}
 	}
 
-	text.PrintConfigStore(out, o)
+	text.PrintConfigStore(out, cs, csm)
 
 	return nil
 }

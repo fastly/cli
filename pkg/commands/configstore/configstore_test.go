@@ -181,13 +181,14 @@ func TestDescribeStoreCommand(t *testing.T) {
 					}, nil
 				},
 			},
-			WantOutput: fmtStore(configstore.ConfigStoreWithMetadata{
-				ConfigStore: &fastly.ConfigStore{
+			WantOutput: fmtStore(
+				&fastly.ConfigStore{
 					ID:        storeID,
 					Name:      storeName,
 					CreatedAt: &now,
 				},
-			}),
+				nil,
+			),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s get --store-id %s --metadata", configstore.RootName, storeID)),
@@ -205,16 +206,16 @@ func TestDescribeStoreCommand(t *testing.T) {
 					}, nil
 				},
 			},
-			WantOutput: fmtStore(configstore.ConfigStoreWithMetadata{
-				ConfigStore: &fastly.ConfigStore{
+			WantOutput: fmtStore(
+				&fastly.ConfigStore{
 					ID:        storeID,
 					Name:      storeName,
 					CreatedAt: &now,
 				},
-				Metdata: &fastly.ConfigStoreMetadata{
+				&fastly.ConfigStoreMetadata{
 					ItemCount: 42,
 				},
-			}),
+			),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s get --store-id %s --json", configstore.RootName, storeID)),
