@@ -591,6 +591,7 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 		text.Break(out)
 		text.Output(out, "Wasm file: %s", file)
 		text.Output(out, "Manifest: %s", manifestPath)
+		args = append(args, "-v")
 	}
 
 	s := &fstexec.Streaming{
