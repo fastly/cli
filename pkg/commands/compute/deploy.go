@@ -1160,18 +1160,20 @@ func checkingServiceAvailability(
 	spinner text.Spinner,
 	c *DeployCommand,
 ) (status int, err error) {
+	remediation := "The service has been successfully deployed and activated, but the service 'availability' check %s (last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than usual to deploy across our global network. Please continue to check the service URL and if still unavailable please contact Fastly support."
+
+	dur := time.Duration(c.StatusCheckTimeout) * time.Second
+	end := time.Now().Add(dur)
+	timeout := time.After(dur)
+	ticker := time.NewTicker(1 * time.Second)
+	defer func() { ticker.Stop() }()
+
 	err = spinner.Start()
 	if err != nil {
 		return 0, err
 	}
 	msg := "Checking service availability"
-	spinner.Message(msg + " (app is being deployed across Fastly's global network)...")
-
-	timeout := time.After(time.Duration(c.StatusCheckTimeout) * time.Second)
-	ticker := time.NewTicker(1 * time.Second)
-	defer func() { ticker.Stop() }()
-
-	remediation := "The service has been successfully deployed and activated, but the service 'availability' check %s (last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than usual to deploy across our global network. Please continue to check the service URL and if still unavailable please contact Fastly support."
+	spinner.Message(msg + generateTimeout(time.Until(end)))
 
 	// Keep trying until we're timed out, got a result or got an error
 	for {
@@ -1187,7 +1189,7 @@ func checkingServiceAvailability(
 				Inner:       errors.New("service not yet available"),
 				Remediation: fmt.Sprintf(remediation, "timed out", status),
 			}
-		case <-ticker.C:
+		case t := <-ticker.C:
 			var (
 				ok  bool
 				err error
@@ -1213,8 +1215,14 @@ func checkingServiceAvailability(
 				return status, spinner.Stop()
 			}
 			// Service not available, and no error, so jump back to top of loop
+			spinner.Message(msg + generateTimeout(end.Sub(t)))
 		}
 	}
+}
+
+func generateTimeout(d time.Duration) string {
+	remaining := fmt.Sprintf("timeout countdown: %v", d.Round(time.Second))
+	return fmt.Sprintf(" (app is being deployed across Fastly's global network | %s)...", remaining)
 }
 
 // pingServiceURL indicates if the service returned a non-5xx response, which
