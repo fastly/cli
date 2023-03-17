@@ -6,6 +6,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // PublishCommand produces and deploys an artifact from files on the local disk.
@@ -103,6 +104,8 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
+
+	text.Break(out)
 
 	// Reset the fields on the DeployCommand based on PublishCommand values.
 	if c.pkg.WasSet {

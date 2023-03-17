@@ -175,7 +175,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	serviceURL := fmt.Sprintf("https://%s", domain)
 
-	if !c.StatusCheckOff {
+	if !c.StatusCheckOff && newService {
 		var status int
 		if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
 			if re, ok := err.(fsterr.RemediationError); ok {
@@ -1153,25 +1153,33 @@ func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion 
 	return name, nil
 }
 
-// checkingServiceAvailability pings the service URL until either there is a 200
-// OK or if the configured timeout is exceeded.
+// checkingServiceAvailability pings the service URL until either there is a
+// non-500 (or whatever status code is configured by the user) or if the
+// configured timeout is reached.
 func checkingServiceAvailability(
 	serviceURL string,
 	spinner text.Spinner,
 	c *DeployCommand,
 ) (status int, err error) {
+	remediation := "The service has been successfully deployed and activated, but the service 'availability' check %s (we were looking for a %s but the last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than usual to deploy across our global network. Please continue to check the service URL and if still unavailable please contact Fastly support."
+
+	dur := time.Duration(c.StatusCheckTimeout) * time.Second
+	end := time.Now().Add(dur)
+	timeout := time.After(dur)
+	ticker := time.NewTicker(1 * time.Second)
+	defer func() { ticker.Stop() }()
+
 	err = spinner.Start()
 	if err != nil {
 		return 0, err
 	}
 	msg := "Checking service availability"
-	spinner.Message(msg + " (app is being deployed across Fastly's global network)...")
+	spinner.Message(msg + generateTimeout(time.Until(end)))
 
-	timeout := time.After(time.Duration(c.StatusCheckTimeout) * time.Second)
-	ticker := time.NewTicker(1 * time.Second)
-	defer func() { ticker.Stop() }()
-
-	remediation := "The service has been successfully deployed and activated, but the service 'availability' check %s (last status code response was: %d). If using a custom domain, please be sure to check your DNS settings. Otherwise, your application might be taking longer than usual to deploy across our global network. Please continue to check the service URL and if still unavailable please contact Fastly support."
+	expected := "non-500 status code"
+	if c.StatusCheckCode > 0 {
+		expected = fmt.Sprintf("%d status code", c.StatusCheckCode)
+	}
 
 	// Keep trying until we're timed out, got a result or got an error
 	for {
@@ -1185,9 +1193,9 @@ func checkingServiceAvailability(
 			}
 			return status, fsterr.RemediationError{
 				Inner:       errors.New("service not yet available"),
-				Remediation: fmt.Sprintf(remediation, "timed out", status),
+				Remediation: fmt.Sprintf(remediation, "timed out", expected, status),
 			}
-		case <-ticker.C:
+		case t := <-ticker.C:
 			var (
 				ok  bool
 				err error
@@ -1195,7 +1203,7 @@ func checkingServiceAvailability(
 			// We overwrite the `status` variable in the parent scope (defined in the
 			// return arguments list) so it can be used as part of both the timeout
 			// and success scenarios.
-			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient)
+			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient, c.StatusCheckCode)
 			if err != nil {
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
 				spinner.StopFailMessage(msg + returnedStatus)
@@ -1205,7 +1213,7 @@ func checkingServiceAvailability(
 				}
 				return status, fsterr.RemediationError{
 					Inner:       err,
-					Remediation: fmt.Sprintf(remediation, "failed", status),
+					Remediation: fmt.Sprintf(remediation, "failed", expected, status),
 				}
 			} else if ok {
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
@@ -1213,13 +1221,20 @@ func checkingServiceAvailability(
 				return status, spinner.Stop()
 			}
 			// Service not available, and no error, so jump back to top of loop
+			spinner.Message(msg + generateTimeout(end.Sub(t)))
 		}
 	}
 }
 
-// pingServiceURL indicates if the service returned a non-5xx response, which
-// should help signify if the service is generally available.
-func pingServiceURL(serviceURL string, httpClient api.HTTPClient) (ok bool, status int, err error) {
+func generateTimeout(d time.Duration) string {
+	remaining := fmt.Sprintf("timeout: %v", d.Round(time.Second))
+	return fmt.Sprintf(" (app is being deployed across Fastly's global network | %s)...", remaining)
+}
+
+// pingServiceURL indicates if the service returned a non-5xx response (or
+// whatever the user defined with --status-check-code), which should help
+// signify if the service is generally available.
+func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatusCode int) (ok bool, status int, err error) {
 	req, err := http.NewRequest("GET", serviceURL, nil)
 	if err != nil {
 		return false, 0, err
@@ -1233,7 +1248,12 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient) (ok bool, stat
 	if err != nil {
 		return false, 0, err
 	}
-	if resp.StatusCode < http.StatusInternalServerError {
+
+	// We check for the user's defined status code expectation.
+	// Otherwise we'll default to checking for a non-500.
+	if expectedStatusCode > 0 && resp.StatusCode == expectedStatusCode {
+		return true, resp.StatusCode, nil
+	} else if resp.StatusCode < http.StatusInternalServerError {
 		return true, resp.StatusCode, nil
 	}
 	return false, resp.StatusCode, nil
