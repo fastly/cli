@@ -175,7 +175,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	serviceURL := fmt.Sprintf("https://%s", domain)
 
-	if !c.StatusCheckOff {
+	if !c.StatusCheckOff && newService {
 		var status int
 		if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
 			if re, ok := err.(fsterr.RemediationError); ok {
