@@ -1,5 +1,16 @@
 # Changelog
 
+## [v8.1.0](https://github.com/fastly/cli/releases/tag/v8.1.0) (2023-03-17)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v8.0.1...v8.1.0)
+
+**Enhancements:**
+
+* fix various lint and CI issues [#873](https://github.com/fastly/cli/pull/873)
+* feat(config-store): Add Config Store commands [#829](https://github.com/fastly/cli/pull/829)
+* fix(compute/deploy): service availability [#875](https://github.com/fastly/cli/pull/875)
+* fix(compute/deploy): check status code range [#876](https://github.com/fastly/cli/pull/876)
+
 ## [v8.0.1](https://github.com/fastly/cli/releases/tag/v8.0.1) (2023-03-15)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v8.0.0...v8.0.1)
