@@ -186,10 +186,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// Because the service availability can return an error (which we ignore),
 		// then we need to check for the 'no error' scenarios.
 		if err == nil {
-			if c.StatusCheckCode > 0 && status != c.StatusCheckCode {
+			if validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode {
 				// If the user set a specific status code expectation...
 				text.Warning(out, "The service path `%s` responded with a status code (%d) that didn't match what was expected (%d).", c.StatusCheckPath, status, c.StatusCheckCode)
-			} else if c.StatusCheckCode == 0 && status >= http.StatusBadRequest {
+			} else if !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest {
 				// If no status code was specified, and the actual status response was an error...
 				text.Info(out, "The service path `%s` responded with a non-successful status code (%d). Please check your application code if this is an unexpected response.", c.StatusCheckPath, status)
 			}
@@ -202,6 +202,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
+}
+
+func validStatusCodeRange(status int) bool {
+	if status >= 100 && status <= 999 {
+		return true
+	}
+	return false
 }
 
 // setupDeploy prepares the environment.
@@ -1177,7 +1184,7 @@ func checkingServiceAvailability(
 	spinner.Message(msg + generateTimeout(time.Until(end)))
 
 	expected := "non-500 status code"
-	if c.StatusCheckCode > 0 {
+	if validStatusCodeRange(c.StatusCheckCode) {
 		expected = fmt.Sprintf("%d status code", c.StatusCheckCode)
 	}
 
@@ -1251,7 +1258,7 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatus
 
 	// We check for the user's defined status code expectation.
 	// Otherwise we'll default to checking for a non-500.
-	if expectedStatusCode > 0 && resp.StatusCode == expectedStatusCode {
+	if validStatusCodeRange(expectedStatusCode) && resp.StatusCode == expectedStatusCode {
 		return true, resp.StatusCode, nil
 	} else if resp.StatusCode < http.StatusInternalServerError {
 		return true, resp.StatusCode, nil
