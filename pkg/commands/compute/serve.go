@@ -245,13 +245,6 @@ func GetViceroy(
 
 	bin = filepath.Join(InstallDir, av.BinaryName())
 
-	defer func() {
-		if g.Verbose() {
-			text.Info(out, "Using Viceroy from: %s", bin)
-			text.Break(out)
-		}
-	}()
-
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
 	// but also we actually install Viceroy in the same location as the
@@ -589,9 +582,14 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 
 	if verbose {
 		text.Break(out)
-		text.Output(out, "Wasm file: %s", file)
-		text.Output(out, "Manifest: %s", manifestPath)
+		text.Output(out, "%s: %s", text.BoldYellow("Manifest"), manifestPath)
+		text.Output(out, "%s: %s", text.BoldYellow("Wasm binary"), file)
+		text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy binary"), bin)
 		args = append(args, "-v")
+	} else {
+		// IMPORTANT: Viceroy 0.4.0 changed its INFO log output behind a -v flag.
+		// We display the address unless in verbose mode to avoid duplicate output.
+		text.Info(out, "Listening on http://%s", addr)
 	}
 
 	s := &fstexec.Streaming{
