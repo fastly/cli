@@ -45,8 +45,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.comment.WasSet {
 		input.Comment = &c.comment.Value
 	}
-	if c.comment.WasSet {
-		input.Type = &c.comment.Value
+	if c.stype.WasSet {
+		input.Type = &c.stype.Value
 	}
 	s, err := c.Globals.APIClient.CreateService(&input)
 	if err != nil {
