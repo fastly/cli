@@ -1,5 +1,14 @@
 # Changelog
 
+## [v8.1.1](https://github.com/fastly/cli/releases/tag/v8.1.1) (2023-03-20)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v8.1.0...v8.1.1)
+
+**Bug fixes:**
+
+* Pass verbosity flag along to viceroy binary [#878](https://github.com/fastly/cli/pull/878)
+* fix(compute/serve): always display local server address [#879](https://github.com/fastly/cli/pull/879)
+
 ## [v8.1.0](https://github.com/fastly/cli/releases/tag/v8.1.0) (2023-03-17)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v8.0.1...v8.1.0)
