@@ -1,5 +1,13 @@
 # Changelog
 
+## [v8.1.2](https://github.com/fastly/cli/releases/tag/v8.1.2) (2023-03-21)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v8.1.1...v8.1.2)
+
+**Bug fixes:**
+
+* fix(service/create): input.Type assigned wrong value [#881](https://github.com/fastly/cli/pull/881)
+
 ## [v8.1.1](https://github.com/fastly/cli/releases/tag/v8.1.1) (2023-03-20)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v8.1.0...v8.1.1)
