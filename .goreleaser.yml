@@ -41,6 +41,10 @@ builds:
     id: windows
     goos: [windows]
     goarch: ["386", amd64, arm64]
+    hooks: # https://goreleaser.com/customization/builds/#build-hooks
+      post:
+        - osslsigncode sign -certs ./certkey/spc.pem -key ./certkey/private_key.pem -n "fastly-cli" -i "https://github.com/fastly/cli" -verbose -in "{{ .Path }}" -out "{{ .Path }}-signed"
+        - mv "{{ .Path }}-signed" "{{ .Path }}"
   - <<: *build_defaults
     env:
       - CGO_ENABLED=0
