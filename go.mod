@@ -29,7 +29,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v7 v7.5.0
+	github.com/fastly/go-fastly/v7 v7.5.1
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.9.0

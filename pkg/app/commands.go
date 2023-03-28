@@ -47,6 +47,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
+	"github.com/fastly/cli/pkg/commands/ratelimit"
 	"github.com/fastly/cli/pkg/commands/resourcelink"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
@@ -327,6 +328,12 @@ func defineCommands(
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, g)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
 	purgeCmdRoot := purge.NewRootCommand(app, g, m)
+	rateLimitCmdRoot := ratelimit.NewRootCommand(app, g)
+	rateLimitCreate := ratelimit.NewCreateCommand(rateLimitCmdRoot.CmdClause, g, m)
+	rateLimitDelete := ratelimit.NewDeleteCommand(rateLimitCmdRoot.CmdClause, g, m)
+	rateLimitDescribe := ratelimit.NewDescribeCommand(rateLimitCmdRoot.CmdClause, g, m)
+	rateLimitList := ratelimit.NewListCommand(rateLimitCmdRoot.CmdClause, g, m)
+	rateLimitUpdate := ratelimit.NewUpdateCommand(rateLimitCmdRoot.CmdClause, g, m)
 	resourcelinkCmdRoot := resourcelink.NewRootCommand(app, g)
 	resourcelinkCreate := resourcelink.NewCreateCommand(resourcelinkCmdRoot.CmdClause, g, m)
 	resourcelinkDelete := resourcelink.NewDeleteCommand(resourcelinkCmdRoot.CmdClause, g, m)
@@ -670,6 +677,12 @@ func defineCommands(
 		profileToken,
 		profileUpdate,
 		purgeCmdRoot,
+		rateLimitCmdRoot,
+		rateLimitCreate,
+		rateLimitDelete,
+		rateLimitDescribe,
+		rateLimitList,
+		rateLimitUpdate,
 		resourcelinkCmdRoot,
 		resourcelinkCreate,
 		resourcelinkDelete,
