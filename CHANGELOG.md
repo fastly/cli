@@ -1,5 +1,13 @@
 # Changelog
 
+## [v8.2.0](https://github.com/fastly/cli/releases/tag/v8.2.0) (2023-03-28)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v8.1.2...v8.2.0)
+
+**Enhancements:**
+
+* feat(ratelimit): implement rate-limiter API [#886](https://github.com/fastly/cli/pull/886)
+
 ## [v8.1.2](https://github.com/fastly/cli/releases/tag/v8.1.2) (2023-03-21)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v8.1.1...v8.1.2)
