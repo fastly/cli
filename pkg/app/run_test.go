@@ -77,6 +77,7 @@ object-store-entry
 pops
 profile
 purge
+rate-limit
 resource-link
 secret-store
 secret-store-entry

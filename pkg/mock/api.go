@@ -360,6 +360,12 @@ type API struct {
 	GetResourceFn    func(i *fastly.GetResourceInput) (*fastly.Resource, error)
 	ListResourcesFn  func(i *fastly.ListResourcesInput) ([]*fastly.Resource, error)
 	UpdateResourceFn func(i *fastly.UpdateResourceInput) (*fastly.Resource, error)
+
+	CreateERLFn func(i *fastly.CreateERLInput) (*fastly.ERL, error)
+	DeleteERLFn func(i *fastly.DeleteERLInput) error
+	GetERLFn    func(i *fastly.GetERLInput) (*fastly.ERL, error)
+	ListERLsFn  func(i *fastly.ListERLsInput) ([]*fastly.ERL, error)
+	UpdateERLFn func(i *fastly.UpdateERLInput) (*fastly.ERL, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1825,4 +1831,29 @@ func (m API) ListResources(i *fastly.ListResourcesInput) ([]*fastly.Resource, er
 // UpdateResource implements Interface.
 func (m API) UpdateResource(i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
 	return m.UpdateResourceFn(i)
+}
+
+// CreateERL implements Interface.
+func (m API) CreateERL(i *fastly.CreateERLInput) (*fastly.ERL, error) {
+	return m.CreateERLFn(i)
+}
+
+// DeleteERL implements Interface.
+func (m API) DeleteERL(i *fastly.DeleteERLInput) error {
+	return m.DeleteERLFn(i)
+}
+
+// GetERL implements Interface.
+func (m API) GetERL(i *fastly.GetERLInput) (*fastly.ERL, error) {
+	return m.GetERLFn(i)
+}
+
+// ListERLs implements Interface.
+func (m API) ListERLs(i *fastly.ListERLsInput) ([]*fastly.ERL, error) {
+	return m.ListERLsFn(i)
+}
+
+// UpdateERL implements Interface.
+func (m API) UpdateERL(i *fastly.UpdateERLInput) (*fastly.ERL, error) {
+	return m.UpdateERLFn(i)
 }
