@@ -101,6 +101,7 @@ semgrep:
 	if command -v semgrep &> /dev/null; then semgrep ci --config auto --exclude-rule go.lang.security.audit.xss.import-text-template.import-text-template $(SEMGREP_ARGS); fi
 
 # Run third-party static analysis.
+# To ignore lines use: //lint:ignore <CODE> <REASON>
 .PHONY: staticcheck
 staticcheck:
 	staticcheck ./{cmd,pkg}/...
