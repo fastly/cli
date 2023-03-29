@@ -4,13 +4,13 @@ config_version = 2
 api_endpoint = "https://api.fastly.com"
 
 [language]
-  [language.go]
-    tinygo_constraint = ">= 0.24.0-0" # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).
-    toolchain_constraint = ">= 1.17"
+[language.go]
+tinygo_constraint = ">= 0.26.0-0" # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).
+toolchain_constraint = ">= 1.17"
 
-  [language.rust]
-  toolchain_constraint = ">= 1.56.1"
-  wasm_wasi_target = "wasm32-wasi"
+[language.rust]
+toolchain_constraint = ">= 1.56.1"
+wasm_wasi_target = "wasm32-wasi"
 
 [viceroy]
 ttl = "24h"
