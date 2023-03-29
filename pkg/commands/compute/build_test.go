@@ -254,7 +254,7 @@ func TestBuildGo(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Go: config.Go{
-						TinyGoConstraint:    ">= 0.24.0-0",
+						TinyGoConstraint:    ">= 0.26.0-0",
 						ToolchainConstraint: ">= 1.17",
 					},
 				},
@@ -275,7 +275,7 @@ func TestBuildGo(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Go: config.Go{
-						TinyGoConstraint:    ">= 0.24.0-0",
+						TinyGoConstraint:    ">= 0.26.0-0",
 						ToolchainConstraint: ">= 1.17",
 					},
 				},
@@ -296,7 +296,7 @@ func TestBuildGo(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Go: config.Go{
-						TinyGoConstraint:    ">= 0.24.0-0",
+						TinyGoConstraint:    ">= 0.26.0-0",
 						ToolchainConstraint: ">= 1.17",
 					},
 				},
