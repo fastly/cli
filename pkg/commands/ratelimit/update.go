@@ -107,7 +107,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 
 	// NOTE: rateLimitActions is defined in ./create.go
 	if c.action != "" {
-		for _, a := range rateLimitActions {
+		for _, a := range fastly.ERLActions {
 			if c.action == string(a) {
 				input.Action = fastly.ERLActionPtr(a)
 				break
@@ -127,7 +127,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 
 	// NOTE: rateLimitLoggers is defined in ./create.go
 	if c.loggerType != "" {
-		for _, l := range rateLimitLoggers {
+		for _, l := range fastly.ERLLoggers {
 			if c.loggerType == string(l) {
 				input.LoggerType = fastly.ERLLoggerPtr(l)
 				break
@@ -157,7 +157,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 
 	// NOTE: rateLimitWindowSizes is defined in ./create.go
 	if c.windowSize != "" {
-		for _, w := range rateLimitWindowSizes {
+		for _, w := range fastly.ERLWindowSizes {
 			if c.windowSize == fmt.Sprint(w) {
 				input.WindowSize = fastly.ERLWindowSizePtr(w)
 				break

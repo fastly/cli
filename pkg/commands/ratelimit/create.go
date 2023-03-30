@@ -15,87 +15,28 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// rateLimitActions is a list of supported actions.
-// It is used to construct the API input.
-// It is also used to construct input for the --action enum flag.
-// We build the flag input dynamically so we can avoid hardcoding the values.
-// This is in case the underlying values in go-fastly change between releases.
-var rateLimitActions = []fastly.ERLAction{
-	fastly.ERLActionLogOnly,
-	fastly.ERLActionResponse,
-	fastly.ERLActionResponseObject,
-}
-
 // rateLimitActionFlagOpts is a string representation of rateLimitActions
 // suitable for use within the enum flag definition below.
 var rateLimitActionFlagOpts = func() (actions []string) {
-	for _, a := range rateLimitActions {
+	for _, a := range fastly.ERLActions {
 		actions = append(actions, string(a))
 	}
 	return actions
 }()
 
-// rateLimitLoggers is a list of supported logger types.
-// It is used to construct the API input.
-// It is also used to construct input for the --logger-type enum flag.
-// We build the flag input dynamically so we can avoid hardcoding the values.
-// This is in case the underlying values in go-fastly change between releases.
-var rateLimitLoggers = []fastly.ERLLogger{
-	fastly.ERLLogAzureBlob,
-	fastly.ERLLogBigQuery,
-	fastly.ERLLogCloudFiles,
-	fastly.ERLLogDataDog,
-	fastly.ERLLogDigitalOcean,
-	fastly.ERLLogElasticSearch,
-	fastly.ERLLogFtp,
-	fastly.ERLLogGcs,
-	fastly.ERLLogGoogleAnalytics,
-	fastly.ERLLogHeroku,
-	fastly.ERLLogHoneycomb,
-	fastly.ERLLogHTTP,
-	fastly.ERLLogHTTPS,
-	fastly.ERLLogKafta,
-	fastly.ERLLogKinesis,
-	fastly.ERLLogLogEntries,
-	fastly.ERLLogLoggly,
-	fastly.ERLLogLogShuttle,
-	fastly.ERLLogNewRelic,
-	fastly.ERLLogOpenStack,
-	fastly.ERLLogPaperTrail,
-	fastly.ERLLogPubSub,
-	fastly.ERLLogS3,
-	fastly.ERLLogScalyr,
-	fastly.ERLLogSftp,
-	fastly.ERLLogSplunk,
-	fastly.ERLLogStackDriver,
-	fastly.ERLLogSumoLogic,
-	fastly.ERLLogSysLog,
-}
-
 // rateLimitLoggerFlagOpts is a string representation of rateLimitLoggers
 // suitable for use within the enum flag definition below.
 var rateLimitLoggerFlagOpts = func() (loggers []string) {
-	for _, l := range rateLimitLoggers {
+	for _, l := range fastly.ERLLoggers {
 		loggers = append(loggers, string(l))
 	}
 	return loggers
 }()
 
-// rateLimitWindowSizes is a list of supported time window sizes.
-// It is used to construct the API input.
-// It is also used to construct input for the --window-size enum flag.
-// We build the flag input dynamically so we can avoid hardcoding the values.
-// This is in case the underlying values in go-fastly change between releases.
-var rateLimitWindowSizes = []fastly.ERLWindowSize{
-	fastly.ERLSize1,
-	fastly.ERLSize10,
-	fastly.ERLSize60,
-}
-
 // rateLimitWindowSizeFlagOpts is a string representation of rateLimitWindowSizes
 // suitable for use within the enum flag definition below.
 var rateLimitWindowSizeFlagOpts = func() (windowSizes []string) {
-	for _, w := range rateLimitWindowSizes {
+	for _, w := range fastly.ERLWindowSizes {
 		windowSizes = append(windowSizes, fmt.Sprint(w))
 	}
 	return windowSizes
@@ -236,7 +177,7 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 	var input fastly.CreateERLInput
 
 	if c.action != "" {
-		for _, a := range rateLimitActions {
+		for _, a := range fastly.ERLActions {
 			if c.action == string(a) {
 				input.Action = fastly.ERLActionPtr(a)
 				break
@@ -255,7 +196,7 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 	}
 
 	if c.loggerType != "" {
-		for _, l := range rateLimitLoggers {
+		for _, l := range fastly.ERLLoggers {
 			if c.loggerType == string(l) {
 				input.LoggerType = fastly.ERLLoggerPtr(l)
 				break
@@ -284,7 +225,7 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 	}
 
 	if c.windowSize != "" {
-		for _, w := range rateLimitWindowSizes {
+		for _, w := range fastly.ERLWindowSizes {
 			if c.windowSize == fmt.Sprint(w) {
 				input.WindowSize = fastly.ERLWindowSizePtr(w)
 				break
