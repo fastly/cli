@@ -68,6 +68,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("client-key", "Comma-separated list of VCL variable used to generate a counter key to identify a client").StringVar(&c.clientKeys)
+	c.CmdClause.Flag("feature-revision", "Revision number of the rate limiting feature implementation").IntVar(&c.featRevision)
 	c.CmdClause.Flag("http-methods", "Comma-separated list of HTTP methods to apply rate limiting to").StringVar(&c.httpMethods)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("logger-type", "Name of the type of logging endpoint to be used when action is `log_only`").HintOptions(rateLimitLoggerFlagOpts...).EnumVar(&c.loggerType, rateLimitLoggerFlagOpts...)
@@ -75,6 +76,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("penalty-box-dur", "Length of time in minutes that the rate limiter is in effect after the initial violation is detected").IntVar(&c.penaltyDuration)
 	c.CmdClause.Flag("response-content", "HTTP response body data").StringVar(&c.responseContent)
 	c.CmdClause.Flag("response-content-type", "HTTP Content-Type (e.g. application/json)").StringVar(&c.responseContentType)
+	c.CmdClause.Flag("response-object-name", "Name of existing response object. Required if action is response_object").StringVar(&c.responseObjectName)
 	c.CmdClause.Flag("response-status", "HTTP response status code (e.g. 429)").IntVar(&c.responseStatus)
 	c.CmdClause.Flag("rps-limit", "Upper limit of requests per second allowed by the rate limiter").IntVar(&c.rpsLimit)
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -102,6 +104,7 @@ type CreateCommand struct {
 	action              string
 	autoClone           cmd.OptionalAutoClone
 	clientKeys          string
+	featRevision        int
 	httpMethods         string
 	loggerType          string
 	manifest            manifest.Data
@@ -109,6 +112,7 @@ type CreateCommand struct {
 	penaltyDuration     int
 	responseContent     string
 	responseContentType string
+	responseObjectName  string
 	responseStatus      int
 	rpsLimit            int
 	serviceName         cmd.OptionalServiceNameID
@@ -190,6 +194,10 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 		input.ClientKey = &clientKeys
 	}
 
+	if c.featRevision > 0 {
+		input.FeatureRevision = fastly.Int(c.featRevision)
+	}
+
 	if c.httpMethods != "" {
 		httpMethods := strings.Split(strings.ReplaceAll(c.httpMethods, " ", ""), ",")
 		input.HTTPMethods = &httpMethods
@@ -218,6 +226,10 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 			ERLContentType: c.responseContentType,
 			ERLStatus:      c.responseStatus,
 		}
+	}
+
+	if c.responseObjectName != "" {
+		input.ResponseObjectName = fastly.String(c.responseObjectName)
 	}
 
 	if c.rpsLimit > 0 {
