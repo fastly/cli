@@ -32,6 +32,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	// Optional.
 	c.CmdClause.Flag("action", "The action to take when a rate limiter violation is detected").HintOptions(rateLimitActionFlagOpts...).EnumVar(&c.action, rateLimitActionFlagOpts...)
 	c.CmdClause.Flag("client-key", "Comma-separated list of VCL variable used to generate a counter key to identify a client").StringVar(&c.clientKeys)
+	c.CmdClause.Flag("feature-revision", "Revision number of the rate limiting feature implementation").IntVar(&c.featRevision)
 	c.CmdClause.Flag("http-methods", "Comma-separated list of HTTP methods to apply rate limiting to").StringVar(&c.httpMethods)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("logger-type", "Name of the type of logging endpoint to be used when action is `log_only`").HintOptions(rateLimitLoggerFlagOpts...).EnumVar(&c.loggerType, rateLimitLoggerFlagOpts...)
@@ -39,6 +40,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	c.CmdClause.Flag("penalty-box-dur", "Length of time in minutes that the rate limiter is in effect after the initial violation is detected").IntVar(&c.penaltyDuration)
 	c.CmdClause.Flag("response-content", "HTTP response body data").StringVar(&c.responseContent)
 	c.CmdClause.Flag("response-content-type", "HTTP Content-Type (e.g. application/json)").StringVar(&c.responseContentType)
+	c.CmdClause.Flag("response-object-name", "Name of existing response object. Required if action is response_object").StringVar(&c.responseObjectName)
 	c.CmdClause.Flag("response-status", "HTTP response status code (e.g. 429)").IntVar(&c.responseStatus)
 	c.CmdClause.Flag("rps-limit", "Upper limit of requests per second allowed by the rate limiter").IntVar(&c.rpsLimit)
 	c.CmdClause.Flag("window-size", "Number of seconds during which the RPS limit must be exceeded in order to trigger a violation").HintOptions(rateLimitWindowSizeFlagOpts...).EnumVar(&c.windowSize, rateLimitWindowSizeFlagOpts...)
@@ -53,6 +55,7 @@ type UpdateCommand struct {
 
 	action              string
 	clientKeys          string
+	featRevision        int
 	httpMethods         string
 	id                  string
 	loggerType          string
@@ -61,6 +64,7 @@ type UpdateCommand struct {
 	penaltyDuration     int
 	responseContent     string
 	responseContentType string
+	responseObjectName  string
 	responseStatus      int
 	rpsLimit            int
 	windowSize          string
@@ -107,7 +111,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 
 	// NOTE: rateLimitActions is defined in ./create.go
 	if c.action != "" {
-		for _, a := range rateLimitActions {
+		for _, a := range fastly.ERLActions {
 			if c.action == string(a) {
 				input.Action = fastly.ERLActionPtr(a)
 				break
@@ -120,6 +124,10 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 		input.ClientKey = &clientKeys
 	}
 
+	if c.featRevision > 0 {
+		input.FeatureRevision = fastly.Int(c.featRevision)
+	}
+
 	if c.httpMethods != "" {
 		httpMethods := strings.Split(strings.ReplaceAll(c.httpMethods, " ", ""), ",")
 		input.HTTPMethods = &httpMethods
@@ -127,7 +135,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 
 	// NOTE: rateLimitLoggers is defined in ./create.go
 	if c.loggerType != "" {
-		for _, l := range rateLimitLoggers {
+		for _, l := range fastly.ERLLoggers {
 			if c.loggerType == string(l) {
 				input.LoggerType = fastly.ERLLoggerPtr(l)
 				break
@@ -151,13 +159,17 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 		}
 	}
 
+	if c.responseObjectName != "" {
+		input.ResponseObjectName = fastly.String(c.responseObjectName)
+	}
+
 	if c.rpsLimit > 0 {
 		input.RpsLimit = fastly.Int(c.rpsLimit)
 	}
 
 	// NOTE: rateLimitWindowSizes is defined in ./create.go
 	if c.windowSize != "" {
-		for _, w := range rateLimitWindowSizes {
+		for _, w := range fastly.ERLWindowSizes {
 			if c.windowSize == fmt.Sprint(w) {
 				input.WindowSize = fastly.ERLWindowSizePtr(w)
 				break

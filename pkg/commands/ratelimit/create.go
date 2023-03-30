@@ -15,87 +15,28 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// rateLimitActions is a list of supported actions.
-// It is used to construct the API input.
-// It is also used to construct input for the --action enum flag.
-// We build the flag input dynamically so we can avoid hardcoding the values.
-// This is in case the underlying values in go-fastly change between releases.
-var rateLimitActions = []fastly.ERLAction{
-	fastly.ERLActionLogOnly,
-	fastly.ERLActionResponse,
-	fastly.ERLActionResponseObject,
-}
-
 // rateLimitActionFlagOpts is a string representation of rateLimitActions
 // suitable for use within the enum flag definition below.
 var rateLimitActionFlagOpts = func() (actions []string) {
-	for _, a := range rateLimitActions {
+	for _, a := range fastly.ERLActions {
 		actions = append(actions, string(a))
 	}
 	return actions
 }()
 
-// rateLimitLoggers is a list of supported logger types.
-// It is used to construct the API input.
-// It is also used to construct input for the --logger-type enum flag.
-// We build the flag input dynamically so we can avoid hardcoding the values.
-// This is in case the underlying values in go-fastly change between releases.
-var rateLimitLoggers = []fastly.ERLLogger{
-	fastly.ERLLogAzureBlob,
-	fastly.ERLLogBigQuery,
-	fastly.ERLLogCloudFiles,
-	fastly.ERLLogDataDog,
-	fastly.ERLLogDigitalOcean,
-	fastly.ERLLogElasticSearch,
-	fastly.ERLLogFtp,
-	fastly.ERLLogGcs,
-	fastly.ERLLogGoogleAnalytics,
-	fastly.ERLLogHeroku,
-	fastly.ERLLogHoneycomb,
-	fastly.ERLLogHTTP,
-	fastly.ERLLogHTTPS,
-	fastly.ERLLogKafta,
-	fastly.ERLLogKinesis,
-	fastly.ERLLogLogEntries,
-	fastly.ERLLogLoggly,
-	fastly.ERLLogLogShuttle,
-	fastly.ERLLogNewRelic,
-	fastly.ERLLogOpenStack,
-	fastly.ERLLogPaperTrail,
-	fastly.ERLLogPubSub,
-	fastly.ERLLogS3,
-	fastly.ERLLogScalyr,
-	fastly.ERLLogSftp,
-	fastly.ERLLogSplunk,
-	fastly.ERLLogStackDriver,
-	fastly.ERLLogSumoLogic,
-	fastly.ERLLogSysLog,
-}
-
 // rateLimitLoggerFlagOpts is a string representation of rateLimitLoggers
 // suitable for use within the enum flag definition below.
 var rateLimitLoggerFlagOpts = func() (loggers []string) {
-	for _, l := range rateLimitLoggers {
+	for _, l := range fastly.ERLLoggers {
 		loggers = append(loggers, string(l))
 	}
 	return loggers
 }()
 
-// rateLimitWindowSizes is a list of supported time window sizes.
-// It is used to construct the API input.
-// It is also used to construct input for the --window-size enum flag.
-// We build the flag input dynamically so we can avoid hardcoding the values.
-// This is in case the underlying values in go-fastly change between releases.
-var rateLimitWindowSizes = []fastly.ERLWindowSize{
-	fastly.ERLSize1,
-	fastly.ERLSize10,
-	fastly.ERLSize60,
-}
-
 // rateLimitWindowSizeFlagOpts is a string representation of rateLimitWindowSizes
 // suitable for use within the enum flag definition below.
 var rateLimitWindowSizeFlagOpts = func() (windowSizes []string) {
-	for _, w := range rateLimitWindowSizes {
+	for _, w := range fastly.ERLWindowSizes {
 		windowSizes = append(windowSizes, fmt.Sprint(w))
 	}
 	return windowSizes
@@ -127,6 +68,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Dst:    &c.autoClone.Value,
 	})
 	c.CmdClause.Flag("client-key", "Comma-separated list of VCL variable used to generate a counter key to identify a client").StringVar(&c.clientKeys)
+	c.CmdClause.Flag("feature-revision", "Revision number of the rate limiting feature implementation").IntVar(&c.featRevision)
 	c.CmdClause.Flag("http-methods", "Comma-separated list of HTTP methods to apply rate limiting to").StringVar(&c.httpMethods)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("logger-type", "Name of the type of logging endpoint to be used when action is `log_only`").HintOptions(rateLimitLoggerFlagOpts...).EnumVar(&c.loggerType, rateLimitLoggerFlagOpts...)
@@ -134,6 +76,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("penalty-box-dur", "Length of time in minutes that the rate limiter is in effect after the initial violation is detected").IntVar(&c.penaltyDuration)
 	c.CmdClause.Flag("response-content", "HTTP response body data").StringVar(&c.responseContent)
 	c.CmdClause.Flag("response-content-type", "HTTP Content-Type (e.g. application/json)").StringVar(&c.responseContentType)
+	c.CmdClause.Flag("response-object-name", "Name of existing response object. Required if action is response_object").StringVar(&c.responseObjectName)
 	c.CmdClause.Flag("response-status", "HTTP response status code (e.g. 429)").IntVar(&c.responseStatus)
 	c.CmdClause.Flag("rps-limit", "Upper limit of requests per second allowed by the rate limiter").IntVar(&c.rpsLimit)
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -161,6 +104,7 @@ type CreateCommand struct {
 	action              string
 	autoClone           cmd.OptionalAutoClone
 	clientKeys          string
+	featRevision        int
 	httpMethods         string
 	loggerType          string
 	manifest            manifest.Data
@@ -168,6 +112,7 @@ type CreateCommand struct {
 	penaltyDuration     int
 	responseContent     string
 	responseContentType string
+	responseObjectName  string
 	responseStatus      int
 	rpsLimit            int
 	serviceName         cmd.OptionalServiceNameID
@@ -236,7 +181,7 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 	var input fastly.CreateERLInput
 
 	if c.action != "" {
-		for _, a := range rateLimitActions {
+		for _, a := range fastly.ERLActions {
 			if c.action == string(a) {
 				input.Action = fastly.ERLActionPtr(a)
 				break
@@ -249,13 +194,17 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 		input.ClientKey = &clientKeys
 	}
 
+	if c.featRevision > 0 {
+		input.FeatureRevision = fastly.Int(c.featRevision)
+	}
+
 	if c.httpMethods != "" {
 		httpMethods := strings.Split(strings.ReplaceAll(c.httpMethods, " ", ""), ",")
 		input.HTTPMethods = &httpMethods
 	}
 
 	if c.loggerType != "" {
-		for _, l := range rateLimitLoggers {
+		for _, l := range fastly.ERLLoggers {
 			if c.loggerType == string(l) {
 				input.LoggerType = fastly.ERLLoggerPtr(l)
 				break
@@ -279,12 +228,16 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 		}
 	}
 
+	if c.responseObjectName != "" {
+		input.ResponseObjectName = fastly.String(c.responseObjectName)
+	}
+
 	if c.rpsLimit > 0 {
 		input.RpsLimit = fastly.Int(c.rpsLimit)
 	}
 
 	if c.windowSize != "" {
-		for _, w := range rateLimitWindowSizes {
+		for _, w := range fastly.ERLWindowSizes {
 			if c.windowSize == fmt.Sprint(w) {
 				input.WindowSize = fastly.ERLWindowSizePtr(w)
 				break
