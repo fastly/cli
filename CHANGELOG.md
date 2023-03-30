@@ -1,5 +1,17 @@
 # Changelog
 
+## [v8.2.1](https://github.com/fastly/cli/releases/tag/v8.2.1) (2023-03-30)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v8.2.0...v8.2.1)
+
+**Dependencies:**
+
+* build(deps): bump tinygo baseline version [#888](https://github.com/fastly/cli/pull/888)
+
+**Bug fixes:**
+
+* fix(toolchain): bump go version to align with updated tinygo constraint [#889](https://github.com/fastly/cli/pull/889)
+
 ## [v8.2.0](https://github.com/fastly/cli/releases/tag/v8.2.0) (2023-03-28)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v8.1.2...v8.2.0)
