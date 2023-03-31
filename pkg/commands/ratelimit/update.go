@@ -43,6 +43,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	c.CmdClause.Flag("response-object-name", "Name of existing response object. Required if action is response_object").StringVar(&c.responseObjectName)
 	c.CmdClause.Flag("response-status", "HTTP response status code (e.g. 429)").IntVar(&c.responseStatus)
 	c.CmdClause.Flag("rps-limit", "Upper limit of requests per second allowed by the rate limiter").IntVar(&c.rpsLimit)
+	c.CmdClause.Flag("uri-dict-name", "The name of an Edge Dictionary containing URIs as keys").StringVar(&c.uriDictName)
 	c.CmdClause.Flag("window-size", "Number of seconds during which the RPS limit must be exceeded in order to trigger a violation").HintOptions(rateLimitWindowSizeFlagOpts...).EnumVar(&c.windowSize, rateLimitWindowSizeFlagOpts...)
 
 	return &c
@@ -67,6 +68,7 @@ type UpdateCommand struct {
 	responseObjectName  string
 	responseStatus      int
 	rpsLimit            int
+	uriDictName         string
 	windowSize          string
 }
 
@@ -165,6 +167,10 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 
 	if c.rpsLimit > 0 {
 		input.RpsLimit = fastly.Int(c.rpsLimit)
+	}
+
+	if c.uriDictName != "" {
+		input.URIDictionaryName = fastly.String(c.uriDictName)
 	}
 
 	// NOTE: rateLimitWindowSizes is defined in ./create.go
