@@ -91,6 +91,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Description: cmd.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
+	c.CmdClause.Flag("uri-dict-name", "The name of an Edge Dictionary containing URIs as keys").StringVar(&c.uriDictName)
 	c.CmdClause.Flag("window-size", "Number of seconds during which the RPS limit must be exceeded in order to trigger a violation").HintOptions(rateLimitWindowSizeFlagOpts...).EnumVar(&c.windowSize, rateLimitWindowSizeFlagOpts...)
 
 	return &c
@@ -117,6 +118,7 @@ type CreateCommand struct {
 	rpsLimit            int
 	serviceName         cmd.OptionalServiceNameID
 	serviceVersion      cmd.OptionalServiceVersion
+	uriDictName         string
 	windowSize          string
 }
 
@@ -234,6 +236,10 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 
 	if c.rpsLimit > 0 {
 		input.RpsLimit = fastly.Int(c.rpsLimit)
+	}
+
+	if c.uriDictName != "" {
+		input.URIDictionaryName = fastly.String(c.uriDictName)
 	}
 
 	if c.windowSize != "" {
