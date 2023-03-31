@@ -1,5 +1,14 @@
 # Changelog
 
+## [v8.2.2](https://github.com/fastly/cli/releases/tag/v8.2.2) (2023-03-31)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v8.2.1...v8.2.2)
+
+**Enhancements:**
+
+* feat(ratelimit): add missing properties [#891](https://github.com/fastly/cli/pull/891)
+* feat(ratelimiter): add uri-dict-name flag [#892](https://github.com/fastly/cli/pull/892)
+
 ## [v8.2.1](https://github.com/fastly/cli/releases/tag/v8.2.1) (2023-03-30)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v8.2.0...v8.2.1)
