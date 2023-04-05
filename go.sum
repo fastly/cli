@@ -22,8 +22,8 @@ github.com/fastly/go-fastly/v7 v7.5.5 h1:M3ePbU6a8BTPZzjaPoU4+O+pQspiBalF5HgVNom
 github.com/fastly/go-fastly/v7 v7.5.5/go.mod h1:/Z2GD7NuxV3vVMAyrtckg1WvZVnCuM2Z8ok/z70XTEQ=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible h1:FhrXlfhgGCS+uc6YwyiFUt04alnjpoX7vgDKJxS6Qbk=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible/go.mod h1:U8UynVoU1SQaqD2I4ZqgYd5lx3A1ipQYn4aSt2Y5h6c=
-github.com/fatih/color v1.14.1 h1:qfhVLaG5s+nCROl1zJsZRxFeYrHLqWroPOQ8BWiNb4w=
-github.com/fatih/color v1.14.1/go.mod h1:2oHN61fhTpgcxD3TSWCgKDiH1+x4OiDVVGH8WlgGZGg=
+github.com/fatih/color v1.15.0 h1:kOqh6YHBtK8aywxGerMG2Eq3H6Qgoqeo13Bk2Mv/nBs=
+github.com/fatih/color v1.15.0/go.mod h1:0h5ZqXfHYED7Bhv2ZJamyIOUej9KtShiJESRwBDUSsw=
 github.com/frankban/quicktest v1.13.1 h1:xVm/f9seEhZFL9+n5kv5XLrGwy6elc4V9v/XFY2vmd8=
 github.com/frankban/quicktest v1.13.1/go.mod h1:NeW+ay9A/U67EYXNFA1nPE8e/tnQv/09mUdL/ijj8og=
 github.com/fsnotify/fsnotify v1.6.0 h1:n+5WquG0fcWoWp6xPWfHdbskMCQaFnG6PfBrh1Ky4HY=
