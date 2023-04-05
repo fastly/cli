@@ -13,7 +13,6 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v7/fastly"
@@ -69,19 +68,11 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 // tokenFlow initialises the token flow.
 func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, out io.Writer) error {
-	var err error
-
-	// If user provides a token (either by flag, environment variable or by
-	// manually editing the CLI configuration file), then don't prompt for input.
-	token, source := c.Globals.Token()
-	if source == lookup.SourceUndefined {
-		token, err = promptForToken(in, out, c.Globals.ErrLog)
-		if err != nil {
-			return err
-		}
-		text.Break(out)
-		text.Break(out)
+	token, err := promptForToken(in, out, c.Globals.ErrLog)
+	if err != nil {
+		return err
 	}
+	text.Break(out)
 
 	endpoint, _ := c.Globals.Endpoint()
 
@@ -266,6 +257,5 @@ func (c *CreateCommand) promptForDefault(in io.Reader, out io.Writer) (bool, err
 		c.Globals.ErrLog.Add(err)
 		return false, err
 	}
-	text.Break(out)
 	return cont, nil
 }
