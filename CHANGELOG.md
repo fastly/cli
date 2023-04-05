@@ -1,5 +1,19 @@
 # Changelog
 
+## [v8.2.3](https://github.com/fastly/cli/releases/tag/v8.2.3) (2023-04-05)
+
+[Full Changelog](https://github.com/fastly/cli/compare/v8.2.2...v8.2.3)
+
+**Enhancements:**
+
+* fix(profile): always prompt for token [#896](https://github.com/fastly/cli/pull/896)
+
+**Dependencies:**
+
+* build(deps): bump github.com/getsentry/sentry-go from 0.19.0 to 0.20.0 [#895](https://github.com/fastly/cli/pull/895)
+* build(deps): bump actions/setup-go from 3 to 4 [#882](https://github.com/fastly/cli/pull/882)
+* build(deps): bump github.com/fatih/color from 1.14.1 to 1.15.0 [#865](https://github.com/fastly/cli/pull/865)
+
 ## [v8.2.2](https://github.com/fastly/cli/releases/tag/v8.2.2) (2023-03-31)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v8.2.1...v8.2.2)

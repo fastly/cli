@@ -3,7 +3,7 @@
 1. Merge all PRs intended for the release.
 2. Rebase latest remote main branch locally (`git pull --rebase origin main`).
 3. Ensure all analysis checks and tests are passing (`time TEST_COMPUTE_INIT=1 TEST_COMPUTE_BUILD=1 TEST_COMPUTE_DEPLOY=1 make all`).
-4. Ensure goreleaser builds locally (`make fastly GORELEASER_ARGS="--skip-validate --clean"`).
+4. Ensure goreleaser builds locally (`make fastly GORELEASER_ARGS="--skip-validate --skip-post-hooks --clean"`).
 5. Open a new PR to update CHANGELOG ([example](https://github.com/fastly/cli/pull/273))<sup>[1](#note1)</sup>.
 6. Merge CHANGELOG.
 7. Rebase latest remote main branch locally (`git pull --rebase origin main`).
