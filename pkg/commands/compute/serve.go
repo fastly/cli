@@ -585,6 +585,12 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 		text.Output(out, "%s: %s", text.BoldYellow("Manifest"), manifestPath)
 		text.Output(out, "%s: %s", text.BoldYellow("Wasm binary"), file)
 		text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy binary"), bin)
+
+		cmd := exec.Command(bin, "--version")
+		if output, err := cmd.Output(); err == nil {
+			text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy version"), string(output))
+		}
+
 		args = append(args, "-v")
 	} else {
 		// IMPORTANT: Viceroy 0.4.0 changed its INFO log output behind a -v flag.
