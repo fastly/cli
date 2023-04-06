@@ -1,5 +1,11 @@
 # Changelog
 
+## [v8.2.4](https://github.com/fastly/cli/releases/tag/v8.2.4) (2023-04-06)
+
+**Enhancements:**
+
+* feat(compute/serve): support forcing a viceroy check [#898](https://github.com/fastly/cli/pull/898)
+
 ## [v8.2.3](https://github.com/fastly/cli/releases/tag/v8.2.3) (2023-04-05)
 
 [Full Changelog](https://github.com/fastly/cli/compare/v8.2.2...v8.2.3)
