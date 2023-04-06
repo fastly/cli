@@ -96,7 +96,8 @@ func TestGetViceroy(t *testing.T) {
 		t.Fatal(err)
 	}
 	viceroyBinPath := "" // --viceroy-path flag for overriding CLI handling the Viceroy checks/downloads.
-	_, err = compute.GetViceroy(spinner, &out, av, &g, viceroyBinPath)
+	viceroyCheck := false
+	_, err = compute.GetViceroy(spinner, &out, av, &g, viceroyBinPath, viceroyCheck)
 	if err != nil {
 		t.Fatal(err)
 	}
