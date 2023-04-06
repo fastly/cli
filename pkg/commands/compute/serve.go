@@ -53,6 +53,7 @@ type ServeCommand struct {
 	file           string
 	skipBuild      bool
 	viceroyBinPath string
+	viceroyCheck   bool
 	watch          bool
 	watchDir       cmd.OptionalString
 }
@@ -77,6 +78,7 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
+	c.CmdClause.Flag("viceroy-check", "Force the CLI to check for a newer version of the Viceroy binary").BoolVar(&c.viceroyCheck)
 	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.viceroyBinPath)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
 	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
@@ -111,7 +113,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	bin, err := GetViceroy(spinner, out, c.av, c.Globals, c.viceroyBinPath)
+	bin, err := GetViceroy(spinner, out, c.av, c.Globals, c.viceroyBinPath, c.viceroyCheck)
 	if err != nil {
 		return err
 	}
@@ -221,6 +223,7 @@ func GetViceroy(
 	av github.AssetVersioner,
 	g *global.Data,
 	viceroyBinPath string,
+	viceroyCheck bool,
 ) (bin string, err error) {
 	if viceroyBinPath != "" {
 		if g.Verbose() {
@@ -282,7 +285,7 @@ func GetViceroy(
 
 	// The latest_version value 0.0.0 means the property either has not been set
 	// or is now stale and needs to be refreshed.
-	if latest.String() == "0.0.0" {
+	if latest.String() == "0.0.0" || viceroyCheck {
 		err := spinner.Start()
 		if err != nil {
 			return bin, err
@@ -585,6 +588,17 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 		text.Output(out, "%s: %s", text.BoldYellow("Manifest"), manifestPath)
 		text.Output(out, "%s: %s", text.BoldYellow("Wasm binary"), file)
 		text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy binary"), bin)
+
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+		// Disabling as we trust the source of the variable.
+		// #nosec
+		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
+		cmd := exec.Command(bin, "--version")
+		if output, err := cmd.Output(); err == nil {
+			text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy version"), string(output))
+		}
+
 		args = append(args, "-v")
 	} else {
 		// IMPORTANT: Viceroy 0.4.0 changed its INFO log output behind a -v flag.
