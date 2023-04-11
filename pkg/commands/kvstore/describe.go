@@ -1,4 +1,4 @@
-package objectstore
+package kvstore
 
 import (
 	"encoding/json"
@@ -13,23 +13,24 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// ListCommand calls the Fastly API to list the available object stores.
-type ListCommand struct {
+// DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
+type DescribeCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.ListObjectStoresInput
+	Input    fastly.GetKVStoreInput
 }
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
-	c := ListCommand{
+// NewDescribeCommand returns a usable command registered under the parent.
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+	c := DescribeCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("list", "List object stores")
+	c.CmdClause = parent.Command("describe", "Describe an kv store").Alias("get")
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 
 	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
@@ -43,12 +44,12 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.ListObjectStores(&c.Input)
+	o, err := c.Globals.APIClient.GetKVStore(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -67,11 +68,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	for _, o := range o.Data {
-		// avoid gosec loop aliasing check :/
-		o := o
-		text.PrintObjectStore(out, "", &o)
-	}
-
+	text.PrintKVStore(out, "", o)
 	return nil
 }

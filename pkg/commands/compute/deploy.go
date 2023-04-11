@@ -126,7 +126,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	domains, backends, dictionaries, loggers, objectStores, err := constructSetupObjects(
+	domains, backends, dictionaries, loggers, kvStores, err := constructSetupKVs(
 		newService, serviceID, serviceVersion.Number, c, in, out,
 	)
 	if err != nil {
@@ -134,7 +134,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if err := processSetupConfig(
-		newService, domains, backends, dictionaries, loggers, objectStores,
+		newService, domains, backends, dictionaries, loggers, kvStores,
 		serviceID, serviceVersion.Number, c,
 	); err != nil {
 		return err
@@ -148,7 +148,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}(c.Globals.ErrLog)
 
 	if err := processSetupCreation(
-		newService, domains, backends, dictionaries, objectStores, spinner, c,
+		newService, domains, backends, dictionaries, kvStores, spinner, c,
 		serviceID, serviceVersion.Number,
 	); err != nil {
 		return err
@@ -839,7 +839,7 @@ func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, ver
 	return spinner.Stop()
 }
 
-func constructSetupObjects(
+func constructSetupKVs(
 	newService bool,
 	serviceID string,
 	serviceVersion int,
@@ -851,7 +851,7 @@ func constructSetupObjects(
 	*setup.Backends,
 	*setup.Dictionaries,
 	*setup.Loggers,
-	*setup.ObjectStores,
+	*setup.KVStores,
 	error,
 ) {
 	var err error
@@ -892,7 +892,7 @@ func constructSetupObjects(
 		backends     *setup.Backends
 		dictionaries *setup.Dictionaries
 		loggers      *setup.Loggers
-		objectStores *setup.ObjectStores
+		kvStores     *setup.KVStores
 	)
 
 	if newService {
@@ -923,19 +923,19 @@ func constructSetupObjects(
 			Stdout: out,
 		}
 
-		objectStores = &setup.ObjectStores{
+		kvStores = &setup.KVStores{
 			APIClient:      c.Globals.APIClient,
 			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 			NonInteractive: c.Globals.Flags.NonInteractive,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.ObjectStores,
+			Setup:          c.Manifest.File.Setup.KVStores,
 			Stdin:          in,
 			Stdout:         out,
 		}
 	}
 
-	return domains, backends, dictionaries, loggers, objectStores, nil
+	return domains, backends, dictionaries, loggers, kvStores, nil
 }
 
 func processSetupConfig(
@@ -944,7 +944,7 @@ func processSetupConfig(
 	backends *setup.Backends,
 	dictionaries *setup.Dictionaries,
 	loggers *setup.Loggers,
-	objectStores *setup.ObjectStores,
+	kvStores *setup.KVStores,
 	serviceID string,
 	serviceVersion int,
 	c *DeployCommand,
@@ -989,11 +989,11 @@ func processSetupConfig(
 			_ = loggers.Configure()
 		}
 
-		if objectStores.Predefined() {
-			err = objectStores.Configure()
+		if kvStores.Predefined() {
+			err = kvStores.Configure()
 			if err != nil {
 				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service object stores: %w", err)
+				return fmt.Errorf("error configuring service kv stores: %w", err)
 			}
 		}
 	}
@@ -1006,7 +1006,7 @@ func processSetupCreation(
 	domains *setup.Domains,
 	backends *setup.Backends,
 	dictionaries *setup.Dictionaries,
-	objectStores *setup.ObjectStores,
+	kvStores *setup.KVStores,
 	spinner text.Spinner,
 	c *DeployCommand,
 	serviceID string,
@@ -1032,7 +1032,7 @@ func processSetupCreation(
 	if newService {
 		backends.Spinner = spinner
 		dictionaries.Spinner = spinner
-		objectStores.Spinner = spinner
+		kvStores.Spinner = spinner
 
 		if err := backends.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -1056,7 +1056,7 @@ func processSetupCreation(
 			return err
 		}
 
-		if err := objectStores.Create(); err != nil {
+		if err := kvStores.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flags.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flags.AutoYes,

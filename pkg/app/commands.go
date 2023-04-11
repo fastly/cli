@@ -15,6 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/healthcheck"
 	"github.com/fastly/cli/pkg/commands/ip"
+	kvstore "github.com/fastly/cli/pkg/commands/kvstore"
 	"github.com/fastly/cli/pkg/commands/logging"
 	"github.com/fastly/cli/pkg/commands/logging/azureblob"
 	"github.com/fastly/cli/pkg/commands/logging/bigquery"
@@ -42,8 +43,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/sumologic"
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
-	"github.com/fastly/cli/pkg/commands/objectstore"
-	"github.com/fastly/cli/pkg/commands/objectstoreentry"
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
@@ -309,16 +308,16 @@ func defineCommands(
 	loggingSyslogDescribe := syslog.NewDescribeCommand(loggingSyslogCmdRoot.CmdClause, g, m)
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, g, m)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, g, m)
-	objectstoreCmdRoot := objectstore.NewRootCommand(app, g)
-	objectstoreCreate := objectstore.NewCreateCommand(objectstoreCmdRoot.CmdClause, g, m)
-	objectstoreDelete := objectstore.NewDeleteCommand(objectstoreCmdRoot.CmdClause, g, m)
-	objectstoreDescribe := objectstore.NewDescribeCommand(objectstoreCmdRoot.CmdClause, g, m)
-	objectstoreList := objectstore.NewListCommand(objectstoreCmdRoot.CmdClause, g, m)
-	objectstoreentryCmdRoot := objectstoreentry.NewRootCommand(app, g)
-	objectstoreentryCreate := objectstoreentry.NewCreateCommand(objectstoreentryCmdRoot.CmdClause, g, m)
-	objectstoreentryDelete := objectstoreentry.NewDeleteCommand(objectstoreentryCmdRoot.CmdClause, g, m)
-	objectstoreentryDescribe := objectstoreentry.NewDescribeCommand(objectstoreentryCmdRoot.CmdClause, g, m)
-	objectstoreentryList := objectstoreentry.NewListCommand(objectstoreentryCmdRoot.CmdClause, g, m)
+	kvstoreCmdRoot := kvstore.NewRootCommand(app, g)
+	kvstoreCreate := kvstore.NewCreateCommand(kvstoreCmdRoot.CmdClause, g, m)
+	kvstoreDelete := kvstore.NewDeleteCommand(kvstoreCmdRoot.CmdClause, g, m)
+	kvstoreDescribe := kvstore.NewDescribeCommand(kvstoreCmdRoot.CmdClause, g, m)
+	kvstoreList := kvstore.NewListCommand(kvstoreCmdRoot.CmdClause, g, m)
+	kvstoreentryCmdRoot := kvstoreentry.NewRootCommand(app, g)
+	kvstoreentryCreate := kvstoreentry.NewCreateCommand(kvstoreentryCmdRoot.CmdClause, g, m)
+	kvstoreentryDelete := kvstoreentry.NewDeleteCommand(kvstoreentryCmdRoot.CmdClause, g, m)
+	kvstoreentryDescribe := kvstoreentry.NewDescribeCommand(kvstoreentryCmdRoot.CmdClause, g, m)
+	kvstoreentryList := kvstoreentry.NewListCommand(kvstoreentryCmdRoot.CmdClause, g, m)
 	popCmdRoot := pop.NewRootCommand(app, g)
 	profileCmdRoot := profile.NewRootCommand(app, g)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
@@ -660,14 +659,14 @@ func defineCommands(
 		loggingSyslogDescribe,
 		loggingSyslogList,
 		loggingSyslogUpdate,
-		objectstoreCreate,
-		objectstoreDelete,
-		objectstoreDescribe,
-		objectstoreList,
-		objectstoreentryCreate,
-		objectstoreentryDelete,
-		objectstoreentryDescribe,
-		objectstoreentryList,
+		kvstoreCreate,
+		kvstoreDelete,
+		kvstoreDescribe,
+		kvstoreList,
+		kvstoreentryCreate,
+		kvstoreentryDelete,
+		kvstoreentryDescribe,
+		kvstoreentryList,
 		popCmdRoot,
 		profileCmdRoot,
 		profileCreate,

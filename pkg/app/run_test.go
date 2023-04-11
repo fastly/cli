@@ -72,8 +72,8 @@ healthcheck
 ip-list
 log-tail
 logging
-object-store
-object-store-entry
+kv-store
+kv-store-entry
 pops
 profile
 purge

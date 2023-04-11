@@ -49,14 +49,14 @@ func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.Dictio
 	}, nil
 }
 
-func createObjectStoreOK(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error) {
-	return &fastly.ObjectStore{
+func createKVStoreOK(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+	return &fastly.KVStore{
 		ID:   "example-store",
 		Name: i.Name,
 	}, nil
 }
 
-func createObjectStoreItemOK(i *fastly.InsertObjectStoreKeyInput) error {
+func createKVStoreItemOK(i *fastly.InsertKVStoreKeyInput) error {
 	return nil
 }
 

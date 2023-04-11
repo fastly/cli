@@ -1,4 +1,4 @@
-package objectstoreentry
+package kvstoreentry
 
 import (
 	"io"
@@ -10,11 +10,11 @@ import (
 	"github.com/fastly/go-fastly/v7/fastly"
 )
 
-// DeleteCommand calls the Fastly API to delete an object store.
+// DeleteCommand calls the Fastly API to delete an kv store.
 type DeleteCommand struct {
 	cmd.Base
 	manifest manifest.Data
-	Input    fastly.DeleteObjectStoreKeyInput
+	Input    fastly.DeleteKVStoreKeyInput
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -33,7 +33,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	err := c.Globals.APIClient.DeleteObjectStoreKey(&c.Input)
+	err := c.Globals.APIClient.DeleteKVStoreKey(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
