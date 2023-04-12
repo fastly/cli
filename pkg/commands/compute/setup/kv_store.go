@@ -8,14 +8,14 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// ObjectStores represents the service state related to object stores defined
+// KVStores represents the service state related to kv stores defined
 // within the fastly.toml [setup] configuration.
 //
 // NOTE: It implements the setup.Interface interface.
-type ObjectStores struct {
+type KVStores struct {
 	// Public
 	APIClient      api.Interface
 	AcceptDefaults bool
@@ -23,40 +23,40 @@ type ObjectStores struct {
 	Spinner        text.Spinner
 	ServiceID      string
 	ServiceVersion int
-	Setup          map[string]*manifest.SetupObjectStore
+	Setup          map[string]*manifest.SetupKVStore
 	Stdin          io.Reader
 	Stdout         io.Writer
 
 	// Private
-	required []ObjectStore
+	required []KVStore
 }
 
-// ObjectStore represents the configuration parameters for creating an
-// object store via the API client.
-type ObjectStore struct {
+// KVStore represents the configuration parameters for creating an
+// kv store via the API client.
+type KVStore struct {
 	Name  string
-	Items []ObjectStoreItem
+	Items []KVStoreItem
 }
 
-// ObjectStoreItem represents the configuration parameters for creating
-// object store items via the API client.
-type ObjectStoreItem struct {
+// KVStoreItem represents the configuration parameters for creating
+// kv store items via the API client.
+type KVStoreItem struct {
 	Key   string
 	Value string
 }
 
 // Configure prompts the user for specific values related to the service resource.
-func (o *ObjectStores) Configure() error {
+func (o *KVStores) Configure() error {
 	for name, settings := range o.Setup {
 		if !o.AcceptDefaults && !o.NonInteractive {
 			text.Break(o.Stdout)
-			text.Output(o.Stdout, "Configuring object store '%s'", name)
+			text.Output(o.Stdout, "Configuring kv store '%s'", name)
 			if settings.Description != "" {
 				text.Output(o.Stdout, settings.Description)
 			}
 		}
 
-		var items []ObjectStoreItem
+		var items []KVStoreItem
 
 		for key, item := range settings.Items {
 			dv := "example"
@@ -72,7 +72,7 @@ func (o *ObjectStores) Configure() error {
 
 			if !o.AcceptDefaults && !o.NonInteractive {
 				text.Break(o.Stdout)
-				text.Output(o.Stdout, "Create an object store key called '%s'", key)
+				text.Output(o.Stdout, "Create an kv store key called '%s'", key)
 				if item.Description != "" {
 					text.Output(o.Stdout, item.Description)
 				}
@@ -88,13 +88,13 @@ func (o *ObjectStores) Configure() error {
 				value = dv
 			}
 
-			items = append(items, ObjectStoreItem{
+			items = append(items, KVStoreItem{
 				Key:   key,
 				Value: value,
 			})
 		}
 
-		o.required = append(o.required, ObjectStore{
+		o.required = append(o.required, KVStore{
 			Name:  name,
 			Items: items,
 		})
@@ -104,24 +104,24 @@ func (o *ObjectStores) Configure() error {
 }
 
 // Create calls the relevant API to create the service resource(s).
-func (o *ObjectStores) Create() error {
+func (o *KVStores) Create() error {
 	if o.Spinner == nil {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.ObjectStores"),
+			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.KVStores"),
 			Remediation: errors.BugRemediation,
 		}
 	}
 
-	for _, objectStore := range o.required {
+	for _, kvStore := range o.required {
 		err := o.Spinner.Start()
 		if err != nil {
 			return err
 		}
-		msg := fmt.Sprintf("Creating object store '%s'", objectStore.Name)
+		msg := fmt.Sprintf("Creating kv store '%s'", kvStore.Name)
 		o.Spinner.Message(msg + "...")
 
-		store, err := o.APIClient.CreateObjectStore(&fastly.CreateObjectStoreInput{
-			Name: objectStore.Name,
+		store, err := o.APIClient.CreateKVStore(&fastly.CreateKVStoreInput{
+			Name: kvStore.Name,
 		})
 		if err != nil {
 			o.Spinner.StopFailMessage(msg)
@@ -129,7 +129,7 @@ func (o *ObjectStores) Create() error {
 			if err != nil {
 				return err
 			}
-			return fmt.Errorf("error creating object store: %w", err)
+			return fmt.Errorf("error creating kv store: %w", err)
 		}
 
 		o.Spinner.StopMessage(msg)
@@ -138,16 +138,16 @@ func (o *ObjectStores) Create() error {
 			return err
 		}
 
-		if len(objectStore.Items) > 0 {
-			for _, item := range objectStore.Items {
+		if len(kvStore.Items) > 0 {
+			for _, item := range kvStore.Items {
 				err := o.Spinner.Start()
 				if err != nil {
 					return err
 				}
-				msg := fmt.Sprintf("Creating object store key '%s'...", item.Key)
+				msg := fmt.Sprintf("Creating kv store key '%s'...", item.Key)
 				o.Spinner.Message(msg)
 
-				err = o.APIClient.InsertObjectStoreKey(&fastly.InsertObjectStoreKeyInput{
+				err = o.APIClient.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
 					ID:    store.ID,
 					Key:   item.Key,
 					Value: item.Value,
@@ -158,7 +158,7 @@ func (o *ObjectStores) Create() error {
 					if err != nil {
 						return err
 					}
-					return fmt.Errorf("error creating object store key: %w", err)
+					return fmt.Errorf("error creating kv store key: %w", err)
 				}
 
 				o.Spinner.StopMessage(msg)
@@ -173,10 +173,10 @@ func (o *ObjectStores) Create() error {
 		if err != nil {
 			return err
 		}
-		msg = fmt.Sprintf("Creating resource link between service and object store '%s'...", objectStore.Name)
+		msg = fmt.Sprintf("Creating resource link between service and kv store '%s'...", kvStore.Name)
 		o.Spinner.Message(msg)
 
-		// IMPORTANT: We need to link the object store to the C@E Service.
+		// IMPORTANT: We need to link the kv store to the C@E Service.
 		_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
 			ServiceID:      o.ServiceID,
 			ServiceVersion: o.ServiceVersion,
@@ -189,7 +189,7 @@ func (o *ObjectStores) Create() error {
 			if err != nil {
 				return err
 			}
-			return fmt.Errorf("error creating resource link between the service '%s' and the object store '%s': %w", o.ServiceID, store.Name, err)
+			return fmt.Errorf("error creating resource link between the service '%s' and the kv store '%s': %w", o.ServiceID, store.Name, err)
 		}
 
 		o.Spinner.StopMessage(msg)
@@ -204,6 +204,6 @@ func (o *ObjectStores) Create() error {
 
 // Predefined indicates if the service resource has been specified within the
 // fastly.toml file using a [setup] configuration block.
-func (o *ObjectStores) Predefined() bool {
+func (o *KVStores) Predefined() bool {
 	return len(o.Setup) > 0
 }

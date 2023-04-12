@@ -35,14 +35,14 @@ name = "Default Rust template"
       baz = """
 qux"""
 
-  [local_server.object_stores]
+  [local_server.kv_stores]
     store_one = [{key = "first", data = "This is some data"}, {key = "second", file = "strings.json"}]
 
-    [[local_server.object_stores.store_two]]
+    [[local_server.kv_stores.store_two]]
       key = "first"
       data = "This is some data"
 
-    [[local_server.object_stores.store_two]]
+    [[local_server.kv_stores.store_two]]
       key = "second"
       file = "strings.json"
 

@@ -1,4 +1,4 @@
-package objectstore
+package kvstoreentry
 
 import (
 	"encoding/json"
@@ -10,26 +10,26 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// DescribeCommand calls the Fastly API to fetch the value of a key from an object store.
-type DescribeCommand struct {
+// ListCommand calls the Fastly API to list the keys for a given kv store.
+type ListCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.GetObjectStoreInput
+	Input    fastly.ListKVStoreKeysInput
 }
 
-// NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
-	c := DescribeCommand{
+// NewListCommand returns a usable command registered under the parent.
+func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+	c := ListCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("describe", "Describe an object store").Alias("get")
+	c.CmdClause = parent.Command("list", "List keys")
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 
 	// optional
@@ -39,17 +39,16 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 		Dst:         &c.json,
 		Short:       'j',
 	})
-
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.GetObjectStore(&c.Input)
+	o, err := c.Globals.APIClient.ListKVStoreKeys(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -68,6 +67,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.PrintObjectStore(out, "", o)
+	if c.Globals.Flags.Verbose {
+		text.PrintKVStoreKeys(out, "", o.Data)
+		return nil
+	}
+
+	for _, k := range o.Data {
+		text.Output(out, k)
+	}
 	return nil
 }

@@ -1,4 +1,4 @@
-package objectstore
+package kvstore
 
 import (
 	"encoding/json"
@@ -10,43 +10,46 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// CreateCommand calls the Fastly API to create an object store.
-type CreateCommand struct {
+// DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
+type DescribeCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.CreateObjectStoreInput
+	Input    fastly.GetKVStoreInput
 }
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
-	c := CreateCommand{
+// NewDescribeCommand returns a usable command registered under the parent.
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+	c := DescribeCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("create", "Create an object store")
-	c.CmdClause.Flag("name", "Name of Object Store").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause = parent.Command("describe", "Describe an kv store").Alias("get")
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+
+	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
 		Dst:         &c.json,
 		Short:       'j',
 	})
+
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.CreateObjectStore(&c.Input)
+	o, err := c.Globals.APIClient.GetKVStore(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -65,6 +68,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.Success(out, "Created object store %s (name %s)", o.ID, o.Name)
+	text.PrintKVStore(out, "", o)
 	return nil
 }

@@ -1,4 +1,4 @@
-package objectstoreentry
+package kvstoreentry
 
 import (
 	"io"
@@ -7,14 +7,14 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// CreateCommand calls the Fastly API to insert a key into an object store.
+// CreateCommand calls the Fastly API to insert a key into an kv store.
 type CreateCommand struct {
 	cmd.Base
 	manifest manifest.Data
-	Input    fastly.InsertObjectStoreKeyInput
+	Input    fastly.InsertKVStoreKeyInput
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -34,12 +34,12 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	err := c.Globals.APIClient.InsertObjectStoreKey(&c.Input)
+	err := c.Globals.APIClient.InsertKVStoreKey(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	text.Success(out, "Inserted key %s into object store %s", c.Input.Key, c.Input.ID)
+	text.Success(out, "Inserted key %s into kv store %s", c.Input.Key, c.Input.ID)
 	return nil
 }

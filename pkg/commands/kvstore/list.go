@@ -1,4 +1,4 @@
-package objectstore
+package kvstore
 
 import (
 	"encoding/json"
@@ -10,15 +10,15 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// ListCommand calls the Fastly API to list the available object stores.
+// ListCommand calls the Fastly API to list the available kv stores.
 type ListCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.ListObjectStoresInput
+	Input    fastly.ListKVStoresInput
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -29,7 +29,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("list", "List object stores")
+	c.CmdClause = parent.Command("list", "List kv stores")
 
 	// optional
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
@@ -48,7 +48,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.ListObjectStores(&c.Input)
+	o, err := c.Globals.APIClient.ListKVStores(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -70,7 +70,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	for _, o := range o.Data {
 		// avoid gosec loop aliasing check :/
 		o := o
-		text.PrintObjectStore(out, "", &o)
+		text.PrintKVStore(out, "", &o)
 	}
 
 	return nil

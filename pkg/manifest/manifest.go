@@ -218,10 +218,10 @@ type Scripts struct {
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends     map[string]*SetupBackend     `toml:"backends,omitempty"`
-	Dictionaries map[string]*SetupDictionary  `toml:"dictionaries,omitempty"`
-	Loggers      map[string]*SetupLogger      `toml:"log_endpoints,omitempty"`
-	ObjectStores map[string]*SetupObjectStore `toml:"object_stores,omitempty"`
+	Backends     map[string]*SetupBackend    `toml:"backends,omitempty"`
+	Dictionaries map[string]*SetupDictionary `toml:"dictionaries,omitempty"`
+	Loggers      map[string]*SetupLogger     `toml:"log_endpoints,omitempty"`
+	KVStores     map[string]*SetupKVStore    `toml:"kv_stores,omitempty"`
 }
 
 // Defined indicates if there is any [setup] configuration in the manifest.
@@ -237,7 +237,7 @@ func (s Setup) Defined() bool {
 	if len(s.Loggers) > 0 {
 		defined = true
 	}
-	if len(s.ObjectStores) > 0 {
+	if len(s.KVStores) > 0 {
 		defined = true
 	}
 
@@ -268,14 +268,14 @@ type SetupLogger struct {
 	Provider string `toml:"provider,omitempty"`
 }
 
-// SetupObjectStore represents a '[setup.object_stores.<T>]' instance.
-type SetupObjectStore struct {
-	Items       map[string]SetupObjectStoreItems `toml:"items,omitempty"`
-	Description string                           `toml:"description,omitempty"`
+// SetupKVStore represents a '[setup.kv_stores.<T>]' instance.
+type SetupKVStore struct {
+	Items       map[string]SetupKVStoreItems `toml:"items,omitempty"`
+	Description string                       `toml:"description,omitempty"`
 }
 
-// SetupObjectStoreItems represents a '[setup.object_stores.<T>.items]' instance.
-type SetupObjectStoreItems struct {
+// SetupKVStoreItems represents a '[setup.kv_stores.<T>.items]' instance.
+type SetupKVStoreItems struct {
 	Value       string `toml:"value,omitempty"`
 	Description string `toml:"description,omitempty"`
 }
@@ -284,7 +284,7 @@ type SetupObjectStoreItems struct {
 type LocalServer struct {
 	Backends     map[string]LocalBackend       `toml:"backends"`
 	Dictionaries map[string]LocalDictionary    `toml:"dictionaries,omitempty"`
-	ObjectStores map[string][]LocalObjectStore `toml:"object_stores,omitempty"`
+	KVStores     map[string][]LocalKVStore     `toml:"kv_stores,omitempty"`
 	SecretStores map[string][]LocalSecretStore `toml:"secret_stores,omitempty"`
 }
 
@@ -303,8 +303,8 @@ type LocalDictionary struct {
 	Contents map[string]string `toml:"contents,omitempty"`
 }
 
-// LocalObjectStore represents an object_store to be mocked by the local testing server.
-type LocalObjectStore struct {
+// LocalKVStore represents an kv_store to be mocked by the local testing server.
+type LocalKVStore struct {
 	Key  string `toml:"key"`
 	File string `toml:"file,omitempty"`
 	Data string `toml:"data,omitempty"`

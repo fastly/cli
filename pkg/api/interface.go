@@ -4,7 +4,7 @@ import (
 	"crypto/ed25519"
 	"net/http"
 
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some
@@ -343,14 +343,14 @@ type Interface interface {
 	ListConfigStoreItems(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error)
 	UpdateConfigStoreItem(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
 
-	CreateObjectStore(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error)
-	ListObjectStores(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error)
-	DeleteObjectStore(i *fastly.DeleteObjectStoreInput) error
-	GetObjectStore(i *fastly.GetObjectStoreInput) (*fastly.ObjectStore, error)
-	ListObjectStoreKeys(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
-	GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error)
-	DeleteObjectStoreKey(i *fastly.DeleteObjectStoreKeyInput) error
-	InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error
+	CreateKVStore(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error)
+	ListKVStores(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error)
+	DeleteKVStore(i *fastly.DeleteKVStoreInput) error
+	GetKVStore(i *fastly.GetKVStoreInput) (*fastly.KVStore, error)
+	ListKVStoreKeys(i *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error)
+	GetKVStoreKey(i *fastly.GetKVStoreKeyInput) (string, error)
+	DeleteKVStoreKey(i *fastly.DeleteKVStoreKeyInput) error
+	InsertKVStoreKey(i *fastly.InsertKVStoreKeyInput) error
 
 	CreateSecretStore(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)
 	GetSecretStore(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error)

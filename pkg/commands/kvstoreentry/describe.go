@@ -1,4 +1,4 @@
-package objectstoreentry
+package kvstoreentry
 
 import (
 	"io"
@@ -8,15 +8,15 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// DescribeCommand calls the Fastly API to fetch the value of a key from an object store.
+// DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
 type DescribeCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.GetObjectStoreKeyInput
+	Input    fastly.GetKVStoreKeyInput
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -48,7 +48,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	value, err := c.Globals.APIClient.GetObjectStoreKey(&c.Input)
+	value, err := c.Globals.APIClient.GetKVStoreKey(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -60,7 +60,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Flags.Verbose {
-		text.PrintObjectStoreKeyValue(out, "", c.Input.Key, value)
+		text.PrintKVStoreKeyValue(out, "", c.Input.Key, value)
 		return nil
 	}
 

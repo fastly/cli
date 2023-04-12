@@ -19,7 +19,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NOTE: Some tests don't provide a Service ID via any mechanism (e.g. flag
@@ -1578,7 +1578,7 @@ func TestDeploy(t *testing.T) {
 		},
 		// NOTE: The following test validates [setup] only works for a new service.
 		{
-			name: "success with setup.object_stores configuration and existing service",
+			name: "success with setup.kv_stores configuration and existing service",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
@@ -1606,12 +1606,12 @@ func TestDeploy(t *testing.T) {
 			manifest_version = 2
 			language = "rust"
 
-			[setup.object_stores.store_one]
-			description = "My first object store"
-			[setup.object_stores.store_one.items.foo]
+			[setup.kv_stores.store_one]
+			description = "My first kv store"
+			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
-			[setup.object_stores.store_one.items.bar]
+			[setup.kv_stores.store_one.items.bar]
 			value = "my default value for bar"
 			description = "a good description about bar"
 			`,
@@ -1621,31 +1621,31 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
-				"Configuring object store 'store_one'",
-				"Create an object store key called 'foo'",
-				"Create an object store key called 'bar'",
-				"Creating object store 'store_one'",
-				"Creating object store key 'foo'",
-				"Creating object store key 'bar'",
+				"Configuring kv store 'store_one'",
+				"Create an kv store key called 'foo'",
+				"Create an kv store key called 'bar'",
+				"Creating kv store 'store_one'",
+				"Creating kv store key 'foo'",
+				"Creating kv store key 'bar'",
 			},
 		},
 		{
-			name: "success with setup.object_stores configuration and no existing service",
+			name: "success with setup.kv_stores configuration and no existing service",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				ActivateVersionFn:      activateVersionOk,
-				CreateBackendFn:        createBackendOK,
-				CreateObjectStoreFn:    createObjectStoreOK,
-				InsertObjectStoreKeyFn: createObjectStoreItemOK,
-				CreateResourceFn:       createResourceOK,
-				CreateDomainFn:         createDomainOK,
-				CreateServiceFn:        createServiceOK,
-				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
-				GetServiceDetailsFn:    getServiceDetailsWasm,
-				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
-				UpdatePackageFn:        updatePackageOk,
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
+				CreateResourceFn:    createResourceOK,
+				CreateDomainFn:      createDomainOK,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1662,12 +1662,12 @@ func TestDeploy(t *testing.T) {
 			manifest_version = 2
 			language = "rust"
 
-			[setup.object_stores.store_one]
-			description = "My first object store"
-			[setup.object_stores.store_one.items.foo]
+			[setup.kv_stores.store_one]
+			description = "My first kv store"
+			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
-			[setup.object_stores.store_one.items.bar]
+			[setup.kv_stores.store_one.items.bar]
 			value = "my default value for bar"
 			description = "a good description about bar"
 			`,
@@ -1675,34 +1675,34 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring object store 'store_one'",
-				"Create an object store key called 'foo'",
-				"Create an object store key called 'bar'",
-				"Creating object store 'store_one'",
-				"Creating object store key 'foo'",
-				"Creating object store key 'bar'",
+				"Configuring kv store 'store_one'",
+				"Create an kv store key called 'foo'",
+				"Create an kv store key called 'bar'",
+				"Creating kv store 'store_one'",
+				"Creating kv store key 'foo'",
+				"Creating kv store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
 		{
-			name: "success with setup.object_stores configuration and no existing service and --non-interactive",
+			name: "success with setup.kv_stores configuration and no existing service and --non-interactive",
 			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
-				ActivateVersionFn:      activateVersionOk,
-				CreateBackendFn:        createBackendOK,
-				CreateObjectStoreFn:    createObjectStoreOK,
-				InsertObjectStoreKeyFn: createObjectStoreItemOK,
-				CreateResourceFn:       createResourceOK,
-				CreateDomainFn:         createDomainOK,
-				CreateServiceFn:        createServiceOK,
-				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
-				GetServiceDetailsFn:    getServiceDetailsWasm,
-				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
-				UpdatePackageFn:        updatePackageOk,
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
+				CreateResourceFn:    createResourceOK,
+				CreateDomainFn:      createDomainOK,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1719,12 +1719,12 @@ func TestDeploy(t *testing.T) {
 			manifest_version = 2
 			language = "rust"
 
-			[setup.object_stores.store_one]
-			description = "My first object store"
-			[setup.object_stores.store_one.items.foo]
+			[setup.kv_stores.store_one]
+			description = "My first kv store"
+			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
-			[setup.object_stores.store_one.items.bar]
+			[setup.kv_stores.store_one.items.bar]
 			value = "my default value for bar"
 			description = "a good description about bar"
 			`,
@@ -1732,31 +1732,31 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Creating object store 'store_one'",
-				"Creating object store key 'foo'",
-				"Creating object store key 'bar'",
+				"Creating kv store 'store_one'",
+				"Creating kv store key 'foo'",
+				"Creating kv store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
 		{
-			name: "success with setup.object_stores configuration and no existing service and no predefined values",
+			name: "success with setup.kv_stores configuration and no existing service and no predefined values",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				ActivateVersionFn:      activateVersionOk,
-				CreateBackendFn:        createBackendOK,
-				CreateObjectStoreFn:    createObjectStoreOK,
-				InsertObjectStoreKeyFn: createObjectStoreItemOK,
-				CreateResourceFn:       createResourceOK,
-				CreateDomainFn:         createDomainOK,
-				CreateServiceFn:        createServiceOK,
-				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
-				GetServiceDetailsFn:    getServiceDetailsWasm,
-				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
-				UpdatePackageFn:        updatePackageOk,
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
+				CreateResourceFn:    createResourceOK,
+				CreateDomainFn:      createDomainOK,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1773,20 +1773,20 @@ func TestDeploy(t *testing.T) {
 			manifest_version = 2
 			language = "rust"
 
-			[setup.object_stores.store_one]
-			[setup.object_stores.store_one.items.foo]
-			[setup.object_stores.store_one.items.bar]
+			[setup.kv_stores.store_one]
+			[setup.kv_stores.store_one.items.foo]
+			[setup.kv_stores.store_one.items.bar]
 			`,
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring object store 'store_one'",
-				"Create an object store key called 'foo'",
-				"Create an object store key called 'bar'",
-				"Creating object store 'store_one'",
-				"Creating object store key 'foo'",
-				"Creating object store key 'bar'",
+				"Configuring kv store 'store_one'",
+				"Create an kv store key called 'foo'",
+				"Create an kv store key called 'bar'",
+				"Creating kv store 'store_one'",
+				"Creating kv store key 'foo'",
+				"Creating kv store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1796,7 +1796,7 @@ func TestDeploy(t *testing.T) {
 			// be present in the stdout/stderr as the [setup/dictionaries]
 			// configuration does not define them.
 			dontWantOutput: []string{
-				"My first object store",
+				"My first kv store",
 				"my default value for foo",
 				"my default value for bar",
 			},

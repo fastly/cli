@@ -1,4 +1,4 @@
-package objectstoreentry
+package kvstore
 
 import (
 	"io"
@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("object-store-entry", "Manipulate Fastly Object Store keys")
+	c.CmdClause = parent.Command("kv-store", "Manipulate Fastly KV Stores")
 	return &c
 }
 

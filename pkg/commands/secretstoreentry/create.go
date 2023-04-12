@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const (
@@ -148,7 +148,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if !ck.ValidateSignature(sk) {
+	if !ck.VerifySignature(sk) {
 		err := fmt.Errorf("unable to validate signature of client key")
 		c.Globals.ErrLog.Add(err)
 		return err

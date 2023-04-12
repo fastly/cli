@@ -1,4 +1,4 @@
-package objectstoreentry
+package kvstore
 
 import (
 	"encoding/json"
@@ -10,29 +10,27 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// ListCommand calls the Fastly API to list the keys for a given object store.
-type ListCommand struct {
+// CreateCommand calls the Fastly API to create an kv store.
+type CreateCommand struct {
 	cmd.Base
 	json     bool
 	manifest manifest.Data
-	Input    fastly.ListObjectStoreKeysInput
+	Input    fastly.CreateKVStoreInput
 }
 
-// NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
-	c := ListCommand{
+// NewCreateCommand returns a usable command registered under the parent.
+func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+	c := CreateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("list", "List keys")
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
-
-	// optional
+	c.CmdClause = parent.Command("create", "Create an kv store")
+	c.CmdClause.Flag("name", "Name of KV Store").Short('n').Required().StringVar(&c.Input.Name)
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        cmd.FlagJSONName,
 		Description: cmd.FlagJSONDesc,
@@ -43,12 +41,12 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.json {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.ListObjectStoreKeys(&c.Input)
+	o, err := c.Globals.APIClient.CreateKVStore(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -67,13 +65,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	if c.Globals.Flags.Verbose {
-		text.PrintObjectStoreKeys(out, "", o.Data)
-		return nil
-	}
-
-	for _, k := range o.Data {
-		text.Output(out, k)
-	}
+	text.Success(out, "Created kv store %s (name %s)", o.ID, o.Name)
 	return nil
 }

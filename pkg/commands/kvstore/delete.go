@@ -1,4 +1,4 @@
-package objectstoreentry
+package kvstore
 
 import (
 	"io"
@@ -7,14 +7,14 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// DeleteCommand calls the Fastly API to delete an object store.
+// DeleteCommand calls the Fastly API to delete an kv store.
 type DeleteCommand struct {
 	cmd.Base
 	manifest manifest.Data
-	Input    fastly.DeleteObjectStoreKeyInput
+	Input    fastly.DeleteKVStoreInput
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -25,20 +25,19 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("delete", "Delete a key")
+	c.CmdClause = parent.Command("delete", "Delete an kv store")
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
-	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	err := c.Globals.APIClient.DeleteObjectStoreKey(&c.Input)
+	err := c.Globals.APIClient.DeleteKVStore(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	text.Success(out, "Deleted key %s from store ID %s", c.Input.Key, c.Input.ID)
+	text.Success(out, "Deleted kv store ID %s", c.Input.ID)
 	return nil
 }

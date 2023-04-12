@@ -3,7 +3,7 @@ package mock
 import (
 	"crypto/ed25519"
 
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
@@ -335,14 +335,14 @@ type API struct {
 	ListConfigStoreItemsFn  func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error)
 	UpdateConfigStoreItemFn func(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
 
-	CreateObjectStoreFn    func(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error)
-	GetObjectStoreFn       func(i *fastly.GetObjectStoreInput) (*fastly.ObjectStore, error)
-	ListObjectStoresFn     func(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error)
-	DeleteObjectStoreFn    func(i *fastly.DeleteObjectStoreInput) error
-	ListObjectStoreKeysFn  func(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error)
-	GetObjectStoreKeyFn    func(i *fastly.GetObjectStoreKeyInput) (string, error)
-	InsertObjectStoreKeyFn func(i *fastly.InsertObjectStoreKeyInput) error
-	DeleteObjectStoreKeyFn func(i *fastly.DeleteObjectStoreKeyInput) error
+	CreateKVStoreFn    func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error)
+	GetKVStoreFn       func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error)
+	ListKVStoresFn     func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error)
+	DeleteKVStoreFn    func(i *fastly.DeleteKVStoreInput) error
+	ListKVStoreKeysFn  func(i *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error)
+	GetKVStoreKeyFn    func(i *fastly.GetKVStoreKeyInput) (string, error)
+	InsertKVStoreKeyFn func(i *fastly.InsertKVStoreKeyInput) error
+	DeleteKVStoreKeyFn func(i *fastly.DeleteKVStoreKeyInput) error
 
 	CreateSecretStoreFn func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)
 	GetSecretStoreFn    func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error)
@@ -1718,44 +1718,44 @@ func (m API) UpdateConfigStoreItem(i *fastly.UpdateConfigStoreItemInput) (*fastl
 	return m.UpdateConfigStoreItemFn(i)
 }
 
-// CreateObjectStore implements Interface.
-func (m API) CreateObjectStore(i *fastly.CreateObjectStoreInput) (*fastly.ObjectStore, error) {
-	return m.CreateObjectStoreFn(i)
+// CreateKVStore implements Interface.
+func (m API) CreateKVStore(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+	return m.CreateKVStoreFn(i)
 }
 
-// GetObjectStore implements Interface.
-func (m API) GetObjectStore(i *fastly.GetObjectStoreInput) (*fastly.ObjectStore, error) {
-	return m.GetObjectStoreFn(i)
+// GetKVStore implements Interface.
+func (m API) GetKVStore(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
+	return m.GetKVStoreFn(i)
 }
 
-// ListObjectStores implements Interface.
-func (m API) ListObjectStores(i *fastly.ListObjectStoresInput) (*fastly.ListObjectStoresResponse, error) {
-	return m.ListObjectStoresFn(i)
+// ListKVStores implements Interface.
+func (m API) ListKVStores(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+	return m.ListKVStoresFn(i)
 }
 
-// DeleteObjectStore implements Interface.
-func (m API) DeleteObjectStore(i *fastly.DeleteObjectStoreInput) error {
-	return m.DeleteObjectStoreFn(i)
+// DeleteKVStore implements Interface.
+func (m API) DeleteKVStore(i *fastly.DeleteKVStoreInput) error {
+	return m.DeleteKVStoreFn(i)
 }
 
-// ListObjectStoreKeys implements Interface.
-func (m API) ListObjectStoreKeys(i *fastly.ListObjectStoreKeysInput) (*fastly.ListObjectStoreKeysResponse, error) {
-	return m.ListObjectStoreKeysFn(i)
+// ListKVStoreKeys implements Interface.
+func (m API) ListKVStoreKeys(i *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
+	return m.ListKVStoreKeysFn(i)
 }
 
-// GetObjectStoreKey implements Interface.
-func (m API) GetObjectStoreKey(i *fastly.GetObjectStoreKeyInput) (string, error) {
-	return m.GetObjectStoreKeyFn(i)
+// GetKVStoreKey implements Interface.
+func (m API) GetKVStoreKey(i *fastly.GetKVStoreKeyInput) (string, error) {
+	return m.GetKVStoreKeyFn(i)
 }
 
-// InsertObjectStoreKey implements Interface.
-func (m API) InsertObjectStoreKey(i *fastly.InsertObjectStoreKeyInput) error {
-	return m.InsertObjectStoreKeyFn(i)
+// InsertKVStoreKey implements Interface.
+func (m API) InsertKVStoreKey(i *fastly.InsertKVStoreKeyInput) error {
+	return m.InsertKVStoreKeyFn(i)
 }
 
-// DeleteObjectStoreKey implements Interface.
-func (m API) DeleteObjectStoreKey(i *fastly.DeleteObjectStoreKeyInput) error {
-	return m.DeleteObjectStoreKeyFn(i)
+// DeleteKVStoreKey implements Interface.
+func (m API) DeleteKVStoreKey(i *fastly.DeleteKVStoreKeyInput) error {
+	return m.DeleteKVStoreKeyFn(i)
 }
 
 // CreateSecretStore implements Interface.
