@@ -70,10 +70,10 @@ dictionary-entry
 domain
 healthcheck
 ip-list
-log-tail
-logging
 kv-store
 kv-store-entry
+log-tail
+logging
 pops
 profile
 purge

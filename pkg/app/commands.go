@@ -157,6 +157,16 @@ func defineCommands(
 	healthcheckList := healthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, g, m)
 	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, g, m)
 	ipCmdRoot := ip.NewRootCommand(app, g)
+	kvstoreCmdRoot := kvstore.NewRootCommand(app, g)
+	kvstoreCreate := kvstore.NewCreateCommand(kvstoreCmdRoot.CmdClause, g, m)
+	kvstoreDelete := kvstore.NewDeleteCommand(kvstoreCmdRoot.CmdClause, g, m)
+	kvstoreDescribe := kvstore.NewDescribeCommand(kvstoreCmdRoot.CmdClause, g, m)
+	kvstoreList := kvstore.NewListCommand(kvstoreCmdRoot.CmdClause, g, m)
+	kvstoreentryCmdRoot := kvstoreentry.NewRootCommand(app, g)
+	kvstoreentryCreate := kvstoreentry.NewCreateCommand(kvstoreentryCmdRoot.CmdClause, g, m)
+	kvstoreentryDelete := kvstoreentry.NewDeleteCommand(kvstoreentryCmdRoot.CmdClause, g, m)
+	kvstoreentryDescribe := kvstoreentry.NewDescribeCommand(kvstoreentryCmdRoot.CmdClause, g, m)
+	kvstoreentryList := kvstoreentry.NewListCommand(kvstoreentryCmdRoot.CmdClause, g, m)
 	logtailCmdRoot := logtail.NewRootCommand(app, g, m)
 	loggingCmdRoot := logging.NewRootCommand(app, g)
 	loggingAzureblobCmdRoot := azureblob.NewRootCommand(loggingCmdRoot.CmdClause, g)
@@ -309,16 +319,6 @@ func defineCommands(
 	loggingSyslogDescribe := syslog.NewDescribeCommand(loggingSyslogCmdRoot.CmdClause, g, m)
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, g, m)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, g, m)
-	kvstoreCmdRoot := kvstore.NewRootCommand(app, g)
-	kvstoreCreate := kvstore.NewCreateCommand(kvstoreCmdRoot.CmdClause, g, m)
-	kvstoreDelete := kvstore.NewDeleteCommand(kvstoreCmdRoot.CmdClause, g, m)
-	kvstoreDescribe := kvstore.NewDescribeCommand(kvstoreCmdRoot.CmdClause, g, m)
-	kvstoreList := kvstore.NewListCommand(kvstoreCmdRoot.CmdClause, g, m)
-	kvstoreentryCmdRoot := kvstoreentry.NewRootCommand(app, g)
-	kvstoreentryCreate := kvstoreentry.NewCreateCommand(kvstoreentryCmdRoot.CmdClause, g, m)
-	kvstoreentryDelete := kvstoreentry.NewDeleteCommand(kvstoreentryCmdRoot.CmdClause, g, m)
-	kvstoreentryDescribe := kvstoreentry.NewDescribeCommand(kvstoreentryCmdRoot.CmdClause, g, m)
-	kvstoreentryList := kvstoreentry.NewListCommand(kvstoreentryCmdRoot.CmdClause, g, m)
 	popCmdRoot := pop.NewRootCommand(app, g)
 	profileCmdRoot := profile.NewRootCommand(app, g)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
@@ -508,6 +508,14 @@ func defineCommands(
 		healthcheckList,
 		healthcheckUpdate,
 		ipCmdRoot,
+		kvstoreCreate,
+		kvstoreDelete,
+		kvstoreDescribe,
+		kvstoreList,
+		kvstoreentryCreate,
+		kvstoreentryDelete,
+		kvstoreentryDescribe,
+		kvstoreentryList,
 		logtailCmdRoot,
 		loggingAzureblobCmdRoot,
 		loggingAzureblobCreate,
@@ -660,14 +668,6 @@ func defineCommands(
 		loggingSyslogDescribe,
 		loggingSyslogList,
 		loggingSyslogUpdate,
-		kvstoreCreate,
-		kvstoreDelete,
-		kvstoreDescribe,
-		kvstoreList,
-		kvstoreentryCreate,
-		kvstoreentryDelete,
-		kvstoreentryDescribe,
-		kvstoreentryList,
 		popCmdRoot,
 		profileCmdRoot,
 		profileCreate,
