@@ -148,7 +148,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if !ck.ValidateSignature(sk) {
+	if !ck.VerifySignature(sk) {
 		err := fmt.Errorf("unable to validate signature of client key")
 		c.Globals.ErrLog.Add(err)
 		return err
