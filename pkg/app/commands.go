@@ -15,7 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/healthcheck"
 	"github.com/fastly/cli/pkg/commands/ip"
-	kvstore "github.com/fastly/cli/pkg/commands/kvstore"
+	"github.com/fastly/cli/pkg/commands/kvstore"
 	"github.com/fastly/cli/pkg/commands/kvstoreentry"
 	"github.com/fastly/cli/pkg/commands/logging"
 	"github.com/fastly/cli/pkg/commands/logging/azureblob"
