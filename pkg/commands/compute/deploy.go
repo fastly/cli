@@ -126,16 +126,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	domains, backends, dictionaries, loggers, kvStores, err := constructSetupKVs(
+	so, err := constructSetupKVs(
 		newService, serviceID, serviceVersion.Number, c, in, out,
 	)
 	if err != nil {
 		return err
 	}
 
-	if err := processSetupConfig(
-		newService, domains, backends, dictionaries, loggers, kvStores,
-		serviceID, serviceVersion.Number, c,
+	if err = processSetupConfig(
+		newService, so, serviceID, serviceVersion.Number, c,
 	); err != nil {
 		return err
 	}
@@ -147,9 +146,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		undoStack.RunIfError(out, err)
 	}(c.Globals.ErrLog)
 
-	if err := processSetupCreation(
-		newService, domains, backends, dictionaries, kvStores, spinner, c,
-		serviceID, serviceVersion.Number,
+	if err = processSetupCreation(
+		newService, so, spinner, c, serviceID, serviceVersion.Number,
 	); err != nil {
 		return err
 	}
@@ -164,7 +162,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	if err := processService(c, serviceID, serviceVersion.Number, spinner); err != nil {
+	if err = processService(c, serviceID, serviceVersion.Number, spinner); err != nil {
 		return err
 	}
 
@@ -839,6 +837,17 @@ func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, ver
 	return spinner.Stop()
 }
 
+// setupObjects is a collection of backend objects created during setup.
+// Objects may be nil.
+type setupObjects struct {
+	domains      *setup.Domains
+	backends     *setup.Backends
+	dictionaries *setup.Dictionaries
+	loggers      *setup.Loggers
+	kvStores     *setup.KVStores
+	secretStores *setup.SecretStores
+}
+
 func constructSetupKVs(
 	newService bool,
 	serviceID string,
@@ -846,22 +855,17 @@ func constructSetupKVs(
 	c *DeployCommand,
 	in io.Reader,
 	out io.Writer,
-) (
-	*setup.Domains,
-	*setup.Backends,
-	*setup.Dictionaries,
-	*setup.Loggers,
-	*setup.KVStores,
-	error,
-) {
-	var err error
+) (setupObjects, error) {
+	var (
+		so  setupObjects
+		err error
+	)
 
 	// We only check the Service ID is valid when handling an existing service.
 	if !newService {
-		err = checkServiceID(serviceID, c.Globals.APIClient)
-		if err != nil {
+		if err = checkServiceID(serviceID, c.Globals.APIClient); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-			return nil, nil, nil, nil, nil, err
+			return setupObjects{}, err
 		}
 	}
 
@@ -869,7 +873,7 @@ func constructSetupKVs(
 	// e.g. it could be missing required resources such as a domain or backend.
 	// We check and allow the user to configure these settings before continuing.
 
-	domains := &setup.Domains{
+	so.domains = &setup.Domains{
 		APIClient:      c.Globals.APIClient,
 		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 		NonInteractive: c.Globals.Flags.NonInteractive,
@@ -882,21 +886,13 @@ func constructSetupKVs(
 		Verbose:        c.Globals.Verbose(),
 	}
 
-	err = domains.Validate()
-	if err != nil {
+	if err = so.domains.Validate(); err != nil {
 		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-		return nil, nil, nil, nil, nil, fmt.Errorf("error configuring service domains: %w", err)
+		return setupObjects{}, fmt.Errorf("error configuring service domains: %w", err)
 	}
 
-	var (
-		backends     *setup.Backends
-		dictionaries *setup.Dictionaries
-		loggers      *setup.Loggers
-		kvStores     *setup.KVStores
-	)
-
 	if newService {
-		backends = &setup.Backends{
+		so.backends = &setup.Backends{
 			APIClient:      c.Globals.APIClient,
 			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 			NonInteractive: c.Globals.Flags.NonInteractive,
@@ -907,7 +903,7 @@ func constructSetupKVs(
 			Stdout:         out,
 		}
 
-		dictionaries = &setup.Dictionaries{
+		so.dictionaries = &setup.Dictionaries{
 			APIClient:      c.Globals.APIClient,
 			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 			NonInteractive: c.Globals.Flags.NonInteractive,
@@ -918,12 +914,12 @@ func constructSetupKVs(
 			Stdout:         out,
 		}
 
-		loggers = &setup.Loggers{
+		so.loggers = &setup.Loggers{
 			Setup:  c.Manifest.File.Setup.Loggers,
 			Stdout: out,
 		}
 
-		kvStores = &setup.KVStores{
+		so.kvStores = &setup.KVStores{
 			APIClient:      c.Globals.APIClient,
 			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 			NonInteractive: c.Globals.Flags.NonInteractive,
@@ -933,25 +929,31 @@ func constructSetupKVs(
 			Stdin:          in,
 			Stdout:         out,
 		}
+
+		so.secretStores = &setup.SecretStores{
+			APIClient:      c.Globals.APIClient,
+			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+			NonInteractive: c.Globals.Flags.NonInteractive,
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion,
+			Setup:          c.Manifest.File.Setup.SecretStores,
+			Stdin:          in,
+			Stdout:         out,
+		}
 	}
 
-	return domains, backends, dictionaries, loggers, kvStores, nil
+	return so, nil
 }
 
 func processSetupConfig(
 	newService bool,
-	domains *setup.Domains,
-	backends *setup.Backends,
-	dictionaries *setup.Dictionaries,
-	loggers *setup.Loggers,
-	kvStores *setup.KVStores,
+	so setupObjects,
 	serviceID string,
 	serviceVersion int,
 	c *DeployCommand,
-) (err error) {
-	if domains.Missing() {
-		err = domains.Configure()
-		if err != nil {
+) error {
+	if so.domains.Missing() {
+		if err := so.domains.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 			return fmt.Errorf("error configuring service domains: %w", err)
 		}
@@ -965,35 +967,39 @@ func processSetupConfig(
 		// the .Predefined() method, as the call to .Configure() will ensure the
 		// user is prompted regardless of whether there is a [setup.backends]
 		// defined in the fastly.toml configuration.
-		err = backends.Configure()
-		if err != nil {
+		if err := so.backends.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 			return fmt.Errorf("error configuring service backends: %w", err)
 		}
 
-		if dictionaries.Predefined() {
-			err = dictionaries.Configure()
-			if err != nil {
+		if so.dictionaries.Predefined() {
+			if err := so.dictionaries.Configure(); err != nil {
 				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 				return fmt.Errorf("error configuring service dictionaries: %w", err)
 			}
 		}
 
-		if loggers.Predefined() {
+		if so.loggers.Predefined() {
 			// NOTE: We don't handle errors from the Configure() method because we
 			// don't actually do anything other than display a message to the user
 			// informing them that they need to create a log endpoint and which
 			// provider type they should be. The reason we don't implement logic for
 			// creating logging objects is because the API input fields vary
 			// significantly between providers.
-			_ = loggers.Configure()
+			_ = so.loggers.Configure()
 		}
 
-		if kvStores.Predefined() {
-			err = kvStores.Configure()
-			if err != nil {
+		if so.kvStores.Predefined() {
+			if err := so.kvStores.Configure(); err != nil {
 				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 				return fmt.Errorf("error configuring service kv stores: %w", err)
+			}
+		}
+
+		if so.secretStores.Predefined() {
+			if err := so.secretStores.Configure(); err != nil {
+				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
+				return fmt.Errorf("error configuring service secret stores: %w", err)
 			}
 		}
 	}
@@ -1003,19 +1009,16 @@ func processSetupConfig(
 
 func processSetupCreation(
 	newService bool,
-	domains *setup.Domains,
-	backends *setup.Backends,
-	dictionaries *setup.Dictionaries,
-	kvStores *setup.KVStores,
+	so setupObjects,
 	spinner text.Spinner,
 	c *DeployCommand,
 	serviceID string,
 	serviceVersion int,
 ) error {
-	if domains.Missing() {
-		domains.Spinner = spinner
+	if so.domains.Missing() {
+		so.domains.Spinner = spinner
 
-		if err := domains.Create(); err != nil {
+		if err := so.domains.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flags.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flags.AutoYes,
@@ -1030,11 +1033,12 @@ func processSetupCreation(
 	// IMPORTANT: The pointer refs in this block are not checked for nil.
 	// We presume if we're dealing with newService they have been set.
 	if newService {
-		backends.Spinner = spinner
-		dictionaries.Spinner = spinner
-		kvStores.Spinner = spinner
+		so.backends.Spinner = spinner
+		so.dictionaries.Spinner = spinner
+		so.kvStores.Spinner = spinner
+		so.secretStores.Spinner = spinner
 
-		if err := backends.Create(); err != nil {
+		if err := so.backends.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flags.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flags.AutoYes,
@@ -1045,7 +1049,7 @@ func processSetupCreation(
 			return err
 		}
 
-		if err := dictionaries.Create(); err != nil {
+		if err := so.dictionaries.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flags.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flags.AutoYes,
@@ -1056,7 +1060,18 @@ func processSetupCreation(
 			return err
 		}
 
-		if err := kvStores.Create(); err != nil {
+		if err := so.kvStores.Create(); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Accept defaults": c.Globals.Flags.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flags.AutoYes,
+				"Non-interactive": c.Globals.Flags.NonInteractive,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion,
+			})
+			return err
+		}
+
+		if err := so.secretStores.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flags.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flags.AutoYes,
