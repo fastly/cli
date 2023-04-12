@@ -7,7 +7,7 @@ import (
 	"time"
 
 	fsttime "github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/segmentio/textio"
 )
 

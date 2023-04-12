@@ -11,7 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // APIClientFactory allows the profile command to regenerate the global Fastly

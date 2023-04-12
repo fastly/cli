@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a Papertrail logging endpoint.

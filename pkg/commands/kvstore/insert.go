@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // InsertKeyCommand calls the Fastly API to insert a key into an kv store.

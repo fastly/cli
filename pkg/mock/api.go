@@ -3,7 +3,7 @@ package mock
 import (
 	"crypto/ed25519"
 
-	"github.com/fastly/go-fastly/v7/fastly"
+	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
