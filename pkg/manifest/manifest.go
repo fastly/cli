@@ -218,10 +218,11 @@ type Scripts struct {
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
-	Backends     map[string]*SetupBackend    `toml:"backends,omitempty"`
-	Dictionaries map[string]*SetupDictionary `toml:"dictionaries,omitempty"`
-	Loggers      map[string]*SetupLogger     `toml:"log_endpoints,omitempty"`
-	KVStores     map[string]*SetupKVStore    `toml:"kv_stores,omitempty"`
+	Backends     map[string]*SetupBackend     `toml:"backends,omitempty"`
+	Dictionaries map[string]*SetupDictionary  `toml:"dictionaries,omitempty"`
+	Loggers      map[string]*SetupLogger      `toml:"log_endpoints,omitempty"`
+	KVStores     map[string]*SetupKVStore     `toml:"kv_stores,omitempty"`
+	SecretStores map[string]*SetupSecretStore `toml:"secret_stores,omitempty"`
 }
 
 // Defined indicates if there is any [setup] configuration in the manifest.
@@ -277,6 +278,20 @@ type SetupKVStore struct {
 // SetupKVStoreItems represents a '[setup.kv_stores.<T>.items]' instance.
 type SetupKVStoreItems struct {
 	Value       string `toml:"value,omitempty"`
+	Description string `toml:"description,omitempty"`
+}
+
+// SetupSecretStore represents a '[setup.secret_stores.<T>]' instance.
+type SetupSecretStore struct {
+	Entries     map[string]SetupSecretStoreEntry `toml:"entries,omitempty"`
+	Description string                           `toml:"description,omitempty"`
+}
+
+// SetupSecretStoreEntry represents a '[setup.secret_stores.<T>.entries]' instance.
+type SetupSecretStoreEntry struct {
+	// The secret value is intentionally omitted to avoid secrets
+	// from being included in the manifest. Instead, secret
+	// values are input during setup.
 	Description string `toml:"description,omitempty"`
 }
 
