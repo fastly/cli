@@ -126,7 +126,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 
-	so, err := constructSetupKVs(
+	so, err := constructSetupObjects(
 		newService, serviceID, serviceVersion.Number, c, in, out,
 	)
 	if err != nil {
@@ -848,7 +848,7 @@ type setupObjects struct {
 	secretStores *setup.SecretStores
 }
 
-func constructSetupKVs(
+func constructSetupObjects(
 	newService bool,
 	serviceID string,
 	serviceVersion int,
