@@ -1,4 +1,5 @@
-manifest_version = "abc" # not a number
+# invalid: manifest_version is not a number
+manifest_version = "abc"
 name = "Default Rust template"
 description = "Default package template for Rust based edge compute projects."
 authors = ["phamann <patrick@fastly.com>"]

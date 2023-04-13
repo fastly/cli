@@ -68,7 +68,7 @@ func (v *Version) UnmarshalText(txt []byte) error {
 	}
 	version, err = strconv.Atoi(s)
 	if err != nil {
-		return fmt.Errorf("error parsing manifest_version: %w", err)
+		return fmt.Errorf("error parsing manifest_version '%s': %w", s, err)
 	}
 
 	if version > ManifestLatestVersion {

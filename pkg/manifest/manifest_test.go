@@ -1,10 +1,9 @@
 package manifest_test
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -38,13 +37,12 @@ func TestManifest(t *testing.T) {
 		"invalid: manifest_version Atoi error": {
 			manifest:      "fastly-invalid-unrecognised.toml",
 			valid:         false,
-			expectedError: strconv.ErrSyntax,
+			expectedError: fmt.Errorf("error parsing manifest_version 'abc'"),
 		},
 		"unrecognised: manifest_version exceeded limit": {
-			manifest:             "fastly-invalid-version-exceeded.toml",
-			valid:                false,
-			expectedError:        fsterr.ErrUnrecognisedManifestVersion,
-			wantRemediationError: fsterr.ErrUnrecognisedManifestVersion.Remediation,
+			manifest:      "fastly-invalid-version-exceeded.toml",
+			valid:         false,
+			expectedError: fsterr.ErrUnrecognisedManifestVersion,
 		},
 	}
 
@@ -92,24 +90,21 @@ func TestManifest(t *testing.T) {
 			}
 
 			err = m.Read(path)
-			if tc.valid {
-				// if we expect the manifest to be valid and we get an error, then
-				// that's unexpected behaviour.
-				if err != nil {
-					t.Fatal(err)
-				}
 
-				if m.ManifestVersion != manifest.ManifestLatestVersion {
-					t.Fatalf("manifest_version '%d' doesn't match latest '%d'", m.ManifestVersion, manifest.ManifestLatestVersion)
-				}
-			} else {
-				// otherwise if we expect the manifest to be invalid/unrecognised then
-				// the error should match our expectations.
-				if !errors.Is(err, tc.expectedError) {
-					t.Fatalf("incorrect error type: %T, expected: %T", err, tc.expectedError)
-				}
-				// Ensure the remediation error is as expected.
-				testutil.AssertRemediationErrorContains(t, err, tc.wantRemediationError)
+			// If we expect an invalid config, then assert we get the right error.
+			if !tc.valid {
+				testutil.AssertErrorContains(t, err, tc.expectedError.Error())
+				return
+			}
+
+			// Otherwise, if we expect the manifest to be valid and we get an error,
+			// then that's unexpected behaviour.
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if m.ManifestVersion != manifest.ManifestLatestVersion {
+				t.Fatalf("manifest_version '%d' doesn't match latest '%d'", m.ManifestVersion, manifest.ManifestLatestVersion)
 			}
 		})
 	}

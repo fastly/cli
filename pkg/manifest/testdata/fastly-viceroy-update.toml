@@ -9,50 +9,56 @@ name = "Default Rust template"
 
 [local_server]
 
-  [local_server.backends]
+[local_server.backends]
 
-    [local_server.backends.backend_a]
-      url = "https://example.com/"
-      override_host = "otherexample.com"
+[local_server.backends.backend_a]
+url = "https://example.com/"
+override_host = "otherexample.com"
 
-    [local_server.backends.foo]
-      url = "https://foo.com/"
+[local_server.backends.foo]
+url = "https://foo.com/"
 
-    [local_server.backends.bar]
-      url = "https://bar.com/"
+[local_server.backends.bar]
+url = "https://bar.com/"
 
-  [local_server.dictionaries]
+[local_server.config_stores]
 
-    [local_server.dictionaries.strings]
-      file = "strings.json"
-      format = "json"
+[local_server.config_stores.strings]
+file = "strings.json"
+format = "json"
 
-    [local_server.dictionaries.toml]
-      format = "inline-toml"
+[local_server.config_stores.example_store]
+format = "inline-toml"
 
-    [local_server.dictionaries.toml.contents]
-      foo = "bar"
-      baz = """
+[local_server.config_stores.example_store.contents]
+foo = "bar"
+baz = """
 qux"""
 
-  [local_server.kv_stores]
-    store_one = [{key = "first", data = "This is some data"}, {key = "second", file = "strings.json"}]
+[local_server.kv_stores]
+store_one = [
+  { key = "first", data = "This is some data" },
+  { key = "second", file = "strings.json" },
+]
 
-    [[local_server.kv_stores.store_two]]
-      key = "first"
-      data = "This is some data"
+[[local_server.kv_stores.store_two]]
+key = "first"
+data = "This is some data"
 
-    [[local_server.kv_stores.store_two]]
-      key = "second"
-      file = "strings.json"
+[[local_server.kv_stores.store_two]]
+key = "second"
+file = "strings.json"
 
-  [local_server.secret_stores]
-    store_one = [{key = "first", data = "This is some secret data"}, {key = "second", file = "/path/to/secret.json"}]
+[local_server.secret_stores]
+store_one = [
+  { key = "first", data = "This is some secret data" },
+  { key = "second", file = "/path/to/secret.json" },
+]
 
-    [[local_server.secret_stores.store_two]]
-      key = "first"
-      data = "This is also some secret data"
+[[local_server.secret_stores.store_two]]
+key = "first"
+data = "This is also some secret data"
 
-    [[local_server.secret_stores.store_two]]
-      key = "second"
-      file = "/path/to/other/secret.json"
+[[local_server.secret_stores.store_two]]
+key = "second"
+file = "/path/to/other/secret.json"
