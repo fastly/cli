@@ -3,7 +3,7 @@ package manifest
 // LocalServer represents a list of mocked Viceroy resources.
 type LocalServer struct {
 	Backends     map[string]LocalBackend       `toml:"backends"`
-	Dictionaries map[string]LocalDictionary    `toml:"dictionaries,omitempty"`
+	ConfigStores map[string]LocalConfigStore   `toml:"config_stores,omitempty"`
 	KVStores     map[string][]LocalKVStore     `toml:"kv_stores,omitempty"`
 	SecretStores map[string][]LocalSecretStore `toml:"secret_stores,omitempty"`
 }
@@ -16,8 +16,8 @@ type LocalBackend struct {
 	UseSNI       bool   `toml:"use_sni,omitempty"`
 }
 
-// LocalDictionary represents a dictionary to be mocked by the local testing server.
-type LocalDictionary struct {
+// LocalConfigStore represents a config store to be mocked by the local testing server.
+type LocalConfigStore struct {
 	File     string            `toml:"file,omitempty"`
 	Format   string            `toml:"format"`
 	Contents map[string]string `toml:"contents,omitempty"`
