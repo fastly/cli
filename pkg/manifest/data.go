@@ -18,6 +18,28 @@ type Data struct {
 	Flag Flag
 }
 
+// Authors yields an Authors.
+func (d *Data) Authors() ([]string, Source) {
+	if len(d.Flag.Authors) > 0 {
+		return d.Flag.Authors, SourceFlag
+	}
+
+	if len(d.File.Authors) > 0 {
+		return d.File.Authors, SourceFile
+	}
+
+	return []string{}, SourceUndefined
+}
+
+// Description yields a Description.
+func (d *Data) Description() (string, Source) {
+	if d.File.Description != "" {
+		return d.File.Description, SourceFile
+	}
+
+	return "", SourceUndefined
+}
+
 // Name yields a Name.
 func (d *Data) Name() (string, Source) {
 	if d.File.Name != "" {
@@ -42,26 +64,4 @@ func (d *Data) ServiceID() (string, Source) {
 	}
 
 	return "", SourceUndefined
-}
-
-// Description yields a Description.
-func (d *Data) Description() (string, Source) {
-	if d.File.Description != "" {
-		return d.File.Description, SourceFile
-	}
-
-	return "", SourceUndefined
-}
-
-// Authors yields an Authors.
-func (d *Data) Authors() ([]string, Source) {
-	if len(d.Flag.Authors) > 0 {
-		return d.Flag.Authors, SourceFlag
-	}
-
-	if len(d.File.Authors) > 0 {
-		return d.File.Authors, SourceFile
-	}
-
-	return []string{}, SourceUndefined
 }
