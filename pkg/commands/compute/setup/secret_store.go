@@ -109,7 +109,7 @@ func (s *SecretStores) Configure() error {
 func (s *SecretStores) Create() error {
 	if s.Spinner == nil {
 		return fsterrors.RemediationError{
-			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.SecretStores"),
+			Inner:       fmt.Errorf("internal logic error: no spinner configured for setup.SecretStores"),
 			Remediation: fsterrors.BugRemediation,
 		}
 	}
