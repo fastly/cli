@@ -33,48 +33,6 @@ type File struct {
 	readError error
 }
 
-// SetQuiet sets the associated flag value.
-func (f *File) SetQuiet(v bool) {
-	f.quiet = v
-}
-
-// Exists yields whether the manifest exists.
-//
-// Specifically, it indicates that a toml.Unmarshal() of the toml disk content
-// to data in memory was successful without error.
-func (f *File) Exists() bool {
-	return f.exists
-}
-
-// ReadError yields the error returned from Read().
-//
-// NOTE: We no longer call Read() from every command. We only call it once
-// within app.Run() but we don't handle any errors that are returned from the
-// Read() method. This is because failing to read the manifest is fine if the
-// error is caused by the file not existing in a directory where the user is
-// working on a non-C@E project. This will enable code elsewhere in the CLI to
-// understand why the Read() failed. For example, we can use errors.Is() to
-// allow returning a specific remediation error from a C@E related command.
-func (f *File) ReadError() error {
-	return f.readError
-}
-
-// SetErrLog sets an instance of errors.LogInterface.
-func (f *File) SetErrLog(errLog fsterr.LogInterface) {
-	f.errLog = errLog
-}
-
-// SetOutput sets the output stream for any messages.
-func (f *File) SetOutput(output io.Writer) {
-	f.output = output
-}
-
-func (f *File) logErr(err error) {
-	if f.errLog != nil {
-		f.errLog.Add(err)
-	}
-}
-
 // AutoMigrateVersion updates the manifest_version value to
 // ManifestLatestVersion if the current version is less than the latest
 // supported and only if there is no [setup] or [local_server] configuration defined.
@@ -167,6 +125,14 @@ func (f *File) AutoMigrateVersion(data []byte, path string) ([]byte, error) {
 	return data, fsterr.ErrIncompatibleManifestVersion
 }
 
+// Exists yields whether the manifest exists.
+//
+// Specifically, it indicates that a toml.Unmarshal() of the toml disk content
+// to data in memory was successful without error.
+func (f *File) Exists() bool {
+	return f.exists
+}
+
 // Load parses the input data into the File struct and persists it to disk.
 //
 // NOTE: This is used by the `compute build` command logic.
@@ -235,6 +201,34 @@ func (f *File) Read(path string) (err error) {
 	return nil
 }
 
+// ReadError yields the error returned from Read().
+//
+// NOTE: We no longer call Read() from every command. We only call it once
+// within app.Run() but we don't handle any errors that are returned from the
+// Read() method. This is because failing to read the manifest is fine if the
+// error is caused by the file not existing in a directory where the user is
+// working on a non-C@E project. This will enable code elsewhere in the CLI to
+// understand why the Read() failed. For example, we can use errors.Is() to
+// allow returning a specific remediation error from a C@E related command.
+func (f *File) ReadError() error {
+	return f.readError
+}
+
+// SetErrLog sets an instance of errors.LogInterface.
+func (f *File) SetErrLog(errLog fsterr.LogInterface) {
+	f.errLog = errLog
+}
+
+// SetOutput sets the output stream for any messages.
+func (f *File) SetOutput(output io.Writer) {
+	f.output = output
+}
+
+// SetQuiet sets the associated flag value.
+func (f *File) SetQuiet(v bool) {
+	f.quiet = v
+}
+
 // Write persists the manifest content to disk.
 func (f *File) Write(path string) error {
 	// gosec flagged this:
@@ -262,6 +256,12 @@ func (f *File) Write(path string) error {
 	}
 
 	return fp.Close()
+}
+
+func (f *File) logErr(err error) {
+	if f.errLog != nil {
+		f.errLog.Add(err)
+	}
 }
 
 // appendSpecRef appends the fastly.toml specification URL to the manifest.
