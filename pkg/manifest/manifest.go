@@ -1,8 +1,6 @@
 package manifest
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -493,30 +491,6 @@ func (f *File) Read(path string) (err error) {
 		return err
 	}
 
-	// NOTE: temporary fix needed because of a bug that appeared in v0.25.0 where
-	// the manifest_version was stored in fastly.toml as a 'section', e.g.
-	// `[manifest_version]`.
-	//
-	// This subsequently would cause errors when trying to unmarshal the data, so
-	// we need to identify if it exists in the file (as a section) and remove it.
-	//
-	// We do this before trying to unmarshal the toml data into a go data
-	// structure otherwise we'll see errors from the toml library.
-	manifestSection, err := containsManifestSection(data)
-	if err != nil {
-		f.logErr(err)
-		return fmt.Errorf("failed to parse the fastly.toml manifest: %w", err)
-	}
-
-	if manifestSection {
-		buf, err := stripManifestSection(bytes.NewReader(data), path)
-		if err != nil {
-			f.logErr(err)
-			return fsterr.ErrInvalidManifestVersion
-		}
-		data = buf.Bytes()
-	}
-
 	// The AutoMigrateVersion() method will either return the []byte unmodified or
 	// it will have updated the manifest_version field to reflect the latest
 	// version supported by the Fastly CLI.
@@ -580,55 +554,6 @@ func (f *File) Write(path string) error {
 	}
 
 	return fp.Close()
-}
-
-// containsManifestSection loads the slice of bytes into a toml tree structure
-// before checking if the manifest_version is defined as a toml section block.
-func containsManifestSection(data []byte) (bool, error) {
-	tree, err := toml.LoadBytes(data)
-	if err != nil {
-		return false, err
-	}
-
-	if _, ok := tree.GetArray("manifest_version").(*toml.Tree); ok {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// stripManifestSection reads the manifest line-by-line storing the lines that
-// don't contain `[manifest_version]` into a buffer to be written back to disk.
-//
-// It would've been better if we could have relied on the toml library to delete
-// the section but unfortunately that means it would end up deleting the entire
-// block and not just the key specified. Meaning if the manifest_version key
-// was in the middle of the manifest with other keys below it, deleting the
-// manifest_version would cause all keys below it to be deleted as they would
-// all be considered part of that section block.
-func stripManifestSection(r io.Reader, path string) (*bytes.Buffer, error) {
-	var data []byte
-	buf := bytes.NewBuffer(data)
-
-	scanner := bufio.NewScanner(r)
-	for scanner.Scan() {
-		if scanner.Text() != "[manifest_version]" {
-			_, err := buf.Write(scanner.Bytes())
-			if err != nil {
-				return buf, err
-			}
-			_, err = buf.WriteString("\n")
-			if err != nil {
-				return buf, err
-			}
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		return buf, err
-	}
-
-	err := os.WriteFile(path, buf.Bytes(), FilePermissions)
-	return buf, err
 }
 
 // appendSpecRef appends the fastly.toml specification URL to the manifest.

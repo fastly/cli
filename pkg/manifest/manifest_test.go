@@ -35,10 +35,6 @@ func TestManifest(t *testing.T) {
 			manifest: "fastly-invalid-missing-version.toml",
 			valid:    true, // expect manifest_version to be set to latest version
 		},
-		"invalid: manifest_version as a section": {
-			manifest: "fastly-invalid-section-version.toml",
-			valid:    true, // expect manifest_version to be set to latest version
-		},
 		"invalid: manifest_version Atoi error": {
 			manifest:      "fastly-invalid-unrecognised.toml",
 			valid:         false,
@@ -63,7 +59,6 @@ func TestManifest(t *testing.T) {
 		"fastly-valid-semver.toml",
 		"fastly-valid-integer.toml",
 		"fastly-invalid-missing-version.toml",
-		"fastly-invalid-section-version.toml",
 		"fastly-invalid-unrecognised.toml",
 		"fastly-invalid-version-exceeded.toml",
 	} {

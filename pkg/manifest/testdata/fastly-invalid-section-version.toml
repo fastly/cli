@@ -1,5 +1,0 @@
-name = "Default Rust template"
-description = "Default package template for Rust based edge compute projects."
-[manifest_version]
-authors = ["phamann <patrick@fastly.com>"]
-language = "rust"
