@@ -65,13 +65,13 @@ func (f *File) Read(path string) (err error) {
 	// Disabling as we need to load the fastly.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
-	data, err := os.ReadFile(path)
+	tree, err := toml.LoadFile(path)
 	if err != nil {
 		f.logErr(err)
 		return err
 	}
 
-	err = toml.Unmarshal(data, f)
+	err = tree.Unmarshal(f)
 	if err != nil {
 		f.logErr(err)
 		return err
@@ -95,6 +95,11 @@ func (f *File) Read(path string) (err error) {
 
 	if f.ManifestVersion < ManifestLatestVersion {
 		return fsterr.ErrIncompatibleManifestVersion
+	}
+
+	if dt := tree.Get("setup.dictionaries"); dt != nil {
+		text.Warning(f.output, "Your fastly.toml manifest contains `[setup.dictionaries]`, which should be updated to `[setup.config_stores]`. Refer to the documentation at https://developer.fastly.com/reference/compute/fastly-toml/")
+		text.Break(f.output)
 	}
 
 	f.exists = true
