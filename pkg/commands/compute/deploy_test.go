@@ -1160,7 +1160,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with setup.dictionaries configuration and existing service",
+			name: "success with setup.config_stores configuration and existing service",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
@@ -1188,12 +1188,12 @@ func TestDeploy(t *testing.T) {
 			manifest_version = 2
 			language = "rust"
 
-			[setup.dictionaries.dict_a]
+			[setup.config_stores.example]
 			description = "My first dictionary"
-			[setup.dictionaries.dict_a.items.foo]
+			[setup.config_stores.example.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
-			[setup.dictionaries.dict_a.items.bar]
+			[setup.config_stores.example.items.bar]
 			value = "my default value for bar"
 			description = "a good description about bar"
 			`,
@@ -1204,29 +1204,29 @@ func TestDeploy(t *testing.T) {
 			},
 			dontWantOutput: []string{
 				"Configuring dictionary 'dict_a'",
-				"Create a dictionary key called 'foo'",
-				"Create a dictionary key called 'bar'",
-				"Creating dictionary 'dict_a'",
-				"Creating dictionary item 'foo'",
-				"Creating dictionary item 'bar'",
+				"Create a config store key called 'foo'",
+				"Create a config store key called 'bar'",
+				"Creating config store 'example'",
+				"Creating config store item 'foo'",
+				"Creating config store item 'bar'",
 			},
 		},
 		{
-			name: "success with setup.dictionaries configuration and no existing service",
+			name: "success with setup.config_stores configuration and no existing service",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				ActivateVersionFn:      activateVersionOk,
-				CreateBackendFn:        createBackendOK,
-				CreateDictionaryFn:     createDictionaryOK,
-				CreateDictionaryItemFn: createDictionaryItemOK,
-				CreateDomainFn:         createDomainOK,
-				CreateServiceFn:        createServiceOK,
-				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
-				GetServiceDetailsFn:    getServiceDetailsWasm,
-				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
-				UpdatePackageFn:        updatePackageOk,
+				ActivateVersionFn:       activateVersionOk,
+				CreateBackendFn:         createBackendOK,
+				CreateConfigStoreFn:     createConfigStoreOK,
+				CreateConfigStoreItemFn: createConfigStoreItemOK,
+				CreateDomainFn:          createDomainOK,
+				CreateServiceFn:         createServiceOK,
+				GetPackageFn:            getPackageOk,
+				GetServiceFn:            getServiceOK,
+				GetServiceDetailsFn:     getServiceDetailsWasm,
+				ListDomainsFn:           listDomainsOk,
+				ListVersionsFn:          testutil.ListVersions,
+				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1243,12 +1243,12 @@ func TestDeploy(t *testing.T) {
 			manifest_version = 2
 			language = "rust"
 
-			[setup.dictionaries.dict_a]
-			description = "My first dictionary"
-			[setup.dictionaries.dict_a.items.foo]
+			[setup.config_stores.example]
+			description = "My first store"
+			[setup.config_stores.example.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
-			[setup.dictionaries.dict_a.items.bar]
+			[setup.config_stores.example.items.bar]
 			value = "my default value for bar"
 			description = "a good description about bar"
 			`,
@@ -1256,36 +1256,36 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring dictionary 'dict_a'",
-				"My first dictionary",
-				"Create a dictionary key called 'foo'",
+				"Configuring config store 'example'",
+				"My first store",
+				"Create a config store key called 'foo'",
 				"my default value for foo",
-				"Create a dictionary key called 'bar'",
+				"Create a config store key called 'bar'",
 				"my default value for bar",
-				"Creating dictionary 'dict_a'",
-				"Creating dictionary item 'foo'",
-				"Creating dictionary item 'bar'",
+				"Creating config store 'example'",
+				"Creating config store item 'foo'",
+				"Creating config store item 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
 		{
-			name: "success with setup.dictionaries configuration and no existing service and --non-interactive",
+			name: "success with setup.config_stores configuration and no existing service and --non-interactive",
 			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
-				ActivateVersionFn:      activateVersionOk,
-				CreateBackendFn:        createBackendOK,
-				CreateDictionaryFn:     createDictionaryOK,
-				CreateDictionaryItemFn: createDictionaryItemOK,
-				CreateDomainFn:         createDomainOK,
-				CreateServiceFn:        createServiceOK,
-				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
-				GetServiceDetailsFn:    getServiceDetailsWasm,
-				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
-				UpdatePackageFn:        updatePackageOk,
+				ActivateVersionFn:       activateVersionOk,
+				CreateBackendFn:         createBackendOK,
+				CreateConfigStoreFn:     createConfigStoreOK,
+				CreateConfigStoreItemFn: createConfigStoreItemOK,
+				CreateDomainFn:          createDomainOK,
+				CreateServiceFn:         createServiceOK,
+				GetPackageFn:            getPackageOk,
+				GetServiceFn:            getServiceOK,
+				GetServiceDetailsFn:     getServiceDetailsWasm,
+				ListDomainsFn:           listDomainsOk,
+				ListVersionsFn:          testutil.ListVersions,
+				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1302,12 +1302,12 @@ func TestDeploy(t *testing.T) {
 			manifest_version = 2
 			language = "rust"
 
-			[setup.dictionaries.dict_a]
-			description = "My first dictionary"
-			[setup.dictionaries.dict_a.items.foo]
+			[setup.config_stores.example]
+			description = "My first store"
+			[setup.config_stores.example.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
-			[setup.dictionaries.dict_a.items.bar]
+			[setup.config_stores.example.items.bar]
 			value = "my default value for bar"
 			description = "a good description about bar"
 			`,
@@ -1315,30 +1315,30 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Creating dictionary 'dict_a'",
-				"Creating dictionary item 'foo'",
-				"Creating dictionary item 'bar'",
+				"Creating config store 'example'",
+				"Creating config store item 'foo'",
+				"Creating config store item 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 		},
 		{
-			name: "success with setup.dictionaries configuration and no existing service and no predefined values",
+			name: "success with setup.config_stores configuration and no existing service and no predefined values",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				ActivateVersionFn:      activateVersionOk,
-				CreateBackendFn:        createBackendOK,
-				CreateDictionaryFn:     createDictionaryOK,
-				CreateDictionaryItemFn: createDictionaryItemOK,
-				CreateDomainFn:         createDomainOK,
-				CreateServiceFn:        createServiceOK,
-				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
-				GetServiceDetailsFn:    getServiceDetailsWasm,
-				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
-				UpdatePackageFn:        updatePackageOk,
+				ActivateVersionFn:       activateVersionOk,
+				CreateBackendFn:         createBackendOK,
+				CreateConfigStoreFn:     createConfigStoreOK,
+				CreateConfigStoreItemFn: createConfigStoreItemOK,
+				CreateDomainFn:          createDomainOK,
+				CreateServiceFn:         createServiceOK,
+				GetPackageFn:            getPackageOk,
+				GetServiceFn:            getServiceOK,
+				GetServiceDetailsFn:     getServiceDetailsWasm,
+				ListDomainsFn:           listDomainsOk,
+				ListVersionsFn:          testutil.ListVersions,
+				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1355,30 +1355,30 @@ func TestDeploy(t *testing.T) {
 			manifest_version = 2
 			language = "rust"
 
-			[setup.dictionaries.dict_a]
-			[setup.dictionaries.dict_a.items.foo]
-			[setup.dictionaries.dict_a.items.bar]
+			[setup.config_stores.example]
+			[setup.config_stores.example.items.foo]
+			[setup.config_stores.example.items.bar]
 			`,
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring dictionary 'dict_a'",
-				"Create a dictionary key called 'foo'",
-				"Create a dictionary key called 'bar'",
-				"Creating dictionary 'dict_a'",
-				"Creating dictionary item 'foo'",
-				"Creating dictionary item 'bar'",
+				"Configuring config store 'example'",
+				"Create a config store key called 'foo'",
+				"Create a config store key called 'bar'",
+				"Creating config store 'example'",
+				"Creating config store item 'foo'",
+				"Creating config store item 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
 			// The following are predefined values for the `description` and `value`
-			// fields from the prior setup.dictionaries tests that we expect to not
-			// be present in the stdout/stderr as the [setup/dictionaries]
+			// fields from the prior setup.config_stores tests that we expect to not
+			// be present in the stdout/stderr as the [setup.config_stores]
 			// configuration does not define them.
 			dontWantOutput: []string{
-				"My first dictionary",
+				"My first store",
 				"my default value for foo",
 				"my default value for bar",
 			},

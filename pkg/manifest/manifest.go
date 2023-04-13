@@ -219,7 +219,7 @@ type Scripts struct {
 // the package. See https://developer.fastly.com/reference/fastly-toml/.
 type Setup struct {
 	Backends     map[string]*SetupBackend     `toml:"backends,omitempty"`
-	Dictionaries map[string]*SetupDictionary  `toml:"dictionaries,omitempty"`
+	ConfigStores map[string]*SetupConfigStore `toml:"config_stores,omitempty"`
 	Loggers      map[string]*SetupLogger      `toml:"log_endpoints,omitempty"`
 	KVStores     map[string]*SetupKVStore     `toml:"kv_stores,omitempty"`
 	SecretStores map[string]*SetupSecretStore `toml:"secret_stores,omitempty"`
@@ -232,7 +232,7 @@ func (s Setup) Defined() bool {
 	if len(s.Backends) > 0 {
 		defined = true
 	}
-	if len(s.Dictionaries) > 0 {
+	if len(s.ConfigStores) > 0 {
 		defined = true
 	}
 	if len(s.Loggers) > 0 {
@@ -252,14 +252,14 @@ type SetupBackend struct {
 	Description string `toml:"description,omitempty"`
 }
 
-// SetupDictionary represents a '[setup.dictionaries.<T>]' instance.
-type SetupDictionary struct {
-	Items       map[string]SetupDictionaryItems `toml:"items,omitempty"`
-	Description string                          `toml:"description,omitempty"`
+// SetupConfigStore represents a '[setup.dictionaries.<T>]' instance.
+type SetupConfigStore struct {
+	Items       map[string]SetupConfigStoreItems `toml:"items,omitempty"`
+	Description string                           `toml:"description,omitempty"`
 }
 
-// SetupDictionaryItems represents a '[setup.dictionaries.<T>.items]' instance.
-type SetupDictionaryItems struct {
+// SetupConfigStoreItems represents a '[setup.dictionaries.<T>.items]' instance.
+type SetupConfigStoreItems struct {
 	Value       string `toml:"value,omitempty"`
 	Description string `toml:"description,omitempty"`
 }
