@@ -13,7 +13,7 @@ const (
 	//
 	// NOTE: The CLI is the primary consumer of the fastly.toml manifest so its
 	// code is typically coupled to the specification.
-	ManifestLatestVersion = 2
+	ManifestLatestVersion = 3
 
 	// FilePermissions represents a read/write file mode.
 	FilePermissions = 0o666
