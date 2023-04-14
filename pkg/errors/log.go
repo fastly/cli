@@ -16,6 +16,16 @@ import (
 	"github.com/getsentry/sentry-go"
 )
 
+// AllowInstrumentation sends errors to Sentry if set to boolean true.
+//
+// All errors are persisted to disk but some errors (such as Fastly API errors)
+// we don't want to send to Sentry because they're not actionable. Sentry should
+// only be sent errors that stem from logic bugs in the Fastly CLI.
+//
+// NOTE: We define a constant that's expected to be used as a map key.
+// This is to avoid subtle typos if the key was manually entered.
+const AllowInstrumentation string = "AllowInstrumentation"
+
 // LogPath is the location of the fastly CLI error log.
 var LogPath = func() string {
 	if dir, err := os.UserConfigDir(); err == nil {
@@ -174,6 +184,14 @@ func instrument(l LogEntries, cmd string) {
 		Type:     "info",
 	})
 	for _, entry := range l {
+		if entry.Context == nil {
+			continue // if no context is set, then skip sending this error to Sentry
+		} else if si, ok := entry.Context["AllowInstrumentation"]; !ok {
+			continue // if no field is set, then skip sending this error to Sentry
+		} else if allow, ok := si.(bool); ok && !allow {
+			continue // if 'not allow', then skip sending this error to Sentry
+		}
+
 		var (
 			file string
 			line int
