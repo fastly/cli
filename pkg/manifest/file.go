@@ -93,10 +93,6 @@ func (f *File) Read(path string) (err error) {
 		}
 	}
 
-	if f.ManifestVersion < ManifestLatestVersion {
-		return fsterr.ErrIncompatibleManifestVersion
-	}
-
 	if dt := tree.Get("setup.dictionaries"); dt != nil {
 		text.Warning(f.output, "Your fastly.toml manifest contains `[setup.dictionaries]`, which should be updated to `[setup.config_stores]`. Refer to the documentation at https://developer.fastly.com/reference/compute/fastly-toml/")
 		text.Break(f.output)

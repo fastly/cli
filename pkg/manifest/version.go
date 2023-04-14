@@ -37,21 +37,6 @@ type Version int
 func (v *Version) UnmarshalText(txt []byte) error {
 	s := string(txt)
 
-	if i, err := strconv.Atoi(s); err == nil {
-		*v = Version(i)
-		return nil
-	}
-
-	if f, err := strconv.ParseFloat(s, 32); err == nil {
-		intfl := int(f)
-		if intfl == 0 {
-			*v = ManifestLatestVersion
-		} else {
-			*v = Version(intfl)
-		}
-		return nil
-	}
-
 	// Presumes semver value (e.g. 1.0.0, 0.1.0 or 0.1)
 	// Major is converted to integer if != zero.
 	// Otherwise if Major == zero, then ignore Minor/Patch and set to latest version.
@@ -66,6 +51,7 @@ func (v *Version) UnmarshalText(txt []byte) error {
 			s = strconv.Itoa(ManifestLatestVersion)
 		}
 	}
+
 	version, err = strconv.Atoi(s)
 	if err != nil {
 		return fmt.Errorf("error parsing manifest_version '%s': %w", s, err)
@@ -74,6 +60,7 @@ func (v *Version) UnmarshalText(txt []byte) error {
 	if version > ManifestLatestVersion {
 		return fsterr.ErrUnrecognisedManifestVersion
 	}
+
 	*v = Version(version)
 	return nil
 }
