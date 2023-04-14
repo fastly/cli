@@ -46,13 +46,13 @@ type ConfigStoreItem struct {
 }
 
 // Configure prompts the user for specific values related to the service resource.
-func (d *ConfigStores) Configure() error {
-	for name, settings := range d.Setup {
-		if !d.AcceptDefaults && !d.NonInteractive {
-			text.Break(d.Stdout)
-			text.Output(d.Stdout, "Configuring config store '%s'", name)
+func (o *ConfigStores) Configure() error {
+	for name, settings := range o.Setup {
+		if !o.AcceptDefaults && !o.NonInteractive {
+			text.Break(o.Stdout)
+			text.Output(o.Stdout, "Configuring config store '%s'", name)
 			if settings.Description != "" {
-				text.Output(d.Stdout, settings.Description)
+				text.Output(o.Stdout, settings.Description)
 			}
 		}
 
@@ -70,15 +70,15 @@ func (d *ConfigStores) Configure() error {
 				err   error
 			)
 
-			if !d.AcceptDefaults && !d.NonInteractive {
-				text.Break(d.Stdout)
-				text.Output(d.Stdout, "Create a config store key called '%s'", key)
+			if !o.AcceptDefaults && !o.NonInteractive {
+				text.Break(o.Stdout)
+				text.Output(o.Stdout, "Create a config store key called '%s'", key)
 				if item.Description != "" {
-					text.Output(d.Stdout, item.Description)
+					text.Output(o.Stdout, item.Description)
 				}
-				text.Break(d.Stdout)
+				text.Break(o.Stdout)
 
-				value, err = text.Input(d.Stdout, prompt, d.Stdin)
+				value, err = text.Input(o.Stdout, prompt, o.Stdin)
 				if err != nil {
 					return fmt.Errorf("error reading prompt input: %w", err)
 				}
@@ -94,7 +94,7 @@ func (d *ConfigStores) Configure() error {
 			})
 		}
 
-		d.required = append(d.required, ConfigStore{
+		o.required = append(o.required, ConfigStore{
 			Name:  name,
 			Items: items,
 		})
@@ -104,69 +104,98 @@ func (d *ConfigStores) Configure() error {
 }
 
 // Create calls the relevant API to create the service resource(s).
-func (d *ConfigStores) Create() error {
-	if d.Spinner == nil {
+func (o *ConfigStores) Create() error {
+	if o.Spinner == nil {
 		return errors.RemediationError{
 			Inner:       fmt.Errorf("internal logic error: no spinner configured for setup.ConfigStores"),
 			Remediation: errors.BugRemediation,
 		}
 	}
 
-	for _, store := range d.required {
-		err := d.Spinner.Start()
+	for _, store := range o.required {
+		err := o.Spinner.Start()
 		if err != nil {
 			return err
 		}
 		msg := fmt.Sprintf("Creating config store '%s'", store.Name)
-		d.Spinner.Message(msg + "...")
+		o.Spinner.Message(msg + "...")
 
-		cs, err := d.APIClient.CreateConfigStore(&fastly.CreateConfigStoreInput{
+		cs, err := o.APIClient.CreateConfigStore(&fastly.CreateConfigStoreInput{
 			Name: store.Name,
 		})
 		if err != nil {
-			d.Spinner.StopFailMessage(msg)
-			err := d.Spinner.StopFail()
+			o.Spinner.StopFailMessage(msg)
+			err := o.Spinner.StopFail()
 			if err != nil {
 				return err
 			}
 			return fmt.Errorf("error creating config store: %w", err)
 		}
 
-		d.Spinner.StopMessage(msg)
-		err = d.Spinner.Stop()
+		o.Spinner.StopMessage(msg)
+		err = o.Spinner.Stop()
 		if err != nil {
 			return err
 		}
 
 		if len(store.Items) > 0 {
 			for _, item := range store.Items {
-				err := d.Spinner.Start()
+				err := o.Spinner.Start()
 				if err != nil {
 					return err
 				}
 				msg := fmt.Sprintf("Creating config store item '%s'", item.Key)
-				d.Spinner.Message(msg + "...")
+				o.Spinner.Message(msg + "...")
 
-				_, err = d.APIClient.CreateConfigStoreItem(&fastly.CreateConfigStoreItemInput{
+				_, err = o.APIClient.CreateConfigStoreItem(&fastly.CreateConfigStoreItemInput{
 					StoreID: cs.ID,
 					Key:     item.Key,
 					Value:   item.Value,
 				})
 				if err != nil {
-					d.Spinner.StopFailMessage(msg)
-					err := d.Spinner.StopFail()
+					o.Spinner.StopFailMessage(msg)
+					err := o.Spinner.StopFail()
 					if err != nil {
 						return err
 					}
 					return fmt.Errorf("error creating config store item: %w", err)
 				}
 
-				d.Spinner.StopMessage(msg)
-				err = d.Spinner.Stop()
+				o.Spinner.StopMessage(msg)
+				err = o.Spinner.Stop()
 				if err != nil {
 					return err
 				}
 			}
+		}
+
+		err = o.Spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = fmt.Sprintf("Creating resource link between service and config store '%s'...", cs.Name)
+		o.Spinner.Message(msg)
+
+		// IMPORTANT: We need to link the config store to the C@E Service.
+		_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
+			ServiceID:      o.ServiceID,
+			ServiceVersion: o.ServiceVersion,
+			Name:           fastly.String(cs.Name),
+			ResourceID:     fastly.String(cs.ID),
+		})
+		if err != nil {
+			o.Spinner.StopFailMessage(msg)
+			err := o.Spinner.StopFail()
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, store.Name, err)
+		}
+
+		o.Spinner.StopMessage(msg)
+		err = o.Spinner.Stop()
+		if err != nil {
+			return err
 		}
 	}
 
@@ -175,6 +204,6 @@ func (d *ConfigStores) Create() error {
 
 // Predefined indicates if the service resource has been specified within the
 // fastly.toml file using a [setup] configuration block.
-func (d *ConfigStores) Predefined() bool {
-	return len(d.Setup) > 0
+func (o *ConfigStores) Predefined() bool {
+	return len(o.Setup) > 0
 }
