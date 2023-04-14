@@ -12,7 +12,7 @@ import (
 //
 // If the same parameter is defined in multiple places, it is resolved according
 // to the following priority order: the manifest file (lowest priority) and then
-// explicit flags (highest priority).
+// environment variables (where applicable), and explicit flags (highest priority).
 type Data struct {
 	File File
 	Flag Flag
