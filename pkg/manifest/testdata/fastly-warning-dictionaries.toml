@@ -1,0 +1,18 @@
+manifest_version = 3
+name = "Default Rust template"
+description = "Default package template for Rust based edge compute projects."
+authors = ["example <oss@fastly.com>"]
+language = "rust"
+
+[setup.dictionaries]
+
+[setup.dictionaries.service_config]
+description = "Configuration data for my service"
+
+[setup.dictionaries.service_config.items]
+
+[setup.dictionaries.service_config.items.s3-primary-host]
+value = "eu-west-2"
+
+[setup.dictionaries.service_config.items.s3-fallback-host]
+value = "us-west-1"

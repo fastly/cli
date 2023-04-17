@@ -32,6 +32,19 @@ func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	}, nil
 }
 
+func createConfigStoreOK(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
+	return &fastly.ConfigStore{
+		Name: i.Name,
+	}, nil
+}
+
+func createConfigStoreItemOK(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
+	return &fastly.ConfigStoreItem{
+		Key:   i.Key,
+		Value: i.Value,
+	}, nil
+}
+
 func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID:      i.ServiceID,

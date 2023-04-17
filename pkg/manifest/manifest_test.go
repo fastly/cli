@@ -1,10 +1,9 @@
 package manifest_test
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -12,6 +11,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 	"github.com/google/go-cmp/cmp"
 	toml "github.com/pelletier/go-toml"
 )
@@ -22,6 +22,7 @@ func TestManifest(t *testing.T) {
 		valid                bool
 		expectedError        error
 		wantRemediationError string
+		expectedOutput       string
 	}{
 		"valid: semver": {
 			manifest: "fastly-valid-semver.toml",
@@ -35,20 +36,20 @@ func TestManifest(t *testing.T) {
 			manifest: "fastly-invalid-missing-version.toml",
 			valid:    true, // expect manifest_version to be set to latest version
 		},
-		"invalid: manifest_version as a section": {
-			manifest: "fastly-invalid-section-version.toml",
-			valid:    true, // expect manifest_version to be set to latest version
-		},
 		"invalid: manifest_version Atoi error": {
 			manifest:      "fastly-invalid-unrecognised.toml",
 			valid:         false,
-			expectedError: strconv.ErrSyntax,
+			expectedError: fmt.Errorf("error parsing manifest_version 'abc'"),
 		},
 		"unrecognised: manifest_version exceeded limit": {
-			manifest:             "fastly-invalid-version-exceeded.toml",
-			valid:                false,
-			expectedError:        fsterr.ErrUnrecognisedManifestVersion,
-			wantRemediationError: fsterr.ErrUnrecognisedManifestVersion.Remediation,
+			manifest:      "fastly-invalid-version-exceeded.toml",
+			valid:         false,
+			expectedError: fsterr.ErrUnrecognisedManifestVersion,
+		},
+		"warning: dictionaries now replaced with config_stores": {
+			manifest:       "fastly-warning-dictionaries.toml",
+			valid:          true, // we display a warning but we don't exit command execution
+			expectedOutput: "WARNING: Your fastly.toml manifest contains `[setup.dictionaries]`",
 		},
 	}
 
@@ -63,7 +64,6 @@ func TestManifest(t *testing.T) {
 		"fastly-valid-semver.toml",
 		"fastly-valid-integer.toml",
 		"fastly-invalid-missing-version.toml",
-		"fastly-invalid-section-version.toml",
 		"fastly-invalid-unrecognised.toml",
 		"fastly-invalid-version-exceeded.toml",
 	} {
@@ -87,9 +87,12 @@ func TestManifest(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			var m manifest.File
+			var (
+				m      manifest.File
+				stdout threadsafe.Buffer
+			)
 			m.SetErrLog(fsterr.Log)
-			m.SetOutput(os.Stdout)
+			m.SetOutput(&stdout)
 
 			path, err := filepath.Abs(filepath.Join(prefix, tc.manifest))
 			if err != nil {
@@ -97,24 +100,29 @@ func TestManifest(t *testing.T) {
 			}
 
 			err = m.Read(path)
-			if tc.valid {
-				// if we expect the manifest to be valid and we get an error, then
-				// that's unexpected behaviour.
-				if err != nil {
-					t.Fatal(err)
-				}
 
-				if m.ManifestVersion != manifest.ManifestLatestVersion {
-					t.Fatalf("manifest_version '%d' doesn't match latest '%d'", m.ManifestVersion, manifest.ManifestLatestVersion)
-				}
-			} else {
-				// otherwise if we expect the manifest to be invalid/unrecognised then
-				// the error should match our expectations.
-				if !errors.Is(err, tc.expectedError) {
-					t.Fatalf("incorrect error type: %T, expected: %T", err, tc.expectedError)
-				}
-				// Ensure the remediation error is as expected.
-				testutil.AssertRemediationErrorContains(t, err, tc.wantRemediationError)
+			// If we expect an invalid config, then assert we get the right error.
+			if !tc.valid {
+				testutil.AssertErrorContains(t, err, tc.expectedError.Error())
+				return
+			}
+
+			// Otherwise, if we expect the manifest to be valid and we get an error,
+			// then that's unexpected behaviour.
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if m.ManifestVersion != manifest.ManifestLatestVersion {
+				t.Fatalf("manifest_version '%d' doesn't match latest '%d'", m.ManifestVersion, manifest.ManifestLatestVersion)
+			}
+
+			output := stdout.String()
+
+			t.Log(output)
+
+			if tc.expectedOutput != "" && !strings.Contains(output, tc.expectedOutput) {
+				t.Fatalf("got: %s, want: %s", output, tc.expectedOutput)
 			}
 		})
 	}

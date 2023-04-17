@@ -846,7 +846,7 @@ func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, ver
 type setupObjects struct {
 	domains      *setup.Domains
 	backends     *setup.Backends
-	dictionaries *setup.Dictionaries
+	configStores *setup.ConfigStores
 	loggers      *setup.Loggers
 	kvStores     *setup.KVStores
 	secretStores *setup.SecretStores
@@ -907,13 +907,13 @@ func constructSetupObjects(
 			Stdout:         out,
 		}
 
-		so.dictionaries = &setup.Dictionaries{
+		so.configStores = &setup.ConfigStores{
 			APIClient:      c.Globals.APIClient,
 			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 			NonInteractive: c.Globals.Flags.NonInteractive,
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.Dictionaries,
+			Setup:          c.Manifest.File.Setup.ConfigStores,
 			Stdin:          in,
 			Stdout:         out,
 		}
@@ -976,10 +976,10 @@ func processSetupConfig(
 			return fmt.Errorf("error configuring service backends: %w", err)
 		}
 
-		if so.dictionaries.Predefined() {
-			if err := so.dictionaries.Configure(); err != nil {
+		if so.configStores.Predefined() {
+			if err := so.configStores.Configure(); err != nil {
 				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service dictionaries: %w", err)
+				return fmt.Errorf("error configuring service config stores: %w", err)
 			}
 		}
 
@@ -1038,7 +1038,7 @@ func processSetupCreation(
 	// We presume if we're dealing with newService they have been set.
 	if newService {
 		so.backends.Spinner = spinner
-		so.dictionaries.Spinner = spinner
+		so.configStores.Spinner = spinner
 		so.kvStores.Spinner = spinner
 		so.secretStores.Spinner = spinner
 
@@ -1053,7 +1053,7 @@ func processSetupCreation(
 			return err
 		}
 
-		if err := so.dictionaries.Create(); err != nil {
+		if err := so.configStores.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flags.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flags.AutoYes,
