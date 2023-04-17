@@ -360,6 +360,9 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, ver
 
 	err = data.File.Read(manifestPath)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			err = fsterr.ErrReadingManifest
+		}
 		return err
 	}
 
