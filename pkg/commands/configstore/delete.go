@@ -41,30 +41,30 @@ type DeleteCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
+func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	err := cmd.Globals.APIClient.DeleteConfigStore(&cmd.input)
+	err := c.Globals.APIClient.DeleteConfigStore(&c.input)
 	if err != nil {
-		cmd.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if cmd.JSONOutput.Enabled {
+	if c.JSONOutput.Enabled {
 		o := struct {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			cmd.input.ID,
+			c.input.ID,
 			true,
 		}
-		_, err := cmd.WriteJSON(out, o)
+		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted config store %s", cmd.input.ID)
+	text.Success(out, "Deleted config store %s", c.input.ID)
 
 	return nil
 }
