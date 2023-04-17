@@ -58,6 +58,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	err = filesystem.MakeDirectoryIfNotExists(bindir)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			fsterr.AllowInstrumentation: true,
 			"Wasm directory (relative)": bindir,
 		})
 		return err
@@ -66,13 +67,15 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	src, err := filepath.Abs(c.wasmBinary)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path (absolute)": src,
+			fsterr.AllowInstrumentation: true,
+			"Path (absolute)":           src,
 		})
 		return err
 	}
 	dst, err := filepath.Abs(bin)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			fsterr.AllowInstrumentation:   true,
 			"Wasm destination (relative)": bin,
 		})
 		return err
@@ -87,6 +90,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			fsterr.AllowInstrumentation:   true,
 			"Path (absolute)":             src,
 			"Wasm destination (absolute)": dst,
 		})
@@ -130,8 +134,9 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	dst = fmt.Sprintf("pkg/package/%s", manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Manifest (destination)": dst,
-			"Manifest (source)":      src,
+			fsterr.AllowInstrumentation: true,
+			"Manifest (destination)":    dst,
+			"Manifest (source)":         src,
 		})
 
 		spinner.StopFailMessage(msg)
@@ -164,8 +169,9 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		dst := fmt.Sprintf("%s.tar.gz", dir)
 		if err = tar.Archive(src, dst); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Tar source":      dir,
-				"Tar destination": dst,
+				fsterr.AllowInstrumentation: true,
+				"Tar source":                dir,
+				"Tar destination":           dst,
 			})
 
 			spinner.StopFailMessage(msg)

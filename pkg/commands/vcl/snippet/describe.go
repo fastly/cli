@@ -96,8 +96,9 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				fsterr.AllowInstrumentation: true,
+				"Service ID":                serviceID,
+				"Service Version":           serviceVersion.Number,
 			})
 			return err
 		}
@@ -115,8 +116,9 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			fsterr.AllowInstrumentation: true,
+			"Service ID":                serviceID,
+			"Service Version":           serviceVersion.Number,
 		})
 		return err
 	}

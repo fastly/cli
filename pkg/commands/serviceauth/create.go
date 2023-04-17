@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
@@ -60,8 +61,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":   c.manifest.Flag.ServiceID,
-			"Service Name": c.serviceName.Value,
+			fsterr.AllowInstrumentation: true,
+			"Service ID":                c.manifest.Flag.ServiceID,
+			"Service Name":              c.serviceName.Value,
 		})
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
@@ -81,7 +81,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
@@ -89,8 +89,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			fsterr.AllowInstrumentation: true,
+			"Service ID":                serviceID,
+			"Service Version":           serviceVersion.Number,
 		})
 		return err
 	}

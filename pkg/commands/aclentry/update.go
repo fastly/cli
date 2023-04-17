@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
@@ -122,18 +122,20 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 	err := json.Unmarshal(bs, &input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"File": s,
+			fsterr.AllowInstrumentation: true,
+			"File":                      s,
 		})
 		return nil, err
 	}
 
 	if len(input.Entries) == 0 {
-		err := errors.RemediationError{
+		err := fsterr.RemediationError{
 			Inner:       fmt.Errorf("missing 'entries' %s", c.file.Value),
 			Remediation: "Consult the API documentation for the JSON format: https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries",
 		}
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"File": string(bs),
+			fsterr.AllowInstrumentation: true,
+			"File":                      string(bs),
 		})
 		return nil, err
 	}
@@ -146,7 +148,7 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 	var input fastly.UpdateACLEntryInput
 
 	if !c.id.WasSet {
-		return nil, errors.ErrNoID
+		return nil, fsterr.ErrNoID
 	}
 
 	input.ACLID = c.aclID
