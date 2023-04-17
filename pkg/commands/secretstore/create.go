@@ -41,18 +41,18 @@ type CreateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := cmd.Globals.APIClient.CreateSecretStore(&cmd.Input)
+	o, err := c.Globals.APIClient.CreateSecretStore(&c.Input)
 	if err != nil {
-		cmd.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if ok, err := cmd.WriteJSON(out, o); ok {
+	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 

@@ -69,12 +69,12 @@ type UpdateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
+func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if cmd.stdin {
+	if c.stdin {
 		// Determine if 'in' has data available.
 		if in == nil || text.IsTTY(in) {
 			return errNoSTDINData
@@ -87,30 +87,30 @@ func (cmd *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 			return err
 		}
 
-		cmd.input.Value = string(value)
-	} else if cmd.input.Value == "" {
+		c.input.Value = string(value)
+	} else if c.input.Value == "" {
 		return errNoValue
 	}
 
-	if len(cmd.input.Key) > maxKeyLen {
+	if len(c.input.Key) > maxKeyLen {
 		return errMaxKeyLen
 	}
-	if len(cmd.input.Value) > maxValueLen {
+	if len(c.input.Value) > maxValueLen {
 		return errMaxValueLen
 	}
 
-	o, err := cmd.Globals.APIClient.UpdateConfigStoreItem(&cmd.input)
+	o, err := c.Globals.APIClient.UpdateConfigStoreItem(&c.input)
 	if err != nil {
-		cmd.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if ok, err := cmd.WriteJSON(out, o); ok {
+	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 
 	var action string
-	if cmd.input.Upsert {
+	if c.input.Upsert {
 		// The Fastly API does not provide a way to determine if
 		// an item was created or updated when using 'upsert' operation.
 		action = "Created or updated"

@@ -48,29 +48,29 @@ type DescribeCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	cs, err := cmd.Globals.APIClient.GetConfigStore(&cmd.input)
+	cs, err := c.Globals.APIClient.GetConfigStore(&c.input)
 	if err != nil {
-		cmd.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	var csm *fastly.ConfigStoreMetadata
-	if cmd.metadata {
-		csm, err = cmd.Globals.APIClient.GetConfigStoreMetadata(&fastly.GetConfigStoreMetadataInput{
-			ID: cmd.input.ID,
+	if c.metadata {
+		csm, err = c.Globals.APIClient.GetConfigStoreMetadata(&fastly.GetConfigStoreMetadataInput{
+			ID: c.input.ID,
 		})
 		if err != nil {
-			cmd.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	}
 
-	if cmd.JSONOutput.Enabled {
+	if c.JSONOutput.Enabled {
 		// Create an ad-hoc structure for JSON representation of the config store
 		// and its metadata.
 		data := struct {
@@ -81,7 +81,7 @@ func (cmd *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 			Metadata:    csm,
 		}
 
-		if ok, err := cmd.WriteJSON(out, data); ok {
+		if ok, err := c.WriteJSON(out, data); ok {
 			return err
 		}
 	}

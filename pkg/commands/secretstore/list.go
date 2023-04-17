@@ -40,19 +40,19 @@ type ListCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *ListCommand) Exec(in io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
+func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	for {
-		o, err := cmd.Globals.APIClient.ListSecretStores(&cmd.Input)
+		o, err := c.Globals.APIClient.ListSecretStores(&c.Input)
 		if err != nil {
-			cmd.Globals.ErrLog.Add(err)
+			c.Globals.ErrLog.Add(err)
 			return err
 		}
 
-		if ok, err := cmd.WriteJSON(out, o); ok {
+		if ok, err := c.WriteJSON(out, o); ok {
 			// No pagination prompt w/ JSON output.
 			return err
 		}
@@ -61,13 +61,13 @@ func (cmd *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 		if o != nil && o.Meta.NextCursor != "" {
 			// Check if 'out' is interactive before prompting.
-			if !cmd.Globals.Flags.NonInteractive && !cmd.Globals.Flags.AutoYes && text.IsTTY(out) {
+			if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
 				printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
 				if err != nil {
 					return err
 				}
 				if printNext {
-					cmd.Input.Cursor = o.Meta.NextCursor
+					c.Input.Cursor = o.Meta.NextCursor
 					continue
 				}
 			}

@@ -63,12 +63,12 @@ type CreateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (cmd *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
+func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if cmd.stdin {
+	if c.stdin {
 		// Determine if 'in' has data available.
 		if in == nil || text.IsTTY(in) {
 			return errNoSTDINData
@@ -81,25 +81,25 @@ func (cmd *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 			return err
 		}
 
-		cmd.input.Value = string(value)
-	} else if cmd.input.Value == "" {
+		c.input.Value = string(value)
+	} else if c.input.Value == "" {
 		return errNoValue
 	}
 
-	if len(cmd.input.Key) > maxKeyLen {
+	if len(c.input.Key) > maxKeyLen {
 		return errMaxKeyLen
 	}
-	if len(cmd.input.Value) > maxValueLen {
+	if len(c.input.Value) > maxValueLen {
 		return errMaxValueLen
 	}
 
-	o, err := cmd.Globals.APIClient.CreateConfigStoreItem(&cmd.input)
+	o, err := c.Globals.APIClient.CreateConfigStoreItem(&c.input)
 	if err != nil {
-		cmd.Globals.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if ok, err := cmd.WriteJSON(out, o); ok {
+	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 
