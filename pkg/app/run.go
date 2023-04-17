@@ -42,6 +42,7 @@ func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 // and returned to the caller. This includes usage text.
 func Run(opts RunOpts) error {
 	var md manifest.Data
+	md.File.Args = opts.Args
 	md.File.SetErrLog(opts.ErrLog)
 	md.File.SetOutput(opts.Stdout)
 	_ = md.File.Read(manifest.Filename)
