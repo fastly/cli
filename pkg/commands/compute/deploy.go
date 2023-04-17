@@ -684,13 +684,13 @@ func cleanupService(apiClient api.Interface, serviceID string, m manifest.Data, 
 // manifest will continue to hold a reference to it).
 func updateManifestServiceID(m *manifest.File, manifestFilename string, serviceID string) error {
 	if err := m.Read(manifestFilename); err != nil {
-		return fmt.Errorf("error reading package manifest: %w", err)
+		return fmt.Errorf("error reading fastly.toml: %w", err)
 	}
 
 	m.ServiceID = serviceID
 
 	if err := m.Write(manifestFilename); err != nil {
-		return fmt.Errorf("error saving package manifest: %w", err)
+		return fmt.Errorf("error saving fastly.toml: %w", err)
 	}
 
 	return nil

@@ -30,7 +30,7 @@ var ErrNoToken = RemediationError{
 	Remediation: AuthRemediation,
 }
 
-// ErrNoServiceID means no --service-id or service_id package manifest value has
+// ErrNoServiceID means no --service-id or service_id fastly.toml value has
 // been provided.
 var ErrNoServiceID = RemediationError{
 	Inner:       fmt.Errorf("error reading service: no service ID found"),
@@ -70,15 +70,15 @@ var ErrNoID = RemediationError{
 	Remediation: IDRemediation,
 }
 
-// ErrReadingManifest means there was a problem reading the package manifest.
+// ErrReadingManifest means there was a problem reading the fastly.toml.
 var ErrReadingManifest = RemediationError{
-	Inner:       fmt.Errorf("error reading package manifest"),
+	Inner:       fmt.Errorf("error reading fastly.toml"),
 	Remediation: "Ensure the Fastly CLI is being run within a directory containing a fastly.toml file. " + ComputeInitRemediation,
 }
 
-// ErrParsingManifest means there was a problem unmarshalling the package manifest.
+// ErrParsingManifest means there was a problem unmarshalling the fastly.toml.
 var ErrParsingManifest = RemediationError{
-	Inner:       fmt.Errorf("error parsing package manifest"),
+	Inner:       fmt.Errorf("error parsing fastly.toml"),
 	Remediation: ComputeInitRemediation,
 }
 

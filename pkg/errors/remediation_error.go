@@ -89,9 +89,9 @@ var ConfigRemediation = strings.Join([]string{
 }, " ")
 
 // ServiceIDRemediation suggests provide a service ID via --service-id flag or
-// package manifest.
+// fastly.toml.
 var ServiceIDRemediation = strings.Join([]string{
-	"Please provide one via the --service-id or --service-name flag, or by setting the FASTLY_SERVICE_ID environment variable, or within your package manifest",
+	"Please provide one via the --service-id or --service-name flag, or by setting the FASTLY_SERVICE_ID environment variable, or within your fastly.toml",
 }, " ")
 
 // CustomerIDRemediation suggests provide a customer ID via --customer-id flag

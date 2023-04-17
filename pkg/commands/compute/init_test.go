@@ -72,7 +72,7 @@ func TestInit(t *testing.T) {
 			stdin: "foobar", // expect the first prompt to be for the package name.
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 			},
 			manifestIncludes: `name = "foobar"`,
 		},
@@ -86,7 +86,7 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 			},
 			manifestIncludes: `description = ""`, // expect this to be empty
 		},
@@ -100,7 +100,7 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 			},
 			manifestIncludes: `authors = ["test@example.com"]`,
 		},
@@ -114,7 +114,7 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 			},
 			manifestIncludes: `authors = ["test1@example.com", "test2@example.com"]`,
 		},
@@ -133,7 +133,7 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 				"SUCCESS: Initialized package",
 			},
 		},
@@ -152,7 +152,7 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 				"SUCCESS: Initialized package",
 			},
 		},
@@ -171,7 +171,7 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 				"SUCCESS: Initialized package",
 			},
 		},
@@ -190,12 +190,12 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 				"SUCCESS: Initialized package",
 			},
 		},
 		{
-			name: "with existing package manifest",
+			name: "with existing fastly.toml",
 			args: args("compute init --auto-yes"), // --force will ignore a directory that isn't empty
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
@@ -210,12 +210,12 @@ func TestInit(t *testing.T) {
 			description = "test"
 			authors = ["test@fastly.com"]`,
 			wantOutput: []string{
-				"Reading package manifest",
+				"Reading fastly.toml",
 				"Initializing package",
 			},
 		},
 		{
-			name: "with existing package manifest",
+			name: "with existing fastly.toml",
 			args: args("compute init --auto-yes"), // --force will ignore a directory that isn't empty
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
@@ -230,7 +230,7 @@ func TestInit(t *testing.T) {
 			description = "test"
 			authors = ["test@fastly.com"]`,
 			wantOutput: []string{
-				"Reading package manifest",
+				"Reading fastly.toml",
 				"Saving manifest changes",
 				"Initializing package",
 			},
@@ -254,7 +254,7 @@ func TestInit(t *testing.T) {
 			wantOutput: []string{
 				"Author (email): Language:",
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 				"Saving manifest changes",
 				"Initializing package",
 			},
@@ -287,7 +287,7 @@ func TestInit(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Fetching package template",
-				"Reading package manifest",
+				"Reading fastly.toml",
 				"Saving manifest changes",
 				"Initializing package",
 			},
