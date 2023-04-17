@@ -960,7 +960,7 @@ func updateManifest(
 	if err != nil {
 		return m, err
 	}
-	msg := "Reading package manifest"
+	msg := "Reading fastly.toml"
 	spinner.Message(msg + "...")
 
 	mp := filepath.Join(path, manifest.Filename)
@@ -981,7 +981,7 @@ func updateManifest(
 					if spinErr != nil {
 						return m, spinErr
 					}
-					return m, fmt.Errorf("error saving package manifest: %w", err)
+					return m, fmt.Errorf("error saving fastly.toml: %w", err)
 				}
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
@@ -997,7 +997,7 @@ func updateManifest(
 		if spinErr != nil {
 			return m, spinErr
 		}
-		return m, fmt.Errorf("error reading package manifest: %w", err)
+		return m, fmt.Errorf("error reading fastly.toml: %w", err)
 	}
 
 	spinner.StopMessage(msg)
@@ -1087,7 +1087,7 @@ func updateManifest(
 		if spinErr != nil {
 			return m, spinErr
 		}
-		return m, fmt.Errorf("error saving package manifest: %w", err)
+		return m, fmt.Errorf("error saving fastly.toml: %w", err)
 	}
 
 	spinner.StopMessage(msg)

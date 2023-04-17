@@ -101,12 +101,12 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if source == manifest.SourceFile {
 		if err := c.manifest.File.Read(manifest.Filename); err != nil {
 			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error reading package manifest: %w", err)
+			return fmt.Errorf("error reading fastly.toml: %w", err)
 		}
 		c.manifest.File.ServiceID = ""
 		if err := c.manifest.File.Write(manifest.Filename); err != nil {
 			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error updating package manifest: %w", err)
+			return fmt.Errorf("error updating fastly.toml: %w", err)
 		}
 	}
 

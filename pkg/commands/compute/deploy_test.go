@@ -107,7 +107,7 @@ func TestDeploy(t *testing.T) {
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute deploy --token 123"),
-			wantError:            "error reading package manifest",
+			wantError:            "error reading fastly.toml",
 			wantRemediationError: errors.ComputeInitRemediation,
 			noManifest:           true,
 		},

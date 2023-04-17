@@ -86,7 +86,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	msg := "Verifying package manifest"
+	msg := "Verifying fastly.toml"
 	spinner.Message(msg + "...")
 
 	err = c.Manifest.File.ReadError()

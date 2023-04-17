@@ -13,6 +13,8 @@ import (
 // File represents all of the configuration parameters in the fastly.toml
 // manifest file schema.
 type File struct {
+	// Args is necessary to track the subcommand called (see: File.Read method).
+	Args            []string
 	Authors         []string    `toml:"authors"`
 	Description     string      `toml:"description"`
 	Language        string      `toml:"language"`
@@ -67,7 +69,10 @@ func (f *File) Read(path string) (err error) {
 	/* #nosec */
 	tree, err := toml.LoadFile(path)
 	if err != nil {
-		f.logErr(err)
+		// IMPORTANT: Only `fastly compute` references the fastly.toml file.
+		if len(f.Args) > 0 && f.Args[0] == "compute" {
+			f.logErr(err) // only log error if user executed `compute` subcommand.
+		}
 		return err
 	}
 
