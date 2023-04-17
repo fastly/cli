@@ -16,6 +16,7 @@ kits=(
   compute-starter-kit-rust-websockets
   compute-starter-kit-javascript-default
   compute-starter-kit-javascript-empty
+  compute-starter-kit-typescript
   compute-starter-kit-assemblyscript-default
   compute-starter-kit-go-default
 )
