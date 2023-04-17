@@ -133,7 +133,8 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Endpoint": endpoint,
+			fsterr.AllowInstrumentation: true,
+			"Endpoint":                  endpoint,
 		})
 
 		spinner.StopFailMessage(msg)
@@ -229,8 +230,9 @@ func (c *CreateCommand) persistCfg() error {
 	case err != nil && errors.Is(err, fs.ErrNotExist):
 		if err := os.MkdirAll(dir, config.DirectoryPermissions); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Directory":   dir,
-				"Permissions": config.DirectoryPermissions,
+				fsterr.AllowInstrumentation: true,
+				"Directory":                 dir,
+				"Permissions":               config.DirectoryPermissions,
 			})
 			return fmt.Errorf("error creating config file directory: %w", err)
 		}

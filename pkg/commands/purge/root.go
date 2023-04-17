@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
@@ -64,7 +64,7 @@ type RootCommand struct {
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
 	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
+		return fsterr.ErrNoToken
 	}
 
 	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
@@ -78,13 +78,13 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	// The URL purge API call doesn't require a Service ID.
 	if c.url == "" {
 		if source == manifest.SourceUndefined {
-			return errors.ErrNoServiceID
+			return fsterr.ErrNoServiceID
 		}
 	}
 
 	if c.all {
 		if c.soft {
-			return errors.RemediationError{
+			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("purge-all requests cannot be done in soft mode (--soft) and will always immediately invalidate all cached content associated with the service"),
 				Remediation: "The --soft flag should not be used with --all so retry command without it.",
 			}
@@ -156,7 +156,8 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 	keys, err := populateKeys(c.file, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID": serviceID,
+			fsterr.AllowInstrumentation: true,
+			"Service ID":                serviceID,
 		})
 		return err
 	}
@@ -227,7 +228,7 @@ func (c *RootCommand) purgeURL(out io.Writer) error {
 
 // populateKeys opens the given file path, initializes a scanner, and appends
 // each line of the file (expected to be a surrogate key) to a slice.
-func populateKeys(fpath string, errLog errors.LogInterface) (keys []string, err error) {
+func populateKeys(fpath string, errLog fsterr.LogInterface) (keys []string, err error) {
 	var (
 		file io.Reader
 		path string

@@ -104,8 +104,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	defer func() {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				fsterr.AllowInstrumentation: true,
+				"Service ID":                serviceID,
+				"Service Version":           serviceVersion.Number,
 			})
 		}
 	}()

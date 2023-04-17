@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -83,7 +84,8 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 		err := writeBlocksJSON(out, serviceID, envelope.Data)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID": serviceID,
+				fsterr.AllowInstrumentation: true,
+				"Service ID":                serviceID,
 			})
 		}
 
@@ -92,7 +94,8 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 		err := writeBlocks(out, serviceID, envelope.Data)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID": serviceID,
+				fsterr.AllowInstrumentation: true,
+				"Service ID":                serviceID,
 			})
 		}
 	}

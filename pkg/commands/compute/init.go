@@ -124,7 +124,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	dst, err := verifyDestination(c.dir, spinner, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Directory": c.dir,
+			fsterr.AllowInstrumentation: true,
+			"Directory":                 c.dir,
 		})
 		return err
 	}
@@ -140,8 +141,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	name, desc, authors, err := promptOrReturn(c.Globals.Flags, c.manifest, c.dir, email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Description": desc,
-			"Directory":   c.dir,
+			fsterr.AllowInstrumentation: true,
+			"Description":               desc,
+			"Directory":                 c.dir,
 		})
 		return err
 	}
@@ -176,10 +178,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		from, branch, tag, err = promptForStarterKit(c.Globals.Flags, language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"From":           c.cloneFrom,
-				"Branch":         c.branch,
-				"Tag":            c.tag,
-				"Manifest Exist": false,
+				fsterr.AllowInstrumentation: true,
+				"From":                      c.cloneFrom,
+				"Branch":                    c.branch,
+				"Tag":                       c.tag,
+				"Manifest Exist":            false,
 			})
 			return err
 		}
@@ -199,10 +202,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		err = fetchPackageTemplate(c, branch, tag, file.Archives, spinner, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"From":      from,
-				"Branch":    branch,
-				"Tag":       tag,
-				"Directory": c.dir,
+				fsterr.AllowInstrumentation: true,
+				"From":                      from,
+				"Branch":                    branch,
+				"Tag":                       tag,
+				"Directory":                 c.dir,
 			})
 			return err
 		}
@@ -211,9 +215,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	mf, err = updateManifest(mf, spinner, c.dir, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Directory":   c.dir,
-			"Description": desc,
-			"Language":    language,
+			fsterr.AllowInstrumentation: true,
+			"Directory":                 c.dir,
+			"Description":               desc,
+			"Language":                  language,
 		})
 		return err
 	}

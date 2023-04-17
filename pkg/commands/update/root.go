@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
@@ -75,8 +76,9 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	tmpBin, err := c.av.Download()
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Current CLI version": current,
-			"Latest CLI version":  latest,
+			fsterr.AllowInstrumentation: true,
+			"Current CLI version":       current,
+			"Latest CLI version":        latest,
 		})
 
 		spinner.StopFailMessage(msg)
@@ -118,7 +120,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	currentPath, err := filepath.Abs(execPath)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Executable path": execPath,
+			fsterr.AllowInstrumentation: true,
+			"Executable path":           execPath,
 		})
 
 		spinner.StopFailMessage(msg)
@@ -150,8 +153,9 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err := os.Rename(tmpBin, currentPath); err != nil {
 		if err := filesystem.CopyFile(tmpBin, currentPath); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Executable (source)":      tmpBin,
-				"Executable (destination)": currentPath,
+				fsterr.AllowInstrumentation: true,
+				"Executable (source)":       tmpBin,
+				"Executable (destination)":  currentPath,
 			})
 
 			spinner.StopFailMessage(msg)
