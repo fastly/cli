@@ -71,9 +71,29 @@ func TestServiceAuthList(t *testing.T) {
 			wantOutput: "AUTH ID  USER ID  SERVICE ID  PERMISSION\n123      456      789         read_only\n",
 		},
 		{
-			args:       args("service-auth list --json"),
-			api:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
-			wantOutput: "{\"Info\":{\"links\":{},\"meta\":{}},\"Items\":[{\"CreatedAt\":null,\"DeletedAt\":null,\"ID\":\"123\",\"Permission\":\"read_only\",\"Service\":{\"ID\":\"789\"},\"UpdatedAt\":null,\"User\":{\"ID\":\"456\"}}]}",
+			args: args("service-auth list --json"),
+			api:  mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
+			wantOutput: `{
+  "Info": {
+    "links": {},
+    "meta": {}
+  },
+  "Items": [
+    {
+      "CreatedAt": null,
+      "DeletedAt": null,
+      "ID": "123",
+      "Permission": "read_only",
+      "Service": {
+        "ID": "789"
+      },
+      "UpdatedAt": null,
+      "User": {
+        "ID": "456"
+      }
+    }
+  ]
+}`,
 		},
 		{
 			args:       args("service-auth list --verbose"),
@@ -88,6 +108,7 @@ func TestServiceAuthList(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
 			err := app.Run(opts)
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -121,9 +142,21 @@ func TestServiceAuthDescribe(t *testing.T) {
 			wantOutput: "Auth ID: 12345\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
 		{
-			args:       args("service-auth describe --id 123 --json"),
-			api:        mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
-			wantOutput: "{\"CreatedAt\":null,\"DeletedAt\":null,\"ID\":\"12345\",\"Permission\":\"read_only\",\"Service\":{\"ID\":\"789\"},\"UpdatedAt\":null,\"User\":{\"ID\":\"456\"}}",
+			args: args("service-auth describe --id 123 --json"),
+			api:  mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
+			wantOutput: `{
+  "CreatedAt": null,
+  "DeletedAt": null,
+  "ID": "12345",
+  "Permission": "read_only",
+  "Service": {
+    "ID": "789"
+  },
+  "UpdatedAt": null,
+  "User": {
+    "ID": "456"
+  }
+}`,
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -133,6 +166,7 @@ func TestServiceAuthDescribe(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
 			err := app.Run(opts)
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
