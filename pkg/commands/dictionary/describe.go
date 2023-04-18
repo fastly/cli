@@ -1,8 +1,6 @@
 package dictionary
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -16,9 +14,10 @@ import (
 // DescribeCommand calls the Fastly API to describe a dictionary.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.GetDictionaryInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -43,12 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -66,7 +60,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -103,7 +97,8 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		info  *fastly.DictionaryInfo
 		items []*fastly.DictionaryItem
 	)
-	if c.Globals.Verbose() || c.json {
+
+	if c.Globals.Verbose() || c.JSONOutput.Enabled {
 		infoInput := fastly.GetDictionaryInfoInput{
 			ServiceID:      c.Input.ServiceID,
 			ServiceVersion: c.Input.ServiceVersion,
@@ -131,7 +126,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	if c.json {
+	if c.JSONOutput.Enabled {
 		// NOTE: When not using JSON you have to provide the --verbose flag to get
 		// some extra information about the dictionary. When using --json we go
 		// ahead and acquire that info and combine it into the JSON output.
@@ -140,16 +135,12 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 			*fastly.DictionaryInfo
 			Items []*fastly.DictionaryItem
 		}
-		data, err := json.Marshal(&container{Dictionary: dictionary, DictionaryInfo: info, Items: items})
-		if err != nil {
+
+		o := &container{Dictionary: dictionary, DictionaryInfo: info, Items: items}
+
+		if ok, err := c.WriteJSON(out, o); ok {
 			return err
 		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
 	}
 
 	if !c.Globals.Verbose() {

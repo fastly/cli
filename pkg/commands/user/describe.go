@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
@@ -20,22 +20,17 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.manifest = m
 	c.CmdClause.Flag("current", "Get the logged in user").BoolVar(&c.current)
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
 
 	current  bool
 	id       string
-	json     bool
 	manifest manifest.Data
 }
 
@@ -43,17 +38,25 @@ type DescribeCommand struct {
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	_, s := c.Globals.Token()
 	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
+		return fsterr.ErrNoToken
+	}
+
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	if c.current {
-		r, err := c.Globals.APIClient.GetCurrentUser()
+		o, err := c.Globals.APIClient.GetCurrentUser()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 
-		c.print(out, r)
+		if ok, err := c.WriteJSON(out, o); ok {
+			return err
+		}
+
+		c.print(out, o)
 		return nil
 	}
 
@@ -62,13 +65,17 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	r, err := c.Globals.APIClient.GetUser(input)
+	o, err := c.Globals.APIClient.GetUser(input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	c.print(out, r)
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
+
+	c.print(out, o)
 	return nil
 }
 
@@ -77,7 +84,7 @@ func (c *DescribeCommand) constructInput() (*fastly.GetUserInput, error) {
 	var input fastly.GetUserInput
 
 	if c.id == "" {
-		return nil, errors.RemediationError{
+		return nil, fsterr.RemediationError{
 			Inner:       fmt.Errorf("error parsing arguments: must provide --id flag"),
 			Remediation: "Alternatively pass --current to validate the logged in user.",
 		}

@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -15,9 +14,10 @@ import (
 // DescribeCommand calls the Fastly API to describe a domain.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.GetDomainInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -42,12 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -65,7 +60,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -89,7 +84,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	domain, err := c.Globals.APIClient.GetDomain(&c.Input)
+	o, err := c.Globals.APIClient.GetDomain(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
@@ -98,25 +93,16 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.json {
-		data, err := json.Marshal(domain)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", domain.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", o.ServiceID)
 	}
-	fmt.Fprintf(out, "Version: %d\n", domain.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", domain.Name)
-	fmt.Fprintf(out, "Comment: %v\n", domain.Comment)
+	fmt.Fprintf(out, "Version: %d\n", o.ServiceVersion)
+	fmt.Fprintf(out, "Name: %s\n", o.Name)
+	fmt.Fprintf(out, "Comment: %v\n", o.Comment)
 
 	return nil
 }

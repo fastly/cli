@@ -1,7 +1,6 @@
 package dictionaryentry
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -16,9 +15,10 @@ import (
 // ListCommand calls the Fastly API to list dictionary items.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest    manifest.Data
 	input       fastly.ListDictionaryItemsInput
-	json        bool
 	serviceName cmd.OptionalServiceNameID
 }
 
@@ -37,12 +37,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 	// optional
 	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.Page)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PerPage)
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -63,7 +58,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -78,7 +73,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	paginator := c.Globals.APIClient.NewListDictionaryItemsPaginator(&c.input)
 
-	var ds []*fastly.DictionaryItem
+	var o []*fastly.DictionaryItem
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
 		if err != nil {
@@ -89,27 +84,18 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 			})
 			return err
 		}
-		ds = append(ds, data...)
+		o = append(o, data...)
 	}
 
-	if c.json {
-		data, err := json.Marshal(ds)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	if !c.Globals.Verbose() {
 		fmt.Fprintf(out, "\nService ID: %s\n", c.input.ServiceID)
 	}
-	for i, dictionary := range ds {
-		text.Output(out, "Item: %d/%d", i+1, len(ds))
+	for i, dictionary := range o {
+		text.Output(out, "Item: %d/%d", i+1, len(o))
 		text.PrintDictionaryItem(out, "\t", dictionary)
 		text.Break(out)
 	}

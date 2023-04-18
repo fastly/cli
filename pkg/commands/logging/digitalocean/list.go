@@ -1,7 +1,6 @@
 package digitalocean
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -16,9 +15,10 @@ import (
 // ListCommand calls the Fastly API to list DigitalOcean Spaces logging endpoints.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.ListDigitalOceansInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -42,12 +42,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -65,7 +60,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -89,29 +84,20 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	digitaloceans, err := c.Globals.APIClient.ListDigitalOceans(&c.Input)
+	o, err := c.Globals.APIClient.ListDigitalOceans(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if !c.Globals.Verbose() {
-		if c.json {
-			data, err := json.Marshal(digitaloceans)
-			if err != nil {
-				return err
-			}
-			_, err = out.Write(data)
-			if err != nil {
-				c.Globals.ErrLog.Add(err)
-				return fmt.Errorf("error: unable to write data to stdout: %w", err)
-			}
-			return nil
-		}
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
 
+	if !c.Globals.Verbose() {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
-		for _, digitalocean := range digitaloceans {
+		for _, digitalocean := range o {
 			tw.AddLine(digitalocean.ServiceID, digitalocean.ServiceVersion, digitalocean.Name)
 		}
 		tw.Print()
@@ -119,8 +105,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
-	for i, digitalocean := range digitaloceans {
-		fmt.Fprintf(out, "\tDigitalOcean %d/%d\n", i+1, len(digitaloceans))
+	for i, digitalocean := range o {
+		fmt.Fprintf(out, "\tDigitalOcean %d/%d\n", i+1, len(o))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", digitalocean.ServiceID)
 		fmt.Fprintf(out, "\t\tVersion: %d\n", digitalocean.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", digitalocean.Name)

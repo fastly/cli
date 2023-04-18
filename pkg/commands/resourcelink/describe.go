@@ -88,7 +88,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = serviceVersion.Number
 
-	resource, err := c.Globals.APIClient.GetResource(&c.input)
+	o, err := c.Globals.APIClient.GetResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"ID":              c.input.ID,
@@ -98,15 +98,15 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, resource); ok {
+	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 
 	if !c.Globals.Verbose() {
-		text.Output(out, "Service ID: %s", resource.ServiceID)
+		text.Output(out, "Service ID: %s", o.ServiceID)
 	}
-	text.Output(out, "Service Version: %s", resource.ServiceVersion)
-	text.PrintResource(out, "", resource)
+	text.Output(out, "Service Version: %s", o.ServiceVersion)
+	text.PrintResource(out, "", o)
 
 	return nil
 }

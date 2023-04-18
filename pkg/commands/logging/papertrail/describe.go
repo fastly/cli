@@ -1,8 +1,6 @@
 package papertrail
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -16,9 +14,10 @@ import (
 // DescribeCommand calls the Fastly API to describe a Papertrail logging endpoint.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.GetPapertrailInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -43,12 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -66,7 +60,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -90,37 +84,28 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	papertrail, err := c.Globals.APIClient.GetPapertrail(&c.Input)
+	o, err := c.Globals.APIClient.GetPapertrail(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if c.json {
-		data, err := json.Marshal(papertrail)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	lines := text.Lines{
-		"Address":            papertrail.Address,
-		"Format version":     papertrail.FormatVersion,
-		"Format":             papertrail.Format,
-		"Name":               papertrail.Name,
-		"Placement":          papertrail.Placement,
-		"Port":               papertrail.Port,
-		"Response condition": papertrail.ResponseCondition,
-		"Version":            papertrail.ServiceVersion,
+		"Address":            o.Address,
+		"Format version":     o.FormatVersion,
+		"Format":             o.Format,
+		"Name":               o.Name,
+		"Placement":          o.Placement,
+		"Port":               o.Port,
+		"Response condition": o.ResponseCondition,
+		"Version":            o.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = papertrail.ServiceID
+		lines["Service ID"] = o.ServiceID
 	}
 	text.PrintLines(out, lines)
 

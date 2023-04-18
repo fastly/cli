@@ -1,8 +1,6 @@
 package kvstore
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -16,7 +14,8 @@ import (
 // CreateCommand calls the Fastly API to create an kv store.
 type CreateCommand struct {
 	cmd.Base
-	json     bool
+	cmd.JSONOutput
+
 	manifest manifest.Data
 	Input    fastly.CreateKVStoreInput
 }
@@ -31,18 +30,13 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create an kv store")
 	c.CmdClause.Flag("name", "Name of KV Store").Short('n').Required().StringVar(&c.Input.Name)
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -52,17 +46,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.json {
-		data, err := json.Marshal(o)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	text.Success(out, "Created kv store %s (name %s)", o.ID, o.Name)

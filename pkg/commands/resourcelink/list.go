@@ -83,7 +83,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = serviceVersion.Number
 
-	resources, err := c.Globals.APIClient.ListResources(&c.input)
+	o, err := c.Globals.APIClient.ListResources(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      c.input.ServiceID,
@@ -92,7 +92,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, resources); ok {
+	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 
@@ -101,8 +101,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	text.Output(out, "Service Version: %d\n", c.input.ServiceVersion)
 
-	for i, resource := range resources {
-		fmt.Fprintf(out, "Resource Link %d/%d\n", i+1, len(resources))
+	for i, resource := range o {
+		fmt.Fprintf(out, "Resource Link %d/%d\n", i+1, len(o))
 		text.PrintResource(out, "\t", resource)
 		fmt.Fprintln(out)
 	}

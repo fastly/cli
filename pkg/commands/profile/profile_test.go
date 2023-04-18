@@ -413,9 +413,20 @@ func TestList(t *testing.T) {
 		},
 		{
 			TestScenario: testutil.TestScenario{
-				Name:       "validate listing profiles with --json displays data correctly",
-				Args:       args("profile list --json"),
-				WantOutput: `{"bar":{"default":false,"email":"bar@example.com","token":"456"},"foo":{"default":false,"email":"foo@example.com","token":"123"}}`,
+				Name: "validate listing profiles with --json displays data correctly",
+				Args: args("profile list --json"),
+				WantOutput: `{
+  "bar": {
+    "default": false,
+    "email": "bar@example.com",
+    "token": "456"
+  },
+  "foo": {
+    "default": false,
+    "email": "foo@example.com",
+    "token": "123"
+  }
+}`,
 			},
 			ConfigFile: config.File{
 				Profiles: config.Profiles{

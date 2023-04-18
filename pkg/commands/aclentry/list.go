@@ -1,7 +1,6 @@
 package aclentry
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -27,12 +26,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a ACL").Required().StringVar(&c.aclID)
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -57,10 +51,10 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
 
 	aclID       string
 	direction   string
-	json        bool
 	manifest    manifest.Data
 	page        int
 	perPage     int
@@ -70,7 +64,7 @@ type ListCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -87,7 +81,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	// TODO: Use generics support in go 1.18 to replace this almost identical
 	// logic inside of 'dictionary-item list' and 'service list'.
-	var as []*fastly.ACLEntry
+	var o []*fastly.ACLEntry
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
 		if err != nil {
@@ -98,13 +92,17 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 			})
 			return err
 		}
-		as = append(as, data...)
+		o = append(o, data...)
+	}
+
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, as)
+		c.printVerbose(out, o)
 	} else {
-		err = c.printSummary(out, as)
+		err = c.printSummary(out, o)
 		if err != nil {
 			return err
 		}
@@ -154,19 +152,6 @@ func (c *ListCommand) printVerbose(out io.Writer, as []*fastly.ACLEntry) {
 // printSummary displays the information returned from the API in a summarised
 // format.
 func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) error {
-	if c.json {
-		data, err := json.Marshal(as)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
-	}
-
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "ID", "IP", "SUBNET", "NEGATED")
 	for _, a := range as {

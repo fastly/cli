@@ -1,8 +1,6 @@
 package kafka
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -16,9 +14,10 @@ import (
 // DescribeCommand calls the Fastly API to describe a Kafka logging endpoint.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.GetKafkaInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -43,12 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -66,7 +60,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -90,49 +84,40 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	kafka, err := c.Globals.APIClient.GetKafka(&c.Input)
+	o, err := c.Globals.APIClient.GetKafka(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if c.json {
-		data, err := json.Marshal(kafka)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	lines := text.Lines{
-		"Brokers":                      kafka.Brokers,
-		"Compression codec":            kafka.CompressionCodec,
-		"Format version":               kafka.FormatVersion,
-		"Format":                       kafka.Format,
-		"Max batch size":               kafka.RequestMaxBytes,
-		"Name":                         kafka.Name,
-		"Parse log key-values":         kafka.ParseLogKeyvals,
-		"Placement":                    kafka.Placement,
-		"Required acks":                kafka.RequiredACKs,
-		"Response condition":           kafka.ResponseCondition,
-		"SASL authentication method":   kafka.AuthMethod,
-		"SASL authentication password": kafka.Password,
-		"SASL authentication username": kafka.User,
-		"TLS CA certificate":           kafka.TLSCACert,
-		"TLS client certificate":       kafka.TLSClientCert,
-		"TLS client key":               kafka.TLSClientKey,
-		"TLS hostname":                 kafka.TLSHostname,
-		"Topic":                        kafka.Topic,
-		"Use TLS":                      kafka.UseTLS,
-		"Version":                      kafka.ServiceVersion,
+		"Brokers":                      o.Brokers,
+		"Compression codec":            o.CompressionCodec,
+		"Format version":               o.FormatVersion,
+		"Format":                       o.Format,
+		"Max batch size":               o.RequestMaxBytes,
+		"Name":                         o.Name,
+		"Parse log key-values":         o.ParseLogKeyvals,
+		"Placement":                    o.Placement,
+		"Required acks":                o.RequiredACKs,
+		"Response condition":           o.ResponseCondition,
+		"SASL authentication method":   o.AuthMethod,
+		"SASL authentication password": o.Password,
+		"SASL authentication username": o.User,
+		"TLS CA certificate":           o.TLSCACert,
+		"TLS client certificate":       o.TLSClientCert,
+		"TLS client key":               o.TLSClientKey,
+		"TLS hostname":                 o.TLSHostname,
+		"Topic":                        o.Topic,
+		"Use TLS":                      o.UseTLS,
+		"Version":                      o.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = kafka.ServiceID
+		lines["Service ID"] = o.ServiceID
 	}
 	text.PrintLines(out, lines)
 

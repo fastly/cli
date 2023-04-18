@@ -14,7 +14,8 @@ import (
 // DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
 type DescribeCommand struct {
 	cmd.Base
-	json     bool
+	cmd.JSONOutput
+
 	manifest manifest.Data
 	Input    fastly.GetKVStoreKeyInput
 }
@@ -32,19 +33,14 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -54,7 +50,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.json {
+	if c.JSONOutput.Enabled {
 		text.Output(out, `{"%s": "%s"}`, c.Input.Key, value)
 		return nil
 	}

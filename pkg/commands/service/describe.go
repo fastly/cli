@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -18,9 +17,10 @@ import (
 // DescribeCommand calls the Fastly API to describe a service.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest    manifest.Data
 	Input       fastly.GetServiceInput
-	json        bool
 	serviceName cmd.OptionalServiceNameID
 }
 
@@ -35,12 +35,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.CmdClause = parent.Command("describe", "Show detailed information about a Fastly service").Alias("get")
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -58,7 +53,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -78,7 +73,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Input.ID = serviceID
 
-	service, err := c.Globals.APIClient.GetServiceDetails(&c.Input)
+	o, err := c.Globals.APIClient.GetServiceDetails(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
@@ -86,23 +81,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	return c.print(service, out)
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
+
+	return c.print(o, out)
 }
 
 func (c *DescribeCommand) print(s *fastly.ServiceDetail, out io.Writer) error {
-	if c.json {
-		data, err := json.Marshal(s)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
-	}
-
 	activeVersion := "none"
 	if s.ActiveVersion.Active {
 		activeVersion = strconv.Itoa(s.ActiveVersion.Number)

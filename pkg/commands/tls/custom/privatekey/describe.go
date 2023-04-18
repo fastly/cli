@@ -1,7 +1,6 @@
 package privatekey
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -23,12 +22,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a private Key").Required().StringVar(&c.id)
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
@@ -36,21 +30,21 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
 
 	id       string
-	json     bool
 	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	input := c.constructInput()
 
-	r, err := c.Globals.APIClient.GetPrivateKey(input)
+	o, err := c.Globals.APIClient.GetPrivateKey(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Certificate ID": c.id,
@@ -58,7 +52,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	return c.print(out, r)
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
+
+	return c.print(out, o)
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -72,19 +70,6 @@ func (c *DescribeCommand) constructInput() *fastly.GetPrivateKeyInput {
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, r *fastly.PrivateKey) error {
-	if c.json {
-		data, err := json.Marshal(r)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
-	}
-
 	fmt.Fprintf(out, "\nID: %s\n", r.ID)
 	fmt.Fprintf(out, "Name: %s\n", r.Name)
 	fmt.Fprintf(out, "Key Length: %d\n", r.KeyLength)

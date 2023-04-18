@@ -1,7 +1,6 @@
 package serviceversion
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -17,9 +16,10 @@ import (
 // ListCommand calls the Fastly API to list services.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest    manifest.Data
 	Input       fastly.ListVersionsInput
-	json        bool
 	serviceName cmd.OptionalServiceNameID
 }
 
@@ -32,12 +32,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List Fastly service versions")
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -55,7 +50,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -69,7 +64,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Input.ServiceID = serviceID
 
-	versions, err := c.Globals.APIClient.ListVersions(&c.Input)
+	o, err := c.Globals.APIClient.ListVersions(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
@@ -77,32 +72,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if !c.Globals.Verbose() {
-		if c.json {
-			data, err := json.Marshal(versions)
-			if err != nil {
-				return err
-			}
-			_, err = out.Write(data)
-			if err != nil {
-				c.Globals.ErrLog.Add(err)
-				return fmt.Errorf("error: unable to write data to stdout: %w", err)
-			}
-			return nil
-		}
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
 
+	if !c.Globals.Verbose() {
 		tw := text.NewTable(out)
 		tw.AddHeader("NUMBER", "ACTIVE", "LAST EDITED (UTC)")
-		for _, version := range versions {
+		for _, version := range o {
 			tw.AddLine(version.Number, version.Active, version.UpdatedAt.UTC().Format(time.Format))
 		}
 		tw.Print()
 		return nil
 	}
 
-	fmt.Fprintf(out, "Versions: %d\n", len(versions))
-	for i, version := range versions {
-		fmt.Fprintf(out, "\tVersion %d/%d\n", i+1, len(versions))
+	fmt.Fprintf(out, "Versions: %d\n", len(o))
+	for i, version := range o {
+		fmt.Fprintf(out, "\tVersion %d/%d\n", i+1, len(o))
 		text.PrintVersion(out, "\t\t", version)
 	}
 	fmt.Fprintln(out)

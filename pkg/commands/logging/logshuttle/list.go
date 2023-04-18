@@ -1,7 +1,6 @@
 package logshuttle
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -16,9 +15,10 @@ import (
 // ListCommand calls the Fastly API to list Logshuttle logging endpoints.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.ListLogshuttlesInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -42,12 +42,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -65,7 +60,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -89,29 +84,20 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	logshuttles, err := c.Globals.APIClient.ListLogshuttles(&c.Input)
+	o, err := c.Globals.APIClient.ListLogshuttles(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if !c.Globals.Verbose() {
-		if c.json {
-			data, err := json.Marshal(logshuttles)
-			if err != nil {
-				return err
-			}
-			_, err = out.Write(data)
-			if err != nil {
-				c.Globals.ErrLog.Add(err)
-				return fmt.Errorf("error: unable to write data to stdout: %w", err)
-			}
-			return nil
-		}
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
 
+	if !c.Globals.Verbose() {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
-		for _, logshuttle := range logshuttles {
+		for _, logshuttle := range o {
 			tw.AddLine(logshuttle.ServiceID, logshuttle.ServiceVersion, logshuttle.Name)
 		}
 		tw.Print()
@@ -119,8 +105,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
-	for i, logshuttle := range logshuttles {
-		fmt.Fprintf(out, "\tLogshuttle %d/%d\n", i+1, len(logshuttles))
+	for i, logshuttle := range o {
+		fmt.Fprintf(out, "\tLogshuttle %d/%d\n", i+1, len(o))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", logshuttle.ServiceID)
 		fmt.Fprintf(out, "\t\tVersion: %d\n", logshuttle.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", logshuttle.Name)
