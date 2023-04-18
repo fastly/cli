@@ -1,7 +1,6 @@
 package privatekey
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -22,12 +21,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 	// optional
 	c.CmdClause.Flag("filter-in-use", "Limit the returned keys to those without any matching TLS certificates").HintOptions("false").EnumVar(&c.filterInUse, "false")
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.pageNumber)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.pageSize)
 
@@ -37,9 +31,9 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
 
 	filterInUse string
-	json        bool
 	manifest    manifest.Data
 	pageNumber  int
 	pageSize    int
@@ -47,13 +41,13 @@ type ListCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	input := c.constructInput()
 
-	rs, err := c.Globals.APIClient.ListPrivateKeys(input)
+	o, err := c.Globals.APIClient.ListPrivateKeys(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Filter In Use": c.filterInUse,
@@ -63,10 +57,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
+
 	if c.Globals.Verbose() {
-		printVerbose(out, rs)
+		printVerbose(out, o)
 	} else {
-		err = c.printSummary(out, rs)
+		err = c.printSummary(out, o)
 		if err != nil {
 			return err
 		}
@@ -113,19 +111,6 @@ func printVerbose(out io.Writer, rs []*fastly.PrivateKey) {
 // printSummary displays the information returned from the API in a summarised
 // format.
 func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.PrivateKey) error {
-	if c.json {
-		data, err := json.Marshal(rs)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
-	}
-
 	t := text.NewTable(out)
 	t.AddHeader("ID", "NAME", "KEY LENGTH", "KEY TYPE", "PUBLIC KEY SHA1", "REPLACE")
 	for _, r := range rs {

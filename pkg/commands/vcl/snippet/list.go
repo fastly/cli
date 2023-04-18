@@ -1,7 +1,6 @@
 package snippet
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -32,12 +31,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -57,8 +51,8 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
 
-	json           bool
 	manifest       manifest.Data
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
@@ -66,7 +60,7 @@ type ListCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -89,7 +83,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, serviceVersion.Number)
 
-	vs, err := c.Globals.APIClient.ListSnippets(input)
+	o, err := c.Globals.APIClient.ListSnippets(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
@@ -98,10 +92,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
+
 	if c.Globals.Verbose() {
-		c.printVerbose(out, serviceVersion.Number, vs)
+		c.printVerbose(out, serviceVersion.Number, o)
 	} else {
-		err = c.printSummary(out, vs)
+		err = c.printSummary(out, o)
 		if err != nil {
 			return err
 		}
@@ -148,19 +146,6 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, vs []*fast
 // printSummary displays the information returned from the API in a summarised
 // format.
 func (c *ListCommand) printSummary(out io.Writer, ss []*fastly.Snippet) error {
-	if c.json {
-		data, err := json.Marshal(ss)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
-	}
-
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "VERSION", "NAME", "DYNAMIC", "SNIPPET ID")
 	for _, s := range ss {

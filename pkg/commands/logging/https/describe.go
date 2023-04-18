@@ -1,8 +1,6 @@
 package https
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -16,9 +14,10 @@ import (
 // DescribeCommand calls the Fastly API to describe an HTTPS logging endpoint.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.GetHTTPSInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -43,12 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -66,7 +60,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -90,48 +84,39 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	https, err := c.Globals.APIClient.GetHTTPS(&c.Input)
+	o, err := c.Globals.APIClient.GetHTTPS(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if c.json {
-		data, err := json.Marshal(https)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	lines := text.Lines{
-		"Content type":           https.ContentType,
-		"Format version":         https.FormatVersion,
-		"Format":                 https.Format,
-		"Header name":            https.HeaderName,
-		"Header value":           https.HeaderValue,
-		"JSON format":            https.JSONFormat,
-		"Message type":           https.MessageType,
-		"Method":                 https.Method,
-		"Name":                   https.Name,
-		"Placement":              https.Placement,
-		"Request max bytes":      https.RequestMaxBytes,
-		"Request max entries":    https.RequestMaxEntries,
-		"Response condition":     https.ResponseCondition,
-		"TLS CA certificate":     https.TLSCACert,
-		"TLS client certificate": https.TLSClientCert,
-		"TLS client key":         https.TLSClientKey,
-		"TLS hostname":           https.TLSHostname,
-		"URL":                    https.URL,
-		"Version":                https.ServiceVersion,
+		"Content type":           o.ContentType,
+		"Format version":         o.FormatVersion,
+		"Format":                 o.Format,
+		"Header name":            o.HeaderName,
+		"Header value":           o.HeaderValue,
+		"JSON format":            o.JSONFormat,
+		"Message type":           o.MessageType,
+		"Method":                 o.Method,
+		"Name":                   o.Name,
+		"Placement":              o.Placement,
+		"Request max bytes":      o.RequestMaxBytes,
+		"Request max entries":    o.RequestMaxEntries,
+		"Response condition":     o.ResponseCondition,
+		"TLS CA certificate":     o.TLSCACert,
+		"TLS client certificate": o.TLSClientCert,
+		"TLS client key":         o.TLSClientKey,
+		"TLS hostname":           o.TLSHostname,
+		"URL":                    o.URL,
+		"Version":                o.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = https.ServiceID
+		lines["Service ID"] = o.ServiceID
 	}
 	text.PrintLines(out, lines)
 

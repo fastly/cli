@@ -1,7 +1,6 @@
 package authtoken
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -31,21 +30,16 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 		Dst:         &c.customerID.Value,
 		Action:      c.customerID.Set,
 	})
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
 
 	customerID cmd.OptionalCustomerID
-	json       bool
 	manifest   manifest.Data
 }
 
@@ -55,13 +49,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if s == lookup.SourceUndefined {
 		return fsterr.ErrNoToken
 	}
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	var (
 		err error
-		rs  []*fastly.Token
+		o   []*fastly.Token
 	)
 
 	if err = c.customerID.Parse(); err == nil {
@@ -72,23 +66,27 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 		input := c.constructInput()
 
-		rs, err = c.Globals.APIClient.ListCustomerTokens(input)
+		o, err = c.Globals.APIClient.ListCustomerTokens(input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	} else {
-		rs, err = c.Globals.APIClient.ListTokens()
+		o, err = c.Globals.APIClient.ListTokens()
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	}
 
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
+
 	if c.Globals.Verbose() {
-		c.printVerbose(out, rs)
+		c.printVerbose(out, o)
 	} else {
-		err = c.printSummary(out, rs)
+		err = c.printSummary(out, o)
 		if err != nil {
 			return err
 		}
@@ -132,19 +130,6 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.Token) {
 // printSummary displays the information returned from the API in a summarised
 // format.
 func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.Token) error {
-	if c.json {
-		data, err := json.Marshal(rs)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
-	}
-
 	t := text.NewTable(out)
 	t.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
 	for _, r := range rs {

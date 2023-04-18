@@ -1,7 +1,6 @@
 package profile
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -16,7 +15,7 @@ import (
 // ListCommand represents a Kingpin command.
 type ListCommand struct {
 	cmd.Base
-	json bool
+	cmd.JSONOutput
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -24,34 +23,18 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("list", "List user profiles")
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if !c.Globals.Verbose() {
-		if c.json {
-			data, err := json.Marshal(c.Globals.Config.Profiles)
-			if err != nil {
-				return err
-			}
-			_, err = out.Write(data)
-			if err != nil {
-				c.Globals.ErrLog.Add(err)
-				return fmt.Errorf("error: unable to write data to stdout: %w", err)
-			}
-			return nil
-		}
+	if ok, err := c.WriteJSON(out, c.Globals.Config.Profiles); ok {
+		return err
 	}
 
 	if c.Globals.Config.Profiles == nil {

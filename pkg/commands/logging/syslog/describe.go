@@ -1,8 +1,6 @@
 package syslog
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -16,9 +14,10 @@ import (
 // DescribeCommand calls the Fastly API to describe a Syslog logging endpoint.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.GetSyslogInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -43,12 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -66,7 +60,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -90,46 +84,37 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	syslog, err := c.Globals.APIClient.GetSyslog(&c.Input)
+	o, err := c.Globals.APIClient.GetSyslog(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if c.json {
-		data, err := json.Marshal(syslog)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	lines := text.Lines{
-		"Address":                syslog.Address,
-		"Format version":         syslog.FormatVersion,
-		"Format":                 syslog.Format,
-		"Hostname":               syslog.Hostname,
-		"IPV4":                   syslog.IPV4,
-		"Message type":           syslog.MessageType,
-		"Name":                   syslog.Name,
-		"Placement":              syslog.Placement,
-		"Port":                   syslog.Port,
-		"Response condition":     syslog.ResponseCondition,
-		"TLS CA certificate":     syslog.TLSCACert,
-		"TLS client certificate": syslog.TLSClientCert,
-		"TLS client key":         syslog.TLSClientKey,
-		"TLS hostname":           syslog.TLSHostname,
-		"Token":                  syslog.Token,
-		"Use TLS":                syslog.UseTLS,
-		"Version":                syslog.ServiceVersion,
+		"Address":                o.Address,
+		"Format version":         o.FormatVersion,
+		"Format":                 o.Format,
+		"Hostname":               o.Hostname,
+		"IPV4":                   o.IPV4,
+		"Message type":           o.MessageType,
+		"Name":                   o.Name,
+		"Placement":              o.Placement,
+		"Port":                   o.Port,
+		"Response condition":     o.ResponseCondition,
+		"TLS CA certificate":     o.TLSCACert,
+		"TLS client certificate": o.TLSClientCert,
+		"TLS client key":         o.TLSClientKey,
+		"TLS hostname":           o.TLSHostname,
+		"Token":                  o.Token,
+		"Use TLS":                o.UseTLS,
+		"Version":                o.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = syslog.ServiceID
+		lines["Service ID"] = o.ServiceID
 	}
 	text.PrintLines(out, lines)
 

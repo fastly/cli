@@ -108,7 +108,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = serviceVersion.Number
 
-	resource, err := c.Globals.APIClient.UpdateResource(&c.input)
+	o, err := c.Globals.APIClient.UpdateResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"ID":              c.input.ID,
@@ -118,10 +118,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, resource); ok {
+	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 
-	text.Success(out, "Updated service resource link %s on service %s version %s", resource.ID, resource.ServiceID, resource.ServiceVersion)
+	text.Success(out, "Updated service resource link %s on service %s version %s", o.ID, o.ServiceID, o.ServiceVersion)
 	return nil
 }

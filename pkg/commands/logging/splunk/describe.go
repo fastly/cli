@@ -1,8 +1,6 @@
 package splunk
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -16,9 +14,10 @@ import (
 // DescribeCommand calls the Fastly API to describe a Splunk logging endpoint.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.GetSplunkInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -43,12 +42,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -66,7 +60,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -90,41 +84,32 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	splunk, err := c.Globals.APIClient.GetSplunk(&c.Input)
+	o, err := c.Globals.APIClient.GetSplunk(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if c.json {
-		data, err := json.Marshal(splunk)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	lines := text.Lines{
-		"Format version":         splunk.FormatVersion,
-		"Format":                 splunk.Format,
-		"Name":                   splunk.Name,
-		"Placement":              splunk.Placement,
-		"Response condition":     splunk.ResponseCondition,
-		"TLS CA certificate":     splunk.TLSCACert,
-		"TLS client certificate": splunk.TLSClientCert,
-		"TLS client key":         splunk.TLSClientKey,
-		"TLS hostname":           splunk.TLSHostname,
-		"Token":                  splunk.Token,
-		"URL":                    splunk.URL,
-		"Version":                splunk.ServiceVersion,
+		"Format version":         o.FormatVersion,
+		"Format":                 o.Format,
+		"Name":                   o.Name,
+		"Placement":              o.Placement,
+		"Response condition":     o.ResponseCondition,
+		"TLS CA certificate":     o.TLSCACert,
+		"TLS client certificate": o.TLSClientCert,
+		"TLS client key":         o.TLSClientKey,
+		"TLS hostname":           o.TLSHostname,
+		"Token":                  o.Token,
+		"URL":                    o.URL,
+		"Version":                o.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = splunk.ServiceID
+		lines["Service ID"] = o.ServiceID
 	}
 	text.PrintLines(out, lines)
 

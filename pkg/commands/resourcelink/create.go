@@ -109,7 +109,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = serviceVersion.Number
 
-	resource, err := c.Globals.APIClient.CreateResource(&c.input)
+	o, err := c.Globals.APIClient.CreateResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"ID":              c.input.ResourceID,
@@ -119,10 +119,10 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, resource); ok {
+	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 
-	text.Success(out, "Created service resource link %q (%s) on service %s version %s", resource.Name, resource.ID, resource.ServiceID, resource.ServiceVersion)
+	text.Success(out, "Created service resource link %q (%s) on service %s version %s", o.Name, o.ID, o.ServiceID, o.ServiceVersion)
 	return nil
 }

@@ -1,7 +1,6 @@
 package serviceauth
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -16,9 +15,10 @@ import (
 // DescribeCommand calls the Fastly API to describe a service authorization.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest manifest.Data
 	Input    fastly.GetServiceAuthorizationInput
-	json     bool
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -35,22 +35,17 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.CmdClause.Flag("id", "ID of the service authorization to retrieve").Required().StringVar(&c.Input.ID)
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	service, err := c.Globals.APIClient.GetServiceAuthorization(&c.Input)
+	o, err := c.Globals.APIClient.GetServiceAuthorization(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service Authorization ID": c.Input.ID,
@@ -58,23 +53,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	return c.print(service, out)
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
+
+	return c.print(o, out)
 }
 
 func (c *DescribeCommand) print(s *fastly.ServiceAuthorization, out io.Writer) error {
-	if c.json {
-		data, err := json.Marshal(s)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
-	}
-
 	fmt.Fprintf(out, "Auth ID: %s\n", s.ID)
 	fmt.Fprintf(out, "User ID: %s\n", s.User.ID)
 	fmt.Fprintf(out, "Service ID: %s\n", s.Service.ID)

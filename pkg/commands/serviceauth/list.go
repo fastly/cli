@@ -1,7 +1,6 @@
 package serviceauth
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -16,8 +15,9 @@ import (
 // ListCommand calls the Fastly API to list service authorizations.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	input fastly.ListServiceAuthorizationsInput
-	json  bool
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -27,12 +27,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause = parent.Command("list", "List service authorizations")
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.PageNumber)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PageSize)
 	return &c
@@ -40,11 +35,11 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	resp, err := c.Globals.APIClient.ListServiceAuthorizations(&c.input)
+	o, err := c.Globals.APIClient.ListServiceAuthorizations(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Page Number": c.input.PageNumber,
@@ -53,25 +48,16 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if !c.Globals.Verbose() {
-		if c.json {
-			data, err := json.Marshal(resp)
-			if err != nil {
-				return err
-			}
-			_, err = out.Write(data)
-			if err != nil {
-				c.Globals.ErrLog.Add(err)
-				return fmt.Errorf("error: unable to write data to stdout: %w", err)
-			}
-			return nil
-		}
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
 
-		if len(resp.Items) > 0 {
+	if !c.Globals.Verbose() {
+		if len(o.Items) > 0 {
 			tw := text.NewTable(out)
 			tw.AddHeader("AUTH ID", "USER ID", "SERVICE ID", "PERMISSION")
 
-			for _, s := range resp.Items {
+			for _, s := range o.Items {
 				tw.AddLine(s.ID, s.User.ID, s.Service.ID, s.Permission)
 			}
 			tw.Print()
@@ -80,7 +66,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	for _, s := range resp.Items {
+	for _, s := range o.Items {
 		fmt.Fprintf(out, "Auth ID: %s\n", s.ID)
 		fmt.Fprintf(out, "User ID: %s\n", s.User.ID)
 		fmt.Fprintf(out, "Service ID: %s\n", s.Service.ID)

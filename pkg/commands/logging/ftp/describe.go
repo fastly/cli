@@ -1,8 +1,6 @@
 package ftp
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/cmd"
@@ -16,9 +14,10 @@ import (
 // DescribeCommand calls the Fastly API to describe an FTP logging endpoint.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.GetFTPInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -32,12 +31,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Show detailed information about an FTP logging endpoint on a Fastly service version").Alias("get")
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -62,7 +56,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -86,45 +80,36 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	ftp, err := c.Globals.APIClient.GetFTP(&c.Input)
+	o, err := c.Globals.APIClient.GetFTP(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if c.json {
-		data, err := json.Marshal(ftp)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
 	}
 
 	lines := text.Lines{
-		"Address":            ftp.Address,
-		"Compression codec":  ftp.CompressionCodec,
-		"Format version":     ftp.FormatVersion,
-		"Format":             ftp.Format,
-		"GZip level":         ftp.GzipLevel,
-		"Name":               ftp.Name,
-		"Password":           ftp.Password,
-		"Path":               ftp.Path,
-		"Period":             ftp.Period,
-		"Placement":          ftp.Placement,
-		"Port":               ftp.Port,
-		"Public key":         ftp.PublicKey,
-		"Response condition": ftp.ResponseCondition,
-		"Timestamp format":   ftp.TimestampFormat,
-		"Username":           ftp.Username,
-		"Version":            ftp.ServiceVersion,
+		"Address":            o.Address,
+		"Compression codec":  o.CompressionCodec,
+		"Format version":     o.FormatVersion,
+		"Format":             o.Format,
+		"GZip level":         o.GzipLevel,
+		"Name":               o.Name,
+		"Password":           o.Password,
+		"Path":               o.Path,
+		"Period":             o.Period,
+		"Placement":          o.Placement,
+		"Port":               o.Port,
+		"Public key":         o.PublicKey,
+		"Response condition": o.ResponseCondition,
+		"Timestamp format":   o.TimestampFormat,
+		"Username":           o.Username,
+		"Version":            o.ServiceVersion,
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = ftp.ServiceID
+		lines["Service ID"] = o.ServiceID
 	}
 	text.PrintLines(out, lines)
 

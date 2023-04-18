@@ -1,7 +1,6 @@
 package azureblob
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -16,9 +15,10 @@ import (
 // ListCommand calls the Fastly API to list Azure Blob Storage logging endpoints.
 type ListCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	manifest       manifest.Data
 	Input          fastly.ListBlobStoragesInput
-	json           bool
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
@@ -42,12 +42,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	})
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -65,7 +60,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -89,7 +84,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersion.Number
 
-	azureblobs, err := c.Globals.APIClient.ListBlobStorages(&c.Input)
+	o, err := c.Globals.APIClient.ListBlobStorages(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
@@ -98,23 +93,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if !c.Globals.Verbose() {
-		if c.json {
-			data, err := json.Marshal(azureblobs)
-			if err != nil {
-				return err
-			}
-			_, err = out.Write(data)
-			if err != nil {
-				c.Globals.ErrLog.Add(err)
-				return fmt.Errorf("error: unable to write data to stdout: %w", err)
-			}
-			return nil
-		}
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
 
+	if !c.Globals.Verbose() {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
-		for _, azureblob := range azureblobs {
+		for _, azureblob := range o {
 			tw.AddLine(azureblob.ServiceID, azureblob.ServiceVersion, azureblob.Name)
 		}
 		tw.Print()
@@ -122,8 +108,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
-	for i, azureblob := range azureblobs {
-		fmt.Fprintf(out, "\tBlobStorage %d/%d\n", i+1, len(azureblobs))
+	for i, azureblob := range o {
+		fmt.Fprintf(out, "\tBlobStorage %d/%d\n", i+1, len(o))
 		fmt.Fprintf(out, "\t\tService ID: %s\n", azureblob.ServiceID)
 		fmt.Fprintf(out, "\t\tVersion: %d\n", azureblob.ServiceVersion)
 		fmt.Fprintf(out, "\t\tName: %s\n", azureblob.Name)

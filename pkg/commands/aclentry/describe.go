@@ -1,7 +1,6 @@
 package aclentry
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -27,12 +26,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.CmdClause.Flag("id", "Alphanumeric string identifying an ACL Entry").Required().StringVar(&c.id)
 
 	// optional
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        cmd.FlagJSONName,
-		Description: cmd.FlagJSONDesc,
-		Dst:         &c.json,
-		Short:       'j',
-	})
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -52,17 +46,17 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
 	cmd.Base
+	cmd.JSONOutput
 
 	aclID       string
 	id          string
-	json        bool
 	manifest    manifest.Data
 	serviceName cmd.OptionalServiceNameID
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.json {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -76,7 +70,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID)
 
-	a, err := c.Globals.APIClient.GetACLEntry(input)
+	o, err := c.Globals.APIClient.GetACLEntry(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
@@ -84,7 +78,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	return c.print(out, a)
+	if ok, err := c.WriteJSON(out, o); ok {
+		return err
+	}
+
+	return c.print(out, o)
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
@@ -100,19 +98,6 @@ func (c *DescribeCommand) constructInput(serviceID string) *fastly.GetACLEntryIn
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry) error {
-	if c.json {
-		data, err := json.Marshal(a)
-		if err != nil {
-			return err
-		}
-		_, err = out.Write(data)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error: unable to write data to stdout: %w", err)
-		}
-		return nil
-	}
-
 	if !c.Globals.Verbose() {
 		fmt.Fprintf(out, "\nService ID: %s\n", a.ServiceID)
 	}
