@@ -2,9 +2,11 @@
 
 ## [v9.0.0](https://github.com/fastly/cli/releases/tag/v9.0.0) (2023-04-19)
 
-**Breaking:**
+There are a couple of important 'breaking' changes in this release.
 
-There are a couple of important changes in this release: the `object-store` command has been renamed to `kv-store` and the `fastly.toml` manifest (used by the Fastly CLI) has updated its data model (see https://developer.fastly.com/reference/compute/fastly-toml/) by renaming `[setup.dictionaries]` and `[local_server.dictionaries]` to their `config_stores` equivalent, which has resulted in a new `manifest_version` number due to the change to the consumer interface.
+The `object-store` command has been renamed to `kv-store` and the `fastly.toml` manifest (used by the Fastly CLI) has updated its data model (see https://developer.fastly.com/reference/compute/fastly-toml/) by renaming `[setup.dictionaries]` and `[local_server.dictionaries]` to their `config_stores` equivalent, which has resulted in a new `manifest_version` number due to the change to the consumer interface.
+
+**Breaking:**
 
 * breaking(objectstore): rename object-store command to kv-store [#904](https://github.com/fastly/cli/pull/904)
 * breaking(manifest): support latest fastly.toml manifest data model [#907](https://github.com/fastly/cli/pull/907)
