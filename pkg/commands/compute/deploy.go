@@ -1262,7 +1262,7 @@ func checkingServiceAvailability(
 // It notifies the user what's happening and how long is left on the timer.
 func generateTimeout(d time.Duration) string {
 	remaining := fmt.Sprintf("timeout: %v", d.Round(time.Second))
-	return fmt.Sprintf(" (app is being deployed across Fastly's global network | %s)...", remaining)
+	return fmt.Sprintf(" (app deploying across Fastly's global network | %s)...", remaining)
 }
 
 // pingServiceURL indicates if the service returned a non-5xx response (or
