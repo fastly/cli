@@ -1313,7 +1313,9 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatus
 	if err != nil {
 		return false, 0, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// We check for the user's defined status code expectation.
 	// Otherwise we'll default to checking for a non-500.
