@@ -14,6 +14,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/kennygrant/sanitize"
+	"github.com/mholt/archiver/v3"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/cmd"
@@ -24,9 +28,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/undo"
-	"github.com/fastly/go-fastly/v8/fastly"
-	"github.com/kennygrant/sanitize"
-	"github.com/mholt/archiver/v3"
 )
 
 const (
@@ -202,6 +203,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	return nil
 }
 
+// validStatusCodeRange checks the status is a valid status code.
+// e.g. >= 100 and <= 999
 func validStatusCodeRange(status int) bool {
 	if status >= 100 && status <= 999 {
 		return true
@@ -1255,9 +1258,11 @@ func checkingServiceAvailability(
 	}
 }
 
+// generateTimeout inserts a dynamically generated message on each tick.
+// It notifies the user what's happening and how long is left on the timer.
 func generateTimeout(d time.Duration) string {
 	remaining := fmt.Sprintf("timeout: %v", d.Round(time.Second))
-	return fmt.Sprintf(" (app is being deployed across Fastly's global network | %s)...", remaining)
+	return fmt.Sprintf(" (app deploying across Fastly's global network | %s)...", remaining)
 }
 
 // pingServiceURL indicates if the service returned a non-5xx response (or
