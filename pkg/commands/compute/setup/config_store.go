@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ConfigStores represents the service state related to config stores defined
@@ -125,9 +126,9 @@ func (o *ConfigStores) Create() error {
 		})
 		if err != nil {
 			o.Spinner.StopFailMessage(msg)
-			err := o.Spinner.StopFail()
-			if err != nil {
-				return err
+			spinErr := o.Spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
 			}
 			return fmt.Errorf("error creating config store: %w", err)
 		}
@@ -154,9 +155,9 @@ func (o *ConfigStores) Create() error {
 				})
 				if err != nil {
 					o.Spinner.StopFailMessage(msg)
-					err := o.Spinner.StopFail()
-					if err != nil {
-						return err
+					spinErr := o.Spinner.StopFail()
+					if spinErr != nil {
+						return spinErr
 					}
 					return fmt.Errorf("error creating config store item: %w", err)
 				}
@@ -185,9 +186,9 @@ func (o *ConfigStores) Create() error {
 		})
 		if err != nil {
 			o.Spinner.StopFailMessage(msg)
-			err := o.Spinner.StopFail()
-			if err != nil {
-				return err
+			spinErr := o.Spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
 			}
 			return fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, store.Name, err)
 		}

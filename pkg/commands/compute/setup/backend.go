@@ -6,12 +6,13 @@ import (
 	"net"
 	"strconv"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // Backends represents the service state related to backends defined within the
@@ -98,9 +99,9 @@ func (b *Backends) Create() error {
 		if err != nil {
 			if !b.isOriginless() {
 				b.Spinner.StopFailMessage(msg)
-				err := b.Spinner.StopFail()
-				if err != nil {
-					return err
+				spinErr := b.Spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
 				}
 			}
 

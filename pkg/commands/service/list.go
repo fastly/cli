@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ListCommand calls the Fastly API to list services.

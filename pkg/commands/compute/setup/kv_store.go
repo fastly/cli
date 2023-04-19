@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // KVStores represents the service state related to kv stores defined
@@ -107,7 +108,7 @@ func (o *KVStores) Configure() error {
 func (o *KVStores) Create() error {
 	if o.Spinner == nil {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.KVStores"),
+			Inner:       fmt.Errorf("internal logic error: no spinner configured for setup.KVStores"),
 			Remediation: errors.BugRemediation,
 		}
 	}
@@ -125,9 +126,9 @@ func (o *KVStores) Create() error {
 		})
 		if err != nil {
 			o.Spinner.StopFailMessage(msg)
-			err := o.Spinner.StopFail()
-			if err != nil {
-				return err
+			spinErr := o.Spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
 			}
 			return fmt.Errorf("error creating kv store: %w", err)
 		}
@@ -154,9 +155,9 @@ func (o *KVStores) Create() error {
 				})
 				if err != nil {
 					o.Spinner.StopFailMessage(msg)
-					err := o.Spinner.StopFail()
-					if err != nil {
-						return err
+					spinErr := o.Spinner.StopFail()
+					if spinErr != nil {
+						return spinErr
 					}
 					return fmt.Errorf("error creating kv store key: %w", err)
 				}
@@ -185,9 +186,9 @@ func (o *KVStores) Create() error {
 		})
 		if err != nil {
 			o.Spinner.StopFailMessage(msg)
-			err := o.Spinner.StopFail()
-			if err != nil {
-				return err
+			spinErr := o.Spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
 			}
 			return fmt.Errorf("error creating resource link between the service '%s' and the kv store '%s': %w", o.ServiceID, store.Name, err)
 		}
