@@ -107,7 +107,7 @@ func (o *KVStores) Configure() error {
 func (o *KVStores) Create() error {
 	if o.Spinner == nil {
 		return errors.RemediationError{
-			Inner:       fmt.Errorf("internal logic error: no text.Progress configured for setup.KVStores"),
+			Inner:       fmt.Errorf("internal logic error: no spinner configured for setup.KVStores"),
 			Remediation: errors.BugRemediation,
 		}
 	}
