@@ -98,9 +98,9 @@ func (b *Backends) Create() error {
 		if err != nil {
 			if !b.isOriginless() {
 				b.Spinner.StopFailMessage(msg)
-				err := b.Spinner.StopFail()
-				if err != nil {
-					return err
+				spinErr := b.Spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
 				}
 			}
 
