@@ -1,5 +1,11 @@
 # Changelog
 
+## [v9.0.1](https://github.com/fastly/cli/releases/tag/v9.0.1) (2023-04-19)
+
+**Bug fixes:**
+
+* fix: reinstate support for `[setup.object_stores]` [#918](https://github.com/fastly/cli/pull/918)
+
 ## [v9.0.0](https://github.com/fastly/cli/releases/tag/v9.0.0) (2023-04-19)
 
 There are a couple of important 'breaking' changes in this release.
