@@ -6,6 +6,7 @@ type Setup struct {
 	Backends     map[string]*SetupBackend     `toml:"backends,omitempty"`
 	ConfigStores map[string]*SetupConfigStore `toml:"config_stores,omitempty"`
 	Loggers      map[string]*SetupLogger      `toml:"log_endpoints,omitempty"`
+	ObjectStores map[string]*SetupKVStore     `toml:"object_stores,omitempty"`
 	KVStores     map[string]*SetupKVStore     `toml:"kv_stores,omitempty"`
 	SecretStores map[string]*SetupSecretStore `toml:"secret_stores,omitempty"`
 }

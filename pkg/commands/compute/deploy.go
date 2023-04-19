@@ -854,6 +854,7 @@ type setupObjects struct {
 	backends     *setup.Backends
 	configStores *setup.ConfigStores
 	loggers      *setup.Loggers
+	objectStores *setup.KVStores
 	kvStores     *setup.KVStores
 	secretStores *setup.SecretStores
 }
@@ -929,6 +930,17 @@ func constructSetupObjects(
 			Stdout: out,
 		}
 
+		so.objectStores = &setup.KVStores{
+			APIClient:      c.Globals.APIClient,
+			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+			NonInteractive: c.Globals.Flags.NonInteractive,
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion,
+			Setup:          c.Manifest.File.Setup.ObjectStores,
+			Stdin:          in,
+			Stdout:         out,
+		}
+
 		so.kvStores = &setup.KVStores{
 			APIClient:      c.Globals.APIClient,
 			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
@@ -999,6 +1011,13 @@ func processSetupConfig(
 			_ = so.loggers.Configure()
 		}
 
+		if so.objectStores.Predefined() {
+			if err := so.objectStores.Configure(); err != nil {
+				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
+				return fmt.Errorf("error configuring service object stores: %w", err)
+			}
+		}
+
 		if so.kvStores.Predefined() {
 			if err := so.kvStores.Configure(); err != nil {
 				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
@@ -1045,6 +1064,7 @@ func processSetupCreation(
 	if newService {
 		so.backends.Spinner = spinner
 		so.configStores.Spinner = spinner
+		so.objectStores.Spinner = spinner
 		so.kvStores.Spinner = spinner
 		so.secretStores.Spinner = spinner
 
@@ -1060,6 +1080,17 @@ func processSetupCreation(
 		}
 
 		if err := so.configStores.Create(); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Accept defaults": c.Globals.Flags.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flags.AutoYes,
+				"Non-interactive": c.Globals.Flags.NonInteractive,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion,
+			})
+			return err
+		}
+
+		if err := so.objectStores.Create(); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Accept defaults": c.Globals.Flags.AcceptDefaults,
 				"Auto-yes":        c.Globals.Flags.AutoYes,
