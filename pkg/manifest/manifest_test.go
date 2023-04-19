@@ -7,13 +7,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	toml "github.com/pelletier/go-toml"
+
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
-	"github.com/google/go-cmp/cmp"
-	toml "github.com/pelletier/go-toml"
 )
 
 func TestManifest(t *testing.T) {
@@ -101,6 +102,9 @@ func TestManifest(t *testing.T) {
 
 			err = m.Read(path)
 
+			output := stdout.String()
+			t.Log(output)
+
 			// If we expect an invalid config, then assert we get the right error.
 			if !tc.valid {
 				testutil.AssertErrorContains(t, err, tc.expectedError.Error())
@@ -116,10 +120,6 @@ func TestManifest(t *testing.T) {
 			if m.ManifestVersion != manifest.ManifestLatestVersion {
 				t.Fatalf("manifest_version '%d' doesn't match latest '%d'", m.ManifestVersion, manifest.ManifestLatestVersion)
 			}
-
-			output := stdout.String()
-
-			t.Log(output)
 
 			if tc.expectedOutput != "" && !strings.Contains(output, tc.expectedOutput) {
 				t.Fatalf("got: %s, want: %s", output, tc.expectedOutput)
