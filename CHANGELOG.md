@@ -1,5 +1,11 @@
 # Changelog
 
+## [v9.0.2](https://github.com/fastly/cli/releases/tag/v9.0.2) (2023-04-19)
+
+**Bug fixes:**
+
+* fix(kvstore): alias `object-store` [#920](https://github.com/fastly/cli/pull/920)
+
 ## [v9.0.1](https://github.com/fastly/cli/releases/tag/v9.0.1) (2023-04-19)
 
 **Bug fixes:**
