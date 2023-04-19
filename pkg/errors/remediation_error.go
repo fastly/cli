@@ -123,10 +123,12 @@ var PackageSizeRemediation = strings.Join([]string{
 	"https://developer.fastly.com/learning/compute/#limitations-and-constraints",
 }, " ")
 
-// CLIUpdateRemediation suggests updating the installed CLI version.
-var CLIUpdateRemediation = strings.Join([]string{
-	"Please try updating the installed CLI version using:",
-	"`fastly update`.",
+// UnrecognisedManifestVersionRemediation suggests steps to resolve an issue
+// where the project contains a manifest_version that is larger than what the
+// current CLI version supports.
+var UnrecognisedManifestVersionRemediation = strings.Join([]string{
+	"Please try updating the installed CLI version using: `fastly update`.",
+	"See also https://developer.fastly.com/reference/fastly-toml/ to check your fastly.toml manifest is up-to-date with the latest data model.",
 	BugRemediation,
 }, " ")
 

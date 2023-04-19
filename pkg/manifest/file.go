@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
+
+	toml "github.com/pelletier/go-toml"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	toml "github.com/pelletier/go-toml"
 )
 
 // File represents all of the configuration parameters in the fastly.toml
@@ -78,6 +80,15 @@ func (f *File) Read(path string) (err error) {
 
 	err = tree.Unmarshal(f)
 	if err != nil {
+		// IMPORTANT: go-toml consumes our error type within its own.
+		//
+		// This means we need to manually parse the return error to see if it
+		// contains our specific error message. If we don't do this, then the
+		// remediation information we pass back will be lost and a generic 'bug'
+		// remediation (which is set by logic in main.go) is used instead.
+		if strings.Contains(err.Error(), fsterr.ErrUnrecognisedManifestVersion.Inner.Error()) {
+			err = fsterr.ErrUnrecognisedManifestVersion
+		}
 		f.logErr(err)
 		return err
 	}

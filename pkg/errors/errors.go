@@ -54,7 +54,7 @@ var ErrMissingManifestVersion = RemediationError{
 // version has been specified.
 var ErrUnrecognisedManifestVersion = RemediationError{
 	Inner:       fmt.Errorf("unrecognised manifest_version found in the fastly.toml"),
-	Remediation: CLIUpdateRemediation,
+	Remediation: UnrecognisedManifestVersionRemediation,
 }
 
 // ErrIncompatibleManifestVersion means the manifest_version defined is no
