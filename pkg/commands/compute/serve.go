@@ -652,7 +652,9 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 	// How big an issue this is depends on how many file modifications a user
 	// makes, because having lots of signal listeners could exhaust resources.
 	if err := s.Exec(); err != nil {
-		errLog.Add(err)
+		if !strings.Contains(err.Error(), "signal: ") {
+			errLog.Add(err)
+		}
 		e := strings.TrimSpace(err.Error())
 		if strings.Contains(e, "interrupt") {
 			return fsterr.ErrSignalInterrupt
