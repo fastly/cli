@@ -8,12 +8,13 @@ import (
 	"os"
 	"path/filepath"
 
+	toml "github.com/pelletier/go-toml"
+
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
-	toml "github.com/pelletier/go-toml"
 )
 
 const (
@@ -217,7 +218,6 @@ func (f *File) Read(
 	/* #nosec */
 	data, err := os.ReadFile(path)
 	if err != nil {
-		errLog.Add(err)
 		data = Static
 	}
 
