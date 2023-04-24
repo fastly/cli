@@ -595,8 +595,8 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 		// Disabling as we trust the source of the variable.
 		// #nosec
 		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
-		cmd := exec.Command(bin, "--version")
-		if output, err := cmd.Output(); err == nil {
+		c := exec.Command(bin, "--version")
+		if output, err := c.Output(); err == nil {
 			text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy version"), string(output))
 		}
 
