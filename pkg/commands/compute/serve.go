@@ -19,6 +19,10 @@ import (
 
 	"github.com/bep/debounce"
 	"github.com/blang/semver"
+	"github.com/fatih/color"
+	"github.com/fsnotify/fsnotify"
+	ignore "github.com/sabhiram/go-gitignore"
+
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -28,9 +32,6 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fatih/color"
-	"github.com/fsnotify/fsnotify"
-	ignore "github.com/sabhiram/go-gitignore"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
