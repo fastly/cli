@@ -8,12 +8,13 @@ import (
 	"os"
 	"path/filepath"
 
+	toml "github.com/pelletier/go-toml"
+
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
-	toml "github.com/pelletier/go-toml"
 )
 
 const (
@@ -215,9 +216,9 @@ func (f *File) Read(
 	// Disabling as we need to load the config.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
+	// nosemgrep: trailofbits.go.invalid-usage-of-modified-variable.invalid-usage-of-modified-variable
 	data, err := os.ReadFile(path)
 	if err != nil {
-		errLog.Add(err)
 		data = Static
 	}
 

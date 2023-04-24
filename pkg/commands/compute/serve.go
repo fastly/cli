@@ -19,6 +19,10 @@ import (
 
 	"github.com/bep/debounce"
 	"github.com/blang/semver"
+	"github.com/fatih/color"
+	"github.com/fsnotify/fsnotify"
+	ignore "github.com/sabhiram/go-gitignore"
+
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -28,9 +32,6 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fatih/color"
-	"github.com/fsnotify/fsnotify"
-	ignore "github.com/sabhiram/go-gitignore"
 )
 
 // ServeCommand produces and runs an artifact from files on the local disk.
@@ -594,8 +595,8 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 		// Disabling as we trust the source of the variable.
 		// #nosec
 		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
-		cmd := exec.Command(bin, "--version")
-		if output, err := cmd.Output(); err == nil {
+		c := exec.Command(bin, "--version")
+		if output, err := c.Output(); err == nil {
 			text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy version"), string(output))
 		}
 
@@ -652,7 +653,9 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 	// How big an issue this is depends on how many file modifications a user
 	// makes, because having lots of signal listeners could exhaust resources.
 	if err := s.Exec(); err != nil {
-		errLog.Add(err)
+		if !strings.Contains(err.Error(), "signal: ") {
+			errLog.Add(err)
+		}
 		e := strings.TrimSpace(err.Error())
 		if strings.Contains(e, "interrupt") {
 			return fsterr.ErrSignalInterrupt
