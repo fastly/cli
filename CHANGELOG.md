@@ -1,5 +1,19 @@
 # Changelog
 
+## [v9.0.3](https://github.com/fastly/cli/releases/tag/v9.0.3) (2023-04-26)
+
+**Bug fixes:**
+
+* Omit errors from Sentry reporting [#922](https://github.com/fastly/cli/pull/922)
+
+**Enhancements:**
+
+* fix(compute/serve): always set verbose mode for viceroy [#924](https://github.com/fastly/cli/pull/924)
+
+**Dependencies:**
+
+* build(deps): bump github.com/otiai10/copy from 1.10.0 to 1.11.0 [#923](https://github.com/fastly/cli/pull/923)
+
 ## [v9.0.2](https://github.com/fastly/cli/releases/tag/v9.0.2) (2023-04-19)
 
 **Bug fixes:**
