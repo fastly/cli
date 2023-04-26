@@ -16,7 +16,7 @@ import (
 // manifest file schema.
 type File struct {
 	// Args is necessary to track the subcommand called (see: File.Read method).
-	Args            []string    `toml:",omitempty"`
+	Args            []string    `toml:"-"`
 	Authors         []string    `toml:"authors"`
 	Description     string      `toml:"description"`
 	Language        string      `toml:"language"`

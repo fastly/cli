@@ -578,7 +578,11 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 	}
 
 	manifestPath := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
-	args := []string{"-C", manifestPath, "--addr", addr, file}
+
+	// NOTE: Viceroy no longer displays errors unless in verbose mode.
+	// This can cause confusion for customers: https://github.com/fastly/cli/issues/913
+	// So regardless of CLI --verbose flag we'll always set verbose for Viceroy.
+	args := []string{"-v", "-C", manifestPath, "--addr", addr, file}
 
 	if debug {
 		args = append(args, "--debug")
@@ -599,8 +603,6 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 		if output, err := c.Output(); err == nil {
 			text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy version"), string(output))
 		}
-
-		args = append(args, "-v")
 	} else {
 		// IMPORTANT: Viceroy 0.4.0 changed its INFO log output behind a -v flag.
 		// We display the address unless in verbose mode to avoid duplicate output.
