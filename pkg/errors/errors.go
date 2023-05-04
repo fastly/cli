@@ -106,3 +106,10 @@ var ErrInvalidVerboseJSONCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination, --verbose and --json"),
 	Remediation: "Use either --verbose or --json, not both.",
 }
+
+// ErrNoSTDINData indicates the --stdin flag was specified but no data was piped
+// into stdin.
+var ErrNoSTDINData = RemediationError{
+	Inner:       fmt.Errorf("unable to read from STDIN"),
+	Remediation: "Provide data to STDIN, or use --file to read from a file",
+}

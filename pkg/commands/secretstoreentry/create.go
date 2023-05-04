@@ -8,12 +8,13 @@ import (
 	"io"
 	"os"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const (
@@ -79,11 +80,6 @@ var errMultipleSecretValue = fsterr.RemediationError{
 	Remediation: "Use one of --file or --stdin flag",
 }
 
-var errNoSTDINData = fsterr.RemediationError{
-	Inner:       fmt.Errorf("unable to read from STDIN"),
-	Remediation: "Provide data to STDIN, or use --file to read from a file",
-}
-
 var errMaxSecretLength = fsterr.RemediationError{
 	Inner:       fmt.Errorf("max secret size exceeded"),
 	Remediation: fmt.Sprintf("Maximum secret size is %dKiB", maxSecretKiB),
@@ -103,7 +99,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	case c.secretSTDIN:
 		// Determine if 'in' has data available.
 		if in == nil || text.IsTTY(in) {
-			return errNoSTDINData
+			return fsterr.ErrNoSTDINData
 		}
 		var buf bytes.Buffer
 		if _, err := buf.ReadFrom(in); err != nil {
