@@ -119,3 +119,10 @@ var ErrInvalidKVCombo = RemediationError{
 	Inner:       fmt.Errorf("--key-name and --value are required"),
 	Remediation: "Please add both flags or alternatively use either --stdin or --file.",
 }
+
+// ErrInvalidStdinFileCombo means the user provided both a --stdin and --file
+// flag which are mutally exclusive behaviours.
+var ErrInvalidStdinFileCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid flag combination, --stdin and --file"),
+	Remediation: "Use either --stdin or --file, not both.",
+}

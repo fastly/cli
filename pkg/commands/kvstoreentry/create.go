@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -20,6 +21,7 @@ import (
 // CreateCommand calls the Fastly API to insert a key into an kv store.
 type CreateCommand struct {
 	cmd.Base
+	filePath string
 	manifest manifest.Data
 	stdin    bool
 
@@ -35,6 +37,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Insert a key-value pair").Alias("insert")
+	c.CmdClause.Flag("file", "Path to a file containing individual JSON objects separated by new-line delimiter").StringVar(&c.filePath)
 	c.CmdClause.Flag("key-name", "Key name").Short('k').StringVar(&c.Input.Key)
 	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
@@ -44,8 +47,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.stdin && c.filePath != "" {
+		return fsterr.ErrInvalidStdinFileCombo
+	}
+
 	if c.stdin {
 		return c.ProcessStdin(in, out)
+	}
+
+	if c.filePath != "" {
+		return c.ProcessFile(in, out)
 	}
 
 	if c.Input.Key == "" || c.Input.Value == "" {
@@ -69,6 +80,32 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 		return fsterr.ErrNoSTDINData
 	}
 
+	if err := c.CallEndpoint(in); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	text.Success(out, "Inserted keys into KV Store")
+	return nil
+}
+
+func (c *CreateCommand) ProcessFile(in io.Reader, out io.Writer) error {
+	f, err := os.Open(c.filePath)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	if err := c.CallEndpoint(f); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	text.Success(out, "Inserted keys into KV Store")
+	return nil
+}
+
+func (c *CreateCommand) CallEndpoint(in io.Reader) error {
 	host, _ := c.Globals.Endpoint()
 	path := fmt.Sprintf("/resources/stores/kv/%s/batch", c.Input.ID)
 	token, s := c.Globals.Token()
@@ -81,7 +118,7 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 	body := bufio.NewReader(in)
 
 	resp, err := undocumented.Call(
-		host, path, http.MethodPut, token, body, c.Globals.HTTPClient,
+		host, path, http.MethodPut, token, io.TeeReader(body, os.Stdout), c.Globals.HTTPClient,
 		undocumented.HTTPHeader{
 			Key:   "Content-Type",
 			Value: "application/x-ndjson",
@@ -95,6 +132,5 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("%w: %d %s: %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode), string(resp))
 	}
 
-	text.Success(out, "Inserted keys into KV Store")
 	return nil
 }
