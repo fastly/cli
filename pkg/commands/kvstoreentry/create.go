@@ -172,6 +172,9 @@ func processBatch(filePaths []string, wg *sync.WaitGroup, callEndpoint func(in i
 	template := `{"key": "%s", "value": "%s"}`
 
 	for _, filePath := range filePaths {
+		// gosec flagged this:
+		// G304 (CWE-22): Potential file inclusion via variable
+		// #nosec
 		fileContent, err := os.ReadFile(filePath)
 		if err != nil {
 			fmt.Println("error reading file:", err)
