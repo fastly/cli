@@ -45,39 +45,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.stdin {
-		// Determine if 'in' has data available.
-		if in == nil || text.IsTTY(in) {
-			return fsterr.ErrNoSTDINData
-		}
-
-		host, _ := c.Globals.Endpoint()
-		path := fmt.Sprintf("/resources/stores/kv/%s/batch", c.Input.ID)
-		token, s := c.Globals.Token()
-		if s == lookup.SourceUndefined {
-			return fsterr.ErrNoToken
-		}
-
-		// IMPORTANT: Input could be large so we must buffer the reads.
-		// This will avoid loading all of the data into memory at once.
-		body := bufio.NewReader(in)
-
-		resp, err := undocumented.Call(
-			host, path, http.MethodPut, token, body, c.Globals.HTTPClient,
-			undocumented.HTTPHeader{
-				Key:   "Content-Type",
-				Value: "application/x-ndjson",
-			},
-		)
-		if err != nil {
-			apiErr, ok := err.(undocumented.APIError)
-			if !ok {
-				return err
-			}
-			return fmt.Errorf("%w: %d %s: %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode), string(resp))
-		}
-
-		text.Success(out, "Inserted keys into KV Store")
-		return nil
+		return c.ProcessStdin(in, out)
 	}
 
 	if c.Input.Key == "" || c.Input.Value == "" {
@@ -92,5 +60,41 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Success(out, "Inserted key %s into KV Store %s", c.Input.Key, c.Input.ID)
 
+	return nil
+}
+
+func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
+	// Determine if 'in' has data available.
+	if in == nil || text.IsTTY(in) {
+		return fsterr.ErrNoSTDINData
+	}
+
+	host, _ := c.Globals.Endpoint()
+	path := fmt.Sprintf("/resources/stores/kv/%s/batch", c.Input.ID)
+	token, s := c.Globals.Token()
+	if s == lookup.SourceUndefined {
+		return fsterr.ErrNoToken
+	}
+
+	// IMPORTANT: Input could be large so we must buffer the reads.
+	// This will avoid loading all of the data into memory at once.
+	body := bufio.NewReader(in)
+
+	resp, err := undocumented.Call(
+		host, path, http.MethodPut, token, body, c.Globals.HTTPClient,
+		undocumented.HTTPHeader{
+			Key:   "Content-Type",
+			Value: "application/x-ndjson",
+		},
+	)
+	if err != nil {
+		apiErr, ok := err.(undocumented.APIError)
+		if !ok {
+			return err
+		}
+		return fmt.Errorf("%w: %d %s: %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode), string(resp))
+	}
+
+	text.Success(out, "Inserted keys into KV Store")
 	return nil
 }
