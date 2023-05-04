@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -63,7 +62,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		body := bufio.NewReader(in)
 
 		resp, err := undocumented.Call(
-			host, path, http.MethodPut, token, io.TeeReader(body, os.Stdout), c.Globals.HTTPClient,
+			host, path, http.MethodPut, token, body, c.Globals.HTTPClient,
 			undocumented.HTTPHeader{
 				Key:   "Content-Type",
 				Value: "application/x-ndjson",
@@ -77,8 +76,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 			return fmt.Errorf("%w: %d %s: %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode), string(resp))
 		}
 
-		fmt.Printf("%+v\n", string(resp))
-
+		text.Success(out, "Inserted keys into KV Store")
 		return nil
 	}
 
@@ -92,7 +90,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Inserted key %s into kv store %s", c.Input.Key, c.Input.ID)
+	text.Success(out, "Inserted key %s into KV Store %s", c.Input.Key, c.Input.ID)
 
 	return nil
 }

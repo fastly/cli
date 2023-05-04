@@ -3,11 +3,12 @@ package kvstoreentry
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete an kv store.
@@ -39,6 +40,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted key %s from store ID %s", c.Input.Key, c.Input.ID)
+	text.Success(out, "Deleted key %s from KV Store ID %s", c.Input.Key, c.Input.ID)
 	return nil
 }
