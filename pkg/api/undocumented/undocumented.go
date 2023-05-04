@@ -40,18 +40,27 @@ func NewError(err error, statusCode int) APIError {
 	}
 }
 
-// Get calls the given API endpoint and returns its response data.
-func Get(host, path, token string, c api.HTTPClient) (data []byte, err error) {
+// HTTPHeader represents a HTTP request header.
+type HTTPHeader struct {
+	Key   string
+	Value string
+}
+
+// Call calls the given API endpoint and returns its response data.
+func Call(host, path, method, token string, body io.Reader, c api.HTTPClient, headers ...HTTPHeader) (data []byte, err error) {
 	host = strings.TrimSuffix(host, "/")
 	endpoint := fmt.Sprintf("%s%s", host, path)
 
-	req, err := http.NewRequest(http.MethodPost, endpoint, nil)
+	req, err := http.NewRequest(method, endpoint, body)
 	if err != nil {
 		return data, NewError(err, 0)
 	}
 
 	req.Header.Set("Fastly-Key", token)
 	req.Header.Set("User-Agent", useragent.Name)
+	for _, header := range headers {
+		req.Header.Set(header.Key, header.Value)
+	}
 
 	res, err := c.Do(req)
 	if err != nil {
@@ -65,13 +74,13 @@ func Get(host, path, token string, c api.HTTPClient) (data []byte, err error) {
 	}
 	defer res.Body.Close() // #nosec G307
 
-	if res.StatusCode != http.StatusOK {
-		return data, NewError(fmt.Errorf("non-2xx response"), res.StatusCode)
-	}
-
 	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		return []byte{}, NewError(err, res.StatusCode)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return data, NewError(fmt.Errorf("non-2xx response"), res.StatusCode)
 	}
 
 	return data, nil

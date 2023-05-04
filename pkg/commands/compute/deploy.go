@@ -445,7 +445,8 @@ type activator func(customerID string) error
 func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) activator {
 	return func(customerID string) error {
 		path := fmt.Sprintf(undocumented.EdgeComputeTrial, customerID)
-		_, err := undocumented.Get(endpoint, path, token, httpClient)
+		var body io.Reader // nil: no body needed to be sent
+		_, err := undocumented.Call(endpoint, path, http.MethodPost, token, body, httpClient)
 		if err != nil {
 			apiErr, ok := err.(undocumented.APIError)
 			if !ok {
