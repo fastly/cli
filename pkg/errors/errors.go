@@ -113,3 +113,9 @@ var ErrNoSTDINData = RemediationError{
 	Inner:       fmt.Errorf("unable to read from STDIN"),
 	Remediation: "Provide data to STDIN, or use --file to read from a file",
 }
+
+// ErrInvalidKVCombo means the user omitted either the key or value flag.
+var ErrInvalidKVCombo = RemediationError{
+	Inner:       fmt.Errorf("--key-name and --value are required"),
+	Remediation: "Please add both flags or alternatively use either --stdin or --file.",
+}
