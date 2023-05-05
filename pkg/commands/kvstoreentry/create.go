@@ -3,6 +3,7 @@ package kvstoreentry
 import (
 	"bufio"
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,18 +23,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// CreateCommand calls the Fastly API to insert a key into an kv store.
-type CreateCommand struct {
-	cmd.Base
-	dirBatchSize int
-	dirPath      string
-	filePath     string
-	manifest     manifest.Data
-	stdin        bool
-
-	Input fastly.InsertKVStoreKeyInput
-}
-
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
 	c := CreateCommand{
@@ -51,6 +40,18 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 	c.CmdClause.Flag("value", "Value").StringVar(&c.Input.Value)
 	return &c
+}
+
+// CreateCommand calls the Fastly API to insert a key into an kv store.
+type CreateCommand struct {
+	cmd.Base
+	dirBatchSize int
+	dirPath      string
+	filePath     string
+	manifest     manifest.Data
+	stdin        bool
+
+	Input fastly.InsertKVStoreKeyInput
 }
 
 // Exec invokes the application logic for the command.
@@ -119,7 +120,7 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-func (c *CreateCommand) ProcessFile(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) ProcessFile(_ io.Reader, out io.Writer) error {
 	f, err := os.Open(c.filePath)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -135,12 +136,18 @@ func (c *CreateCommand) ProcessFile(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
-	files, err := os.ReadDir(c.dirPath)
+func (c *CreateCommand) ProcessDir(_ io.Reader, out io.Writer) error {
+	path, err := filepath.Abs(c.dirPath)
 	if err != nil {
 		return err
 	}
 
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	base := filepath.Base(path)
 	var fileBatch []string
 	var wg sync.WaitGroup
 
@@ -149,7 +156,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 			fileBatch = append(fileBatch, filepath.Join(c.dirPath, file.Name()))
 			if len(fileBatch) == c.dirBatchSize {
 				wg.Add(1)
-				go processBatch(fileBatch, &wg, c.CallEndpoint)
+				go processBatch(base, fileBatch, &wg, c.CallEndpoint)
 				fileBatch = nil
 			}
 		}
@@ -157,44 +164,12 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 
 	if len(fileBatch) > 0 {
 		wg.Add(1)
-		go processBatch(fileBatch, &wg, c.CallEndpoint)
+		go processBatch(base, fileBatch, &wg, c.CallEndpoint)
 	}
 
 	wg.Wait()
-	text.Success(out, "Inserted keys into KV Store")
+	text.Success(out, "Inserted %d keys into KV Store", len(files))
 	return nil
-}
-
-func processBatch(filePaths []string, wg *sync.WaitGroup, callEndpoint func(in io.Reader) error) {
-	defer wg.Done()
-
-	var payload bytes.Buffer
-	template := `{"key": "%s", "value": "%s"}`
-
-	for _, filePath := range filePaths {
-		// gosec flagged this:
-		// G304 (CWE-22): Potential file inclusion via variable
-		// #nosec
-		fileContent, err := os.ReadFile(filePath)
-		if err != nil {
-			fmt.Println("error reading file:", err)
-			continue
-		}
-
-		_, filename := filepath.Split(filePath)
-		filenameNoExt := strings.TrimSuffix(filename, filepath.Ext(filename))
-
-		// We need to strip a trailing newline from the file content (if present).
-		if len(fileContent) > 0 && fileContent[len(fileContent)-1] == '\n' {
-			fileContent = fileContent[:len(fileContent)-1]
-		}
-
-		payload.WriteString(fmt.Sprintf(template, filenameNoExt, fileContent))
-		payload.WriteByte('\n')
-	}
-
-	fmt.Println(payload.String())
-	_ = callEndpoint(&payload)
 }
 
 func (c *CreateCommand) CallEndpoint(in io.Reader) error {
@@ -210,7 +185,7 @@ func (c *CreateCommand) CallEndpoint(in io.Reader) error {
 	body := bufio.NewReader(in)
 
 	resp, err := undocumented.Call(
-		host, path, http.MethodPut, token, io.TeeReader(body, os.Stdout), c.Globals.HTTPClient,
+		host, path, http.MethodPut, token, body, c.Globals.HTTPClient,
 		undocumented.HTTPHeader{
 			Key:   "Content-Type",
 			Value: "application/x-ndjson",
@@ -225,4 +200,31 @@ func (c *CreateCommand) CallEndpoint(in io.Reader) error {
 	}
 
 	return nil
+}
+
+func processBatch(base string, filePaths []string, wg *sync.WaitGroup, callEndpoint func(in io.Reader) error) {
+	defer wg.Done()
+
+	var payload bytes.Buffer
+	template := `{"key": "%s", "value": "%s"}`
+
+	for _, filePath := range filePaths {
+		// gosec flagged this:
+		// G304 (CWE-22): Potential file inclusion via variable
+		// #nosec
+		fileContent, err := os.ReadFile(filePath)
+		if err != nil {
+			fmt.Println("error reading file:", err)
+			continue
+		}
+
+		dir, filename := filepath.Split(filePath)
+		index := strings.Index(dir, base)
+		filename = filepath.Join(dir[index:], filename)
+
+		_, _ = payload.WriteString(fmt.Sprintf(template, filename, base64.StdEncoding.EncodeToString(fileContent)))
+		_ = payload.WriteByte('\n')
+	}
+
+	_ = callEndpoint(&payload)
 }
