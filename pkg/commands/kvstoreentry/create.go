@@ -225,9 +225,9 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 
 	wg.Wait()
 
-	// NOTE: We add a one second sleep to allow the final goroutine to increment.
+	// NOTE: We add a two second sleep to allow the final goroutine to increment.
 	// Otherwise the StopMessage below is called before filesProcessed is updated.
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 2)
 
 	spinner.StopMessage(fmt.Sprintf(msg, filesProcessed, fileLength))
 	err = spinner.Stop()
@@ -235,13 +235,15 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 		return err
 	}
 
+	outputMsg := "Inserted %d keys into KV Store"
+
 	if len(errors) == 0 {
-		text.Success(out, "Inserted %d keys into KV Store", len(files))
+		text.Success(out, outputMsg, len(files))
 		return nil
 	}
 
-	text.Error(out, "Inserted %d keys into KV Store", len(files)-len(errors))
-
+	text.Error(out, "Encountered the following errors")
+	text.Break(out)
 	for _, err := range errors {
 		fmt.Printf("File: %s\nError: %s\n\n", err.File, err.Err.Error())
 	}
