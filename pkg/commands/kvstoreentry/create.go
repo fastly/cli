@@ -64,11 +64,11 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.filePath != "" {
-		return c.ProcessFile(in, out)
+		return c.ProcessFile(out)
 	}
 
 	if c.dirPath != "" {
-		return c.ProcessDir(in, out)
+		return c.ProcessDir(out)
 	}
 
 	if c.Input.Key == "" || c.Input.Value == "" {
@@ -119,7 +119,7 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-func (c *CreateCommand) ProcessFile(_ io.Reader, out io.Writer) error {
+func (c *CreateCommand) ProcessFile(out io.Writer) error {
 	f, err := os.Open(c.filePath)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -135,7 +135,7 @@ func (c *CreateCommand) ProcessFile(_ io.Reader, out io.Writer) error {
 	return nil
 }
 
-func (c *CreateCommand) ProcessDir(_ io.Reader, out io.Writer) error {
+func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	path, err := filepath.Abs(c.dirPath)
 	if err != nil {
 		return err
