@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -221,6 +222,10 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	}
 
 	wg.Wait()
+
+	// NOTE: We add a one second sleep to allow the final goroutine to increment.
+	// Otherwise the StopMessage below is called before filesProcessed is updated.
+	time.Sleep(time.Second * 1)
 
 	spinner.StopMessage(fmt.Sprintf(msg, filesProcessed, fileLength))
 	err = spinner.Stop()
