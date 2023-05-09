@@ -147,16 +147,65 @@ func (c *CreateCommand) ProcessDir(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Start()
+	if err != nil {
+		return err
+	}
+	processing := fmt.Sprintf("Processing %d files", len(files))
+	msg := "%s (files read: %d, api calls made: %d)"
+	spinner.Message(fmt.Sprintf(msg, processing, 0, 0) + "...")
+
 	base := filepath.Base(path)
-	var fileBatch []string
-	var wg sync.WaitGroup
+	errors := []ProcessErr{}
+	errMessages := make(chan ProcessErr)
+	fileRead := make(chan bool)
+	apiCall := make(chan bool)
+
+	var (
+		apiCalls  int
+		filesRead int
+		fileBatch []string
+		wg        sync.WaitGroup
+	)
+
+	go func() {
+		for msg := range errMessages {
+			fmt.Println("received message to errMessages channel")
+			errors = append(errors, msg)
+		}
+	}()
+
+	go func() {
+		for ok := range fileRead {
+			if ok {
+				fmt.Println("received message to fileRead channel")
+				filesRead++
+				spinner.Message(fmt.Sprintf(msg, processing, filesRead, apiCalls) + "...")
+			}
+		}
+	}()
+
+	go func() {
+		for ok := range apiCall {
+			if ok {
+				fmt.Println("received message to apiCall channel")
+				apiCalls++
+				spinner.Message(fmt.Sprintf(msg, processing, filesRead, apiCalls) + "...")
+			}
+		}
+	}()
 
 	for _, file := range files {
 		if !file.IsDir() {
 			fileBatch = append(fileBatch, filepath.Join(c.dirPath, file.Name()))
 			if len(fileBatch) == c.dirBatchSize {
 				wg.Add(1)
-				go processBatch(base, fileBatch, &wg, c.CallEndpoint)
+				go processBatch(base, fileBatch, &wg, c.CallEndpoint, &errMessages, &fileRead, &apiCall)
 				fileBatch = nil
 			}
 		}
@@ -164,15 +213,36 @@ func (c *CreateCommand) ProcessDir(_ io.Reader, out io.Writer) error {
 
 	if len(fileBatch) > 0 {
 		wg.Add(1)
-		go processBatch(base, fileBatch, &wg, c.CallEndpoint)
+		go processBatch(base, fileBatch, &wg, c.CallEndpoint, &errMessages, &fileRead, &apiCall)
 	}
 
 	wg.Wait()
-	text.Success(out, "Inserted %d keys into KV Store", len(files))
+
+	spinner.StopMessage(fmt.Sprintf(msg, processing, filesRead, apiCalls))
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+
+	if len(errors) == 0 {
+		text.Success(out, "Inserted %d keys into KV Store", len(files))
+		return nil
+	}
+
+	// NOTE: We can't be accurate because a batch of files might fail.
+	// The API response doesn't indicate what files from the batch failed.
+	// Just that the batch failed to upload.
+	text.Error(out, "Inserted (approx) %d keys into KV Store", len(files)-len(errors))
+
+	for _, err := range errors {
+		fmt.Printf("File: %s\nError: %s\n\n", err.File, err.Err.Error())
+	}
+
 	return nil
 }
 
 func (c *CreateCommand) CallEndpoint(in io.Reader) error {
+	fmt.Printf("%+v\n", "api call started")
 	host, _ := c.Globals.Endpoint()
 	path := fmt.Sprintf("/resources/stores/kv/%s/batch", c.Input.ID)
 	token, s := c.Globals.Token()
@@ -199,10 +269,19 @@ func (c *CreateCommand) CallEndpoint(in io.Reader) error {
 		return fmt.Errorf("%w: %d %s: %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode), string(resp))
 	}
 
+	fmt.Printf("%+v\n", "api call finished")
 	return nil
 }
 
-func processBatch(base string, filePaths []string, wg *sync.WaitGroup, callEndpoint func(in io.Reader) error) {
+func processBatch(
+	base string,
+	filePaths []string,
+	wg *sync.WaitGroup,
+	callEndpoint func(in io.Reader) error,
+	errMessages *chan ProcessErr,
+	fileRead *chan bool,
+	apiCall *chan bool,
+) {
 	defer wg.Done()
 
 	var payload bytes.Buffer
@@ -214,7 +293,11 @@ func processBatch(base string, filePaths []string, wg *sync.WaitGroup, callEndpo
 		// #nosec
 		fileContent, err := os.ReadFile(filePath)
 		if err != nil {
-			fmt.Println("error reading file:", err)
+			fmt.Println("send to errMessages channel (file read error)")
+			*errMessages <- ProcessErr{
+				File: filePath,
+				Err:  err,
+			}
 			continue
 		}
 
@@ -224,7 +307,23 @@ func processBatch(base string, filePaths []string, wg *sync.WaitGroup, callEndpo
 
 		_, _ = payload.WriteString(fmt.Sprintf(template, filename, base64.StdEncoding.EncodeToString(fileContent)))
 		_ = payload.WriteByte('\n')
+		fmt.Println("send to fileRead channel")
+		*fileRead <- true
 	}
 
-	_ = callEndpoint(&payload)
+	err := callEndpoint(&payload)
+	fmt.Println("send to apiCall channel")
+	*apiCall <- true
+	if err != nil {
+		fmt.Println("send to errMessages channel (api call error)")
+		*errMessages <- ProcessErr{
+			File: "Batch",
+			Err:  err,
+		}
+	}
+}
+
+type ProcessErr struct {
+	File string
+	Err  error
 }
