@@ -3,12 +3,13 @@ package kvstoreentry
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ListCommand calls the Fastly API to list the keys for a given kv store.
@@ -42,22 +43,39 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.ListKVStoreKeys(&c.Input)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
+	var (
+		cursor string
+		keys   []string
+		ok     bool
+	)
+
+	c.Input.Cursor = cursor
+
+	for {
+		o, err := c.Globals.APIClient.ListKVStoreKeys(&c.Input)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+
+		keys = append(keys, o.Data...)
+
+		c.Input.Cursor, ok = o.Meta["next_cursor"]
+		if !ok {
+			break
+		}
 	}
 
-	if ok, err := c.WriteJSON(out, o); ok {
+	if ok, err := c.WriteJSON(out, keys); ok {
 		return err
 	}
 
 	if c.Globals.Flags.Verbose {
-		text.PrintKVStoreKeys(out, "", o.Data)
+		text.PrintKVStoreKeys(out, "", keys)
 		return nil
 	}
 
-	for _, k := range o.Data {
+	for _, k := range keys {
 		text.Output(out, k)
 	}
 	return nil
