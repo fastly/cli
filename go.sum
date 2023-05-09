@@ -22,6 +22,8 @@ github.com/fastly/go-fastly/v8 v8.0.1 h1:szuF1hTOycRKGfEJ3yFeNOYPggNmfjcnXI7TVN4
 github.com/fastly/go-fastly/v8 v8.0.1/go.mod h1:m/QWKyZsuH8Ow3tDkRLqlbvbJdxalRGkTT3ZKxZJ4eo=
 github.com/fastly/go-fastly/v8 v8.0.2 h1:z7rC/VTfib2IUBbZQHE9H8ISG415O/V/u3HPtXvWhXU=
 github.com/fastly/go-fastly/v8 v8.0.2/go.mod h1:m/QWKyZsuH8Ow3tDkRLqlbvbJdxalRGkTT3ZKxZJ4eo=
+github.com/fastly/go-fastly/v8 v8.0.3 h1:VDRK+nsM9DKV0DrY22DUnzK2kWUrlVrIh77cTccwMSU=
+github.com/fastly/go-fastly/v8 v8.0.3/go.mod h1:m/QWKyZsuH8Ow3tDkRLqlbvbJdxalRGkTT3ZKxZJ4eo=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible h1:FhrXlfhgGCS+uc6YwyiFUt04alnjpoX7vgDKJxS6Qbk=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible/go.mod h1:U8UynVoU1SQaqD2I4ZqgYd5lx3A1ipQYn4aSt2Y5h6c=
 github.com/fatih/color v1.15.0 h1:kOqh6YHBtK8aywxGerMG2Eq3H6Qgoqeo13Bk2Mv/nBs=
