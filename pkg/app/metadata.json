@@ -477,6 +477,30 @@
       "https://developer.fastly.com/reference/api/utils/public-ip-list/"
     ]
   },
+  "kv-store-entry": {
+    "create": {
+      "examples": [
+        {
+          "cmd": "echo '{\"key\":\"example\",\"value\":\"VkFMVUU=\"}' | fastly kv-store-entry create --stdin",
+          "description": "Each JSON entry should be separated by a newline (\n) delimiter, and the value to be inserted should be base64 encoded.",
+          "title": "Stream data into a KV Store using STDIN"
+        },
+        {
+          "cmd": "fastly kv-store-entry create --file data.json",
+          "description": "Each entry in the JSON file should be its own JSON object separated by a newline, and the value to be inserted should be base64 encoded.",
+          "title": "Stream data into a KV Store using a JSON file"
+        },
+        {
+          "cmd": "fastly kv-store-entry create --dir ./data/",
+          "description": "The filename will be used as the key, and the file contents will be used as the value (unlike other options, the file content doesn't need to be base64 encoded).",
+          "title": "Concurrently insert data into a KV Store using a file directory structure"
+        }
+      ],
+      "apis": [
+        "https://developer.fastly.com/reference/api/services/backend/#create-backend"
+      ]
+    }
+  },
   "logging": {
     "azureblob": {
       "create": {
