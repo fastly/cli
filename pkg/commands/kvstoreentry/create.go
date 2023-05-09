@@ -194,6 +194,8 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 				index := strings.Index(dir, base)
 				filename = filepath.Join(dir[index:], filename)
 
+				// G304 (CWE-22): Potential file inclusion via variable
+				// #nosec
 				fileContent, err := os.ReadFile(filePath)
 				if err != nil {
 					errors = append(errors, ProcessErr{
