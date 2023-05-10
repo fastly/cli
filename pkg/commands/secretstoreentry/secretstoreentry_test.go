@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"runtime"
@@ -94,6 +95,10 @@ func TestCreateSecretCommand(t *testing.T) {
 			args:      fmt.Sprintf("create --store-id %s --name %s --stdin", storeID, secretName),
 			wantError: "unable to read from STDIN",
 		},
+		{
+			args:      fmt.Sprintf("create --store-id %s --name %s --stdin --recreate --recreate-must", storeID, secretName),
+			wantError: "invalid flag combination, --recreate and --recreate-must",
+		},
 		// Read from STDIN.
 		{
 			args:  fmt.Sprintf("create --store-id %s --name %s --stdin", storeID, secretName),
@@ -158,6 +163,62 @@ func TestCreateSecretCommand(t *testing.T) {
 			wantOutput: fstfmt.EncodeJSON(&fastly.Secret{
 				Name:   secretName,
 				Digest: []byte(secretDigest),
+			}),
+		},
+		// CreateOrRecreate
+		{
+			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json --recreate", storeID, secretName, secretFile),
+			api: mock.API{
+				CreateClientKeyFn: mockCreateClientKey,
+				GetSigningKeyFn:   mockGetSigningKey,
+				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+					if got, want := i.Method, http.MethodPut; got != want {
+						return nil, fmt.Errorf("got method %q, want %q", got, want)
+					}
+					if got, err := decrypt(i.Secret); err != nil {
+						return nil, err
+					} else if got != secretValue {
+						return nil, fmt.Errorf("invalid secret: %s", got)
+					}
+					return &fastly.Secret{
+						Name:   i.Name,
+						Digest: []byte(secretDigest),
+					}, nil
+				},
+			},
+			wantAPIInvoked: true,
+			wantOutput: fstfmt.EncodeJSON(&fastly.Secret{
+				Name:   secretName,
+				Digest: []byte(secretDigest),
+			}),
+		},
+		// Recreate
+		{
+			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json --recreate-must", storeID, secretName, secretFile),
+			api: mock.API{
+				CreateClientKeyFn: mockCreateClientKey,
+				GetSigningKeyFn:   mockGetSigningKey,
+				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+					if got, want := i.Method, http.MethodPatch; got != want {
+						return nil, fmt.Errorf("got method %q, want %q", got, want)
+					}
+					if got, err := decrypt(i.Secret); err != nil {
+						return nil, err
+					} else if got != secretValue {
+						return nil, fmt.Errorf("invalid secret: %s", got)
+					}
+					return &fastly.Secret{
+						Name:      i.Name,
+						Digest:    []byte(secretDigest),
+						Recreated: true,
+					}, nil
+				},
+			},
+			wantAPIInvoked: true,
+			wantOutput: fstfmt.EncodeJSON(&fastly.Secret{
+				Name:      secretName,
+				Digest:    []byte(secretDigest),
+				Recreated: true,
 			}),
 		},
 	}
