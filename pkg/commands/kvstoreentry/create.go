@@ -105,6 +105,7 @@ func (c *CreateCommand) CheckFlags() error {
 	return nil
 }
 
+// ProcessStdin streams STDIN to the batch API endpoint.
 func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 	// Determine if 'in' has data available.
 	if in == nil || text.IsTTY(in) {
@@ -120,6 +121,7 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 	return nil
 }
 
+// ProcessFile streams a JSON file content to the batch API endpoint.
 func (c *CreateCommand) ProcessFile(out io.Writer) error {
 	f, err := os.Open(c.filePath)
 	if err != nil {
@@ -136,6 +138,11 @@ func (c *CreateCommand) ProcessFile(out io.Writer) error {
 	return nil
 }
 
+// ProcessDir concurrently reads files from the given directory structure and
+// uploads each file to the set-value-for-key endpoint where the filename is the
+// key and the file content is the value.
+//
+// NOTE: Unlike ProcessStdin/ProcessFile content doesn't need to be base64.
 func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	path, err := filepath.Abs(c.dirPath)
 	if err != nil {
@@ -251,6 +258,8 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	return nil
 }
 
+// CallBatchEndpoint calls the batch API endpoint.
+// TODO: Replace with new go-fastly release that supports the endpoint.
 func (c *CreateCommand) CallBatchEndpoint(in io.Reader) error {
 	host, _ := c.Globals.Endpoint()
 	path := fmt.Sprintf("/resources/stores/kv/%s/batch", c.Input.ID)
