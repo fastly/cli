@@ -1,14 +1,16 @@
 package kvstoreentry
 
 import (
+	"fmt"
 	"io"
+
+	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
@@ -60,6 +62,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.Output(out, value)
+	// IMPORTANT: Don't use `text` package as binary data can be messed up.
+	fmt.Fprint(out, value)
 	return nil
 }
