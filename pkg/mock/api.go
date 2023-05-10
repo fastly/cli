@@ -335,14 +335,15 @@ type API struct {
 	ListConfigStoreItemsFn  func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error)
 	UpdateConfigStoreItemFn func(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error)
 
-	CreateKVStoreFn    func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error)
-	GetKVStoreFn       func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error)
-	ListKVStoresFn     func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error)
-	DeleteKVStoreFn    func(i *fastly.DeleteKVStoreInput) error
-	ListKVStoreKeysFn  func(i *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error)
-	GetKVStoreKeyFn    func(i *fastly.GetKVStoreKeyInput) (string, error)
-	InsertKVStoreKeyFn func(i *fastly.InsertKVStoreKeyInput) error
-	DeleteKVStoreKeyFn func(i *fastly.DeleteKVStoreKeyInput) error
+	CreateKVStoreFn         func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error)
+	GetKVStoreFn            func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error)
+	ListKVStoresFn          func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error)
+	DeleteKVStoreFn         func(i *fastly.DeleteKVStoreInput) error
+	ListKVStoreKeysFn       func(i *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error)
+	GetKVStoreKeyFn         func(i *fastly.GetKVStoreKeyInput) (string, error)
+	InsertKVStoreKeyFn      func(i *fastly.InsertKVStoreKeyInput) error
+	DeleteKVStoreKeyFn      func(i *fastly.DeleteKVStoreKeyInput) error
+	BatchModifyKVStoreKeyFn func(i *fastly.BatchModifyKVStoreKeyInput) error
 
 	CreateSecretStoreFn func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)
 	GetSecretStoreFn    func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error)
@@ -1756,6 +1757,11 @@ func (m API) InsertKVStoreKey(i *fastly.InsertKVStoreKeyInput) error {
 // DeleteKVStoreKey implements Interface.
 func (m API) DeleteKVStoreKey(i *fastly.DeleteKVStoreKeyInput) error {
 	return m.DeleteKVStoreKeyFn(i)
+}
+
+// BatchModifyKVStoreKey implements Interface.
+func (m API) BatchModifyKVStoreKey(i *fastly.BatchModifyKVStoreKeyInput) error {
+	return m.BatchModifyKVStoreKeyFn(i)
 }
 
 // CreateSecretStore implements Interface.

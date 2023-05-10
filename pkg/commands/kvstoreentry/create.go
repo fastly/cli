@@ -1,11 +1,9 @@
 package kvstoreentry
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"io/fs"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,11 +12,9 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -111,14 +107,7 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 	if in == nil || text.IsTTY(in) {
 		return fsterr.ErrNoSTDINData
 	}
-
-	if err := c.CallBatchEndpoint(in); err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
-
-	text.Success(out, "Inserted keys into KV Store")
-	return nil
+	return c.CallBatchEndpoint(in, out)
 }
 
 // ProcessFile streams a JSON file content to the batch API endpoint.
@@ -128,14 +117,7 @@ func (c *CreateCommand) ProcessFile(out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-
-	if err := c.CallBatchEndpoint(f); err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
-
-	text.Success(out, "Inserted keys into KV Store")
-	return nil
+	return c.CallBatchEndpoint(f, out)
 }
 
 // ProcessDir concurrently reads files from the given directory structure and
@@ -259,34 +241,16 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 }
 
 // CallBatchEndpoint calls the batch API endpoint.
-// TODO: Replace with new go-fastly release that supports the endpoint.
-func (c *CreateCommand) CallBatchEndpoint(in io.Reader) error {
-	host, _ := c.Globals.Endpoint()
-	path := fmt.Sprintf("/resources/stores/kv/%s/batch", c.Input.ID)
-	token, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
+func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
+	if err := c.Globals.APIClient.BatchModifyKVStoreKey(&fastly.BatchModifyKVStoreKeyInput{
+		ID:   c.Input.ID,
+		Body: in,
+	}); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
 	}
 
-	// IMPORTANT: Input could be large so we must buffer the reads.
-	// This will avoid loading all of the data into memory at once.
-	body := bufio.NewReader(in)
-
-	resp, err := undocumented.Call(
-		host, path, http.MethodPut, token, body, c.Globals.HTTPClient,
-		undocumented.HTTPHeader{
-			Key:   "Content-Type",
-			Value: "application/x-ndjson",
-		},
-	)
-	if err != nil {
-		apiErr, ok := err.(undocumented.APIError)
-		if !ok {
-			return err
-		}
-		return fmt.Errorf("%w: %d %s: %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode), string(resp))
-	}
-
+	text.Success(out, "Inserted keys into KV Store")
 	return nil
 }
 
