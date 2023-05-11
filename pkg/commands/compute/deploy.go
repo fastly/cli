@@ -444,9 +444,13 @@ type activator func(customerID string) error
 // preconfigureActivateTrial activates a free trial on the customer account.
 func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) activator {
 	return func(customerID string) error {
-		path := fmt.Sprintf(undocumented.EdgeComputeTrial, customerID)
-		var body io.Reader // nil: no body needed to be sent
-		_, err := undocumented.Call(endpoint, path, http.MethodPost, token, body, httpClient)
+		_, err := undocumented.Call(undocumented.CallOptions{
+			APIEndpoint: endpoint,
+			HTTPClient:  httpClient,
+			Method:      http.MethodPost,
+			Path:        fmt.Sprintf(undocumented.EdgeComputeTrial, customerID),
+			Token:       token,
+		})
 		if err != nil {
 			apiErr, ok := err.(undocumented.APIError)
 			if !ok {

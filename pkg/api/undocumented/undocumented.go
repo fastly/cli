@@ -46,23 +46,35 @@ type HTTPHeader struct {
 	Value string
 }
 
-// Call calls the given API endpoint and returns its response data.
-func Call(host, path, method, token string, body io.Reader, c api.HTTPClient, headers ...HTTPHeader) (data []byte, err error) {
-	host = strings.TrimSuffix(host, "/")
-	endpoint := fmt.Sprintf("%s%s", host, path)
+// CallOptions is used as input to Call().
+type CallOptions struct {
+	APIEndpoint string
+	Body        io.Reader
+	HTTPClient  api.HTTPClient
+	HTTPHeaders []HTTPHeader
+	Method      string
+	Path        string
+	Token       string
+}
 
-	req, err := http.NewRequest(method, endpoint, body)
+// Call calls the given API endpoint and returns its response data.
+// func Call(host, path, method, token string, body io.Reader, c api.HTTPClient, headers ...HTTPHeader) (data []byte, err error) {
+func Call(opts CallOptions) (data []byte, err error) {
+	host := strings.TrimSuffix(opts.APIEndpoint, "/")
+	endpoint := fmt.Sprintf("%s%s", host, opts.Path)
+
+	req, err := http.NewRequest(opts.Method, endpoint, opts.Body)
 	if err != nil {
 		return data, NewError(err, 0)
 	}
 
-	req.Header.Set("Fastly-Key", token)
+	req.Header.Set("Fastly-Key", opts.Token)
 	req.Header.Set("User-Agent", useragent.Name)
-	for _, header := range headers {
+	for _, header := range opts.HTTPHeaders {
 		req.Header.Set(header.Key, header.Value)
 	}
 
-	res, err := c.Do(req)
+	res, err := opts.HTTPClient.Do(req)
 	if err != nil {
 		if urlErr, ok := err.(*url.Error); ok && urlErr.Timeout() {
 			return data, fsterr.RemediationError{
