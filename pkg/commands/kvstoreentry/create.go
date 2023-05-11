@@ -117,6 +117,9 @@ func (c *CreateCommand) ProcessFile(out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
+	defer func() {
+		_ = f.Close()
+	}()
 	return c.CallBatchEndpoint(f, out)
 }
 
