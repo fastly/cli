@@ -1,6 +1,7 @@
 package kvstoreentry
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -28,7 +29,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Insert a key-value pair").Alias("insert")
 	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
-	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("100").IntVar(&c.dirConcurrency)
+	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
 	c.CmdClause.Flag("file", "Path to a file containing individual JSON objects separated by new-line delimiter").StringVar(&c.filePath)
 	c.CmdClause.Flag("key-name", "Key name").Short('k').StringVar(&c.Input.Key)
 	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
@@ -148,8 +149,8 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 		return err
 	}
 	fileLength := len(files)
-	msg := "Processed %d of %d files"
-	spinner.Message(fmt.Sprintf(msg, 0, fileLength) + "...")
+	msg := "%s %d of %d files"
+	spinner.Message(fmt.Sprintf(msg, "Processing", 0, fileLength) + "...")
 
 	base := filepath.Base(path)
 	processed := make(chan struct{}, c.dirConcurrency)
@@ -157,15 +158,15 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	done := make(chan bool)
 
 	var (
-		errors         []ProcessErr
-		filesProcessed uint64
-		wg             sync.WaitGroup
+		processingErrors []ProcessErr
+		filesProcessed   uint64
+		wg               sync.WaitGroup
 	)
 
 	go func() {
 		for range processed {
 			filesProcessed++
-			spinner.Message(fmt.Sprintf(msg, filesProcessed, fileLength) + "...")
+			spinner.Message(fmt.Sprintf(msg, "Processing", filesProcessed, fileLength) + "...")
 			if filesProcessed >= uint64(len(files)) {
 				done <- true
 			}
@@ -183,6 +184,10 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 			// Restrict resource allocation if concurrency limit is exceeded.
 			sem <- struct{}{}
 			defer func() {
+				// IMPORTANT: Always mark a file as processed regardless of errors.
+				// This is so that later we can unblock the 'done' channel.
+				// Refer to the earlier goroutine that ranges the 'processed' channel.
+				processed <- struct{}{}
 				<-sem
 			}()
 			defer wg.Done()
@@ -196,7 +201,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 			// #nosec
 			fileContent, err := os.ReadFile(filePath)
 			if err != nil {
-				errors = append(errors, ProcessErr{
+				processingErrors = append(processingErrors, ProcessErr{
 					File: filePath,
 					Err:  err,
 				})
@@ -209,14 +214,12 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 				Value: string(fileContent),
 			})
 			if err != nil {
-				errors = append(errors, ProcessErr{
+				processingErrors = append(processingErrors, ProcessErr{
 					File: filePath,
 					Err:  err,
 				})
 				return
 			}
-
-			processed <- struct{}{}
 		}(file)
 	}
 
@@ -226,24 +229,23 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	// Otherwise the StopMessage below is called before filesProcessed is updated.
 	<-done
 
-	spinner.StopMessage(fmt.Sprintf(msg, filesProcessed, fileLength))
+	spinner.StopMessage(fmt.Sprintf(msg, "Processed", filesProcessed-uint64(len(processingErrors)), fileLength))
 	err = spinner.Stop()
 	if err != nil {
 		return err
 	}
 
-	if len(errors) == 0 {
+	if len(processingErrors) == 0 {
 		text.Success(out, "Inserted %d keys into KV Store", len(files))
 		return nil
 	}
 
-	text.Error(out, "Encountered the following errors")
 	text.Break(out)
-	for _, err := range errors {
+	for _, err := range processingErrors {
 		fmt.Printf("File: %s\nError: %s\n\n", err.File, err.Err.Error())
 	}
 
-	return nil
+	return errors.New("failed to process all the provided files (see error log above ⬆️)")
 }
 
 // CallBatchEndpoint calls the batch API endpoint.
