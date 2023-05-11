@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -155,6 +154,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	base := filepath.Base(path)
 	processed := make(chan struct{}, c.dirConcurrency)
 	sem := make(chan struct{}, c.dirConcurrency)
+	done := make(chan bool)
 
 	var (
 		errors         []ProcessErr
@@ -166,6 +166,9 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 		for range processed {
 			filesProcessed++
 			spinner.Message(fmt.Sprintf(msg, filesProcessed, fileLength) + "...")
+			if filesProcessed >= uint64(len(files)) {
+				done <- true
+			}
 		}
 	}()
 
@@ -219,9 +222,9 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 
 	wg.Wait()
 
-	// NOTE: We add a two second sleep to allow the final goroutine to increment.
+	// NOTE: Block via chan to allow final goroutine to increment filesProcessed.
 	// Otherwise the StopMessage below is called before filesProcessed is updated.
-	time.Sleep(time.Second * 2)
+	<-done
 
 	spinner.StopMessage(fmt.Sprintf(msg, filesProcessed, fileLength))
 	err = spinner.Stop()
