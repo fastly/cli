@@ -170,49 +170,51 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	}()
 
 	for _, file := range files {
-		if !file.IsDir() {
-			wg.Add(1)
-
-			go func(file fs.DirEntry) {
-				// Restrict resource allocation if concurrency limit is exceeded.
-				sem <- struct{}{}
-				defer func() {
-					<-sem
-				}()
-				defer wg.Done()
-
-				filePath := filepath.Join(c.dirPath, file.Name())
-				dir, filename := filepath.Split(filePath)
-				index := strings.Index(dir, base)
-				filename = filepath.Join(dir[index:], filename)
-
-				// G304 (CWE-22): Potential file inclusion via variable
-				// #nosec
-				fileContent, err := os.ReadFile(filePath)
-				if err != nil {
-					errors = append(errors, ProcessErr{
-						File: filePath,
-						Err:  err,
-					})
-					return
-				}
-
-				err = c.Globals.APIClient.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
-					ID:    c.Input.ID,
-					Key:   filename,
-					Value: string(fileContent),
-				})
-				if err != nil {
-					errors = append(errors, ProcessErr{
-						File: filePath,
-						Err:  err,
-					})
-					return
-				}
-
-				processed <- struct{}{}
-			}(file)
+		if file.IsDir() {
+			continue
 		}
+
+		wg.Add(1)
+
+		go func(file fs.DirEntry) {
+			// Restrict resource allocation if concurrency limit is exceeded.
+			sem <- struct{}{}
+			defer func() {
+				<-sem
+			}()
+			defer wg.Done()
+
+			filePath := filepath.Join(c.dirPath, file.Name())
+			dir, filename := filepath.Split(filePath)
+			index := strings.Index(dir, base)
+			filename = filepath.Join(dir[index:], filename)
+
+			// G304 (CWE-22): Potential file inclusion via variable
+			// #nosec
+			fileContent, err := os.ReadFile(filePath)
+			if err != nil {
+				errors = append(errors, ProcessErr{
+					File: filePath,
+					Err:  err,
+				})
+				return
+			}
+
+			err = c.Globals.APIClient.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
+				ID:    c.Input.ID,
+				Key:   filename,
+				Value: string(fileContent),
+			})
+			if err != nil {
+				errors = append(errors, ProcessErr{
+					File: filePath,
+					Err:  err,
+				})
+				return
+			}
+
+			processed <- struct{}{}
+		}(file)
 	}
 
 	wg.Wait()
