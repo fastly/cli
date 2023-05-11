@@ -160,6 +160,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	var (
 		processingErrors []ProcessErr
 		filesProcessed   uint64
+		mu               sync.Mutex
 		wg               sync.WaitGroup
 	)
 
@@ -201,10 +202,12 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 			// #nosec
 			fileContent, err := os.ReadFile(filePath)
 			if err != nil {
+				mu.Lock()
 				processingErrors = append(processingErrors, ProcessErr{
 					File: filePath,
 					Err:  err,
 				})
+				mu.Unlock()
 				return
 			}
 
@@ -214,10 +217,12 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 				Value: string(fileContent),
 			})
 			if err != nil {
+				mu.Lock()
 				processingErrors = append(processingErrors, ProcessErr{
 					File: filePath,
 					Err:  err,
 				})
+				mu.Unlock()
 				return
 			}
 		}(file)
