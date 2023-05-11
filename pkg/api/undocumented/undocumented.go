@@ -79,8 +79,8 @@ func Call(host, path, method, token string, body io.Reader, c api.HTTPClient, he
 		return []byte{}, NewError(err, res.StatusCode)
 	}
 
-	if res.StatusCode != http.StatusOK {
-		return data, NewError(fmt.Errorf("non-2xx response"), res.StatusCode)
+	if res.StatusCode >= 400 {
+		return data, NewError(fmt.Errorf("error response: %q", data), res.StatusCode)
 	}
 
 	return data, nil
