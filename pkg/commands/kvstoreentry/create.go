@@ -232,10 +232,8 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 		return err
 	}
 
-	outputMsg := "Inserted %d keys into KV Store"
-
 	if len(errors) == 0 {
-		text.Success(out, outputMsg, len(files))
+		text.Success(out, "Inserted %d keys into KV Store", len(files))
 		return nil
 	}
 
