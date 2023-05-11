@@ -153,11 +153,11 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	spinner.Message(fmt.Sprintf(msg, 0, fileLength) + "...")
 
 	base := filepath.Base(path)
-	errors := []ProcessErr{}
 	processed := make(chan struct{}, c.dirConcurrency)
 	sem := make(chan struct{}, c.dirConcurrency)
 
 	var (
+		errors         []ProcessErr
 		filesProcessed uint64
 		wg             sync.WaitGroup
 	)
