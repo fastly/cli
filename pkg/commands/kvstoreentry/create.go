@@ -12,6 +12,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -211,12 +212,26 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 				return
 			}
 
-			err = c.Globals.APIClient.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
-				ID:    c.Input.ID,
-				Key:   filename,
-				Value: string(fileContent),
-			})
+			opts := insertKeyOptions{
+				client: c.Globals.APIClient,
+				id:     c.Input.ID,
+				key:    filename,
+				data:   fileContent,
+			}
+
+			err = insertKey(opts)
 			if err != nil {
+				// In case the network connection is lost due to exhaustion of
+				// resources, then try one more time to make the request.
+				//
+				// NOTE: you can't type assert the error as it's not exported.
+				// https://github.com/golang/go/issues/54173
+				if strings.Contains(err.Error(), "net/http: cannot rewind body after connection loss") {
+					err = insertKey(opts)
+					if err == nil {
+						return
+					}
+				}
 				mu.Lock()
 				processingErrors = append(processingErrors, ProcessErr{
 					File: filePath,
@@ -265,6 +280,21 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 
 	text.Success(out, "Inserted keys into KV Store")
 	return nil
+}
+
+func insertKey(opts insertKeyOptions) error {
+	return opts.client.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
+		ID:    opts.id,
+		Key:   opts.key,
+		Value: string(opts.data),
+	})
+}
+
+type insertKeyOptions struct {
+	client api.Interface
+	id     string
+	key    string
+	data   []byte
 }
 
 type ProcessErr struct {
