@@ -29,10 +29,13 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 		},
 		manifest: m,
 	}
+
 	c.CmdClause = parent.Command("list", "List keys")
+
+	// Required.
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 
-	// optional
+	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }

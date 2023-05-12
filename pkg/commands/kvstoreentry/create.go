@@ -29,20 +29,28 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Insert a key-value pair").Alias("insert")
-	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
-	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
-	c.CmdClause.Flag("dir-allow-hidden", "Allow hidden files (e.g. dot files) to be included (skipped by default)").BoolVar(&c.dirAllowHidden)
-	c.CmdClause.Flag("file", "Path to a file containing individual JSON objects separated by new-line delimiter").StringVar(&c.filePath)
-	c.CmdClause.Flag("key-name", "Key name").Short('k').StringVar(&c.Input.Key)
-	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
+
+	// Required.
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+
+	// Optional.
+	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
+	c.CmdClause.Flag("dir-allow-hidden", "Allow hidden files (e.g. dot files) to be included (skipped by default)").BoolVar(&c.dirAllowHidden)
+	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
+	c.CmdClause.Flag("file", "Path to a file containing individual JSON objects separated by new-line delimiter").StringVar(&c.filePath)
+	c.RegisterFlagBool(c.JSONFlag()) // --json
+	c.CmdClause.Flag("key", "Key name").Short('k').StringVar(&c.Input.Key)
+	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
 	c.CmdClause.Flag("value", "Value").StringVar(&c.Input.Value)
+
 	return &c
 }
 
 // CreateCommand calls the Fastly API to insert a key into an kv store.
 type CreateCommand struct {
 	cmd.Base
+	cmd.JSONOutput
+
 	dirAllowHidden bool
 	dirConcurrency int
 	dirPath        string
@@ -55,6 +63,10 @@ type CreateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	if err := c.CheckFlags(); err != nil {
 		return err
 	}
@@ -78,6 +90,18 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	err := c.Globals.APIClient.InsertKVStoreKey(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	if c.JSONOutput.Enabled {
+		o := struct {
+			ID  string `json:"id"`
+			Key string `json:"key"`
+		}{
+			c.Input.ID,
+			c.Input.Key,
+		}
+		_, err := c.WriteJSON(out, o)
 		return err
 	}
 

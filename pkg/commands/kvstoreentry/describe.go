@@ -31,8 +31,10 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Get the value associated with a key").Alias("get")
+
+	// Required.
+	c.CmdClause.Flag("key", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
-	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 
 	// optional
 	c.RegisterFlagBool(c.JSONFlag()) // --json
