@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -195,7 +196,6 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	base := filepath.Base(path)
 	processed := make(chan struct{}, c.dirConcurrency)
 	sem := make(chan struct{}, c.dirConcurrency)
-	done := make(chan bool)
 
 	var (
 		processingErrors []ProcessErr
@@ -209,11 +209,8 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 
 	go func() {
 		for range processed {
-			filesProcessed++
+			atomic.AddUint64(&filesProcessed, 1)
 			spinner.Message(fmt.Sprintf(msg, "Processing", filesProcessed, fileLength) + "...")
-			if filesProcessed >= uint64(len(filteredFiles)) {
-				done <- true
-			}
 		}
 	}()
 
@@ -224,9 +221,6 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 			// Restrict resource allocation if concurrency limit is exceeded.
 			sem <- struct{}{}
 			defer func() {
-				// IMPORTANT: Always mark a file as processed regardless of errors.
-				// This is so that later we can unblock the 'done' channel.
-				// Refer to the earlier goroutine that ranges the 'processed' channel.
 				processed <- struct{}{}
 				<-sem
 			}()
@@ -295,11 +289,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 
 	wg.Wait()
 
-	// NOTE: Block via chan to allow final goroutine to increment filesProcessed.
-	// Otherwise the StopMessage below is called before filesProcessed is updated.
-	<-done
-
-	spinner.StopMessage(fmt.Sprintf(msg, "Processed", filesProcessed-uint64(len(processingErrors)), fileLength))
+	spinner.StopMessage(fmt.Sprintf(msg, "Processed", atomic.LoadUint64(&filesProcessed)-uint64(len(processingErrors)), fileLength))
 	err = spinner.Stop()
 	if err != nil {
 		return err
