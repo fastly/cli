@@ -180,6 +180,14 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 			continue
 		}
 
+		hidden, err := isHiddenFile(file.Name())
+		if err != nil {
+			return err
+		}
+		if hidden {
+			continue
+		}
+
 		wg.Add(1)
 
 		go func(file fs.DirEntry) {
