@@ -200,8 +200,11 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	var (
 		processingErrors []ProcessErr
 		filesProcessed   uint64
-		mu               sync.Mutex
-		wg               sync.WaitGroup
+		// NOTE: mu protects access to the 'processingErrors' shared resource.
+		// We create multiple goroutines (one for each file) and each one has the
+		// potential to mutate the slice by appending new errors to it.
+		mu sync.Mutex
+		wg sync.WaitGroup
 	)
 
 	go func() {
