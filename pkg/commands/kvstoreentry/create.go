@@ -161,9 +161,22 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 		return err
 	}
 
-	files, err := os.ReadDir(path)
+	allFiles, err := os.ReadDir(path)
 	if err != nil {
 		return err
+	}
+
+	filteredFiles := make([]fs.DirEntry, 0)
+	for _, file := range allFiles {
+		hidden, err := isHiddenFile(file.Name())
+		if err != nil {
+			return err
+		}
+		// Skip directories/symlinks OR any hidden files unless the user allows them.
+		if !file.Type().IsRegular() || (file.Type().IsRegular() && hidden && !c.dirAllowHidden) {
+			continue
+		}
+		filteredFiles = append(filteredFiles, file)
 	}
 
 	spinner, err := text.NewSpinner(out)
@@ -175,7 +188,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	fileLength := len(files)
+	fileLength := len(filteredFiles)
 	msg := "%s %d of %d files"
 	spinner.Message(fmt.Sprintf(msg, "Processing", 0, fileLength) + "...")
 
@@ -195,25 +208,13 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 		for range processed {
 			filesProcessed++
 			spinner.Message(fmt.Sprintf(msg, "Processing", filesProcessed, fileLength) + "...")
-			if filesProcessed >= uint64(len(files)) {
+			if filesProcessed >= uint64(len(filteredFiles)) {
 				done <- true
 			}
 		}
 	}()
 
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-
-		hidden, err := isHiddenFile(file.Name())
-		if err != nil {
-			return err
-		}
-		if hidden && !c.dirAllowHidden {
-			continue
-		}
-
+	for _, file := range filteredFiles {
 		wg.Add(1)
 
 		go func(file fs.DirEntry) {
@@ -302,7 +303,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	}
 
 	if len(processingErrors) == 0 {
-		text.Success(out, "Inserted %d keys into KV Store", len(files))
+		text.Success(out, "Inserted %d keys into KV Store", len(filteredFiles))
 		return nil
 	}
 
