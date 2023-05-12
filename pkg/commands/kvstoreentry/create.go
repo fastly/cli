@@ -31,6 +31,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause = parent.Command("create", "Insert a key-value pair").Alias("insert")
 	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
 	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
+	c.CmdClause.Flag("dir-allow-hidden", "Allow hidden files (e.g. dot files) to be included (skipped by default)").BoolVar(&c.dirAllowHidden)
 	c.CmdClause.Flag("file", "Path to a file containing individual JSON objects separated by new-line delimiter").StringVar(&c.filePath)
 	c.CmdClause.Flag("key-name", "Key name").Short('k').StringVar(&c.Input.Key)
 	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
@@ -42,6 +43,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 // CreateCommand calls the Fastly API to insert a key into an kv store.
 type CreateCommand struct {
 	cmd.Base
+	dirAllowHidden bool
 	dirConcurrency int
 	dirPath        string
 	filePath       string
@@ -184,7 +186,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		if hidden {
+		if hidden && !c.dirAllowHidden {
 			continue
 		}
 
