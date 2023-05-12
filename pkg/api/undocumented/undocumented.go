@@ -58,7 +58,6 @@ type CallOptions struct {
 }
 
 // Call calls the given API endpoint and returns its response data.
-// func Call(host, path, method, token string, body io.Reader, c api.HTTPClient, headers ...HTTPHeader) (data []byte, err error) {
 func Call(opts CallOptions) (data []byte, err error) {
 	host := strings.TrimSuffix(opts.APIEndpoint, "/")
 	endpoint := fmt.Sprintf("%s%s", host, opts.Path)
