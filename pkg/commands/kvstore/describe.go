@@ -3,12 +3,13 @@ package kvstore
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
@@ -29,9 +30,11 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Describe an kv store").Alias("get")
+
+	// Required.
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 
-	// optional
+	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c

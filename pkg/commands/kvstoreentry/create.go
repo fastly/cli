@@ -209,6 +209,8 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 			index := strings.Index(dir, base)
 			filename = filepath.Join(dir[index:], filename)
 
+			// G304 (CWE-22): Potential file inclusion via variable
+			// #nosec
 			f, err := os.Open(filePath)
 			if err != nil {
 				mu.Lock()
