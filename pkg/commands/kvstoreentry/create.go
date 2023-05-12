@@ -209,9 +209,18 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 			index := strings.Index(dir, base)
 			filename = filepath.Join(dir[index:], filename)
 
-			// G304 (CWE-22): Potential file inclusion via variable
-			// #nosec
-			fileContent, err := os.ReadFile(filePath)
+			f, err := os.Open(filePath)
+			if err != nil {
+				mu.Lock()
+				processingErrors = append(processingErrors, ProcessErr{
+					File: filePath,
+					Err:  err,
+				})
+				mu.Unlock()
+				return
+			}
+
+			fi, err := f.Stat()
 			if err != nil {
 				mu.Lock()
 				processingErrors = append(processingErrors, ProcessErr{
@@ -226,7 +235,8 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 				client: c.Globals.APIClient,
 				id:     c.Input.ID,
 				key:    filename,
-				data:   fileContent,
+				file:   f,
+				size:   fi.Size(),
 			}
 
 			err = insertKey(opts)
@@ -294,9 +304,10 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 
 func insertKey(opts insertKeyOptions) error {
 	return opts.client.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
-		ID:    opts.id,
-		Key:   opts.key,
-		Value: string(opts.data),
+		Body:       opts.file,
+		BodyLength: opts.size,
+		ID:         opts.id,
+		Key:        opts.key,
 	})
 }
 
@@ -304,7 +315,8 @@ type insertKeyOptions struct {
 	client api.Interface
 	id     string
 	key    string
-	data   []byte
+	file   io.Reader
+	size   int64
 }
 
 type ProcessErr struct {
