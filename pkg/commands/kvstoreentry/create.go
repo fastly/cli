@@ -244,7 +244,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 				return
 			}
 
-			fi, err := f.Stat()
+			lr, err := fastly.FileLengthReader(f)
 			if err != nil {
 				mu.Lock()
 				processingErrors = append(processingErrors, ProcessErr{
@@ -259,8 +259,7 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 				client: c.Globals.APIClient,
 				id:     c.Input.ID,
 				key:    filename,
-				file:   f,
-				size:   fi.Size(),
+				file:   lr,
 			}
 
 			err = insertKey(opts)
@@ -324,10 +323,9 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 
 func insertKey(opts insertKeyOptions) error {
 	return opts.client.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
-		Body:       opts.file,
-		BodyLength: opts.size,
-		ID:         opts.id,
-		Key:        opts.key,
+		Body: opts.file,
+		ID:   opts.id,
+		Key:  opts.key,
 	})
 }
 
@@ -335,8 +333,7 @@ type insertKeyOptions struct {
 	client api.Interface
 	id     string
 	key    string
-	file   io.Reader
-	size   int64
+	file   fastly.LengthReader
 }
 
 type ProcessErr struct {
