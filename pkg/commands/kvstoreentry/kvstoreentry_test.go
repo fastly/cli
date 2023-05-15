@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -85,7 +86,7 @@ func TestCreateCommand(t *testing.T) {
 		},
 		{
 			TestScenario: testutil.TestScenario{
-				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --file ./testdata/data.json", kvstoreentry.RootName, storeID)),
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --file %s", kvstoreentry.RootName, storeID, filepath.Join("testdata", "data.json"))),
 				API: mock.API{
 					BatchModifyKVStoreKeyFn: func(i *fastly.BatchModifyKVStoreKeyInput) error {
 						return nil
@@ -97,7 +98,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			PartialMatch: true,
 			TestScenario: testutil.TestScenario{
-				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --dir ./testdata/example/", kvstoreentry.RootName, storeID)),
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --dir %s", kvstoreentry.RootName, storeID, filepath.Join("testdata", "example"))),
 				API: mock.API{
 					InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
 						return nil
@@ -109,7 +110,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			PartialMatch: true,
 			TestScenario: testutil.TestScenario{
-				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --dir ./testdata/example/ --dir-allow-hidden", kvstoreentry.RootName, storeID)),
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --dir %s --dir-allow-hidden", kvstoreentry.RootName, storeID, filepath.Join("testdata", "example"))),
 				API: mock.API{
 					InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
 						return nil
