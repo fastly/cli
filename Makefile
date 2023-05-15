@@ -141,7 +141,8 @@ scaffold-category:
 # e.g. make graph PKG_IMPORT_PATH=github.com/fastly/cli/pkg/commands/kvstoreentry
 .PHONY: graph
 graph:
-	@$(GO_BIN) install github.com/ofabry/go-callvis@latest
-	go-callvis -file callvis -focus $(PKG_IMPORT_PATH) ./cmd/fastly/
+	@$(GO_BIN) install github.com/ofabry/go-callvis@latest 2>/dev/null
+	go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
+	@rm callvis.gv
 
 .PHONY: clean
