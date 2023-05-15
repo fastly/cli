@@ -17,10 +17,10 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	c.Globals = g
 	c.manifest = m
 
-	// required
+	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS subscription").Required().StringVar(&c.id)
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("force", "A flag that allows you to edit and delete a subscription with active domains").Action(c.force.Set).BoolVar(&c.force.Value)
 
 	return &c

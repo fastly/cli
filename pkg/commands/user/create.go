@@ -19,11 +19,11 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.Globals = g
 	c.manifest = m
 
-	// required
+	// Required.
 	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").Action(c.login.Set).StringVar(&c.login.Value)
 	c.CmdClause.Flag("name", "The real life name of the user").Action(c.name.Set).StringVar(&c.name.Value)
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("role", "The permissions role assigned to the user. Can be user, billing, engineer, or superuser").Action(c.role.Set).EnumVar(&c.role.Value, "user", "billing", "engineer", "superuser")
 
 	return &c

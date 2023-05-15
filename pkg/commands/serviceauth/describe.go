@@ -31,10 +31,10 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	}
 	c.CmdClause = parent.Command("describe", "Show service authorization").Alias("get")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("id", "ID of the service authorization to retrieve").Required().StringVar(&c.Input.ID)
 
-	// optional
+	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }

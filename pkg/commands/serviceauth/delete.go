@@ -27,7 +27,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	}
 	c.CmdClause = parent.Command("delete", "Delete service authorization").Alias("remove")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("id", "ID of the service authorization to delete").Required().StringVar(&c.Input.ID)
 	return &c
 }

@@ -13,7 +13,7 @@ import (
 type CreateCommand struct {
 	cmd.Base
 
-	// optional
+	// Optional.
 	comment cmd.OptionalString
 	name    cmd.OptionalString
 	stype   cmd.OptionalString
@@ -28,7 +28,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	}
 	c.CmdClause = parent.Command("create", "Create a Fastly service").Alias("add")
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("name", "Service name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("type", `Service type. Can be one of "wasm" or "vcl", defaults to "vcl".`).Default("vcl").Action(c.stype.Set).EnumVar(&c.stype.Value, "wasm", "vcl")

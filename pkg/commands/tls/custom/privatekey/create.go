@@ -17,7 +17,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.Globals = g
 	c.manifest = m
 
-	// required
+	// Required.
 	c.CmdClause.Flag("key", "The contents of the private key. Must be a PEM-formatted key").Required().StringVar(&c.key)
 	c.CmdClause.Flag("name", "A customizable name for your private key").Required().StringVar(&c.name)
 

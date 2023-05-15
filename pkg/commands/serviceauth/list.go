@@ -26,7 +26,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	c.Globals = g
 	c.CmdClause = parent.Command("list", "List service authorizations")
 
-	// optional
+	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.PageNumber)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PageSize)

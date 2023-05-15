@@ -17,11 +17,11 @@ type CreateCommand struct {
 	cmd.Base
 	manifest manifest.Data
 
-	// required
+	// Required.
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	autoClone         cmd.OptionalAutoClone
 	format            cmd.OptionalString
 	formatVersion     cmd.OptionalInt
@@ -42,7 +42,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create an New Relic logging endpoint attached to the specified service version").Alias("add")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Action(c.name.Set).StringVar(&c.name.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -51,7 +51,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,

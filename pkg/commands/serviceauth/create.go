@@ -34,10 +34,10 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create service authorization").Alias("add")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("user-id", "Alphanumeric string identifying the user").Required().Short('u').StringVar(&c.userID)
 
-	// optional
+	// Optional.
 	// NOTE: We default to 'read_only' for security reasons.
 	// The API otherwise defaults to 'full' permissions!
 	c.CmdClause.Flag("permission", "The permission the user has in relation to the service (default: read_only)").HintOptions(Permissions...).Default("read_only").Short('p').EnumVar(&c.input.Permission, Permissions...)

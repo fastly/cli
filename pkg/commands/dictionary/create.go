@@ -16,10 +16,10 @@ type CreateCommand struct {
 	cmd.Base
 	manifest manifest.Data
 
-	// required
+	// Required.
 	serviceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	autoClone   cmd.OptionalAutoClone
 	name        cmd.OptionalString
 	serviceName cmd.OptionalServiceNameID
@@ -36,7 +36,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create a Fastly edge dictionary on a Fastly service version")
 
-	// required
+	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -44,7 +44,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,

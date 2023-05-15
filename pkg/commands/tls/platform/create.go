@@ -17,11 +17,11 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.Globals = g
 	c.manifest = m
 
-	// required
+	// Required.
 	c.CmdClause.Flag("cert-blob", "The PEM-formatted certificate blob").Required().StringVar(&c.certBlob)
 	c.CmdClause.Flag("intermediates-blob", "The PEM-formatted chain of intermediate blobs").Required().StringVar(&c.intermediatesBlob)
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("allow-untrusted", "Allow certificates that chain to untrusted roots").Action(c.allowUntrusted.Set).BoolVar(&c.allowUntrusted.Value)
 	c.CmdClause.Flag("config", "Alphanumeric string identifying a TLS configuration (set flag once per Configuration ID)").StringsVar(&c.config)
 

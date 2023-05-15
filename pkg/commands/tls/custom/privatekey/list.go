@@ -19,7 +19,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	c.Globals = g
 	c.manifest = m
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("filter-in-use", "Limit the returned keys to those without any matching TLS certificates").HintOptions("false").EnumVar(&c.filterInUse, "false")
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.pageNumber)

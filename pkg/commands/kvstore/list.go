@@ -31,7 +31,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	}
 	c.CmdClause = parent.Command("list", "List kv stores")
 
-	// optional
+	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
