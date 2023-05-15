@@ -1,11 +1,9 @@
 on: pull_request
 name: Test
-
 # Stop any in-flight CI jobs when a new commit is pushed.
 concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
-
 jobs:
   config:
     runs-on: ubuntu-latest
@@ -24,56 +22,56 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - name: "Checkout code"
-      uses: actions/checkout@v3
-    - name: "Install Rust"
-      uses: dtolnay/rust-toolchain@stable # to install tomlq via `make config`
-    - name: Install Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: 1.20.x
-    # NOTE: Manage GitHub Actions cache https://github.com/fastly/cli/actions/caches
-    # This is useful if you need to clear the cache when a dependency doesn't update correctly.
-    - name: "Restore golang bin cache"
-      id: go-bin-cache
-      uses: actions/cache@v3
-      with:
-        path: ~/go/bin
-        key: ${{ runner.os }}-go-bin-${{ hashFiles('~/go/bin') }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-bin-
-    - name: "Restore golang mod cache"
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/Library/Caches/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-mod-
-    - name: "Install dependencies"
-      if: steps.go-bin-cache.outputs.cache-hit != 'true'
-      run: make dependencies
-      shell: bash
-    - name: "Run go mod tidy"
-      run: make tidy
-    - name: "Run go fmt"
-      run: make fmt
-    # NOTE: We don't download the config artifact in this job.
-    # This is because we know Linux is able to generate the configuration file.
-    # Which is triggered by the `make vet` pre-requisite target `config`.
-    - name: "Run go vet"
-      run: make vet
-      shell: bash
-    - name: "Run revive"
-      run: make revive
-      shell: bash
-    - name: "Static analysis check"
-      run: make staticcheck
-      shell: bash
-    - name: "Security audit"
-      run:  make gosec
-      shell: bash
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+      - name: "Install Rust"
+        uses: dtolnay/rust-toolchain@stable # to install tomlq via `make config`
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.x
+      # NOTE: Manage GitHub Actions cache https://github.com/fastly/cli/actions/caches
+      # This is useful if you need to clear the cache when a dependency doesn't update correctly.
+      - name: "Restore golang bin cache"
+        id: go-bin-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/go/bin
+          key: ${{ runner.os }}-go-bin-${{ hashFiles('~/go/bin') }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-bin-
+      - name: "Restore golang mod cache"
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/Library/Caches/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+      - name: "Install dependencies"
+        if: steps.go-bin-cache.outputs.cache-hit != 'true'
+        run: make dependencies
+        shell: bash
+      - name: "Run go mod tidy"
+        run: make tidy
+      - name: "Run go fmt"
+        run: make fmt
+      # NOTE: We don't download the config artifact in this job.
+      # This is because we know Linux is able to generate the configuration file.
+      # Which is triggered by the `make vet` pre-requisite target `config`.
+      - name: "Run go vet"
+        run: make vet
+        shell: bash
+      - name: "Run revive"
+        run: make revive
+        shell: bash
+      - name: "Static analysis check"
+        run: make staticcheck
+        shell: bash
+      - name: "Security audit"
+        run: make gosec
+        shell: bash
   test:
     needs: config
     strategy:
@@ -142,9 +140,8 @@ jobs:
   docker-builds:
     runs-on: ubuntu-latest
     steps:
-    - name: "Checkout code"
-      uses: actions/checkout@v3
-    - name: Build docker images
-      run: |
-        for dockerFile in Dockerfile*; do docker build -f $dockerFile . ; done
-
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+      - name: Build docker images
+        run: |
+          for dockerFile in Dockerfile*; do docker build -f $dockerFile . ; done

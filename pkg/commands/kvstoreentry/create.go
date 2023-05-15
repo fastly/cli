@@ -18,6 +18,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -81,7 +82,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if c.dirPath != "" {
-		return c.ProcessDir(out)
+		return c.ProcessDir(in, out)
 	}
 
 	if c.Input.Key == "" || c.Input.Value == "" {
@@ -156,7 +157,18 @@ func (c *CreateCommand) ProcessFile(out io.Writer) error {
 // key and the file content is the value.
 //
 // NOTE: Unlike ProcessStdin/ProcessFile content doesn't need to be base64.
-func (c *CreateCommand) ProcessDir(out io.Writer) error {
+func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
+	if runtime.Windows {
+		cont, err := c.PromptWindowsUser(in, out)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		if !cont {
+			return nil
+		}
+	}
+
 	path, err := filepath.Abs(c.dirPath)
 	if err != nil {
 		return err
@@ -305,6 +317,21 @@ func (c *CreateCommand) ProcessDir(out io.Writer) error {
 	}
 
 	return errors.New("failed to process all the provided files (see error log above ⬆️)")
+}
+
+// PromptWindowsUser ensures a user understands that we only filter files whose
+// name is prefixed with a dot and not any other kind of 'hidden' attribute that
+// can be set by the Windows platform.
+func (c *CreateCommand) PromptWindowsUser(in io.Reader, out io.Writer) (bool, error) {
+	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+		label := `The Fastly CLI will skip dotfiles (filenames prefixed with a period character, example: '.ignore') but this does not include files set with a "hidden" attribute). Are you sure you want to continue? [y/N] `
+		result, err := text.AskYesNo(out, label, in)
+		if err != nil {
+			return false, err
+		}
+		return result, nil
+	}
+	return true, nil
 }
 
 // CallBatchEndpoint calls the batch API endpoint.

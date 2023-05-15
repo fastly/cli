@@ -96,6 +96,7 @@ func TestCreateCommand(t *testing.T) {
 			},
 		},
 		{
+			Stdin:        strings.NewReader("y"), // PromptWindowsUser
 			PartialMatch: true,
 			TestScenario: testutil.TestScenario{
 				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --dir %s", kvstoreentry.RootName, storeID, filepath.Join("testdata", "example"))),
@@ -108,6 +109,7 @@ func TestCreateCommand(t *testing.T) {
 			},
 		},
 		{
+			Stdin:        strings.NewReader("y"), // PromptWindowsUser
 			PartialMatch: true,
 			TestScenario: testutil.TestScenario{
 				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --dir %s --dir-allow-hidden", kvstoreentry.RootName, storeID, filepath.Join("testdata", "example"))),

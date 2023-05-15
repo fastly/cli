@@ -1,5 +1,3 @@
-//go:build !windows
-
 package kvstoreentry
 
 func isHiddenFile(filename string) (bool, error) {
