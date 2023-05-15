@@ -10,14 +10,15 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kennygrant/sanitize"
+	"github.com/mholt/archiver/v3"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/kennygrant/sanitize"
-	"github.com/mholt/archiver/v3"
 )
 
 // IgnoreFilePath is the filepath name of the Fastly ignore file.
@@ -169,8 +170,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	if err := language.Build(); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Language":                  language.Name,
+			"Language": language.Name,
 		})
 		return err
 	}
