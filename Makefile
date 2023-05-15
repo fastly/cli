@@ -136,4 +136,12 @@ scaffold:
 scaffold-category:
 	@$(shell pwd)/scripts/scaffold-category.sh $(CLI_CATEGORY) $(CLI_CATEGORY_COMMAND) $(CLI_PACKAGE) $(CLI_COMMAND) $(CLI_API)
 
+# Graph generates a call graph that focuses on the specified package.
+# Output is callvis.svg
+# e.g. make graph PKG_IMPORT_PATH=github.com/fastly/cli/pkg/commands/kvstoreentry
+.PHONY: graph
+graph:
+	@$(GO_BIN) install github.com/ofabry/go-callvis@latest
+	go-callvis -file callvis -focus $(PKG_IMPORT_PATH) ./cmd/fastly/
+
 .PHONY: clean
