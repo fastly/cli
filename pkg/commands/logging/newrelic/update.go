@@ -42,7 +42,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	}
 	c.CmdClause = parent.Command("update", "Update a New Relic Logs logging object for a particular service and version")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("name", "The name for the real-time logging configuration to update").Required().StringVar(&c.endpointName)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -51,7 +51,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,

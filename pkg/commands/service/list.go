@@ -30,7 +30,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	}
 	c.CmdClause = parent.Command("list", "List Fastly services")
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.Page)

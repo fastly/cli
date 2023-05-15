@@ -34,10 +34,10 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	}
 	c.CmdClause = parent.Command("update", "Update or insert an item on a Fastly edge dictionary")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("file", "Batch update json file").Action(c.file.Set).StringVar(&c.file.Value)
 	c.CmdClause.Flag("key", "Dictionary item key").StringVar(&c.Input.ItemKey)
 	c.RegisterFlag(cmd.StringFlagOpts{

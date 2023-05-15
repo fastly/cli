@@ -17,11 +17,11 @@ type CreateCommand struct {
 	cmd.Base
 	Manifest manifest.Data
 
-	// required
+	// Required.
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	AutoClone         cmd.OptionalAutoClone
 	ContentType       cmd.OptionalString
 	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
@@ -53,7 +53,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create an HTTPS logging endpoint on a Fastly service version").Alias("add")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("name", "The name of the HTTPS logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -62,7 +62,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,

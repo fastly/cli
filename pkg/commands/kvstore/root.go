@@ -7,6 +7,9 @@ import (
 	"github.com/fastly/cli/pkg/global"
 )
 
+// RootName is the base command name for kv store operations.
+const RootName = "kv-store"
+
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
@@ -18,7 +21,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("kv-store", "Manipulate Fastly KV Stores").Alias("object-store")
+	c.CmdClause = parent.Command(RootName, "Manipulate Fastly KV Stores").Alias("object-store")
 	return &c
 }
 

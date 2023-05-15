@@ -17,12 +17,12 @@ type UpdateCommand struct {
 	cmd.Base
 	Manifest manifest.Data
 
-	// required
+	// Required.
 	EndpointName   string
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	AutoClone         cmd.OptionalAutoClone
 	NewName           cmd.OptionalString
 	AccountName       cmd.OptionalString
@@ -52,7 +52,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	}
 	c.CmdClause = parent.Command("update", "Update an Azure Blob Storage logging endpoint on a Fastly service version")
 
-	// required
+	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -60,14 +60,14 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("name", "The name of the Azure Blob Storage logging object").Short('n').Required().StringVar(&c.EndpointName)
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("account-name", "The unique Azure Blob Storage namespace in which your data objects are stored").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
 	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	c.CmdClause.Flag("container", "The name of the Azure Blob Storage container in which to store logs").Action(c.Container.Set).StringVar(&c.Container.Value)

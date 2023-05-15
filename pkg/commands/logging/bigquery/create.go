@@ -17,11 +17,11 @@ type CreateCommand struct {
 	cmd.Base
 	Manifest manifest.Data
 
-	// required
+	// Required.
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	Dataset           cmd.OptionalString
@@ -47,7 +47,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create a BigQuery logging endpoint on a Fastly service version").Alias("add")
 
-	// required
+	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -55,7 +55,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	common.AccountName(c.CmdClause, &c.AccountName)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,

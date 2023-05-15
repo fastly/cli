@@ -31,7 +31,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	}
 	c.CmdClause = parent.Command("delete", "Delete a Splunk logging endpoint on a Fastly service version").Alias("remove")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("name", "The name of the Splunk logging object").Short('n').Required().StringVar(&c.Input.Name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -40,7 +40,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,

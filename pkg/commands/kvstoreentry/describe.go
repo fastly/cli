@@ -1,14 +1,16 @@
 package kvstoreentry
 
 import (
+	"fmt"
 	"io"
+
+	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
@@ -29,10 +31,12 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Get the value associated with a key").Alias("get")
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
-	c.CmdClause.Flag("key-name", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 
-	// optional
+	// Required.
+	c.CmdClause.Flag("key", "Key name").Short('k').Required().StringVar(&c.Input.Key)
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+
+	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
@@ -60,6 +64,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	text.Output(out, value)
+	// IMPORTANT: Don't use `text` package as binary data can be messed up.
+	fmt.Fprint(out, value)
 	return nil
 }

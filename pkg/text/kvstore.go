@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/cli/pkg/time"
 )
 
 // PrintKVStore pretty prints a fastly.Dictionary structure in verbose

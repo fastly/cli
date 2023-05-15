@@ -17,7 +17,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	c.Globals = g
 	c.manifest = m
 
-	// required
+	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS configuration").Required().StringVar(&c.id)
 	c.CmdClause.Flag("name", "A custom name for your TLS configuration").Required().StringVar(&c.name)
 	return &c

@@ -18,11 +18,11 @@ type CreateCommand struct {
 	cmd.Base
 	Manifest manifest.Data
 
-	// required
+	// Required.
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	AccessKey         cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	BucketName        cmd.OptionalString
@@ -53,7 +53,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create a Cloudfiles logging endpoint on a Fastly service version").Alias("add")
 
-	// required
+	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -61,7 +61,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("access-key", "Your Cloudfile account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,

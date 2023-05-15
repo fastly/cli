@@ -17,10 +17,10 @@ type CreateCommand struct {
 	cmd.Base
 	manifest manifest.Data
 
-	// required
+	// Required.
 	serviceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	address             cmd.OptionalString
 	autoClone           cmd.OptionalAutoClone
 	autoLoadBalance     cmd.OptionalBool
@@ -59,7 +59,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create a backend on a Fastly service version").Alias("add")
 
-	// required
+	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -67,7 +67,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.address.Set).StringVar(&c.address.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{

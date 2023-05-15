@@ -19,7 +19,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	c.Globals = g
 	c.manifest = m
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("filter-cert", "Limit the returned activations to a specific certificate").StringVar(&c.filterTLSCertID)
 	c.CmdClause.Flag("filter-config", "Limit the returned activations to a specific TLS configuration").StringVar(&c.filterTLSConfigID)
 	c.CmdClause.Flag("filter-domain", "Limit the returned rules to a specific domain name").StringVar(&c.filterTLSDomainID)

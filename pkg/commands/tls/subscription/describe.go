@@ -20,10 +20,10 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.Globals = g
 	c.manifest = m
 
-	// required
+	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS subscription").Required().StringVar(&c.id)
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include...).EnumVar(&c.include, include...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 

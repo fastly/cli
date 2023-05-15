@@ -17,11 +17,11 @@ type CreateCommand struct {
 	cmd.Base
 	Manifest manifest.Data
 
-	// required
+	// Required.
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	AccountName       cmd.OptionalString
 	AutoClone         cmd.OptionalAutoClone
 	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
@@ -45,7 +45,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create a Google Cloud Pub/Sub logging endpoint on a Fastly service version").Alias("add")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("name", "The name of the Google Cloud Pub/Sub logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -54,7 +54,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	common.AccountName(c.CmdClause, &c.AccountName)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,

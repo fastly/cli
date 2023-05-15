@@ -351,6 +351,7 @@ type Interface interface {
 	GetKVStoreKey(i *fastly.GetKVStoreKeyInput) (string, error)
 	DeleteKVStoreKey(i *fastly.DeleteKVStoreKeyInput) error
 	InsertKVStoreKey(i *fastly.InsertKVStoreKeyInput) error
+	BatchModifyKVStoreKey(i *fastly.BatchModifyKVStoreKeyInput) error
 
 	CreateSecretStore(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error)
 	GetSecretStore(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error)

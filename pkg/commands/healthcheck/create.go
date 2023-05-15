@@ -16,10 +16,10 @@ type CreateCommand struct {
 	cmd.Base
 	manifest manifest.Data
 
-	// required
+	// Required.
 	serviceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	autoClone        cmd.OptionalAutoClone
 	checkInterval    cmd.OptionalInt
 	comment          cmd.OptionalString
@@ -46,7 +46,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create a healthcheck on a Fastly service version").Alias("add")
 
-	// required
+	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
 		Description: cmd.FlagVersionDesc,
@@ -54,7 +54,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,

@@ -21,7 +21,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	}
 	c.CmdClause = parent.Command("delete", "Delete the uploaded VCL for a particular service and version").Alias("remove")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("name", "The name of the VCL to delete").Required().StringVar(&c.name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -30,7 +30,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,

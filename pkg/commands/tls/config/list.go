@@ -20,7 +20,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	c.Globals = g
 	c.manifest = m
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("filter-bulk", "Optionally filter by the bulk attribute").Action(c.filterBulk.Set).BoolVar(&c.filterBulk.Value)
 	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions(include).EnumVar(&c.include, include)
 	c.RegisterFlagBool(c.JSONFlag()) // --json

@@ -106,3 +106,23 @@ var ErrInvalidVerboseJSONCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination, --verbose and --json"),
 	Remediation: "Use either --verbose or --json, not both.",
 }
+
+// ErrNoSTDINData indicates the --stdin flag was specified but no data was piped
+// into stdin.
+var ErrNoSTDINData = RemediationError{
+	Inner:       fmt.Errorf("unable to read from STDIN"),
+	Remediation: "Provide data to STDIN, or use --file to read from a file",
+}
+
+// ErrInvalidKVCombo means the user omitted either the key or value flag.
+var ErrInvalidKVCombo = RemediationError{
+	Inner:       fmt.Errorf("--key-name and --value are required"),
+	Remediation: "Please add both flags or alternatively use either --stdin or --file.",
+}
+
+// ErrInvalidStdinFileDirCombo means the user provided more than one of --stdin,
+// --file or --dir flags, which are mutally exclusive behaviours.
+var ErrInvalidStdinFileDirCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid flag combination"),
+	Remediation: "Use only one of --stdin, --file or --dir.",
+}

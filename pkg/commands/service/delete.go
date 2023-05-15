@@ -31,7 +31,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	}
 	c.CmdClause = parent.Command("delete", "Delete a Fastly service").Alias("remove")
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("force", "Force deletion of an active service").Short('f').BoolVar(&c.force)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,

@@ -21,7 +21,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	c.Globals = g
 	c.manifest = m
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("filter-active", "Limit the returned subscriptions to those that have currently active orders").BoolVar(&c.filterHasActiveOrder)
 	c.CmdClause.Flag("filter-domain", "Limit the returned subscriptions to those that include the specific domain").StringVar(&c.filterTLSDomainID)
 	c.CmdClause.Flag("filter-state", "Limit the returned subscriptions by state").HintOptions(states...).EnumVar(&c.filterState, states...)

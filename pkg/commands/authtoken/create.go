@@ -29,7 +29,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create an API token").Alias("add")
 
-	// required
+	// Required.
 	//
 	// NOTE: The go-fastly client internally calls `/sudo` before `/tokens` and
 	// the sudo endpoint requires a password to be provided alongside an API
@@ -37,7 +37,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	// being passed as authentication to the API endpoint.
 	c.CmdClause.Flag("password", "User password corresponding with --token or $FASTLY_API_TOKEN").Required().StringVar(&c.password)
 
-	// optional
+	// Optional.
 	//
 	// NOTE: The API describes 'scope' as being space-delimited but we've opted
 	// for comma-separated as it means users don't have to worry about how best

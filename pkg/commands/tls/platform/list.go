@@ -19,7 +19,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	c.Globals = g
 	c.manifest = m
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("filter-domain", "Optionally filter by the bulk attribute").StringVar(&c.filterTLSDomainID)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.pageNumber)

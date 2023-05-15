@@ -21,7 +21,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	c.Globals = g
 	c.manifest = m
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("filter-not-after", "Limit the returned certificates to those that expire prior to the specified date in UTC").StringVar(&c.filterNotAfter)
 	c.CmdClause.Flag("filter-domain", "Limit the returned certificates to those that include the specific domain").StringVar(&c.filterTLSDomainID)
 	c.CmdClause.Flag("include", "Include related objects (comma-separated values)").HintOptions("tls_activations").EnumVar(&c.include, "tls_activations")

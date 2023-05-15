@@ -17,7 +17,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	c.Globals = g
 	c.manifest = m
 
-	// required
+	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.id)
 
 	return &c

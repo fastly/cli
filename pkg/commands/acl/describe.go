@@ -21,7 +21,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	}
 	c.CmdClause = parent.Command("describe", "Retrieve a single ACL by name for the version and service").Alias("get")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("name", "The name of the ACL").Required().StringVar(&c.name)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -30,7 +30,7 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,

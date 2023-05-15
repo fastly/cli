@@ -17,11 +17,11 @@ type CreateCommand struct {
 	cmd.Base
 	Manifest manifest.Data
 
-	// required
+	// Required.
 	ServiceName    cmd.OptionalServiceNameID
 	ServiceVersion cmd.OptionalServiceVersion
 
-	// optional
+	// Optional.
 	AutoClone         cmd.OptionalAutoClone
 	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
 	Format            cmd.OptionalString
@@ -47,7 +47,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	}
 	c.CmdClause = parent.Command("create", "Create a Splunk logging endpoint on a Fastly service version").Alias("add")
 
-	// required
+	// Required.
 	c.CmdClause.Flag("name", "The name of the Splunk logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagVersionName,
@@ -56,7 +56,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		Required:    true,
 	})
 
-	// optional
+	// Optional.
 	c.CmdClause.Flag("auth-token", "A Splunk token for use in posting logs over HTTP to your collector").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
