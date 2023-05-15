@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
@@ -23,37 +24,99 @@ func TestCreateCommand(t *testing.T) {
 		itemValue = "the-value"
 	)
 
-	scenarios := []testutil.TestScenario{
+	type ts struct {
+		testutil.TestScenario
+
+		PartialMatch bool
+		Stdin        io.Reader
+	}
+
+	scenarios := []ts{
 		{
-			Args:      testutil.Args(kvstoreentry.RootName + " create --key a-key --value a-value"),
-			WantError: "error parsing arguments: required flag --store-id not provided",
+			TestScenario: testutil.TestScenario{
+				Args:      testutil.Args(kvstoreentry.RootName + " create --key a-key --value a-value"),
+				WantError: "error parsing arguments: required flag --store-id not provided",
+			},
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s", kvstoreentry.RootName, storeID, itemKey, itemValue)),
-			API: mock.API{
-				InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
-					return errors.New("invalid request")
+			TestScenario: testutil.TestScenario{
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s", kvstoreentry.RootName, storeID, itemKey, itemValue)),
+				API: mock.API{
+					InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+						return errors.New("invalid request")
+					},
 				},
+				WantError: "invalid request",
 			},
-			WantError: "invalid request",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s", kvstoreentry.RootName, storeID, itemKey, itemValue)),
-			API: mock.API{
-				InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
-					return nil
+			TestScenario: testutil.TestScenario{
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s", kvstoreentry.RootName, storeID, itemKey, itemValue)),
+				API: mock.API{
+					InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+						return nil
+					},
 				},
+				WantOutput: fstfmt.Success("Inserted key %s into KV Store %s", itemKey, storeID),
 			},
-			WantOutput: fstfmt.Success("Inserted key %s into KV Store %s", itemKey, storeID),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s --json", kvstoreentry.RootName, storeID, itemKey, itemValue)),
-			API: mock.API{
-				InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
-					return nil
+			TestScenario: testutil.TestScenario{
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s --json", kvstoreentry.RootName, storeID, itemKey, itemValue)),
+				API: mock.API{
+					InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+						return nil
+					},
 				},
+				WantOutput: fstfmt.JSON(`{"id": %q, "key": %q}`, storeID, itemKey),
 			},
-			WantOutput: fstfmt.JSON(`{"id": %q, "key": %q}`, storeID, itemKey),
+		},
+		{
+			Stdin: strings.NewReader(`{"key":"example","value":"VkFMVUU="}`),
+			TestScenario: testutil.TestScenario{
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --stdin", kvstoreentry.RootName, storeID)),
+				API: mock.API{
+					BatchModifyKVStoreKeyFn: func(i *fastly.BatchModifyKVStoreKeyInput) error {
+						return nil
+					},
+				},
+				WantOutput: "\nSUCCESS: Inserted keys into KV Store\n",
+			},
+		},
+		{
+			TestScenario: testutil.TestScenario{
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --file ./testdata/data.json", kvstoreentry.RootName, storeID)),
+				API: mock.API{
+					BatchModifyKVStoreKeyFn: func(i *fastly.BatchModifyKVStoreKeyInput) error {
+						return nil
+					},
+				},
+				WantOutput: "\nSUCCESS: Inserted keys into KV Store\n",
+			},
+		},
+		{
+			PartialMatch: true,
+			TestScenario: testutil.TestScenario{
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --dir ./testdata/example/", kvstoreentry.RootName, storeID)),
+				API: mock.API{
+					InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+						return nil
+					},
+				},
+				WantOutput: "SUCCESS: Inserted 1 keys into KV Store",
+			},
+		},
+		{
+			PartialMatch: true,
+			TestScenario: testutil.TestScenario{
+				Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --dir ./testdata/example/ --dir-allow-hidden", kvstoreentry.RootName, storeID)),
+				API: mock.API{
+					InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+						return nil
+					},
+				},
+				WantOutput: "SUCCESS: Inserted 2 keys into KV Store",
+			},
 		},
 	}
 
@@ -62,13 +125,21 @@ func TestCreateCommand(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
 			opts.APIClient = mock.APIClient(testcase.API)
+
+			if testcase.Stdin != nil {
+				opts.Stdin = testcase.Stdin
+			}
 
 			err := app.Run(opts)
 
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
+
+			if testcase.PartialMatch {
+				testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+			} else {
+				testutil.AssertString(t, testcase.WantOutput, stdout.String())
+			}
 		})
 	}
 }
