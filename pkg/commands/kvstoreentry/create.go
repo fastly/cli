@@ -363,6 +363,7 @@ type insertKeyOptions struct {
 	file   fastly.LengthReader
 }
 
+// ProcessErr represents an error related to processing individual files.
 type ProcessErr struct {
 	File string
 	Err  error
