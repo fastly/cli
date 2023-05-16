@@ -67,6 +67,16 @@ func TestBackendCreate(t *testing.T) {
 			},
 			WantOutput: "Created backend www.test.com (service 123 version 4)",
 		},
+		// We test that setting a host override does not result in an error
+		{
+			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --override-host overrite-set --name www.test.com --autoclone --port 8080"),
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				CreateBackendFn: createBackendWithPort(8080),
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 4)",
+		},
 		// The following test validates that --service-name can replace --service-id
 		{
 			Args: args("backend create --service-name Foo --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
@@ -346,7 +356,8 @@ func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 func createBackendWithPort(wantPort int) func(*fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return func(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 		switch {
-		case i.Port != nil && *i.Port == wantPort:
+		// if overridehost is set, should be a non "" value
+		case i.Port != nil && *i.Port == wantPort && ((i.OverrideHost == nil) || (i.OverrideHost != nil && *i.OverrideHost != "")):
 			return createBackendOK(i)
 		default:
 			return createBackendError(i)
