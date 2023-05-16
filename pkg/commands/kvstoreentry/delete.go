@@ -56,7 +56,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.JSONOutput.Enabled {
 		o := struct {
 			Key     string `json:"key"`
-			ID      string `json:"id"`
+			ID      string `json:"store_id"`
 			Deleted bool   `json:"deleted"`
 		}{
 			c.Input.Key,
@@ -67,6 +67,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted key %s from KV Store %s", c.Input.Key, c.Input.ID)
+	text.Success(out, "Deleted key '%s' from KV Store '%s'", c.Input.Key, c.Input.ID)
 	return nil
 }

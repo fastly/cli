@@ -63,6 +63,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted KV Store %s", c.Input.ID)
+	text.Success(out, "Deleted KV Store '%s'", c.Input.ID)
 	return nil
 }

@@ -13,13 +13,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+	"golang.org/x/crypto/nacl/box"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
-	"golang.org/x/crypto/nacl/box"
 )
 
 func TestCreateSecretCommand(t *testing.T) {
@@ -113,7 +114,7 @@ func TestCreateSecretCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fstfmt.Success("Created secret %s in store %s (digest %s)", secretName, storeID, hex.EncodeToString([]byte(secretDigest))),
+			wantOutput:     fstfmt.Success("Created secret '%s' in Secret Store '%s' (digest: %s)", secretName, storeID, hex.EncodeToString([]byte(secretDigest))),
 		},
 		// Read from file.
 		{
@@ -134,7 +135,7 @@ func TestCreateSecretCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fstfmt.Success("Created secret %s in store %s (digest %s)", secretName, storeID, hex.EncodeToString([]byte(secretDigest))),
+			wantOutput:     fstfmt.Success("Created secret '%s' in Secret Store '%s' (digest: %s)", secretName, storeID, hex.EncodeToString([]byte(secretDigest))),
 		},
 		{
 			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json", storeID, secretName, secretFile),
@@ -197,7 +198,95 @@ func TestCreateSecretCommand(t *testing.T) {
 	}
 }
 
-func TestGetSecretCommand(t *testing.T) {
+func TestDeleteSecretCommand(t *testing.T) {
+	const (
+		storeID    = "test123"
+		secretName = "testName"
+	)
+
+	scenarios := []struct {
+		args           string
+		api            mock.API
+		wantAPIInvoked bool
+		wantError      string
+		wantOutput     string
+	}{
+		{
+			args:      "delete --name test",
+			wantError: "error parsing arguments: required flag --store-id not provided",
+		},
+		{
+			args:      "delete --store-id test",
+			wantError: "error parsing arguments: required flag --name not provided",
+		},
+		{
+			args: fmt.Sprintf("delete --store-id %s --name DOES-NOT-EXIST", storeID),
+			api: mock.API{
+				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
+					if i.ID != storeID || i.Name != secretName {
+						return errors.New("not found")
+					}
+					return nil
+				},
+			},
+			wantAPIInvoked: true,
+			wantError:      "not found",
+		},
+		{
+			args: fmt.Sprintf("delete --store-id %s --name %s", storeID, secretName),
+			api: mock.API{
+				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
+					if i.ID != storeID || i.Name != secretName {
+						return errors.New("not found")
+					}
+					return nil
+				},
+			},
+			wantAPIInvoked: true,
+			wantOutput:     fstfmt.Success("Deleted secret '%s' from Secret Store '%s'", secretName, storeID),
+		},
+		{
+			args: fmt.Sprintf("delete --store-id %s --name %s --json", storeID, secretName),
+			api: mock.API{
+				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
+					if i.ID != storeID || i.Name != secretName {
+						return errors.New("not found")
+					}
+					return nil
+				},
+			},
+			wantAPIInvoked: true,
+			wantOutput:     fstfmt.JSON(`{"name": %q, "store_id": %q,  "deleted": true}`, secretName, storeID),
+		},
+	}
+
+	for _, testcase := range scenarios {
+		testcase := testcase
+		t.Run(testcase.args, func(t *testing.T) {
+			var stdout bytes.Buffer
+			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+
+			f := testcase.api.DeleteSecretFn
+			var apiInvoked bool
+			testcase.api.DeleteSecretFn = func(i *fastly.DeleteSecretInput) error {
+				apiInvoked = true
+				return f(i)
+			}
+
+			opts.APIClient = mock.APIClient(testcase.api)
+
+			err := app.Run(opts)
+
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+			testutil.AssertString(t, testcase.wantOutput, stdout.String())
+			if apiInvoked != testcase.wantAPIInvoked {
+				t.Fatalf("API DeleteSecret invoked = %v, want %v", apiInvoked, testcase.wantAPIInvoked)
+			}
+		})
+	}
+}
+
+func TestDescribeSecretCommand(t *testing.T) {
 	const (
 		storeID     = "testid"
 		storeName   = "testname"
@@ -296,94 +385,6 @@ func TestGetSecretCommand(t *testing.T) {
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 			if apiInvoked != testcase.wantAPIInvoked {
 				t.Fatalf("API GetSecret invoked = %v, want %v", apiInvoked, testcase.wantAPIInvoked)
-			}
-		})
-	}
-}
-
-func TestDeleteSecretCommand(t *testing.T) {
-	const (
-		storeID    = "test123"
-		secretName = "testName"
-	)
-
-	scenarios := []struct {
-		args           string
-		api            mock.API
-		wantAPIInvoked bool
-		wantError      string
-		wantOutput     string
-	}{
-		{
-			args:      "delete --name test",
-			wantError: "error parsing arguments: required flag --store-id not provided",
-		},
-		{
-			args:      "delete --store-id test",
-			wantError: "error parsing arguments: required flag --name not provided",
-		},
-		{
-			args: fmt.Sprintf("delete --store-id %s --name DOES-NOT-EXIST", storeID),
-			api: mock.API{
-				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
-						return errors.New("not found")
-					}
-					return nil
-				},
-			},
-			wantAPIInvoked: true,
-			wantError:      "not found",
-		},
-		{
-			args: fmt.Sprintf("delete --store-id %s --name %s", storeID, secretName),
-			api: mock.API{
-				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
-						return errors.New("not found")
-					}
-					return nil
-				},
-			},
-			wantAPIInvoked: true,
-			wantOutput:     fstfmt.Success("Deleted secret %s from store %s\n", secretName, storeID),
-		},
-		{
-			args: fmt.Sprintf("delete --store-id %s --name %s --json", storeID, secretName),
-			api: mock.API{
-				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
-						return errors.New("not found")
-					}
-					return nil
-				},
-			},
-			wantAPIInvoked: true,
-			wantOutput:     fstfmt.JSON(`{"name": %q, "store_id": %q,  "deleted": true}`, secretName, storeID),
-		},
-	}
-
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.args, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
-
-			f := testcase.api.DeleteSecretFn
-			var apiInvoked bool
-			testcase.api.DeleteSecretFn = func(i *fastly.DeleteSecretInput) error {
-				apiInvoked = true
-				return f(i)
-			}
-
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
-
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-			if apiInvoked != testcase.wantAPIInvoked {
-				t.Fatalf("API DeleteSecret invoked = %v, want %v", apiInvoked, testcase.wantAPIInvoked)
 			}
 		})
 	}

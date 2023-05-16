@@ -7,13 +7,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateEntryCommand(t *testing.T) {
@@ -49,7 +50,7 @@ func TestCreateEntryCommand(t *testing.T) {
 					}, nil
 				},
 			},
-			WantOutput: fstfmt.Success("Created config store item %s in store %s", itemKey, storeID),
+			WantOutput: fstfmt.Success("Created key '%s' in Config Store '%s'", itemKey, storeID),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s --json", configstoreentry.RootName, storeID, itemKey, itemValue)),
@@ -117,7 +118,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 					return nil
 				},
 			},
-			WantOutput: fstfmt.Success("Deleted config store item %s from store %s", itemKey, storeID),
+			WantOutput: fstfmt.Success("Deleted key '%s' from Config Store '%s'", itemKey, storeID),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --key %s --json", configstoreentry.RootName, storeID, itemKey)),
@@ -128,7 +129,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 			},
 			WantOutput: fstfmt.EncodeJSON(struct {
 				StoreID string `json:"store_id"`
-				Key     string `json:"item_key"`
+				Key     string `json:"key"`
 				Deleted bool   `json:"deleted"`
 			}{
 				storeID,

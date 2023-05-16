@@ -51,6 +51,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created KV Store %s (name %s)", o.ID, o.Name)
+	text.Success(out, "Created KV Store '%s' (%s)", o.Name, o.ID)
 	return nil
 }

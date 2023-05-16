@@ -7,12 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/configstore"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateStoreCommand(t *testing.T) {
@@ -46,7 +47,7 @@ func TestCreateStoreCommand(t *testing.T) {
 					}, nil
 				},
 			},
-			WantOutput: fstfmt.Success("Created config store %s (name %s)", storeID, storeName),
+			WantOutput: fstfmt.Success("Created Config Store '%s' (%s)", storeName, storeID),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s create --name %s --json", configstore.RootName, storeName)),
@@ -116,7 +117,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 					return nil
 				},
 			},
-			WantOutput: fstfmt.Success("Deleted config store %s\n", storeID),
+			WantOutput: fstfmt.Success("Deleted Config Store '%s'\n", storeID),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --json", configstore.RootName, storeID)),
@@ -418,7 +419,7 @@ func TestUpdateStoreCommand(t *testing.T) {
 					}, nil
 				},
 			},
-			WantOutput: fstfmt.Success("Updated config store %s (name %s)", storeID, storeName),
+			WantOutput: fstfmt.Success("Updated Config Store '%s' (%s)", storeName, storeID),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s update --store-id %s --name %s --json", configstore.RootName, storeID, storeName)),

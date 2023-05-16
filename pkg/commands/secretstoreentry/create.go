@@ -170,7 +170,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created secret %s in store %s (digest %s)", o.Name, c.Input.ID, hex.EncodeToString(o.Digest))
+	text.Success(out, "Created secret '%s' in Secret Store '%s' (digest: %s)", o.Name, c.Input.ID, hex.EncodeToString(o.Digest))
 
 	return nil
 }
