@@ -1,5 +1,28 @@
 # Changelog
 
+## [v10.0.0](https://github.com/fastly/cli/releases/tag/v10.0.0) (2023-05-16)
+
+**Breaking:**
+
+This release introduces a breaking interface change to the `kv-store-entry` command. The `--key-name` flag is renamed to `--key` to be consistent with the other 'stores' supported within the CLI.
+
+**Bug fixes:**
+
+* fastly backend create: override host cannot be an empty string [#936](https://github.com/fastly/cli/pull/936)
+* fix(profile): support automation tokens [#938](https://github.com/fastly/cli/pull/938)
+
+**Enhancements:**
+
+* feat(kvstore): Bulk Import [#927](https://github.com/fastly/cli/pull/927)
+* refactor: make config/kv/secret store output consistent [#937](https://github.com/fastly/cli/pull/937)
+
+**Dependencies:**
+
+* build(deps): bump github.com/fastly/go-fastly/v8 from 8.0.0 to 8.0.1  [#926](https://github.com/fastly/cli/pull/926)
+* build(deps): bump golang.org/x/term from 0.7.0 to 0.8.0 [#928](https://github.com/fastly/cli/pull/928)
+* build(deps): bump github.com/getsentry/sentry-go from 0.20.0 to 0.21.0 [#929](https://github.com/fastly/cli/pull/929)
+* build(deps): bump golang.org/x/crypto from 0.8.0 to 0.9.0 [#934](https://github.com/fastly/cli/pull/934)
+
 ## [v9.0.3](https://github.com/fastly/cli/releases/tag/v9.0.3) (2023-04-26)
 
 **Bug fixes:**
