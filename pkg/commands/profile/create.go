@@ -9,21 +9,22 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // CreateCommand represents a Kingpin command.
 type CreateCommand struct {
 	cmd.Base
 
-	clientFactory APIClientFactory
-	profile       string
+	clientFactory   APIClientFactory
+	profile         string
 }
 
 // NewCreateCommand returns a new command registered in the parent.
@@ -54,7 +55,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if err := c.tokenFlow(c.profile, def, in, out); err != nil {
+	if err := c.tokenFlow(def, in, out); err != nil {
 		return err
 	}
 	if err := c.persistCfg(); err != nil {
@@ -67,7 +68,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 }
 
 // tokenFlow initialises the token flow.
-func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, out io.Writer) error {
+func (c *CreateCommand) tokenFlow(def bool, in io.Reader, out io.Writer) error {
 	token, err := promptForToken(in, out, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -92,7 +93,7 @@ func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, ou
 		return err
 	}
 
-	return c.updateInMemCfg(profileName, user.Login, token, endpoint, def, spinner)
+	return c.updateInMemCfg(user.Login, token, endpoint, def, spinner)
 }
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
@@ -185,7 +186,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 }
 
 // updateInMemCfg persists the updated configuration data in-memory.
-func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, spinner text.Spinner) error {
+func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, def bool, spinner text.Spinner) error {
 	err := spinner.Start()
 	if err != nil {
 		return err
@@ -198,7 +199,7 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 	if c.Globals.Config.Profiles == nil {
 		c.Globals.Config.Profiles = make(config.Profiles)
 	}
-	c.Globals.Config.Profiles[profileName] = &config.Profile{
+	c.Globals.Config.Profiles[c.profile] = &config.Profile{
 		Default: def,
 		Email:   email,
 		Token:   token,
@@ -208,7 +209,7 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 	// we'll call Set for its side effect of resetting all other profiles to have
 	// their Default field set to false.
 	if def {
-		if p, ok := profile.Set(profileName, c.Globals.Config.Profiles); ok {
+		if p, ok := profile.Set(c.profile, c.Globals.Config.Profiles); ok {
 			c.Globals.Config.Profiles = p
 		}
 	}
