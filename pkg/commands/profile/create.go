@@ -9,21 +9,23 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // CreateCommand represents a Kingpin command.
 type CreateCommand struct {
 	cmd.Base
 
-	clientFactory APIClientFactory
-	profile       string
+	automationToken bool
+	clientFactory   APIClientFactory
+	profile         string
 }
 
 // NewCreateCommand returns a new command registered in the parent.
@@ -32,6 +34,7 @@ func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 	c.Globals = g
 	c.CmdClause = parent.Command("create", "Create user profile")
 	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default("user").Short('p').StringVar(&c.profile)
+	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
 	c.clientFactory = cf
 	return &c
 }
@@ -54,7 +57,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if err := c.tokenFlow(c.profile, def, in, out); err != nil {
+	if err := c.tokenFlow(def, in, out); err != nil {
 		return err
 	}
 	if err := c.persistCfg(); err != nil {
@@ -67,7 +70,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 }
 
 // tokenFlow initialises the token flow.
-func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, out io.Writer) error {
+func (c *CreateCommand) tokenFlow(def bool, in io.Reader, out io.Writer) error {
 	token, err := promptForToken(in, out, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -87,12 +90,12 @@ func (c *CreateCommand) tokenFlow(profileName string, def bool, in io.Reader, ou
 		}
 	}()
 
-	user, err := c.validateToken(token, endpoint, spinner)
+	email, err := c.validateToken(token, endpoint, spinner)
 	if err != nil {
 		return err
 	}
 
-	return c.updateInMemCfg(profileName, user.Login, token, endpoint, def, spinner)
+	return c.updateInMemCfg(email, token, endpoint, def, spinner)
 }
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
@@ -122,10 +125,10 @@ func validateTokenNotEmpty(s string) error {
 var ErrEmptyToken = errors.New("token cannot be empty")
 
 // validateToken ensures the token can be used to acquire user data.
-func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinner) (*fastly.User, error) {
+func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinner) (string, error) {
 	err := spinner.Start()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	msg := "Validating token"
 	spinner.Message(msg + "...")
@@ -140,10 +143,10 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return nil, spinErr
+			return "", spinErr
 		}
 
-		return nil, fmt.Errorf("error regenerating Fastly API client: %w", err)
+		return "", fmt.Errorf("error regenerating Fastly API client: %w", err)
 	}
 
 	t, err := client.GetTokenSelf()
@@ -153,10 +156,19 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return nil, spinErr
+			return "", spinErr
 		}
 
-		return nil, fmt.Errorf("error validating token: %w", err)
+		return "", fmt.Errorf("error validating token: %w", err)
+	}
+
+	if c.automationToken {
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Automation Token (%s)", t.ID), nil
 	}
 
 	user, err := client.GetUser(&fastly.GetUserInput{
@@ -170,22 +182,25 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return nil, spinErr
+			return "", spinErr
 		}
 
-		return nil, fmt.Errorf("error fetching token user: %w", err)
+		return "", fsterr.RemediationError{
+			Inner:       fmt.Errorf("error fetching token user: %w", err),
+			Remediation: "If providing an 'automation token', retry the command with the `--automation-token` flag set.",
+		}
 	}
 
 	spinner.StopMessage(msg)
 	err = spinner.Stop()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return user, nil
+	return user.Login, nil
 }
 
 // updateInMemCfg persists the updated configuration data in-memory.
-func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint string, def bool, spinner text.Spinner) error {
+func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, def bool, spinner text.Spinner) error {
 	err := spinner.Start()
 	if err != nil {
 		return err
@@ -198,7 +213,7 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 	if c.Globals.Config.Profiles == nil {
 		c.Globals.Config.Profiles = make(config.Profiles)
 	}
-	c.Globals.Config.Profiles[profileName] = &config.Profile{
+	c.Globals.Config.Profiles[c.profile] = &config.Profile{
 		Default: def,
 		Email:   email,
 		Token:   token,
@@ -208,7 +223,7 @@ func (c *CreateCommand) updateInMemCfg(profileName, email, token, endpoint strin
 	// we'll call Set for its side effect of resetting all other profiles to have
 	// their Default field set to false.
 	if def {
-		if p, ok := profile.Set(profileName, c.Globals.Config.Profiles); ok {
+		if p, ok := profile.Set(c.profile, c.Globals.Config.Profiles); ok {
 			c.Globals.Config.Profiles = p
 		}
 	}
