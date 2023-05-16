@@ -497,7 +497,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/resources/object-store-item/#set-value-for-key"
+        "https://developer.fastly.com/reference/api/services/resources/kv-store-item/#set-value-for-key"
       ]
     }
   },
