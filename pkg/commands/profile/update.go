@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
@@ -11,7 +13,6 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // APIClientFactory allows the profile command to regenerate the global Fastly
@@ -23,8 +24,9 @@ type APIClientFactory func(token, endpoint string) (api.Interface, error)
 type UpdateCommand struct {
 	cmd.Base
 
-	clientFactory APIClientFactory
-	profile       string
+	automationToken bool
+	clientFactory   APIClientFactory
+	profile         string
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -33,6 +35,7 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 	c.Globals = g
 	c.CmdClause = parent.Command("update", "Update user profile")
 	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
+	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
 	c.clientFactory = cf
 	return &c
 }
@@ -110,12 +113,12 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	endpoint, _ := c.Globals.Endpoint()
 
-	u, err := c.validateToken(token, endpoint, spinner)
+	email, err := c.validateToken(token, endpoint, spinner)
 	if err != nil {
 		return err
 	}
 	opts = append(opts, func(p *config.Profile) {
-		p.Email = u.Login
+		p.Email = email
 	})
 
 	var ok bool
@@ -140,10 +143,10 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 // validateToken ensures the token can be used to acquire user data.
-func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinner) (*fastly.User, error) {
+func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinner) (string, error) {
 	err := spinner.Start()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	msg := "Validating token"
 	spinner.Message(msg + "...")
@@ -158,10 +161,10 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return nil, spinErr
+			return "", spinErr
 		}
 
-		return nil, fmt.Errorf("error regenerating Fastly API client: %w", err)
+		return "", fmt.Errorf("error regenerating Fastly API client: %w", err)
 	}
 
 	t, err := client.GetTokenSelf()
@@ -171,10 +174,19 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return nil, spinErr
+			return "", spinErr
 		}
 
-		return nil, fmt.Errorf("error validating token: %w", err)
+		return "", fmt.Errorf("error validating token: %w", err)
+	}
+
+	if c.automationToken {
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Automation Token (%s)", t.ID), nil
 	}
 
 	user, err := client.GetUser(&fastly.GetUserInput{
@@ -188,16 +200,16 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return nil, spinErr
+			return "", spinErr
 		}
 
-		return nil, fmt.Errorf("error fetching token user: %w", err)
+		return "", fmt.Errorf("error fetching token user: %w", err)
 	}
 
 	spinner.StopMessage(msg)
 	err = spinner.Stop()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return user, nil
+	return user.Login, nil
 }
