@@ -69,7 +69,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// We test that setting an invalid host override does not result in an error
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --override-host overrite-set --name www.test.com --autoclone --port 8080"),
+			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --override-host invalid-host-override --name www.test.com --autoclone --port 8080"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
