@@ -215,7 +215,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if input.Address != nil && !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
 		overrideHost, sslSNIHostname, sslCertHostname := SetBackendHostDefaults(*input.Address)
-		input.OverrideHost = &overrideHost
+		if overrideHost != "" {
+			input.OverrideHost = &overrideHost
+		}
 		input.SSLSNIHostname = &sslSNIHostname
 		input.SSLCertHostname = &sslCertHostname
 	} else {
