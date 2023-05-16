@@ -48,7 +48,7 @@ func TestCreateStoreCommand(t *testing.T) {
 					}, nil
 				},
 			},
-			WantOutput: fstfmt.Success("Created KV Store %s (name %s)", storeID, storeName),
+			WantOutput: fstfmt.Success("Created KV Store '%s' (%s)", storeName, storeID),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s create --name %s --json", kvstore.RootName, storeName)),
@@ -118,7 +118,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 					return nil
 				},
 			},
-			WantOutput: fstfmt.Success("Deleted KV Store %s\n", storeID),
+			WantOutput: fstfmt.Success("Deleted KV Store '%s'\n", storeID),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --json", kvstore.RootName, storeID)),

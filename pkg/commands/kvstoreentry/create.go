@@ -107,7 +107,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Inserted key %s into KV Store %s", c.Input.Key, c.Input.ID)
+	text.Success(out, "Created key '%s' in KV Store '%s'", c.Input.Key, c.Input.ID)
 
 	return nil
 }

@@ -3,12 +3,13 @@ package configstore
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -62,7 +63,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created config store %s (name %s)", o.ID, o.Name)
+	text.Success(out, "Created Config Store '%s' (%s)", o.Name, o.ID)
 
 	return nil
 }

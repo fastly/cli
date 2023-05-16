@@ -58,7 +58,7 @@ func TestCreateCommand(t *testing.T) {
 						return nil
 					},
 				},
-				WantOutput: fstfmt.Success("Inserted key %s into KV Store %s", itemKey, storeID),
+				WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
 			},
 		},
 		{
@@ -174,7 +174,7 @@ func TestDeleteCommand(t *testing.T) {
 					return nil
 				},
 			},
-			WantOutput: fstfmt.Success("Deleted key %s from KV Store %s", itemKey, storeID),
+			WantOutput: fstfmt.Success("Deleted key '%s' from KV Store '%s'", itemKey, storeID),
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --key %s --json", kvstoreentry.RootName, storeID, itemKey)),
@@ -183,7 +183,7 @@ func TestDeleteCommand(t *testing.T) {
 					return nil
 				},
 			},
-			WantOutput: fstfmt.JSON(`{"key": "%s", "id": "%s", "deleted": true}`, itemKey, storeID),
+			WantOutput: fstfmt.JSON(`{"key": "%s", "store_id": "%s", "deleted": true}`, itemKey, storeID),
 		},
 	}
 

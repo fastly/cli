@@ -3,12 +3,13 @@ package configstoreentry
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -62,7 +63,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.JSONOutput.Enabled {
 		o := struct {
 			StoreID string `json:"store_id"`
-			Key     string `json:"item_key"`
+			Key     string `json:"key"`
 			Deleted bool   `json:"deleted"`
 		}{
 			c.input.StoreID,
@@ -73,7 +74,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted config store item %s from store %s", c.input.Key, c.input.StoreID)
+	text.Success(out, "Deleted key '%s' from Config Store '%s'", c.input.Key, c.input.StoreID)
 
 	return nil
 }
