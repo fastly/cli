@@ -136,12 +136,20 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 	if in == nil || text.IsTTY(in) {
 		return fsterr.ErrNoSTDINData
 	}
+	if c.Globals.Verbose() {
+		in = io.TeeReader(in, out)
+	}
 	return c.CallBatchEndpoint(in, out)
 }
 
 // ProcessFile streams a JSON file content to the batch API endpoint.
 func (c *CreateCommand) ProcessFile(out io.Writer) error {
-	f, err := os.Open(c.filePath)
+	var (
+		err error
+		f   io.ReadCloser
+	)
+
+	f, err = os.Open(c.filePath)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -149,7 +157,13 @@ func (c *CreateCommand) ProcessFile(out io.Writer) error {
 	defer func() {
 		_ = f.Close()
 	}()
-	return c.CallBatchEndpoint(f, out)
+
+	var in io.Reader
+	in = f
+	if c.Globals.Verbose() {
+		in = io.TeeReader(f, out)
+	}
+	return c.CallBatchEndpoint(in, out)
 }
 
 // ProcessDir concurrently reads files from the given directory structure and
@@ -336,11 +350,26 @@ func (c *CreateCommand) PromptWindowsUser(in io.Reader, out io.Writer) (bool, er
 
 // CallBatchEndpoint calls the batch API endpoint.
 func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
+	type result struct {
+		Success bool `json:"success"`
+	}
+
 	if err := c.Globals.APIClient.BatchModifyKVStoreKey(&fastly.BatchModifyKVStoreKeyInput{
 		ID:   c.Input.ID,
 		Body: in,
 	}); err != nil {
 		c.Globals.ErrLog.Add(err)
+
+		if c.JSONOutput.Enabled {
+			_, err := c.WriteJSON(out, result{Success: false})
+			return err
+		}
+
+		return err
+	}
+
+	if c.JSONOutput.Enabled {
+		_, err := c.WriteJSON(out, result{Success: true})
 		return err
 	}
 
