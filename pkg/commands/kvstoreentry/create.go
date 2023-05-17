@@ -144,12 +144,7 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 
 // ProcessFile streams a JSON file content to the batch API endpoint.
 func (c *CreateCommand) ProcessFile(out io.Writer) error {
-	var (
-		err error
-		f   io.ReadCloser
-	)
-
-	f, err = os.Open(c.filePath)
+	f, err := os.Open(c.filePath)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -158,8 +153,7 @@ func (c *CreateCommand) ProcessFile(out io.Writer) error {
 		_ = f.Close()
 	}()
 
-	var in io.Reader
-	in = f
+	var in io.Reader = f
 	if c.Globals.Verbose() {
 		in = io.TeeReader(f, out)
 	}
