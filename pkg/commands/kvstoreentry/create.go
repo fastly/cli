@@ -136,6 +136,9 @@ func (c *CreateCommand) ProcessStdin(in io.Reader, out io.Writer) error {
 	if in == nil || text.IsTTY(in) {
 		return fsterr.ErrNoSTDINData
 	}
+	if c.Globals.Verbose() {
+		in = io.TeeReader(in, out)
+	}
 	return c.CallBatchEndpoint(in, out)
 }
 
@@ -149,7 +152,12 @@ func (c *CreateCommand) ProcessFile(out io.Writer) error {
 	defer func() {
 		_ = f.Close()
 	}()
-	return c.CallBatchEndpoint(f, out)
+
+	var in io.Reader = f
+	if c.Globals.Verbose() {
+		in = io.TeeReader(f, out)
+	}
+	return c.CallBatchEndpoint(in, out)
 }
 
 // ProcessDir concurrently reads files from the given directory structure and
@@ -201,13 +209,14 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	fileLength := len(filteredFiles)
+	filesTotal := len(filteredFiles)
 	msg := "%s %d of %d files"
-	spinner.Message(fmt.Sprintf(msg, "Processing", 0, fileLength) + "...")
+	spinner.Message(fmt.Sprintf(msg, "Processing", 0, filesTotal) + "...")
 
 	base := filepath.Base(path)
 	processed := make(chan struct{}, c.dirConcurrency)
 	sem := make(chan struct{}, c.dirConcurrency)
+	filesVerboseOutput := make(chan string, filesTotal)
 
 	var (
 		processingErrors []ProcessErr
@@ -222,7 +231,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	go func() {
 		for range processed {
 			atomic.AddUint64(&filesProcessed, 1)
-			spinner.Message(fmt.Sprintf(msg, "Processing", filesProcessed, fileLength) + "...")
+			spinner.Message(fmt.Sprintf(msg, "Processing", filesProcessed, filesTotal) + "...")
 		}
 	}()
 
@@ -242,6 +251,10 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 			dir, filename := filepath.Split(filePath)
 			index := strings.Index(dir, base)
 			filename = filepath.Join(dir[index:], filename)
+
+			if c.Globals.Verbose() {
+				filesVerboseOutput <- filename
+			}
 
 			// G304 (CWE-22): Potential file inclusion via variable
 			// #nosec
@@ -300,10 +313,18 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 
 	wg.Wait()
 
-	spinner.StopMessage(fmt.Sprintf(msg, "Processed", atomic.LoadUint64(&filesProcessed)-uint64(len(processingErrors)), fileLength))
+	spinner.StopMessage(fmt.Sprintf(msg, "Processed", atomic.LoadUint64(&filesProcessed)-uint64(len(processingErrors)), filesTotal))
 	err = spinner.Stop()
 	if err != nil {
 		return err
+	}
+
+	if c.Globals.Verbose() {
+		close(filesVerboseOutput)
+		text.Break(out)
+		for filename := range filesVerboseOutput {
+			fmt.Println(filename)
+		}
 	}
 
 	if len(processingErrors) == 0 {
@@ -336,11 +357,26 @@ func (c *CreateCommand) PromptWindowsUser(in io.Reader, out io.Writer) (bool, er
 
 // CallBatchEndpoint calls the batch API endpoint.
 func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
+	type result struct {
+		Success bool `json:"success"`
+	}
+
 	if err := c.Globals.APIClient.BatchModifyKVStoreKey(&fastly.BatchModifyKVStoreKeyInput{
 		ID:   c.Input.ID,
 		Body: in,
 	}); err != nil {
 		c.Globals.ErrLog.Add(err)
+
+		if c.JSONOutput.Enabled {
+			_, err := c.WriteJSON(out, result{Success: false})
+			return err
+		}
+
+		return err
+	}
+
+	if c.JSONOutput.Enabled {
+		_, err := c.WriteJSON(out, result{Success: true})
 		return err
 	}
 
