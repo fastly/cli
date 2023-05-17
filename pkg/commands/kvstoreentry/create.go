@@ -215,13 +215,14 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	fileLength := len(filteredFiles)
+	filesTotal := len(filteredFiles)
 	msg := "%s %d of %d files"
-	spinner.Message(fmt.Sprintf(msg, "Processing", 0, fileLength) + "...")
+	spinner.Message(fmt.Sprintf(msg, "Processing", 0, filesTotal) + "...")
 
 	base := filepath.Base(path)
 	processed := make(chan struct{}, c.dirConcurrency)
 	sem := make(chan struct{}, c.dirConcurrency)
+	filesVerboseOutput := make(chan string, filesTotal)
 
 	var (
 		processingErrors []ProcessErr
@@ -236,7 +237,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	go func() {
 		for range processed {
 			atomic.AddUint64(&filesProcessed, 1)
-			spinner.Message(fmt.Sprintf(msg, "Processing", filesProcessed, fileLength) + "...")
+			spinner.Message(fmt.Sprintf(msg, "Processing", filesProcessed, filesTotal) + "...")
 		}
 	}()
 
@@ -256,6 +257,10 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 			dir, filename := filepath.Split(filePath)
 			index := strings.Index(dir, base)
 			filename = filepath.Join(dir[index:], filename)
+
+			if c.Globals.Verbose() {
+				filesVerboseOutput <- filename
+			}
 
 			// G304 (CWE-22): Potential file inclusion via variable
 			// #nosec
@@ -314,10 +319,18 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 
 	wg.Wait()
 
-	spinner.StopMessage(fmt.Sprintf(msg, "Processed", atomic.LoadUint64(&filesProcessed)-uint64(len(processingErrors)), fileLength))
+	spinner.StopMessage(fmt.Sprintf(msg, "Processed", atomic.LoadUint64(&filesProcessed)-uint64(len(processingErrors)), filesTotal))
 	err = spinner.Stop()
 	if err != nil {
 		return err
+	}
+
+	if c.Globals.Verbose() {
+		close(filesVerboseOutput)
+		text.Break(out)
+		for filename := range filesVerboseOutput {
+			fmt.Println(filename)
+		}
 	}
 
 	if len(processingErrors) == 0 {
