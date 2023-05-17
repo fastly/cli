@@ -1,5 +1,11 @@
 # Changelog
 
+## [v10.0.1](https://github.com/fastly/cli/releases/tag/v10.0.1) (2023-05-17)
+
+**Bug fixes:**
+
+* fix(kvstoreentry): support JSON output for bulk processing [#940](https://github.com/fastly/cli/pull/940)
+
 ## [v10.0.0](https://github.com/fastly/cli/releases/tag/v10.0.0) (2023-05-16)
 
 **Breaking:**
