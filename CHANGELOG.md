@@ -1,5 +1,13 @@
 # Changelog
 
+## [v10.1.0](https://github.com/fastly/cli/releases/tag/v10.1.0) (2023-05-18)
+
+Deprecation notice: `fastly compute hashsum` is being phased out in favour of `fastly compute hash-files`.
+
+**Enhancements:**
+
+* feat(compute/hashfiles): add hash-files subcommand [#943](https://github.com/fastly/cli/pull/943)
+
 ## [v10.0.1](https://github.com/fastly/cli/releases/tag/v10.0.1) (2023-05-17)
 
 **Bug fixes:**
