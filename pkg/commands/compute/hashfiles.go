@@ -20,9 +20,9 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-const (
-	maxPackageSize = 100000000 // 100MB in bytes
-)
+// NOTE: This is variable not a constant for the sake of test manipulations.
+// https://developer.fastly.com/learning/compute/#limitations-and-constraints
+var MaxPackageSize int64 = 100000000 // 100MB in bytes
 
 // HashFilesCommand produces a deployable artifact from files on the local disk.
 type HashFilesCommand struct {
@@ -122,7 +122,7 @@ func (c *HashFilesCommand) ReadFilesFromPackage(tr *tar.Reader) (map[string]*byt
 
 		// Avoids G110: Potential DoS vulnerability via decompression bomb (gosec).
 		pkgSize += hdr.Size
-		if pkgSize > maxPackageSize {
+		if pkgSize > MaxPackageSize {
 			return nil, errors.New("package size exceeded 100MB limit")
 		}
 

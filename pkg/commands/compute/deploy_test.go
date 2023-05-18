@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/errors"
@@ -19,7 +21,6 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NOTE: Some tests don't provide a Service ID via any mechanism (e.g. flag
@@ -77,7 +78,7 @@ func TestDeploy(t *testing.T) {
 	}
 	defer os.Chdir(pwd)
 
-	originalPackageSizeLimit := compute.PackageSizeLimit
+	originalPackageSizeLimit := compute.MaxPackageSize
 	args := testutil.Args
 	scenarios := []struct {
 		api            mock.API
@@ -1846,11 +1847,11 @@ func TestDeploy(t *testing.T) {
 			}
 
 			if testcase.reduceSizeLimit {
-				compute.PackageSizeLimit = 1000000 // 1mb (our test package should above this)
+				compute.MaxPackageSize = 1000000 // 1mb (our test package should above this)
 			} else {
 				// As multiple test scenarios run within a single environment instance
 				// we need to ensure each scenario resets the package variable.
-				compute.PackageSizeLimit = originalPackageSizeLimit
+				compute.MaxPackageSize = originalPackageSizeLimit
 			}
 
 			if len(testcase.stdin) > 1 {
