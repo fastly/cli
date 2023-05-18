@@ -35,10 +35,6 @@ const (
 	trialNotActivated    = "Valid values for 'type' are: 'vcl'"
 )
 
-// PackageSizeLimit describes the package size limit in bytes (currently 50mb)
-// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-var PackageSizeLimit int64 = 50000000
-
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
 	cmd.Base
@@ -301,7 +297,7 @@ func validatePackage(
 		}
 	}
 
-	if pkgSize > PackageSizeLimit {
+	if pkgSize > MaxPackageSize {
 		return pkgPath, hashSum, fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: fsterr.PackageSizeRemediation,

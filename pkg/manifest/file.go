@@ -16,17 +16,27 @@ import (
 // manifest file schema.
 type File struct {
 	// Args is necessary to track the subcommand called (see: File.Read method).
-	Args            []string    `toml:"-"`
-	Authors         []string    `toml:"authors"`
-	Description     string      `toml:"description"`
-	Language        string      `toml:"language"`
-	Profile         string      `toml:"profile,omitempty"`
-	LocalServer     LocalServer `toml:"local_server,omitempty"`
-	ManifestVersion Version     `toml:"manifest_version"`
-	Name            string      `toml:"name"`
-	Scripts         Scripts     `toml:"scripts,omitempty"`
-	ServiceID       string      `toml:"service_id"`
-	Setup           Setup       `toml:"setup,omitempty"`
+	Args []string `toml:"-"`
+	// Authors is a list of project authors (typically an email).
+	Authors []string `toml:"authors"`
+	// Description is the project description.
+	Description string `toml:"description"`
+	// Language is the programming language used for the project.
+	Language string `toml:"language"`
+	// Profile is the name of the profile account the Fastly CLI should use to make API requests.
+	Profile string `toml:"profile,omitempty"`
+	// LocalServer describes the configuration for the local server built into the Fastly CLI.
+	LocalServer LocalServer `toml:"local_server,omitempty"`
+	// ManifestVersion is the manifest schema version number.
+	ManifestVersion Version `toml:"manifest_version"`
+	// Name is the package name.
+	Name string `toml:"name"`
+	// Scripts describes customisation options for the Fastly CLI build step.
+	Scripts Scripts `toml:"scripts,omitempty"`
+	// ServiceID is the Fastly Service ID to deploy the package to.
+	ServiceID string `toml:"service_id"`
+	// Setup describes a set of service configuration that works with the code in the package.
+	Setup Setup `toml:"setup,omitempty"`
 
 	quiet     bool
 	errLog    fsterr.LogInterface

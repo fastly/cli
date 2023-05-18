@@ -22,12 +22,13 @@ type HashsumCommand struct {
 }
 
 // NewHashsumCommand returns a usable command registered under the parent.
+// Deprecated: Use NewHashFilesCommand instead.
 func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, m manifest.Data) *HashsumCommand {
 	var c HashsumCommand
 	c.buildCmd = build
 	c.Globals = g
 	c.Manifest = m
-	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute@Edge package")
+	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute@Edge package").Hidden()
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)
 	return &c
@@ -35,6 +36,11 @@ func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 
 // Exec implements the command interface.
 func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	if !c.Globals.Flags.Quiet {
+		text.Warning(out, "This command is deprecated. Use `fastly compute hash-files` instead.")
+		text.Break(out)
+	}
+
 	if !c.SkipBuild {
 		err = c.Build(in, out)
 		if err != nil {
