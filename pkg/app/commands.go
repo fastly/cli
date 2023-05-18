@@ -1,6 +1,8 @@
 package app
 
 import (
+	"github.com/fastly/kingpin"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
@@ -56,8 +58,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/stats"
-	"github.com/fastly/cli/pkg/global"
-
 	tlsConfig "github.com/fastly/cli/pkg/commands/tls/config"
 	tlsCustom "github.com/fastly/cli/pkg/commands/tls/custom"
 	tlsCustomActivation "github.com/fastly/cli/pkg/commands/tls/custom/activation"
@@ -73,8 +73,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/kingpin"
 )
 
 func defineCommands(
@@ -110,6 +110,7 @@ func defineCommands(
 	computeCmdRoot := compute.NewRootCommand(app, g)
 	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, g, m)
 	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, g, m)
+	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, g, computeBuild, m)
 	computeHashsum := compute.NewHashsumCommand(computeCmdRoot.CmdClause, g, computeBuild, m)
 	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, g, m)
 	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, g, m)
@@ -461,6 +462,7 @@ func defineCommands(
 		computeBuild,
 		computeCmdRoot,
 		computeDeploy,
+		computeHashFiles,
 		computeHashsum,
 		computeInit,
 		computePack,
