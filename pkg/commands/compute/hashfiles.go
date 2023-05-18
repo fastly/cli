@@ -67,7 +67,7 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var r io.Reader
 	// G304 (CWE-22): Potential file inclusion via variable
-	// nosec
+	// #nosec
 	r, err = os.Open(pkg)
 	if err != nil {
 		return fmt.Errorf("failed to open package '%s': %w", pkg, err)
