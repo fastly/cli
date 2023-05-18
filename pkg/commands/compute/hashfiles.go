@@ -66,6 +66,8 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	var r io.Reader
+	// G304 (CWE-22): Potential file inclusion via variable
+	// nosec
 	r, err = os.Open(pkg)
 	if err != nil {
 		return fmt.Errorf("failed to open package '%s': %w", pkg, err)
@@ -99,6 +101,9 @@ func (c *HashFilesCommand) Build(in io.Reader, out io.Writer) error {
 	return c.buildCmd.Exec(in, output)
 }
 
+// ReadFilesFromPackage reads all files within the provided package tar and
+// generates a map data structure where the key is the filename and the value is
+// the file contents.
 func (c *HashFilesCommand) ReadFilesFromPackage(tr *tar.Reader) (map[string]*bytes.Buffer, error) {
 	// Store the content of every file within the package.
 	contents := make(map[string]*bytes.Buffer)
@@ -136,6 +141,7 @@ func (c *HashFilesCommand) ReadFilesFromPackage(tr *tar.Reader) (map[string]*byt
 	return contents, nil
 }
 
+// GetFilesHash returns a hash of all the filecontent in sorted filename order.
 func (c *HashFilesCommand) GetFilesHash(contents map[string]*bytes.Buffer) (string, error) {
 	keys := make([]string, 0, len(contents))
 	for k := range contents {
