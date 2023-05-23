@@ -1,23 +1,18 @@
-.PHONY: default
-default: build ;
+.PHONY: clean
 
-SHELL := /bin/bash -o pipefail
+SHELL := /bin/bash -o pipefail ## Set the shell to use for finding Go files (default: /bin/bash)
 
-# the rationale for using both `git describe` and `git rev-parse` is because
-# when CI builds the application it can be based on a git tag, so this ensures
-# the output is consistent across environments.
-VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
+# Compile program (implicit default target).
+#
+# GO_ARGS allows for passing additional arguments.
+# e.g. make build GO_ARGS='--ldflags "-s -w"'
+.PHONY: build
+build: config ## Compile program (CGO disabled)
+	CGO_ENABLED=0 $(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
-# Allows overriding go executable.
-GO_BIN ?= go
-
-# Enables support for tools such as https://github.com/rakyll/gotest
-TEST_COMMAND ?= $(GO_BIN) test
-
-# The compute tests can sometimes exceed the default 10m limit.
-TEST_ARGS ?= -timeout 15m ./...
-
-CLI_ENV ?= "development"
+GO_BIN ?= go ## Allows overriding go executable.
+TEST_COMMAND ?= $(GO_BIN) test ## Enables support for tools such as https://github.com/rakyll/gotest
+TEST_ARGS ?= -timeout 15m ./... ## The compute tests can sometimes exceed the default 10m limit
 
 GOHOSTOS ?= $(shell go env GOHOSTOS || echo unknown)
 GOHOSTARCH ?= $(shell go env GOHOSTARCH || echo unknown)
@@ -44,8 +39,8 @@ endif
 # --skip-validate will skip the checks (e.g. git tag checks which result in a 'dirty git state' error)
 #
 # EXAMPLE:
-# make fastly GORELEASER_ARGS="--clean --skip-post-hooks --skip-validate"
-fastly: dependencies $(GO_FILES)
+# make release GORELEASER_ARGS="--clean --skip-post-hooks --skip-validate"
+release: dependencies $(GO_FILES) ## Build executables using goreleaser
 	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
 
 # Useful for attaching a debugger such as https://github.com/go-delve/delve
@@ -57,7 +52,7 @@ config:
 	@$(CONFIG_SCRIPT)
 
 .PHONY: all
-all: config dependencies tidy fmt vet staticcheck gosec semgrep test build install
+all: config dependencies tidy fmt vet staticcheck gosec semgrep test build install ## Run EVERYTHING!
 
 # Update CI tools used by ./.github/workflows/pr_test.yml
 .PHONY: dependencies
@@ -81,49 +76,41 @@ fmt:
 
 # Run static analysis.
 .PHONY: vet
-vet: config
+vet: config ## Run vet static analysis
 	$(GO_BIN) vet ./{cmd,pkg}/...
 
 # Run linter.
 .PHONY: revive
-revive:
+revive: ## Run linter (using revive)
 	revive ./...
 
 # Run security vulnerability checker.
 .PHONY: gosec
-gosec:
+gosec: ## Run security vulnerability checker
 	gosec -quiet -exclude=G104 ./{cmd,pkg}/...
 
 # Run semgrep checker.
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
 .PHONY: semgrep
-semgrep:
+semgrep: ## Run semgrep
 	if command -v semgrep &> /dev/null; then semgrep ci --config auto --exclude-rule go.lang.security.audit.xss.import-text-template.import-text-template $(SEMGREP_ARGS); fi
 
 # Run third-party static analysis.
 # To ignore lines use: //lint:ignore <CODE> <REASON>
 .PHONY: staticcheck
-staticcheck:
+staticcheck: ## Run static analysis
 	staticcheck ./{cmd,pkg}/...
 
 # Run tests
 .PHONY: test
-test: config
+test: config ## Run tests (with race detection)
 	@$(TEST_COMMAND) -race $(TEST_ARGS)
-
-# Compile program.
-#
-# GO_ARGS allows for passing additional arguments.
-# e.g. make build GO_ARGS='--ldflags "-s -w"'
-.PHONY: build
-build: config
-	CGO_ENABLED=0 $(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
 # Compile and install program.
 #
 # GO_ARGS allows for passing additional arguments.
 .PHONY: install
-install: config
+install: config ## Compile and install program
 	CGO_ENABLED=0 $(GO_BIN) install $(GO_ARGS) ./cmd/fastly
 
 # Scaffold a new CLI command from template files.
@@ -140,9 +127,16 @@ scaffold-category:
 # Output is callvis.svg
 # e.g. make graph PKG_IMPORT_PATH=github.com/fastly/cli/pkg/commands/kvstoreentry
 .PHONY: graph
-graph:
+graph: ## Graph generates a call graph that focuses on the specified package
 	@$(GO_BIN) install github.com/ofabry/go-callvis@latest 2>/dev/null
 	go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
 	@rm callvis.gv
 
-.PHONY: clean
+.PHONY: help
+help:
+	@printf "Targets\n"
+	@(grep -h -E '^[0-9a-zA-Z_.-]+:.*?## .*$$' $(MAKEFILE_LIST) || true) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-22s\033[0m %s\n", $$1, $$2}'
+	@printf "\nDefault target\n"
+	@printf "\033[36m%s\033[0m" $(.DEFAULT_GOAL)
+	@printf "\n\nMake Variables\n"
+	@(grep -h -E '^[0-9a-zA-Z_.-]+\s[:?]?=.*? ## .*$$' $(MAKEFILE_LIST) || true) | sort | awk 'BEGIN {FS = "[:?]?=.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
