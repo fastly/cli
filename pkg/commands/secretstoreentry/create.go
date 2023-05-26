@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -57,8 +58,20 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.RegisterFlag(cmd.StoreIDFlag(&c.Input.ID))  // --store-id
 
 	// Optional.
-	c.RegisterFlag(secretFileFlag(&c.secretFile))       // --file
-	c.RegisterFlagBool(c.JSONFlag())                    // --json
+	c.RegisterFlag(secretFileFlag(&c.secretFile)) // --file
+	c.RegisterFlagBool(c.JSONFlag())              // --json
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        "recreate",
+		Description: "Recreate secret by name (errors if secret doesn't already exist)",
+		Dst:         &c.recreate,
+		Required:    false,
+	})
+	c.RegisterFlagBool(cmd.BoolFlagOpts{
+		Name:        "recreate-allow",
+		Description: "Create or recreate secret by name",
+		Dst:         &c.recreateAllow,
+		Required:    false,
+	})
 	c.RegisterFlagBool(secretStdinFlag(&c.secretSTDIN)) // --stdin
 
 	return &c
@@ -69,10 +82,12 @@ type CreateCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	Input       fastly.CreateSecretInput
-	manifest    manifest.Data
-	secretFile  string
-	secretSTDIN bool
+	Input         fastly.CreateSecretInput
+	manifest      manifest.Data
+	recreate      bool
+	recreateAllow bool
+	secretFile    string
+	secretSTDIN   bool
 }
 
 var errMultipleSecretValue = fsterr.RemediationError{
@@ -92,6 +107,18 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	if c.secretFile != "" && c.secretSTDIN {
 		return errMultipleSecretValue
+	}
+
+	switch {
+	case c.recreate && c.recreateAllow:
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("invalid flag combination, --recreate and --recreate-allow"),
+			Remediation: "Use either --recreate or --recreate-allow, not both.",
+		}
+	case c.recreate:
+		c.Input.Method = http.MethodPatch
+	case c.recreateAllow:
+		c.Input.Method = http.MethodPut
 	}
 
 	// Read secret's value: either from STDIN, a file, or prompt.
@@ -165,12 +192,15 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	// TODO: Use this approach across the code base.
 	if ok, err := c.WriteJSON(out, o); ok {
 		return err
 	}
 
-	text.Success(out, "Created secret '%s' in Secret Store '%s' (digest: %s)", o.Name, c.Input.ID, hex.EncodeToString(o.Digest))
+	action := "Created"
+	if o.Recreated {
+		action = "Recreated"
+	}
+	text.Success(out, "%s secret '%s' in Secret Store '%s' (digest: %s)", action, o.Name, c.Input.ID, hex.EncodeToString(o.Digest))
 
 	return nil
 }
