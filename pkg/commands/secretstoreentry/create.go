@@ -62,14 +62,14 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.RegisterFlagBool(c.JSONFlag())              // --json
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
 		Name:        "recreate",
-		Description: "Create or recreate if a secret of the same name already exists within the store",
+		Description: "Recreate secret by name (errors if secret doesn't already exist)",
 		Dst:         &c.recreate,
 		Required:    false,
 	})
 	c.RegisterFlagBool(cmd.BoolFlagOpts{
-		Name:        "recreate-must",
-		Description: "Recreate secret of the same name which must already exist within the store",
-		Dst:         &c.recreateMust,
+		Name:        "recreate-allow",
+		Description: "Create or recreate secret by name",
+		Dst:         &c.recreateAllow,
 		Required:    false,
 	})
 	c.RegisterFlagBool(secretStdinFlag(&c.secretSTDIN)) // --stdin
@@ -82,12 +82,12 @@ type CreateCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	Input        fastly.CreateSecretInput
-	manifest     manifest.Data
-	recreate     bool
-	recreateMust bool
-	secretFile   string
-	secretSTDIN  bool
+	Input         fastly.CreateSecretInput
+	manifest      manifest.Data
+	recreate      bool
+	recreateAllow bool
+	secretFile    string
+	secretSTDIN   bool
 }
 
 var errMultipleSecretValue = fsterr.RemediationError{
@@ -110,15 +110,15 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	switch {
-	case c.recreate && c.recreateMust:
+	case c.recreate && c.recreateAllow:
 		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("invalid flag combination, --recreate and --recreate-must"),
-			Remediation: "Use either --recreate or --recreate-must, not both.",
+			Inner:       fmt.Errorf("invalid flag combination, --recreate and --recreate-allow"),
+			Remediation: "Use either --recreate or --recreate-allow, not both.",
 		}
 	case c.recreate:
-		c.Input.Method = http.MethodPut
-	case c.recreateMust:
 		c.Input.Method = http.MethodPatch
+	case c.recreateAllow:
+		c.Input.Method = http.MethodPut
 	}
 
 	// Read secret's value: either from STDIN, a file, or prompt.
