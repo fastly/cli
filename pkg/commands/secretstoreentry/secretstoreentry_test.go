@@ -96,8 +96,8 @@ func TestCreateSecretCommand(t *testing.T) {
 			wantError: "unable to read from STDIN",
 		},
 		{
-			args:      fmt.Sprintf("create --store-id %s --name %s --stdin --recreate --recreate-must", storeID, secretName),
-			wantError: "invalid flag combination, --recreate and --recreate-must",
+			args:      fmt.Sprintf("create --store-id %s --name %s --stdin --recreate --recreate-allow", storeID, secretName),
+			wantError: "invalid flag combination, --recreate and --recreate-allow",
 		},
 		// Read from STDIN.
 		{
@@ -167,7 +167,7 @@ func TestCreateSecretCommand(t *testing.T) {
 		},
 		// CreateOrRecreate
 		{
-			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json --recreate", storeID, secretName, secretFile),
+			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json --recreate-allow", storeID, secretName, secretFile),
 			api: mock.API{
 				CreateClientKeyFn: mockCreateClientKey,
 				GetSigningKeyFn:   mockGetSigningKey,
@@ -194,7 +194,7 @@ func TestCreateSecretCommand(t *testing.T) {
 		},
 		// Recreate
 		{
-			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json --recreate-must", storeID, secretName, secretFile),
+			args: fmt.Sprintf("create --store-id %s --name %s --file %s --json --recreate", storeID, secretName, secretFile),
 			api: mock.API{
 				CreateClientKeyFn: mockCreateClientKey,
 				GetSigningKeyFn:   mockGetSigningKey,
