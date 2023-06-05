@@ -91,7 +91,7 @@ func Run(opts RunOpts) error {
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&g.Flags.NonInteractive)
 	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&g.Flags.Profile)
 	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&g.Flags.Quiet)
-	app.Flag("token", tokenHelp).Short('t').StringVar(&g.Flags.Token)
+	app.Flag("token", tokenHelp).HintAction(env.Vars).Short('t').StringVar(&g.Flags.Token)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&g.Flags.Verbose)
 
 	commands := defineCommands(app, &g, md, opts)
