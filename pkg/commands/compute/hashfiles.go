@@ -20,6 +20,9 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// MaxPackageSize represents the max package size that can be uploaded to the
+// Fastly Package API endpoint.
+//
 // NOTE: This is variable not a constant for the sake of test manipulations.
 // https://developer.fastly.com/learning/compute/#limitations-and-constraints
 var MaxPackageSize int64 = 100000000 // 100MB in bytes
