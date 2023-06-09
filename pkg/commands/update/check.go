@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+
 	"github.com/fastly/cli/pkg/github"
 )
 
@@ -17,13 +18,13 @@ func Check(currentVersion string, av github.AssetVersioner) (current, latest sem
 		return current, latest, false
 	}
 
-	s, err := av.Version()
+	v, err := av.LatestVersion()
 	if err != nil {
 		return current, latest, false
 	}
 
 	// nosemgrep (invalid-usage-of-modified-variable)
-	latest, err = semver.Parse(s)
+	latest, err = semver.Parse(v)
 	if err != nil {
 		return current, latest, false
 	}

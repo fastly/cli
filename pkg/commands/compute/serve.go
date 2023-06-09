@@ -294,7 +294,7 @@ func GetViceroy(
 		msg := "Checking latest Viceroy release"
 		spinner.Message(msg + "...")
 
-		v, err := av.Version()
+		v, err := av.LatestVersion()
 		if err != nil {
 			g.ErrLog.Add(err)
 

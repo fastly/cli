@@ -131,8 +131,8 @@ func (g *Asset) URL() (url string, err error) {
 	return g.url, nil
 }
 
-// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
-func (g *Asset) Version() (version string, err error) {
+// LatestVersion returns the asset LatestVersion if set, otherwise calls the API metadata endpoint.
+func (g *Asset) LatestVersion() (version string, err error) {
 	if g.version != "" {
 		return g.version, nil
 	}
@@ -197,8 +197,8 @@ type AssetVersioner interface {
 	Download() (bin string, err error)
 	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.
 	URL() (url string, err error)
-	// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
-	Version() (version string, err error)
+	// LatestVersion returns the latest version.
+	LatestVersion() (version string, err error)
 }
 
 // createArchive copies the DevHub response body data into a temporary archive
