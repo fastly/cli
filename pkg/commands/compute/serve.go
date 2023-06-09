@@ -403,7 +403,7 @@ func installViceroy(spinner text.Spinner, av github.AssetVersioner, bin string) 
 	msg := "Fetching latest Viceroy release"
 	spinner.Message(msg + "...")
 
-	tmpBin, err := av.Download()
+	tmpBin, err := av.DownloadLatest()
 	if err != nil {
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
@@ -506,7 +506,7 @@ func updateViceroy(
 		msg := "Fetching latest Viceroy release"
 		spinner.Message(msg + "...")
 
-		tmpBin, err := av.Download()
+		tmpBin, err := av.DownloadLatest()
 		if err != nil {
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()

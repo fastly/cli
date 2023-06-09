@@ -71,8 +71,8 @@ func (g Asset) BinaryName() string {
 	return g.binary
 }
 
-// Download retrieves the binary archive format from GitHub.
-func (g *Asset) Download() (bin string, err error) {
+// DownloadLatest retrieves the latest binary archive format from GitHub.
+func (g *Asset) DownloadLatest() (bin string, err error) {
 	endpoint, err := g.URL()
 	if err != nil {
 		return "", err
@@ -164,6 +164,7 @@ func (g *Asset) metadata() (m Metadata, err error) {
 	if err != nil {
 		return m, fmt.Errorf("failed to request GitHub metadata: %w", err)
 	}
+	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return m, fmt.Errorf("failed to request GitHub metadata: %s", res.Status)
 	}
@@ -193,8 +194,8 @@ type Metadata struct {
 type AssetVersioner interface {
 	// BinaryName returns the configured binary output name.
 	BinaryName() string
-	// Download implements the Versioner interface.
-	Download() (bin string, err error)
+	// DownloadLatest downloads the latest version of the asset.
+	DownloadLatest() (bin string, err error)
 	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.
 	URL() (url string, err error)
 	// LatestVersion returns the latest version.

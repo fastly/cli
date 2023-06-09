@@ -73,7 +73,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	msg = "Fetching latest release"
 	spinner.Message(msg + "...")
 
-	tmpBin, err := c.av.Download()
+	tmpBin, err := c.av.DownloadLatest()
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			fsterr.AllowInstrumentation: true,
