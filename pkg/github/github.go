@@ -9,9 +9,10 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/mholt/archiver"
+
 	"github.com/fastly/cli/pkg/api"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
-	"github.com/mholt/archiver"
 )
 
 const (
@@ -23,7 +24,7 @@ const (
 func New(opts Opts) *Asset {
 	binary := opts.Binary
 	if fstruntime.Windows && filepath.Ext(binary) == "" {
-		binary = binary + ".exe"
+		binary += ".exe"
 	}
 
 	return &Asset{
