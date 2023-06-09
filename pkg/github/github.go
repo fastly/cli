@@ -8,7 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
+	"github.com/blang/semver"
 	"github.com/mholt/archiver"
 
 	"github.com/fastly/cli/pkg/api"
@@ -71,13 +73,34 @@ func (g Asset) BinaryName() string {
 	return g.binary
 }
 
-// DownloadLatest retrieves the latest binary archive format from GitHub.
+// DownloadLatest retrieves the latest binary version.
 func (g *Asset) DownloadLatest() (bin string, err error) {
 	endpoint, err := g.URL()
 	if err != nil {
 		return "", err
 	}
+	return g.Download(endpoint)
+}
 
+// DownloadVersion retrieves the specified binary version.
+func (g *Asset) DownloadVersion(version string) (bin string, err error) {
+	_, err = semver.Parse(version)
+	if err != nil {
+		return "", err
+	}
+
+	endpoint, err := g.URL()
+	if err != nil {
+		return "", err
+	}
+
+	endpoint = strings.ReplaceAll(endpoint, g.version, version)
+
+	return g.Download(endpoint)
+}
+
+// Download retrieves the binary archive format from the specified endpoint.
+func (g *Asset) Download(endpoint string) (bin string, err error) {
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create a HTTP request: %w", err)
@@ -194,8 +217,12 @@ type Metadata struct {
 type AssetVersioner interface {
 	// BinaryName returns the configured binary output name.
 	BinaryName() string
+	// Download downloads the asset from the specified endpoint.
+	Download() (bin string, err error)
 	// DownloadLatest downloads the latest version of the asset.
 	DownloadLatest() (bin string, err error)
+	// DownloadVersion downloads the specified version of the asset.
+	DownloadVersion(version string) (bin string, err error)
 	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.
 	URL() (url string, err error)
 	// LatestVersion returns the latest version.
