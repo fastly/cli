@@ -15,12 +15,22 @@ func (av AssetVersioner) BinaryName() string {
 	return av.BinaryFilename
 }
 
-// Download implements github.Versioner interface.
-func (av AssetVersioner) Download() (string, error) {
+// DownloadLatest implements github.Versioner interface.
+func (av AssetVersioner) DownloadLatest() (string, error) {
 	if av.DownloadOK {
 		return av.DownloadedFile, nil
 	}
 	return "", fmt.Errorf("not implemented")
+}
+
+// DownloadVersion implements github.Versioner interface.
+func (av AssetVersioner) DownloadVersion(version string) (string, error) {
+	return "", nil
+}
+
+// Download implements github.Versioner interface.
+func (av AssetVersioner) Download(endpoint string) (string, error) {
+	return "", nil
 }
 
 // URL implements github.Versioner interface.
@@ -28,7 +38,7 @@ func (av AssetVersioner) URL() (string, error) {
 	return "", nil
 }
 
-// Version implements github.Versioner interface.
-func (av AssetVersioner) Version() (string, error) {
+// LatestVersion implements github.Versioner interface.
+func (av AssetVersioner) LatestVersion() (string, error) {
 	return av.AssetVersion, nil
 }

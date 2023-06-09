@@ -218,7 +218,7 @@ type AssetVersioner interface {
 	// BinaryName returns the configured binary output name.
 	BinaryName() string
 	// Download downloads the asset from the specified endpoint.
-	Download() (bin string, err error)
+	Download(endpoint string) (bin string, err error)
 	// DownloadLatest downloads the latest version of the asset.
 	DownloadLatest() (bin string, err error)
 	// DownloadVersion downloads the specified version of the asset.

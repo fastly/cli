@@ -10,14 +10,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
+	"github.com/getsentry/sentry-go"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
-	"github.com/fatih/color"
-	"github.com/getsentry/sentry-go"
 )
 
 const sentryTimeout = 2 * time.Second
@@ -101,8 +103,17 @@ func main() {
 	err = file.Read(config.FilePath, in, out, fsterr.Log, verboseOutput)
 	if err != nil {
 		fsterr.Deduce(err).Print(color.Error)
+
+		// WARNING: os.Exit will exit, and `defer sentry.Flush(sentryTimeout)` will not run
+		// But in reality this is fine and won't cause any issues at this stage.
 		os.Exit(1)
 	}
+
+	var md manifest.Data
+	md.File.Args = args
+	md.File.SetErrLog(fsterr.Log)
+	md.File.SetOutput(out)
+	_ = md.File.Read(manifest.Filename)
 
 	// Main is basically just a shim to call Run, so we do that here.
 	opts := app.RunOpts{
@@ -113,6 +124,7 @@ func main() {
 		Env:        env,
 		ErrLog:     fsterr.Log,
 		HTTPClient: httpClient,
+		Manifest:   &md,
 		Stdin:      in,
 		Stdout:     out,
 		Versioners: app.Versioners{
