@@ -42,3 +42,8 @@ func (av AssetVersioner) URL() (string, error) {
 func (av AssetVersioner) LatestVersion() (string, error) {
 	return av.AssetVersion, nil
 }
+
+// RequestedVersion implements github.Versioner interface.
+func (av AssetVersioner) RequestedVersion() (version string) {
+	return ""
+}

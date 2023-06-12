@@ -27,18 +27,29 @@ const DefaultEndpoint = "https://api.fastly.com"
 // (e.g. an email address). Otherwise, parameters should be defined in specific
 // command structs, and parsed as flags.
 type Data struct {
-	Env      config.Environment
-	Config   config.File
-	Flags    Flags
+	// Env is all the data that is provided by the environment.
+	Env config.Environment
+	// Config is an instance of the CLI configuration data.
+	Config config.File
+	// ConfigPath is the path to the CLI's application configuration.
+	ConfigPath string
+	// Flags are all the global CLI flags.
+	Flags Flags
+	// Manifest is the fastly.toml manifest file.
 	Manifest manifest.Data
-	Output   io.Writer
-	Path     string
+	// Output is the output for displaying information (typically os.Stdout)
+	Output io.Writer
 
 	// Custom interfaces
-	ErrLog     fsterr.LogInterface
-	APIClient  api.Interface
+
+	// ErrLog provides an interface for recording errors to disk.
+	ErrLog fsterr.LogInterface
+	// APIClient is a Fastly API client instance.
+	APIClient api.Interface
+	// HTTPClient is a HTTP client.
 	HTTPClient api.HTTPClient
-	RTSClient  api.RealtimeStatsInterface
+	// RTSClient is a Fastly API client instance for the Real Time Stats endpoints.
+	RTSClient api.RealtimeStatsInterface
 }
 
 // Token yields the Fastly API token.

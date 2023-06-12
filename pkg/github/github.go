@@ -30,10 +30,11 @@ func New(opts Opts) *Asset {
 	}
 
 	return &Asset{
-		httpClient: opts.HTTPClient,
-		org:        opts.Org,
-		repo:       opts.Repo,
-		binary:     binary,
+		binary:           binary,
+		httpClient:       opts.HTTPClient,
+		org:              opts.Org,
+		repo:             opts.Repo,
+		versionRequested: opts.Version,
 	}
 }
 
@@ -67,6 +68,8 @@ type Asset struct {
 	url string
 	// version is the release version of the asset.
 	version string
+	// versionRequested is the requested release version of the asset.
+	versionRequested string
 }
 
 // BinaryName returns the configured binary output name.
@@ -175,6 +178,12 @@ func (g *Asset) LatestVersion() (version string, err error) {
 	return g.version, nil
 }
 
+// RequestedVersion returns the version of the asset defined in the fastly.toml.
+// NOTE: This is only relevant for `compute serve` with viceroy_version pinning.
+func (g *Asset) RequestedVersion() string {
+	return g.versionRequested
+}
+
 // metadata acquires GitHub metadata.
 func (g *Asset) metadata() (m Metadata, err error) {
 	endpoint := fmt.Sprintf(metadataURL, g.repo, runtime.GOOS, runtime.GOARCH)
@@ -213,7 +222,7 @@ func (g *Asset) metadata() (m Metadata, err error) {
 type Metadata struct {
 	// URL is the endpoint for downloading the release asset.
 	URL string `json:"url"`
-	// Version is the release version of the asset.
+	// Version is the release version of the asset (e.g. 10.1.0).
 	Version string `json:"version"`
 }
 
@@ -227,6 +236,8 @@ type AssetVersioner interface {
 	DownloadLatest() (bin string, err error)
 	// DownloadVersion downloads the specified version of the asset.
 	DownloadVersion(version string) (bin string, err error)
+	// RequestedVersion returns the version defined in the fastly.toml file.
+	RequestedVersion() (version string)
 	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.
 	URL() (url string, err error)
 	// LatestVersion returns the latest version.

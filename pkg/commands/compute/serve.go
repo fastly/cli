@@ -34,6 +34,11 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+var viceroyError = fsterr.RemediationError{
+	Inner:       fmt.Errorf("a Viceroy version was not found"),
+	Remediation: fsterr.BugRemediation,
+}
+
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
@@ -48,15 +53,15 @@ type ServeCommand struct {
 	timeout     cmd.OptionalInt
 
 	// Serve fields
-	addr           string
-	debug          bool
-	env            cmd.OptionalString
-	file           string
-	skipBuild      bool
-	viceroyBinPath string
-	viceroyCheck   bool
-	watch          bool
-	watchDir       cmd.OptionalString
+	addr                    string
+	debug                   bool
+	env                     cmd.OptionalString
+	file                    string
+	forceCheckViceroyLatest bool
+	skipBuild               bool
+	viceroyBinPath          string
+	watch                   bool
+	watchDir                cmd.OptionalString
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -79,7 +84,7 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
-	c.CmdClause.Flag("viceroy-check", "Force the CLI to check for a newer version of the Viceroy binary").BoolVar(&c.viceroyCheck)
+	c.CmdClause.Flag("viceroy-check", "Force the CLI to check for a newer version of the Viceroy binary").BoolVar(&c.forceCheckViceroyLatest)
 	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.viceroyBinPath)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
 	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
@@ -114,7 +119,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	bin, err := GetViceroy(spinner, out, c.av, c.Globals, c.viceroyBinPath, c.viceroyCheck)
+	bin, err := GetViceroy(spinner, out, c.av, c.Globals, c.viceroyBinPath, c.forceCheckViceroyLatest)
 	if err != nil {
 		return err
 	}
@@ -224,7 +229,7 @@ func GetViceroy(
 	av github.AssetVersioner,
 	g *global.Data,
 	viceroyBinPath string,
-	viceroyCheck bool,
+	forceCheckViceroyLatest bool,
 ) (bin string, err error) {
 	if viceroyBinPath != "" {
 		if g.Verbose() {
@@ -263,101 +268,39 @@ func GetViceroy(
 	// nosemgrep
 	c := exec.Command(bin, "--version")
 
-	var install, checkUpdate bool
+	var installedVersion string
 
 	stdoutStderr, err := c.CombinedOutput()
 	if err != nil {
 		g.ErrLog.Add(err)
-
-		// We presume an error means Viceroy needs to be installed.
-		install = true
+	} else {
+		// Check the version output has the expected format: `viceroy 0.1.0`
+		installedVersion = strings.TrimSpace(string(stdoutStderr))
+		segs := strings.Split(installedVersion, " ")
+		if len(segs) < 2 {
+			return bin, viceroyError
+		}
+		installedVersion = segs[1]
 	}
 
-	viceroy := g.Config.Viceroy
-	var latest semver.Version
+	// If the user hasn't explicitly set a Viceroy version, then we'll use
+	// whatever the latest version is.
+	versionToInstall := "latest"
+	if v := av.RequestedVersion(); v != "" {
+		versionToInstall = v
 
-	// Use latest_version from CLI app config if it's not stale.
-	if viceroy.LastChecked != "" && viceroy.LatestVersion != "" && !check.Stale(viceroy.LastChecked, viceroy.TTL) {
-		latest, err = semver.Parse(viceroy.LatestVersion)
-		if err != nil {
-			return bin, err
-		}
-	}
-
-	// The latest_version value 0.0.0 means the property either has not been set
-	// or is now stale and needs to be refreshed.
-	if latest.String() == "0.0.0" || viceroyCheck {
-		err := spinner.Start()
-		if err != nil {
-			return bin, err
-		}
-		msg := "Checking latest Viceroy release"
-		spinner.Message(msg + "...")
-
-		v, err := av.LatestVersion()
-		if err != nil {
-			g.ErrLog.Add(err)
-
-			// When we have an error getting the latest version information for Viceroy
-			// and the user doesn't have a pre-existing install of Viceroy, then we're
-			// forced to return the error.
-			if install {
-				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return bin, spinErr
-				}
-
-				return bin, fsterr.RemediationError{
-					Inner:       fmt.Errorf("error fetching latest version: %w", err),
-					Remediation: fsterr.NetworkRemediation,
-				}
+		if _, err := semver.Parse(versionToInstall); err != nil {
+			return bin, fsterr.RemediationError{
+				Inner:       fmt.Errorf("failed to parse configured version as a semver: %w", err),
+				Remediation: fmt.Sprintf("Ensure the fastly.toml `viceroy_version` value '%s' (under the [local_server] section) is a valid semver (https://semver.org/), e.g. `0.1.0`)", versionToInstall),
 			}
-
-			spinner.StopMessage(msg)
-			return bin, spinner.Stop()
 		}
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
-		if err != nil {
-			return bin, err
-		}
-
-		// WARNING: This variable MUST shadow the parent scoped variable.
-		latest, err = semver.Parse(v)
-		if err != nil {
-			return bin, err
-		}
-
-		viceroy.LatestVersion = latest.String()
-		viceroy.LastChecked = time.Now().Format(time.RFC3339)
-
-		// Before attempting to write the config data back to disk we need to
-		// ensure we reassign the modified struct which is a copy (not reference).
-		g.Config.Viceroy = viceroy
-
-		err = g.Config.Write(g.Path)
-		if err != nil {
-			return bin, err
-		}
-
-		checkUpdate = true
 	}
 
-	if install {
-		err := installViceroy(spinner, av, bin)
-		if err != nil {
-			g.ErrLog.Add(err)
-			return bin, err
-		}
-	} else if checkUpdate {
-		version := strings.TrimSpace(string(stdoutStderr))
-		err := updateViceroy(spinner, version, out, av, latest, bin)
-		if err != nil {
-			g.ErrLog.Add(err)
-			return bin, err
-		}
+	err = installViceroy(installedVersion, versionToInstall, forceCheckViceroyLatest, spinner, av, bin, g)
+	if err != nil {
+		g.ErrLog.Add(err)
+		return bin, err
 	}
 
 	err = setBinPerms(bin)
@@ -394,23 +337,147 @@ var InstallDir = func() string {
 	panic("unable to deduce user config dir or user home dir")
 }()
 
-// installViceroy downloads the latest release from GitHub.
-func installViceroy(spinner text.Spinner, av github.AssetVersioner, bin string) error {
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Fetching latest Viceroy release"
-	spinner.Message(msg + "...")
+// installViceroy downloads the binary from GitHub.
+//
+// The logic flow is as follows:
+//
+// 1. Check if version to install is "latest"
+// 2. If so, check the latest release matches the installed version.
+// 3. If not latest, check the installed version matches the expected version.
+func installViceroy(
+	installedVersion, versionToInstall string,
+	forceCheckViceroyLatest bool,
+	spinner text.Spinner,
+	av github.AssetVersioner,
+	bin string,
+	g *global.Data,
+) error {
+	var (
+		err         error
+		msg, tmpBin string
+	)
 
-	tmpBin, err := av.DownloadLatest()
+	switch {
+	case installedVersion == "": // Viceroy not installed
+		if g.Verbose() {
+			text.Info(g.Output, "Viceroy is not already installed, so we will install the %s version.", versionToInstall)
+			text.Break(g.Output)
+		}
+		err = spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = fmt.Sprintf("Fetching Viceroy release: %s", versionToInstall)
+		spinner.Message(msg + "...")
+
+		if versionToInstall == "latest" {
+			tmpBin, err = av.DownloadLatest()
+		} else {
+			tmpBin, err = av.DownloadVersion(versionToInstall)
+		}
+	case versionToInstall != "latest":
+		if installedVersion == versionToInstall {
+			if g.Verbose() {
+				text.Info(g.Output, "Viceroy is already installed, and the installed version matches the required version (%s) in the fastly.toml file.", versionToInstall)
+				text.Break(g.Output)
+			}
+			return nil
+		}
+		if g.Verbose() {
+			text.Info(g.Output, "Viceroy is already installed, but the installed version (%s) doesn't match the required version (%s) specified in the fastly.toml file.", installedVersion, versionToInstall)
+			text.Break(g.Output)
+		}
+
+		err = spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = fmt.Sprintf("Fetching Viceroy release: %s", versionToInstall)
+		spinner.Message(msg + "...")
+
+		tmpBin, err = av.DownloadVersion(versionToInstall)
+	case versionToInstall == "latest":
+		// Viceroy is already installed, so we check if the installed version matches the latest.
+		// But we'll skip that check if the TTL for the Viceroy LastChecked hasn't expired.
+
+		stale := g.Config.Viceroy.LastChecked != "" && g.Config.Viceroy.LatestVersion != "" && check.Stale(g.Config.Viceroy.LastChecked, g.Config.Viceroy.TTL)
+		if !stale && !forceCheckViceroyLatest {
+			if g.Verbose() {
+				text.Info(g.Output, "Viceroy is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired. To force a refresh, re-run the command with the `--viceroy-check` flag.")
+				text.Break(g.Output)
+			}
+			return nil
+		}
+
+		err = spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = "Checking latest Viceroy release"
+		spinner.Message(msg + "...")
+
+		// IMPORTANT: We declare separately so to shadow `err` from parent scope.
+		var latestVersion string
+
+		latestVersion, err = av.LatestVersion()
+		if err != nil {
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
+
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("error fetching latest version: %w", err),
+				Remediation: fsterr.NetworkRemediation,
+			}
+		}
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return err
+		}
+
+		viceroyConfig := g.Config.Viceroy
+		viceroyConfig.LatestVersion = latestVersion
+		viceroyConfig.LastChecked = time.Now().Format(time.RFC3339)
+
+		// Before attempting to write the config data back to disk we need to
+		// ensure we reassign the modified struct which is a copy (not reference).
+		g.Config.Viceroy = viceroyConfig
+
+		err = g.Config.Write(g.ConfigPath)
+		if err != nil {
+			return err
+		}
+
+		if g.Verbose() {
+			text.Info(g.Output, "The CLI config (`fastly config`) has been updated with the latest Viceroy version: %s", latestVersion)
+			text.Break(g.Output)
+		}
+
+		if installedVersion != "" && installedVersion == latestVersion {
+			return nil
+		}
+
+		err = spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg = fmt.Sprintf("Fetching Viceroy release: %s", versionToInstall)
+		spinner.Message(msg + "...")
+
+		tmpBin, err = av.DownloadLatest()
+	}
+
 	if err != nil {
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
 			return spinErr
 		}
-		return fmt.Errorf("error downloading latest Viceroy release: %w", err)
+		return fmt.Errorf("error downloading Viceroy release: %w", err)
 	}
 	defer os.RemoveAll(tmpBin)
 
@@ -427,128 +494,6 @@ func installViceroy(spinner text.Spinner, av github.AssetVersioner, bin string) 
 
 	spinner.StopMessage(msg)
 	return spinner.Stop()
-}
-
-// updateViceroy checks if the currently installed version is out-of-date and
-// downloads the latest release from GitHub.
-func updateViceroy(
-	spinner text.Spinner,
-	version string,
-	out io.Writer,
-	av github.AssetVersioner,
-	latest semver.Version,
-	bin string,
-) error {
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Checking installed Viceroy version"
-	spinner.Message(msg + "...")
-
-	viceroyError := fsterr.RemediationError{
-		Inner:       fmt.Errorf("a Viceroy version was not found"),
-		Remediation: fsterr.BugRemediation,
-	}
-
-	// version output has the expected format: `viceroy 0.1.0`
-	segs := strings.Split(version, " ")
-
-	if len(segs) < 2 {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-		return viceroyError
-	}
-
-	installedViceroyVersion := segs[1]
-	if installedViceroyVersion == "" {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-		return viceroyError
-	}
-
-	current, err := semver.Parse(installedViceroyVersion)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("error reading current version: %w", err),
-			Remediation: fsterr.BugRemediation,
-		}
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-
-	if latest.GT(current) {
-		text.Break(out)
-		text.Output(out, "Current Viceroy version: %s", current)
-		text.Output(out, "Latest Viceroy version: %s", latest)
-		text.Break(out)
-
-		err := spinner.Start()
-		if err != nil {
-			return err
-		}
-		msg := "Fetching latest Viceroy release"
-		spinner.Message(msg + "...")
-
-		tmpBin, err := av.DownloadLatest()
-		if err != nil {
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return spinErr
-			}
-			return fmt.Errorf("error downloading latest Viceroy release: %w", err)
-		}
-		defer os.RemoveAll(tmpBin)
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
-		if err != nil {
-			return err
-		}
-
-		err = spinner.Start()
-		if err != nil {
-			return err
-		}
-		msg = "Replacing Viceroy binary"
-		spinner.Message(msg + "...")
-
-		if err := os.Rename(tmpBin, bin); err != nil {
-			if err := filesystem.CopyFile(tmpBin, bin); err != nil {
-				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return spinErr
-				}
-				return fmt.Errorf("error moving latest Viceroy binary in place: %w", err)
-			}
-		}
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // setBinPerms ensures 0777 perms are set on the Viceroy binary.
