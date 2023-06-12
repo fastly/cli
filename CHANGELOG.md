@@ -1,5 +1,17 @@
 # Changelog
 
+## [v10.2.0](https://github.com/fastly/cli/releases/tag/v10.2.0) (2023-06-12)
+
+**Enhancements:**
+
+* feat: support viceroy pinning [#947](https://github.com/fastly/cli/pull/947)
+* Enable environment variable hints for `--token` flag [#945](https://github.com/fastly/cli/pull/945)
+* secret store: add `--recreate` and `--recreate-must` options [#930](https://github.com/fastly/cli/pull/930)
+
+**Dependencies:**
+
+* build(deps): bump github.com/fastly/go-fastly/v8 from 8.3.0 to 8.4.1 [#946](https://github.com/fastly/cli/pull/946)
+
 ## [v10.1.0](https://github.com/fastly/cli/releases/tag/v10.1.0) (2023-05-18)
 
 Deprecation notice: `fastly compute hashsum` is being phased out in favour of `fastly compute hash-files`.
