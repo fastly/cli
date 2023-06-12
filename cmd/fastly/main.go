@@ -113,6 +113,8 @@ func main() {
 	md.File.Args = args
 	md.File.SetErrLog(fsterr.Log)
 	md.File.SetOutput(out)
+
+	// NOTE: We skip handling the error because not all commands relate to C@E.
 	_ = md.File.Read(manifest.Filename)
 
 	// Main is basically just a shim to call Run, so we do that here.
@@ -139,6 +141,7 @@ func main() {
 				Org:        "fastly",
 				Repo:       "viceroy",
 				Binary:     "viceroy",
+				Version:    md.File.LocalServer.ViceroyVersion,
 			}),
 		},
 	}

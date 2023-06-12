@@ -47,6 +47,10 @@ type Opts struct {
 	Org string
 	// Repo is a GitHub repository.
 	Repo string
+	// Version is the asset's release version to download.
+	// The value is the semver format (example: "0.1.0").
+	// If not set, then the latest version is implied.
+	Version string
 }
 
 // Asset is a versioner that uses Asset releases.
