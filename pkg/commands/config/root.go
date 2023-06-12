@@ -33,11 +33,11 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		if c.Globals.Flags.Verbose {
 			text.Break(out)
 		}
-		fmt.Fprintln(out, c.Globals.Path)
+		fmt.Fprintln(out, c.Globals.ConfigPath)
 		return nil
 	}
 
-	data, err := os.ReadFile(c.Globals.Path)
+	data, err := os.ReadFile(c.Globals.ConfigPath)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

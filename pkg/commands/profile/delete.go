@@ -29,7 +29,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if ok := profile.Delete(c.profile, c.Globals.Config.Profiles); ok {
-		if err := c.Globals.Config.Write(c.Globals.Path); err != nil {
+		if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 			return err
 		}
 		text.Success(out, "Profile '%s' deleted", c.profile)

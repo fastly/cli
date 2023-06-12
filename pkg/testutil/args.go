@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 )
 
@@ -55,6 +56,12 @@ func Args(args string) []string {
 // while the majority of fields will be pre-populated and only those fields
 // commonly changed for testing purposes will need to be provided.
 func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
+	var md manifest.Data
+	md.File.Args = args
+	md.File.SetErrLog(errors.Log)
+	md.File.SetOutput(stdout)
+	_ = md.File.Read(manifest.Filename)
+
 	return app.RunOpts{
 		ConfigPath: "/dev/null",
 		Args:       args,
@@ -63,6 +70,7 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 		ErrLog:     errors.Log,
 		ConfigFile: config.File{},
 		HTTPClient: &http.Client{Timeout: time.Second * 5},
+		Manifest:   &md,
 		Stdout:     stdout,
 	}
 }

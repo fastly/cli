@@ -86,9 +86,9 @@ func TestGetViceroy(t *testing.T) {
 	}
 
 	g := global.Data{
-		Config: file,
-		Path:   configPath,
-		ErrLog: fsterr.MockLog{},
+		Config:     file,
+		ConfigPath: configPath,
+		ErrLog:     fsterr.MockLog{},
 	}
 
 	spinner, err := text.NewSpinner(&out)
@@ -102,7 +102,7 @@ func TestGetViceroy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !strings.Contains(out.String(), "Fetching latest Viceroy release") {
+	if !strings.Contains(out.String(), "Fetching Viceroy release: ") {
 		t.Fatalf("expected file to be downloaded successfully")
 	}
 

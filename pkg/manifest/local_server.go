@@ -2,10 +2,11 @@ package manifest
 
 // LocalServer represents a list of mocked Viceroy resources.
 type LocalServer struct {
-	Backends     map[string]LocalBackend       `toml:"backends"`
-	ConfigStores map[string]LocalConfigStore   `toml:"config_stores,omitempty"`
-	KVStores     map[string][]LocalKVStore     `toml:"kv_stores,omitempty"`
-	SecretStores map[string][]LocalSecretStore `toml:"secret_stores,omitempty"`
+	Backends       map[string]LocalBackend       `toml:"backends"`
+	ConfigStores   map[string]LocalConfigStore   `toml:"config_stores,omitempty"`
+	KVStores       map[string][]LocalKVStore     `toml:"kv_stores,omitempty"`
+	SecretStores   map[string][]LocalSecretStore `toml:"secret_stores,omitempty"`
+	ViceroyVersion string                        `toml:"viceroy_version,omitempty"`
 }
 
 // LocalBackend represents a backend to be mocked by the local testing server.

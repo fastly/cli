@@ -8,10 +8,13 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
+
+	"github.com/blang/semver"
+	"github.com/mholt/archiver"
 
 	"github.com/fastly/cli/pkg/api"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
-	"github.com/mholt/archiver"
 )
 
 const (
@@ -23,14 +26,15 @@ const (
 func New(opts Opts) *Asset {
 	binary := opts.Binary
 	if fstruntime.Windows && filepath.Ext(binary) == "" {
-		binary = binary + ".exe"
+		binary += ".exe"
 	}
 
 	return &Asset{
-		httpClient: opts.HTTPClient,
-		org:        opts.Org,
-		repo:       opts.Repo,
-		binary:     binary,
+		binary:           binary,
+		httpClient:       opts.HTTPClient,
+		org:              opts.Org,
+		repo:             opts.Repo,
+		versionRequested: opts.Version,
 	}
 }
 
@@ -44,6 +48,10 @@ type Opts struct {
 	Org string
 	// Repo is a GitHub repository.
 	Repo string
+	// Version is the asset's release version to download.
+	// The value is the semver format (example: "0.1.0").
+	// If not set, then the latest version is implied.
+	Version string
 }
 
 // Asset is a versioner that uses Asset releases.
@@ -60,6 +68,8 @@ type Asset struct {
 	url string
 	// version is the release version of the asset.
 	version string
+	// versionRequested is the requested release version of the asset.
+	versionRequested string
 }
 
 // BinaryName returns the configured binary output name.
@@ -70,13 +80,34 @@ func (g Asset) BinaryName() string {
 	return g.binary
 }
 
-// Download retrieves the binary archive format from GitHub.
-func (g *Asset) Download() (bin string, err error) {
+// DownloadLatest retrieves the latest binary version.
+func (g *Asset) DownloadLatest() (bin string, err error) {
+	endpoint, err := g.URL()
+	if err != nil {
+		return "", err
+	}
+	return g.Download(endpoint)
+}
+
+// DownloadVersion retrieves the specified binary version.
+func (g *Asset) DownloadVersion(version string) (bin string, err error) {
+	_, err = semver.Parse(version)
+	if err != nil {
+		return "", err
+	}
+
 	endpoint, err := g.URL()
 	if err != nil {
 		return "", err
 	}
 
+	endpoint = strings.ReplaceAll(endpoint, g.version, version)
+
+	return g.Download(endpoint)
+}
+
+// Download retrieves the binary archive format from the specified endpoint.
+func (g *Asset) Download(endpoint string) (bin string, err error) {
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create a HTTP request: %w", err)
@@ -130,8 +161,8 @@ func (g *Asset) URL() (url string, err error) {
 	return g.url, nil
 }
 
-// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
-func (g *Asset) Version() (version string, err error) {
+// LatestVersion returns the asset LatestVersion if set, otherwise calls the API metadata endpoint.
+func (g *Asset) LatestVersion() (version string, err error) {
 	if g.version != "" {
 		return g.version, nil
 	}
@@ -145,6 +176,12 @@ func (g *Asset) Version() (version string, err error) {
 	g.version = m.Version
 
 	return g.version, nil
+}
+
+// RequestedVersion returns the version of the asset defined in the fastly.toml.
+// NOTE: This is only relevant for `compute serve` with viceroy_version pinning.
+func (g *Asset) RequestedVersion() string {
+	return g.versionRequested
 }
 
 // metadata acquires GitHub metadata.
@@ -163,6 +200,7 @@ func (g *Asset) metadata() (m Metadata, err error) {
 	if err != nil {
 		return m, fmt.Errorf("failed to request GitHub metadata: %w", err)
 	}
+	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return m, fmt.Errorf("failed to request GitHub metadata: %s", res.Status)
 	}
@@ -184,7 +222,7 @@ func (g *Asset) metadata() (m Metadata, err error) {
 type Metadata struct {
 	// URL is the endpoint for downloading the release asset.
 	URL string `json:"url"`
-	// Version is the release version of the asset.
+	// Version is the release version of the asset (e.g. 10.1.0).
 	Version string `json:"version"`
 }
 
@@ -192,12 +230,18 @@ type Metadata struct {
 type AssetVersioner interface {
 	// BinaryName returns the configured binary output name.
 	BinaryName() string
-	// Download implements the Versioner interface.
-	Download() (bin string, err error)
+	// Download downloads the asset from the specified endpoint.
+	Download(endpoint string) (bin string, err error)
+	// DownloadLatest downloads the latest version of the asset.
+	DownloadLatest() (bin string, err error)
+	// DownloadVersion downloads the specified version of the asset.
+	DownloadVersion(version string) (bin string, err error)
+	// RequestedVersion returns the version defined in the fastly.toml file.
+	RequestedVersion() (version string)
 	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.
 	URL() (url string, err error)
-	// Version returns the asset Version if set, otherwise calls the API metadata endpoint.
-	Version() (version string, err error)
+	// LatestVersion returns the latest version.
+	LatestVersion() (version string, err error)
 }
 
 // createArchive copies the DevHub response body data into a temporary archive

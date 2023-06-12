@@ -6,6 +6,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/kingpin"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
@@ -19,8 +22,6 @@ import (
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
-	"github.com/fastly/kingpin"
 )
 
 // FastlyAPIClient is a ClientFactory that returns a real Fastly API client
@@ -41,22 +42,16 @@ func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
 func Run(opts RunOpts) error {
-	var md manifest.Data
-	md.File.Args = opts.Args
-	md.File.SetErrLog(opts.ErrLog)
-	md.File.SetOutput(opts.Stdout)
-	_ = md.File.Read(manifest.Filename)
-
 	// The g will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	g := global.Data{
 		Env:        opts.Env,
 		ErrLog:     opts.ErrLog,
 		Config:     opts.ConfigFile,
+		ConfigPath: opts.ConfigPath,
 		HTTPClient: opts.HTTPClient,
-		Manifest:   md,
+		Manifest:   *opts.Manifest,
 		Output:     opts.Stdout,
-		Path:       opts.ConfigPath,
 	}
 
 	// Set up the main application root, including global flags, and then each
@@ -94,7 +89,7 @@ func Run(opts RunOpts) error {
 	app.Flag("token", tokenHelp).HintAction(env.Vars).Short('t').StringVar(&g.Flags.Token)
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&g.Flags.Verbose)
 
-	commands := defineCommands(app, &g, md, opts)
+	commands := defineCommands(app, &g, *opts.Manifest, opts)
 	command, name, err := processCommandInput(opts, app, &g, commands)
 	if err != nil {
 		return err
@@ -113,7 +108,7 @@ func Run(opts RunOpts) error {
 	}
 
 	if g.Flags.Quiet {
-		md.File.SetQuiet(true)
+		opts.Manifest.File.SetQuiet(true)
 	}
 
 	token, source := g.Token()
@@ -123,11 +118,11 @@ func Run(opts RunOpts) error {
 			source,
 			opts.Stdout,
 			env.Token,
-			determineProfile(md.File.Profile, g.Flags.Profile, g.Config.Profiles),
+			determineProfile(opts.Manifest.File.Profile, g.Flags.Profile, g.Config.Profiles),
 		)
 	}
 
-	token, err = profile.Init(token, &md, &g, opts.Stdin, opts.Stdout)
+	token, err = profile.Init(token, opts.Manifest, &g, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return err
 	}
@@ -198,6 +193,7 @@ type RunOpts struct {
 	Env        config.Environment
 	ErrLog     fsterr.LogInterface
 	HTTPClient api.HTTPClient
+	Manifest   *manifest.Data
 	Stdin      io.Reader
 	Stdout     io.Writer
 	Versioners Versioners
