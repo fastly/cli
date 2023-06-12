@@ -24,12 +24,12 @@ func (av AssetVersioner) DownloadLatest() (string, error) {
 }
 
 // DownloadVersion implements github.Versioner interface.
-func (av AssetVersioner) DownloadVersion(version string) (string, error) {
+func (av AssetVersioner) DownloadVersion(_ string) (string, error) {
 	return "", nil
 }
 
 // Download implements github.Versioner interface.
-func (av AssetVersioner) Download(endpoint string) (string, error) {
+func (av AssetVersioner) Download(_ string) (string, error) {
 	return "", nil
 }
 
