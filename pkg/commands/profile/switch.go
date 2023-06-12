@@ -41,7 +41,7 @@ func (c *SwitchCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Globals.Config.Profiles = p
 
-	if err := c.Globals.Config.Write(c.Globals.Path); err != nil {
+	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}

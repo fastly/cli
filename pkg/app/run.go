@@ -48,10 +48,10 @@ func Run(opts RunOpts) error {
 		Env:        opts.Env,
 		ErrLog:     opts.ErrLog,
 		Config:     opts.ConfigFile,
+		ConfigPath: opts.ConfigPath,
 		HTTPClient: opts.HTTPClient,
 		Manifest:   *opts.Manifest,
 		Output:     opts.Stdout,
-		Path:       opts.ConfigPath,
 	}
 
 	// Set up the main application root, including global flags, and then each

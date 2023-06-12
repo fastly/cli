@@ -64,7 +64,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	displayCfgPath(c.Globals.Path, out)
+	displayCfgPath(c.Globals.ConfigPath, out)
 	text.Success(out, "Profile '%s' created", c.profile)
 	return nil
 }
@@ -237,7 +237,7 @@ func (c *CreateCommand) persistCfg() error {
 	// File.Write() method as this chunk of code is duplicated in various places.
 	// Consider consolidating with pkg/filesystem/directory.go
 	// This function is itself duplicated in pkg/commands/profile/update.go
-	dir := filepath.Dir(c.Globals.Path)
+	dir := filepath.Dir(c.Globals.ConfigPath)
 	fi, err := os.Stat(dir)
 	switch {
 	case err == nil && !fi.IsDir():
@@ -253,7 +253,7 @@ func (c *CreateCommand) persistCfg() error {
 		}
 	}
 
-	if err := c.Globals.Config.Write(c.Globals.Path); err != nil {
+	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}

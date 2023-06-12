@@ -86,9 +86,9 @@ func TestGetViceroy(t *testing.T) {
 	}
 
 	g := global.Data{
-		Config: file,
-		Path:   configPath,
-		ErrLog: fsterr.MockLog{},
+		Config:     file,
+		ConfigPath: configPath,
+		ErrLog:     fsterr.MockLog{},
 	}
 
 	spinner, err := text.NewSpinner(&out)
