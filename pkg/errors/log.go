@@ -62,12 +62,15 @@ func (ml MockLog) Persist(_ string, _ []string) error {
 var Log = new(LogEntries)
 
 // LogEntries represents a list of recorded log entries.
-type LogEntries []LogEntry
+type LogEntries struct {
+	Entries             []LogEntry
+	SkipInstrumentation bool
+}
 
 // Add adds a new log entry.
 func (l *LogEntries) Add(err error) {
 	logMutex.Lock()
-	*l = append(*l, createLogEntry(err))
+	l.Entries = append(l.Entries, createLogEntry(err))
 	logMutex.Unlock()
 }
 
@@ -77,13 +80,13 @@ func (l *LogEntries) AddWithContext(err error, ctx map[string]any) {
 	le.Context = ctx
 
 	logMutex.Lock()
-	*l = append(*l, le)
+	l.Entries = append(l.Entries, le)
 	logMutex.Unlock()
 }
 
 // Persist persists recorded log entries to disk.
 func (l LogEntries) Persist(logPath string, args []string) error {
-	if len(l) == 0 {
+	if len(l.Entries) == 0 {
 		return nil
 	}
 	cmd := "fastly " + strings.Join(args, " ")
@@ -146,7 +149,7 @@ ERROR:
 {{ end }}
 `
 	t := template.Must(template.New("record").Parse(record))
-	for _, entry := range l {
+	for _, entry := range l.Entries {
 		err := t.Execute(f, entry)
 		if err != nil {
 			return err
@@ -178,12 +181,15 @@ func FilterToken(input string) (inputFiltered string) {
 
 // instrument reports errors to our error analysis platform.
 func instrument(l LogEntries, cmd string) {
+	if l.SkipInstrumentation {
+		return
+	}
 	sentry.AddBreadcrumb(&sentry.Breadcrumb{
 		Category: "input",
 		Message:  cmd,
 		Type:     "info",
 	})
-	for _, entry := range l {
+	for _, entry := range l.Entries {
 		if entry.Context == nil {
 			continue // if no context is set, then skip sending this error to Sentry
 		} else if si, ok := entry.Context["AllowInstrumentation"]; !ok {
@@ -222,7 +228,7 @@ func instrument(l LogEntries, cmd string) {
 		sentry.AddBreadcrumb(&b)
 	}
 
-	sentry.CaptureException(l[len(l)-1].Err)
+	sentry.CaptureException(l.Entries[len(l.Entries)-1].Err)
 }
 
 // createLogEntry generates the boilerplate of a LogEntry.

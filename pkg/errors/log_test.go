@@ -25,7 +25,7 @@ func TestLogAdd(t *testing.T) {
 	le.AddWithContext(fmt.Errorf("qux"), m)
 
 	want := 4
-	got := len(*le)
+	got := len(le.Entries)
 	if got != want {
 		t.Fatalf("want length %d, got: %d", want, got)
 	}
