@@ -39,9 +39,14 @@ var LogPath = func() string {
 
 // LogInterface represents the LogEntries behaviours.
 type LogInterface interface {
+	// Add adds a new log entry.
 	Add(err error)
+	// AddWithContext adds a new log entry with extra contextual data.
 	AddWithContext(err error, ctx map[string]any)
+	// Persist persists recorded log entries to disk.
 	Persist(logPath string, args []string) error
+	// RateLimited sets field to true indicating we'll skip sending calls to Sentry.
+	RateLimited()
 }
 
 // MockLog is a no-op Log type.
@@ -63,8 +68,15 @@ var Log = new(LogEntries)
 
 // LogEntries represents a list of recorded log entries.
 type LogEntries struct {
-	Entries             []LogEntry
-	SkipInstrumentation bool
+	Entries           []LogEntry
+	RateLimitExceeded bool
+}
+
+// RateLimited sets field to true indicating we'll skip sending calls to Sentry.
+func (l *LogEntries) RateLimited() {
+	logMutex.Lock()
+	l.RateLimitExceeded = true
+	logMutex.Unlock()
 }
 
 // Add adds a new log entry.
@@ -181,7 +193,7 @@ func FilterToken(input string) (inputFiltered string) {
 
 // instrument reports errors to our error analysis platform.
 func instrument(l LogEntries, cmd string) {
-	if l.SkipInstrumentation {
+	if l.RateLimitExceeded {
 		return
 	}
 	sentry.AddBreadcrumb(&sentry.Breadcrumb{
