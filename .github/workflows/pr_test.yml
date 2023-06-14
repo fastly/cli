@@ -30,25 +30,35 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      # NOTE: Manage GitHub Actions cache https://github.com/fastly/cli/actions/caches
+
+      # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
       # This is useful if you need to clear the cache when a dependency doesn't update correctly.
-      - name: "Restore golang bin cache"
-        id: go-bin-cache
-        uses: actions/cache@v3
+      #
+      # REFERENCES:
+      # https://www.airplane.dev/blog/caching-golang-tests-in-ci
+      # https://markphelps.me/posts/speed-up-your-go-builds-with-actions-cache/
+
+      # Get values for cache paths to be used in later steps
+      - id: go-cache-paths
+        name: Retrieve Go Paths
+        run: |
+          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+
+      # Cache go build cache, used to speedup go test
+      - name: Go Build Cache
+        uses: actions/cache@v2
         with:
-          path: ~/go/bin
-          key: ${{ runner.os }}-go-bin-${{ hashFiles('~/go/bin') }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-bin-
-      - name: "Restore golang mod cache"
-        uses: actions/cache@v3
+          path: ${{ steps.go-cache-paths.outputs.gobuild }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+      # Cache go mod cache, used to speedup builds
+      - name: Go Mod Cache
+        uses: actions/cache@v2
         with:
-          path: |
-            ~/Library/Caches/go-build
-            ~/go/pkg/mod
+          path: ${{ steps.go-cache-paths.outputs.gomod }}
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-mod-
+
       - name: "Install dependencies"
         if: steps.go-bin-cache.outputs.cache-hit != 'true'
         run: make dependencies
@@ -91,22 +101,62 @@ jobs:
       - uses: Integralist/setup-tinygo@v1.0.0
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
-      - name: "Restore golang bin cache"
-        uses: actions/cache@v3
+
+      - id: go-cache-paths-nix
+        if: ${{ matrix.platform != 'windows-latest' }}
+        name: Retrieve Go Paths (Nix)
+        run: |
+          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+
+      - id: go-cache-paths-win
+        if: ${{ matrix.platform == 'windows-latest' }}
+        name: Retrieve Go Paths (Windows)
+        shell: pwsh
+        run: |
+          echo "gobuild=$(go env GOCACHE)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "gomod=$(go env GOMODCACHE)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Print GITHUB_OUTPUT (Nix)
+        if: ${{ matrix.platform != 'windows-latest' }}
+        run: |
+          echo "gobuild: ${{ steps.go-cache-paths-nix.outputs.gobuild }}"
+          echo "gomod: ${{ steps.go-cache-paths-nix.outputs.gomod }}"
+
+      - name: Print GITHUB_OUTPUT (Win)
+        if: ${{ matrix.platform == 'windows-latest' }}
+        run: |
+          echo "gobuild: ${{ steps.go-cache-paths-win.outputs.gobuild }}"
+          echo "gomod: ${{ steps.go-cache-paths-win.outputs.gomod }}"
+
+      - name: Go Build Cache (Nix)
+        if: ${{ matrix.platform != 'windows-latest' }}
+        uses: actions/cache@v2
         with:
-          path: ~/go/bin
-          key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-bin-
-      - name: "Restore golang mod cache"
-        uses: actions/cache@v3
+          path: ${{ steps.go-cache-paths-nix.outputs.gobuild }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+      - name: Go Build Cache (Win)
+        if: ${{ matrix.platform == 'windows-latest' }}
+        uses: actions/cache@v2
         with:
-          path: |
-            ~/Library/Caches/go-build
-            ~/go/pkg/mod
+          path: ${{ steps.go-cache-paths-win.outputs.gobuild }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+      - name: Go Mod Cache (Nix)
+        if: ${{ matrix.platform != 'windows-latest' }}
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths-nix.outputs.gomod }}
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-mod-
+
+      - name: Go Mod Cache (Win)
+        if: ${{ matrix.platform == 'windows-latest' }}
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths-win.outputs.gomod }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@stable
       - name: "Add wasm32-wasi Rust target"
