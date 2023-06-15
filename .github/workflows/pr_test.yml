@@ -30,34 +30,30 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      # Get values for cache paths to be used in later steps
+      # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
+      # This is useful if you need to clear the cache when a dependency doesn't update correctly.
+      #
+      # REFERENCES:
+      # https://www.airplane.dev/blog/caching-golang-tests-in-ci
+      # https://markphelps.me/posts/speed-up-your-go-builds-with-actions-cache/
+      #
       - id: go-cache-paths
-        # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
-        # This is useful if you need to clear the cache when a dependency doesn't update correctly.
-        #
-        # REFERENCES:
-        # https://www.airplane.dev/blog/caching-golang-tests-in-ci
-        # https://markphelps.me/posts/speed-up-your-go-builds-with-actions-cache/
-
         name: Retrieve Go Paths
         run: |
-          echo "gobin=$(go env GOPATH)/bin" >> $GITHUB_OUTPUT
-          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT
-          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
-      # Cache go's bin directory, where CLI dependencies are installed
-      - name: Go's Bin Dependencies
+          echo "gobin=$(go env GOPATH)/bin" >> $GITHUB_OUTPUT # speed up dependency installs
+          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
+          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up `go build` runs
+      - name: Go Bin Cache
         id: go-bin-deps
         uses: actions/cache@v2
         with:
           path: ${{ steps.go-cache-paths.outputs.gobin }}
           key: ${{ runner.os }}-lint-go-bin-${{ hashFiles('.github/dependencies.txt') }}
-      # Cache go build cache, used to speedup go test
       - name: Go Build Cache
         uses: actions/cache@v2
         with:
           path: ${{ steps.go-cache-paths.outputs.gobuild }}
           key: ${{ runner.os }}-lint-go-build-${{ hashFiles('**/go.sum') }}
-      # Cache go mod cache, used to speedup builds
       - name: Go Mod Cache
         uses: actions/cache@v2
         with:
@@ -109,8 +105,8 @@ jobs:
         if: ${{ matrix.platform != 'windows-latest' }}
         name: Retrieve Go Paths
         run: |
-          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT
-          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
+          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up `go build` runs
       - name: Go Build Cache
         if: ${{ matrix.platform != 'windows-latest' }}
         uses: actions/cache@v2
