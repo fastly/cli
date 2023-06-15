@@ -30,7 +30,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-
       # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
       # This is useful if you need to clear the cache when a dependency doesn't update correctly.
       #
@@ -44,21 +43,18 @@ jobs:
         run: |
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT
           echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
-
       # Cache go build cache, used to speedup go test
       - name: Go Build Cache
         uses: actions/cache@v2
         with:
           path: ${{ steps.go-cache-paths.outputs.gobuild }}
           key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-
       # Cache go mod cache, used to speedup builds
       - name: Go Mod Cache
         uses: actions/cache@v2
         with:
           path: ${{ steps.go-cache-paths.outputs.gomod }}
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-
       - name: "Install dependencies"
         if: steps.go-bin-cache.outputs.cache-hit != 'true'
         run: make dependencies
@@ -83,7 +79,7 @@ jobs:
         run: make gosec
         shell: bash
   test:
-    needs: config
+    needs: [config, lint]
     strategy:
       matrix:
         tinygo-version: [0.27.0]
@@ -101,28 +97,24 @@ jobs:
       - uses: Integralist/setup-tinygo@v1.0.0
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
-
       - id: go-cache-paths
         if: ${{ matrix.platform != 'windows-latest' }}
         name: Retrieve Go Paths
         run: |
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT
           echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
-
       - name: Go Build Cache
         if: ${{ matrix.platform != 'windows-latest' }}
         uses: actions/cache@v2
         with:
           path: ${{ steps.go-cache-paths.outputs.gobuild }}
           key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-
       - name: Go Mod Cache
         if: ${{ matrix.platform != 'windows-latest' }}
         uses: actions/cache@v2
         with:
           path: ${{ steps.go-cache-paths.outputs.gomod }}
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@stable
       - name: "Add wasm32-wasi Rust target"
