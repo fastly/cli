@@ -83,7 +83,7 @@ jobs:
         run: make gosec
         shell: bash
   test:
-    needs: [config, lint] # Depend on lint job so we dont have issues with caching GOMODCACHE
+    needs: [config]
     strategy:
       matrix:
         tinygo-version: [0.27.0]
