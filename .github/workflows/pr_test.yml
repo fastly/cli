@@ -30,15 +30,15 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
-      # This is useful if you need to clear the cache when a dependency doesn't update correctly.
-      #
-      # REFERENCES:
-      # https://www.airplane.dev/blog/caching-golang-tests-in-ci
-      # https://markphelps.me/posts/speed-up-your-go-builds-with-actions-cache/
-
       # Get values for cache paths to be used in later steps
       - id: go-cache-paths
+        # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
+        # This is useful if you need to clear the cache when a dependency doesn't update correctly.
+        #
+        # REFERENCES:
+        # https://www.airplane.dev/blog/caching-golang-tests-in-ci
+        # https://markphelps.me/posts/speed-up-your-go-builds-with-actions-cache/
+
         name: Retrieve Go Paths
         run: |
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT
@@ -79,7 +79,7 @@ jobs:
         run: make gosec
         shell: bash
   test:
-    needs: [config, lint]
+    needs: [config, lint] # Depend on lint job so we dont have issues with caching GOMODCACHE
     strategy:
       matrix:
         tinygo-version: [0.27.0]
