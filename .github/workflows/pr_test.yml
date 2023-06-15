@@ -102,59 +102,25 @@ jobs:
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
 
-      - id: go-cache-paths-nix
+      - id: go-cache-paths
         if: ${{ matrix.platform != 'windows-latest' }}
-        name: Retrieve Go Paths (Nix)
+        name: Retrieve Go Paths
         run: |
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT
           echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
 
-      - id: go-cache-paths-win
-        if: ${{ matrix.platform == 'windows-latest' }}
-        name: Retrieve Go Paths (Windows)
-        shell: pwsh
-        run: |
-          echo "gobuild=$(go env GOCACHE)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-          echo "gomod=$(go env GOMODCACHE)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Print GITHUB_OUTPUT (Nix)
-        if: ${{ matrix.platform != 'windows-latest' }}
-        run: |
-          echo "gobuild: ${{ steps.go-cache-paths-nix.outputs.gobuild }}"
-          echo "gomod: ${{ steps.go-cache-paths-nix.outputs.gomod }}"
-
-      - name: Print GITHUB_OUTPUT (Win)
-        if: ${{ matrix.platform == 'windows-latest' }}
-        run: |
-          echo "gobuild: ${{ steps.go-cache-paths-win.outputs.gobuild }}"
-          echo "gomod: ${{ steps.go-cache-paths-win.outputs.gomod }}"
-
-      - name: Go Build Cache (Nix)
+      - name: Go Build Cache
         if: ${{ matrix.platform != 'windows-latest' }}
         uses: actions/cache@v2
         with:
-          path: ${{ steps.go-cache-paths-nix.outputs.gobuild }}
+          path: ${{ steps.go-cache-paths.outputs.gobuild }}
           key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
 
-      - name: Go Build Cache (Win)
-        if: ${{ matrix.platform == 'windows-latest' }}
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.go-cache-paths-win.outputs.gobuild }}
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-
-      - name: Go Mod Cache (Nix)
+      - name: Go Mod Cache
         if: ${{ matrix.platform != 'windows-latest' }}
         uses: actions/cache@v2
         with:
-          path: ${{ steps.go-cache-paths-nix.outputs.gomod }}
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-
-      - name: Go Mod Cache (Win)
-        if: ${{ matrix.platform == 'windows-latest' }}
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.go-cache-paths-win.outputs.gomod }}
+          path: ${{ steps.go-cache-paths.outputs.gomod }}
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
       - name: "Install Rust"
