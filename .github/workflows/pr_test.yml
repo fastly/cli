@@ -132,10 +132,14 @@ jobs:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
         run: mv config.toml pkg/config/config.toml
-      # NOTE: Windows should fail quietly for 'test' pre-requisite target.
-      # On Windows, executing `make config` works fine.
-      # But via GitHub Actions the ../../scripts/config.sh isn't run.
-      # This is because you can't nest PowerShell instances.
+      - name: "Modify git cloned repo files 'modified' times"
+        run: go run ./scripts/go-test-cache/main.go
+      # NOTE: Windows should fail quietly running pre-requisite target of `test`.
+      #
+      # On Windows, executing `make config` directly works fine.
+      # But when `config` is a pre-requisite to running `test`, it fails.
+      # But only when run via GitHub Actions.
+      # The ../../scripts/config.sh isn't run because you can't nest PowerShell instances.
       # Each GitHub Action 'run' step is a PowerShell instance.
       # And each instance is run as: powershell.exe -command ". '...'"
       - name: "Test suite"
