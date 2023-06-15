@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // CreateCommand calls the Fastly API to create an Amazon S3 logging endpoint.
@@ -126,14 +127,15 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	// SecretKey or the IAMRole is required, but they are mutually
 	// exclusive. The kingpin library lacks a way to express this constraint
 	// via the flag specification API so we enforce it manually here.
-	if !c.AccessKey.WasSet && !c.SecretKey.WasSet && !c.IAMRole.WasSet {
+	switch {
+	case !c.AccessKey.WasSet && !c.SecretKey.WasSet && !c.IAMRole.WasSet:
 		return nil, fmt.Errorf("error parsing arguments: the --access-key and --secret-key flags or the --iam-role flag must be provided")
-	} else if (c.AccessKey.WasSet || c.SecretKey.WasSet) && c.IAMRole.WasSet {
+	case (c.AccessKey.WasSet || c.SecretKey.WasSet) && c.IAMRole.WasSet:
 		// Enforce mutual exclusion
 		return nil, fmt.Errorf("error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag")
-	} else if c.AccessKey.WasSet && !c.SecretKey.WasSet {
+	case c.AccessKey.WasSet && !c.SecretKey.WasSet:
 		return nil, fmt.Errorf("error parsing arguments: required flag --secret-key not provided")
-	} else if !c.AccessKey.WasSet && c.SecretKey.WasSet {
+	case !c.AccessKey.WasSet && c.SecretKey.WasSet:
 		return nil, fmt.Errorf("error parsing arguments: required flag --access-key not provided")
 	}
 
@@ -250,7 +252,7 @@ func ValidateRedundancy(val string) (redundancy fastly.S3Redundancy, err error) 
 	default:
 		err = fmt.Errorf("unknown redundancy: " + val)
 	}
-	return
+	return redundancy, err
 }
 
 // Exec invokes the application logic for the command.

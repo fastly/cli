@@ -8,9 +8,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/fastly/cli/pkg/sync"
 	"github.com/mitchellh/go-wordwrap"
 	"golang.org/x/term"
+
+	"github.com/fastly/cli/pkg/sync"
 )
 
 // DefaultTextWidth is the width that should be passed to Wrap for most
@@ -111,7 +112,7 @@ func IsStdin(r io.Reader) bool {
 // IsTTY returns true if fd is a terminal. When used in combination
 // with IsStdin, it can be used to determine whether standard input
 // is being piped data (i.e. IsStdin == true && IsTTY == false).
-// Provide STDOUT as a way to determine whether formating and/or
+// Provide STDOUT as a way to determine whether formatting and/or
 // prompting is acceptable output.
 func IsTTY(fd any) bool {
 	if s, ok := fd.(*sync.Writer); ok {

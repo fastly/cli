@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	BUF_SIZE    = 65536
-	BASE_DATE   = 1684178360
-	TIME_FORMAT = "2006-01-02 15:04:05"
+	bufSize    = 65536
+	baseDate   = 1684178360
+	timeFormat = "2006-01-02 15:04:05"
 )
 
 func main() {
@@ -55,7 +55,7 @@ func main() {
 
 			modTime := getModifiedTime(sha1Hash)
 
-			log.Printf("Setting modified time of file %s to %s\n", relPath, modTime.Format(TIME_FORMAT))
+			log.Printf("Setting modified time of file %s to %s\n", relPath, modTime.Format(timeFormat))
 			err = os.Chtimes(filePath, modTime, modTime)
 			if err != nil {
 				return err
@@ -75,8 +75,8 @@ func main() {
 	for _, dirPath := range allDirs {
 		relPath, _ := filepath.Rel(repoRoot, dirPath)
 
-		log.Printf("Setting modified time of directory %s to %s\n", relPath, time.Unix(BASE_DATE, 0).Format(TIME_FORMAT))
-		err := os.Chtimes(dirPath, time.Unix(BASE_DATE, 0), time.Unix(BASE_DATE, 0))
+		log.Printf("Setting modified time of directory %s to %s\n", relPath, time.Unix(baseDate, 0).Format(timeFormat))
+		err := os.Chtimes(dirPath, time.Unix(baseDate, 0), time.Unix(baseDate, 0))
 		if err != nil {
 			log.Fatal("Error:", err)
 		}
@@ -93,7 +93,7 @@ func getFileSHA1(filePath string) (string, error) {
 	defer file.Close()
 
 	hash := sha1.New()
-	if _, err := io.CopyBuffer(hash, file, make([]byte, BUF_SIZE)); err != nil {
+	if _, err := io.CopyBuffer(hash, file, make([]byte, bufSize)); err != nil {
 		return "", err
 	}
 
@@ -109,6 +109,6 @@ func getModifiedTime(sha1Hash string) time.Time {
 		lastFiveValue = (lastFiveValue << 8) + int64(b)
 	}
 
-	modTime := BASE_DATE - (lastFiveValue % 10000)
+	modTime := baseDate - (lastFiveValue % 10000)
 	return time.Unix(modTime, 0)
 }
