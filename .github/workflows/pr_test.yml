@@ -103,7 +103,7 @@ jobs:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: Retrieve Go Paths
         id: go-cache-paths
-        shell: bash
+        shell: bash # IMPORTANT: without this Windows OS will not work.
         run: |
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
           echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
