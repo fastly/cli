@@ -34,6 +34,7 @@ type CreateCommand struct {
 	CompressionCodec             cmd.OptionalString
 	Domain                       cmd.OptionalString
 	EndpointName                 cmd.OptionalString // Can't shadow cmd.Base method Name().
+	FileMaxBytes                 cmd.OptionalInt
 	Format                       cmd.OptionalString
 	FormatVersion                cmd.OptionalInt
 	GzipLevel                    cmd.OptionalInt
@@ -77,6 +78,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("bucket", "Your S3 bucket name").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
 	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	c.CmdClause.Flag("domain", "The domain of the S3 endpoint").Action(c.Domain.Set).StringVar(&c.Domain.Value)
+	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).IntVar(&c.FileMaxBytes.Value)
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.GzipLevel(c.CmdClause, &c.GzipLevel)
@@ -157,6 +159,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Domain.WasSet {
 		input.Domain = &c.Domain.Value
+	}
+
+	if c.FileMaxBytes.WasSet {
+		input.FileMaxBytes = &c.FileMaxBytes.Value
 	}
 
 	if c.Path.WasSet {

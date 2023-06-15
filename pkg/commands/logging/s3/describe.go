@@ -97,6 +97,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	lines := text.Lines{
 		"Bucket":                            o.BucketName,
 		"Compression codec":                 o.CompressionCodec,
+		"File max bytes":                    o.FileMaxBytes,
 		"Format version":                    o.FormatVersion,
 		"Format":                            o.Format,
 		"GZip level":                        o.GzipLevel,

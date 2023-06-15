@@ -379,6 +379,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			PublicKey:                    pgpPublicKey(),
 			ServerSideEncryption:         "aws:kms",
 			ServerSideEncryptionKMSKeyID: "1234",
+			FileMaxBytes:                 12345,
 			CompressionCodec:             "zstd",
 		},
 	}, nil
@@ -421,6 +422,7 @@ Version: 1
 		Redundancy: standard
 		Server-side encryption: aws:kms
 		Server-side encryption KMS key ID: aws:kms
+		File max bytes: 0
 		Compression codec: zstd
 	S3 2/2
 		Service ID: 123
@@ -442,6 +444,7 @@ Version: 1
 		Redundancy: standard
 		Server-side encryption: aws:kms
 		Server-side encryption KMS key ID: aws:kms
+		File max bytes: 12345
 		Compression codec: zstd
 `) + "\n\n"
 
@@ -478,6 +481,7 @@ var describeS3Output = "\n" + strings.TrimSpace(`
 Access key: 1234
 Bucket: my-logs
 Compression codec: zstd
+File max bytes: 0
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 GZip level: 0
