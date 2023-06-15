@@ -101,9 +101,10 @@ jobs:
       - uses: Integralist/setup-tinygo@v1.0.0
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
-      - id: go-cache-paths
+      - name: Retrieve Go Paths
+        # NOTE: We skip over Windows because we can't populate $GITHUB_OUTPUT.
+        id: go-cache-paths
         if: ${{ matrix.platform != 'windows-latest' }}
-        name: Retrieve Go Paths
         run: |
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
           echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up `go build` runs
