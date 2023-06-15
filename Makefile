@@ -57,11 +57,14 @@ all: config dependencies tidy fmt vet staticcheck gosec semgrep test build insta
 # Update CI tools used by ./.github/workflows/pr_test.yml
 .PHONY: dependencies
 dependencies:
-	$(GO_BIN) install github.com/securego/gosec/v2/cmd/gosec@latest
-	$(GO_BIN) install honnef.co/go/tools/cmd/staticcheck@2023.1
-	$(GO_BIN) install github.com/mgechev/revive@latest
-	$(GO_BIN) install github.com/goreleaser/goreleaser@latest
-	if [[ "$$(uname)" == 'Darwin' ]]; then brew install semgrep; fi
+	@while read -r line || [ -n "$$line" ]; do \
+		$(GO_BIN) install $$line; \
+	done < .github/dependencies.txt
+	@if [ "$$(uname)" = 'Darwin' ]; then \
+			if ! command -v semgrep &> /dev/null; then \
+					brew install semgrep; \
+			fi \
+	fi
 
 # Clean up Go modules file.
 .PHONY: tidy

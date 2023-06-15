@@ -1,5 +1,8 @@
-// This script is based on https://github.com/airplanedev/blog-examples/blob/main/go-test-caching/update_file_timestamps.py?ref=airplane.ghost.io
-// and was generated automatically using AI.
+// This code is based on the following script and was generated using AI.
+// https://github.com/airplanedev/blog-examples/blob/main/go-test-caching/update_file_timestamps.py?ref=airplane.ghost.io
+//
+// REFERENCE ARTICLE:
+// https://www.airplane.dev/blog/caching-golang-tests-in-ci#:~:text=fixed%20that%20problem.-,Reading%20fixtures,-A%20third%20issue
 package main
 
 import (
