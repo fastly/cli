@@ -42,7 +42,7 @@ jobs:
         run: |
           echo "gobin=$(go env GOPATH)/bin" >> $GITHUB_OUTPUT # speed up dependency installs
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
-          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up `go build` runs
+          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
       - name: Go Bin Cache
         id: go-bin-deps
         uses: actions/cache@v3
@@ -102,20 +102,17 @@ jobs:
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: Retrieve Go Paths
-        # NOTE: We skip over Windows because we can't populate $GITHUB_OUTPUT.
         id: go-cache-paths
-        if: ${{ matrix.platform != 'windows-latest' }}
+        shell: bash
         run: |
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
-          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up `go build` runs
+          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
       - name: Go Build Cache
-        if: ${{ matrix.platform != 'windows-latest' }}
         uses: actions/cache@v3
         with:
           path: ${{ steps.go-cache-paths.outputs.gobuild }}
           key: ${{ runner.os }}-test-go-build-${{ hashFiles('**/go.sum') }}
       - name: Go Mod Cache
-        if: ${{ matrix.platform != 'windows-latest' }}
         uses: actions/cache@v3
         with:
           path: ${{ steps.go-cache-paths.outputs.gomod }}
