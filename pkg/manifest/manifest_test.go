@@ -204,15 +204,7 @@ func TestManifestPrepend(t *testing.T) {
 }
 
 func TestDataServiceID(t *testing.T) {
-	sid := os.Getenv(env.ServiceID)
-	defer func(sid string) {
-		os.Setenv(env.ServiceID, sid)
-	}(sid)
-
-	err := os.Setenv(env.ServiceID, "001")
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Setenv(env.ServiceID, "001")
 
 	// SourceFlag
 	d := manifest.Data{
@@ -232,10 +224,7 @@ func TestDataServiceID(t *testing.T) {
 	}
 
 	// SourceFile
-	err = os.Setenv(env.ServiceID, "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Setenv(env.ServiceID, "")
 	_, src = d.ServiceID()
 	if src != manifest.SourceFile {
 		t.Fatal("expected SourceFile")

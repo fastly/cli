@@ -30,27 +30,37 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      # NOTE: Manage GitHub Actions cache https://github.com/fastly/cli/actions/caches
+      # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
       # This is useful if you need to clear the cache when a dependency doesn't update correctly.
-      - name: "Restore golang bin cache"
-        id: go-bin-cache
+      #
+      # REFERENCES:
+      # https://www.airplane.dev/blog/caching-golang-tests-in-ci
+      # https://markphelps.me/posts/speed-up-your-go-builds-with-actions-cache/
+      #
+      - id: go-cache-paths
+        name: Retrieve Go Paths
+        run: |
+          echo "gobin=$(go env GOPATH)/bin" >> $GITHUB_OUTPUT # speed up dependency installs
+          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
+          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
+      - name: Go Bin Cache
+        id: go-bin-deps
         uses: actions/cache@v3
         with:
-          path: ~/go/bin
-          key: ${{ runner.os }}-go-bin-${{ hashFiles('~/go/bin') }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-bin-
-      - name: "Restore golang mod cache"
+          path: ${{ steps.go-cache-paths.outputs.gobin }}
+          key: ${{ runner.os }}-lint-go-bin-${{ hashFiles('.github/dependencies.txt') }}
+      - name: Go Build Cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/Library/Caches/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-mod-
+          path: ${{ steps.go-cache-paths.outputs.gobuild }}
+          key: ${{ runner.os }}-lint-go-build-${{ hashFiles('**/go.sum') }}
+      - name: Go Mod Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.go-cache-paths.outputs.gomod }}
+          key: ${{ runner.os }}-lint-go-mod-${{ hashFiles('**/go.sum') }}
       - name: "Install dependencies"
-        if: steps.go-bin-cache.outputs.cache-hit != 'true'
+        if: steps.go-bin-deps.outputs.cache-hit != 'true'
         run: make dependencies
         shell: bash
       - name: "Run go mod tidy"
@@ -73,7 +83,7 @@ jobs:
         run: make gosec
         shell: bash
   test:
-    needs: config
+    needs: [config]
     strategy:
       matrix:
         tinygo-version: [0.27.0]
@@ -91,22 +101,22 @@ jobs:
       - uses: Integralist/setup-tinygo@v1.0.0
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
-      - name: "Restore golang bin cache"
+      - name: Retrieve Go Paths
+        id: go-cache-paths
+        shell: bash # IMPORTANT: without this Windows OS will not work.
+        run: |
+          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
+          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
+      - name: Go Build Cache
         uses: actions/cache@v3
         with:
-          path: ~/go/bin
-          key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-bin-
-      - name: "Restore golang mod cache"
+          path: ${{ steps.go-cache-paths.outputs.gobuild }}
+          key: ${{ runner.os }}-test-go-build-${{ hashFiles('**/go.sum') }}
+      - name: Go Mod Cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/Library/Caches/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-mod-
+          path: ${{ steps.go-cache-paths.outputs.gomod }}
+          key: ${{ runner.os }}-test-go-mod-${{ hashFiles('**/go.sum') }}
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@stable
       - name: "Add wasm32-wasi Rust target"
@@ -124,10 +134,14 @@ jobs:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
         run: mv config.toml pkg/config/config.toml
-      # NOTE: Windows should fail quietly for 'test' pre-requisite target.
-      # On Windows, executing `make config` works fine.
-      # But via GitHub Actions the ../../scripts/config.sh isn't run.
-      # This is because you can't nest PowerShell instances.
+      - name: "Modify git cloned repo files 'modified' times"
+        run: go run ./scripts/go-test-cache/main.go
+      # NOTE: Windows should fail quietly running pre-requisite target of `test`.
+      #
+      # On Windows, executing `make config` directly works fine.
+      # But when `config` is a pre-requisite to running `test`, it fails.
+      # But only when run via GitHub Actions.
+      # The ../../scripts/config.sh isn't run because you can't nest PowerShell instances.
       # Each GitHub Action 'run' step is a PowerShell instance.
       # And each instance is run as: powershell.exe -command ". '...'"
       - name: "Test suite"

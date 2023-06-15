@@ -7,7 +7,7 @@ import (
 )
 
 // Lines is the struct that is used by PrintLines
-type Lines map[string]interface{}
+type Lines map[string]any
 
 // PrintLines pretty prints a Lines struct with one item per line.
 // The map is sorted before printing and a newline is added at the beginning
