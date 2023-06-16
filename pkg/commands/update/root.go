@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
-	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"

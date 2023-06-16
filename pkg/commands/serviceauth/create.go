@@ -6,7 +6,6 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/cmd"
-	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
