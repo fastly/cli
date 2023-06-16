@@ -154,8 +154,7 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	client, err := c.clientFactory(token, endpoint)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Endpoint":                  endpoint,
+			"Endpoint": endpoint,
 		})
 
 		spinner.StopFailMessage(msg)

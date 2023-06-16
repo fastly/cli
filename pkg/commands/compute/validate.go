@@ -6,13 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/kennygrant/sanitize"
+	"github.com/mholt/archiver/v3"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/kennygrant/sanitize"
-	"github.com/mholt/archiver/v3"
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
@@ -42,16 +43,14 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	p, err := filepath.Abs(packagePath)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Path":                      c.path,
+			"Path": c.path,
 		})
 		return fmt.Errorf("error reading file path: %w", err)
 	}
 
 	if err := validate(p, nil); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Path":                      c.path,
+			"Path": c.path,
 		})
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to validate package: %w", err),

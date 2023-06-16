@@ -5,12 +5,13 @@ import (
 	"io"
 	"strconv"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a dictionary.
@@ -102,9 +103,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		writeOnly, err := strconv.ParseBool(c.writeOnly.Value)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				fsterr.AllowInstrumentation: true,
-				"Service ID":                serviceID,
-				"Service Version":           serviceVersion.Number,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
 			})
 			return err
 		}

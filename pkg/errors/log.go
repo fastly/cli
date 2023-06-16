@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,18 +12,7 @@ import (
 	"time"
 
 	"github.com/fastly/go-fastly/v8/fastly"
-	"github.com/getsentry/sentry-go"
 )
-
-// AllowInstrumentation sends errors to Sentry if set to boolean true.
-//
-// All errors are persisted to disk but some errors (such as Fastly API errors)
-// we don't want to send to Sentry because they're not actionable. Sentry should
-// only be sent errors that stem from logic bugs in the Fastly CLI.
-//
-// NOTE: We define a constant that's expected to be used as a map key.
-// This is to avoid subtle typos if the key was manually entered.
-const AllowInstrumentation string = "AllowInstrumentation"
 
 // LogPath is the location of the fastly CLI error log.
 var LogPath = func() string {
@@ -87,8 +75,6 @@ func (l LogEntries) Persist(logPath string, args []string) error {
 		return nil
 	}
 	cmd := "fastly " + strings.Join(args, " ")
-	instrument(l, cmd)
-
 	errMsg := "error accessing audit log file: %w"
 
 	// gosec flagged this:
@@ -174,55 +160,6 @@ func FilterToken(input string) (inputFiltered string) {
 	inputFiltered = TokenRegEx.ReplaceAllString(input, "Token REDACTED")
 	inputFiltered = TokenFlagRegEx.ReplaceAllString(inputFiltered, "${1}${2}REDACTED${4}")
 	return inputFiltered
-}
-
-// instrument reports errors to our error analysis platform.
-func instrument(l LogEntries, cmd string) {
-	sentry.AddBreadcrumb(&sentry.Breadcrumb{
-		Category: "input",
-		Message:  cmd,
-		Type:     "info",
-	})
-	for _, entry := range l {
-		if entry.Context == nil {
-			continue // if no context is set, then skip sending this error to Sentry
-		} else if si, ok := entry.Context["AllowInstrumentation"]; !ok {
-			continue // if no field is set, then skip sending this error to Sentry
-		} else if allow, ok := si.(bool); ok && !allow {
-			continue // if 'not allow', then skip sending this error to Sentry
-		}
-
-		var (
-			file string
-			line int
-		)
-		if v, ok := entry.Caller["FILE"]; ok {
-			file, _ = v.(string)
-		}
-		if v, ok := entry.Caller["LINE"]; ok {
-			line, _ = v.(int)
-		}
-
-		err := errors.New("unknown").Error()
-		if entry.Err != nil {
-			err = entry.Err.Error()
-		}
-
-		// https://docs.sentry.io/product/issues/issue-details/breadcrumbs/
-		b := sentry.Breadcrumb{
-			Data:      entry.Context,
-			Message:   fmt.Sprintf("%s (file: %s, line: %d)", err, file, line),
-			Timestamp: entry.Time,
-			Type:      "error",
-		}
-		if file != "" {
-			name := filepath.Base(file)
-			b.Category = strings.Split(name, ".go")[0]
-		}
-		sentry.AddBreadcrumb(&b)
-	}
-
-	sentry.CaptureException(l[len(l)-1].Err)
 }
 
 // createLogEntry generates the boilerplate of a LogEntry.

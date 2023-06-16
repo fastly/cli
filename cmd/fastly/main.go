@@ -4,54 +4,22 @@ package main
 import (
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/getsentry/sentry-go"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
 )
 
-const sentryTimeout = 2 * time.Second
-
 func main() {
-	err := sentry.Init(sentry.ClientOptions{
-		Debug:       false,
-		Dsn:         "https://6e390df3d7924f7bbe521299bbd4f8dc@o1025883.ingest.sentry.io/6423223",
-		Environment: revision.Environment,
-		Release:     revision.AppVersion,
-		IgnoreErrors: []string{
-			`required flag \-\-[^\s]+ not provided`,
-			`error reading service: no service ID found`,
-			`error matching service name with available services`,
-			`open fastly.toml: no such file or directory`,
-		},
-		BeforeSend: func(event *sentry.Event, _ *sentry.EventHint) *sentry.Event {
-			for i, e := range event.Exception {
-				event.Exception[i].Value = fsterr.FilterToken(e.Value)
-			}
-			return event
-		},
-		BeforeBreadcrumb: func(breadcrumb *sentry.Breadcrumb, _ *sentry.BreadcrumbHint) *sentry.Breadcrumb {
-			breadcrumb.Message = fsterr.FilterToken(breadcrumb.Message)
-			return breadcrumb
-		},
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer sentry.Flush(sentryTimeout)
-
 	// Some configuration options can come from env vars.
 	var env config.Environment
 	env.Read(parseEnv(os.Environ()))
@@ -100,12 +68,11 @@ func main() {
 	file.SetNonInteractive(nonInteractive)
 
 	// The CLI relies on a valid configuration, otherwise we can't continue.
-	err = file.Read(config.FilePath, in, out, fsterr.Log, verboseOutput)
+	err := file.Read(config.FilePath, in, out, fsterr.Log, verboseOutput)
 	if err != nil {
 		fsterr.Deduce(err).Print(color.Error)
 
-		// WARNING: os.Exit will exit, and `defer sentry.Flush(sentryTimeout)` will not run
-		// But in reality this is fine and won't cause any issues at this stage.
+		// WARNING: os.Exit will exit, and any `defer` calls will not be run.
 		os.Exit(1)
 	}
 
@@ -158,11 +125,6 @@ func main() {
 	}
 
 	if err != nil {
-		// NOTE: os.Exit doesn't honour any deferred calls so we have to manually
-		// flush the Sentry buffer here (as well as the deferred call at the top of
-		// the main function).
-		sentry.Flush(sentryTimeout)
-
 		fsterr.Deduce(err).Print(color.Error)
 
 		exitError := fsterr.SkipExitError{}

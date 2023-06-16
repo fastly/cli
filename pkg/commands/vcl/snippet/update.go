@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -101,9 +102,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				fsterr.AllowInstrumentation: true,
-				"Service ID":                serviceID,
-				"Service Version":           serviceVersion.Number,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
 			})
 			return err
 		}
@@ -122,9 +122,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input, err := c.constructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Service ID":                serviceID,
-			"Service Version":           serviceVersion.Number,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
 		})
 		return err
 	}
