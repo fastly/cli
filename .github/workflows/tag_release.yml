@@ -8,50 +8,41 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-    - name: "Checkout code"
-      uses: actions/checkout@v3
-    - name: "Fetch unshallow repo"
-      run: git fetch --prune --unshallow
-    - name: "Install Go"
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20.x'
-    - name: "Set GOHOSTOS and GOHOSTARCH"
-      run: echo "GOHOSTOS=$(go env GOHOSTOS)" >> $GITHUB_ENV && echo "GOHOSTARCH=$(go env GOHOSTARCH)" >> $GITHUB_ENV
-    - name: "Install Rust"
-      uses: dtolnay/rust-toolchain@stable
-    - name: "Generate static app config"
-      run: make config
-    # Passing the raw SSH private key causes an error:
-    # Load key "/tmp/id_*": invalid format
-    #
-    # Testing locally we discovered that storing in a file and passing the file path works.
-    #
-    # NOTE:
-    # The file aur_key must be added to .gitignore otherwise a 'dirty state' error is triggered in goreleaser.
-    # https://github.com/goreleaser/goreleaser/blob/9505cf7054b05a6e9a4a36f806d525bc33660e9e/www/docs/errors/dirty.md
-    #
-    # You must also reduce the permissions from a default of 0644 to 600 to avoid a 'bad permissions' error.
-    - name: "Store AUR_KEY in local file"
-      run: echo '${{ secrets.AUR_KEY }}' > '${{ github.workspace }}/aur_key' && chmod 600 '${{ github.workspace }}/aur_key'
-    - name: "Run GoReleaser"
-      uses: goreleaser/goreleaser-action@v4
-      with:
-        # goreleaser version (NOT goreleaser-action version)
-        # update inline with the Makefile
-        version: latest
-        args: release --clean
-      env:
-        AUR_KEY: '${{ github.workspace }}/aur_key'
-        GOHOSTOS: ${{ env.GOHOSTOS }}
-        GOHOSTARCH: ${{ env.GOHOSTARCH }}
-        GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-    - name: "Generate release commits"
-      id: generate-commits
-      run: ./scripts/release-commits.sh
-    - name: Create Sentry release
-      run: |
-        curl https://sentry.io/api/0/organizations/${{ secrets.SENTRY_ORG }}/releases/ \
-         -H 'Authorization: Bearer ${{ secrets.SENTRY_TOKEN }}' \
-         -H 'Content-Type: application/json' \
-         -d '{"version":"${{ github.ref_name }}","ref":"${{ github.sha }}","commits":${{ steps.generate-commits.outputs.commits }},"url":"https://github.com/fastly/cli/releases/tag/v${{ github.ref_name }}","projects":["${{ secrets.SENTRY_PROJECT }}"]}'
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+      - name: "Fetch unshallow repo"
+        run: git fetch --prune --unshallow
+      - name: "Install Go"
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20.x'
+      - name: "Set GOHOSTOS and GOHOSTARCH"
+        run: echo "GOHOSTOS=$(go env GOHOSTOS)" >> $GITHUB_ENV && echo "GOHOSTARCH=$(go env GOHOSTARCH)" >> $GITHUB_ENV
+      - name: "Install Rust"
+        uses: dtolnay/rust-toolchain@stable
+      - name: "Generate static app config"
+        run: make config
+      # Passing the raw SSH private key causes an error:
+      # Load key "/tmp/id_*": invalid format
+      #
+      # Testing locally we discovered that storing in a file and passing the file path works.
+      #
+      # NOTE:
+      # The file aur_key must be added to .gitignore otherwise a 'dirty state' error is triggered in goreleaser.
+      # https://github.com/goreleaser/goreleaser/blob/9505cf7054b05a6e9a4a36f806d525bc33660e9e/www/docs/errors/dirty.md
+      #
+      # You must also reduce the permissions from a default of 0644 to 600 to avoid a 'bad permissions' error.
+      - name: "Store AUR_KEY in local file"
+        run: echo '${{ secrets.AUR_KEY }}' > '${{ github.workspace }}/aur_key' && chmod 600 '${{ github.workspace }}/aur_key'
+      - name: "Run GoReleaser"
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          # goreleaser version (NOT goreleaser-action version)
+          # update inline with the Makefile
+          version: latest
+          args: release --clean
+        env:
+          AUR_KEY: '${{ github.workspace }}/aur_key'
+          GOHOSTOS: ${{ env.GOHOSTOS }}
+          GOHOSTARCH: ${{ env.GOHOSTARCH }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
