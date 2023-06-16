@@ -92,6 +92,11 @@ func getFileSHA1(filePath string) (string, error) {
 	}
 	defer file.Close()
 
+	// G401: Use of weak cryptographic primitive
+	// Disabling as the hash is used not for security reasons.
+	// The hash is used as a cache key to improve test run times.
+	// #nosec
+	// nosemgrep: go.lang.security.audit.crypto.use_of_weak_crypto.use-of-sha1
 	hash := sha1.New()
 	if _, err := io.CopyBuffer(hash, file, make([]byte, bufSize)); err != nil {
 		return "", err
