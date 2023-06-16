@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -122,8 +123,7 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 	err := json.Unmarshal(bs, &input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"File":                      s,
+			"File": s,
 		})
 		return nil, err
 	}
@@ -134,8 +134,7 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 			Remediation: "Consult the API documentation for the JSON format: https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries",
 		}
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"File":                      string(bs),
+			"File": string(bs),
 		})
 		return nil, err
 	}

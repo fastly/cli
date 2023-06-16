@@ -6,13 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mholt/archiver/v3"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/mholt/archiver/v3"
 )
 
 // PackCommand takes a .wasm and builds the required tar/gzip package ready to be uploaded.
@@ -58,7 +59,6 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	err = filesystem.MakeDirectoryIfNotExists(bindir)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
 			"Wasm directory (relative)": bindir,
 		})
 		return err
@@ -67,15 +67,13 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	src, err := filepath.Abs(c.wasmBinary)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Path (absolute)":           src,
+			"Path (absolute)": src,
 		})
 		return err
 	}
 	dst, err := filepath.Abs(bin)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation:   true,
 			"Wasm destination (relative)": bin,
 		})
 		return err
@@ -90,7 +88,6 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation:   true,
 			"Path (absolute)":             src,
 			"Wasm destination (absolute)": dst,
 		})
@@ -134,9 +131,8 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	dst = fmt.Sprintf("pkg/package/%s", manifest.Filename)
 	if err := filesystem.CopyFile(src, dst); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Manifest (destination)":    dst,
-			"Manifest (source)":         src,
+			"Manifest (destination)": dst,
+			"Manifest (source)":      src,
 		})
 
 		spinner.StopFailMessage(msg)
@@ -169,9 +165,8 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		dst := fmt.Sprintf("%s.tar.gz", dir)
 		if err = tar.Archive(src, dst); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				fsterr.AllowInstrumentation: true,
-				"Tar source":                dir,
-				"Tar destination":           dst,
+				"Tar source":      dir,
+				"Tar destination": dst,
 			})
 
 			spinner.StopFailMessage(msg)

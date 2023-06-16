@@ -14,16 +14,6 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// AllowInstrumentation sends errors to Sentry if set to boolean true.
-//
-// All errors are persisted to disk but some errors (such as Fastly API errors)
-// we don't want to send to Sentry because they're not actionable. Sentry should
-// only be sent errors that stem from logic bugs in the Fastly CLI.
-//
-// NOTE: We define a constant that's expected to be used as a map key.
-// This is to avoid subtle typos if the key was manually entered.
-const AllowInstrumentation string = "AllowInstrumentation"
-
 // LogPath is the location of the fastly CLI error log.
 var LogPath = func() string {
 	if dir, err := os.UserConfigDir(); err == nil {

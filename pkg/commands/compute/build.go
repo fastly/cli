@@ -203,9 +203,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	err = CreatePackageArchive(files, dest)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Files":                     files,
-			"Destination":               dest,
+			"Files":       files,
+			"Destination": dest,
 		})
 
 		spinner.StopFailMessage(msg)
@@ -249,8 +248,7 @@ func (c *BuildCommand) includeSourceCode(files []string, srcDir string) ([]strin
 		binFiles, err := GetNonIgnoredFiles("bin", ignoreFiles)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				fsterr.AllowInstrumentation: true,
-				"Ignore files":              ignoreFiles,
+				"Ignore files": ignoreFiles,
 			})
 			return empty, err
 		}
@@ -259,9 +257,8 @@ func (c *BuildCommand) includeSourceCode(files []string, srcDir string) ([]strin
 		srcFiles, err := GetNonIgnoredFiles(srcDir, ignoreFiles)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				fsterr.AllowInstrumentation: true,
-				"Source directory":          srcDir,
-				"Ignore files":              ignoreFiles,
+				"Source directory": srcDir,
+				"Ignore files":     ignoreFiles,
 			})
 			return empty, err
 		}

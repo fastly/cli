@@ -3,13 +3,14 @@ package bigquery
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a BigQuery logging endpoint.
@@ -159,9 +160,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Service ID":                serviceID,
-			"Service Version":           serviceVersion.Number,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
 		})
 		return err
 	}

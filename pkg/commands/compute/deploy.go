@@ -279,8 +279,7 @@ func validatePackage(
 	pkgPath, err = packagePath(packageFlag, projectName, source)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Package path":              packageFlag,
+			"Package path": packageFlag,
 		})
 		return pkgPath, hashSum, err
 	}
@@ -288,8 +287,7 @@ func validatePackage(
 	pkgSize, err := packageSize(pkgPath)
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Package path":              pkgPath,
+			"Package path": pkgPath,
 		})
 		return pkgPath, hashSum, fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading package size: %w", err),
@@ -318,9 +316,8 @@ func validatePackage(
 		return nil
 	}); err != nil {
 		errLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Package path":              pkgPath,
-			"Package size":              pkgSize,
+			"Package path": pkgPath,
+			"Package size": pkgSize,
 		})
 		return pkgPath, hashSum, err
 	}
@@ -563,8 +560,7 @@ func manageNoServiceIDFlow(
 	// have succeeded and so there will be no error.
 	if err != nil && packageFlag == "" {
 		errLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Service ID":                serviceID,
+			"Service ID": serviceID,
 		})
 		return serviceID, serviceVersion, err
 	}

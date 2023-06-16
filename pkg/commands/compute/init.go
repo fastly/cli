@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	cp "github.com/otiai10/copy"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -24,7 +26,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
-	cp "github.com/otiai10/copy"
 )
 
 var (
@@ -124,8 +125,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	dst, err := verifyDestination(c.dir, spinner, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Directory":                 c.dir,
+			"Directory": c.dir,
 		})
 		return err
 	}
@@ -141,9 +141,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	name, desc, authors, err := promptOrReturn(c.Globals.Flags, c.manifest, c.dir, email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Description":               desc,
-			"Directory":                 c.dir,
+			"Description": desc,
+			"Directory":   c.dir,
 		})
 		return err
 	}
@@ -178,11 +177,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		from, branch, tag, err = promptForStarterKit(c.Globals.Flags, language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				fsterr.AllowInstrumentation: true,
-				"From":                      c.cloneFrom,
-				"Branch":                    c.branch,
-				"Tag":                       c.tag,
-				"Manifest Exist":            false,
+				"From":           c.cloneFrom,
+				"Branch":         c.branch,
+				"Tag":            c.tag,
+				"Manifest Exist": false,
 			})
 			return err
 		}
@@ -202,11 +200,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		err = fetchPackageTemplate(c, branch, tag, file.Archives, spinner, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				fsterr.AllowInstrumentation: true,
-				"From":                      from,
-				"Branch":                    branch,
-				"Tag":                       tag,
-				"Directory":                 c.dir,
+				"From":      from,
+				"Branch":    branch,
+				"Tag":       tag,
+				"Directory": c.dir,
 			})
 			return err
 		}
@@ -215,10 +212,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	mf, err = updateManifest(mf, spinner, c.dir, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			fsterr.AllowInstrumentation: true,
-			"Directory":                 c.dir,
-			"Description":               desc,
-			"Language":                  language,
+			"Directory":   c.dir,
+			"Description": desc,
+			"Language":    language,
 		})
 		return err
 	}
