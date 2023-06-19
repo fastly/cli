@@ -1,5 +1,22 @@
 # Changelog
 
+## [v10.2.1](https://github.com/fastly/cli/releases/tag/v10.2.1) (2023-06-19)
+
+**Enhancements:**
+
+* feat(logging/s3): add --file-max-bytes flag [#952](https://github.com/fastly/cli/pull/952)
+* ci: better caching support [#951](https://github.com/fastly/cli/pull/951)
+* fix: remove sentry [#954](https://github.com/fastly/cli/pull/954)
+* refactor: logic clean-up [#955](https://github.com/fastly/cli/pull/955)
+
+**Bug fixes:**
+
+* ci: fix cache restore bug [#953](https://github.com/fastly/cli/pull/953)
+
+**Dependencies:**
+
+* build(deps): bump github.com/fastly/go-fastly/v8 from 8.4.1 to 8.5.0 [#949](https://github.com/fastly/cli/pull/949)
+
 ## [v10.2.0](https://github.com/fastly/cli/releases/tag/v10.2.0) (2023-06-12)
 
 **Enhancements:**
