@@ -53,19 +53,6 @@ func (f *File) Exists() bool {
 	return f.exists
 }
 
-// Load parses the input data into the File struct and persists it to disk.
-//
-// NOTE: This is used by the `compute build` command logic.
-// Which has to modify the toml tree for supporting a v4.0.0 migration path.
-// e.g. if user manifest is missing [scripts.build] then add a default value.
-func (f *File) Load(data []byte) error {
-	err := toml.Unmarshal(data, f)
-	if err != nil {
-		return fmt.Errorf("error unmarshaling fastly.toml: %w", err)
-	}
-	return f.Write(Filename)
-}
-
 // Read loads the manifest file content from disk.
 func (f *File) Read(path string) (err error) {
 	defer func() {
