@@ -31,7 +31,7 @@ require (
 	github.com/fastly/go-fastly/v8 v8.5.1
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
-	github.com/otiai10/copy v1.11.0
+	github.com/otiai10/copy v1.12.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/theckman/yacspin v0.13.12
 	golang.org/x/crypto v0.9.0
