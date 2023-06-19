@@ -1,13 +1,20 @@
+# https://goreleaser.com/customization/project/
 project_name: fastly
+
+# https://goreleaser.com/customization/release/
 release:
   draft: true
   prerelease: auto
   extra_files:
     - glob: "dist/usage.json"
+
+# https://goreleaser.com/customization/hooks/
 before:
   hooks:
     - go mod tidy
     - go mod download
+
+# https://goreleaser.com/customization/builds/
 builds:
   - <<: &build_defaults
       main: ./cmd/fastly
@@ -45,6 +52,7 @@ builds:
     hooks:
       post:
         - cmd: "scripts/documentation.sh {{ .Path }}"
+
 # https://goreleaser.com/customization/archive/
 archives:
   - id: nix
@@ -66,6 +74,8 @@ archives:
     <<: *archive_defaults
     wrap_in_directory: false
     format: zip
+
+# https://goreleaser.com/customization/aur/
 aurs:
   -
     homepage: "https://github.com/fastly/cli"
@@ -103,10 +113,12 @@ aurs:
     #
     # Defaults to `ssh -i {{ .KeyPath }} -o StrictHostKeyChecking=accept-new -F /dev/null`.
     git_ssh_command: 'ssh -i {{ .KeyPath }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -F /dev/null'
+
+# https://goreleaser.com/customization/homebrew/
 brews:
   - name: fastly
     ids: [nix]
-    tap:
+    repository:
       owner: fastly
       name: homebrew-tap
     skip_upload: auto
@@ -126,6 +138,8 @@ brews:
     test: |
       help_text = shell_output("#{bin}/fastly --help")
       assert_includes help_text, "Usage:"
+
+# https://goreleaser.com/customization/nfpm/
 nfpms:
   - license: Apache 2.0
     maintainer: Fastly
@@ -134,12 +148,20 @@ nfpms:
     formats:
       - deb
       - rpm
+
+# https://goreleaser.com/customization/checksum/
 checksum:
   name_template: "{{ .ProjectName }}_v{{ .Version }}_SHA256SUMS"
+
+# https://goreleaser.com/customization/snapshots/
 snapshot:
   name_template: "{{ .Tag }}-next"
+
+# https://goreleaser.com/customization/changelog/
 changelog:
   skip: true
+
+# https://goreleaser.com/customization/docker/
 # dockers:
 # - <<: &build_opts
 #     use: buildx
