@@ -63,12 +63,12 @@ func main() {
 	}
 
 	// Extract a subset of configuration options from the local application directory.
-	var file config.File
-	file.SetAutoYes(autoYes)
-	file.SetNonInteractive(nonInteractive)
+	var cfg config.File
+	cfg.SetAutoYes(autoYes)
+	cfg.SetNonInteractive(nonInteractive)
 
 	// The CLI relies on a valid configuration, otherwise we can't continue.
-	err := file.Read(config.FilePath, in, out, fsterr.Log, verboseOutput)
+	err := cfg.Read(config.FilePath, in, out, fsterr.Log, verboseOutput)
 	if err != nil {
 		fsterr.Deduce(err).Print(color.Error)
 
@@ -88,7 +88,7 @@ func main() {
 	opts := app.RunOpts{
 		APIClient:  clientFactory,
 		Args:       args,
-		ConfigFile: file,
+		ConfigFile: cfg,
 		ConfigPath: config.FilePath,
 		Env:        env,
 		ErrLog:     fsterr.Log,
