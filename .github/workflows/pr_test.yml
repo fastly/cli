@@ -98,6 +98,8 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
+          # IMPORTANT: Disable caching to prevent cache restore errors later.
+          cache: false
       - uses: Integralist/setup-tinygo@v1.0.0
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
@@ -108,13 +110,6 @@ jobs:
         run: |
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
           echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
-      - name: Clear cache directory first before trying to restore from cache
-        # The issue doesn't occur on Windows, only nix systems.
-        if: runner.os != 'Windows'
-        run: sudo rm -rf $(go env GOMODCACHE) && sudo rm -rf $(go env GOCACHE)
-        shell: bash
-        # This workaround was recommended in the following issue report.
-        # https://github.com/actions/cache/issues/1104
       - name: Go Build Cache
         uses: actions/cache@v3
         with:
