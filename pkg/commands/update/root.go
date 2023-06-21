@@ -11,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
-	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -72,7 +71,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	msg = "Fetching latest release"
 	spinner.Message(msg + "...")
 
-	tmpBin, err := c.av.DownloadLatest()
+	downloadedBin, err := c.av.DownloadLatest()
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Current CLI version": current,
@@ -87,7 +86,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 		return fmt.Errorf("error downloading latest release: %w", err)
 	}
-	defer os.RemoveAll(tmpBin)
+	defer os.RemoveAll(downloadedBin)
 
 	spinner.StopMessage(msg)
 	err = spinner.Stop()
@@ -115,7 +114,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("error determining executable path: %w", err)
 	}
 
-	currentPath, err := filepath.Abs(execPath)
+	currentBin, err := filepath.Abs(execPath)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Executable path": execPath,
@@ -130,28 +129,41 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("error determining absolute target path: %w", err)
 	}
 
-	// Windows does not permit removing a running executable, however it will
-	// permit renaming it! So we first rename the running executable and then we
-	// move the executable that we downloaded to the same location as the
-	// original executable (which is allowed since we first renamed the running
-	// executable).
+	// Windows does not permit replacing a running executable, however it will
+	// permit it if you first move the original executable. So we first move the
+	// running executable to a new location, then we move the executable that we
+	// downloaded to the same location as the original.
+	// I've also tested this approach on nix systems and it works fine.
 	//
 	// Reference:
 	// https://github.com/golang/go/issues/21997#issuecomment-331744930
-	if fstruntime.Windows {
-		if err := os.Rename(execPath, execPath+"~"); err != nil {
-			c.Globals.ErrLog.Add(err)
-			if err = os.Remove(execPath + "~"); err != nil {
-				c.Globals.ErrLog.Add(err)
-			}
-		}
+
+	backup := currentBin + ".bak"
+	if err := os.Rename(currentBin, backup); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Executable (source)":      downloadedBin,
+			"Executable (destination)": currentBin,
+		})
+		return fmt.Errorf("error moving the current executable: %w", err)
 	}
 
-	if err := os.Rename(tmpBin, currentPath); err != nil {
-		if err := filesystem.CopyFile(tmpBin, currentPath); err != nil {
+	if err = os.Remove(backup); err != nil {
+		c.Globals.ErrLog.Add(err)
+	}
+
+	// Move the downloaded binary to the same location as the current executable.
+	if err := os.Rename(downloadedBin, currentBin); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Executable (source)":      downloadedBin,
+			"Executable (destination)": currentBin,
+		})
+		renameErr := err
+
+		// Failing that we'll try to io.Copy downloaded binary to the current binary.
+		if err := filesystem.CopyFile(downloadedBin, currentBin); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Executable (source)":      tmpBin,
-				"Executable (destination)": currentPath,
+				"Executable (source)":      downloadedBin,
+				"Executable (destination)": currentBin,
 			})
 
 			spinner.StopFailMessage(msg)
@@ -160,7 +172,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 				return spinErr
 			}
 
-			return fmt.Errorf("error moving latest binary in place: %w", err)
+			return fmt.Errorf("error 'copying' latest binary in place: %w (following an error 'moving': %w)", err, renameErr)
 		}
 	}
 
@@ -170,6 +182,6 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated %s to %s.", currentPath, latest)
+	text.Success(out, "Updated %s to %s.", currentBin, latest)
 	return nil
 }
