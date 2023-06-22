@@ -250,6 +250,10 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 			filePath := filepath.Join(c.dirPath, file.Name())
 			dir, filename := filepath.Split(filePath)
 			index := strings.Index(dir, base)
+			// If the user runs from `--dir .` (current directory)
+			if index == -1 {
+				index = 0
+			}
 			filename = filepath.Join(dir[index:], filename)
 
 			if c.Globals.Verbose() {
