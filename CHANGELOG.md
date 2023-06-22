@@ -1,5 +1,22 @@
 # Changelog
 
+## [v10.2.2](https://github.com/fastly/cli/releases/tag/v10.2.2) (2023-06-22)
+
+**Enhancements:**
+
+* refactor(ci): disable setup-go caching to avoid later cache restoration errors [#960](https://github.com/fastly/cli/pull/960)
+
+**Bug fixes:**
+
+* fix(update): use consistent pattern for replacing binary [#961](https://github.com/fastly/cli/pull/961)
+* fix(kvstoreentry): avoid runtime panic for out of bound slice index [#964](https://github.com/fastly/cli/pull/964)
+
+**Dependencies:**
+
+* build(deps): bump golang.org/x/term from 0.8.0 to 0.9.0 [#959](https://github.com/fastly/cli/pull/959)
+* build(deps): bump github.com/otiai10/copy from 1.11.0 to 1.12.0 [#958](https://github.com/fastly/cli/pull/958)
+* build(deps): bump golang.org/x/crypto from 0.9.0 to 0.10.0 [#957](https://github.com/fastly/cli/pull/957)
+
 ## [v10.2.1](https://github.com/fastly/cli/releases/tag/v10.2.1) (2023-06-19)
 
 **Enhancements:**
