@@ -322,7 +322,7 @@ func validatePackage(
 		return pkgPath, hashSum, err
 	}
 
-	hashSum, err = getHashSum(contents)
+	hashSum, err = getHashSumEx(contents)
 	if err != nil {
 		return pkgPath, "", err
 	}
@@ -801,7 +801,7 @@ func pkgCompare(client api.Interface, serviceID string, version int, hashSum str
 }
 
 // getHashSum creates a SHA 512 hash from the given file contents in a specific order.
-func getHashSum(contents map[string]*bytes.Buffer) (hash string, err error) {
+func getHashSumEx(contents map[string]*bytes.Buffer) (hash string, err error) {
 	h := sha512.New()
 	keys := make([]string, 0, len(contents))
 	for k := range contents {

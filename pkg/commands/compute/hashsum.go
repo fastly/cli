@@ -1,8 +1,10 @@
 package compute
 
 import (
+	"crypto/sha512"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -48,7 +50,7 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	_, hashSum, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	pkgPath, _, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
 	if err != nil {
 		var skipBuildMsg string
 		if c.SkipBuild {
@@ -64,6 +66,11 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
+	hashSum, err := getHashSum(pkgPath)
+	if err != nil {
+		return err
+	}
+
 	text.Output(out, hashSum)
 	return nil
 }
@@ -75,4 +82,28 @@ func (c *HashsumCommand) Build(in io.Reader, out io.Writer) error {
 		output = io.Discard
 	}
 	return c.buildCmd.Exec(in, output)
+}
+
+// getHashSum returns a hash of the package.
+func getHashSum(pkg string) (string, error) {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	// Disabling as we trust the source of the filepath variable.
+	/* #nosec */
+	f, err := os.Open(pkg)
+	if err != nil {
+		return "", err
+	}
+
+	h := sha512.New()
+	if _, err := io.Copy(h, f); err != nil {
+		f.Close()
+		return "", err
+	}
+
+	if err = f.Close(); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
