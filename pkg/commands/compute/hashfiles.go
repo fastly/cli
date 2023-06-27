@@ -3,16 +3,14 @@ package compute
 import (
 	"archive/tar"
 	"bytes"
-	"compress/gzip"
 	"crypto/sha512"
-	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"sort"
 
 	"github.com/kennygrant/sanitize"
+	"github.com/mholt/archiver/v3"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
@@ -68,27 +66,9 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	var r io.Reader
-	// G304 (CWE-22): Potential file inclusion via variable
-	// #nosec
-	r, err = os.Open(pkg)
+	hash, err := getFilesHash(pkg)
 	if err != nil {
-		return fmt.Errorf("failed to open package '%s': %w", pkg, err)
-	}
-
-	zr, err := gzip.NewReader(r)
-	if err != nil {
-		return fmt.Errorf("failed to create a gzip reader: %w", err)
-	}
-
-	files, err := c.ReadFilesFromPackage(tar.NewReader(zr))
-	if err != nil {
-		return fmt.Errorf("failed to read files within the package: %w", err)
-	}
-
-	hash, err := c.GetFilesHash(files)
-	if err != nil {
-		return fmt.Errorf("failed to generate hash from package files: %w", err)
+		return err
 	}
 
 	text.Output(out, hash)
@@ -104,48 +84,21 @@ func (c *HashFilesCommand) Build(in io.Reader, out io.Writer) error {
 	return c.buildCmd.Exec(in, output)
 }
 
-// ReadFilesFromPackage reads all files within the provided package tar and
-// generates a map data structure where the key is the filename and the value is
-// the file contents.
-func (c *HashFilesCommand) ReadFilesFromPackage(tr *tar.Reader) (map[string]*bytes.Buffer, error) {
-	// Store the content of every file within the package.
+// getFilesHash returns a hash of all the files in the package in sorted filename order.
+func getFilesHash(pkgPath string) (string, error) {
 	contents := make(map[string]*bytes.Buffer)
-
-	// Track overall package size.
-	var pkgSize int64
-
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break
+	if err := validate(pkgPath, func(f archiver.File) error {
+		// This is safe to do - we already verified it in validate().
+		filename := f.Header.(*tar.Header).Name
+		contents[filename] = &bytes.Buffer{}
+		if _, err := io.Copy(contents[filename], f); err != nil {
+			return fmt.Errorf("error reading %s: %w", filename, err)
 		}
-		if err != nil {
-			return nil, err
-		}
-
-		// Avoids G110: Potential DoS vulnerability via decompression bomb (gosec).
-		pkgSize += hdr.Size
-		if pkgSize > MaxPackageSize {
-			return nil, errors.New("package size exceeded 100MB limit")
-		}
-
-		if hdr.Typeflag != tar.TypeReg {
-			continue
-		}
-
-		contents[hdr.Name] = &bytes.Buffer{}
-
-		_, err = io.CopyN(contents[hdr.Name], tr, hdr.Size)
-		if err != nil {
-			return nil, err
-		}
+		return nil
+	}); err != nil {
+		return "", err
 	}
 
-	return contents, nil
-}
-
-// GetFilesHash returns a hash of all the filecontent in sorted filename order.
-func (c *HashFilesCommand) GetFilesHash(contents map[string]*bytes.Buffer) (string, error) {
 	keys := make([]string, 0, len(contents))
 	for k := range contents {
 		keys = append(keys, k)
@@ -154,7 +107,7 @@ func (c *HashFilesCommand) GetFilesHash(contents map[string]*bytes.Buffer) (stri
 	h := sha512.New()
 	for _, fname := range keys {
 		if _, err := io.Copy(h, contents[fname]); err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to generate hash from package files: %w", err)
 		}
 	}
 	return fmt.Sprintf("%x", h.Sum(nil)), nil

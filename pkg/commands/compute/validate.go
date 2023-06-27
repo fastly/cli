@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"archive/tar"
 	"fmt"
 	"io"
 	"os"
@@ -81,19 +82,22 @@ type FileValidator func(archiver.File) error
 // tar.Read().
 //
 // NOTE: This function is also called by the `deploy` command.
-func validate(path string, fileValidator FileValidator) error {
+func validate(path string, fileValidator FileValidator) (err error) {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return fmt.Errorf("error reading package: %w", err)
 	}
 	defer file.Close() // #nosec G307
 
-	tar := archiver.NewTarGz()
-	err = tar.Open(file, 0)
+	tr := archiver.NewTarGz()
+	err = tr.Open(file, 0)
 	if err != nil {
 		return fmt.Errorf("error unarchiving package: %w", err)
 	}
-	defer tar.Close()
+	defer tr.Close()
+
+	// Track overall package size
+	var pkgSize int64
 
 	files := map[string]bool{
 		"fastly.toml": false,
@@ -101,12 +105,25 @@ func validate(path string, fileValidator FileValidator) error {
 	}
 
 	for {
-		f, err := tar.Read()
+		f, err := tr.Read()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			return fmt.Errorf("error reading package: %w", err)
+		}
+
+		// Avoids G110: Potential DoS vulnerability via decompression bomb (gosec).
+		pkgSize += f.Size()
+		if pkgSize > MaxPackageSize {
+			f.Close()
+			return fmt.Errorf("package size exceeded 100MB limit")
+		}
+
+		header, ok := f.Header.(*tar.Header)
+		if !ok || header.Typeflag != tar.TypeReg {
+			f.Close()
+			continue
 		}
 
 		for k := range files {

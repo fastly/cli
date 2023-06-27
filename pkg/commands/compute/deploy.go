@@ -2,7 +2,6 @@ package compute
 
 import (
 	"bytes"
-	"crypto/sha512"
 	"errors"
 	"fmt"
 	"io"
@@ -10,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 
@@ -92,7 +90,7 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	fnActivateTrial, source, serviceID, pkgPath, hashSum, err := setupDeploy(c, out)
+	fnActivateTrial, source, serviceID, pkgPath, filesHash, err := setupDeploy(c, out)
 	if err != nil {
 		return err
 	}
@@ -150,7 +148,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	cont, err = processPackage(
-		c, hashSum, pkgPath, serviceID, serviceVersion.Number, spinner, out,
+		c, filesHash, pkgPath, serviceID, serviceVersion.Number, spinner, out,
 	)
 	if err != nil {
 		return err
@@ -217,7 +215,7 @@ func validStatusCodeRange(status int) bool {
 func setupDeploy(c *DeployCommand, out io.Writer) (
 	fnActivateTrial activator,
 	source manifest.Source,
-	serviceID, pkgPath, hashSum string,
+	serviceID, pkgPath, filesHash string,
 	err error,
 ) {
 	defaultActivator := func(customerID string) error { return nil }
@@ -235,7 +233,7 @@ func setupDeploy(c *DeployCommand, out io.Writer) (
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	pkgPath, hashSum, err = validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	pkgPath, filesHash, err = validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
 	if err != nil {
 		return defaultActivator, source, serviceID, "", "", err
 	}
@@ -243,7 +241,7 @@ func setupDeploy(c *DeployCommand, out io.Writer) (
 	endpoint, _ := c.Globals.Endpoint()
 	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
 
-	return fnActivateTrial, source, serviceID, pkgPath, hashSum, err
+	return fnActivateTrial, source, serviceID, pkgPath, filesHash, err
 }
 
 // validatePackage short-circuits the deploy command if the user hasn't first
@@ -257,21 +255,21 @@ func validatePackage(
 	verbose bool,
 	errLog fsterr.LogInterface,
 	out io.Writer,
-) (pkgPath, hashSum string, err error) {
+) (pkgPath, filesHash string, err error) {
 	err = data.File.ReadError()
 	if err != nil {
 		if packageFlag == "" {
 			if errors.Is(err, os.ErrNotExist) {
 				err = fsterr.ErrReadingManifest
 			}
-			return pkgPath, hashSum, err
+			return pkgPath, filesHash, err
 		}
 
 		// NOTE: Before returning the manifest read error, we'll attempt to read
 		// the manifest from within the given package archive.
 		err := readManifestFromPackageArchive(&data, packageFlag, verbose, out)
 		if err != nil {
-			return pkgPath, hashSum, err
+			return pkgPath, filesHash, err
 		}
 	}
 
@@ -281,7 +279,7 @@ func validatePackage(
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": packageFlag,
 		})
-		return pkgPath, hashSum, err
+		return pkgPath, filesHash, err
 	}
 
 	pkgSize, err := packageSize(pkgPath)
@@ -289,14 +287,14 @@ func validatePackage(
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": pkgPath,
 		})
-		return pkgPath, hashSum, fsterr.RemediationError{
+		return pkgPath, filesHash, fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading package size: %w", err),
 			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
 
 	if pkgSize > MaxPackageSize {
-		return pkgPath, hashSum, fsterr.RemediationError{
+		return pkgPath, filesHash, fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: fsterr.PackageSizeRemediation,
 		}
@@ -319,15 +317,15 @@ func validatePackage(
 			"Package path": pkgPath,
 			"Package size": pkgSize,
 		})
-		return pkgPath, hashSum, err
+		return pkgPath, filesHash, err
 	}
 
-	hashSum, err = getHashSum(contents)
+	filesHash, err = getFilesHash(pkgPath)
 	if err != nil {
 		return pkgPath, "", err
 	}
 
-	return pkgPath, hashSum, nil
+	return pkgPath, filesHash, nil
 }
 
 // readManifestFromPackageArchive extracts the manifest file from the given
@@ -782,38 +780,22 @@ func checkServiceID(serviceID string, client api.Interface) error {
 	return nil
 }
 
-// pkgCompare compares the local package hashsum against the existing service
+// pkgCompare compares the local package files hash against the existing service
 // package version and exits early with message if identical.
-func pkgCompare(client api.Interface, serviceID string, version int, hashSum string, out io.Writer) (bool, error) {
+func pkgCompare(client api.Interface, serviceID string, version int, filesHash string, out io.Writer) (bool, error) {
 	p, err := client.GetPackage(&fastly.GetPackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
 	})
 
 	if err == nil {
-		if hashSum == p.Metadata.HashSum {
+		if filesHash == p.Metadata.FilesHash {
 			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
 			return false, nil
 		}
 	}
 
 	return true, nil
-}
-
-// getHashSum creates a SHA 512 hash from the given file contents in a specific order.
-func getHashSum(contents map[string]*bytes.Buffer) (hash string, err error) {
-	h := sha512.New()
-	keys := make([]string, 0, len(contents))
-	for k := range contents {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, fname := range keys {
-		if _, err := io.Copy(h, contents[fname]); err != nil {
-			return "", err
-		}
-	}
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
 // pkgUpload uploads the package to the specified service and version.
@@ -1126,12 +1108,12 @@ func processSetupCreation(
 
 func processPackage(
 	c *DeployCommand,
-	hashSum, pkgPath, serviceID string,
+	filesHash, pkgPath, serviceID string,
 	serviceVersion int,
 	spinner text.Spinner,
 	out io.Writer,
 ) (cont bool, err error) {
-	cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion, hashSum, out)
+	cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion, filesHash, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Package path":    pkgPath,
