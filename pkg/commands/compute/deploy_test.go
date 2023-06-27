@@ -1970,7 +1970,8 @@ func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 		ServiceID:      i.ServiceID,
 		ServiceVersion: i.ServiceVersion,
 		Metadata: fastly.PackageMetadata{
-			HashSum: "bf634ccf8be5c8417cf562466ece47ea61056ddeb07273a3d861e8ad757ed3577bc182006d04093c301467cadfd2b1805eedebd1e7cfa0404c723680f2dbc01e",
+			FilesHash: "d8786807216a37608ecd0bc2357c86f883faad89043141f0a147f2c186ce0212333d31229399c131539205908f5cf0884ea64552782544ff9b27416cd5b996b2",
+			HashSum:   "bf634ccf8be5c8417cf562466ece47ea61056ddeb07273a3d861e8ad757ed3577bc182006d04093c301467cadfd2b1805eedebd1e7cfa0404c723680f2dbc01e",
 		},
 	}, nil
 }
