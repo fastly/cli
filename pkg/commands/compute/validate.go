@@ -81,7 +81,7 @@ func validatePackageContent(pkgPath string) error {
 		"main.wasm":   false,
 	}
 
-	if err := packageIterator(pkgPath, func(f archiver.File) error {
+	if err := packageFiles(pkgPath, func(f archiver.File) error {
 		for k := range files {
 			if k == f.Name() {
 				files[k] = true
@@ -101,13 +101,10 @@ func validatePackageContent(pkgPath string) error {
 	return nil
 }
 
-// FileIterator iteratates over the files of a package.
-type FileIterator func(archiver.File) error
-
-// packageIterator is a utility function to iterate over the package content.
+// packageFiles is a utility function to iterate over the package content.
 // It attempts to unarchive and read a tar.gz file from a specific path,
-// calling fileIterator on each file in the archive.
-func packageIterator(path string, fileIterator FileIterator) error {
+// calling fn on each file in the archive.
+func packageFiles(path string, fn func(archiver.File) error) error {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return fmt.Errorf("error reading package: %w", err)
@@ -146,7 +143,7 @@ func packageIterator(path string, fileIterator FileIterator) error {
 			continue
 		}
 
-		if err = fileIterator(f); err != nil {
+		if err = fn(f); err != nil {
 			f.Close()
 			return err
 		}

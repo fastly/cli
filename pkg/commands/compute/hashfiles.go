@@ -88,11 +88,11 @@ func (c *HashFilesCommand) Build(in io.Reader, out io.Writer) error {
 func getFilesHash(pkgPath string) (string, error) {
 	contents := make(map[string]*bytes.Buffer)
 
-	if err := packageIterator(pkgPath, func(f archiver.File) error {
+	if err := packageFiles(pkgPath, func(f archiver.File) error {
 		// We want the full path here and not f.Name(), which is only the
 		// filename.
 		//
-		// This is safe to do - we already verified it in packageIterator().
+		// This is safe to do - we already verified it in packageFiles().
 		entry := f.Header.(*tar.Header).Name
 		contents[entry] = &bytes.Buffer{}
 		if _, err := io.Copy(contents[entry], f); err != nil {
