@@ -87,12 +87,16 @@ func (c *HashFilesCommand) Build(in io.Reader, out io.Writer) error {
 // getFilesHash returns a hash of all the files in the package in sorted filename order.
 func getFilesHash(pkgPath string) (string, error) {
 	contents := make(map[string]*bytes.Buffer)
-	if err := validate(pkgPath, func(f archiver.File) error {
-		// This is safe to do - we already verified it in validate().
-		filename := f.Header.(*tar.Header).Name
-		contents[filename] = &bytes.Buffer{}
-		if _, err := io.Copy(contents[filename], f); err != nil {
-			return fmt.Errorf("error reading %s: %w", filename, err)
+
+	if err := packageFiles(pkgPath, func(f archiver.File) error {
+		// We want the full path here and not f.Name(), which is only the
+		// filename.
+		//
+		// This is safe to do - we already verified it in packageFiles().
+		entry := f.Header.(*tar.Header).Name
+		contents[entry] = &bytes.Buffer{}
+		if _, err := io.Copy(contents[entry], f); err != nil {
+			return fmt.Errorf("error reading %s: %w", entry, err)
 		}
 		return nil
 	}); err != nil {
@@ -104,9 +108,10 @@ func getFilesHash(pkgPath string) (string, error) {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+
 	h := sha512.New()
-	for _, fname := range keys {
-		if _, err := io.Copy(h, contents[fname]); err != nil {
+	for _, entry := range keys {
+		if _, err := io.Copy(h, contents[entry]); err != nil {
 			return "", fmt.Errorf("failed to generate hash from package files: %w", err)
 		}
 	}
