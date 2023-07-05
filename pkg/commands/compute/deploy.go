@@ -89,7 +89,7 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	fnActivateTrial, source, serviceID, pkgPath, filesHash, err := setupDeploy(c, out)
+	fnActivateTrial, source, serviceID, pkgPath, err := setupDeploy(c, out)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	cont, err = processPackage(
-		c, filesHash, pkgPath, serviceID, serviceVersion.Number, spinner, out,
+		c, pkgPath, serviceID, serviceVersion.Number, spinner, out,
 	)
 	if err != nil {
 		return err
@@ -214,14 +214,14 @@ func validStatusCodeRange(status int) bool {
 func setupDeploy(c *DeployCommand, out io.Writer) (
 	fnActivateTrial activator,
 	source manifest.Source,
-	serviceID, pkgPath, filesHash string,
+	serviceID, pkgPath string,
 	err error,
 ) {
 	defaultActivator := func(customerID string) error { return nil }
 
 	token, s := c.Globals.Token()
 	if s == lookup.SourceUndefined {
-		return defaultActivator, 0, "", "", "", fsterr.ErrNoToken
+		return defaultActivator, 0, "", "", fsterr.ErrNoToken
 	}
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
@@ -232,15 +232,15 @@ func setupDeploy(c *DeployCommand, out io.Writer) (
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	pkgPath, filesHash, err = validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	pkgPath, err = validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
 	if err != nil {
-		return defaultActivator, source, serviceID, "", "", err
+		return defaultActivator, source, serviceID, "", err
 	}
 
 	endpoint, _ := c.Globals.Endpoint()
 	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
 
-	return fnActivateTrial, source, serviceID, pkgPath, filesHash, err
+	return fnActivateTrial, source, serviceID, pkgPath, err
 }
 
 // validatePackage short-circuits the deploy command if the user hasn't first
@@ -254,21 +254,21 @@ func validatePackage(
 	verbose bool,
 	errLog fsterr.LogInterface,
 	out io.Writer,
-) (pkgPath, filesHash string, err error) {
+) (pkgPath string, err error) {
 	err = data.File.ReadError()
 	if err != nil {
 		if packageFlag == "" {
 			if errors.Is(err, os.ErrNotExist) {
 				err = fsterr.ErrReadingManifest
 			}
-			return pkgPath, filesHash, err
+			return pkgPath, err
 		}
 
 		// NOTE: Before returning the manifest read error, we'll attempt to read
 		// the manifest from within the given package archive.
 		err := readManifestFromPackageArchive(&data, packageFlag, verbose, out)
 		if err != nil {
-			return pkgPath, filesHash, err
+			return pkgPath, err
 		}
 	}
 
@@ -278,7 +278,7 @@ func validatePackage(
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": packageFlag,
 		})
-		return pkgPath, filesHash, err
+		return pkgPath, err
 	}
 
 	pkgSize, err := packageSize(pkgPath)
@@ -286,14 +286,14 @@ func validatePackage(
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": pkgPath,
 		})
-		return pkgPath, filesHash, fsterr.RemediationError{
+		return pkgPath, fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading package size: %w", err),
 			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
 
 	if pkgSize > MaxPackageSize {
-		return pkgPath, filesHash, fsterr.RemediationError{
+		return pkgPath, fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: fsterr.PackageSizeRemediation,
 		}
@@ -304,15 +304,10 @@ func validatePackage(
 			"Package path": pkgPath,
 			"Package size": pkgSize,
 		})
-		return pkgPath, filesHash, err
+		return pkgPath, err
 	}
 
-	filesHash, err = getFilesHash(pkgPath)
-	if err != nil {
-		return pkgPath, "", err
-	}
-
-	return pkgPath, filesHash, nil
+	return pkgPath, nil
 }
 
 // readManifestFromPackageArchive extracts the manifest file from the given
@@ -1095,11 +1090,19 @@ func processSetupCreation(
 
 func processPackage(
 	c *DeployCommand,
-	filesHash, pkgPath, serviceID string,
+	pkgPath, serviceID string,
 	serviceVersion int,
 	spinner text.Spinner,
 	out io.Writer,
 ) (cont bool, err error) {
+	filesHash, err := getFilesHash(pkgPath)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path": pkgPath,
+		})
+		return false, err
+	}
+
 	cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion, filesHash, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
