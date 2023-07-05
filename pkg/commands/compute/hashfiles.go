@@ -87,7 +87,7 @@ func (c *HashFilesCommand) Build(in io.Reader, out io.Writer) error {
 // getFilesHash returns a hash of all the files in the package in sorted filename order.
 func getFilesHash(pkgPath string) (string, error) {
 	contents := make(map[string]*bytes.Buffer)
-	if err := validate(pkgPath, func(f archiver.File) error {
+	if err := packageIterator(pkgPath, func(f archiver.File) error {
 		// This is safe to do - we already verified it in validate().
 		filename := f.Header.(*tar.Header).Name
 		contents[filename] = &bytes.Buffer{}

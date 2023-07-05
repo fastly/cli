@@ -299,7 +299,7 @@ func validatePackage(
 		}
 	}
 
-	if err := validate(pkgPath, nil); err != nil {
+	if err := validatePackageContent(pkgPath); err != nil {
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": pkgPath,
 			"Package size": pkgSize,

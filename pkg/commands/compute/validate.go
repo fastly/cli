@@ -49,7 +49,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("error reading file path: %w", err)
 	}
 
-	if err := validate(p, nil); err != nil {
+	if err := validatePackageContent(p); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Path": c.path,
 		})
@@ -70,19 +70,44 @@ type ValidateCommand struct {
 	path     string
 }
 
-// FileValidator validates a file.
-type FileValidator func(archiver.File) error
-
-// validate is a utility function to determine whether a package is valid.
-// It attempts to unarchive and read a tar.gz file from a specific path,
-// if successful, it then iterates through (streams) each file in the archive
-// checking the filename against a list of required files. If one of the files
-// doesn't exist it returns an error.
-// validate also call fileValidator, if not nil, passing the file obtained from
-// tar.Read().
+// validatePackageContent is a utility function to determine whether a package
+// is valid. It walks through the package files checking the filename against a
+// list of required files. If one of the files doesn't exist it returns an error.
 //
 // NOTE: This function is also called by the `deploy` command.
-func validate(path string, fileValidator FileValidator) (err error) {
+func validatePackageContent(pkgPath string) error {
+	files := map[string]bool{
+		"fastly.toml": false,
+		"main.wasm":   false,
+	}
+
+	if err := packageIterator(pkgPath, func(f archiver.File) error {
+		for k := range files {
+			if k == f.Name() {
+				files[k] = true
+			}
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	for k, found := range files {
+		if !found {
+			return fmt.Errorf("error validating package: package must contain a %s file", k)
+		}
+	}
+
+	return nil
+}
+
+// FileIterator iteratates over the files of a package.
+type FileIterator func(archiver.File) error
+
+// packageIterator is a utility function to iterate over the package content.
+// It attempts to unarchive and read a tar.gz file from a specific path,
+// calling fileIterator on each file in the archive.
+func packageIterator(path string, fileIterator FileIterator) error {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return fmt.Errorf("error reading package: %w", err)
@@ -98,11 +123,6 @@ func validate(path string, fileValidator FileValidator) (err error) {
 
 	// Track overall package size
 	var pkgSize int64
-
-	files := map[string]bool{
-		"fastly.toml": false,
-		"main.wasm":   false,
-	}
 
 	for {
 		f, err := tr.Read()
@@ -126,28 +146,14 @@ func validate(path string, fileValidator FileValidator) (err error) {
 			continue
 		}
 
-		for k := range files {
-			if k == f.Name() {
-				files[k] = true
-			}
-		}
-
-		if fileValidator != nil {
-			if err = fileValidator(f); err != nil {
-				f.Close()
-				return err
-			}
+		if err = fileIterator(f); err != nil {
+			f.Close()
+			return err
 		}
 
 		err = f.Close()
 		if err != nil {
 			return fmt.Errorf("error closing file: %w", err)
-		}
-	}
-
-	for k, found := range files {
-		if !found {
-			return fmt.Errorf("error validating package: package must contain a %s file", k)
 		}
 	}
 
