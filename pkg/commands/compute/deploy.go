@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -300,19 +299,7 @@ func validatePackage(
 		}
 	}
 
-	contents := map[string]*bytes.Buffer{
-		"fastly.toml": {},
-		"main.wasm":   {},
-	}
-	if err := validate(pkgPath, func(f archiver.File) error {
-		switch fname := f.Name(); fname {
-		case "fastly.toml", "main.wasm":
-			if _, err := io.Copy(contents[fname], f); err != nil {
-				return fmt.Errorf("error reading %s: %w", fname, err)
-			}
-		}
-		return nil
-	}); err != nil {
+	if err := validate(pkgPath, nil); err != nil {
 		errLog.AddWithContext(err, map[string]any{
 			"Package path": pkgPath,
 			"Package size": pkgSize,
