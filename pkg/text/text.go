@@ -16,7 +16,7 @@ import (
 
 // DefaultTextWidth is the width that should be passed to Wrap for most
 // general-purpose blocks of text intended for the user.
-const DefaultTextWidth = 90
+const DefaultTextWidth = 120
 
 // Wrap a string at word boundaries with a maximum line length of width. Each
 // newline-delimited line in the text is trimmed of whitespace before being

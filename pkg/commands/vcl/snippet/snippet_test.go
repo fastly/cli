@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestVCLSnippetCreate(t *testing.T) {
@@ -65,7 +66,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123,\ntype: recv, priority: 0)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
 		},
 		{
 			Name: "validate CreateSnippet API success for dynamic Snippet",
@@ -94,7 +95,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --dynamic --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, snippet id: 123,\ntype: recv, priority: 0)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, snippet id: 123, type: recv, priority: 0)",
 		},
 		{
 			Name: "validate Priority set",
@@ -124,7 +125,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --name foo --priority 1 --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123,\ntype: recv, priority: 1)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 1)",
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
@@ -154,7 +155,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 1"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, snippet id: 123,\ntype: recv, priority: 0)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, snippet id: 123, type: recv, priority: 0)",
 		},
 		{
 			Name: "validate CreateSnippet API success with inline Snippet content",
@@ -183,7 +184,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet create --content inline_vcl --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123,\ntype: recv, priority: 0)",
+			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
 		},
 	}
 
@@ -194,6 +195,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
 			err := app.Run(opts)
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)

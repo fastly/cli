@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestDictionaryDescribe(t *testing.T) {
@@ -292,6 +293,7 @@ func TestUpdateDictionary(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.api)
 			err := app.Run(opts)
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -468,8 +470,8 @@ var updateDictionaryOutputVerbose = strings.Join(
 		"",
 		"Service ID (via --service-id): 123",
 		"",
-		"Service version 1 is not editable, so it was automatically cloned because --autoclone is",
-		"enabled. Now operating on version 4.",
+		"Service version 1 is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on",
+		"version 4.",
 		"",
 		strings.TrimSpace(updateDictionaryNameOutput),
 		updateDictionaryOutputVersionCloned,
