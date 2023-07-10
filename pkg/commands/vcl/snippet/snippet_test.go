@@ -197,7 +197,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			err := app.Run(opts)
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, testutil.StripNewLines(stdout.String()), testcase.WantOutput)
 			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)
 		})
 	}
@@ -510,7 +510,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet update --content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3"),
-			WantOutput: "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 3, type: recv,\npriority: 100)",
+			WantOutput: "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 3, type: recv, priority: 100)",
 		},
 		{
 			Name: "validate UpdateDynamicSnippet API success",
@@ -550,7 +550,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 				},
 			},
 			Args:       args("vcl snippet update --autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1"),
-			WantOutput: "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv,\npriority: 1)",
+			WantOutput: "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
 		},
 	}
 
@@ -562,7 +562,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			opts.APIClient = mock.APIClient(testcase.API)
 			err := app.Run(opts)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+			testutil.AssertStringContains(t, testutil.StripNewLines(stdout.String()), testcase.WantOutput)
 			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)
 		})
 	}
