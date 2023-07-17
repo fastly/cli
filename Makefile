@@ -96,7 +96,9 @@ gosec: ## Run security vulnerability checker
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
 .PHONY: semgrep
 semgrep: ## Run semgrep
-	if command -v semgrep &> /dev/null; then semgrep ci --config auto --exclude-rule go.lang.security.audit.xss.import-text-template.import-text-template $(SEMGREP_ARGS); fi
+	@if [ '$(SEMGREP_SKIP)' != 'true' ]; then \
+		if command -v semgrep &> /dev/null; then semgrep ci --config auto --exclude-rule go.lang.security.audit.xss.import-text-template.import-text-template $(SEMGREP_ARGS); fi \
+	fi
 
 # Run third-party static analysis.
 # To ignore lines use: //lint:ignore <CODE> <REASON>
