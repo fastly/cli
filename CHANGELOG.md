@@ -1151,7 +1151,6 @@ a single character (e.g. `--k` and `--v`). These were corrected to `--key` and
 
 **Enhancements:**
 
-<!-- - GitHub Packages support via goreleaser [#262](https://github.com/fastly/cli/pull/262) -->
 - Update CLI config using flag on `update` command [#382](https://github.com/fastly/cli/pull/382)
 - Validate package size doesn't exceed limit [#380](https://github.com/fastly/cli/pull/380)
 - Log tailing should respect the configured `--endpoint` [#374](https://github.com/fastly/cli/pull/374)
