@@ -6,11 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestBackendCreate(t *testing.T) {
@@ -81,8 +82,10 @@ func TestBackendCreate(t *testing.T) {
 		{
 			Args: args("backend create --service-name Foo --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
 			API: mock.API{
-				ListVersionsFn:  testutil.ListVersions,
-				ListServicesFn:  listServicesOK,
+				ListVersionsFn: testutil.ListVersions,
+				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
+					return &testutil.ServicesPaginator{}
+				},
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendOK,
 			},
@@ -590,51 +593,4 @@ func deleteBackendOK(i *fastly.DeleteBackendInput) error {
 
 func deleteBackendError(i *fastly.DeleteBackendInput) error {
 	return errTest
-}
-
-func listServicesOK(i *fastly.ListServicesInput) ([]*fastly.Service, error) {
-	return []*fastly.Service{
-		{
-			ID:            "123",
-			Name:          "Foo",
-			Type:          "wasm",
-			CustomerID:    "mycustomerid",
-			ActiveVersion: 2,
-			UpdatedAt:     testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
-			Versions: []*fastly.Version{
-				{
-					Number:    1,
-					Comment:   "a",
-					ServiceID: "b",
-					CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-					UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
-					DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
-				},
-				{
-					Number:    2,
-					Comment:   "c",
-					ServiceID: "d",
-					Active:    true,
-					Deployed:  true,
-					CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
-					UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
-				},
-			},
-		},
-		{
-			ID:            "456",
-			Name:          "Bar",
-			Type:          "wasm",
-			CustomerID:    "mycustomerid",
-			ActiveVersion: 1,
-			UpdatedAt:     testutil.MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
-		},
-		{
-			ID:            "789",
-			Name:          "Baz",
-			Type:          "vcl",
-			CustomerID:    "mycustomerid",
-			ActiveVersion: 1,
-		},
-	}, nil
 }
