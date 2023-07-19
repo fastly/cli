@@ -12,12 +12,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/kingpin"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
-	"github.com/fastly/kingpin"
 )
 
 var (
@@ -155,9 +156,14 @@ type OptionalServiceNameID struct {
 
 // Parse returns a service ID based off the given service name.
 func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, err error) {
-	services, err := client.ListServices(&fastly.ListServicesInput{})
-	if err != nil {
-		return serviceID, fmt.Errorf("error listing services: %w", err)
+	paginator := client.NewListServicesPaginator(&fastly.ListServicesInput{})
+	var services []*fastly.Service
+	for paginator.HasNext() {
+		data, err := paginator.GetNext()
+		if err != nil {
+			return serviceID, fmt.Errorf("error listing services: %w", err)
+		}
+		services = append(services, data...)
 	}
 	for _, s := range services {
 		if s.Name == sv.Value {
