@@ -1,5 +1,24 @@
 # Changelog
 
+## [v10.2.3](https://github.com/fastly/cli/releases/tag/v10.2.3) (2023-07-20)
+
+**Enhancements:**
+
+* refactor(compute): clean-up logic surrounding filesHash generation [#969](https://github.com/fastly/cli/pull/969)
+* fix: increase text width [#970](https://github.com/fastly/cli/pull/970)
+
+**Bug fixes:**
+
+* Correctly check if the package is up to date [#967](https://github.com/fastly/cli/pull/967)
+* fix(flags): ensure ListServices call is paginated [#976](https://github.com/fastly/cli/pull/976)
+
+**Dependencies:**
+
+* build(deps): bump github.com/fastly/go-fastly/v8 from 8.5.1 to 8.5.2 [#966](https://github.com/fastly/cli/pull/966)
+* build(deps): bump github.com/fastly/go-fastly/v8 from 8.5.2 to 8.5.4 [#968](https://github.com/fastly/cli/pull/968)
+* build(deps): bump golang.org/x/crypto from 0.10.0 to 0.11.0 [#972](https://github.com/fastly/cli/pull/972)
+* build(deps): bump golang.org/x/term from 0.9.0 to 0.10.0 [#971](https://github.com/fastly/cli/pull/971)
+
 ## [v10.2.2](https://github.com/fastly/cli/releases/tag/v10.2.2) (2023-06-22)
 
 **Enhancements:**

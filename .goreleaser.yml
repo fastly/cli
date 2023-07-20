@@ -61,7 +61,6 @@ archives:
       name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
       files:
         - none*
-      rlcp: true
     wrap_in_directory: false
     format: tar.gz
   - id: windows-tar
