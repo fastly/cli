@@ -452,7 +452,7 @@ func serviceManagement(
 		serviceID, serviceVersion, err = manageNoServiceIDFlow(
 			c.Globals.Flags, in, out,
 			c.Globals.APIClient, c.Package, c.Globals.ErrLog,
-			&c.Manifest.File, fnActivateTrial, spinner,
+			&c.Manifest.File, fnActivateTrial, spinner, c.ServiceName,
 		)
 		if err != nil {
 			return newService, "", nil, false, err
@@ -461,6 +461,21 @@ func serviceManagement(
 			return newService, "", nil, false, nil // user declined service creation prompt
 		}
 	} else {
+		// There is a scenario where a user already has a Service ID within the
+		// fastly.toml manifest but they want to deploy their project to a different
+		// service (e.g. deploy to a staging service).
+		//
+		// In this scenario we end up here because we have found a Service ID in the
+		// manifest but if the --service-name flag is set, then we need to ignore
+		// what's set in the manifest and instead identify the ID of the service
+		// name the user has provided.
+		if c.ServiceName.WasSet {
+			serviceID, err = c.ServiceName.Parse(c.Globals.APIClient)
+			if err != nil {
+				return false, "", nil, false, err
+			}
+		}
+
 		serviceVersion, err = manageExistingServiceFlow(serviceID, c.ServiceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
 		if err != nil {
 			return false, "", nil, false, err
@@ -481,6 +496,7 @@ func manageNoServiceIDFlow(
 	manifestFile *manifest.File,
 	fnActivateTrial activator,
 	spinner text.Spinner,
+	serviceNameFlag cmd.OptionalServiceNameID,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
 	if !f.AutoYes && !f.NonInteractive {
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
@@ -507,7 +523,12 @@ func manageNoServiceIDFlow(
 	defaultServiceName := manifestFile.Name
 	var serviceName string
 
-	if !f.AcceptDefaults && !f.NonInteractive {
+	// The service name will be whatever is set in the --service-name flag.
+	// If the flag isn't set, and we're able to prompt, we'll ask the user.
+	// If the flag isn't set, and we're non-interactive, we'll use the default.
+	if serviceNameFlag.WasSet {
+		serviceName = serviceNameFlag.Value
+	} else if !f.AcceptDefaults && !f.NonInteractive {
 		serviceName, err = text.Input(out, text.BoldYellow(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
 		if err != nil || serviceName == "" {
 			serviceName = defaultServiceName
@@ -561,10 +582,6 @@ func createService(
 	errLog fsterr.LogInterface,
 	out io.Writer,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
-	if !f.AcceptDefaults && !f.NonInteractive {
-		text.Break(out)
-	}
-
 	err = spinner.Start()
 	if err != nil {
 		return "", nil, err

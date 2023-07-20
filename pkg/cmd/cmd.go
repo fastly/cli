@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/kingpin"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
-	"github.com/fastly/kingpin"
 )
 
 // Command is an interface that abstracts over all of the concrete command
@@ -161,12 +162,15 @@ func ServiceID(serviceName OptionalServiceNameID, data manifest.Data, client api
 			return serviceID, source, flag, err
 		}
 
-		serviceID, err = serviceName.Parse(client)
-		if err != nil && li != nil {
-			li.Add(err)
-		}
 		flag = "--service-name"
-		source = manifest.SourceFlag
+		serviceID, err = serviceName.Parse(client)
+		if err != nil {
+			if li != nil {
+				li.Add(err)
+			}
+		} else {
+			source = manifest.SourceFlag
+		}
 	}
 
 	return serviceID, source, flag, err
