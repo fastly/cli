@@ -117,8 +117,7 @@ aurs:
 brews:
   - name: fastly
     ids: [nix]
-    # repository: << change to this once 1.19 goreleaser is published
-    tap:
+    repository:
       owner: fastly
       name: homebrew-tap
     skip_upload: auto
