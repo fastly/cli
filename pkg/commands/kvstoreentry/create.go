@@ -362,7 +362,8 @@ func (c *CreateCommand) PromptWindowsUser(in io.Reader, out io.Writer) (bool, er
 // CallBatchEndpoint calls the batch API endpoint.
 func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 	type result struct {
-		Success bool `json:"success"`
+		Success bool                  `json:"success"`
+		Errors  []*fastly.ErrorObject `json:"errors,omitempty"`
 	}
 
 	if err := c.Globals.APIClient.BatchModifyKVStoreKey(&fastly.BatchModifyKVStoreKeyInput{
@@ -371,11 +372,31 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 	}); err != nil {
 		c.Globals.ErrLog.Add(err)
 
+		r := result{Success: false}
+
+		he, ok := err.(*fastly.HTTPError)
+		if ok {
+			r.Errors = append(r.Errors, he.Errors...)
+		}
+
 		if c.JSONOutput.Enabled {
-			_, err := c.WriteJSON(out, result{Success: false})
+			_, err := c.WriteJSON(out, r)
 			return err
 		}
 
+		// If we were able to convert the error into a fastly.HTTPError, then
+		// display those errors to the user, otherwise we'll display the original
+		// error type.
+		if ok {
+			for i, e := range he.Errors {
+				text.Output(out, "Error %d", i)
+				text.Output(out, "Title: %s", e.Title)
+				text.Output(out, "Code: %s", e.Code)
+				text.Output(out, "Detail: %s", e.Detail)
+				text.Break(out)
+			}
+			return he
+		}
 		return err
 	}
 

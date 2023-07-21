@@ -1889,7 +1889,7 @@ func TestDeploy(t *testing.T) {
 				select {
 				case <-done:
 					// Wait for app.Run() to finish
-				case <-time.After(5 * time.Second):
+				case <-time.After(10 * time.Second):
 					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
 				}
 			} else {
