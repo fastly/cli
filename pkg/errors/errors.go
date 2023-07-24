@@ -101,10 +101,24 @@ var ErrBuildStopped = RemediationError{
 }
 
 // ErrInvalidVerboseJSONCombo means the user provided both a --verbose and
-// --json flag which are mutally exclusive behaviours.
+// --json flag which are mutually exclusive behaviours.
 var ErrInvalidVerboseJSONCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination, --verbose and --json"),
 	Remediation: "Use either --verbose or --json, not both.",
+}
+
+// ErrInvalidDeleteAllKeyCombo means the user provided both a --all and --key
+// flag which are mutually exclusive behaviours.
+var ErrInvalidDeleteAllKeyCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid flag combination, --all and --key"),
+	Remediation: "Use either --all or --key, not both.",
+}
+
+// ErrMissingDeleteAllKeyCombo means the user omitted both the --all and --key
+// flags and we need at least one of them.
+var ErrMissingDeleteAllKeyCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid command, neither --all or --key provided"),
+	Remediation: "Provide at least one of: --all or --key, not both.",
 }
 
 // ErrNoSTDINData indicates the --stdin flag was specified but no data was piped
