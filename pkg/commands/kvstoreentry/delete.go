@@ -151,10 +151,10 @@ func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 	close(semaphore)
 
 	if err := p.Err(); err != nil {
-		return fmt.Errorf("failed to delete all keys: %s", err)
+		return fmt.Errorf("failed to delete keys: %s", err)
 	}
 	if len(failedKeys) > 0 {
-		return fmt.Errorf("failed to delete all keys: %s", strings.Join(failedKeys, ", "))
+		return fmt.Errorf("failed to delete keys: %s", strings.Join(failedKeys, ", "))
 	}
 
 	text.Success(out, "Deleted all keys from KV Store '%s'", c.storeID)

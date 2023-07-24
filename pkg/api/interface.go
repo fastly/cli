@@ -288,7 +288,7 @@ type Interface interface {
 	NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
 	NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
 	NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices
-	NewListKVStoreKeysPaginator(i *fastly.ListKVStoreKeysInput) *fastly.ListKVStoreKeysPaginator
+	NewListKVStoreKeysPaginator(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries
 
 	GetCustomTLSConfiguration(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
 	ListCustomTLSConfigurations(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
