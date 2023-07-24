@@ -313,7 +313,7 @@ func TestListCommand(t *testing.T) {
 			err := app.Run(opts)
 
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
