@@ -54,10 +54,32 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Input.Cursor = cursor
 
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
+	msg := "Getting data"
+
+	// A spinner produces output and is incompatible with JSON expected output.
+	if !c.JSONOutput.Enabled {
+		err := spinner.Start()
+		if err != nil {
+			return err
+		}
+		spinner.Message(msg + "... (this can take a few minutes depending on the number of entries)")
+	}
+
 	for {
 		o, err := c.Globals.APIClient.ListKVStoreKeys(&c.Input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
+			if !c.JSONOutput.Enabled {
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
+			}
 			return err
 		}
 
@@ -67,6 +89,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		if !ok {
 			break
 		}
+	}
+
+	if !c.JSONOutput.Enabled {
+		spinner.StopMessage(msg)
+		err := spinner.Stop()
+		if err != nil {
+			return err
+		}
+	}
+
+	if keys == nil {
+		if ok, err := c.WriteJSON(out, []string{}); ok {
+			return err
+		}
+		text.Break(out)
+		text.Output(out, "no keys")
+		return nil
 	}
 
 	if ok, err := c.WriteJSON(out, keys); ok {

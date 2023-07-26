@@ -16,6 +16,7 @@ import (
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -159,6 +160,14 @@ func TestDeleteCommand(t *testing.T) {
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
+			Args:      testutil.Args(kvstoreentry.RootName + " delete --store-id " + storeID),
+			WantError: "invalid command, neither --all or --key provided",
+		},
+		{
+			Args:      testutil.Args(kvstoreentry.RootName + " delete --key a-key --all --store-id " + storeID),
+			WantError: "invalid flag combination, --all and --key",
+		},
+		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --key %s", kvstoreentry.RootName, storeID, itemKey)),
 			API: mock.API{
 				DeleteKVStoreKeyFn: func(i *fastly.DeleteKVStoreKeyInput) error {
@@ -185,20 +194,68 @@ func TestDeleteCommand(t *testing.T) {
 			},
 			WantOutput: fstfmt.JSON(`{"key": "%s", "store_id": "%s", "deleted": true}`, itemKey, storeID),
 		},
+		{
+			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", kvstoreentry.RootName, storeID)),
+			API: mock.API{
+				NewListKVStoreKeysPaginatorFn: func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
+					return &mockKVStoresEntriesPaginator{
+						next: true,
+						keys: []string{"foo", "bar", "baz"},
+					}
+				},
+				DeleteKVStoreKeyFn: func(i *fastly.DeleteKVStoreKeyInput) error {
+					return nil
+				},
+			},
+			WantOutput: fmt.Sprintf(`Deleting key: bar
+Deleting key: baz
+Deleting key: foo
+
+SUCCESS: Deleted all keys from KV Store '%s'
+`, storeID),
+		},
+		{
+			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", kvstoreentry.RootName, storeID)),
+			API: mock.API{
+				NewListKVStoreKeysPaginatorFn: func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
+					return &mockKVStoresEntriesPaginator{
+						next: true,
+						keys: []string{"foo", "bar", "baz"},
+					}
+				},
+				DeleteKVStoreKeyFn: func(i *fastly.DeleteKVStoreKeyInput) error {
+					return errors.New("whoops")
+				},
+			},
+			WantError: "failed to delete keys: bar, baz, foo",
+		},
+		{
+			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", kvstoreentry.RootName, storeID)),
+			API: mock.API{
+				NewListKVStoreKeysPaginatorFn: func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
+					return &mockKVStoresEntriesPaginator{
+						err: errors.New("whoops"),
+					}
+				},
+			},
+			WantError: "failed to delete keys: whoops",
+		},
 	}
 
 	for _, testcase := range scenarios {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 
 			opts.APIClient = mock.APIClient(testcase.API)
 
 			err := app.Run(opts)
 
+			t.Log(stdout.String())
+
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
@@ -313,7 +370,29 @@ func TestListCommand(t *testing.T) {
 			err := app.Run(opts)
 
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
+}
+
+type mockKVStoresEntriesPaginator struct {
+	next bool
+	keys []string
+	err  error
+}
+
+func (m *mockKVStoresEntriesPaginator) Next() bool {
+	ret := m.next
+	if m.next {
+		m.next = false // allow one instance of true before stopping
+	}
+	return ret
+}
+
+func (m *mockKVStoresEntriesPaginator) Keys() []string {
+	return m.keys
+}
+
+func (m *mockKVStoresEntriesPaginator) Err() error {
+	return m.err
 }

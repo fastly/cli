@@ -280,6 +280,7 @@ type API struct {
 	NewListACLEntriesPaginatorFn      func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
 	NewListDictionaryItemsPaginatorFn func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
 	NewListServicesPaginatorFn        func(i *fastly.ListServicesInput) fastly.PaginatorServices
+	NewListKVStoreKeysPaginatorFn     func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries
 
 	GetCustomTLSConfigurationFn    func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
 	ListCustomTLSConfigurationsFn  func(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
@@ -1492,6 +1493,11 @@ func (m API) NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput)
 // NewListServicesPaginator implements Interface.
 func (m API) NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices {
 	return m.NewListServicesPaginatorFn(i)
+}
+
+// NewListKVStoreKeysPaginator implements Interface.
+func (m API) NewListKVStoreKeysPaginator(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
+	return m.NewListKVStoreKeysPaginatorFn(i)
 }
 
 // GetCustomTLSConfiguration implements Interface.
