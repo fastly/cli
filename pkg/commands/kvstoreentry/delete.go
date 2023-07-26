@@ -17,17 +17,18 @@ import (
 )
 
 // deleteKeysConcurrencyLimit is used to limit the concurrency when deleting ALL keys.
-const deleteKeysConcurrencyLimit = 1000
+const deleteKeysConcurrencyLimit int = 1000
 
 // DeleteCommand calls the Fastly API to delete an kv store.
 type DeleteCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	deleteAll bool
-	key       cmd.OptionalString
-	manifest  manifest.Data
-	storeID   string
+	concurrency cmd.OptionalInt
+	deleteAll   bool
+	key         cmd.OptionalString
+	manifest    manifest.Data
+	storeID     string
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -45,6 +46,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 	// Optional.
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.deleteAll)
+	c.CmdClause.Flag("concurrency", "Control thread pool size (ignored when set without the --all flag)").Short('c').Action(c.concurrency.Set).IntVar(&c.concurrency.Value)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').Action(c.key.Set).StringVar(&c.key.Value)
 
@@ -117,7 +119,11 @@ func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 		mu sync.Mutex
 		wg sync.WaitGroup
 	)
-	semaphore := make(chan struct{}, deleteKeysConcurrencyLimit)
+	poolSize := deleteKeysConcurrencyLimit
+	if c.concurrency.WasSet {
+		poolSize = c.concurrency.Value
+	}
+	semaphore := make(chan struct{}, poolSize)
 
 	failedKeys := []string{}
 
