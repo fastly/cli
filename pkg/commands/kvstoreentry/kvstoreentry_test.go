@@ -16,6 +16,7 @@ import (
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -244,7 +245,7 @@ SUCCESS: Deleted all keys from KV Store '%s'
 	for _, testcase := range scenarios {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 
 			opts.APIClient = mock.APIClient(testcase.API)
