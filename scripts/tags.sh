@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # credit: https://github.com/cli/cli/blob/trunk/script/changelog
