@@ -15,6 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 func TestCreateEntryCommand(t *testing.T) {
@@ -97,10 +98,35 @@ func TestDeleteEntryCommand(t *testing.T) {
 		itemKey = "key"
 	)
 
+	now := time.Now()
+
+	testItems := make([]*fastly.ConfigStoreItem, 3)
+	for i := range testItems {
+		testItems[i] = &fastly.ConfigStoreItem{
+			StoreID:   storeID,
+			Key:       fmt.Sprintf("key-%02d", i),
+			Value:     fmt.Sprintf("value %02d", i),
+			CreatedAt: &now,
+			UpdatedAt: &now,
+		}
+	}
+
 	scenarios := []testutil.TestScenario{
 		{
 			Args:      testutil.Args(configstoreentry.RootName + " delete --key a-key"),
 			WantError: "error parsing arguments: required flag --store-id not provided",
+		},
+		{
+			Args:      testutil.Args(configstoreentry.RootName + " delete --store-id " + storeID),
+			WantError: "invalid command, neither --all or --key provided",
+		},
+		{
+			Args:      testutil.Args(configstoreentry.RootName + " delete --json --all --store-id " + storeID),
+			WantError: "invalid flag combination, --all and --json",
+		},
+		{
+			Args:      testutil.Args(configstoreentry.RootName + " delete --key a-key --all --store-id " + storeID),
+			WantError: "invalid flag combination, --all and --key",
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --key %s", configstoreentry.RootName, storeID, itemKey)),
@@ -137,20 +163,51 @@ func TestDeleteEntryCommand(t *testing.T) {
 				true,
 			}),
 		},
+		{
+			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", configstoreentry.RootName, storeID)),
+			API: mock.API{
+				ListConfigStoreItemsFn: func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
+					return testItems, nil
+				},
+				DeleteConfigStoreItemFn: func(i *fastly.DeleteConfigStoreItemInput) error {
+					return nil
+				},
+			},
+			WantOutput: fmt.Sprintf(`Deleting key: key-00
+Deleting key: key-01
+Deleting key: key-02
+
+SUCCESS: Deleted all keys from Config Store '%s'
+`, storeID),
+		},
+		{
+			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", configstoreentry.RootName, storeID)),
+			API: mock.API{
+				ListConfigStoreItemsFn: func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
+					return testItems, nil
+				},
+				DeleteConfigStoreItemFn: func(i *fastly.DeleteConfigStoreItemInput) error {
+					return errors.New("whoops")
+				},
+			},
+			WantError: "failed to delete keys: key-00, key-01, key-02",
+		},
 	}
 
 	for _, testcase := range scenarios {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 
 			opts.APIClient = mock.APIClient(testcase.API)
 
 			err := app.Run(opts)
 
+			t.Log(stdout.String())
+
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
+			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
 	}
 }
