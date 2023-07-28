@@ -1,5 +1,18 @@
 # Changelog
 
+## [v10.2.4](https://github.com/fastly/cli/releases/tag/v10.2.4) (2023-07-28)
+
+**Enhancements:**
+
+* fix(kvstoreentry): improve error handling for batch processing [#980](https://github.com/fastly/cli/pull/980)
+* feat(kvstore): support deleting all keys [#981](https://github.com/fastly/cli/pull/981)
+* feat(configstoreentry): support deleting all keys [#983](https://github.com/fastly/cli/pull/983)
+
+**Bug fixes:**
+
+* fix(compute/deploy): support --service-name for publishing to a non-manifest specific service [#979](https://github.com/fastly/cli/pull/979)
+* fix(compute/validate): remove broken decompression bomb check [#984](https://github.com/fastly/cli/pull/984)
+
 ## [v10.2.3](https://github.com/fastly/cli/releases/tag/v10.2.3) (2023-07-20)
 
 **Enhancements:**
