@@ -107,6 +107,13 @@ var ErrInvalidVerboseJSONCombo = RemediationError{
 	Remediation: "Use either --verbose or --json, not both.",
 }
 
+// ErrInvalidDeleteAllJSONKeyCombo means the user provided both a --all and
+// --json flag which are mutually exclusive behaviours.
+var ErrInvalidDeleteAllJSONKeyCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid flag combination, --all and --json"),
+	Remediation: "Use either --all or --json, not both.",
+}
+
 // ErrInvalidDeleteAllKeyCombo means the user provided both a --all and --key
 // flag which are mutually exclusive behaviours.
 var ErrInvalidDeleteAllKeyCombo = RemediationError{

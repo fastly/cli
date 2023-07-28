@@ -164,6 +164,10 @@ func TestDeleteCommand(t *testing.T) {
 			WantError: "invalid command, neither --all or --key provided",
 		},
 		{
+			Args:      testutil.Args(kvstoreentry.RootName + " delete --json --all --store-id " + storeID),
+			WantError: "invalid flag combination, --all and --json",
+		},
+		{
 			Args:      testutil.Args(kvstoreentry.RootName + " delete --key a-key --all --store-id " + storeID),
 			WantError: "invalid flag combination, --all and --key",
 		},
