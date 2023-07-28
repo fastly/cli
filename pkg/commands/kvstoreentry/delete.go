@@ -17,7 +17,8 @@ import (
 )
 
 // deleteKeysConcurrencyLimit is used to limit the concurrency when deleting ALL keys.
-const deleteKeysConcurrencyLimit int = 1000
+// This is effectively the 'thread pool' size.
+const deleteKeysConcurrencyLimit int = 100
 
 // DeleteCommand calls the Fastly API to delete an kv store.
 type DeleteCommand struct {
@@ -57,6 +58,10 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+	// TODO: Support --json for bulk deletions.
+	if c.deleteAll && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidDeleteAllJSONKeyCombo
 	}
 	if c.deleteAll && c.key.WasSet {
 		return fsterr.ErrInvalidDeleteAllKeyCombo
