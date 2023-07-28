@@ -118,9 +118,6 @@ func packageFiles(path string, fn func(archiver.File) error) error {
 	}
 	defer tr.Close()
 
-	// Track overall package size
-	var pkgSize int64
-
 	for {
 		f, err := tr.Read()
 		if err == io.EOF {
@@ -128,13 +125,6 @@ func packageFiles(path string, fn func(archiver.File) error) error {
 		}
 		if err != nil {
 			return fmt.Errorf("error reading package: %w", err)
-		}
-
-		// Avoids G110: Potential DoS vulnerability via decompression bomb (gosec).
-		pkgSize += f.Size()
-		if pkgSize > MaxPackageSize {
-			f.Close()
-			return fmt.Errorf("package size exceeded 100MB limit")
 		}
 
 		header, ok := f.Header.(*tar.Header)

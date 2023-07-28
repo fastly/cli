@@ -582,6 +582,10 @@ func createService(
 	errLog fsterr.LogInterface,
 	out io.Writer,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
+	if !f.AcceptDefaults && !f.NonInteractive {
+		text.Break(out)
+	}
+
 	err = spinner.Start()
 	if err != nil {
 		return "", nil, err
