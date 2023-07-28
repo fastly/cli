@@ -315,6 +315,21 @@
       ]
     }
   },
+  "config-store-entry": {
+    "delete": {
+      "examples": [
+        {
+          "cmd": "fastly config-store-entry delete --all --store-id <STORE_ID> --batch-size 30 --auto-yes",
+          "description": "Delete all entries from the Config Store in batches of 30 and ignoring the warning prompt.",
+          "title": "Delete all entries from the Config Store"
+        }
+      ],
+      "apis": [
+        "https://developer.fastly.com/reference/api/services/resources/config-store-item/#list-config-store-items",
+        "https://developer.fastly.com/reference/api/services/resources/config-store-item/#delete-config-store-item"
+      ]
+    }
+  },
   "dictionary": {
     "create": {
       "apis": [
