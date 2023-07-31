@@ -1,6 +1,7 @@
 .PHONY: clean
 
-SHELL := /bin/bash -o pipefail ## Set the shell to use for finding Go files (default: /bin/bash)
+SHELL := /usr/bin/env bash -o pipefail ## Set the shell to use for finding Go files (default: /bin/bash)
+
 
 # Compile program (implicit default target).
 #
