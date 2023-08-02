@@ -3,12 +3,13 @@ package secretstore
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
@@ -35,6 +36,7 @@ type ListCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
+	// NOTE: API returns 10 items even when --limit is set to smaller.
 	Input    fastly.ListSecretStoresInput
 	manifest manifest.Data
 }
@@ -54,6 +56,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 		if ok, err := c.WriteJSON(out, o); ok {
 			// No pagination prompt w/ JSON output.
+			// FIXME: This should be fixed here and for KV Store.
 			return err
 		}
 

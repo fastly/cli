@@ -18,7 +18,6 @@ type ListCommand struct {
 	cmd.JSONOutput
 
 	manifest manifest.Data
-	Input    fastly.ListKVStoresInput
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -38,28 +37,54 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.ListKVStores(&c.Input)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
+	var cursor string
 
-	if ok, err := c.WriteJSON(out, o); ok {
-		return err
-	}
-
-	if o != nil {
-		for _, o := range o.Data {
-			// avoid gosec loop aliasing check :/
-			o := o
-			text.PrintKVStore(out, "", &o)
+	for {
+		o, err := c.Globals.APIClient.ListKVStores(&fastly.ListKVStoresInput{
+			Cursor: cursor,
+		})
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
-	}
 
-	return nil
+		if ok, err := c.WriteJSON(out, o); ok {
+			// No pagination prompt w/ JSON output.
+			// FIXME: This should be fixed here and for Secrets Store.
+			return err
+		}
+
+		if o != nil {
+			for _, o := range o.Data {
+				// avoid gosec loop aliasing check :/
+				o := o
+				text.PrintKVStore(out, "", &o)
+			}
+			if cur, ok := o.Meta["next_cursor"]; ok && cur != "" && cur != cursor {
+				// Check if 'out' is interactive before prompting.
+				if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
+					text.Break(out)
+					printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
+					if err != nil {
+						return err
+					}
+					if printNext {
+						cursor = cur
+						continue
+					}
+				} else {
+					// Otherwise if non-interactive or auto-yes, then load all data.
+					cursor = cur
+					continue
+				}
+			}
+		}
+
+		return nil
+	}
 }
