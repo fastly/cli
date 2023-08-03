@@ -261,6 +261,12 @@ type API struct {
 	ListNewRelicFn   func(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error)
 	UpdateNewRelicFn func(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error)
 
+	CreateNewRelicOTLPFn func(i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error)
+	DeleteNewRelicOTLPFn func(i *fastly.DeleteNewRelicOTLPInput) error
+	GetNewRelicOTLPFn    func(i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error)
+	ListNewRelicOTLPFn   func(i *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error)
+	UpdateNewRelicOTLPFn func(i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error)
+
 	CreateUserFn        func(i *fastly.CreateUserInput) (*fastly.User, error)
 	DeleteUserFn        func(i *fastly.DeleteUserInput) error
 	GetCurrentUserFn    func() (*fastly.User, error)
@@ -1408,6 +1414,31 @@ func (m API) ListNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, erro
 // UpdateNewRelic implements Interface.
 func (m API) UpdateNewRelic(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 	return m.UpdateNewRelicFn(i)
+}
+
+// CreateNewRelicOTLP implements Interface.
+func (m API) CreateNewRelicOTLP(i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+	return m.CreateNewRelicOTLPFn(i)
+}
+
+// DeleteNewRelicOTLP implements Interface.
+func (m API) DeleteNewRelicOTLP(i *fastly.DeleteNewRelicOTLPInput) error {
+	return m.DeleteNewRelicOTLPFn(i)
+}
+
+// GetNewRelicOTLP implements Interface.
+func (m API) GetNewRelicOTLP(i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+	return m.GetNewRelicOTLPFn(i)
+}
+
+// ListNewRelicOTLP implements Interface.
+func (m API) ListNewRelicOTLP(i *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error) {
+	return m.ListNewRelicOTLPFn(i)
+}
+
+// UpdateNewRelicOTLP implements Interface.
+func (m API) UpdateNewRelicOTLP(i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+	return m.UpdateNewRelicOTLPFn(i)
 }
 
 // CreateUser implements Interface.
