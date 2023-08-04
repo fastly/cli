@@ -10,25 +10,14 @@ import (
 )
 
 // PrintSecretStoresTbl displays store data in a table format.
-func PrintSecretStoresTbl(out io.Writer, stores *fastly.SecretStores) {
+func PrintSecretStoresTbl(out io.Writer, stores []fastly.SecretStore) {
 	tbl := NewTable(out)
 	tbl.AddHeader("Name", "ID")
 
-	if stores == nil {
-		tbl.Print()
-		return
-	}
-
-	for _, s := range stores.Data {
-		// avoid gosec loop aliasing check :/
-		s := s
-		tbl.AddLine(s.Name, s.ID)
+	for _, store := range stores {
+		tbl.AddLine(store.Name, store.ID)
 	}
 	tbl.Print()
-
-	if stores.Meta.NextCursor != "" {
-		fmt.Fprintf(out, "\nNext cursor: %s\n", stores.Meta.NextCursor)
-	}
 }
 
 // PrintSecretsTbl displays secrets data in a table format.
