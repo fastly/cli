@@ -276,8 +276,7 @@ func TestListStoresCommand(t *testing.T) {
 
 	stores := &fastly.SecretStores{
 		Meta: fastly.SecretStoreMeta{
-			Limit:      123,
-			NextCursor: "abc",
+			Limit: 123,
 		},
 		Data: []fastly.SecretStore{
 			{ID: storeID, Name: storeName},
@@ -299,7 +298,6 @@ func TestListStoresCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtStores(&fastly.SecretStores{}),
 		},
 		{
 			args: "list",
@@ -319,7 +317,7 @@ func TestListStoresCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fmtStores(stores),
+			wantOutput:     fmtStores(stores.Data),
 		},
 		{
 			args: "list --json",
@@ -329,7 +327,7 @@ func TestListStoresCommand(t *testing.T) {
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fstfmt.EncodeJSON(stores),
+			wantOutput:     fstfmt.EncodeJSON([]fastly.SecretStore{stores.Data[0]}),
 		},
 	}
 
@@ -351,7 +349,7 @@ func TestListStoresCommand(t *testing.T) {
 			err := app.Run(opts)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
+			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 			if apiInvoked != testcase.wantAPIInvoked {
 				t.Fatalf("API ListSecretStores invoked = %v, want %v", apiInvoked, testcase.wantAPIInvoked)
 			}

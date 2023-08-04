@@ -47,6 +47,8 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
+	var data []fastly.SecretStore
+
 	for {
 		o, err := c.Globals.APIClient.ListSecretStores(&c.Input)
 		if err != nil {
@@ -54,28 +56,46 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 			return err
 		}
 
-		if ok, err := c.WriteJSON(out, o); ok {
-			// No pagination prompt w/ JSON output.
-			// FIXME: This should be fixed here and for KV Store.
-			return err
-		}
+		if o != nil {
+			data = append(data, o.Data...)
 
-		text.PrintSecretStoresTbl(out, o)
+			if c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes {
+				if o.Meta.NextCursor != "" {
+					c.Input.Cursor = o.Meta.NextCursor
+					continue
+				}
+				break
+			}
 
-		if o != nil && o.Meta.NextCursor != "" {
-			// Check if 'out' is interactive before prompting.
-			if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
+			text.PrintSecretStoresTbl(out, o.Data)
+
+			if o.Meta.NextCursor != "" {
+				text.Break(out)
 				printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
 				if err != nil {
 					return err
 				}
 				if printNext {
+					text.Break(out)
 					c.Input.Cursor = o.Meta.NextCursor
 					continue
 				}
 			}
 		}
 
-		return nil
+		break
 	}
+
+	ok, err := c.WriteJSON(out, data)
+	if err != nil {
+		return err
+	}
+
+	// Only print output here if we've not already printed JSON.
+	// And only if we're non interactive.
+	// Otherwise interactive mode would have displayed each page of data.
+	if !ok && (c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes) {
+		text.PrintSecretStoresTbl(out, data)
+	}
+	return nil
 }
