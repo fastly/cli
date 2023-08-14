@@ -121,7 +121,7 @@ func (g *Go) Build() error {
 	if g.toolchain == "tinygo" {
 		constraint = g.config.ToolchainConstraint
 	} else {
-		text.Info(g.output, "The standard Go compiler %s now supports WASI. To keep using TinyGo set `toolchain = 'tinygo'`.", constraint)
+		text.Info(g.output, "The standard Go compiler %s now supports WASI. To keep using TinyGo set `[scripts.toolchain]` to 'tinygo'.", constraint)
 	}
 
 	g.toolchainConstraint(
