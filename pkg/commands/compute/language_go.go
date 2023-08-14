@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -15,7 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GoDefaultBuildCommand is a build command compiled into the CLI binary so it
+// TinyGoDefaultBuildCommand is a build command compiled into the CLI binary so it
 // can be used as a fallback for customer's who have an existing C@E project and
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
@@ -24,7 +25,14 @@ import (
 // NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
 // We no longer do that. In 6.x we use the default and just inform the user.
 // This makes the experience less confusing as users didn't expect file changes.
-const GoDefaultBuildCommand = "tinygo build -target=wasi -gc=conservative -o bin/main.wasm ./"
+const TinyGoDefaultBuildCommand = "tinygo build -target=wasi -gc=conservative -o bin/main.wasm ./"
+
+// GoDefaultBuildCommand is a build command compiled into the CLI binary so it
+// can be used as a fallback for customer's who have an existing C@E project and
+// who don't have a `scripts.build` defined.
+//
+// NOTE: Only used if `toolchain = "go"` and if Go 1.21+ is installed.
+const GoDefaultBuildCommand = "env GOARCH=wasm GOOS=wasip1 go build -o bin/main.wasm ./"
 
 // GoSourceDirectory represents the source code directory.                                               │                                                           │
 const GoSourceDirectory = "."
@@ -51,6 +59,7 @@ func NewGo(
 		postBuild:      fastlyManifest.Scripts.PostBuild,
 		spinner:        spinner,
 		timeout:        flags.Timeout,
+		toolchain:      fastlyManifest.Scripts.Toolchain,
 		verbose:        globals.Verbose(),
 	}
 }
@@ -85,6 +94,8 @@ type Go struct {
 	spinner text.Spinner
 	// timeout is the build execution threshold.
 	timeout int
+	// toolchain indicates the toolchain used for compiling your program.
+	toolchain string
 	// verbose indicates if the user set --verbose
 	verbose bool
 }
@@ -92,8 +103,12 @@ type Go struct {
 // Build compiles the user's source code into a Wasm binary.
 func (g *Go) Build() error {
 	var noBuildScript bool
+
 	if g.build == "" {
 		g.build = GoDefaultBuildCommand
+		if g.toolchain == "tinygo" {
+			g.build = TinyGoDefaultBuildCommand
+		}
 		noBuildScript = true
 	}
 
@@ -101,12 +116,23 @@ func (g *Go) Build() error {
 		text.Info(g.output, "No [scripts.build] found in fastly.toml. The following default build command for Go will be used: `%s`\n", g.build)
 	}
 
+	constraint := g.config.NativeToolchainConstraint
+
+	if g.toolchain == "tinygo" {
+		constraint = g.config.ToolchainConstraint
+	} else {
+		text.Info(g.output, "The standard Go compiler %s now supports WASI. To keep using TinyGo set `toolchain = 'tinygo'`.", constraint)
+	}
+
 	g.toolchainConstraint(
-		"go", `go version go(?P<version>\d[^\s]+)`, g.config.ToolchainConstraint,
+		"go", `go version go(?P<version>\d[^\s]+)`, constraint,
 	)
-	g.toolchainConstraint(
-		"tinygo", `tinygo version (?P<version>\d[^\s]+)`, g.config.TinyGoConstraint,
-	)
+
+	if g.toolchain == "tinygo" {
+		g.toolchainConstraint(
+			"tinygo", `tinygo version (?P<version>\d[^\s]+)`, g.config.TinyGoConstraint,
+		)
+	}
 
 	bt := BuildToolchain{
 		autoYes:        g.autoYes,

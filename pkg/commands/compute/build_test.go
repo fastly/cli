@@ -248,13 +248,14 @@ func TestBuildGo(t *testing.T) {
 		//
 		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
-			name: "build script inserted dynamically when missing",
+			name: "build success",
 			args: args("compute build --verbose"),
 			applicationConfig: config.File{
 				Language: config.Language{
 					Go: config.Go{
-						TinyGoConstraint:    ">= 0.26.0-0",
-						ToolchainConstraint: ">= 1.17",
+						TinyGoConstraint:          ">= 0.26.0-0",
+						ToolchainConstraint:       ">= 1.18",
+						NativeToolchainConstraint: ">= 1.21",
 					},
 				},
 			},
@@ -264,8 +265,11 @@ func TestBuildGo(t *testing.T) {
       language = "go"`,
 			wantOutput: []string{
 				"No [scripts.build] found in fastly.toml.", // requires --verbose
+				"The Fastly CLI requires a go version '>= 1.21'",
 				"The following default build command for",
-				"tinygo build",
+				"env GOARCH=wasm GOOS=wasip1",
+				"Creating ./bin directory (for Wasm binary)",
+				"Built package",
 			},
 		},
 		{
@@ -274,8 +278,9 @@ func TestBuildGo(t *testing.T) {
 			applicationConfig: config.File{
 				Language: config.Language{
 					Go: config.Go{
-						TinyGoConstraint:    ">= 0.26.0-0",
-						ToolchainConstraint: ">= 1.17",
+						TinyGoConstraint:          ">= 0.26.0-0",
+						ToolchainConstraint:       ">= 1.18",
+						NativeToolchainConstraint: ">= 1.21",
 					},
 				},
 			},
@@ -287,30 +292,6 @@ func TestBuildGo(t *testing.T) {
       [scripts]
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
-		},
-		// NOTE: This test passes --verbose so we can validate specific outputs.
-		{
-			name: "successful build",
-			args: args("compute build --verbose"),
-			applicationConfig: config.File{
-				Language: config.Language{
-					Go: config.Go{
-						TinyGoConstraint:    ">= 0.26.0-0",
-						ToolchainConstraint: ">= 1.17",
-					},
-				},
-			},
-			fastlyManifest: fmt.Sprintf(`
-			manifest_version = 2
-			name = "test"
-			language = "go"
-
-      [scripts]
-      build = "%s"`, compute.GoDefaultBuildCommand),
-			wantOutput: []string{
-				"Creating ./bin directory (for Wasm binary)",
-				"Built package",
-			},
 		},
 	}
 	for testcaseIdx := range scenarios {

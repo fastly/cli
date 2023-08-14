@@ -188,7 +188,13 @@ func appendSpecRef(w io.Writer) error {
 
 // Scripts represents build configuration.
 type Scripts struct {
-	Build     string `toml:"build,omitempty"`
+	// Build is a custom build script.
+	Build string `toml:"build,omitempty"`
+	// PostBuild is executed after the build step.
 	PostBuild string `toml:"post_build,omitempty"`
-	PostInit  string `toml:"post_init,omitempty"`
+	// PostInit is executed after the init step.
+	PostInit string `toml:"post_init,omitempty"`
+	// Toolchain indicates the toolchain used for compiling your program.
+	// Supported languages: Go (allowed inputs: go, tinygo).
+	Toolchain string `toml:"toolchain,omitempty"`
 }
