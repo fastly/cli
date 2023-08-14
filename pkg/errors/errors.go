@@ -93,11 +93,18 @@ var ErrInvalidArchive = RemediationError{
 	Remediation: "Ensure the archive contains all required package files (such as a 'fastly.toml' manifest, and a 'src' folder etc).",
 }
 
-// ErrBuildStopped means the user stopped the build because they were unhappy
+// ErrPostInitStopped means the user stopped the init process because they were
+// unhappy with the custom post_init defined in the fastly.toml manifest file.
+var ErrPostInitStopped = RemediationError{
+	Inner:       fmt.Errorf("init process stopped by user"),
+	Remediation: "Check the [scripts.post_init] in the fastly.toml manifest is safe to execute or skip this prompt using either `--auto-yes` or `--non-interactive`.",
+}
+
+// ErrPostBuildStopped means the user stopped the build because they were unhappy
 // with the custom build defined in the fastly.toml manifest file.
-var ErrBuildStopped = RemediationError{
+var ErrPostBuildStopped = RemediationError{
 	Inner:       fmt.Errorf("build process stopped by user"),
-	Remediation: "Check the [scripts.build] in the fastly.toml manifest is safe to execute or skip this prompt using either `--auto-yes` or `--non-interactive`.",
+	Remediation: "Check the [scripts.post_build] in the fastly.toml manifest is safe to execute or skip this prompt using either `--auto-yes` or `--non-interactive`.",
 }
 
 // ErrInvalidVerboseJSONCombo means the user provided both a --verbose and

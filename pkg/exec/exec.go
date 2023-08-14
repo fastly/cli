@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/threadsafe"
 )
@@ -152,6 +153,40 @@ func (s *Streaming) Signal(sig os.Signal) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// Command is an abstraction over a Streaming type. It is used by both the
+// `compute init` and `compute build` commands to run post init/build scripts.
+func Command(
+	cmd string,
+	args []string,
+	spinMessage string,
+	out io.Writer,
+	spinner text.Spinner,
+	verbose bool,
+	timeout int,
+	errLog fsterr.LogInterface,
+) error {
+	s := Streaming{
+		Command:        cmd,
+		Args:           args,
+		Env:            os.Environ(),
+		Output:         out,
+		Spinner:        spinner,
+		SpinnerMessage: spinMessage,
+		Verbose:        verbose,
+	}
+	if verbose {
+		s.ForceOutput = true
+	}
+	if timeout > 0 {
+		s.Timeout = time.Duration(timeout) * time.Second
+	}
+	if err := s.Exec(); err != nil {
+		errLog.Add(err)
+		return err
 	}
 	return nil
 }

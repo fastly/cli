@@ -20,6 +20,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
@@ -223,6 +224,50 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error initializing package: %w", err)
+	}
+
+	var md manifest.Data
+	err = md.File.Read(manifest.Filename)
+	if err != nil {
+		return fmt.Errorf("failed to read manifest after initialisation: %w", err)
+	}
+
+	postInit := md.File.Scripts.PostInit
+	if postInit != "" {
+		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+			msg := fmt.Sprintf(CustomPostScriptMessage, "init")
+			err := promptForPostInitContinue(msg, postInit, out, in)
+			if err != nil {
+				if errors.Is(err, fsterr.ErrPostInitStopped) {
+					displayOutput(mf.Name, dst, language.Name, out)
+					return nil
+				}
+				return err
+			}
+		}
+
+		err = spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg := "Running [scripts.post_init]..."
+		spinner.Message(msg)
+
+		s := Shell{}
+		cmd, args := s.Build(postInit)
+		noTimeout := 0 // zero indicates no timeout
+		err := fstexec.Command(
+			cmd, args, msg, out, spinner, c.Globals.Flags.Verbose, noTimeout, c.Globals.ErrLog,
+		)
+		if err != nil {
+			return err
+		}
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return err
+		}
 	}
 
 	displayOutput(mf.Name, dst, language.Name, out)
@@ -1139,6 +1184,25 @@ func initializeLanguage(spinner text.Spinner, language *Language, languages []*L
 		return nil, err
 	}
 	return language, nil
+}
+
+// promptForPostInitContinue ensures the user is happy to continue with running
+// the define post_init script in the fastly.toml manifest file.
+func promptForPostInitContinue(msg, script string, out io.Writer, in io.Reader) error {
+	text.Info(out, "%s:\n", msg)
+	text.Break(out)
+	text.Indent(out, 4, "%s", script)
+
+	label := "\nAre you sure you want to continue with the post init step? [y/N] "
+	answer, err := text.AskYesNo(out, label, in)
+	if err != nil {
+		return err
+	}
+	if !answer {
+		return fsterr.ErrPostInitStopped
+	}
+	text.Break(out)
+	return nil
 }
 
 // displayOutput of package information and useful links.

@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
@@ -148,7 +147,8 @@ func (bt BuildToolchain) Build() error {
 
 	if bt.postBuild != "" {
 		if !bt.autoYes && !bt.nonInteractive {
-			err := bt.promptForBuildContinue(CustomPostBuildScriptMessage, bt.postBuild, bt.out, bt.in)
+			msg := fmt.Sprintf(CustomPostScriptMessage, "build")
+			err := bt.promptForPostBuildContinue(msg, bt.postBuild, bt.out, bt.in)
 			if err != nil {
 				return err
 			}
@@ -194,32 +194,14 @@ func (bt BuildToolchain) handleError(err error) error {
 // This causes the spinner message to be displayed twice with different status.
 // By passing in the spinner and message we can short-circuit the spinner.
 func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage string) error {
-	s := fstexec.Streaming{
-		Command:        cmd,
-		Args:           args,
-		Env:            os.Environ(),
-		Output:         bt.out,
-		Spinner:        bt.spinner,
-		SpinnerMessage: spinMessage,
-		Verbose:        bt.verbose,
-	}
-	if bt.verbose {
-		s.ForceOutput = true
-	}
-	if bt.timeout > 0 {
-		s.Timeout = time.Duration(bt.timeout) * time.Second
-	}
-	if err := s.Exec(); err != nil {
-		bt.errlog.Add(err)
-		return err
-	}
-	return nil
+	return fstexec.Command(
+		cmd, args, spinMessage, bt.out, bt.spinner, bt.verbose, bt.timeout, bt.errlog,
+	)
 }
 
-// promptForBuildContinue ensures the user is happy to continue with the build
-// when there is either a custom build or post build in the fastly.toml
-// manifest file.
-func (bt BuildToolchain) promptForBuildContinue(msg, script string, out io.Writer, in io.Reader) error {
+// promptForPostBuildContinue ensures the user is happy to continue with the build
+// when there is a post_build in the fastly.toml manifest file.
+func (bt BuildToolchain) promptForPostBuildContinue(msg, script string, out io.Writer, in io.Reader) error {
 	text.Info(out, "%s:\n", msg)
 	text.Break(out)
 	text.Indent(out, 4, "%s", script)
@@ -230,7 +212,7 @@ func (bt BuildToolchain) promptForBuildContinue(msg, script string, out io.Write
 		return err
 	}
 	if !answer {
-		return fsterr.ErrBuildStopped
+		return fsterr.ErrPostBuildStopped
 	}
 	text.Break(out)
 	return nil
