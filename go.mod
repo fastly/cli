@@ -28,7 +28,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v8 v8.5.7
+	github.com/fastly/go-fastly/v8 v8.5.9
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.12.0
