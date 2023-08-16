@@ -1,5 +1,17 @@
 # Changelog
 
+## [v10.3.0](https://github.com/fastly/cli/releases/tag/v10.3.0) (2023-08-16)
+
+**Enhancements:**
+
+* feat(compute/init): support post_init [#997](https://github.com/fastly/cli/pull/997)
+
+**Bug fixes:**
+
+* build(scripts): use /usr/bin/env bash to retrieve system bash path [#987](https://github.com/fastly/cli/pull/987)
+* fix(kvstores/list): support pagination [#988](https://github.com/fastly/cli/pull/988)
+* fix(secretstore): pagination + support for json [#991](https://github.com/fastly/cli/pull/991)
+
 ## [v10.2.4](https://github.com/fastly/cli/releases/tag/v10.2.4) (2023-07-28)
 
 **Enhancements:**
