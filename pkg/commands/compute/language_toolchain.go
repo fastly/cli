@@ -206,7 +206,7 @@ func (bt BuildToolchain) promptForPostBuildContinue(msg, script string, out io.W
 	text.Break(out)
 	text.Indent(out, 4, "%s", script)
 
-	label := "\nAre you sure you want to continue with the post build step? [y/N] "
+	label := "\nDo you want to run this now? [y/N] "
 	answer, err := text.AskYesNo(out, label, in)
 	if err != nil {
 		return err
