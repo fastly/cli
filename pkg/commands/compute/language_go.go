@@ -27,13 +27,6 @@ import (
 // This makes the experience less confusing as users didn't expect file changes.
 const TinyGoDefaultBuildCommand = "tinygo build -target=wasi -gc=conservative -o bin/main.wasm ./"
 
-// GoDefaultBuildCommand is a build command compiled into the CLI binary so it
-// can be used as a fallback for customer's who have an existing C@E project and
-// who don't have a `scripts.build` defined.
-//
-// NOTE: Only used if `toolchain = "go"` and if Go 1.21+ is installed.
-const GoDefaultBuildCommand = "GOARCH=wasm GOOS=wasip1 go build -o bin/main.wasm ./"
-
 // GoSourceDirectory represents the source code directory.                                               │                                                           │
 const GoSourceDirectory = "."
 
@@ -102,33 +95,39 @@ type Go struct {
 
 // Build compiles the user's source code into a Wasm binary.
 func (g *Go) Build() error {
-	var noBuildScript bool
+	var (
+		tinygoToolchain     bool
+		toolchainConstraint string
+	)
 
 	if g.build == "" {
-		g.build = GoDefaultBuildCommand
-		if g.toolchain == "tinygo" {
-			g.build = TinyGoDefaultBuildCommand
+		g.build = TinyGoDefaultBuildCommand
+		tinygoToolchain = true
+		toolchainConstraint = g.config.ToolchainConstraintTinyGo
+		text.Info(g.output, "No [scripts.build] found in fastly.toml. Visit https://developer.fastly.com/learning/compute/go/ to learn how to target native Go vs TinyGo.")
+		text.Break(g.output)
+		text.Description(g.output, "The following default build command for TinyGo will be used:", g.build)
+		text.Break(g.output)
+	}
+
+	if g.build != "" {
+		// IMPORTANT: All Fastly starter-kits for Go/TinyGo will have build script.
+		//
+		// So we'll need to parse the build script to identify if TinyGo is used so
+		// we can set the constraints appropriately.
+		if strings.Contains(g.build, "tinygo build") {
+			tinygoToolchain = true
+			toolchainConstraint = g.config.ToolchainConstraintTinyGo
+		} else {
+			toolchainConstraint = g.config.ToolchainConstraint
 		}
-		noBuildScript = true
-	}
-
-	if noBuildScript && g.verbose {
-		text.Info(g.output, "No [scripts.build] found in fastly.toml. The following default build command for Go will be used: `%s`\n", g.build)
-	}
-
-	constraint := g.config.NativeToolchainConstraint
-
-	if g.toolchain == "tinygo" {
-		constraint = g.config.ToolchainConstraint
-	} else {
-		text.Info(g.output, "The standard Go compiler %s now supports WASI. To keep using TinyGo set `[scripts.toolchain]` to 'tinygo'.", constraint)
 	}
 
 	g.toolchainConstraint(
-		"go", `go version go(?P<version>\d[^\s]+)`, constraint,
+		"go", `go version go(?P<version>\d[^\s]+)`, toolchainConstraint,
 	)
 
-	if g.toolchain == "tinygo" {
+	if tinygoToolchain {
 		g.toolchainConstraint(
 			"tinygo", `tinygo version (?P<version>\d[^\s]+)`, g.config.TinyGoConstraint,
 		)

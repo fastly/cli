@@ -254,24 +254,28 @@ func TestBuildGo(t *testing.T) {
 				Language: config.Language{
 					Go: config.Go{
 						TinyGoConstraint:          ">= 0.26.0-0",
-						ToolchainConstraint:       ">= 1.18",
-						NativeToolchainConstraint: ">= 1.21",
+						ToolchainConstraintTinyGo: ">= 1.18",
+						ToolchainConstraint:       ">= 1.21",
 					},
 				},
 			},
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
-      language = "go"`,
+      language = "go"
+      [scripts]
+      build = "GOARCH=wasm GOOS=wasip1 go build -o bin/main.wasm ./"
+      `,
 			wantOutput: []string{
-				"No [scripts.build] found in fastly.toml.", // requires --verbose
 				"The Fastly CLI requires a go version '>= 1.21'",
-				"The following default build command for",
-				"env GOARCH=wasm GOOS=wasip1",
+				"Build script to execute",
+				"GOARCH=wasm GOOS=wasip1",
 				"Creating ./bin directory (for Wasm binary)",
 				"Built package",
 			},
 		},
+		// The following test case is expected to fail because we specify a custom
+		// build script that doesn't actually produce a ./bin/main.wasm
 		{
 			name: "build error",
 			args: args("compute build"),
@@ -279,8 +283,8 @@ func TestBuildGo(t *testing.T) {
 				Language: config.Language{
 					Go: config.Go{
 						TinyGoConstraint:          ">= 0.26.0-0",
-						ToolchainConstraint:       ">= 1.18",
-						NativeToolchainConstraint: ">= 1.21",
+						ToolchainConstraintTinyGo: ">= 1.18",
+						ToolchainConstraint:       ">= 1.21",
 					},
 				},
 			},

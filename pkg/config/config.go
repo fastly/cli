@@ -88,14 +88,14 @@ type Go struct {
 	// TinyGoConstraint is the `tinygo` version that we support.
 	TinyGoConstraint string `toml:"tinygo_constraint"`
 
-	// ToolchainConstraint is the `go` version that we support with TinyGo.
+	// ToolchainConstraint is the `go` version that we support with WASI.
+	ToolchainConstraint string `toml:"toolchain_constraint"`
+
+	// ToolchainConstraintTinyGo is the `go` version that we support with TinyGo.
 	//
 	// We aim for go versions that support go modules by default.
 	// https://go.dev/blog/using-go-modules
-	ToolchainConstraint string `toml:"toolchain_constraint"`
-
-	// NativeToolchainConstraint is the `go` version that we support with WASI.
-	NativeToolchainConstraint string `toml:"native_toolchain_constraint"`
+	ToolchainConstraintTinyGo string `toml:"toolchain_constraint_tinygo"`
 }
 
 // Rust represents Rust C@E language specific configuration.
