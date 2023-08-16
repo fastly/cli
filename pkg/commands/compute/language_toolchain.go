@@ -41,6 +41,8 @@ type BuildToolchain struct {
 	buildFn func(string) (string, []string)
 	// buildScript is the [scripts.build] within the fastly.toml manifest.
 	buildScript string
+	// env are environment variables to be set.
+	env []string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// in is the user's terminal stdin stream
@@ -195,7 +197,7 @@ func (bt BuildToolchain) handleError(err error) error {
 // By passing in the spinner and message we can short-circuit the spinner.
 func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage string) error {
 	return fstexec.Command(
-		cmd, args, spinMessage, bt.out, bt.spinner, bt.verbose, bt.timeout, bt.errlog,
+		cmd, args, spinMessage, bt.out, bt.spinner, bt.verbose, bt.timeout, bt.errlog, bt.env,
 	)
 }
 

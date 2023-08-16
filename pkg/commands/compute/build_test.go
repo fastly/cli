@@ -264,12 +264,12 @@ func TestBuildGo(t *testing.T) {
 			name = "test"
       language = "go"
       [scripts]
-      build = "GOARCH=wasm GOOS=wasip1 go build -o bin/main.wasm ./"
+      build = "go build -o bin/main.wasm ./"
       `,
 			wantOutput: []string{
 				"The Fastly CLI requires a go version '>= 1.21'",
 				"Build script to execute",
-				"GOARCH=wasm GOOS=wasip1",
+				"go build -o bin/main.wasm ./",
 				"Creating ./bin directory (for Wasm binary)",
 				"Built package",
 			},

@@ -256,8 +256,9 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		s := Shell{}
 		command, args := s.Build(postInit)
 		noTimeout := 0 // zero indicates no timeout
+		noEnvVars := []string{}
 		err := fstexec.Command(
-			command, args, msg, out, spinner, c.Globals.Flags.Verbose, noTimeout, c.Globals.ErrLog,
+			command, args, msg, out, spinner, c.Globals.Flags.Verbose, noTimeout, c.Globals.ErrLog, noEnvVars,
 		)
 		if err != nil {
 			return err

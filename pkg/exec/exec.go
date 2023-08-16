@@ -168,11 +168,12 @@ func Command(
 	verbose bool,
 	timeout int,
 	errLog fsterr.LogInterface,
+	env []string,
 ) error {
 	s := Streaming{
 		Command:        cmd,
 		Args:           args,
-		Env:            os.Environ(),
+		Env:            env,
 		Output:         out,
 		Spinner:        spinner,
 		SpinnerMessage: spinMessage,
