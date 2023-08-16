@@ -1,7 +1,6 @@
 package compute_test
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -726,7 +725,7 @@ func TestBuildOther(t *testing.T) {
 			stdin: "N",
 			wantOutput: []string{
 				"echo doing a post build",
-				"Are you sure you want to continue with the post build step?",
+				"Do you want to run this now?",
 			},
 			wantError: "build process stopped by user",
 		},
@@ -743,7 +742,7 @@ func TestBuildOther(t *testing.T) {
 			stdin: "Y",
 			wantOutput: []string{
 				"echo doing a post build",
-				"Are you sure you want to continue with the post build step?",
+				"Do you want to run this now?",
 				"Built package",
 			},
 		},
@@ -760,7 +759,7 @@ func TestBuildOther(t *testing.T) {
 			stdin: "Y",
 			wantOutput: []string{
 				"echo doing a post build",
-				"Are you sure you want to continue with the post build step?",
+				"Do you want to run this now?",
 				"Built package",
 			},
 		},
@@ -777,7 +776,7 @@ func TestBuildOther(t *testing.T) {
 				"doing a post build with no confirmation prompt",
 			},
 			dontWantOutput: []string{
-				"Are you sure you want to continue with the build step?",
+				"Do you want to run this now?",
 			},
 			wantError: "exit status 1", // because we have to trigger an error to see the post_build output
 		},
