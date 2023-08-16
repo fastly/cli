@@ -190,4 +190,5 @@ func appendSpecRef(w io.Writer) error {
 type Scripts struct {
 	Build     string `toml:"build,omitempty"`
 	PostBuild string `toml:"post_build,omitempty"`
+	PostInit  string `toml:"post_init,omitempty"`
 }

@@ -6,13 +6,14 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/fastly/kingpin"
+	"github.com/mholt/archiver/v3"
+
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/kingpin"
-	"github.com/mholt/archiver/v3"
 )
 
 // TestPublishFlagDivergence validates that the manually curated list of flags

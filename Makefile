@@ -13,7 +13,7 @@ build: config ## Compile program (CGO disabled)
 
 GO_BIN ?= go ## Allows overriding go executable.
 TEST_COMMAND ?= $(GO_BIN) test ## Enables support for tools such as https://github.com/rakyll/gotest
-TEST_ARGS ?= -timeout 15m ./... ## The compute tests can sometimes exceed the default 10m limit
+TEST_ARGS ?= -v -timeout 15m ./... ## The compute tests can sometimes exceed the default 10m limit
 
 GOHOSTOS ?= $(shell go env GOHOSTOS || echo unknown)
 GOHOSTARCH ?= $(shell go env GOHOSTARCH || echo unknown)
