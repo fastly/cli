@@ -185,7 +185,7 @@ func TestBuildRust(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.ConfigFile = testcase.applicationConfig
 			err = app.Run(opts)
@@ -345,7 +345,7 @@ func TestBuildGo(t *testing.T) {
 			}
 			defer os.Chdir(pwd)
 
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.ConfigFile = testcase.applicationConfig
 			err = app.Run(opts)
@@ -651,7 +651,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 				}
 			}
 
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			err = app.Run(opts)
 			t.Log(stdout.String())
