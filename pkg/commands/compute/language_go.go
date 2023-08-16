@@ -1,8 +1,10 @@
 package compute
 
 import (
+	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -123,13 +125,20 @@ func (g *Go) Build() error {
 		}
 	}
 
+	// IMPORTANT: The Go SDK 0.2.0 bumps the tinygo requirement to 0.28.1
+	//
+	// This means we need to check the go.sum of the user's project for
+	// `compute-sdk-go` and then parse the version and identify if it's less than
+	// 0.2.0 version. If it less than, change the TinyGo constraint to 0.26.0
+	tinygoConstraint := identifyTinyGoConstraint(g.config.TinyGoConstraint)
+
 	g.toolchainConstraint(
 		"go", `go version go(?P<version>\d[^\s]+)`, toolchainConstraint,
 	)
 
 	if tinygoToolchain {
 		g.toolchainConstraint(
-			"tinygo", `tinygo version (?P<version>\d[^\s]+)`, g.config.TinyGoConstraint,
+			"tinygo", `tinygo version (?P<version>\d[^\s]+)`, tinygoConstraint,
 		)
 	}
 
@@ -151,6 +160,66 @@ func (g *Go) Build() error {
 	return bt.Build()
 }
 
+// identifyTinyGoConstraint checks the compute-sdk-go version used by the
+// project and if it's less than 0.2.0 we'll change the TinyGo constraint to be
+// version 0.26.0
+//
+// We do this because the 0.2.0 release of the compute-sdk-go bumps the TinyGo
+// version requirement to 0.28.1 and we want to avoid any scenarios where a
+// bump in SDK version causes the user's build to break (which would happen for
+// users with a pre-existing project who happen to update their CLI version: the
+// new CLI version would have a TinyGo constraint that would be higher than
+// before and would stop their build from working).
+//
+// NOTE: The `configConstraint` is the latest CLI application config version.
+// If there are any errors trying to parse the go.sum we'll default to the
+// config constraint.
+func identifyTinyGoConstraint(configConstraint string) string {
+	moduleName := "github.com/fastly/compute-sdk-go"
+	version := ""
+
+	f, err := os.Open("go.sum")
+	if err != nil {
+		return configConstraint
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := scanner.Text()
+		parts := strings.Fields(line)
+		if len(parts) >= 2 && parts[0] == moduleName {
+			version = strings.TrimPrefix(parts[1], "v")
+			break
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return configConstraint
+	}
+
+	if version == "" {
+		return configConstraint
+	}
+
+	gosumVersion, err := semver.NewVersion(version)
+	if err != nil {
+		return configConstraint
+	}
+
+	// 0.2.0 introduces the break by bumping the TinyGo minimum version to 0.28.1
+	breakingSDKVersion, err := semver.NewVersion("0.2.0")
+	if err != nil {
+		return configConstraint
+	}
+
+	if gosumVersion.LessThan(breakingSDKVersion) {
+		return ">= 0.26.0-0"
+	}
+
+	return configConstraint
+}
+
 // toolchainConstraint warns the user if the required constraint is not met.
 //
 // NOTE: We don't stop the build as their toolchain may compile successfully.
@@ -158,7 +227,7 @@ func (g *Go) Build() error {
 // the opportunity to do something about it if they choose.
 func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
 	if g.verbose {
-		text.Info(g.output, "The Fastly CLI requires a %s version '%s'. ", toolchain, constraint)
+		text.Info(g.output, "The Fastly CLI build step requires a %s version '%s'. ", toolchain, constraint)
 	}
 
 	versionCommand := fmt.Sprintf("%s version", toolchain)
