@@ -32,7 +32,7 @@ const TinyGoDefaultBuildCommand = "tinygo build -target=wasi -gc=conservative -o
 // who don't have a `scripts.build` defined.
 //
 // NOTE: Only used if `toolchain = "go"` and if Go 1.21+ is installed.
-const GoDefaultBuildCommand = "env GOARCH=wasm GOOS=wasip1 go build -o bin/main.wasm ./"
+const GoDefaultBuildCommand = "GOARCH=wasm GOOS=wasip1 go build -o bin/main.wasm ./"
 
 // GoSourceDirectory represents the source code directory.                                               │                                                           │
 const GoSourceDirectory = "."
