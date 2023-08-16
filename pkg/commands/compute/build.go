@@ -26,7 +26,7 @@ const IgnoreFilePath = ".fastlyignore"
 
 // CustomPostScriptMessage is the message displayed to a user when there is
 // either a post_init or post_build script defined.
-const CustomPostScriptMessage = "This project has a custom post %s script defined in the fastly.toml manifest"
+const CustomPostScriptMessage = "This project has a custom post_%s script defined in the fastly.toml manifest"
 
 // Flags represents the flags defined for the command.
 type Flags struct {
