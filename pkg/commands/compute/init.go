@@ -254,10 +254,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		spinner.Message(msg)
 
 		s := Shell{}
-		cmd, args := s.Build(postInit)
+		command, args := s.Build(postInit)
 		noTimeout := 0 // zero indicates no timeout
 		err := fstexec.Command(
-			cmd, args, msg, out, spinner, c.Globals.Flags.Verbose, noTimeout, c.Globals.ErrLog,
+			command, args, msg, out, spinner, c.Globals.Flags.Verbose, noTimeout, c.Globals.ErrLog,
 		)
 		if err != nil {
 			return err
