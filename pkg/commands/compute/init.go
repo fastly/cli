@@ -1193,7 +1193,7 @@ func promptForPostInitContinue(msg, script string, out io.Writer, in io.Reader) 
 	text.Break(out)
 	text.Indent(out, 4, "%s", script)
 
-	label := "\nAre you sure you want to continue with the post init step? [y/N] "
+	label := "\nContinue with the post init step? [y/N] "
 	answer, err := text.AskYesNo(out, label, in)
 	if err != nil {
 		return err
