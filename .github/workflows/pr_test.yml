@@ -153,7 +153,6 @@ jobs:
         env:
           # NOTE: The following lets us focus the test run while debugging.
           # TEST_ARGS: "-run TestDeploy ./pkg/commands/compute/..."
-          TEST_ARGS: "-v -timeout 15m ./..."
           TEST_COMPUTE_INIT: true
           TEST_COMPUTE_BUILD: true
           TEST_COMPUTE_DEPLOY: true
