@@ -127,7 +127,7 @@ func (g *Go) Build() error {
 
 	// IMPORTANT: The Go SDK 0.2.0 bumps the tinygo requirement to 0.28.1
 	//
-	// This means we need to check the go.sum of the user's project for
+	// This means we need to check the go.mod of the user's project for
 	// `compute-sdk-go` and then parse the version and identify if it's less than
 	// 0.2.0 version. If it less than, change the TinyGo constraint to 0.26.0
 	tinygoConstraint := identifyTinyGoConstraint(g.config.TinyGoConstraint)
@@ -172,13 +172,13 @@ func (g *Go) Build() error {
 // before and would stop their build from working).
 //
 // NOTE: The `configConstraint` is the latest CLI application config version.
-// If there are any errors trying to parse the go.sum we'll default to the
+// If there are any errors trying to parse the go.mod we'll default to the
 // config constraint.
 func identifyTinyGoConstraint(configConstraint string) string {
 	moduleName := "github.com/fastly/compute-sdk-go"
 	version := ""
 
-	f, err := os.Open("go.sum")
+	f, err := os.Open("go.mod")
 	if err != nil {
 		return configConstraint
 	}
@@ -188,9 +188,27 @@ func identifyTinyGoConstraint(configConstraint string) string {
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.Fields(line)
-		if len(parts) >= 2 && parts[0] == moduleName {
-			version = strings.TrimPrefix(parts[1], "v")
-			break
+
+		// go.mod has two separate definition possibilities:
+		//
+		// 1.
+		// require github.com/fastly/compute-sdk-go v0.1.7
+		//
+		// 2.
+		// require (
+		//   github.com/fastly/compute-sdk-go v0.1.7
+		// )
+		if len(parts) >= 2 {
+			// 1. require [github.com/fastly/compute-sdk-go] v0.1.7
+			if parts[1] == moduleName {
+				version = strings.TrimPrefix(parts[2], "v")
+				break
+			}
+			// 2. [github.com/fastly/compute-sdk-go] v0.1.7
+			if parts[0] == moduleName {
+				version = strings.TrimPrefix(parts[1], "v")
+				break
+			}
 		}
 	}
 
@@ -202,7 +220,7 @@ func identifyTinyGoConstraint(configConstraint string) string {
 		return configConstraint
 	}
 
-	gosumVersion, err := semver.NewVersion(version)
+	gomodVersion, err := semver.NewVersion(version)
 	if err != nil {
 		return configConstraint
 	}
@@ -213,7 +231,7 @@ func identifyTinyGoConstraint(configConstraint string) string {
 		return configConstraint
 	}
 
-	if gosumVersion.LessThan(breakingSDKVersion) {
+	if gomodVersion.LessThan(breakingSDKVersion) {
 		return ">= 0.26.0-0"
 	}
 
