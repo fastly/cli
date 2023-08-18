@@ -143,7 +143,6 @@ func (g *Go) Build() error {
 		autoYes:        g.autoYes,
 		buildFn:        g.Shell.Build,
 		buildScript:    g.build,
-		env:            []string{"GOARCH=wasm", "GOOS=wasip1"},
 		errlog:         g.errlog,
 		in:             g.input,
 		nonInteractive: g.nonInteractive,
