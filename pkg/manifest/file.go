@@ -194,7 +194,4 @@ type Scripts struct {
 	PostBuild string `toml:"post_build,omitempty"`
 	// PostInit is executed after the init step.
 	PostInit string `toml:"post_init,omitempty"`
-	// Toolchain indicates the toolchain used for compiling your program.
-	// Supported languages: Go (allowed inputs: go, tinygo).
-	Toolchain string `toml:"toolchain,omitempty"`
 }

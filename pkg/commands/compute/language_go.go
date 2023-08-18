@@ -54,7 +54,6 @@ func NewGo(
 		postBuild:      fastlyManifest.Scripts.PostBuild,
 		spinner:        spinner,
 		timeout:        flags.Timeout,
-		toolchain:      fastlyManifest.Scripts.Toolchain,
 		verbose:        globals.Verbose(),
 	}
 }
@@ -89,8 +88,6 @@ type Go struct {
 	spinner text.Spinner
 	// timeout is the build execution threshold.
 	timeout int
-	// toolchain indicates the toolchain used for compiling your program.
-	toolchain string
 	// verbose indicates if the user set --verbose
 	verbose bool
 }
