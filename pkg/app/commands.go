@@ -37,6 +37,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/loggly"
 	"github.com/fastly/cli/pkg/commands/logging/logshuttle"
 	"github.com/fastly/cli/pkg/commands/logging/newrelic"
+	"github.com/fastly/cli/pkg/commands/logging/newrelicotlp"
 	"github.com/fastly/cli/pkg/commands/logging/openstack"
 	"github.com/fastly/cli/pkg/commands/logging/papertrail"
 	"github.com/fastly/cli/pkg/commands/logging/s3"
@@ -272,6 +273,12 @@ func defineCommands(
 	loggingNewRelicDescribe := newrelic.NewDescribeCommand(loggingNewRelicCmdRoot.CmdClause, g, m)
 	loggingNewRelicList := newrelic.NewListCommand(loggingNewRelicCmdRoot.CmdClause, g, m)
 	loggingNewRelicUpdate := newrelic.NewUpdateCommand(loggingNewRelicCmdRoot.CmdClause, g, m)
+	loggingNewRelicOTLPCmdRoot := newrelicotlp.NewRootCommand(loggingCmdRoot.CmdClause, g)
+	loggingNewRelicOTLPCreate := newrelicotlp.NewCreateCommand(loggingNewRelicOTLPCmdRoot.CmdClause, g, m)
+	loggingNewRelicOTLPDelete := newrelicotlp.NewDeleteCommand(loggingNewRelicOTLPCmdRoot.CmdClause, g, m)
+	loggingNewRelicOTLPDescribe := newrelicotlp.NewDescribeCommand(loggingNewRelicOTLPCmdRoot.CmdClause, g, m)
+	loggingNewRelicOTLPList := newrelicotlp.NewListCommand(loggingNewRelicOTLPCmdRoot.CmdClause, g, m)
+	loggingNewRelicOTLPUpdate := newrelicotlp.NewUpdateCommand(loggingNewRelicOTLPCmdRoot.CmdClause, g, m)
 	loggingOpenstackCmdRoot := openstack.NewRootCommand(loggingCmdRoot.CmdClause, g)
 	loggingOpenstackCreate := openstack.NewCreateCommand(loggingOpenstackCmdRoot.CmdClause, g, m)
 	loggingOpenstackDelete := openstack.NewDeleteCommand(loggingOpenstackCmdRoot.CmdClause, g, m)
@@ -622,6 +629,12 @@ func defineCommands(
 		loggingNewRelicDescribe,
 		loggingNewRelicList,
 		loggingNewRelicUpdate,
+		loggingNewRelicOTLPCmdRoot,
+		loggingNewRelicOTLPCreate,
+		loggingNewRelicOTLPDelete,
+		loggingNewRelicOTLPDescribe,
+		loggingNewRelicOTLPList,
+		loggingNewRelicOTLPUpdate,
 		loggingOpenstackCmdRoot,
 		loggingOpenstackCreate,
 		loggingOpenstackDelete,

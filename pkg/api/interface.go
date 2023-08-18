@@ -269,6 +269,12 @@ type Interface interface {
 	ListNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error)
 	UpdateNewRelic(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error)
 
+	CreateNewRelicOTLP(i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error)
+	DeleteNewRelicOTLP(i *fastly.DeleteNewRelicOTLPInput) error
+	GetNewRelicOTLP(i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error)
+	ListNewRelicOTLP(i *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error)
+	UpdateNewRelicOTLP(i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error)
+
 	CreateUser(i *fastly.CreateUserInput) (*fastly.User, error)
 	DeleteUser(i *fastly.DeleteUserInput) error
 	GetCurrentUser() (*fastly.User, error)
