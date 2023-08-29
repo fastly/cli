@@ -10,10 +10,8 @@
 1. Tag a new release (`tag=vX.Y.Z && git tag -s $tag -m "$tag" && git push origin $tag`)<sup>[2](#note2)</sup>.
 1. Copy/paste CHANGELOG into the [draft release](https://github.com/fastly/cli/releases).
 1. Publish draft release.
-1. Communicate the release in the relevant Slack channels<sup>[3](#note3)</sup>.
 
 ## Footnotes
 
 1. <a name="note1"></a>We utilize [semantic versioning](https://semver.org/) and only include relevant/significant changes within the CHANGELOG (be sure to document changes to the app config if `config_version` has changed).
 1. <a name="note2"></a>Triggers a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_release.yml) that produces a 'draft' release.
-1. <a name="note3"></a>Fastly make internal announcements in the Slack channels: `#api-clients`, `#ecp-languages`.
