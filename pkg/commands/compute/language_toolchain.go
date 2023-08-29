@@ -13,8 +13,13 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// https://webassembly.github.io/spec/core/binary/modules.html#binary-module
-const wasmBytes = 4
+const (
+	// https://webassembly.github.io/spec/core/binary/modules.html#binary-module
+	wasmBytes = 4
+
+	// Defining as a constant avoids gosec G304 issue with command execution.
+	binWasmPath = "./bin/main.wasm"
+)
 
 // DefaultBuildErrorRemediation is the message returned to a user when there is
 // a build error.
@@ -148,8 +153,6 @@ func (bt BuildToolchain) Build() error {
 		}
 	}
 
-	binWasmPath := "./bin/main.wasm"
-
 	// IMPORTANT: The stat check MUST come after the internalPostBuildCallback.
 	// This is because for Rust it needs to move the binary first.
 	_, err = os.Stat(binWasmPath)
@@ -158,7 +161,7 @@ func (bt BuildToolchain) Build() error {
 	}
 
 	// NOTE: The logic for checking the Wasm binary is 'valid' is not exhaustive.
-	if err := bt.validateWasm(binWasmPath); err != nil {
+	if err := bt.validateWasm(); err != nil {
 		return err
 	}
 
@@ -201,12 +204,8 @@ func (bt BuildToolchain) Build() error {
 //
 // Reference:
 // https://webassembly.github.io/spec/core/binary/modules.html#binary-module
-func (bt BuildToolchain) validateWasm(path string) error {
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	// Disabling as we trust the source of the path variable.
-	// #nosec
-	f, err := os.Open(path)
+func (bt BuildToolchain) validateWasm() error {
+	f, err := os.Open(binWasmPath)
 	if err != nil {
 		return bt.handleError(err)
 	}
