@@ -129,7 +129,7 @@ func (g *Go) Build() error {
 	// This means we need to check the go.mod of the user's project for
 	// `compute-sdk-go` and then parse the version and identify if it's less than
 	// 0.2.0 version. If it less than, change the TinyGo constraint to 0.26.0
-	tinygoConstraint := identifyTinyGoConstraint(g.config.TinyGoConstraint)
+	tinygoConstraint := identifyTinyGoConstraint(g.config.TinyGoConstraint, g.config.TinyGoConstraintFallback)
 
 	g.toolchainConstraint(
 		"go", `go version go(?P<version>\d[^\s]+)`, toolchainConstraint,
@@ -173,7 +173,7 @@ func (g *Go) Build() error {
 // NOTE: The `configConstraint` is the latest CLI application config version.
 // If there are any errors trying to parse the go.mod we'll default to the
 // config constraint.
-func identifyTinyGoConstraint(configConstraint string) string {
+func identifyTinyGoConstraint(configConstraint, fallback string) string {
 	moduleName := "github.com/fastly/compute-sdk-go"
 	version := ""
 
@@ -231,7 +231,7 @@ func identifyTinyGoConstraint(configConstraint string) string {
 	}
 
 	if gomodVersion.LessThan(breakingSDKVersion) {
-		return ">= 0.26.0-0"
+		return fallback
 	}
 
 	return configConstraint
