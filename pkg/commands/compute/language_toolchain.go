@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -217,15 +218,13 @@ func (bt BuildToolchain) validateWasm() error {
 	if err != nil {
 		return bt.handleError(err)
 	}
-	if len(magic) > 0 && magic[0] == 0x00 {
-		magic = magic[1:] // Remove the first byte which is a null character "\x00"
-	}
-	if string(magic) != "asm" {
+	expectedMagic := []byte{0x00, 0x61, 0x73, 0x6d}
+	if !bytes.Equal(magic, expectedMagic) {
 		return bt.handleError(err)
 	}
 	if bt.verbose {
 		text.Break(bt.out)
-		text.Description(bt.out, "Wasm module 'magic'", string(magic))
+		text.Description(bt.out, "Wasm module 'magic'", fmt.Sprintf("%#v", magic))
 	}
 
 	// Parse the version
