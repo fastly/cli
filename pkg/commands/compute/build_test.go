@@ -674,8 +674,21 @@ func TestBuildOther(t *testing.T) {
 	// NOTE: Our only requirement is that there be a bin directory. The custom
 	// build script we're using in the test is not going to use any files in the
 	// directory (the script will just `echo` a message).
+	//
+	// NOTE: We create a "valid" main.wasm file with a quick shell script.
+	//
+	// Previously we set the build script to "touch ./bin/main.wasm" but since
+	// adding Wasm validation this no longer works as it's an empty file.
+	//
+	// So we use the following script to produce a file that LOOKS valid but isn't.
+	//
+	// magic="\x00\x61\x73\x6d\x01\x00\x00\x00"
+	// printf "$magic" > ./pkg/commands/compute/testdata/main.wasm
 	rootdir := testutil.NewEnv(testutil.EnvOpts{
 		T: t,
+		Copy: []testutil.FileIO{
+			{Src: "./testdata/main.wasm", Dst: "bin/main.wasm"},
+		},
 		Write: []testutil.FileIO{
 			{Src: "mock content", Dst: "bin/testfile"},
 		},
@@ -707,7 +720,7 @@ func TestBuildOther(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			[scripts]
-			build = "touch ./bin/main.wasm"
+			build = "ls ./bin"
       post_build = "echo doing a post build"`,
 			stdin: "N",
 			wantOutput: []string{
@@ -724,7 +737,7 @@ func TestBuildOther(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			[scripts]
-			build = "touch ./bin/main.wasm"
+			build = "ls ./bin"
       post_build = "echo doing a post build"`,
 			stdin: "Y",
 			wantOutput: []string{
@@ -741,7 +754,7 @@ func TestBuildOther(t *testing.T) {
 			name = "test"
 			language = "other"
 			[scripts]
-			build = "touch ./bin/main.wasm"
+			build = "ls ./bin"
       post_build = "echo doing a post build"`,
 			stdin: "Y",
 			wantOutput: []string{
@@ -757,7 +770,7 @@ func TestBuildOther(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			[scripts]
-			build = "touch ./bin/main.wasm"
+			build = "ls ./bin"
       post_build = "echo doing a post build with no confirmation prompt && exit 1"`, // force an error so post_build is displayed to validate it was run.
 			wantOutput: []string{
 				"doing a post build with no confirmation prompt",

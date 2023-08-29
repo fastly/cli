@@ -1,15 +1,20 @@
 package compute
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/text"
 )
+
+// https://webassembly.github.io/spec/core/binary/modules.html#binary-module
+const wasmBytes = 4
 
 // DefaultBuildErrorRemediation is the message returned to a user when there is
 // a build error.
@@ -143,11 +148,18 @@ func (bt BuildToolchain) Build() error {
 		}
 	}
 
+	binWasmPath := "./bin/main.wasm"
+
 	// IMPORTANT: The stat check MUST come after the internalPostBuildCallback.
 	// This is because for Rust it needs to move the binary first.
-	_, err = os.Stat("./bin/main.wasm")
+	_, err = os.Stat(binWasmPath)
 	if err != nil {
 		return bt.handleError(err)
+	}
+
+	// NOTE: The logic for checking the Wasm binary is 'valid' is not exhaustive.
+	if err := bt.validateWasm(binWasmPath); err != nil {
+		return err
 	}
 
 	if bt.postBuild != "" {
@@ -181,6 +193,55 @@ func (bt BuildToolchain) Build() error {
 		}
 	}
 
+	return nil
+}
+
+// The encoding of a module starts with a preamble containing a 4-byte magic
+// number (the string '\0asm') and a version field.
+//
+// Reference:
+// https://webassembly.github.io/spec/core/binary/modules.html#binary-module
+func (bt BuildToolchain) validateWasm(path string) error {
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	// Disabling as we trust the source of the path variable.
+	// #nosec
+	f, err := os.Open(path)
+	if err != nil {
+		return bt.handleError(err)
+	}
+	defer f.Close()
+
+	// Parse the magic number
+	magic := make([]byte, wasmBytes)
+	_, err = f.Read(magic)
+	if err != nil {
+		return bt.handleError(err)
+	}
+	if len(magic) > 0 && magic[0] == 0x00 {
+		magic = magic[1:] // Remove the first byte which is a null character "\x00"
+	}
+	if string(magic) != "asm" {
+		return bt.handleError(err)
+	}
+	if bt.verbose {
+		text.Break(bt.out)
+		text.Description(bt.out, "Wasm module 'magic'", string(magic))
+	}
+
+	// Parse the version
+	versionBytes := make([]byte, wasmBytes)
+	_, err = f.Read(versionBytes)
+	if err != nil {
+		return bt.handleError(err)
+	}
+	version := int(binary.LittleEndian.Uint32(versionBytes))
+	if version <= 0 {
+		return bt.handleError(err)
+	}
+	if bt.verbose {
+		text.Description(bt.out, "Wasm module 'version'", strconv.Itoa(version))
+	}
 	return nil
 }
 

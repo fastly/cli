@@ -108,8 +108,7 @@ func (g *Go) Build() error {
 		toolchainConstraint = g.config.ToolchainConstraintTinyGo
 		text.Info(g.output, "No [scripts.build] found in fastly.toml. Visit https://developer.fastly.com/learning/compute/go/ to learn how to target standard Go vs TinyGo.")
 		text.Break(g.output)
-		text.Description(g.output, "The following default build command for TinyGo will be used:", g.build)
-		text.Break(g.output)
+		text.Description(g.output, "The following default build command for TinyGo will be used", g.build)
 	}
 
 	if g.build != "" {
