@@ -47,6 +47,7 @@ func NewGo(
 		autoYes:        globals.Flags.AutoYes,
 		build:          fastlyManifest.Scripts.Build,
 		config:         globals.Config.Language.Go,
+		env:            fastlyManifest.Scripts.EnvVars,
 		errlog:         globals.ErrLog,
 		input:          in,
 		nonInteractive: globals.Flags.NonInteractive,
@@ -73,6 +74,8 @@ type Go struct {
 	build string
 	// config is the Go specific application configuration.
 	config config.Go
+	// env is environment variables to be set.
+	env []string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
@@ -143,6 +146,7 @@ func (g *Go) Build() error {
 		autoYes:        g.autoYes,
 		buildFn:        g.Shell.Build,
 		buildScript:    g.build,
+		env:            g.env,
 		errlog:         g.errlog,
 		in:             g.input,
 		nonInteractive: g.nonInteractive,

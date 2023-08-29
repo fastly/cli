@@ -23,17 +23,28 @@ const divider = "---------------------------------------------------------------
 // compute commands can use this to standardize the flow control for each
 // compiler toolchain.
 type Streaming struct {
-	Args           []string
-	Command        string
-	Env            []string
-	ForceOutput    bool
-	Output         io.Writer
-	Process        *os.Process
-	SignalCh       chan os.Signal
-	Spinner        text.Spinner
+	// Args are the command positional arguments.
+	Args []string
+	// Command is the command to be executed.
+	Command string
+	// Env is the environment variables to set.
+	Env []string
+	// ForceOutput ensures output is displayed (default: only display on error).
+	ForceOutput bool
+	// Output is where to write output (e.g. stdout)
+	Output io.Writer
+	// Process is the process to terminal if signal received.
+	Process *os.Process
+	// SignalCh is a channel handling signal events.
+	SignalCh chan os.Signal
+	// Spinner is a specific spinner instance.
+	Spinner text.Spinner
+	// SpinnerMessage is the messaging to use.
 	SpinnerMessage string
-	Timeout        time.Duration
-	Verbose        bool
+	// Timeout is the command timeout.
+	Timeout time.Duration
+	// Verbose outputs additional information.
+	Verbose bool
 }
 
 // MonitorSignals spawns a goroutine that configures signal handling so that
@@ -157,35 +168,48 @@ func (s *Streaming) Signal(sig os.Signal) error {
 	return nil
 }
 
+// CommandOpts are arguments for executing a streaming command.
+type CommandOpts struct {
+	// Args are the command positional arguments.
+	Args []string
+	// Command is the command to be executed.
+	Command string
+	// Env is the environment variables to set.
+	Env []string
+	// ErrLog provides an interface for recording errors to disk.
+	ErrLog fsterr.LogInterface
+	// Output is where to write output (e.g. stdout)
+	Output io.Writer
+	// Spinner is a specific spinner instance.
+	Spinner text.Spinner
+	// SpinnerMessage is the messaging to use.
+	SpinnerMessage string
+	// Timeout is the command timeout.
+	Timeout int
+	// Verbose outputs additional information.
+	Verbose bool
+}
+
 // Command is an abstraction over a Streaming type. It is used by both the
 // `compute init` and `compute build` commands to run post init/build scripts.
-func Command(
-	cmd string,
-	args []string,
-	spinMessage string,
-	out io.Writer,
-	spinner text.Spinner,
-	verbose bool,
-	timeout int,
-	errLog fsterr.LogInterface,
-) error {
+func Command(opts CommandOpts) error {
 	s := Streaming{
-		Command:        cmd,
-		Args:           args,
-		Env:            os.Environ(),
-		Output:         out,
-		Spinner:        spinner,
-		SpinnerMessage: spinMessage,
-		Verbose:        verbose,
+		Command:        opts.Command,
+		Args:           opts.Args,
+		Env:            opts.Env,
+		Output:         opts.Output,
+		Spinner:        opts.Spinner,
+		SpinnerMessage: opts.SpinnerMessage,
+		Verbose:        opts.Verbose,
 	}
-	if verbose {
+	if opts.Verbose {
 		s.ForceOutput = true
 	}
-	if timeout > 0 {
-		s.Timeout = time.Duration(timeout) * time.Second
+	if opts.Timeout > 0 {
+		s.Timeout = time.Duration(opts.Timeout) * time.Second
 	}
 	if err := s.Exec(); err != nil {
-		errLog.Add(err)
+		opts.ErrLog.Add(err)
 		return err
 	}
 	return nil

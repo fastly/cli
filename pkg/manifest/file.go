@@ -190,6 +190,8 @@ func appendSpecRef(w io.Writer) error {
 type Scripts struct {
 	// Build is a custom build script.
 	Build string `toml:"build,omitempty"`
+	// EnvVars contains build related environment variables.
+	EnvVars []string `toml:"env_vars,omitempty"`
 	// PostBuild is executed after the build step.
 	PostBuild string `toml:"post_build,omitempty"`
 	// PostInit is executed after the init step.
