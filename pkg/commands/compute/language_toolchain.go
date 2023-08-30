@@ -220,7 +220,7 @@ func (bt BuildToolchain) validateWasm() error {
 	}
 	expectedMagic := []byte{0x00, 0x61, 0x73, 0x6d}
 	if !bytes.Equal(magic, expectedMagic) {
-		return bt.handleError(err)
+		return bt.handleError(fmt.Errorf("unexpected magic: %#v", magic))
 	}
 	if bt.verbose {
 		text.Break(bt.out)
