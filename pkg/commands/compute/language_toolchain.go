@@ -228,17 +228,12 @@ func (bt BuildToolchain) validateWasm() error {
 	}
 
 	// Parse the version
-	versionBytes := make([]byte, wasmBytes)
-	_, err = f.Read(versionBytes)
-	if err != nil {
-		return bt.handleError(err)
-	}
-	version := int(binary.LittleEndian.Uint32(versionBytes))
-	if version <= 0 {
+	var version uint32
+	if err := binary.Read(f, binary.LittleEndian, &version); err != nil {
 		return bt.handleError(err)
 	}
 	if bt.verbose {
-		text.Description(bt.out, "Wasm module 'version'", strconv.Itoa(version))
+		text.Description(bt.out, "Wasm module 'version'", strconv.FormatUint(uint64(version), 10))
 	}
 	return nil
 }
