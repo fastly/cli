@@ -139,9 +139,9 @@ type StarterKit struct {
 	Branch      string `toml:"branch"`
 }
 
-// createConfigDir creates the application configuration directory if it
+// ensureConfigDirExists creates the application configuration directory if it
 // doesn't already exist.
-func createConfigDir(path string) error {
+func ensureConfigDirExists(path string) error {
 	basePath := filepath.Dir(path)
 	return filesystem.MakeDirectoryIfNotExists(basePath)
 }
@@ -258,7 +258,7 @@ func (f *File) Read(
 		f = &staticConfig
 	}
 
-	err = createConfigDir(path)
+	err = ensureConfigDirExists(path)
 	if err != nil {
 		errLog.Add(err)
 		return err
@@ -358,7 +358,7 @@ func (f *File) UseStatic(path string) error {
 	f.CLI.Version = revision.SemVer(revision.AppVersion)
 	f.MigrateLegacy()
 
-	err = createConfigDir(path)
+	err = ensureConfigDirExists(path)
 	if err != nil {
 		return err
 	}
