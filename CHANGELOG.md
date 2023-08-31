@@ -1,5 +1,40 @@
 # Changelog
 
+## [v10.4.0](https://github.com/fastly/cli/releases/tag/v10.4.0) (2023-08-31)
+
+The Fastly CLI internal configuration file has been updated to version `3`, with the primary change being updates to the toolchain constraints within the `[language.go]` section ([diff](https://github.com/fastly/cli/pull/995/files#diff-8b30a64872c0f304cd83a24f92c57f62b12d6ba81c6a51428da7d1ed3ceb83fd)).
+
+When upgrading to this version of the CLI, and running a command for the first time, the config file should automatically update, but this can also be manually triggered by executing:
+
+```shell
+fastly config --reset
+```
+
+The changes to the internal configuration correlate with another change in this release, which is adding support for standard Go alongside TinyGo.
+
+If your fastly.toml has no custom `[scripts.build]` defined, then TinyGo will continue to be the default compiler used for building your Compute@Edge project. Otherwise, adding the following will enable you to use the Wasm support that Go 1.21+ provides:
+
+```toml
+[scripts]
+env_vars = ["GOARCH=wasm", "GOOS=wasip1"]
+build = "go build -o bin/main.wasm ."
+```
+
+**Deprecations:**
+
+* remove(compute/init): assemblyscript [#1002](https://github.com/fastly/cli/pull/1002)
+
+**Enhancements:**
+
+* feat(compute/build): support native go [#995](https://github.com/fastly/cli/pull/995)
+* Add support for interacting with the New Relic OTLP logging endpoint [#990](https://github.com/fastly/cli/pull/990)
+
+**Dependencies:**
+
+* build: bump go-fastly to v8.6.1 [#1000](https://github.com/fastly/cli/pull/1000)
+* build(deps): bump golang.org/x/crypto from 0.11.0 to 0.12.0 [#994](https://github.com/fastly/cli/pull/994)
+* build(deps): bump github.com/fastly/go-fastly/v8 from 8.5.7 to 8.5.9 [#996](https://github.com/fastly/cli/pull/996)
+
 ## [v10.3.0](https://github.com/fastly/cli/releases/tag/v10.3.0) (2023-08-16)
 
 **Enhancements:**
