@@ -38,11 +38,6 @@ func NewLanguages(kits config.StarterKitLanguages) []*Language {
 			StarterKits: kits.Go,
 		}),
 		NewLanguage(&LanguageOptions{
-			Name:        "assemblyscript",
-			DisplayName: "AssemblyScript",
-			StarterKits: kits.AssemblyScript,
-		}),
-		NewLanguage(&LanguageOptions{
 			Name:        "other",
 			DisplayName: "Other ('bring your own' Wasm binary)",
 		}),

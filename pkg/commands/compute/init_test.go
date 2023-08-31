@@ -35,13 +35,6 @@ func TestInit(t *testing.T) {
 			Branch: "main",
 		},
 	}
-	skAS := []config.StarterKit{
-		{
-			Name:   "Default",
-			Path:   "https://github.com/fastly/compute-starter-kit-assemblyscript-default",
-			Branch: "main",
-		},
-	}
 
 	scenarios := []struct {
 		name             string
@@ -327,16 +320,6 @@ func TestInit(t *testing.T) {
 			manifest:         `manifest_version = 2`,
 			manifestPath:     "foo",
 			manifestIncludes: `name = "foo`,
-		},
-		{
-			name: "with AssemblyScript language",
-			args: args("compute init --language assemblyscript"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					AssemblyScript: skAS,
-				},
-			},
-			manifestIncludes: `name = "fastly-temp`,
 		},
 		{
 			name: "with JavaScript language",
