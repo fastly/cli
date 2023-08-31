@@ -10,28 +10,24 @@ last_checked = "2021-06-18T15:13:34+01:00"
 version = "0.0.1"
 
 [language]
-  [language.rust]
-  toolchain_constraint = ">= 1.49.0 < 2.0.0"
-  wasm_wasi_target = "wasm32-wasi"
+[language.rust]
+toolchain_constraint = ">= 1.49.0 < 2.0.0"
+wasm_wasi_target = "wasm32-wasi"
 
 [starter-kits]
-[[starter-kits.assemblyscript]]
-  name = "Default"
-  description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-  path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
 [[starter-kits.javascript]]
-  name = "Default"
-  description = "A basic starter kit that demonstrates routing and simple synthetic responses."
-  path = "https://github.com/fastly/compute-starter-kit-javascript-default"
+name = "Default"
+description = "A basic starter kit that demonstrates routing and simple synthetic responses."
+path = "https://github.com/fastly/compute-starter-kit-javascript-default"
 [[starter-kits.rust]]
-  name = "Default"
-  description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
-  path = "https://github.com/fastly/compute-starter-kit-rust-default"
+name = "Default"
+description = "A basic starter kit that demonstrates routing, simple synthetic responses and overriding caching rules."
+path = "https://github.com/fastly/compute-starter-kit-rust-default"
 [[starter-kits.rust]]
-  name = "Beacon"
-  description = "Capture beacon data from the browser, divert beacon request payloads to a log endpoint, and avoid putting load on your own infrastructure."
-  path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination"
+name = "Beacon"
+description = "Capture beacon data from the browser, divert beacon request payloads to a log endpoint, and avoid putting load on your own infrastructure."
+path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination"
 [[starter-kits.rust]]
-  name = "Static"
-  description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
-  path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
+name = "Static"
+description = "Apply performance, security and usability upgrades to static bucket services such as Google Cloud Storage or AWS S3."
+path = "https://github.com/fastly/compute-starter-kit-rust-static-content"
