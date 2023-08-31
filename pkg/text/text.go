@@ -182,6 +182,12 @@ func Break(w io.Writer) {
 	fmt.Fprintln(w)
 }
 
+// Deprecated is a wrapper for fmt.Fprintf with a bold red "DEPRECATED: " prefix.
+func Deprecated(w io.Writer, format string, args ...any) {
+	format = strings.TrimRight(format, "\r\n") + "\n"
+	fmt.Fprintf(w, "\n"+Wrap(BoldRed("DEPRECATED: ")+format, DefaultTextWidth)+"\n", args...)
+}
+
 // Error is a wrapper for fmt.Fprintf with a bold red "ERROR: " prefix.
 func Error(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
