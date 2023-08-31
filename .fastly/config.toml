@@ -1,12 +1,14 @@
-config_version = 2
+config_version = 3
 
 [fastly]
 api_endpoint = "https://api.fastly.com"
 
 [language]
 [language.go]
-tinygo_constraint = ">= 0.26.0-0" # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).
-toolchain_constraint = ">= 1.18"
+tinygo_constraint = ">= 0.28.1-0"          # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).
+tinygo_constraint_fallback = ">= 0.26.0-0" # The Fastly Go SDK 0.2.0 requires `tinygo_constraint` but the 0.1.x SDK requires this constraint.
+toolchain_constraint = ">= 1.21"           # Go toolchain constraint for use with WASI support.
+toolchain_constraint_tinygo = ">= 1.18"    # Go toolchain constraint for use with TinyGo.
 
 [language.rust]
 toolchain_constraint = ">= 1.56.1"

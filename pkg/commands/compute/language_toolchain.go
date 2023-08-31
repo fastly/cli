@@ -1,14 +1,25 @@
 package compute
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/text"
+)
+
+const (
+	// https://webassembly.github.io/spec/core/binary/modules.html#binary-module
+	wasmBytes = 4
+
+	// Defining as a constant avoids gosec G304 issue with command execution.
+	binWasmPath = "./bin/main.wasm"
 )
 
 // DefaultBuildErrorRemediation is the message returned to a user when there is
@@ -41,6 +52,8 @@ type BuildToolchain struct {
 	buildFn func(string) (string, []string)
 	// buildScript is the [scripts.build] within the fastly.toml manifest.
 	buildScript string
+	// env is environment variables to be set.
+	env []string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// in is the user's terminal stdin stream
@@ -69,6 +82,9 @@ func (bt BuildToolchain) Build() error {
 	if bt.verbose {
 		text.Break(bt.out)
 		text.Description(bt.out, "Build script to execute", fmt.Sprintf("%s %s", cmd, strings.Join(args, " ")))
+		if len(bt.env) > 0 {
+			text.Description(bt.out, "Build environment variables set", strings.Join(bt.env, " "))
+		}
 	}
 
 	var err error
@@ -140,9 +156,14 @@ func (bt BuildToolchain) Build() error {
 
 	// IMPORTANT: The stat check MUST come after the internalPostBuildCallback.
 	// This is because for Rust it needs to move the binary first.
-	_, err = os.Stat("./bin/main.wasm")
+	_, err = os.Stat(binWasmPath)
 	if err != nil {
 		return bt.handleError(err)
+	}
+
+	// NOTE: The logic for checking the Wasm binary is 'valid' is not exhaustive.
+	if err := bt.validateWasm(); err != nil {
+		return err
 	}
 
 	if bt.postBuild != "" {
@@ -179,6 +200,44 @@ func (bt BuildToolchain) Build() error {
 	return nil
 }
 
+// The encoding of a module starts with a preamble containing a 4-byte magic
+// number (the string '\0asm') and a version field.
+//
+// Reference:
+// https://webassembly.github.io/spec/core/binary/modules.html#binary-module
+func (bt BuildToolchain) validateWasm() error {
+	f, err := os.Open(binWasmPath)
+	if err != nil {
+		return bt.handleError(err)
+	}
+	defer f.Close()
+
+	// Parse the magic number
+	magic := make([]byte, wasmBytes)
+	_, err = f.Read(magic)
+	if err != nil {
+		return bt.handleError(err)
+	}
+	expectedMagic := []byte{0x00, 0x61, 0x73, 0x6d}
+	if !bytes.Equal(magic, expectedMagic) {
+		return bt.handleError(fmt.Errorf("unexpected magic: %#v", magic))
+	}
+	if bt.verbose {
+		text.Break(bt.out)
+		text.Description(bt.out, "Wasm module 'magic'", fmt.Sprintf("%#v", magic))
+	}
+
+	// Parse the version
+	var version uint32
+	if err := binary.Read(f, binary.LittleEndian, &version); err != nil {
+		return bt.handleError(err)
+	}
+	if bt.verbose {
+		text.Description(bt.out, "Wasm module 'version'", strconv.FormatUint(uint64(version), 10))
+	}
+	return nil
+}
+
 func (bt BuildToolchain) handleError(err error) error {
 	return fsterr.RemediationError{
 		Inner:       err,
@@ -194,9 +253,17 @@ func (bt BuildToolchain) handleError(err error) error {
 // This causes the spinner message to be displayed twice with different status.
 // By passing in the spinner and message we can short-circuit the spinner.
 func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage string) error {
-	return fstexec.Command(
-		cmd, args, spinMessage, bt.out, bt.spinner, bt.verbose, bt.timeout, bt.errlog,
-	)
+	return fstexec.Command(fstexec.CommandOpts{
+		Args:           args,
+		Command:        cmd,
+		Env:            bt.env,
+		ErrLog:         bt.errlog,
+		Output:         bt.out,
+		Spinner:        bt.spinner,
+		SpinnerMessage: spinMessage,
+		Timeout:        bt.timeout,
+		Verbose:        bt.verbose,
+	})
 }
 
 // promptForPostBuildContinue ensures the user is happy to continue with the build

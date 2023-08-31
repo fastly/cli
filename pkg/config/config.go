@@ -88,11 +88,18 @@ type Go struct {
 	// TinyGoConstraint is the `tinygo` version that we support.
 	TinyGoConstraint string `toml:"tinygo_constraint"`
 
-	// ToolchainConstraint is the `go` version that we support.
+	// TinyGoConstraintFallback is a fallback `tinygo` version for users who have
+	// a pre-existing project with a 0.1.x Fastly Go SDK specified.
+	TinyGoConstraintFallback string `toml:"tinygo_constraint_fallback"`
+
+	// ToolchainConstraint is the `go` version that we support with WASI.
+	ToolchainConstraint string `toml:"toolchain_constraint"`
+
+	// ToolchainConstraintTinyGo is the `go` version that we support with TinyGo.
 	//
 	// We aim for go versions that support go modules by default.
 	// https://go.dev/blog/using-go-modules
-	ToolchainConstraint string `toml:"toolchain_constraint"`
+	ToolchainConstraintTinyGo string `toml:"toolchain_constraint_tinygo"`
 }
 
 // Rust represents Rust C@E language specific configuration.
@@ -132,9 +139,9 @@ type StarterKit struct {
 	Branch      string `toml:"branch"`
 }
 
-// createConfigDir creates the application configuration directory if it
+// ensureConfigDirExists creates the application configuration directory if it
 // doesn't already exist.
-func createConfigDir(path string) error {
+func ensureConfigDirExists(path string) error {
 	basePath := filepath.Dir(path)
 	return filesystem.MakeDirectoryIfNotExists(basePath)
 }
@@ -251,7 +258,7 @@ func (f *File) Read(
 		f = &staticConfig
 	}
 
-	err = createConfigDir(path)
+	err = ensureConfigDirExists(path)
 	if err != nil {
 		errLog.Add(err)
 		return err
@@ -351,7 +358,7 @@ func (f *File) UseStatic(path string) error {
 	f.CLI.Version = revision.SemVer(revision.AppVersion)
 	f.MigrateLegacy()
 
-	err = createConfigDir(path)
+	err = ensureConfigDirExists(path)
 	if err != nil {
 		return err
 	}

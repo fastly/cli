@@ -255,10 +255,22 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		s := Shell{}
 		command, args := s.Build(postInit)
-		noTimeout := 0 // zero indicates no timeout
-		err := fstexec.Command(
-			command, args, msg, out, spinner, c.Globals.Flags.Verbose, noTimeout, c.Globals.ErrLog,
-		)
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
+		// Disabling as we require the user to provide this command.
+		// #nosec
+		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
+		err := fstexec.Command(fstexec.CommandOpts{
+			Args:           args,
+			Command:        command,
+			Env:            c.manifest.File.Scripts.EnvVars,
+			ErrLog:         c.Globals.ErrLog,
+			Output:         out,
+			Spinner:        spinner,
+			SpinnerMessage: msg,
+			Timeout:        0, // zero indicates no timeout
+			Verbose:        c.Globals.Flags.Verbose,
+		})
 		if err != nil {
 			return err
 		}

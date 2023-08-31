@@ -10,15 +10,16 @@ then
 fi
 
 kits=(
+  compute-starter-kit-assemblyscript-default
+  compute-starter-kit-go-default
+  compute-starter-kit-javascript-default
+  compute-starter-kit-javascript-empty
   compute-starter-kit-rust-default
   compute-starter-kit-rust-empty
   compute-starter-kit-rust-static-content
   compute-starter-kit-rust-websockets
-  compute-starter-kit-javascript-default
-  compute-starter-kit-javascript-empty
+  # compute-starter-kit-tinygo-default
   compute-starter-kit-typescript
-  compute-starter-kit-assemblyscript-default
-  compute-starter-kit-go-default
 )
 
 function parse() {
