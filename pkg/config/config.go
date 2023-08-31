@@ -168,10 +168,9 @@ type Profile struct {
 
 // StarterKitLanguages represents language specific starter kits.
 type StarterKitLanguages struct {
-	AssemblyScript []StarterKit `toml:"assemblyscript"`
-	Go             []StarterKit `toml:"go"`
-	JavaScript     []StarterKit `toml:"javascript"`
-	Rust           []StarterKit `toml:"rust"`
+	Go         []StarterKit `toml:"go"`
+	JavaScript []StarterKit `toml:"javascript"`
+	Rust       []StarterKit `toml:"rust"`
 }
 
 // StarterKit represents starter kit specific configuration.

@@ -72,11 +72,9 @@ archives:
     <<: *archive_defaults
     wrap_in_directory: false
     format: zip
-
 # https://goreleaser.com/customization/aur/
 aurs:
-  -
-    homepage: "https://github.com/fastly/cli"
+  - homepage: "https://github.com/fastly/cli"
     description: "A CLI for interacting with the Fastly platform"
     maintainers:
       - 'oss@fastly.com'
@@ -182,6 +180,6 @@ changelog:
 #       - --label=created={{ time "2006-01-02T15:04:05Z07:00" }}
 #       - --label=revision={{ .FullCommit }}
 #       - --label=licenses=Apache-2.0
-#   dockerfile: Dockerfile-assemblyscript
+#   dockerfile: Dockerfile-node
 # - <<: *build_opts
 #   dockerfile: Dockerfile-rust
