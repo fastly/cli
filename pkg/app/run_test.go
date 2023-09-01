@@ -59,6 +59,7 @@ complete -F _fastly_bash_autocomplete fastly
 			WantOutput: `help
 acl
 acl-entry
+authenticate
 auth-token
 backend
 compute
