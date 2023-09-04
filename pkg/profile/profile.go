@@ -13,6 +13,9 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// DefaultName is the default profile name.
+const DefaultName = "user"
+
 // DoesNotExist describes an output error/warning message.
 const DoesNotExist = "the profile '%s' does not exist"
 

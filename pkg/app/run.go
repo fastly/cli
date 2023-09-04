@@ -136,6 +136,37 @@ func Run(opts RunOpts) error {
 
 	token, source := g.Token()
 
+	// Ensure the user has configured an API token, otherwise trigger the
+	// authentication flow (unless calling one of the profile commands).
+	if source == lookup.SourceUndefined && !allowNoToken(commandName) {
+		for _, command := range commands {
+			if command.Name() == "authenticate" {
+				text.Warning(opts.Stdout, "No API token could be found. We need to open your browser to authenticate you.")
+				text.Break(opts.Stdout)
+				cont, err := text.AskYesNo(opts.Stdout, "Are you sure you want to continue? [yes/no]: ", opts.Stdin)
+				if err != nil {
+					return err
+				}
+				if !cont {
+					return nil
+				}
+				text.Break(opts.Stdout)
+
+				err = command.Exec(opts.Stdin, opts.Stdout)
+				if err != nil {
+					return fmt.Errorf("failed to authenticate: %w", err)
+				}
+				break
+			}
+		}
+
+		// Recheck for token (should be persisted to profile data).
+		token, source = g.Token()
+		if source == lookup.SourceUndefined {
+			return fsterr.ErrNoToken
+		}
+	}
+
 	if g.Verbose() {
 		displayTokenSource(
 			source,
@@ -275,6 +306,15 @@ func determineProfile(manifestValue, flagValue string, profiles config.Profiles)
 func commandCollectsData(command string) bool {
 	switch command {
 	case "compute build", "compute hashsum", "compute hash-files", "compute publish", "compute serve":
+		return true
+	}
+	return false
+}
+
+// allowNoToken determines if the command to be executed is one that should work
+// even if there is no prior API token available.
+func allowNoToken(command string) bool {
+	if command == "version" || command == "whoami" || strings.HasPrefix(command, "profile ") {
 		return true
 	}
 	return false
