@@ -42,11 +42,14 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	result := make(chan auth.AuthorizationResult)
+	endpoint, _ := c.Globals.Endpoint()
 
 	s := auth.Server{
-		Result:   result,
-		Router:   http.NewServeMux(),
-		Verifier: verifier,
+		HTTPClient:      c.Globals.HTTPClient,
+		Result:          result,
+		Router:          http.NewServeMux(),
+		SessionEndpoint: endpoint,
+		Verifier:        verifier,
 	}
 	s.Routes()
 

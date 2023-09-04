@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/cap/jwt"
 	"github.com/hashicorp/cap/oidc"
 
+	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/api/undocumented"
 	fsterr "github.com/fastly/cli/pkg/errors"
 )
 
@@ -36,12 +38,22 @@ const Audience = "https://api.secretcdn-stg.net/"
 // RedirectURL is the endpoint the auth provider will pass an authorization code to.
 const RedirectURL = "http://localhost:8080/callback"
 
+// Server is a local server responsible for authentication processing.
 type Server struct {
-	Result   chan AuthorizationResult
-	Router   *http.ServeMux
+	// HTTPClient is a HTTP client used to call the API to exchange the access
+	// token for a session token.
+	HTTPClient api.HTTPClient
+	// Result is a channel that reports the result of authorization.
+	Result chan AuthorizationResult
+	// Router is an HTTP request multiplexer.
+	Router *http.ServeMux
+	// Verifier represents an OAuth PKCE code verifier that uses the S256 challenge method
 	Verifier *oidc.S256Verifier
+	// SessionEndpoint is the API endpoint host.
+	SessionEndpoint string
 }
 
+// Start starts a local server for handling authentication processing.
 func (s *Server) Start() error {
 	server := &http.Server{
 		Addr:         ":8080",
@@ -60,6 +72,7 @@ func (s *Server) Start() error {
 	return nil
 }
 
+// Routes configures the callback handler.
 func (s *Server) Routes() {
 	s.Router.HandleFunc("/callback", s.handleCallback())
 }
@@ -98,6 +111,34 @@ func (s *Server) handleCallback() http.HandlerFunc {
 		fmt.Printf("jwt: %+v\n\n", j)
 		fmt.Printf("claims: %+v\n\n", claims)
 
+		resp, err := undocumented.Call(undocumented.CallOptions{
+			APIEndpoint: s.SessionEndpoint,
+			HTTPClient:  s.HTTPClient,
+			HTTPHeaders: []undocumented.HTTPHeader{
+				{
+					Key:   "Authorization",
+					Value: fmt.Sprintf("Bearer %s", j.AccessToken),
+				},
+			},
+			Method: http.MethodPost,
+			Path:   "/login-enhanced",
+		})
+		if err != nil {
+			fmt.Printf("error response from undocumented call: %#v\n", string(resp))
+			if apiErr, ok := err.(undocumented.APIError); ok {
+				if apiErr.StatusCode != http.StatusConflict {
+					err = fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
+				}
+			}
+			s.Result <- AuthorizationResult{
+				Err: err,
+			}
+			return
+		}
+
+		fmt.Printf("%#v\n", string(resp))
+
+		// FIXME: Replace this with above login call.
 		sessionToken, err := extractSessionToken(claims)
 		if err != nil {
 			s.Result <- AuthorizationResult{
@@ -124,6 +165,7 @@ func (s *Server) handleCallback() http.HandlerFunc {
 	}
 }
 
+// AuthorizationResult represents the result of the authorization process.
 type AuthorizationResult struct {
 	// Email address extracted from JWT claims.
 	Email string

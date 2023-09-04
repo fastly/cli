@@ -136,6 +136,8 @@ func Run(opts RunOpts) error {
 
 	token, source := g.Token()
 
+	// FIXME: Identify token expiry!
+
 	// Ensure the user has configured an API token, otherwise trigger the
 	// authentication flow (unless calling one of the profile commands).
 	if source == lookup.SourceUndefined && !allowNoToken(commandName) {
