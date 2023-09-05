@@ -262,7 +262,7 @@ func Run(opts RunOpts) error {
 				})
 				if !ok {
 					return fsterr.RemediationError{
-						Inner:       fmt.Errorf("failed to update default profile with new token data"),
+						Inner:       fmt.Errorf("failed to update '%s' profile with new token data", profileName),
 						Remediation: "Run `fastly authenticate` to retry.",
 					}
 				}
