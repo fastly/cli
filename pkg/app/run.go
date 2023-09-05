@@ -32,16 +32,6 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// FastlyAPIClient is a ClientFactory that returns a real Fastly API client
-// using the provided token and endpoint.
-func FastlyAPIClient(token, endpoint string, debugMode bool) (api.Interface, error) {
-	client, err := fastly.NewClientForEndpoint(token, endpoint)
-	if debugMode {
-		client.DebugMode = true
-	}
-	return client, err
-}
-
 // Run constructs the application including all of the subcommands, parses the
 // args, invokes the client factory with the token to create a Fastly API
 // client, and executes the chosen command, using the provided io.Reader and
@@ -175,17 +165,17 @@ func Run(opts RunOpts) error {
 		}
 
 		ttl := time.Duration(data.AccessTokenTTL) * time.Second
-		diff := time.Now().Add(-ttl).Unix()
+		delta := time.Now().Add(-ttl).Unix()
 
 		// Access Token has expired
-		if data.AccessTokenCreated < diff {
+		if data.AccessTokenCreated < delta {
 			ttl := time.Duration(data.RefreshTokenTTL) * time.Second
 			diff := time.Now().Add(-ttl).Unix()
 
 			if data.RefreshTokenCreated < diff {
 				authWarningMsg = "Your API token has expired and so has your refresh token"
-				// re-authenticate we simple unset the tokenSource
-				// the following conditional block will catch it and trigger a re-auth.
+				// To re-authenticate we simple reset the tokenSource variable.
+				// A later conditional block catches it and trigger a re-auth.
 				tokenSource = lookup.SourceUndefined
 			} else {
 				if !g.Flags.Quiet {
