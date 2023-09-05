@@ -136,7 +136,7 @@ func Run(opts RunOpts) error {
 	// NOTE: tokens via FASTLY_API_TOKEN or --token aren't checked for a TTL.
 	if tokenSource == lookup.SourceFile && commandRequiresToken(commandName) {
 		var (
-			data              *config.Profile
+			profileData       *config.Profile
 			found             bool
 			name, profileName string
 		)
@@ -148,8 +148,8 @@ func Run(opts RunOpts) error {
 		default:
 			profileName = "default"
 		}
-		for name, data = range g.Config.Profiles {
-			if (profileName == "default" && data.Default) || name == profileName {
+		for name, profileData = range g.Config.Profiles {
+			if (profileName == "default" && profileData.Default) || name == profileName {
 				// Once we find the default profile we can update the variable to be the
 				// associated profile name so later on we can use that information to
 				// update the specific profile.
@@ -164,15 +164,15 @@ func Run(opts RunOpts) error {
 			return fmt.Errorf("failed to locate '%s' profile", profileName)
 		}
 
-		ttl := time.Duration(data.AccessTokenTTL) * time.Second
+		ttl := time.Duration(profileData.AccessTokenTTL) * time.Second
 		delta := time.Now().Add(-ttl).Unix()
 
 		// Access Token has expired
-		if data.AccessTokenCreated < delta {
-			ttl := time.Duration(data.RefreshTokenTTL) * time.Second
+		if profileData.AccessTokenCreated < delta {
+			ttl := time.Duration(profileData.RefreshTokenTTL) * time.Second
 			diff := time.Now().Add(-ttl).Unix()
 
-			if data.RefreshTokenCreated < diff {
+			if profileData.RefreshTokenCreated < diff {
 				authWarningMsg = "Your API token has expired and so has your refresh token"
 				// To re-authenticate we simple reset the tokenSource variable.
 				// A later conditional block catches it and trigger a re-auth.
@@ -182,12 +182,12 @@ func Run(opts RunOpts) error {
 					text.Info(opts.Stdout, "Your access token has now expired. We will attempt to refresh it")
 				}
 				text.Break(opts.Stdout)
-				j, err := auth.RefreshAccessToken(data.RefreshToken)
+				updated, err := auth.RefreshAccessToken(profileData.RefreshToken)
 				if err != nil {
 					return fmt.Errorf("failed to refresh access token: %w", err)
 				}
 
-				claims, err := auth.VerifyJWTSignature(j.AccessToken)
+				claims, err := auth.VerifyJWTSignature(updated.AccessToken)
 				if err != nil {
 					return fmt.Errorf("failed to verify refreshed JWT: %w", err)
 				}
@@ -206,7 +206,7 @@ func Run(opts RunOpts) error {
 					HTTPHeaders: []undocumented.HTTPHeader{
 						{
 							Key:   "Authorization",
-							Value: fmt.Sprintf("Bearer %s", j.AccessToken),
+							Value: fmt.Sprintf("Bearer %s", updated.AccessToken),
 						},
 					},
 					Method: http.MethodPost,
@@ -227,30 +227,33 @@ func Run(opts RunOpts) error {
 					return fmt.Errorf("failed to unmarshal json containing API token: %w", err)
 				}
 
-				// NOTE: The refresh token can be updated along with the access token.
+				// NOTE: The refresh token can sometimes be refreshed along with the access token.
 				// This happens all the time in my testing but according to what is
 				// spec'd this apparently is something that _might_ happen.
-				name, p := profile.Get(profileName, g.Config.Profiles)
+				// So after we get the refreshed access token, we check to see if the
+				// refresh token that was returned by the API call has also changed when
+				// compared to the refresh token stored in the CLI config file.
+				name, current := profile.Get(profileName, g.Config.Profiles)
 				if name == "" {
 					return fmt.Errorf("failed to locate '%s' profile", profileName)
 				}
 				now := time.Now().Unix()
-				refreshToken := p.RefreshToken
-				refreshTokenCreated := p.RefreshTokenCreated
-				refreshTokenTTL := p.RefreshTokenTTL
-				if p.RefreshToken != j.RefreshToken {
+				refreshToken := current.RefreshToken
+				refreshTokenCreated := current.RefreshTokenCreated
+				refreshTokenTTL := current.RefreshTokenTTL
+				if current.RefreshToken != updated.RefreshToken {
 					if !g.Flags.Quiet {
 						text.Info(opts.Stdout, "Your refresh token was also updated")
 					}
-					refreshToken = j.RefreshToken
+					refreshToken = updated.RefreshToken
 					refreshTokenCreated = now
-					refreshTokenTTL = j.RefreshExpiresIn
+					refreshTokenTTL = updated.RefreshExpiresIn
 				}
 
 				ps, ok := profile.Edit(profileName, g.Config.Profiles, func(p *config.Profile) {
-					p.AccessToken = j.AccessToken
+					p.AccessToken = updated.AccessToken
 					p.AccessTokenCreated = now
-					p.AccessTokenTTL = j.ExpiresIn
+					p.AccessTokenTTL = updated.ExpiresIn
 					p.Email = email.(string)
 					p.RefreshToken = refreshToken
 					p.RefreshTokenCreated = refreshTokenCreated
