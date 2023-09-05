@@ -100,7 +100,7 @@ func (s *Server) handleCallback() http.HandlerFunc {
 			return
 		}
 
-		claims, err := verifyJWTSignature(j.AccessToken)
+		claims, err := VerifyJWTSignature(j.AccessToken)
 		if err != nil {
 			s.Result <- AuthorizationResult{
 				Err: err,
@@ -108,6 +108,15 @@ func (s *Server) handleCallback() http.HandlerFunc {
 			return
 		}
 
+		email, ok := claims["email"]
+		if !ok {
+			s.Result <- AuthorizationResult{
+				Err: errors.New("failed to extract email from JWT claims"),
+			}
+			return
+		}
+
+		// Exchange the access token for an API token
 		resp, err := undocumented.Call(undocumented.CallOptions{
 			APIEndpoint: s.SessionEndpoint,
 			HTTPClient:  s.HTTPClient,
@@ -121,7 +130,6 @@ func (s *Server) handleCallback() http.HandlerFunc {
 			Path:   "/login-enhanced",
 		})
 		if err != nil {
-			fmt.Printf("error response from undocumented call: %#v\n", string(resp))
 			if apiErr, ok := err.(undocumented.APIError); ok {
 				if apiErr.StatusCode != http.StatusConflict {
 					err = fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
@@ -138,14 +146,6 @@ func (s *Server) handleCallback() http.HandlerFunc {
 		if err != nil {
 			s.Result <- AuthorizationResult{
 				Err: fmt.Errorf("failed to unmarshal json containing API token: %w", err),
-			}
-			return
-		}
-
-		email, ok := claims["email"]
-		if !ok {
-			s.Result <- AuthorizationResult{
-				Err: errors.New("failed to extract email from JWT claims"),
 			}
 			return
 		}
@@ -269,8 +269,8 @@ type JWT struct {
 	TokenType string `json:"token_type"`
 }
 
-// verifyJWTSignature calls the jwks_uri endpoint and extracts its claims.
-func verifyJWTSignature(token string) (claims map[string]any, err error) {
+// VerifyJWTSignature calls the jwks_uri endpoint and extracts its claims.
+func VerifyJWTSignature(token string) (claims map[string]any, err error) {
 	ctx := context.Background()
 	path := "/realms/fastly/protocol/openid-connect/certs"
 
@@ -289,40 +289,44 @@ func verifyJWTSignature(token string) (claims map[string]any, err error) {
 	return claims, nil
 }
 
-// refreshToken constructs and calls the token_endpoint for refreshing the
-// access token and returns the new access token.
-func refreshToken(token string) ([]byte, error) {
+// RefreshAccessToken constructs and calls the token_endpoint with the
+// refresh token so we can refresh and return the access token.
+func RefreshAccessToken(refreshToken string) (JWT, error) {
 	path := "/realms/fastly/protocol/openid-connect/token"
 
 	payload := fmt.Sprintf(
 		"grant_type=refresh_token&client_id=%s&refresh_token=%s",
 		ClientID,
-		token,
+		refreshToken,
 	)
 
 	req, err := http.NewRequest("POST", ServerURL+path, strings.NewReader(payload))
 	if err != nil {
-		return nil, err
+		return JWT{}, err
 	}
 
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return JWT{}, err
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to refresh the access token (status: %s)", res.Status)
-	}
-
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return JWT{}, err
 	}
 
-	fmt.Printf("refresh body: %#v\n\n", string(body))
+	if res.StatusCode != http.StatusOK {
+		return JWT{}, fmt.Errorf("failed to refresh the access token (status: %s)", res.Status)
+	}
 
-	return body, nil
+	var j JWT
+	err = json.Unmarshal(body, &j)
+	if err != nil {
+		return JWT{}, err
+	}
+
+	return j, nil
 }

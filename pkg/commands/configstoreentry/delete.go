@@ -83,7 +83,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.deleteAll {
 		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 			text.Warning(out, "This will delete ALL entries from your store!\n\n")
-			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [yes/no]: ", in)
+			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
 			if err != nil {
 				return err
 			}

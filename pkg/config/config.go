@@ -139,8 +139,10 @@ type Profiles map[string]*Profile
 
 // Profile represents a specific profile account.
 type Profile struct {
-	// AccessToken is used to acquire a new token when it expires.
+	// AccessToken is used to acquire an API token.
 	AccessToken string `toml:"access_token" json:"access_token"`
+	// AccessTokenCreated indicates when the access token was created.
+	AccessTokenCreated int64 `toml:"access_token_created" json:"access_token_created"`
 	// AccessTokenTTL indicates when the access token needs to be replaced.
 	AccessTokenTTL int `toml:"access_token_ttl" json:"access_token_ttl"`
 	// Default indicates if the profile is the default profile to use.
@@ -149,6 +151,8 @@ type Profile struct {
 	Email string `toml:"email" json:"email"`
 	// RefreshToken is used to acquire a new access token when it expires.
 	RefreshToken string `toml:"refresh_token" json:"refresh_token"`
+	// RefreshTokenCreated indicates when the refresh token was created.
+	RefreshTokenCreated int64 `toml:"refresh_token_created" json:"refresh_token_created"`
 	// RefreshTokenTTL indicates when the refresh token needs to be replaced.
 	RefreshTokenTTL int `toml:"refresh_token_ttl" json:"refresh_token_ttl"`
 	// Token is a temporary token used to interact with the Fastly API.

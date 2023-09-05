@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/cap/oidc"
 	"github.com/skratchdot/open-golang/open"
@@ -92,28 +93,50 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	profileName, _ := profile.Default(c.Globals.Config.Profiles)
+	var profileConfigured string
+	switch {
+	case c.Globals.Flags.Profile != "":
+		profileConfigured = c.Globals.Flags.Profile
+	case c.Globals.Manifest.File.Profile != "":
+		profileConfigured = c.Globals.Manifest.File.Profile
+	}
 
-	if profileName == "" {
+	profileDefault, _ := profile.Default(c.Globals.Config.Profiles)
+
+	// If no profiles configured at all...
+	if profileConfigured == "" && profileDefault == "" {
+		now := time.Now().Unix()
 		c.Globals.Config.Profiles[profile.DefaultName] = &config.Profile{
-			AccessToken:     ar.Jwt.AccessToken,
-			AccessTokenTTL:  ar.Jwt.ExpiresIn,
-			Default:         true,
-			Email:           ar.Email,
-			RefreshToken:    ar.Jwt.RefreshToken,
-			RefreshTokenTTL: ar.Jwt.RefreshExpiresIn,
-			Token:           ar.SessionToken,
+			AccessToken:         ar.Jwt.AccessToken,
+			AccessTokenCreated:  now,
+			AccessTokenTTL:      ar.Jwt.ExpiresIn,
+			Default:             true,
+			Email:               ar.Email,
+			RefreshToken:        ar.Jwt.RefreshToken,
+			RefreshTokenCreated: now,
+			RefreshTokenTTL:     ar.Jwt.RefreshExpiresIn,
+			Token:               ar.SessionToken,
 		}
 	} else {
-		// FIXME: The Edit() method needs to know about Access/Refresh settings.
-		// And also how to reauthenticate.
+		profileName := profileDefault
+		if profileConfigured != "" {
+			profileName = profileConfigured
+		}
 		ps, ok := profile.Edit(profileName, c.Globals.Config.Profiles, func(p *config.Profile) {
+			now := time.Now().Unix()
+			p.AccessToken = ar.Jwt.AccessToken
+			p.AccessTokenCreated = now
+			p.AccessTokenTTL = ar.Jwt.ExpiresIn
+			p.Email = ar.Email
+			p.RefreshToken = ar.Jwt.RefreshToken
+			p.RefreshTokenCreated = now
+			p.RefreshTokenTTL = ar.Jwt.RefreshExpiresIn
 			p.Token = ar.SessionToken
 		})
 		if !ok {
 			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("failed to update default profile with new session token"),
-				Remediation: "Run `fastly profile update` and manually paste in the session token.",
+				Inner:       fmt.Errorf("failed to update default profile with new token data"),
+				Remediation: "Run `fastly authenticate` to retry.",
 			}
 		}
 		c.Globals.Config.Profiles = ps
@@ -123,9 +146,6 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}
-
-	// FIXME: Don't just update the default profile.
-	// Allow user to configure this via a --profile flag.
 
 	text.Success(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
 	return nil

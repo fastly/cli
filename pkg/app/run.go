@@ -1,8 +1,11 @@
 package app
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"slices"
 	"strconv"
@@ -13,6 +16,8 @@ import (
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/api/undocumented"
+	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
@@ -134,18 +139,157 @@ func Run(opts RunOpts) error {
 		opts.Manifest.File.SetQuiet(true)
 	}
 
-	token, source := g.Token()
+	token, tokenSource := g.Token()
 
-	// FIXME: Identify access AND refresh token expiry!
+	authWarningMsg := "No API token could be found"
+
+	// NOTE: tokens via FASTLY_API_TOKEN or --token aren't checked for a TTL.
+	if tokenSource == lookup.SourceFile && commandRequiresToken(commandName) {
+		var (
+			data              *config.Profile
+			found             bool
+			name, profileName string
+		)
+		switch {
+		case g.Flags.Profile != "":
+			profileName = g.Flags.Profile
+		case g.Manifest.File.Profile != "":
+			profileName = g.Manifest.File.Profile
+		default:
+			profileName = "default"
+		}
+		for name, data = range g.Config.Profiles {
+			if (profileName == "default" && data.Default) || name == profileName {
+				// Once we find the default profile we can update the variable to be the
+				// associated profile name so later on we can use that information to
+				// update the specific profile.
+				if profileName == "default" {
+					profileName = name
+				}
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("failed to locate '%s' profile", profileName)
+		}
+
+		ttl := time.Duration(data.AccessTokenTTL) * time.Second
+		diff := time.Now().Add(-ttl).Unix()
+
+		// Access Token has expired
+		if data.AccessTokenCreated < diff {
+			ttl := time.Duration(data.RefreshTokenTTL) * time.Second
+			diff := time.Now().Add(-ttl).Unix()
+
+			if data.RefreshTokenCreated < diff {
+				authWarningMsg = "Your API token has expired and so has your refresh token"
+				// re-authenticate we simple unset the tokenSource
+				// the following conditional block will catch it and trigger a re-auth.
+				tokenSource = lookup.SourceUndefined
+			} else {
+				if !g.Flags.Quiet {
+					text.Info(opts.Stdout, "Your access token has now expired. We will attempt to refresh it")
+				}
+				text.Break(opts.Stdout)
+				j, err := auth.RefreshAccessToken(data.RefreshToken)
+				if err != nil {
+					return fmt.Errorf("failed to refresh access token: %w", err)
+				}
+
+				claims, err := auth.VerifyJWTSignature(j.AccessToken)
+				if err != nil {
+					return fmt.Errorf("failed to verify refreshed JWT: %w", err)
+				}
+
+				email, ok := claims["email"]
+				if !ok {
+					return errors.New("failed to extract email from JWT claims")
+				}
+
+				endpoint, _ := g.Endpoint()
+
+				// Exchange the access token for an API token
+				resp, err := undocumented.Call(undocumented.CallOptions{
+					APIEndpoint: endpoint,
+					HTTPClient:  g.HTTPClient,
+					HTTPHeaders: []undocumented.HTTPHeader{
+						{
+							Key:   "Authorization",
+							Value: fmt.Sprintf("Bearer %s", j.AccessToken),
+						},
+					},
+					Method: http.MethodPost,
+					Path:   "/login-enhanced",
+				})
+				if err != nil {
+					if apiErr, ok := err.(undocumented.APIError); ok {
+						if apiErr.StatusCode != http.StatusConflict {
+							err = fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
+						}
+					}
+					return err
+				}
+
+				at := &auth.APIToken{}
+				err = json.Unmarshal(resp, at)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal json containing API token: %w", err)
+				}
+
+				// NOTE: The refresh token can be updated along with the access token.
+				// This happens all the time in my testing but according to what is
+				// spec'd this apparently is something that _might_ happen.
+				name, p := profile.Get(profileName, g.Config.Profiles)
+				if name == "" {
+					return fmt.Errorf("failed to locate '%s' profile", profileName)
+				}
+				now := time.Now().Unix()
+				refreshToken := p.RefreshToken
+				refreshTokenCreated := p.RefreshTokenCreated
+				refreshTokenTTL := p.RefreshTokenTTL
+				if p.RefreshToken != j.RefreshToken {
+					if !g.Flags.Quiet {
+						text.Info(opts.Stdout, "Your refresh token was also updated")
+					}
+					refreshToken = j.RefreshToken
+					refreshTokenCreated = now
+					refreshTokenTTL = j.RefreshExpiresIn
+				}
+
+				ps, ok := profile.Edit(profileName, g.Config.Profiles, func(p *config.Profile) {
+					p.AccessToken = j.AccessToken
+					p.AccessTokenCreated = now
+					p.AccessTokenTTL = j.ExpiresIn
+					p.Email = email.(string)
+					p.RefreshToken = refreshToken
+					p.RefreshTokenCreated = refreshTokenCreated
+					p.RefreshTokenTTL = refreshTokenTTL
+					p.Token = at.AccessToken
+				})
+				if !ok {
+					return fsterr.RemediationError{
+						Inner:       fmt.Errorf("failed to update default profile with new token data"),
+						Remediation: "Run `fastly authenticate` to retry.",
+					}
+				}
+				g.Config.Profiles = ps
+				if err := g.Config.Write(g.ConfigPath); err != nil {
+					g.ErrLog.Add(err)
+					return fmt.Errorf("error saving config file: %w", err)
+				}
+			}
+		}
+	}
 
 	// Ensure the user has configured an API token, otherwise trigger the
 	// authentication flow (unless calling one of the profile commands).
-	if source == lookup.SourceUndefined && !allowNoToken(commandName) {
+	if tokenSource == lookup.SourceUndefined && commandRequiresToken(commandName) {
 		for _, command := range commands {
 			if command.Name() == "authenticate" {
-				text.Warning(opts.Stdout, "No API token could be found. We need to open your browser to authenticate you.")
+				text.Warning(opts.Stdout, "%s. We need to open your browser to authenticate you.", authWarningMsg)
 				text.Break(opts.Stdout)
-				cont, err := text.AskYesNo(opts.Stdout, "Are you sure you want to continue? [yes/no]: ", opts.Stdin)
+				cont, err := text.AskYesNo(opts.Stdout, "Are you sure you want to continue? [y/N]: ", opts.Stdin)
 				if err != nil {
 					return err
 				}
@@ -165,15 +309,15 @@ func Run(opts RunOpts) error {
 		}
 
 		// Recheck for token (should be persisted to profile data).
-		token, source = g.Token()
-		if source == lookup.SourceUndefined {
+		token, tokenSource = g.Token()
+		if tokenSource == lookup.SourceUndefined {
 			return fsterr.ErrNoToken
 		}
 	}
 
 	if g.Verbose() {
 		displayTokenSource(
-			source,
+			tokenSource,
 			opts.Stdout,
 			env.Token,
 			determineProfile(opts.Manifest.File.Profile, g.Flags.Profile, g.Config.Profiles),
@@ -189,7 +333,7 @@ func Run(opts RunOpts) error {
 	// to assert if they are not too open or have been altered outside of the
 	// application and warn if so.
 	segs := strings.Split(commandName, " ")
-	if source == lookup.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
+	if tokenSource == lookup.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
 				if !g.Flags.Quiet {
@@ -201,9 +345,9 @@ func Run(opts RunOpts) error {
 		}
 	}
 
-	endpoint, source := g.Endpoint()
+	endpoint, endpointSource := g.Endpoint()
 	if g.Verbose() {
-		switch source {
+		switch endpointSource {
 		case lookup.SourceEnvironment:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
 		case lookup.SourceFile:
@@ -315,11 +459,13 @@ func commandCollectsData(command string) bool {
 	return false
 }
 
-// allowNoToken determines if the command to be executed is one that should work
-// even if there is no prior API token available.
-func allowNoToken(command string) bool {
-	if command == "version" || command == "config" || strings.HasPrefix(command, "profile ") {
-		return true
+// commandRequiresToken determines if the command to be executed is one that
+// requires an API token.
+func commandRequiresToken(command string) bool {
+	command = strings.Split(command, " ")[0]
+	switch command {
+	case "authenticate", "config", "profile", "update", "version":
+		return false
 	}
-	return false
+	return true
 }

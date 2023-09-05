@@ -85,8 +85,11 @@ type EditOption func(*config.Profile)
 
 // Edit modifies the named profile.
 //
-// NOTE: The type assigned to the config.Profiles map key value is a struct.
-// Structs are passed by value and so we must return the mutated type.
+// IMPORTANT: We must return config.Profiles to safely update in-memory data.
+// The type assigned to the config.Profiles map key value is a struct and
+// structs are passed by value, so we must return the mutated type so the
+// caller so they can reassign the updated struct back to the in-memory data
+// and then persist that data back to disk.
 func Edit(name string, p config.Profiles, opts ...EditOption) (config.Profiles, bool) {
 	var ok bool
 	for k, v := range p {

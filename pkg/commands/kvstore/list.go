@@ -69,7 +69,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 				// Check if 'out' is interactive before prompting.
 				if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
 					text.Break(out)
-					printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
+					printNext, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
 					if err != nil {
 						return err
 					}
