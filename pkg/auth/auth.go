@@ -32,7 +32,7 @@ const ServerURL = "https://accounts.secretcdn-stg.net"
 const ClientID = "fastly-cli"
 
 // Audience is the unique identifier of the API your app wants to access.
-// FIXME: Use --endpoint override (api.fastly.com)
+// FIXME: Use --endpoint override (api.fastly.com) + allow env var override
 const Audience = "https://api.secretcdn-stg.net/"
 
 // RedirectURL is the endpoint the auth provider will pass an authorization code to.
@@ -108,9 +108,6 @@ func (s *Server) handleCallback() http.HandlerFunc {
 			return
 		}
 
-		fmt.Printf("jwt: %+v\n\n", j)
-		fmt.Printf("claims: %+v\n\n", claims)
-
 		resp, err := undocumented.Call(undocumented.CallOptions{
 			APIEndpoint: s.SessionEndpoint,
 			HTTPClient:  s.HTTPClient,
@@ -136,13 +133,11 @@ func (s *Server) handleCallback() http.HandlerFunc {
 			return
 		}
 
-		fmt.Printf("%#v\n", string(resp))
-
-		// FIXME: Replace this with above login call.
-		sessionToken, err := extractSessionToken(claims)
+		at := &APIToken{}
+		err = json.Unmarshal(resp, at)
 		if err != nil {
 			s.Result <- AuthorizationResult{
-				Err: err,
+				Err: fmt.Errorf("failed to unmarshal json containing API token: %w", err),
 			}
 			return
 		}
@@ -150,7 +145,7 @@ func (s *Server) handleCallback() http.HandlerFunc {
 		email, ok := claims["email"]
 		if !ok {
 			s.Result <- AuthorizationResult{
-				Err: errors.New("unable to extract email from JWT claims"),
+				Err: errors.New("failed to extract email from JWT claims"),
 			}
 			return
 		}
@@ -160,9 +155,25 @@ func (s *Server) handleCallback() http.HandlerFunc {
 		s.Result <- AuthorizationResult{
 			Email:        email.(string),
 			Jwt:          j,
-			SessionToken: sessionToken,
+			SessionToken: at.AccessToken,
 		}
 	}
+}
+
+// APIToken is returned from the /login-enhanced endpoint.
+type APIToken struct {
+	// AccessToken is used to access the Fastly API.
+	AccessToken string `json:"access_token"`
+	// CustomerID is the customer ID.
+	CustomerID string `json:"customer_id"`
+	// ExpiresAt is when the access token will expire.
+	ExpiresAt string `json:"expires_at"`
+	// ID is a unique ID.
+	ID string `json:"id"`
+	// Name is a description of the token.
+	Name string `json:"name"`
+	// UserID is the user's ID.
+	UserID string `json:"user_id"`
 }
 
 // AuthorizationResult represents the result of the authorization process.
@@ -230,15 +241,11 @@ func GetJWT(codeVerifier, authorizationCode string) (JWT, error) {
 		return JWT{}, err
 	}
 
-	fmt.Printf("body: %#v\n\n", string(body))
-
 	var j JWT
 	err = json.Unmarshal(body, &j)
 	if err != nil {
 		return JWT{}, err
 	}
-
-	fmt.Printf("j: %#v\n\n", j)
 
 	return j, nil
 }
@@ -280,18 +287,6 @@ func verifyJWTSignature(token string) (claims map[string]any, err error) {
 	}
 
 	return claims, nil
-}
-
-// extractSessionToken extracts a legacy session token from the given claims.
-func extractSessionToken(claims map[string]any) (string, error) {
-	if i, ok := claims["legacy_session_token"]; ok {
-		if t, ok := i.(string); ok {
-			if t != "" {
-				return t, nil
-			}
-		}
-	}
-	return "", fmt.Errorf("failed to extract session token from JWT custom claim")
 }
 
 // refreshToken constructs and calls the token_endpoint for refreshing the

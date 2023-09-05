@@ -96,11 +96,17 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if profileName == "" {
 		c.Globals.Config.Profiles[profile.DefaultName] = &config.Profile{
-			Default: true,
-			Email:   ar.Email,
-			Token:   ar.SessionToken,
+			AccessToken:     ar.Jwt.AccessToken,
+			AccessTokenTTL:  ar.Jwt.ExpiresIn,
+			Default:         true,
+			Email:           ar.Email,
+			RefreshToken:    ar.Jwt.RefreshToken,
+			RefreshTokenTTL: ar.Jwt.RefreshExpiresIn,
+			Token:           ar.SessionToken,
 		}
 	} else {
+		// FIXME: The Edit() method needs to know about Access/Refresh settings.
+		// And also how to reauthenticate.
 		ps, ok := profile.Edit(profileName, c.Globals.Config.Profiles, func(p *config.Profile) {
 			p.Token = ar.SessionToken
 		})

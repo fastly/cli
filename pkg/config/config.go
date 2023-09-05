@@ -139,9 +139,20 @@ type Profiles map[string]*Profile
 
 // Profile represents a specific profile account.
 type Profile struct {
-	Default bool   `toml:"default" json:"default"`
-	Email   string `toml:"email" json:"email"`
-	Token   string `toml:"token" json:"token"`
+	// AccessToken is used to acquire a new token when it expires.
+	AccessToken string `toml:"access_token" json:"access_token"`
+	// AccessTokenTTL indicates when the access token needs to be replaced.
+	AccessTokenTTL int `toml:"access_token_ttl" json:"access_token_ttl"`
+	// Default indicates if the profile is the default profile to use.
+	Default bool `toml:"default" json:"default"`
+	// Email is the email address associated with the token.
+	Email string `toml:"email" json:"email"`
+	// RefreshToken is used to acquire a new access token when it expires.
+	RefreshToken string `toml:"refresh_token" json:"refresh_token"`
+	// RefreshTokenTTL indicates when the refresh token needs to be replaced.
+	RefreshTokenTTL int `toml:"refresh_token_ttl" json:"refresh_token_ttl"`
+	// Token is a temporary token used to interact with the Fastly API.
+	Token string `toml:"token" json:"token"`
 }
 
 // StarterKitLanguages represents language specific starter kits.
