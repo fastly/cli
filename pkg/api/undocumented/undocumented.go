@@ -3,9 +3,11 @@
 package undocumented
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"strings"
 	"time"
@@ -50,6 +52,7 @@ type HTTPHeader struct {
 type CallOptions struct {
 	APIEndpoint string
 	Body        io.Reader
+	Debug       bool
 	HTTPClient  api.HTTPClient
 	HTTPHeaders []HTTPHeader
 	Method      string
@@ -75,6 +78,13 @@ func Call(opts CallOptions) (data []byte, err error) {
 		req.Header.Set(header.Key, header.Value)
 	}
 
+	if opts.Debug {
+		rc := req.Clone(context.Background())
+		rc.Header.Set("Fastly-Key", "REDACTED")
+		dump, _ := httputil.DumpRequest(rc, true)
+		fmt.Printf("undocumented.Call request dump:\n\n%#v\n\n", string(dump))
+	}
+
 	res, err := opts.HTTPClient.Do(req)
 	if err != nil {
 		if urlErr, ok := err.(*url.Error); ok && urlErr.Timeout() {
@@ -86,6 +96,11 @@ func Call(opts CallOptions) (data []byte, err error) {
 		return data, NewError(err, 0)
 	}
 	defer res.Body.Close() // #nosec G307
+
+	if opts.Debug {
+		dump, _ := httputil.DumpResponse(res, true)
+		fmt.Printf("undocumented.Call request dump:\n\n%#v\n\n", string(dump))
+	}
 
 	data, err = io.ReadAll(res.Body)
 	if err != nil {
