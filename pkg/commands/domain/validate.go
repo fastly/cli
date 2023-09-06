@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
@@ -59,11 +59,6 @@ type ValidateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,

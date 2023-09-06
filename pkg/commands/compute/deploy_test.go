@@ -109,11 +109,6 @@ func TestDeploy(t *testing.T) {
 		wantOutput           []string
 	}{
 		{
-			name:      "no token",
-			args:      args("compute deploy"),
-			wantError: "no token provided",
-		},
-		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute deploy --token 123"),
 			wantError:            "error reading fastly.toml",

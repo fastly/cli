@@ -29,38 +29,32 @@ func TestWhoami(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			name:      "no token",
-			args:      args("whoami"),
-			client:    verifyClient(basicResponse),
-			wantError: "no token provided",
-		},
-		{
 			name:       "basic response",
-			args:       args("--token=x whoami"),
+			args:       args("whoami"),
 			client:     verifyClient(basicResponse),
 			wantOutput: basicOutput,
 		},
 		{
 			name:       "basic response verbose",
-			args:       args("--token=x whoami -v"),
+			args:       args("whoami -v"),
 			client:     verifyClient(basicResponse),
 			wantOutput: basicOutputVerbose,
 		},
 		{
 			name:      "500 from API",
-			args:      args("--token=x whoami"),
+			args:      args("whoami"),
 			client:    codeClient{code: http.StatusInternalServerError},
 			wantError: "error from API: 500 Internal Server Error",
 		},
 		{
 			name:      "local error",
-			args:      args("--token=x whoami"),
+			args:      args("whoami"),
 			client:    errorClient{err: errors.New("some network failure")},
 			wantError: "error executing API request: some network failure",
 		},
 		{
 			name:   "alternative endpoint from flag",
-			args:   args("--token=x whoami --endpoint=https://staging.fastly.com -v"),
+			args:   args("whoami --endpoint=https://staging.fastly.com -v"),
 			client: verifyClient(basicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
 				"Fastly API endpoint: https://api.fastly.com",
@@ -69,7 +63,7 @@ func TestWhoami(t *testing.T) {
 		},
 		{
 			name:   "alternative endpoint from environment",
-			args:   args("--token=x whoami -v"),
+			args:   args("whoami -v"),
 			env:    config.Environment{Endpoint: "https://alternative.example.com"},
 			client: verifyClient(basicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
@@ -84,6 +78,8 @@ func TestWhoami(t *testing.T) {
 			opts.Env = testcase.env
 			opts.HTTPClient = testcase.client
 			err := app.Run(opts)
+			opts.ConfigFile = config.File{}
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -145,7 +141,7 @@ var basicResponse = whoami.VerifyResponse{
 var basicOutput = "Alice Programmer <alice@example.com>\n"
 
 var basicOutputVerbose = strings.TrimSpace(`
-Fastly API token provided via --token
+Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
 
 Customer ID: abc

@@ -5,28 +5,24 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestPurgeAll(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing token",
-			Args:      args("purge --all"),
-			WantError: "no token provided",
-		},
-		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("purge --all --token 123"),
+			Args:      args("purge --all"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate --soft flag isn't usable",
-			Args:      args("purge --all --service-id 123 --soft --token 456"),
+			Args:      args("purge --all --service-id 123 --soft"),
 			WantError: "purge-all requests cannot be done in soft mode (--soft) and will always immediately invalidate all cached content associated with the service",
 		},
 		{
@@ -36,7 +32,7 @@ func TestPurgeAll(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("purge --all --service-id 123 --token 456"),
+			Args:      args("purge --all --service-id 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -48,7 +44,7 @@ func TestPurgeAll(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("purge --all --service-id 123 --token 456"),
+			Args:       args("purge --all --service-id 123"),
 			WantOutput: "Purge all status: ok",
 		},
 	}
@@ -71,13 +67,8 @@ func TestPurgeKeys(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing token",
-			Args:      args("purge --file ./testdata/keys"),
-			WantError: "no token provided",
-		},
-		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("purge --file ./testdata/keys --token 123"),
+			Args:      args("purge --file ./testdata/keys"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -87,7 +78,7 @@ func TestPurgeKeys(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("purge --file ./testdata/keys --service-id 123 --token 456"),
+			Args:      args("purge --file ./testdata/keys --service-id 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -104,7 +95,7 @@ func TestPurgeKeys(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("purge --file ./testdata/keys --service-id 123 --token 456"),
+			Args:       args("purge --file ./testdata/keys --service-id 123"),
 			WantOutput: "KEY  ID\nbar  456\nbaz  789\nfoo  123\n",
 		},
 	}
@@ -144,13 +135,8 @@ func TestPurgeKey(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing token",
-			Args:      args("purge --key foobar"),
-			WantError: "no token provided",
-		},
-		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("purge --key foobar --token 123"),
+			Args:      args("purge --key foobar"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -160,7 +146,7 @@ func TestPurgeKey(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("purge --key foobar --service-id 123 --token 456"),
+			Args:      args("purge --key foobar --service-id 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -173,7 +159,7 @@ func TestPurgeKey(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("purge --key foobar --service-id 123 --token 456"),
+			Args:       args("purge --key foobar --service-id 123"),
 			WantOutput: "Purged key: foobar (soft: false). Status: ok, ID: 123",
 		},
 		{
@@ -186,7 +172,7 @@ func TestPurgeKey(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("purge --key foobar --service-id 123 --soft --token 456"),
+			Args:       args("purge --key foobar --service-id 123 --soft"),
 			WantOutput: "Purged key: foobar (soft: true). Status: ok, ID: 123",
 		},
 	}
@@ -198,6 +184,7 @@ func TestPurgeKey(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
 			err := app.Run(opts)
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -208,18 +195,13 @@ func TestPurgeURL(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing token",
-			Args:      args("purge --url https://example.com"),
-			WantError: "no token provided",
-		},
-		{
 			Name: "validate Purge API error",
 			API: mock.API{
 				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("purge --service-id 123 --token 456 --url https://example.com"),
+			Args:      args("purge --service-id 123 --url https://example.com"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -232,7 +214,7 @@ func TestPurgeURL(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("purge --service-id 123 --token 456 --url https://example.com"),
+			Args:       args("purge --service-id 123 --url https://example.com"),
 			WantOutput: "Purged URL: https://example.com (soft: false). Status: ok, ID: 123",
 		},
 		{
@@ -245,7 +227,7 @@ func TestPurgeURL(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("purge --service-id 123 --soft --token 456 --url https://example.com"),
+			Args:       args("purge --service-id 123 --soft --url https://example.com"),
 			WantOutput: "Purged URL: https://example.com (soft: true). Status: ok, ID: 123",
 		},
 	}

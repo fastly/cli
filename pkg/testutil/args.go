@@ -69,9 +69,11 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 	}
 
 	return app.RunOpts{
-		APIClient:  mock.APIClient(mock.API{}),
-		Args:       args,
-		ConfigFile: config.File{},
+		APIClient: mock.APIClient(mock.API{}),
+		Args:      args,
+		ConfigFile: config.File{
+			Profiles: TokenProfile(),
+		},
 		ConfigPath: configPath,
 		Env:        config.Environment{},
 		ErrLog:     errors.Log,
@@ -81,5 +83,23 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 		HTTPClient: &http.Client{Timeout: time.Second * 5},
 		Manifest:   &md,
 		Stdout:     stdout,
+	}
+}
+
+func TokenProfile() config.Profiles {
+	return config.Profiles{
+		// IMPORTANT: Tests mock the token to prevent runtime panics.
+		//
+		// Tokens are now interactively handled unless a token is provided
+		// directly via the --token flag or the FASTLY_API_TOKEN env variable.
+		//
+		// We force the CLI to skip the interactive prompts by setting a default
+		// user profile and making sure the timestamp is not expired.
+		"user": &config.Profile{
+			AccessTokenCreated: 9999999999, // Year: 2286
+			Default:            true,
+			Email:              "test@example.com",
+			Token:              "mock-token",
+		},
 	}
 }

@@ -90,6 +90,7 @@ func TestACLCreate(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
 			err := app.Run(opts)
+			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -282,7 +283,7 @@ func TestACLList(t *testing.T) {
 				ListACLsFn:     listACLs,
 			},
 			Args:       args("acl list --service-id 123 --verbose --version 1"),
-			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nID: 789\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\n",
+			WantOutput: "Fastly API token provided via config file (profile: user)\nFastly API endpoint: https://api.fastly.com\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nID: 789\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\n",
 		},
 	}
 

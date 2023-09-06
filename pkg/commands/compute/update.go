@@ -11,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -63,11 +62,6 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
-
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,

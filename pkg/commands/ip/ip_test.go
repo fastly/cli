@@ -13,7 +13,7 @@ import (
 
 func TestAllIPs(t *testing.T) {
 	var stdout bytes.Buffer
-	args := testutil.Args("ip-list --token 123")
+	args := testutil.Args("ip-list")
 	api := mock.API{
 		AllIPsFn: func() (v4, v6 fastly.IPAddrs, err error) {
 			return []string{

@@ -9,9 +9,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/useragent"
 )
 
@@ -38,11 +36,9 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("error constructing API request: %w", err)
 	}
 
-	token, source := c.Globals.Token()
-	if source == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
+	token, _ := c.Globals.Token()
 
+	// FIXME: Should we set `Authorization: Bearer <token>`?
 	req.Header.Set("Fastly-Key", token)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", useragent.Name)

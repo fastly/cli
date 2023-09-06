@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestAllDatacenters(t *testing.T) {
 	var stdout bytes.Buffer
-	args := testutil.Args("pops --token 123")
+	args := testutil.Args("pops")
 	api := mock.API{
 		AllDatacentersFn: func() ([]fastly.Datacenter, error) {
 			return []fastly.Datacenter{

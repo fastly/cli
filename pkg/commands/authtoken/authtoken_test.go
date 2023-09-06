@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -21,11 +20,6 @@ func TestCreate(t *testing.T) {
 			Name:      "validate missing --password flag",
 			Args:      args("auth-token create"),
 			WantError: "error parsing arguments: required flag --password not provided",
-		},
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token create --password secure"),
-			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate CreateToken API error",
@@ -87,11 +81,6 @@ func TestCreate(t *testing.T) {
 func TestDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token delete"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
 		{
 			Name:      "validate missing optional flags",
 			Args:      args("auth-token delete --token 123"),
@@ -186,11 +175,6 @@ func TestDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token describe"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name: "validate GetTokenSelf API error",
 			API: mock.API{
 				GetTokenSelfFn: func() (*fastly.Token, error) {
@@ -232,20 +216,13 @@ func TestList(t *testing.T) {
 	scenarios := []ts{
 		{
 			TestScenario: testutil.TestScenario{
-				Name:      "validate missing --token flag",
-				Args:      args("auth-token list"),
-				WantError: errors.ErrNoToken.Inner.Error(),
-			},
-		},
-		{
-			TestScenario: testutil.TestScenario{
 				Name: "validate ListTokens API error",
 				API: mock.API{
 					ListTokensFn: func() ([]*fastly.Token, error) {
 						return nil, testutil.Err
 					},
 				},
-				Args:      args("auth-token list --token 123"),
+				Args:      args("auth-token list"),
 				WantError: testutil.Err.Error(),
 			},
 		},
@@ -257,7 +234,7 @@ func TestList(t *testing.T) {
 						return nil, testutil.Err
 					},
 				},
-				Args:      args("auth-token list --customer-id 123 --token 123"),
+				Args:      args("auth-token list --customer-id 123"),
 				WantError: testutil.Err.Error(),
 			},
 		},
@@ -267,7 +244,7 @@ func TestList(t *testing.T) {
 				API: mock.API{
 					ListTokensFn: listTokens,
 				},
-				Args:       args("auth-token list --token 123"),
+				Args:       args("auth-token list"),
 				WantOutput: listTokenOutputSummary(false),
 			},
 		},
@@ -277,7 +254,7 @@ func TestList(t *testing.T) {
 				API: mock.API{
 					ListCustomerTokensFn: listCustomerTokens,
 				},
-				Args:       args("auth-token list --customer-id 123 --token 123"),
+				Args:       args("auth-token list --customer-id 123"),
 				WantOutput: listTokenOutputSummary(false),
 			},
 		},
@@ -287,7 +264,7 @@ func TestList(t *testing.T) {
 				API: mock.API{
 					ListCustomerTokensFn: listCustomerTokens,
 				},
-				Args:       args("auth-token list --token 123"),
+				Args:       args("auth-token list"),
 				WantOutput: listTokenOutputSummary(true),
 			},
 			SetEnv: true,
@@ -298,7 +275,7 @@ func TestList(t *testing.T) {
 				API: mock.API{
 					ListTokensFn: listTokens,
 				},
-				Args:       args("auth-token list --token 123 --verbose"),
+				Args:       args("auth-token list --verbose"),
 				WantOutput: listTokenOutputVerbose(),
 			},
 		},
@@ -391,7 +368,7 @@ Expires at: 2021-06-15 23:00:00 +0000 UTC`
 }
 
 func listTokenOutputVerbose() string {
-	return `Fastly API token provided via --token
+	return `Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
 
 

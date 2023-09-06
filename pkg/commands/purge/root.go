@@ -13,7 +13,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -63,11 +62,6 @@ type RootCommand struct {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
-
 	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err

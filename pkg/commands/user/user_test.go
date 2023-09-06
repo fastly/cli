@@ -8,7 +8,6 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -23,7 +22,7 @@ func TestCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user create --login foo@example.com --name foobar --token 123"),
+			Args:      args("user create --login foo@example.com --name foobar"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -36,7 +35,7 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("user create --login foo@example.com --name foobar --token 123"),
+			Args:       args("user create --login foo@example.com --name foobar"),
 			WantOutput: "Created user 'foobar' (role: user)",
 		},
 	}
@@ -63,18 +62,13 @@ func TestDelete(t *testing.T) {
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("user delete --id foo123"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name: "validate DeleteUser API error",
 			API: mock.API{
 				DeleteUserFn: func(i *fastly.DeleteUserInput) error {
 					return testutil.Err
 				},
 			},
-			Args:      args("user delete --id foo123 --token 123"),
+			Args:      args("user delete --id foo123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -84,7 +78,7 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("user delete --id foo123 --token 123"),
+			Args:       args("user delete --id foo123"),
 			WantOutput: "Deleted user (id: foo123)",
 		},
 	}
@@ -106,13 +100,8 @@ func TestDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("user describe"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name:      "validate missing --id flag",
-			Args:      args("user describe --token 123"),
+			Args:      args("user describe"),
 			WantError: "error parsing arguments: must provide --id flag",
 		},
 		{
@@ -122,7 +111,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user describe --id 123 --token 123"),
+			Args:      args("user describe --id 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -132,7 +121,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user describe --current --token 123"),
+			Args:      args("user describe --current"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -140,7 +129,7 @@ func TestDescribe(t *testing.T) {
 			API: mock.API{
 				GetUserFn: getUser,
 			},
-			Args:       args("user describe --id 123 --token 123"),
+			Args:       args("user describe --id 123"),
 			WantOutput: describeUserOutput(),
 		},
 		{
@@ -148,7 +137,7 @@ func TestDescribe(t *testing.T) {
 			API: mock.API{
 				GetCurrentUserFn: getCurrentUser,
 			},
-			Args:       args("user describe --current --token 123"),
+			Args:       args("user describe --current"),
 			WantOutput: describeCurrentUserOutput(),
 		},
 	}
@@ -170,13 +159,8 @@ func TestList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("user list --customer-id abc"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name:      "validate missing --customer-id flag",
-			Args:      args("user list --token 123"),
+			Args:      args("user list"),
 			WantError: "error reading customer ID: no customer ID found",
 		},
 		{
@@ -186,7 +170,7 @@ func TestList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user list --customer-id abc --token 123"),
+			Args:      args("user list --customer-id abc"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -194,7 +178,7 @@ func TestList(t *testing.T) {
 			API: mock.API{
 				ListCustomerUsersFn: listUsers,
 			},
-			Args:       args("user list --customer-id abc --token 123"),
+			Args:       args("user list --customer-id abc"),
 			WantOutput: listOutput(),
 		},
 		{
@@ -202,7 +186,7 @@ func TestList(t *testing.T) {
 			API: mock.API{
 				ListCustomerUsersFn: listUsers,
 			},
-			Args:       args("user list --customer-id abc --token 123 --verbose"),
+			Args:       args("user list --customer-id abc --verbose"),
 			WantOutput: listVerboseOutput(),
 		},
 	}
@@ -224,28 +208,23 @@ func TestUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("user update --id 123"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name:      "validate missing --id flag",
-			Args:      args("user update --token 123"),
+			Args:      args("user update"),
 			WantError: "error parsing arguments: must provide --id flag",
 		},
 		{
 			Name:      "validate missing --name and --role flags",
-			Args:      args("user update --id 123 --token 123"),
+			Args:      args("user update --id 123"),
 			WantError: "error parsing arguments: must provide either the --name or --role with the --id flag",
 		},
 		{
 			Name:      "validate missing --login flag with --password-reset",
-			Args:      args("user update --password-reset --token 123"),
+			Args:      args("user update --password-reset"),
 			WantError: "error parsing arguments: must provide --login when requesting a password reset",
 		},
 		{
 			Name:      "validate invalid --role value",
-			Args:      args("user update --id 123 --role foobar --token 123"),
+			Args:      args("user update --id 123 --role foobar"),
 			WantError: "error parsing arguments: enum value must be one of user,billing,engineer,superuser, got 'foobar'",
 		},
 		{
@@ -255,7 +234,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user update --id 123 --name foo --token 123"),
+			Args:      args("user update --id 123 --name foo"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -265,7 +244,7 @@ func TestUpdate(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("user update --id 123 --login foo@example.com --password-reset --token 123"),
+			Args:      args("user update --id 123 --login foo@example.com --password-reset"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -279,7 +258,7 @@ func TestUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("user update --id 123 --name foo --role engineer --token 123"),
+			Args:       args("user update --id 123 --name foo --role engineer"),
 			WantOutput: "Updated user 'foo' (role: engineer)",
 		},
 		{
@@ -289,7 +268,7 @@ func TestUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("user update --id 123 --login foo@example.com --password-reset --token 123"),
+			Args:       args("user update --id 123 --login foo@example.com --password-reset"),
 			WantOutput: "Reset user password (login: foo@example.com)",
 		},
 	}
@@ -407,7 +386,7 @@ bar@example.com  bar   superuser  false   current123
 }
 
 func listVerboseOutput() string {
-	return fmt.Sprintf(`Fastly API token provided via --token
+	return fmt.Sprintf(`Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
 
 %s%s`, describeUserOutput(), describeCurrentUserOutput())

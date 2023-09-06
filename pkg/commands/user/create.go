@@ -3,13 +3,12 @@ package user
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -41,11 +40,6 @@ type CreateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	input := c.constructInput()
 
 	r, err := c.Globals.APIClient.CreateUser(input)

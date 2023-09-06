@@ -22,7 +22,7 @@ func TestCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("rate-limit create --name example --service-id 123 --token abc --version 3"),
+			Args:      args("rate-limit create --name example --service-id 123 --version 3"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -36,7 +36,7 @@ func TestCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:       args("rate-limit create --name example --service-id 123 --token abc --version 3"),
+			Args:       args("rate-limit create --name example --service-id 123 --version 3"),
 			WantOutput: "Created rate limiter 'example' (123)",
 		},
 	}
@@ -64,7 +64,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("rate-limit delete --id 123 --token abc"),
+			Args:      args("rate-limit delete --id 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -74,7 +74,7 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("rate-limit delete --id 123 --token abc"),
+			Args:       args("rate-limit delete --id 123"),
 			WantOutput: "SUCCESS: Deleted rate limiter '123'\n",
 		},
 	}
@@ -102,7 +102,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("rate-limit describe --id 123 --token abc"),
+			Args:      args("rate-limit describe --id 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -119,7 +119,7 @@ func TestDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("rate-limit describe --id 123 --token abc"),
+			Args:       args("rate-limit describe --id 123"),
 			WantOutput: "\nAction: response\nClient Key: []\nFeature Revision: 0\nHTTP Methods: []\nID: 123\nLogger Type: \nName: example\nPenalty Box Duration: 20\nResponse: <nil>\nResponse Object Name: \nRPS Limit: 10\nService ID: \nURI Dictionary Name: \nVersion: 0\nWindowSize: 60\n",
 		},
 	}
@@ -148,7 +148,7 @@ func TestList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("rate-limit list --service-id 123 --token abc --version 3"),
+			Args:      args("rate-limit list --service-id 123 --version 3"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -168,7 +168,7 @@ func TestList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:       args("rate-limit list --service-id 123 --token abc --version 3"),
+			Args:       args("rate-limit list --service-id 123 --version 3"),
 			WantOutput: "ID   NAME     ACTION    RPS LIMIT  WINDOW SIZE  PENALTY BOX DURATION\n123  example  response  10         60           20\n",
 		},
 	}
@@ -196,7 +196,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("rate-limit update --id 123 --name example --token abc"),
+			Args:      args("rate-limit update --id 123 --name example"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -209,7 +209,7 @@ func TestUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("rate-limit update --id 123 --name example --token abc"),
+			Args:       args("rate-limit update --id 123 --name example"),
 			WantOutput: "Updated rate limiter 'example' (123)",
 		},
 	}

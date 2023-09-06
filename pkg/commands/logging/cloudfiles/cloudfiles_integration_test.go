@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCloudfilesCreate(t *testing.T) {
@@ -333,7 +334,7 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listCloudfilesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
+Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
 
 Service ID (via --service-id): 123

@@ -28,7 +28,7 @@ func TestBuildRust(t *testing.T) {
 	scenarios := []struct {
 		name                 string
 		args                 []string
-		applicationConfig    config.File
+		applicationConfig    *config.File // a pointer so we can assert if configured
 		fastlyManifest       string
 		cargoManifest        string
 		wantError            string
@@ -67,7 +67,8 @@ func TestBuildRust(t *testing.T) {
 		{
 			name: "build script inserted dynamically when missing",
 			args: args("compute build --verbose"),
-			applicationConfig: config.File{
+			applicationConfig: &config.File{
+				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainConstraint: ">= 1.54.0",
@@ -95,7 +96,8 @@ func TestBuildRust(t *testing.T) {
 		{
 			name: "build error",
 			args: args("compute build"),
-			applicationConfig: config.File{
+			applicationConfig: &config.File{
+				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainConstraint: ">= 1.54.0",
@@ -123,7 +125,8 @@ func TestBuildRust(t *testing.T) {
 		{
 			name: "successful build",
 			args: args("compute build --verbose"),
-			applicationConfig: config.File{
+			applicationConfig: &config.File{
+				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainConstraint: ">= 1.54.0",
@@ -214,7 +217,10 @@ func TestBuildRust(t *testing.T) {
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ConfigFile = testcase.applicationConfig
+
+			if testcase.applicationConfig != nil {
+				opts.ConfigFile = *testcase.applicationConfig
+			}
 			opts.Versioners = app.Versioners{
 				WasmTools: mock.AssetVersioner{
 					AssetVersion:    "1.2.3",
@@ -254,7 +260,7 @@ func TestBuildGo(t *testing.T) {
 	scenarios := []struct {
 		name                 string
 		args                 []string
-		applicationConfig    config.File
+		applicationConfig    *config.File
 		fastlyManifest       string
 		wantError            string
 		wantRemediationError string
@@ -291,7 +297,8 @@ func TestBuildGo(t *testing.T) {
 		{
 			name: "build success",
 			args: args("compute build --verbose"),
-			applicationConfig: config.File{
+			applicationConfig: &config.File{
+				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Go: config.Go{
 						TinyGoConstraint:          ">= 0.26.0-0",
@@ -322,7 +329,8 @@ func TestBuildGo(t *testing.T) {
 		{
 			name: "build error",
 			args: args("compute build"),
-			applicationConfig: config.File{
+			applicationConfig: &config.File{
+				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Go: config.Go{
 						TinyGoConstraint:          ">= 0.26.0-0",
@@ -401,7 +409,10 @@ func TestBuildGo(t *testing.T) {
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ConfigFile = testcase.applicationConfig
+
+			if testcase.applicationConfig != nil {
+				opts.ConfigFile = *testcase.applicationConfig
+			}
 			opts.Versioners = app.Versioners{
 				WasmTools: mock.AssetVersioner{
 					AssetVersion:    "1.2.3",
