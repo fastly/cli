@@ -374,6 +374,12 @@ type API struct {
 	GetERLFn    func(i *fastly.GetERLInput) (*fastly.ERL, error)
 	ListERLsFn  func(i *fastly.ListERLsInput) ([]*fastly.ERL, error)
 	UpdateERLFn func(i *fastly.UpdateERLInput) (*fastly.ERL, error)
+
+	CreateConditionFn func(i *fastly.CreateConditionInput) (*fastly.Condition, error)
+	DeleteConditionFn func(i *fastly.DeleteConditionInput) error
+	GetConditionFn    func(i *fastly.GetConditionInput) (*fastly.Condition, error)
+	ListConditionsFn  func(i *fastly.ListConditionsInput) ([]*fastly.Condition, error)
+	UpdateConditionFn func(i *fastly.UpdateConditionInput) (*fastly.Condition, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1899,4 +1905,29 @@ func (m API) ListERLs(i *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 // UpdateERL implements Interface.
 func (m API) UpdateERL(i *fastly.UpdateERLInput) (*fastly.ERL, error) {
 	return m.UpdateERLFn(i)
+}
+
+// CreateCondition implements Interface.
+func (m API) CreateCondition(i *fastly.CreateConditionInput) (*fastly.Condition, error) {
+	return m.CreateConditionFn(i)
+}
+
+// DeleteCondition implements Interface.
+func (m API) DeleteCondition(i *fastly.DeleteConditionInput) error {
+	return m.DeleteConditionFn(i)
+}
+
+// GetCondition implements Interface.
+func (m API) GetCondition(i *fastly.GetConditionInput) (*fastly.Condition, error) {
+	return m.GetConditionFn(i)
+}
+
+// ListConditions implements Interface.
+func (m API) ListConditions(i *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
+	return m.ListConditionsFn(i)
+}
+
+// UpdateCondition implements Interface.
+func (m API) UpdateCondition(i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
+	return m.UpdateConditionFn(i)
 }

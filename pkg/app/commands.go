@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
+	"github.com/fastly/cli/pkg/commands/condition"
 	"github.com/fastly/cli/pkg/commands/config"
 	"github.com/fastly/cli/pkg/commands/configstore"
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
@@ -119,6 +120,12 @@ func defineCommands(
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, g, computeBuild, opts.Versioners.Viceroy, m)
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, g, m)
 	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, g, m)
+	conditionCmdRoot := condition.NewRootCommand(app, g)
+	conditionCreate := condition.NewCreateCommand(conditionCmdRoot.CmdClause, g, m)
+	conditionDelete := condition.NewDeleteCommand(conditionCmdRoot.CmdClause, g, m)
+	conditionDescribe := condition.NewDescribeCommand(conditionCmdRoot.CmdClause, g, m)
+	conditionList := condition.NewListCommand(conditionCmdRoot.CmdClause, g, m)
+	conditionUpdate := condition.NewUpdateCommand(conditionCmdRoot.CmdClause, g, m)
 	configCmdRoot := config.NewRootCommand(app, g)
 	configstoreCmdRoot := configstore.NewRootCommand(app, g)
 	configstoreCreate := configstore.NewCreateCommand(configstoreCmdRoot.CmdClause, g, m)
@@ -477,6 +484,12 @@ func defineCommands(
 		computeServe,
 		computeUpdate,
 		computeValidate,
+		conditionCmdRoot,
+		conditionCreate,
+		conditionDelete,
+		conditionDescribe,
+		conditionList,
+		conditionUpdate,
 		configCmdRoot,
 		configstoreCmdRoot,
 		configstoreCreate,

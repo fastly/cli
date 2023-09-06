@@ -382,6 +382,12 @@ type Interface interface {
 	GetERL(i *fastly.GetERLInput) (*fastly.ERL, error)
 	ListERLs(i *fastly.ListERLsInput) ([]*fastly.ERL, error)
 	UpdateERL(i *fastly.UpdateERLInput) (*fastly.ERL, error)
+
+	CreateCondition(i *fastly.CreateConditionInput) (*fastly.Condition, error)
+	DeleteCondition(i *fastly.DeleteConditionInput) error
+	GetCondition(i *fastly.GetConditionInput) (*fastly.Condition, error)
+	ListConditions(i *fastly.ListConditionsInput) ([]*fastly.Condition, error)
+	UpdateCondition(i *fastly.UpdateConditionInput) (*fastly.Condition, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

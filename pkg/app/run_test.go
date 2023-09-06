@@ -62,6 +62,7 @@ acl-entry
 auth-token
 backend
 compute
+condition
 config
 config-store
 config-store-entry
