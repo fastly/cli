@@ -378,7 +378,7 @@ func authenticateUnlessTokenExists(
 			if command.Name() == "authenticate" {
 				text.Warning(out, "%s. We need to open your browser to authenticate you.", authWarningMsg)
 				text.Break(out)
-				cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
+				cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
 				if err != nil {
 					return token, tokenSource, err
 				}
