@@ -56,42 +56,7 @@ func Run(opts RunOpts) error {
 		Output:           opts.Stdout,
 	}
 
-	// Set up the main application root, including global flags, and then each
-	// of the subcommands. Note that we deliberately don't use some of the more
-	// advanced features of the kingpin.Application flags, like env var
-	// bindings, because we need to do things like track where a config
-	// parameter came from.
-	app := kingpin.New("fastly", "A tool to interact with the Fastly API")
-	app.Writers(opts.Stdout, io.Discard) // don't let kingpin write error output
-	app.UsageContext(&kingpin.UsageContext{
-		Template: VerboseUsageTemplate,
-		Funcs:    UsageTemplateFuncs,
-	})
-
-	// Prevent kingpin from calling os.Exit, this gives us greater control over
-	// error states and output control flow.
-	app.Terminate(nil)
-
-	// WARNING: kingpin has no way of decorating flags as being "global"
-	// therefore if you add/remove a global flag you will also need to update
-	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
-	// You should also update `IsGlobalFlagsOnly` in ../cmd/cmd.go
-	//
-	// NOTE: Global flags (long and short) MUST be unique.
-	// A subcommand can't define a flag that is already global.
-	// Kingpin will otherwise trigger a runtime panic 🎉
-	// Interestingly, short flags can be reused but only across subcommands.
-	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
-	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&g.Flags.AcceptDefaults)
-	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&g.Flags.AutoYes)
-	// IMPORTANT: `--debug` is a built-in Kingpin flag so we can't use that.
-	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&g.Flags.Debug)
-	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&g.Flags.Endpoint)
-	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&g.Flags.NonInteractive)
-	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&g.Flags.Profile)
-	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&g.Flags.Quiet)
-	app.Flag("token", tokenHelp).HintAction(env.Vars).Short('t').StringVar(&g.Flags.Token)
-	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&g.Flags.Verbose)
+	app := configureKingpin(opts.Stdout, &g)
 
 	commands := defineCommands(app, &g, *opts.Manifest, opts)
 	command, commandName, err := processCommandInput(opts, app, &g, commands)
@@ -396,6 +361,47 @@ type RunOpts struct {
 	Stdin            io.Reader
 	Stdout           io.Writer
 	Versioners       Versioners
+}
+
+func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
+	// Set up the main application root, including global flags, and then each
+	// of the subcommands. Note that we deliberately don't use some of the more
+	// advanced features of the kingpin.Application flags, like env var
+	// bindings, because we need to do things like track where a config
+	// parameter came from.
+	app := kingpin.New("fastly", "A tool to interact with the Fastly API")
+	app.Writers(out, io.Discard) // don't let kingpin write error output
+	app.UsageContext(&kingpin.UsageContext{
+		Template: VerboseUsageTemplate,
+		Funcs:    UsageTemplateFuncs,
+	})
+
+	// Prevent kingpin from calling os.Exit, this gives us greater control over
+	// error states and output control flow.
+	app.Terminate(nil)
+
+	// WARNING: kingpin has no way of decorating flags as being "global"
+	// therefore if you add/remove a global flag you will also need to update
+	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
+	// You should also update `IsGlobalFlagsOnly` in ../cmd/cmd.go
+	//
+	// NOTE: Global flags (long and short) MUST be unique.
+	// A subcommand can't define a flag that is already global.
+	// Kingpin will otherwise trigger a runtime panic 🎉
+	// Interestingly, short flags can be reused but only across subcommands.
+	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
+	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&g.Flags.AcceptDefaults)
+	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&g.Flags.AutoYes)
+	// IMPORTANT: `--debug` is a built-in Kingpin flag so we can't use that.
+	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&g.Flags.Debug)
+	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&g.Flags.Endpoint)
+	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&g.Flags.NonInteractive)
+	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&g.Flags.Profile)
+	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&g.Flags.Quiet)
+	app.Flag("token", tokenHelp).HintAction(env.Vars).Short('t').StringVar(&g.Flags.Token)
+	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&g.Flags.Verbose)
+
+	return app
 }
 
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)
