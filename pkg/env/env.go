@@ -19,6 +19,9 @@ const (
 	// Endpoint is the env var we look in for the API endpoint.
 	Endpoint = "FASTLY_API_ENDPOINT"
 
+	// Account is the env var we look in for the Accounts endpoint.
+	Account = "FASTLY_ACCOUNT_ENDPOINT"
+
 	// ServiceID is the env var we look in for the required Service ID.
 	ServiceID = "FASTLY_SERVICE_ID"
 

@@ -43,13 +43,15 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	result := make(chan auth.AuthorizationResult)
-	endpoint, _ := c.Globals.Endpoint()
+	apiEndpoint, _ := c.Globals.Endpoint()
+	accountEndpoint, _ := c.Globals.Account()
 
 	s := auth.Server{
+		APIEndpoint:     apiEndpoint,
+		AccountEndpoint: accountEndpoint,
 		HTTPClient:      c.Globals.HTTPClient,
 		Result:          result,
 		Router:          http.NewServeMux(),
-		SessionEndpoint: endpoint,
 		Verifier:        verifier,
 	}
 	s.Routes()
@@ -69,7 +71,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	text.Info(out, "Starting a local server to handle the authentication flow.")
 
-	authorizationURL, err := auth.GenURL(verifier)
+	authorizationURL, err := auth.GenURL(accountEndpoint, apiEndpoint, verifier)
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to generate an authorization URL: %w", err),

@@ -18,28 +18,19 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 )
 
-// FIXME: UPDATE WITH PUBLIC ENDPOINT👇
-// NOTE: https://keycloak.ext.awsuse2.dev.k8s.secretcdn.net/realms/fastly/.well-known/openid-configuration
-
 // Remediation is a generic remediation message for an error authorizing.
 const Remediation = "Please re-run the command. If the problem persists, please file an issue: https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md"
 
-// ServerURL is the auth provider's device code URL.
-// FIXME: Add --accounts override (accounts.fastly.com)
-const ServerURL = "https://accounts.secretcdn-stg.net"
-
 // ClientID is the auth provider's Client ID.
 const ClientID = "fastly-cli"
-
-// Audience is the unique identifier of the API your app wants to access.
-// FIXME: Use --endpoint override (api.fastly.com) + allow env var override
-const Audience = "https://api.secretcdn-stg.net/"
 
 // RedirectURL is the endpoint the auth provider will pass an authorization code to.
 const RedirectURL = "http://localhost:8080/callback"
 
 // Server is a local server responsible for authentication processing.
 type Server struct {
+	// AccountEndpoint is the accounts endpoint.
+	AccountEndpoint string
 	// HTTPClient is a HTTP client used to call the API to exchange the access
 	// token for a session token.
 	HTTPClient api.HTTPClient
@@ -49,8 +40,8 @@ type Server struct {
 	Router *http.ServeMux
 	// Verifier represents an OAuth PKCE code verifier that uses the S256 challenge method
 	Verifier *oidc.S256Verifier
-	// SessionEndpoint is the API endpoint host.
-	SessionEndpoint string
+	// APIEndpoint is the API endpoint.
+	APIEndpoint string
 }
 
 // Start starts a local server for handling authentication processing.
@@ -91,7 +82,7 @@ func (s *Server) handleCallback() http.HandlerFunc {
 		// Exchange the authorization code and the code verifier for a JWT.
 		// NOTE: I use the identifier `j` to avoid overlap with the `jwt` package.
 		codeVerifier := s.Verifier.Verifier()
-		j, err := GetJWT(codeVerifier, authorizationCode)
+		j, err := GetJWT(s.AccountEndpoint, codeVerifier, authorizationCode)
 		if err != nil || j.AccessToken == "" || j.IDToken == "" {
 			fmt.Fprint(w, "ERROR: failed to exchange code for JWT\n")
 			s.Result <- AuthorizationResult{
@@ -100,7 +91,7 @@ func (s *Server) handleCallback() http.HandlerFunc {
 			return
 		}
 
-		claims, err := VerifyJWTSignature(j.AccessToken)
+		claims, err := VerifyJWTSignature(s.AccountEndpoint, j.AccessToken)
 		if err != nil {
 			s.Result <- AuthorizationResult{
 				Err: err,
@@ -118,7 +109,7 @@ func (s *Server) handleCallback() http.HandlerFunc {
 
 		// Exchange the access token for an API token
 		resp, err := undocumented.Call(undocumented.CallOptions{
-			APIEndpoint: s.SessionEndpoint,
+			APIEndpoint: s.APIEndpoint,
 			HTTPClient:  s.HTTPClient,
 			HTTPHeaders: []undocumented.HTTPHeader{
 				{
@@ -189,7 +180,7 @@ type AuthorizationResult struct {
 }
 
 // GenURL constructs the required authorization_endpoint path.
-func GenURL(verifier *oidc.S256Verifier) (string, error) {
+func GenURL(accountEndpoint, apiEndpoint string, verifier *oidc.S256Verifier) (string, error) {
 	challenge, err := oidc.CreateCodeChallenge(verifier)
 	if err != nil {
 		return "", err
@@ -201,14 +192,14 @@ func GenURL(verifier *oidc.S256Verifier) (string, error) {
 			"&response_type=code&client_id=%s"+
 			"&code_challenge=%s"+
 			"&code_challenge_method=S256&redirect_uri=%s",
-		ServerURL, Audience, ClientID, challenge, RedirectURL)
+		accountEndpoint, apiEndpoint, ClientID, challenge, RedirectURL)
 
 	return authorizationURL, nil
 }
 
 // GenJWT constructs and calls the token_endpoint path, returning a JWT
 // containing the access and refresh tokens and associated TTLs.
-func GetJWT(codeVerifier, authorizationCode string) (JWT, error) {
+func GetJWT(accountEndpoint, codeVerifier, authorizationCode string) (JWT, error) {
 	path := "/realms/fastly/protocol/openid-connect/token"
 
 	payload := fmt.Sprintf(
@@ -219,7 +210,7 @@ func GetJWT(codeVerifier, authorizationCode string) (JWT, error) {
 		"http://localhost:8080/callback", // NOTE: not redirected to, just a security check.
 	)
 
-	req, err := http.NewRequest("POST", ServerURL+path, strings.NewReader(payload))
+	req, err := http.NewRequest("POST", accountEndpoint+path, strings.NewReader(payload))
 	if err != nil {
 		return JWT{}, err
 	}
@@ -270,13 +261,13 @@ type JWT struct {
 }
 
 // VerifyJWTSignature calls the jwks_uri endpoint and extracts its claims.
-func VerifyJWTSignature(token string) (claims map[string]any, err error) {
+func VerifyJWTSignature(accountEndpoint, token string) (claims map[string]any, err error) {
 	ctx := context.Background()
 	path := "/realms/fastly/protocol/openid-connect/certs"
 
 	// NOTE: The last argument is optional and is for validating the JWKs endpoint
 	// (which we don't need to do, so we pass an empty string)
-	keySet, err := jwt.NewJSONWebKeySet(ctx, ServerURL+path, "")
+	keySet, err := jwt.NewJSONWebKeySet(ctx, accountEndpoint+path, "")
 	if err != nil {
 		return claims, fmt.Errorf("failed to verify signature of access token: %w", err)
 	}
@@ -291,7 +282,7 @@ func VerifyJWTSignature(token string) (claims map[string]any, err error) {
 
 // RefreshAccessToken constructs and calls the token_endpoint with the
 // refresh token so we can refresh and return the access token.
-func RefreshAccessToken(refreshToken string) (JWT, error) {
+func RefreshAccessToken(accountEndpoint, refreshToken string) (JWT, error) {
 	path := "/realms/fastly/protocol/openid-connect/token"
 
 	payload := fmt.Sprintf(
@@ -300,7 +291,7 @@ func RefreshAccessToken(refreshToken string) (JWT, error) {
 		refreshToken,
 	)
 
-	req, err := http.NewRequest("POST", ServerURL+path, strings.NewReader(payload))
+	req, err := http.NewRequest("POST", accountEndpoint+path, strings.NewReader(payload))
 	if err != nil {
 		return JWT{}, err
 	}

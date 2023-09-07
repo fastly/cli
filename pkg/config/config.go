@@ -59,7 +59,8 @@ type LegacyUser struct {
 
 // Fastly represents fastly specific configuration.
 type Fastly struct {
-	APIEndpoint string `toml:"api_endpoint"`
+	APIEndpoint     string `toml:"api_endpoint"`
+	AccountEndpoint string `toml:"account_endpoint"`
 }
 
 // WasmMetadata represents what metadata will be collected.
@@ -439,6 +440,8 @@ func (f *File) Write(path string) error {
 // Environment represents all of the configuration parameters that can come
 // from environment variables.
 type Environment struct {
+	// Account is the env var we look in for the Accounts endpoint.
+	Account string
 	// Token is the env var we look in for the Fastly API token.
 	Token string
 	// Endpoint is the env var we look in for the API endpoint.
@@ -451,8 +454,9 @@ type Environment struct {
 
 // Read populates the fields from the provided environment.
 func (e *Environment) Read(state map[string]string) {
-	e.Token = state[env.Token]
+	e.Account = state[env.Account]
 	e.Endpoint = state[env.Endpoint]
+	e.Token = state[env.Token]
 	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }
 

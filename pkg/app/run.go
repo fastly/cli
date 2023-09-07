@@ -146,12 +146,13 @@ func Run(opts RunOpts) error {
 					text.Info(opts.Stdout, "Your access token has now expired. We will attempt to refresh it")
 				}
 				text.Break(opts.Stdout)
-				updated, err := auth.RefreshAccessToken(profileData.RefreshToken)
+				account, _ := g.Account()
+				updated, err := auth.RefreshAccessToken(account, profileData.RefreshToken)
 				if err != nil {
 					return fmt.Errorf("failed to refresh access token: %w", err)
 				}
 
-				claims, err := auth.VerifyJWTSignature(updated.AccessToken)
+				claims, err := auth.VerifyJWTSignature(account, updated.AccessToken)
 				if err != nil {
 					return fmt.Errorf("failed to verify refreshed JWT: %w", err)
 				}
@@ -391,6 +392,7 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 	// Interestingly, short flags can be reused but only across subcommands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
 	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&g.Flags.AcceptDefaults)
+	app.Flag("account", "Fastly Accounts endpoint").Hidden().StringVar(&g.Flags.Account)
 	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&g.Flags.AutoYes)
 	// IMPORTANT: `--debug` is a built-in Kingpin flag so we can't use that.
 	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&g.Flags.Debug)

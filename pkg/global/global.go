@@ -13,6 +13,9 @@ import (
 // DefaultEndpoint is the default Fastly API endpoint.
 const DefaultEndpoint = "https://api.fastly.com"
 
+// DefaultAccount is the default Fastly Accounts endpoint.
+const DefaultAccount = "https://accounts.fastly.com"
+
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
 // the components that need it, including the place the parameter came from,
@@ -118,11 +121,29 @@ func (d *Data) Endpoint() (string, lookup.Source) {
 	return DefaultEndpoint, lookup.SourceDefault // this method should not fail
 }
 
+// Account yields the Accounts endpoint.
+func (d *Data) Account() (string, lookup.Source) {
+	if d.Flags.Account != "" {
+		return d.Flags.Account, lookup.SourceFlag
+	}
+
+	if d.Env.Account != "" {
+		return d.Env.Account, lookup.SourceEnvironment
+	}
+
+	if d.Config.Fastly.AccountEndpoint != DefaultAccount && d.Config.Fastly.AccountEndpoint != "" {
+		return d.Config.Fastly.AccountEndpoint, lookup.SourceFile
+	}
+
+	return DefaultAccount, lookup.SourceDefault // this method should not fail
+}
+
 // Flags represents all of the configuration parameters that can be set with
 // explicit flags. Consumers should bind their flag values to these fields
 // directly.
 type Flags struct {
 	AcceptDefaults bool
+	Account        string
 	AutoYes        bool
 	Debug          bool
 	Endpoint       string
