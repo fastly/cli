@@ -57,12 +57,12 @@ func Run(opts RunOpts) error {
 	}
 
 	app := configureKingpin(opts.Stdout, &g)
-
 	commands := defineCommands(app, &g, *opts.Manifest, opts)
 	command, commandName, err := processCommandInput(opts, app, &g, commands)
 	if err != nil {
 		return err
 	}
+
 	// We short-circuit the execution for specific cases:
 	//
 	// - cmd.ArgsIsHelpJSON() == true
@@ -95,7 +95,6 @@ func Run(opts RunOpts) error {
 	}
 
 	token, tokenSource := g.Token()
-
 	authWarningMsg := "No API token could be found"
 
 	// NOTE: tokens via FASTLY_API_TOKEN or --token aren't checked for a TTL.
@@ -282,6 +281,7 @@ func Run(opts RunOpts) error {
 		)
 	}
 
+	// Handle any profile override.
 	token, err = profile.Init(token, opts.Manifest, &g, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return err

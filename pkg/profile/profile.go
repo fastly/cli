@@ -103,7 +103,8 @@ func Edit(name string, p config.Profiles, opts ...EditOption) (config.Profiles, 
 	return p, ok
 }
 
-// Init checks if a profile flag is provided and potentially mutates token.
+// Init checks if a profile flag is provided and potentially mutates the
+// provided token.
 //
 // NOTE: If the specified profile doesn't exist, then we'll let the user decide
 // if the default profile (if available) is acceptable to use instead.
@@ -116,9 +117,12 @@ func Init(token string, m *manifest.Data, g *global.Data, in io.Reader, out io.W
 		profile = g.Flags.Profile
 	}
 
-	// If the user has specified no profile override, via flag nor manifest, then
-	// we'll just return the token that has potentially been found within the
-	// CLI's application configuration file.
+	// If the user has not specified a profile override, either via the --profile
+	// flag or the manifest `profile` field, then we'll return back the token that
+	// was passed into this function. The token passed in was either provided by
+	// the --token flag or the FASTLY_API_TOKEN env var or potentially was found
+	// within the CLI's application configuration file (and if none of those, then
+	// the user would have authenticated via the interactive OAuth flow).
 	if profile == "" {
 		return token, nil
 	}
@@ -129,7 +133,6 @@ func Init(token string, m *manifest.Data, g *global.Data, in io.Reader, out io.W
 	}
 
 	msg := fmt.Sprintf(DoesNotExist, profile)
-
 	name, p = Default(g.Config.Profiles)
 	if name == "" {
 		msg = fmt.Sprintf("%s (no account profiles configured)", msg)
@@ -144,12 +147,10 @@ func Init(token string, m *manifest.Data, g *global.Data, in io.Reader, out io.W
 	// first letter so the warning reads like a proper sentence (where as golang
 	// errors should always be lowercase).
 	msg = fmt.Sprintf("%s%s. ", bytes.ToUpper([]byte(msg[:1])), msg[1:])
-
 	msg = fmt.Sprintf("%sThe default profile '%s' (%s) will be used.", msg, name, p.Email)
 
 	if !g.Flags.AutoYes {
 		text.Warning(out, msg)
-
 		label := "\nWould you like to continue? [y/N] "
 		cont, err := text.AskYesNo(out, label, in)
 		if err != nil {
@@ -159,7 +160,6 @@ func Init(token string, m *manifest.Data, g *global.Data, in io.Reader, out io.W
 			return token, errors.New("command execution cancelled")
 		}
 	}
-
 	text.Break(out)
 	return p.Token, nil
 }
