@@ -58,7 +58,7 @@ func TestWhoami(t *testing.T) {
 			client: verifyClient(basicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
 				"Fastly API endpoint: https://api.fastly.com",
-				"Fastly API endpoint provided via --endpoint",
+				"Fastly API endpoint (via --endpoint): https://staging.fastly.com",
 			),
 		},
 		{
