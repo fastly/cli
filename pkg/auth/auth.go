@@ -107,42 +107,16 @@ func (s *Server) handleCallback() http.HandlerFunc {
 			return
 		}
 
-		// Exchange the access token for an API token
-		resp, err := undocumented.Call(undocumented.CallOptions{
-			APIEndpoint: s.APIEndpoint,
-			HTTPClient:  s.HTTPClient,
-			HTTPHeaders: []undocumented.HTTPHeader{
-				{
-					Key:   "Authorization",
-					Value: fmt.Sprintf("Bearer %s", j.AccessToken),
-				},
-			},
-			Method: http.MethodPost,
-			Path:   "/login-enhanced",
-		})
-		if err != nil {
-			if apiErr, ok := err.(undocumented.APIError); ok {
-				if apiErr.StatusCode != http.StatusConflict {
-					err = fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
-				}
-			}
-			s.Result <- AuthorizationResult{
-				Err: err,
-			}
-			return
-		}
-
-		at := &APIToken{}
-		err = json.Unmarshal(resp, at)
+		// Exchange the access token for a Fastly API token.
+		at, err := ExchangeAccessToken(j.AccessToken, s.APIEndpoint, s.HTTPClient)
 		if err != nil {
 			s.Result <- AuthorizationResult{
-				Err: fmt.Errorf("failed to unmarshal json containing API token: %w", err),
+				Err: fmt.Errorf("failed to exchange access token for an API token: %w", err),
 			}
 			return
 		}
 
 		fmt.Fprint(w, "Authenticated successfully. Please close this page and return to the Fastly CLI in your terminal.")
-
 		s.Result <- AuthorizationResult{
 			Email:        email.(string),
 			Jwt:          j,
@@ -320,4 +294,36 @@ func RefreshAccessToken(accountEndpoint, refreshToken string) (JWT, error) {
 	}
 
 	return j, nil
+}
+
+// ExchangeAccessToken exchanges `accessToken` for a Fastly API token.
+func ExchangeAccessToken(accessToken, apiEndpoint string, httpClient api.HTTPClient) (*APIToken, error) {
+	resp, err := undocumented.Call(undocumented.CallOptions{
+		APIEndpoint: apiEndpoint,
+		HTTPClient:  httpClient,
+		HTTPHeaders: []undocumented.HTTPHeader{
+			{
+				Key:   "Authorization",
+				Value: fmt.Sprintf("Bearer %s", accessToken),
+			},
+		},
+		Method: http.MethodPost,
+		Path:   "/login-enhanced",
+	})
+	if err != nil {
+		if apiErr, ok := err.(undocumented.APIError); ok {
+			if apiErr.StatusCode != http.StatusConflict {
+				err = fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
+			}
+		}
+		return nil, err
+	}
+
+	at := &APIToken{}
+	err = json.Unmarshal(resp, at)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json containing API token: %w", err)
+	}
+
+	return at, nil
 }

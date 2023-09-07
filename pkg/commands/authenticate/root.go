@@ -108,6 +108,9 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	// If no profiles configured at all...
 	if profileConfigured == "" && profileDefault == "" {
 		now := time.Now().Unix()
+		if c.Globals.Config.Profiles == nil {
+			c.Globals.Config.Profiles = make(config.Profiles)
+		}
 		c.Globals.Config.Profiles[profile.DefaultName] = &config.Profile{
 			AccessToken:         ar.Jwt.AccessToken,
 			AccessTokenCreated:  now,

@@ -1,11 +1,9 @@
 package app
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"slices"
 	"strconv"
@@ -16,7 +14,6 @@ import (
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
@@ -146,50 +143,26 @@ func Run(opts RunOpts) error {
 					text.Info(opts.Stdout, "Your access token has now expired. We will attempt to refresh it")
 				}
 				text.Break(opts.Stdout)
+
 				account, _ := g.Account()
 				updated, err := auth.RefreshAccessToken(account, profileData.RefreshToken)
 				if err != nil {
 					return fmt.Errorf("failed to refresh access token: %w", err)
 				}
-
 				claims, err := auth.VerifyJWTSignature(account, updated.AccessToken)
 				if err != nil {
 					return fmt.Errorf("failed to verify refreshed JWT: %w", err)
 				}
-
 				email, ok := claims["email"]
 				if !ok {
 					return errors.New("failed to extract email from JWT claims")
 				}
 
-				endpoint, _ := g.Endpoint()
-
-				// Exchange the access token for an API token
-				resp, err := undocumented.Call(undocumented.CallOptions{
-					APIEndpoint: endpoint,
-					HTTPClient:  g.HTTPClient,
-					HTTPHeaders: []undocumented.HTTPHeader{
-						{
-							Key:   "Authorization",
-							Value: fmt.Sprintf("Bearer %s", updated.AccessToken),
-						},
-					},
-					Method: http.MethodPost,
-					Path:   "/login-enhanced",
-				})
+				// Exchange the access token for a Fastly API token
+				apiEndpoint, _ := g.Endpoint()
+				at, err := auth.ExchangeAccessToken(updated.AccessToken, apiEndpoint, g.HTTPClient)
 				if err != nil {
-					if apiErr, ok := err.(undocumented.APIError); ok {
-						if apiErr.StatusCode != http.StatusConflict {
-							err = fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
-						}
-					}
-					return err
-				}
-
-				at := &auth.APIToken{}
-				err = json.Unmarshal(resp, at)
-				if err != nil {
-					return fmt.Errorf("failed to unmarshal json containing API token: %w", err)
+					return fmt.Errorf("failed to exchange access token for an API token: %w", err)
 				}
 
 				// NOTE: The refresh token can sometimes be refreshed along with the access token.
