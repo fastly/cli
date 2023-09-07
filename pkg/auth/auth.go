@@ -327,3 +327,10 @@ func ExchangeAccessToken(accessToken, apiEndpoint string, httpClient api.HTTPCli
 
 	return at, nil
 }
+
+// TokenExpired indicates if the specified TTL has past.
+func TokenExpired(ttl int, timestamp int64) bool {
+	d := time.Duration(ttl) * time.Second
+	ttlAgo := time.Now().Add(-d).Unix()
+	return timestamp < ttlAgo
+}

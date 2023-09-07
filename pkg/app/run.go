@@ -15,6 +15,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/auth"
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
@@ -91,159 +92,19 @@ func Run(opts RunOpts) error {
 		opts.Manifest.File.SetQuiet(true)
 	}
 
-	token, tokenSource := g.Token()
+	// Check the profile token and refresh if expired.
 	authWarningMsg := "No API token could be found"
 
-	// NOTE: tokens via FASTLY_API_TOKEN or --token aren't checked for a TTL.
-	if tokenSource == lookup.SourceFile && commandRequiresToken(commandName) {
-		var (
-			profileData       *config.Profile
-			found             bool
-			name, profileName string
-		)
-		switch {
-		case g.Flags.Profile != "":
-			profileName = g.Flags.Profile
-		case g.Manifest.File.Profile != "":
-			profileName = g.Manifest.File.Profile
-		default:
-			profileName = "default"
-		}
-		for name, profileData = range g.Config.Profiles {
-			if (profileName == "default" && profileData.Default) || name == profileName {
-				// Once we find the default profile we can update the variable to be the
-				// associated profile name so later on we can use that information to
-				// update the specific profile.
-				if profileName == "default" {
-					profileName = name
-				}
-				found = true
-				break
-			}
-		}
-		if !found {
-			return fmt.Errorf("failed to locate '%s' profile", profileName)
-		}
-
-		ttl := time.Duration(profileData.AccessTokenTTL) * time.Second
-		delta := time.Now().Add(-ttl).Unix()
-
-		// Access Token has expired
-		if profileData.AccessTokenCreated < delta {
-			ttl := time.Duration(profileData.RefreshTokenTTL) * time.Second
-			diff := time.Now().Add(-ttl).Unix()
-
-			if profileData.RefreshTokenCreated < diff {
-				authWarningMsg = "Your API token has expired and so has your refresh token"
-				// To re-authenticate we simple reset the tokenSource variable.
-				// A later conditional block catches it and trigger a re-auth.
-				tokenSource = lookup.SourceUndefined
-			} else {
-				if !g.Flags.Quiet {
-					text.Info(opts.Stdout, "Your access token has now expired. We will attempt to refresh it")
-				}
-				text.Break(opts.Stdout)
-
-				account, _ := g.Account()
-				updated, err := auth.RefreshAccessToken(account, profileData.RefreshToken)
-				if err != nil {
-					return fmt.Errorf("failed to refresh access token: %w", err)
-				}
-				claims, err := auth.VerifyJWTSignature(account, updated.AccessToken)
-				if err != nil {
-					return fmt.Errorf("failed to verify refreshed JWT: %w", err)
-				}
-				email, ok := claims["email"]
-				if !ok {
-					return errors.New("failed to extract email from JWT claims")
-				}
-
-				// Exchange the access token for a Fastly API token
-				apiEndpoint, _ := g.Endpoint()
-				at, err := auth.ExchangeAccessToken(updated.AccessToken, apiEndpoint, g.HTTPClient)
-				if err != nil {
-					return fmt.Errorf("failed to exchange access token for an API token: %w", err)
-				}
-
-				// NOTE: The refresh token can sometimes be refreshed along with the access token.
-				// This happens all the time in my testing but according to what is
-				// spec'd this apparently is something that _might_ happen.
-				// So after we get the refreshed access token, we check to see if the
-				// refresh token that was returned by the API call has also changed when
-				// compared to the refresh token stored in the CLI config file.
-				name, current := profile.Get(profileName, g.Config.Profiles)
-				if name == "" {
-					return fmt.Errorf("failed to locate '%s' profile", profileName)
-				}
-				now := time.Now().Unix()
-				refreshToken := current.RefreshToken
-				refreshTokenCreated := current.RefreshTokenCreated
-				refreshTokenTTL := current.RefreshTokenTTL
-				if current.RefreshToken != updated.RefreshToken {
-					if !g.Flags.Quiet {
-						text.Info(opts.Stdout, "Your refresh token was also updated")
-					}
-					refreshToken = updated.RefreshToken
-					refreshTokenCreated = now
-					refreshTokenTTL = updated.RefreshExpiresIn
-				}
-
-				ps, ok := profile.Edit(profileName, g.Config.Profiles, func(p *config.Profile) {
-					p.AccessToken = updated.AccessToken
-					p.AccessTokenCreated = now
-					p.AccessTokenTTL = updated.ExpiresIn
-					p.Email = email.(string)
-					p.RefreshToken = refreshToken
-					p.RefreshTokenCreated = refreshTokenCreated
-					p.RefreshTokenTTL = refreshTokenTTL
-					p.Token = at.AccessToken
-				})
-				if !ok {
-					return fsterr.RemediationError{
-						Inner:       fmt.Errorf("failed to update '%s' profile with new token data", profileName),
-						Remediation: "Run `fastly authenticate` to retry.",
-					}
-				}
-				g.Config.Profiles = ps
-				if err := g.Config.Write(g.ConfigPath); err != nil {
-					g.ErrLog.Add(err)
-					return fmt.Errorf("error saving config file: %w", err)
-				}
-			}
-		}
+	token, tokenSource := g.Token()
+	tokenSource, authWarningMsg, err = checkProfileToken(tokenSource, commandName, authWarningMsg, opts.Stdout, &g)
+	if err != nil {
+		return fmt.Errorf("failed to check profile token: %w", err)
 	}
 
-	// Ensure the user has configured an API token, otherwise trigger the
-	// authentication flow (unless calling a tokenless command).
-	if tokenSource == lookup.SourceUndefined && commandRequiresToken(commandName) {
-		for _, command := range commands {
-			if command.Name() == "authenticate" {
-				text.Warning(opts.Stdout, "%s. We need to open your browser to authenticate you.", authWarningMsg)
-				text.Break(opts.Stdout)
-				cont, err := text.AskYesNo(opts.Stdout, "Are you sure you want to continue? [y/N]: ", opts.Stdin)
-				if err != nil {
-					return err
-				}
-				if !cont {
-					return nil
-				}
-				text.Break(opts.Stdout)
-
-				err = command.Exec(opts.Stdin, opts.Stdout)
-				if err != nil {
-					return fmt.Errorf("failed to authenticate: %w", err)
-				}
-				text.Break(opts.Stdout)
-
-				break
-			}
-		}
-
-		// Recheck for token (should be persisted to profile data).
-		token, tokenSource = g.Token()
-		if tokenSource == lookup.SourceUndefined {
-			return fsterr.ErrNoToken
-		}
+	// If no token, trigger authentication (unless tokenless command)
+	token, tokenSource, err = authenticateUnlessTokenExists(tokenSource, token, commandName, authWarningMsg, commands, opts.Stdin, opts.Stdout, &g)
+	if err != nil {
+		return fmt.Errorf("failed to check profile token: %w", err)
 	}
 
 	if g.Verbose() {
@@ -377,6 +238,173 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&g.Flags.Verbose)
 
 	return app
+}
+
+// checkProfileToken can potentially modify `tokenSource` to trigger a re-auth.
+// It can also return a modified `authWarningMsg` depending on user case.
+//
+// NOTE: tokens via FASTLY_API_TOKEN or --token aren't checked for a TTL.
+func checkProfileToken(
+	tokenSource lookup.Source,
+	commandName, authWarningMsg string,
+	out io.Writer,
+	g *global.Data,
+) (lookup.Source, string, error) {
+	if tokenSource == lookup.SourceFile && commandRequiresToken(commandName) {
+		var (
+			profileData       *config.Profile
+			found             bool
+			name, profileName string
+		)
+		switch {
+		case g.Flags.Profile != "":
+			profileName = g.Flags.Profile
+		case g.Manifest.File.Profile != "":
+			profileName = g.Manifest.File.Profile
+		default:
+			profileName = "default"
+		}
+		for name, profileData = range g.Config.Profiles {
+			if (profileName == "default" && profileData.Default) || name == profileName {
+				// Once we find the default profile we can update the variable to be the
+				// associated profile name so later on we can use that information to
+				// update the specific profile.
+				if profileName == "default" {
+					profileName = name
+				}
+				found = true
+				break
+			}
+		}
+		if !found {
+			return tokenSource, authWarningMsg, fmt.Errorf("failed to locate '%s' profile", profileName)
+		}
+
+		// Access Token has expired
+		if auth.TokenExpired(profileData.AccessTokenTTL, profileData.AccessTokenCreated) {
+			if auth.TokenExpired(profileData.RefreshTokenTTL, profileData.RefreshTokenCreated) {
+				authWarningMsg = "Your API token has expired and so has your refresh token"
+				// To re-authenticate we simple reset the tokenSource variable.
+				// A later conditional block catches it and trigger a re-auth.
+				tokenSource = lookup.SourceUndefined
+			} else {
+				if !g.Flags.Quiet {
+					text.Info(out, "Your access token has now expired. We will attempt to refresh it")
+				}
+
+				account, _ := g.Account()
+				updated, err := auth.RefreshAccessToken(account, profileData.RefreshToken)
+				if err != nil {
+					return tokenSource, authWarningMsg, fmt.Errorf("failed to refresh access token: %w", err)
+				}
+				claims, err := auth.VerifyJWTSignature(account, updated.AccessToken)
+				if err != nil {
+					return tokenSource, authWarningMsg, fmt.Errorf("failed to verify refreshed JWT: %w", err)
+				}
+				email, ok := claims["email"]
+				if !ok {
+					return tokenSource, authWarningMsg, errors.New("failed to extract email from JWT claims")
+				}
+
+				// Exchange the access token for a Fastly API token
+				apiEndpoint, _ := g.Endpoint()
+				at, err := auth.ExchangeAccessToken(updated.AccessToken, apiEndpoint, g.HTTPClient)
+				if err != nil {
+					return tokenSource, authWarningMsg, fmt.Errorf("failed to exchange access token for an API token: %w", err)
+				}
+
+				// NOTE: The refresh token can sometimes be refreshed along with the access token.
+				// This happens all the time in my testing but according to what is
+				// spec'd this apparently is something that _might_ happen.
+				// So after we get the refreshed access token, we check to see if the
+				// refresh token that was returned by the API call has also changed when
+				// compared to the refresh token stored in the CLI config file.
+				name, current := profile.Get(profileName, g.Config.Profiles)
+				if name == "" {
+					return tokenSource, authWarningMsg, fmt.Errorf("failed to locate '%s' profile", profileName)
+				}
+				now := time.Now().Unix()
+				refreshToken := current.RefreshToken
+				refreshTokenCreated := current.RefreshTokenCreated
+				refreshTokenTTL := current.RefreshTokenTTL
+				if current.RefreshToken != updated.RefreshToken {
+					if !g.Flags.Quiet {
+						text.Info(out, "Your refresh token was also updated")
+						text.Break(out)
+					}
+					refreshToken = updated.RefreshToken
+					refreshTokenCreated = now
+					refreshTokenTTL = updated.RefreshExpiresIn
+				}
+
+				ps, ok := profile.Edit(profileName, g.Config.Profiles, func(p *config.Profile) {
+					p.AccessToken = updated.AccessToken
+					p.AccessTokenCreated = now
+					p.AccessTokenTTL = updated.ExpiresIn
+					p.Email = email.(string)
+					p.RefreshToken = refreshToken
+					p.RefreshTokenCreated = refreshTokenCreated
+					p.RefreshTokenTTL = refreshTokenTTL
+					p.Token = at.AccessToken
+				})
+				if !ok {
+					return tokenSource, authWarningMsg, fsterr.RemediationError{
+						Inner:       fmt.Errorf("failed to update '%s' profile with new token data", profileName),
+						Remediation: "Run `fastly authenticate` to retry.",
+					}
+				}
+				g.Config.Profiles = ps
+				if err := g.Config.Write(g.ConfigPath); err != nil {
+					g.ErrLog.Add(err)
+					return tokenSource, authWarningMsg, fmt.Errorf("error saving config file: %w", err)
+				}
+			}
+		}
+	}
+
+	return tokenSource, authWarningMsg, nil
+}
+
+func authenticateUnlessTokenExists(
+	tokenSource lookup.Source,
+	token, commandName, authWarningMsg string,
+	commands []cmd.Command,
+	in io.Reader,
+	out io.Writer,
+	g *global.Data,
+) (string, lookup.Source, error) {
+	if tokenSource == lookup.SourceUndefined && commandRequiresToken(commandName) {
+		for _, command := range commands {
+			if command.Name() == "authenticate" {
+				text.Warning(out, "%s. We need to open your browser to authenticate you.", authWarningMsg)
+				text.Break(out)
+				cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
+				if err != nil {
+					return token, tokenSource, err
+				}
+				if !cont {
+					return token, tokenSource, nil
+				}
+				text.Break(out)
+
+				err = command.Exec(in, out)
+				if err != nil {
+					return token, tokenSource, fmt.Errorf("failed to authenticate: %w", err)
+				}
+				text.Break(out)
+
+				break
+			}
+		}
+
+		// Recheck for token (should be persisted to profile data).
+		token, tokenSource = g.Token()
+		if tokenSource == lookup.SourceUndefined {
+			return token, tokenSource, fsterr.ErrNoToken
+		}
+	}
+
+	return token, tokenSource, nil
 }
 
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)
