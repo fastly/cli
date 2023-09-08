@@ -76,59 +76,12 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Info(out, "Profile being updated: '%s'.\n\n", profileName)
 
-	opts := []profile.EditOption{}
-
-	token, err := text.InputSecure(out, text.Prompt("Profile token: (leave blank to skip): "), in)
+	makeDefault, opts, err := c.staticTokenFlow(p, in, out)
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
+		return fmt.Errorf("failed to process the static token flow: %w", err)
 	}
-	if token != "" {
-		opts = append(opts, func(p *config.Profile) {
-			p.Token = token
-		})
-	}
-
-	text.Break(out)
-	text.Break(out)
-
-	makeDefault, err := text.AskYesNo(out, "Make profile the default? [y/N] ", in)
-	if err != nil {
-		return err
-	}
-	opts = append(opts, func(p *config.Profile) {
-		p.Default = makeDefault
-	})
-
-	// User didn't want to change their token value so reassign original.
-	if token == "" {
-		token = p.Token
-	}
-
-	text.Break(out)
-
-	spinner, err := text.NewSpinner(out)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-		}
-	}()
-
-	endpoint, _ := c.Globals.Endpoint()
-
-	email, err := c.validateToken(token, endpoint, spinner)
-	if err != nil {
-		return err
-	}
-	opts = append(opts, func(p *config.Profile) {
-		p.Email = email
-	})
 
 	var ok bool
-
 	ps, ok := profile.Edit(profileName, c.Globals.Config.Profiles, opts...)
 	if !ok {
 		msg := fmt.Sprintf(profile.DoesNotExist, profileName)
@@ -211,4 +164,60 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		return "", err
 	}
 	return user.Login, nil
+}
+
+func (c *UpdateCommand) staticTokenFlow(p *config.Profile, in io.Reader, out io.Writer) (bool, []profile.EditOption, error) {
+	var makeDefault bool
+	opts := []profile.EditOption{}
+
+	token, err := text.InputSecure(out, text.BoldYellow("Profile token: (leave blank to skip): "), in)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return makeDefault, opts, err
+	}
+	if token != "" {
+		opts = append(opts, func(p *config.Profile) {
+			p.Token = token
+		})
+	}
+
+	text.Break(out)
+	text.Break(out)
+
+	makeDefault, err = text.AskYesNo(out, "Make profile the default? [y/N] ", in)
+	if err != nil {
+		return makeDefault, opts, err
+	}
+	opts = append(opts, func(p *config.Profile) {
+		p.Default = makeDefault
+	})
+
+	// User didn't want to change their token value so reassign original.
+	if token == "" {
+		token = p.Token
+	}
+
+	text.Break(out)
+
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return makeDefault, opts, err
+	}
+	defer func() {
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+		}
+	}()
+
+	endpoint, _ := c.Globals.Endpoint()
+
+	email, err := c.validateToken(token, endpoint, spinner)
+	if err != nil {
+		return makeDefault, opts, err
+	}
+	opts = append(opts, func(p *config.Profile) {
+		p.Email = email
+	})
+
+	return makeDefault, opts, nil
 }
