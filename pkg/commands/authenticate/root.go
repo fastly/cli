@@ -107,21 +107,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	// If no profiles configured at all, create a new default...
 	if profileConfigured == "" && profileDefault == "" {
-		now := time.Now().Unix()
-		if c.Globals.Config.Profiles == nil {
-			c.Globals.Config.Profiles = make(config.Profiles)
-		}
-		c.Globals.Config.Profiles[profile.DefaultName] = &config.Profile{
-			AccessToken:         ar.Jwt.AccessToken,
-			AccessTokenCreated:  now,
-			AccessTokenTTL:      ar.Jwt.ExpiresIn,
-			Default:             true,
-			Email:               ar.Email,
-			RefreshToken:        ar.Jwt.RefreshToken,
-			RefreshTokenCreated: now,
-			RefreshTokenTTL:     ar.Jwt.RefreshExpiresIn,
-			Token:               ar.SessionToken,
-		}
+		c.Globals.Config.Profiles = createNewDefaultProfile(c.Globals.Config.Profiles, ar)
 	} else {
 		// Otherwise, edit the default to have the newly generated tokens.
 		profileName := profileDefault
@@ -155,4 +141,25 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	text.Success(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
 	return nil
+}
+
+// IMPORTANT: Mutates the config.Profiles map type.
+// We need to return the modified type so it can be safely reassigned.
+func createNewDefaultProfile(p config.Profiles, ar auth.AuthorizationResult) config.Profiles {
+	now := time.Now().Unix()
+	if p == nil {
+		p = make(config.Profiles)
+	}
+	p[profile.DefaultName] = &config.Profile{
+		AccessToken:         ar.Jwt.AccessToken,
+		AccessTokenCreated:  now,
+		AccessTokenTTL:      ar.Jwt.ExpiresIn,
+		Default:             true,
+		Email:               ar.Email,
+		RefreshToken:        ar.Jwt.RefreshToken,
+		RefreshTokenCreated: now,
+		RefreshTokenTTL:     ar.Jwt.RefreshExpiresIn,
+		Token:               ar.SessionToken,
+	}
+	return p
 }
