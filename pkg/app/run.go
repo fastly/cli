@@ -96,7 +96,7 @@ func Run(opts RunOpts) error {
 	authWarningMsg := "No API token could be found"
 
 	token, tokenSource := g.Token()
-	tokenSource, authWarningMsg, err = checkProfileToken(tokenSource, commandName, authWarningMsg, opts.Stdout, &g)
+	tokenSource, authWarningMsg, err = checkProfileToken(tokenSource, commandName, authWarningMsg, opts.Stdin, opts.Stdout, &g)
 	if err != nil {
 		return fmt.Errorf("failed to check profile token: %w", err)
 	}
@@ -247,6 +247,7 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 func checkProfileToken(
 	tokenSource lookup.Source,
 	commandName, authWarningMsg string,
+	in io.Reader,
 	out io.Writer,
 	g *global.Data,
 ) (lookup.Source, string, error) {
@@ -280,9 +281,19 @@ func checkProfileToken(
 			return tokenSource, authWarningMsg, fmt.Errorf("failed to locate '%s' profile", profileName)
 		}
 
+		// Allow a user to skip OAuth if they prefer long-lived tokens.
+		if shouldSkipOAuth(profileData, in, out, g) {
+			return tokenSource, authWarningMsg, nil
+		}
+
 		// Access Token has expired
 		if auth.TokenExpired(profileData.AccessTokenTTL, profileData.AccessTokenCreated) {
 			if auth.TokenExpired(profileData.RefreshTokenTTL, profileData.RefreshTokenCreated) {
+				// TODO: Tweak warning message if dealing with long-lived token user.
+				// Specifically, we need to check if they opted to not skip OAuth.
+				// To do that might need changing the bool type of `SkipOAuth` to a
+				// pointer so we can check if it is nil rather than false (which is the
+				// zero value for that type).
 				authWarningMsg = "Your API token has expired and so has your refresh token"
 				// To re-authenticate we simple reset the tokenSource variable.
 				// A later conditional block catches it and trigger a re-auth.
@@ -363,6 +374,27 @@ func checkProfileToken(
 	}
 
 	return tokenSource, authWarningMsg, nil
+}
+
+// shouldSkipOAuth identifies if a config is a pre-v4 config and, if it is, will
+// prompt the user to confirm if they want to swap their token for OAuth flow.
+//
+// If dealing with a long-lived token, we default to saying "yes" to keep it.
+func shouldSkipOAuth(pd *config.Profile, in io.Reader, out io.Writer, g *global.Data) bool {
+	// If user has followed OAuth flow before, then these will not be zero values.
+	if pd.AccessToken == "" && pd.RefreshToken == "" && pd.AccessTokenCreated == 0 && pd.RefreshTokenCreated == 0 {
+		if g.Flags.AutoYes || g.Flags.NonInteractive {
+			return true
+		}
+		text.Info(out, "Your token doesn't appear to have been generated using Fastly's OAuth2 account flow (which offers more security as it uses short-lived tokens that can be automatically regenerated for a period of time).")
+		text.Break(out)
+		keepToken, err := text.AskYesNo(out, "Do you want to keep your current token? [y/N]: ", in)
+		if err == nil && keepToken {
+			return true
+		}
+		return false
+	}
+	return false
 }
 
 func authenticateUnlessTokenExists(
