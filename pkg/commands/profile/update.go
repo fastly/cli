@@ -76,34 +76,38 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Info(out, "Profile being updated: '%s'.\n\n", profileName)
 
-	makeDefault, opts, err := c.staticTokenFlow(p, in, out)
-	if err != nil {
-		return fmt.Errorf("failed to process the static token flow: %w", err)
-	}
-
-	var ok bool
-	ps, ok := profile.Edit(profileName, c.Globals.Config.Profiles, opts...)
-	if !ok {
-		msg := fmt.Sprintf(profile.DoesNotExist, profileName)
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf(msg),
-			Remediation: fsterr.ProfileRemediation,
-		}
-	}
-
-	if makeDefault {
-		// We call SetDefault for its side effect of resetting all other profiles to have
-		// their Default field set to false.
-		ps, ok = profile.SetDefault(c.profile, ps)
-		if !ok {
-			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
-			err := errors.New(msg)
-			c.Globals.ErrLog.Add(err)
+	// Prompt user to decide on which token flow to take (OAuth or Static)
+	// Static being a traditional long-lived user/automation token.
+	//
+	// Opting for the OAuth flow will generate a short-lived token.
+	// Otherwise user has to create a token manually, then paste it when prompted.
+	useOAuthFlow := true
+	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+		text.Info(out, "When updating a profile you can either paste in an already long-lived token or allow the Fastly CLI to regenerate a short-lived token that can be automatically refreshed.")
+		text.Break(out)
+		var err error
+		useOAuthFlow, err = text.AskYesNo(out, "Continue with regenerating a short-lived token? [y/N]: ", in)
+		text.Break(out)
+		if err != nil {
 			return err
 		}
 	}
+	if useOAuthFlow {
+		// IMPORTANT: We need to temporarily set profile override.
+		// This is so the `authenticate` command will use the override, rather than
+		// incorrectly updating the 'default' profile.
+		c.Globals.Flags.Profile = profileName
 
-	c.Globals.Config.Profiles = ps
+		err := c.authCmd.Exec(in, out)
+		if err != nil {
+			return fmt.Errorf("failed to authenticate: %w", err)
+		}
+		text.Break(out)
+	} else {
+		if err := c.staticTokenFlow(profileName, p, in, out); err != nil {
+			return fmt.Errorf("failed to process the static token flow: %w", err)
+		}
+	}
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -166,14 +170,14 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	return user.Login, nil
 }
 
-func (c *UpdateCommand) staticTokenFlow(p *config.Profile, in io.Reader, out io.Writer) (bool, []profile.EditOption, error) {
+func (c *UpdateCommand) staticTokenFlow(profileName string, p *config.Profile, in io.Reader, out io.Writer) error {
 	var makeDefault bool
 	opts := []profile.EditOption{}
 
 	token, err := text.InputSecure(out, text.BoldYellow("Profile token: (leave blank to skip): "), in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
-		return makeDefault, opts, err
+		return err
 	}
 	if token != "" {
 		opts = append(opts, func(p *config.Profile) {
@@ -186,7 +190,7 @@ func (c *UpdateCommand) staticTokenFlow(p *config.Profile, in io.Reader, out io.
 
 	makeDefault, err = text.AskYesNo(out, "Make profile the default? [y/N] ", in)
 	if err != nil {
-		return makeDefault, opts, err
+		return err
 	}
 	opts = append(opts, func(p *config.Profile) {
 		p.Default = makeDefault
@@ -201,7 +205,7 @@ func (c *UpdateCommand) staticTokenFlow(p *config.Profile, in io.Reader, out io.
 
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
-		return makeDefault, opts, err
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -213,11 +217,34 @@ func (c *UpdateCommand) staticTokenFlow(p *config.Profile, in io.Reader, out io.
 
 	email, err := c.validateToken(token, endpoint, spinner)
 	if err != nil {
-		return makeDefault, opts, err
+		return err
 	}
 	opts = append(opts, func(p *config.Profile) {
 		p.Email = email
 	})
 
-	return makeDefault, opts, nil
+	ps, ok := profile.Edit(profileName, c.Globals.Config.Profiles, opts...)
+	if !ok {
+		msg := fmt.Sprintf(profile.DoesNotExist, profileName)
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf(msg),
+			Remediation: fsterr.ProfileRemediation,
+		}
+	}
+	c.Globals.Config.Profiles = ps
+
+	if makeDefault {
+		// We call SetDefault for its side effect of resetting all other profiles to have
+		// their Default field set to false.
+		ps, ok = profile.SetDefault(profileName, ps)
+		if !ok {
+			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
+			err := errors.New(msg)
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+	}
+	c.Globals.Config.Profiles = ps
+
+	return nil
 }
