@@ -33,7 +33,20 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+	if !c.Globals.SkipAuthPrompt {
+		text.Warning(out, "We need to open your browser to authenticate you.")
+		text.Break(out)
+		cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
+		text.Break(out)
+		if err != nil {
+			return err
+		}
+		if !cont {
+			return fmt.Errorf("user cancelled execution")
+		}
+	}
+
 	verifier, err := oidc.NewCodeVerifier()
 	if err != nil {
 		return fsterr.RemediationError{
@@ -95,41 +108,24 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	var profileConfigured string
+	var profileOverride string
 	switch {
 	case c.Globals.Flags.Profile != "":
-		profileConfigured = c.Globals.Flags.Profile
+		profileOverride = c.Globals.Flags.Profile
 	case c.Globals.Manifest.File.Profile != "":
-		profileConfigured = c.Globals.Manifest.File.Profile
+		profileOverride = c.Globals.Manifest.File.Profile
 	}
 
 	profileDefault, _ := profile.Default(c.Globals.Config.Profiles)
 
 	// If no profiles configured at all, create a new default...
-	if profileConfigured == "" && profileDefault == "" {
+	if profileOverride == "" && profileDefault == "" {
 		c.Globals.Config.Profiles = createNewDefaultProfile(c.Globals.Config.Profiles, ar)
 	} else {
-		// Otherwise, edit the default to have the newly generated tokens.
-		profileName := profileDefault
-		if profileConfigured != "" {
-			profileName = profileConfigured
-		}
-		ps, ok := profile.Edit(profileName, c.Globals.Config.Profiles, func(p *config.Profile) {
-			now := time.Now().Unix()
-			p.AccessToken = ar.Jwt.AccessToken
-			p.AccessTokenCreated = now
-			p.AccessTokenTTL = ar.Jwt.ExpiresIn
-			p.Email = ar.Email
-			p.RefreshToken = ar.Jwt.RefreshToken
-			p.RefreshTokenCreated = now
-			p.RefreshTokenTTL = ar.Jwt.RefreshExpiresIn
-			p.Token = ar.SessionToken
-		})
-		if !ok {
-			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("failed to update default profile with new token data"),
-				Remediation: "Run `fastly authenticate` to retry.",
-			}
+		// Otherwise, edit the existing profile to have the newly generated tokens.
+		ps, err := editProfile(profileDefault, profileOverride, c.Globals.Config.Profiles, ar)
+		if err != nil {
+			return err
 		}
 		c.Globals.Config.Profiles = ps
 	}
@@ -162,4 +158,31 @@ func createNewDefaultProfile(p config.Profiles, ar auth.AuthorizationResult) con
 		Token:               ar.SessionToken,
 	}
 	return p
+}
+
+// IMPORTANT: Mutates the config.Profiles map type.
+// We need to return the modified type so it can be safely reassigned.
+func editProfile(profileDefault, profileOverride string, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
+	profileName := profileDefault
+	if profileOverride != "" {
+		profileName = profileOverride
+	}
+	ps, ok := profile.Edit(profileName, p, func(p *config.Profile) {
+		now := time.Now().Unix()
+		p.AccessToken = ar.Jwt.AccessToken
+		p.AccessTokenCreated = now
+		p.AccessTokenTTL = ar.Jwt.ExpiresIn
+		p.Email = ar.Email
+		p.RefreshToken = ar.Jwt.RefreshToken
+		p.RefreshTokenCreated = now
+		p.RefreshTokenTTL = ar.Jwt.RefreshExpiresIn
+		p.Token = ar.SessionToken
+	})
+	if !ok {
+		return ps, fsterr.RemediationError{
+			Inner:       fmt.Errorf("failed to update '%s' profile with new token data", profileName),
+			Remediation: "Run `fastly authenticate` to retry.",
+		}
+	}
+	return ps, nil
 }

@@ -44,6 +44,10 @@ type Data struct {
 	Manifest manifest.Data
 	// Output is the output for displaying information (typically os.Stdout)
 	Output io.Writer
+	// SkipAuthPrompt is used to indicate to the `authenticate` command that the
+	// interactive prompt can be skipped. This is for scenarios where the command
+	// is executed directly by the user.
+	SkipAuthPrompt bool
 
 	// Custom interfaces
 

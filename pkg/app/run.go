@@ -385,6 +385,7 @@ func authenticateUnlessTokenExists(
 					return token, tokenSource, nil
 				}
 
+				g.SkipAuthPrompt = true // skip the same prompt in `authenticate` command flow
 				err = command.Exec(in, out)
 				if err != nil {
 					return token, tokenSource, fmt.Errorf("failed to authenticate: %w", err)
