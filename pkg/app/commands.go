@@ -340,7 +340,7 @@ func defineCommands(
 	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, g)
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, g)
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, g)
-	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
+	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g, authenticateCmdRoot)
 	purgeCmdRoot := purge.NewRootCommand(app, g, m)
 	rateLimitCmdRoot := ratelimit.NewRootCommand(app, g)
 	rateLimitCreate := ratelimit.NewCreateCommand(rateLimitCmdRoot.CmdClause, g, m)

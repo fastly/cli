@@ -9,6 +9,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/commands/authenticate"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -24,6 +25,7 @@ type APIClientFactory func(token, endpoint string, debugMode bool) (api.Interfac
 // UpdateCommand represents a Kingpin command.
 type UpdateCommand struct {
 	cmd.Base
+	authCmd *authenticate.RootCommand
 
 	automationToken bool
 	clientFactory   APIClientFactory
@@ -31,9 +33,10 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data, authCmd *authenticate.RootCommand) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = g
+	c.authCmd = authCmd
 	c.CmdClause = parent.Command("update", "Update user profile")
 	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
@@ -44,21 +47,25 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	var (
-		name string
-		p    *config.Profile
+		profileName string
+		p           *config.Profile
 	)
 
-	if c.profile == "" {
-		name, p = profile.Default(c.Globals.Config.Profiles)
-		if name == "" {
+	if c.profile == "" && c.Globals.Flags.Profile == "" {
+		profileName, p = profile.Default(c.Globals.Config.Profiles)
+		if profileName == "" {
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("no active profile"),
 				Remediation: profile.NoDefaults,
 			}
 		}
 	} else {
-		name, p = profile.Get(c.profile, c.Globals.Config.Profiles)
-		if name == "" {
+		profileName = c.profile
+		if c.Globals.Flags.Profile != "" {
+			profileName = c.Globals.Flags.Profile
+		}
+		profileName, p = profile.Get(profileName, c.Globals.Config.Profiles)
+		if profileName == "" {
 			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf(msg),
@@ -67,7 +74,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	text.Info(out, "Profile being updated: '%s'.\n\n", name)
+	text.Info(out, "Profile being updated: '%s'.\n\n", profileName)
 
 	opts := []profile.EditOption{}
 
@@ -122,9 +129,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	var ok bool
 
-	ps, ok := profile.Edit(name, c.Globals.Config.Profiles, opts...)
+	ps, ok := profile.Edit(profileName, c.Globals.Config.Profiles, opts...)
 	if !ok {
-		msg := fmt.Sprintf(profile.DoesNotExist, name)
+		msg := fmt.Sprintf(profile.DoesNotExist, profileName)
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf(msg),
 			Remediation: fsterr.ProfileRemediation,
@@ -150,7 +157,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 
-	text.Success(out, "\nProfile '%s' updated", name)
+	text.Success(out, "\nProfile '%s' updated", profileName)
 	return nil
 }
 
