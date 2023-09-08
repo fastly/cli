@@ -92,7 +92,7 @@ func Run(opts RunOpts) error {
 		opts.Manifest.File.SetQuiet(true)
 	}
 
-	token, tokenSource, err := processToken(commands, commandName, env.Token, opts.Manifest.File.Profile, &g, opts.Stdin, opts.Stdout)
+	token, tokenSource, err := processToken(commands, commandName, opts.Manifest.File.Profile, &g, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return fmt.Errorf("failed to process token: %w", err)
 	}
@@ -106,45 +106,17 @@ func Run(opts RunOpts) error {
 	checkConfigPermissions(g.Flags.Quiet, commandName, tokenSource, opts.Stdout)
 
 	endpoint, endpointSource := g.Endpoint()
-	if g.Verbose() {
-		switch endpointSource {
-		case lookup.SourceFlag:
-			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via --endpoint): %s\n\n", endpoint)
-		case lookup.SourceEnvironment:
-			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
-		case lookup.SourceFile:
-			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via config file): %s\n\n", endpoint)
-		case lookup.SourceDefault, lookup.SourceUndefined:
-			fallthrough
-		default:
-			fmt.Fprintf(opts.Stdout, "Fastly API endpoint: %s\n\n", endpoint)
-		}
-	}
 
-	// NOTE: We return error immediately so there's no issue assigning to global.
-	// nosemgrep
-	g.APIClient, err = opts.APIClient(token, endpoint, g.Flags.Debug)
+	displayAPIEndpoint(endpoint, endpointSource, g.Verbose(), opts.Stdout)
+
+	g.APIClient, g.RTSClient, err = configureClients(token, endpoint, opts.APIClient, g.Flags.Debug)
 	if err != nil {
 		g.ErrLog.Add(err)
-		return fmt.Errorf("error constructing Fastly API client: %w", err)
+		return fmt.Errorf("error constructing client: %w", err)
 	}
 
-	// NOTE: We return error immediately so there's no issue assigning to global.
-	// nosemgrep
-	g.RTSClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
-	if err != nil {
-		g.ErrLog.Add(err)
-		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
-	}
-
-	if opts.Versioners.CLI != nil && commandName != "update" && !version.IsPreRelease(revision.AppVersion) {
-		f := update.CheckAsync(
-			revision.AppVersion,
-			opts.Versioners.CLI,
-			g.Flags.Quiet,
-		)
-		defer f(opts.Stdout) // ...and the printing function second, so we hit the timeout
-	}
+	f := checkForUpdates(opts.Versioners.CLI, commandName, g.Flags.Quiet)
+	defer f(opts.Stdout)
 
 	return command.Exec(opts.Stdin, opts.Stdout)
 }
@@ -191,7 +163,7 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 	// A subcommand can't define a flag that is already global.
 	// Kingpin will otherwise trigger a runtime panic 🎉
 	// Interestingly, short flags can be reused but only across subcommands.
-	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
+	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.APIToken)
 	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&g.Flags.AcceptDefaults)
 	app.Flag("account", "Fastly Accounts endpoint").Hidden().StringVar(&g.Flags.Account)
 	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&g.Flags.AutoYes)
@@ -213,7 +185,7 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 // trigger the `fastly authenticate` command to execute. Either way the CLI
 // config is updated to reflect the token that was either refreshed or
 // regenerated from the authentication process.
-func processToken(commands []cmd.Command, commandName, envToken, profileName string, g *global.Data, in io.Reader, out io.Writer) (token string, tokenSource lookup.Source, err error) {
+func processToken(commands []cmd.Command, commandName, profileName string, g *global.Data, in io.Reader, out io.Writer) (token string, tokenSource lookup.Source, err error) {
 	// Check the profile token and refresh if expired.
 	warningMessage := "No API token could be found"
 	token, tokenSource = g.Token()
@@ -228,7 +200,7 @@ func processToken(commands []cmd.Command, commandName, envToken, profileName str
 		return token, tokenSource, fmt.Errorf("failed to check profile token: %w", err)
 	}
 
-	displayTokenIfVerbose(tokenSource, envToken, profileName, *g, out)
+	displayTokenIfVerbose(tokenSource, profileName, *g, out)
 
 	return token, tokenSource, nil
 }
@@ -376,12 +348,13 @@ func checkProfileToken(
 func shouldSkipOAuth(pd *config.Profile, in io.Reader, out io.Writer, g *global.Data) bool {
 	// If user has followed OAuth flow before, then these will not be zero values.
 	if pd.AccessToken == "" && pd.RefreshToken == "" && pd.AccessTokenCreated == 0 && pd.RefreshTokenCreated == 0 {
-		if g.Flags.AutoYes || g.Flags.NonInteractive {
+		if g.Flags.AutoYes || g.Flags.NonInteractive || g.Env.AllowStaticToken == "1" {
 			return true
 		}
 		text.Info(out, "Your token doesn't appear to have been generated using Fastly's OAuth2 account flow (which offers more security as it uses short-lived tokens that can be automatically regenerated for a period of time).")
 		text.Break(out)
 		keepToken, err := text.AskYesNo(out, "Do you want to keep your current token? [y/N]: ", in)
+		text.Break(out)
 		if err == nil && keepToken {
 			return true
 		}
@@ -432,12 +405,11 @@ func authenticateUnlessTokenExists(
 	return token, tokenSource, nil
 }
 
-func displayTokenIfVerbose(tokenSource lookup.Source, envToken string, profileName string, g global.Data, out io.Writer) {
+func displayTokenIfVerbose(tokenSource lookup.Source, profileName string, g global.Data, out io.Writer) {
 	if g.Verbose() {
 		displayTokenSource(
 			tokenSource,
 			out,
-			envToken,
 			determineProfile(profileName, g.Flags.Profile, g.Config.Profiles),
 		)
 	}
@@ -461,6 +433,46 @@ func checkConfigPermissions(quietMode bool, commandName string, tokenSource look
 	}
 }
 
+func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, verboseMode bool, out io.Writer) {
+	if verboseMode {
+		switch endpointSource {
+		case lookup.SourceFlag:
+			fmt.Fprintf(out, "Fastly API endpoint (via --endpoint): %s\n\n", endpoint)
+		case lookup.SourceEnvironment:
+			fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
+		case lookup.SourceFile:
+			fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n\n", endpoint)
+		case lookup.SourceDefault, lookup.SourceUndefined:
+			fallthrough
+		default:
+			fmt.Fprintf(out, "Fastly API endpoint: %s\n\n", endpoint)
+		}
+	}
+}
+
+func configureClients(token, endpoint string, acf APIClientFactory, debugMode bool) (apiClient api.Interface, rtsClient api.RealtimeStatsInterface, err error) {
+	apiClient, err = acf(token, endpoint, debugMode)
+	if err != nil {
+		return apiClient, rtsClient, fmt.Errorf("error constructing Fastly API client: %w", err)
+	}
+
+	rtsClient, err = fastly.NewRealtimeStatsClientForEndpoint(token, fastly.DefaultRealtimeStatsEndpoint)
+	if err != nil {
+		return apiClient, rtsClient, fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
+	}
+
+	return apiClient, rtsClient, nil
+}
+
+func checkForUpdates(av github.AssetVersioner, commandName string, quietMode bool) func(io.Writer) {
+	if av != nil && commandName != "update" && !version.IsPreRelease(revision.AppVersion) {
+		return update.CheckAsync(revision.AppVersion, av, quietMode)
+	}
+	return func(_ io.Writer) {
+		// no-op
+	}
+}
+
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)
 // from a user-provided API token. It exists as a type in order to parameterize
 // the Run helper with it: in the real CLI, we can use NewClient from the Fastly
@@ -476,12 +488,12 @@ type Versioners struct {
 }
 
 // displayTokenSource prints the token source.
-func displayTokenSource(source lookup.Source, out io.Writer, token, profileSource string) {
+func displayTokenSource(source lookup.Source, out io.Writer, profileSource string) {
 	switch source {
 	case lookup.SourceFlag:
 		fmt.Fprintf(out, "Fastly API token provided via --token\n")
 	case lookup.SourceEnvironment:
-		fmt.Fprintf(out, "Fastly API token provided via %s\n", token)
+		fmt.Fprintf(out, "Fastly API token provided via %s\n", env.APIToken)
 	case lookup.SourceFile:
 		fmt.Fprintf(out, "Fastly API token provided via config file (profile: %s)\n", profileSource)
 	case lookup.SourceDefault, lookup.SourceUndefined:

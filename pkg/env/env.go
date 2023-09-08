@@ -9,12 +9,20 @@ import (
 )
 
 const (
-	// Token is the env var we look in for the Fastly API token.
+	// APIToken is the env var we look in for the Fastly API token.
 	// gosec flagged this:
 	// G101 (CWE-798): Potential hardcoded credentials
 	// Disabling as we use the value in the command help output.
-	/* #nosec */
-	Token = "FASTLY_API_TOKEN"
+	// #nosec
+	APIToken = "FASTLY_API_TOKEN"
+
+	// AllowStaticToken enables a user to avoid a CLI interactive prompt regarding
+	// their token not being generated via the Fastly OAuth flow.
+	// gosec flagged this:
+	// G101 (CWE-798): Potential hardcoded credentials
+	// Disabling as this isn't an API token but a boolean 1/0 (on/off).
+	// #nosec
+	AllowStaticToken = "FASTLY_ALLOW_STATIC_TOKEN"
 
 	// Endpoint is the env var we look in for the API endpoint.
 	Endpoint = "FASTLY_API_ENDPOINT"

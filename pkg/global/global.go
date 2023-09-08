@@ -70,8 +70,8 @@ func (d *Data) Token() (string, lookup.Source) {
 		return d.Flags.Token, lookup.SourceFlag
 	}
 
-	if d.Env.Token != "" {
-		return d.Env.Token, lookup.SourceEnvironment
+	if d.Env.APIToken != "" {
+		return d.Env.APIToken, lookup.SourceEnvironment
 	}
 
 	if d.Flags.Profile != "" {
