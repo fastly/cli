@@ -13,6 +13,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/commands/authenticate"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -23,6 +24,7 @@ import (
 // CreateCommand represents a Kingpin command.
 type CreateCommand struct {
 	cmd.Base
+	authCmd *authenticate.RootCommand
 
 	automationToken bool
 	clientFactory   APIClientFactory
@@ -30,9 +32,10 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a new command registered in the parent.
-func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data, authCmd *authenticate.RootCommand) *CreateCommand {
 	var c CreateCommand
 	c.Globals = g
+	c.authCmd = authCmd
 	c.CmdClause = parent.Command("create", "Create user profile")
 	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default(profile.DefaultName).Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
@@ -43,7 +46,10 @@ func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 // Exec implements the command interface.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if profile.Exist(c.profile, c.Globals.Config.Profiles) {
-		return fmt.Errorf("profile '%s' already exists", c.profile)
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("profile '%s' already exists", c.profile),
+			Remediation: "Re-run the command and pass a different value for the 'profile' argument.",
+		}
 	}
 
 	// The Default status of a new profile should always be true unless there is
@@ -58,9 +64,33 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if err := c.tokenFlow(def, in, out); err != nil {
-		return err
+	// Prompt user to decide on which token flow to take (OAuth or Static)
+	// Static being a traditional long-lived user/automation token.
+	//
+	// Opting for the OAuth flow will generate a short-lived token.
+	// Otherwise user has to create a token manually, then paste it when prompted.
+	useOAuthFlow := true
+	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+		text.Info(out, "You can create a profile in one of two ways. Either paste in an already long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed.")
+		text.Break(out)
+		useOAuthFlow, err = text.AskYesNo(out, "Continue to generate a short-lived token? [y/N]: ", in)
+		text.Break(out)
+		if err != nil {
+			return err
+		}
 	}
+	if useOAuthFlow {
+		err = c.authCmd.Exec(in, out)
+		if err != nil {
+			return fmt.Errorf("failed to authenticate: %w", err)
+		}
+		text.Break(out)
+	} else {
+		if err := c.staticTokenFlow(def, in, out); err != nil {
+			return err
+		}
+	}
+
 	if err := c.persistCfg(); err != nil {
 		return err
 	}
@@ -70,8 +100,8 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	return nil
 }
 
-// tokenFlow initialises the token flow.
-func (c *CreateCommand) tokenFlow(def bool, in io.Reader, out io.Writer) error {
+// staticTokenFlow initialises the token flow for a non-OAuth token.
+func (c *CreateCommand) staticTokenFlow(def bool, in io.Reader, out io.Writer) error {
 	token, err := promptForToken(in, out, c.Globals.ErrLog)
 	if err != nil {
 		return err

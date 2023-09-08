@@ -105,7 +105,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	profileDefault, _ := profile.Default(c.Globals.Config.Profiles)
 
-	// If no profiles configured at all...
+	// If no profiles configured at all, create a new default...
 	if profileConfigured == "" && profileDefault == "" {
 		now := time.Now().Unix()
 		if c.Globals.Config.Profiles == nil {
@@ -123,6 +123,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 			Token:               ar.SessionToken,
 		}
 	} else {
+		// Otherwise, edit the default to have the newly generated tokens.
 		profileName := profileDefault
 		if profileConfigured != "" {
 			profileName = profileConfigured

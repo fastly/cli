@@ -335,7 +335,7 @@ func defineCommands(
 	popCmdRoot := pop.NewRootCommand(app, g)
 	productsCmdRoot := products.NewRootCommand(app, g, m)
 	profileCmdRoot := profile.NewRootCommand(app, g)
-	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
+	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g, authenticateCmdRoot)
 	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, g)
 	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, g)
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, g)
