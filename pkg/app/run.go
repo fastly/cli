@@ -92,51 +92,18 @@ func Run(opts RunOpts) error {
 		opts.Manifest.File.SetQuiet(true)
 	}
 
-	// Check the profile token and refresh if expired.
-	authWarningMsg := "No API token could be found"
-
-	token, tokenSource := g.Token()
-	tokenSource, authWarningMsg, err = checkProfileToken(tokenSource, commandName, authWarningMsg, opts.Stdin, opts.Stdout, &g)
+	token, tokenSource, err := processToken(commands, commandName, env.Token, opts.Manifest.File.Profile, &g, opts.Stdin, opts.Stdout)
 	if err != nil {
-		return fmt.Errorf("failed to check profile token: %w", err)
+		return fmt.Errorf("failed to process token: %w", err)
 	}
 
-	// If no token, trigger authentication (unless tokenless command)
-	token, tokenSource, err = authenticateUnlessTokenExists(tokenSource, token, commandName, authWarningMsg, commands, opts.Stdin, opts.Stdout, &g)
-	if err != nil {
-		return fmt.Errorf("failed to check profile token: %w", err)
-	}
-
-	if g.Verbose() {
-		displayTokenSource(
-			tokenSource,
-			opts.Stdout,
-			env.Token,
-			determineProfile(opts.Manifest.File.Profile, g.Flags.Profile, g.Config.Profiles),
-		)
-	}
-
-	// Handle any profile override.
+	// Check for a profile override.
 	token, err = profile.Init(token, opts.Manifest, &g, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return err
 	}
 
-	// If we are using the token from config file, check the file's permissions
-	// to assert if they are not too open or have been altered outside of the
-	// application and warn if so.
-	segs := strings.Split(commandName, " ")
-	if tokenSource == lookup.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
-		if fi, err := os.Stat(config.FilePath); err == nil {
-			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
-				if !g.Flags.Quiet {
-					text.Warning(opts.Stdout, "Unprotected configuration file.\n\n")
-					text.Output(opts.Stdout, "Permissions for '%s' are too open\n\n", config.FilePath)
-					text.Output(opts.Stdout, "It is recommended that your configuration file is NOT accessible by others.\n\n")
-				}
-			}
-		}
-	}
+	checkConfigPermissions(g.Flags.Quiet, commandName, tokenSource, opts.Stdout)
 
 	endpoint, endpointSource := g.Endpoint()
 	if g.Verbose() {
@@ -240,13 +207,39 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 	return app
 }
 
+// processToken first checks if a profile token is defined in config and if so,
+// it will validate if it has expired, and if it has it will attempt to refresh
+// it. If both the access token and the refresh token has expired it will
+// trigger the `fastly authenticate` command to execute. Either way the CLI
+// config is updated to reflect the token that was either refreshed or
+// regenerated from the authentication process.
+func processToken(commands []cmd.Command, commandName, envToken, profileName string, g *global.Data, in io.Reader, out io.Writer) (token string, tokenSource lookup.Source, err error) {
+	// Check the profile token and refresh if expired.
+	warningMessage := "No API token could be found"
+	token, tokenSource = g.Token()
+	tokenSource, warningMessage, err = checkProfileToken(tokenSource, commandName, warningMessage, in, out, g)
+	if err != nil {
+		return token, tokenSource, fmt.Errorf("failed to check profile token: %w", err)
+	}
+
+	// If no token, trigger authentication (unless tokenless command)
+	token, tokenSource, err = authenticateUnlessTokenExists(tokenSource, token, commandName, warningMessage, commands, in, out, g)
+	if err != nil {
+		return token, tokenSource, fmt.Errorf("failed to check profile token: %w", err)
+	}
+
+	displayTokenIfVerbose(tokenSource, envToken, profileName, *g, out)
+
+	return token, tokenSource, nil
+}
+
 // checkProfileToken can potentially modify `tokenSource` to trigger a re-auth.
-// It can also return a modified `authWarningMsg` depending on user case.
+// It can also return a modified `warningMessage` depending on user case.
 //
 // NOTE: tokens via FASTLY_API_TOKEN or --token aren't checked for a TTL.
 func checkProfileToken(
 	tokenSource lookup.Source,
-	commandName, authWarningMsg string,
+	commandName, warningMessage string,
 	in io.Reader,
 	out io.Writer,
 	g *global.Data,
@@ -278,12 +271,12 @@ func checkProfileToken(
 			}
 		}
 		if !found {
-			return tokenSource, authWarningMsg, fmt.Errorf("failed to locate '%s' profile", profileName)
+			return tokenSource, warningMessage, fmt.Errorf("failed to locate '%s' profile", profileName)
 		}
 
 		// Allow a user to skip OAuth if they prefer long-lived tokens.
 		if shouldSkipOAuth(profileData, in, out, g) {
-			return tokenSource, authWarningMsg, nil
+			return tokenSource, warningMessage, nil
 		}
 
 		// Access Token has expired
@@ -294,7 +287,7 @@ func checkProfileToken(
 				// To do that might need changing the bool type of `SkipOAuth` to a
 				// pointer so we can check if it is nil rather than false (which is the
 				// zero value for that type).
-				authWarningMsg = "Your API token has expired and so has your refresh token"
+				warningMessage = "Your access token has expired and so has your refresh token"
 				// To re-authenticate we simple reset the tokenSource variable.
 				// A later conditional block catches it and trigger a re-auth.
 				tokenSource = lookup.SourceUndefined
@@ -306,22 +299,22 @@ func checkProfileToken(
 				account, _ := g.Account()
 				updated, err := auth.RefreshAccessToken(account, profileData.RefreshToken)
 				if err != nil {
-					return tokenSource, authWarningMsg, fmt.Errorf("failed to refresh access token: %w", err)
+					return tokenSource, warningMessage, fmt.Errorf("failed to refresh access token: %w", err)
 				}
 				claims, err := auth.VerifyJWTSignature(account, updated.AccessToken)
 				if err != nil {
-					return tokenSource, authWarningMsg, fmt.Errorf("failed to verify refreshed JWT: %w", err)
+					return tokenSource, warningMessage, fmt.Errorf("failed to verify refreshed JWT: %w", err)
 				}
 				email, ok := claims["email"]
 				if !ok {
-					return tokenSource, authWarningMsg, errors.New("failed to extract email from JWT claims")
+					return tokenSource, warningMessage, errors.New("failed to extract email from JWT claims")
 				}
 
 				// Exchange the access token for a Fastly API token
 				apiEndpoint, _ := g.Endpoint()
 				at, err := auth.ExchangeAccessToken(updated.AccessToken, apiEndpoint, g.HTTPClient)
 				if err != nil {
-					return tokenSource, authWarningMsg, fmt.Errorf("failed to exchange access token for an API token: %w", err)
+					return tokenSource, warningMessage, fmt.Errorf("failed to exchange access token for an API token: %w", err)
 				}
 
 				// NOTE: The refresh token can sometimes be refreshed along with the access token.
@@ -332,7 +325,7 @@ func checkProfileToken(
 				// compared to the refresh token stored in the CLI config file.
 				name, current := profile.Get(profileName, g.Config.Profiles)
 				if name == "" {
-					return tokenSource, authWarningMsg, fmt.Errorf("failed to locate '%s' profile", profileName)
+					return tokenSource, warningMessage, fmt.Errorf("failed to locate '%s' profile", profileName)
 				}
 				now := time.Now().Unix()
 				refreshToken := current.RefreshToken
@@ -359,7 +352,7 @@ func checkProfileToken(
 					p.Token = at.AccessToken
 				})
 				if !ok {
-					return tokenSource, authWarningMsg, fsterr.RemediationError{
+					return tokenSource, warningMessage, fsterr.RemediationError{
 						Inner:       fmt.Errorf("failed to update '%s' profile with new token data", profileName),
 						Remediation: "Run `fastly authenticate` to retry.",
 					}
@@ -367,13 +360,13 @@ func checkProfileToken(
 				g.Config.Profiles = ps
 				if err := g.Config.Write(g.ConfigPath); err != nil {
 					g.ErrLog.Add(err)
-					return tokenSource, authWarningMsg, fmt.Errorf("error saving config file: %w", err)
+					return tokenSource, warningMessage, fmt.Errorf("error saving config file: %w", err)
 				}
 			}
 		}
 	}
 
-	return tokenSource, authWarningMsg, nil
+	return tokenSource, warningMessage, nil
 }
 
 // shouldSkipOAuth identifies if a config is a pre-v4 config and, if it is, will
@@ -399,7 +392,7 @@ func shouldSkipOAuth(pd *config.Profile, in io.Reader, out io.Writer, g *global.
 
 func authenticateUnlessTokenExists(
 	tokenSource lookup.Source,
-	token, commandName, authWarningMsg string,
+	token, commandName, warningMessage string,
 	commands []cmd.Command,
 	in io.Reader,
 	out io.Writer,
@@ -408,16 +401,16 @@ func authenticateUnlessTokenExists(
 	if tokenSource == lookup.SourceUndefined && commandRequiresToken(commandName) {
 		for _, command := range commands {
 			if command.Name() == "authenticate" {
-				text.Warning(out, "%s. We need to open your browser to authenticate you.", authWarningMsg)
+				text.Warning(out, "%s. We need to open your browser to authenticate you.", warningMessage)
 				text.Break(out)
 				cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
+				text.Break(out)
 				if err != nil {
 					return token, tokenSource, err
 				}
 				if !cont {
 					return token, tokenSource, nil
 				}
-				text.Break(out)
 
 				err = command.Exec(in, out)
 				if err != nil {
@@ -437,6 +430,35 @@ func authenticateUnlessTokenExists(
 	}
 
 	return token, tokenSource, nil
+}
+
+func displayTokenIfVerbose(tokenSource lookup.Source, envToken string, profileName string, g global.Data, out io.Writer) {
+	if g.Verbose() {
+		displayTokenSource(
+			tokenSource,
+			out,
+			envToken,
+			determineProfile(profileName, g.Flags.Profile, g.Config.Profiles),
+		)
+	}
+}
+
+// If we are using the token from config file, check the file's permissions
+// to assert if they are not too open or have been altered outside of the
+// application and warn if so.
+func checkConfigPermissions(quietMode bool, commandName string, tokenSource lookup.Source, out io.Writer) {
+	segs := strings.Split(commandName, " ")
+	if tokenSource == lookup.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
+		if fi, err := os.Stat(config.FilePath); err == nil {
+			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
+				if !quietMode {
+					text.Warning(out, "Unprotected configuration file.\n\n")
+					text.Output(out, "Permissions for '%s' are too open\n\n", config.FilePath)
+					text.Output(out, "It is recommended that your configuration file is NOT accessible by others.\n\n")
+				}
+			}
+		}
+	}
 }
 
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)
