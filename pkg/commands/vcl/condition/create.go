@@ -11,7 +11,8 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// see type in data model at https://developer.fastly.com/reference/api/vcl-services/condition/
+// ConditionTypes are the allowed input values for the --type flag.
+// Reference: https://developer.fastly.com/reference/api/vcl-services/condition/
 var ConditionTypes = []string{"REQUEST", "CACHE", "RESPONSE", "PREFETCH"}
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
