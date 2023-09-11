@@ -117,6 +117,17 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
+	err = c.processProfiles(ar)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to process profile data: %w", err)
+	}
+
+	text.Success(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
+	return nil
+}
+
+func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 	var profileOverride string
 	switch {
 	case c.Globals.Flags.Profile != "":
@@ -156,11 +167,8 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
-		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}
-
-	text.Success(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
 	return nil
 }
 
