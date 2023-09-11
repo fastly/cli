@@ -92,6 +92,10 @@ func Run(opts RunOpts) error {
 		opts.Manifest.File.SetQuiet(true)
 	}
 
+	endpoint, endpointSource := g.Endpoint()
+
+	displayAPIEndpoint(endpoint, endpointSource, g.Verbose(), opts.Stdout)
+
 	token, tokenSource, err := processToken(commands, commandName, opts.Manifest.File.Profile, &g, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return fmt.Errorf("failed to process token: %w", err)
@@ -104,10 +108,6 @@ func Run(opts RunOpts) error {
 	}
 
 	checkConfigPermissions(g.Flags.Quiet, commandName, tokenSource, opts.Stdout)
-
-	endpoint, endpointSource := g.Endpoint()
-
-	displayAPIEndpoint(endpoint, endpointSource, g.Verbose(), opts.Stdout)
 
 	g.APIClient, g.RTSClient, err = configureClients(token, endpoint, opts.APIClient, g.Flags.Debug)
 	if err != nil {
@@ -438,15 +438,15 @@ func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, verboseMo
 	if verboseMode {
 		switch endpointSource {
 		case lookup.SourceFlag:
-			fmt.Fprintf(out, "Fastly API endpoint (via --endpoint): %s\n\n", endpoint)
+			fmt.Fprintf(out, "Fastly API endpoint (via --endpoint): %s\n", endpoint)
 		case lookup.SourceEnvironment:
-			fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
+			fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
 		case lookup.SourceFile:
 			fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n\n", endpoint)
 		case lookup.SourceDefault, lookup.SourceUndefined:
 			fallthrough
 		default:
-			fmt.Fprintf(out, "Fastly API endpoint: %s\n\n", endpoint)
+			fmt.Fprintf(out, "Fastly API endpoint: %s\n", endpoint)
 		}
 	}
 }
