@@ -20,7 +20,7 @@ func TestConditionCreate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type request --autoclone"),
+			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type REQUEST --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -29,7 +29,7 @@ func TestConditionCreate(t *testing.T) {
 			WantOutput: "Created condition always_false (service 123 version 4)",
 		},
 		{
-			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type request --priority 10 --autoclone"),
+			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type REQUEST --priority 10 --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -251,8 +251,8 @@ Priority: 10
 
 var listConditionsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME                  STATEMENT  TYPE     PRIORITY
-123      1        always_false_request  false      request  10
-123      1        always_false_cache    false      cache    10
+123      1        always_false_request  false      REQUEST  10
+123      1        always_false_cache    false      CACHE    10
 `) + "\n"
 
 var listConditionsVerboseOutput = strings.TrimSpace(`
@@ -265,12 +265,12 @@ Version: 1
 	Condition 1/2
 		Name: always_false_request
 		Statement: false
-		Type: request
+		Type: REQUEST
 		Priority: 10
 	Condition 2/2
 		Name: always_false_cache
 		Statement: false
-		Type: cache
+		Type: CACHE
 		Priority: 10
 `) + "\n\n"
 
@@ -282,7 +282,7 @@ func createConditionOK(i *fastly.CreateConditionInput) (*fastly.Condition, error
 		priority = *i.Priority
 	}
 
-	var conditionType string = "request"
+	var conditionType string = "REQUEST"
 	if i.Type != nil {
 		conditionType = *i.Type
 	}
@@ -315,7 +315,7 @@ func updateConditionOK(i *fastly.UpdateConditionInput) (*fastly.Condition, error
 		priority = *i.Priority
 	}
 
-	var conditionType string = "request"
+	var conditionType string = "REQUEST"
 	if i.Type != nil {
 		conditionType = *i.Type
 	}
@@ -365,7 +365,7 @@ func listConditionsOK(i *fastly.ListConditionsInput) ([]*fastly.Condition, error
 			ServiceVersion: i.ServiceVersion,
 			Name:           "always_false_request",
 			Statement:      "false",
-			Type:           "request",
+			Type:           "REQUEST",
 			Priority:       10,
 		},
 		{
@@ -373,7 +373,7 @@ func listConditionsOK(i *fastly.ListConditionsInput) ([]*fastly.Condition, error
 			ServiceVersion: i.ServiceVersion,
 			Name:           "always_false_cache",
 			Statement:      "false",
-			Type:           "cache",
+			Type:           "CACHE",
 			Priority:       10,
 		},
 	}, nil
