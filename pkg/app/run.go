@@ -93,23 +93,14 @@ func Run(opts RunOpts) error {
 	}
 
 	endpoint, endpointSource := g.Endpoint()
-
 	if g.Verbose() {
 		displayAPIEndpoint(endpoint, endpointSource, opts.Stdout)
 	}
 
-	token, tokenSource, err := processToken(commands, commandName, opts.Manifest.File.Profile, &g, opts.Stdin, opts.Stdout)
+	token, err := processToken(commands, commandName, opts.Manifest, &g, opts.Stdin, opts.Stdout)
 	if err != nil {
 		return fmt.Errorf("failed to process token: %w", err)
 	}
-
-	// Check for a profile override.
-	token, err = profile.Init(token, opts.Manifest, &g, opts.Stdin, opts.Stdout)
-	if err != nil {
-		return err
-	}
-
-	checkConfigPermissions(g.Flags.Quiet, commandName, tokenSource, opts.Stdout)
 
 	g.APIClient, g.RTSClient, err = configureClients(token, endpoint, opts.APIClient, g.Flags.Debug)
 	if err != nil {
@@ -181,33 +172,54 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 	return app
 }
 
-// processToken first checks if a profile token is defined in config and if so,
-// it will validate if it has expired, and if it has it will attempt to refresh
-// it. If both the access token and the refresh token has expired it will
-// trigger the `fastly authenticate` command to execute. Either way the CLI
-// config is updated to reflect the token that was either refreshed or
-// regenerated from the authentication process.
-func processToken(commands []cmd.Command, commandName, profileName string, g *global.Data, in io.Reader, out io.Writer) (token string, tokenSource lookup.Source, err error) {
+// processToken handles all aspects related to the required API token.
+//
+// First we check if a profile token is defined in config and if so, we will
+// validate if it has expired, and if it has we will attempt to refresh it.
+//
+// If both the access token and the refresh token has expired we will trigger
+// the `fastly authenticate` command to execute.
+//
+// Either way, the CLI config is updated to reflect the token that was either
+// refreshed or regenerated from the authentication process.
+//
+// Next, we check the config file's permissions.
+//
+// Finally, we check if there is a profile override in place (e.g. set via the
+// --profile flag or using the `profile` field in the fastly.toml manifest).
+func processToken(commands []cmd.Command, commandName string, m *manifest.Data, g *global.Data, in io.Reader, out io.Writer) (token string, err error) {
 	warningMessage := "No API token could be found"
+	var tokenSource lookup.Source
 	token, tokenSource = g.Token()
 
 	// Check if token is from fastly.toml [profile] and refresh if expired.
 	tokenSource, warningMessage, err = checkProfileToken(tokenSource, commandName, warningMessage, out, g)
 	if err != nil {
-		return token, tokenSource, fmt.Errorf("failed to check profile token: %w", err)
+		return token, fmt.Errorf("failed to check profile token: %w", err)
 	}
 
-	// If no token, trigger authentication (unless tokenless command)
-	token, tokenSource, err = authenticateUnlessTokenExists(tokenSource, token, commandName, warningMessage, commands, in, out, g)
+	// If there's no token available, and we need one for the invoked command,
+	// then we'll trigger the SSO authentication flow.
+	if tokenSource == lookup.SourceUndefined && commandRequiresToken(commandName) {
+		token, tokenSource, err = ssoAuthentication(tokenSource, token, warningMessage, commands, in, out, g)
+		if err != nil {
+			return token, fmt.Errorf("failed to check profile token: %w", err)
+		}
+	}
+
+	checkConfigPermissions(g.Flags.Quiet, commandName, tokenSource, out)
+
+	// Check for a profile override.
+	token, err = profile.Init(token, m, g, in, out)
 	if err != nil {
-		return token, tokenSource, fmt.Errorf("failed to check profile token: %w", err)
+		return token, err
 	}
 
 	if g.Verbose() {
-		displayToken(tokenSource, profileName, *g, out)
+		displayToken(tokenSource, m.File.Profile, *g, out)
 	}
 
-	return token, tokenSource, nil
+	return token, nil
 }
 
 // checkProfileToken can potentially modify `tokenSource` to trigger a re-auth.
@@ -375,55 +387,61 @@ func forceReAuth() lookup.Source {
 	return lookup.SourceUndefined
 }
 
-func authenticateUnlessTokenExists(
+func ssoAuthentication(
 	tokenSource lookup.Source,
-	token, commandName, warningMessage string,
+	token, warningMessage string,
 	commands []cmd.Command,
 	in io.Reader,
 	out io.Writer,
 	g *global.Data,
 ) (string, lookup.Source, error) {
-	if tokenSource == lookup.SourceUndefined && commandRequiresToken(commandName) {
-		for _, command := range commands {
-			if command.Name() == "authenticate" {
-				text.Warning(out, "%s. We need to open your browser to authenticate you.", warningMessage)
-				text.Break(out)
-				cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
-				text.Break(out)
-				if err != nil {
-					return token, tokenSource, err
-				}
-				if !cont {
-					return token, tokenSource, nil
-				}
-
-				g.SkipAuthPrompt = true // skip the same prompt in `authenticate` command flow
-				err = command.Exec(in, out)
-				if err != nil {
-					return token, tokenSource, fmt.Errorf("failed to authenticate: %w", err)
-				}
-				text.Break(out)
-
-				break
+	for _, command := range commands {
+		if command.Name() == "authenticate" {
+			text.Warning(out, "%s. We need to open your browser to authenticate you.", warningMessage)
+			text.Break(out)
+			cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
+			text.Break(out)
+			if err != nil {
+				return token, tokenSource, err
 			}
-		}
+			if !cont {
+				return token, tokenSource, nil
+			}
 
-		// Recheck for token (should be persisted to profile data).
-		token, tokenSource = g.Token()
-		if tokenSource == lookup.SourceUndefined {
-			return token, tokenSource, fsterr.ErrNoToken
+			g.SkipAuthPrompt = true // skip the same prompt in `authenticate` command flow
+			err = command.Exec(in, out)
+			if err != nil {
+				return token, tokenSource, fmt.Errorf("failed to authenticate: %w", err)
+			}
+			text.Break(out)
+
+			break
 		}
 	}
 
+	// Recheck for token (should be persisted to profile data).
+	token, tokenSource = g.Token()
+	if tokenSource == lookup.SourceUndefined {
+		return token, tokenSource, fsterr.ErrNoToken
+	}
 	return token, tokenSource, nil
 }
 
 func displayToken(tokenSource lookup.Source, profileName string, g global.Data, out io.Writer) {
-	displayTokenSource(
-		tokenSource,
-		out,
-		determineProfile(profileName, g.Flags.Profile, g.Config.Profiles),
-	)
+	profileSource := determineProfile(profileName, g.Flags.Profile, g.Config.Profiles)
+
+	switch tokenSource {
+	case lookup.SourceFlag:
+		fmt.Fprintf(out, "Fastly API token provided via --token\n\n")
+	case lookup.SourceEnvironment:
+		fmt.Fprintf(out, "Fastly API token provided via %s\n\n", env.APIToken)
+	case lookup.SourceFile:
+		fmt.Fprintf(out, "Fastly API token provided via config file (profile: %s)\n\n", profileSource)
+	case lookup.SourceUndefined, lookup.SourceDefault:
+		fallthrough
+	default:
+		fmt.Fprintf(out, "Fastly API token not provided\n\n")
+	}
 }
 
 // If we are using the token from config file, check the file's permissions
@@ -496,22 +514,6 @@ type Versioners struct {
 	CLI       github.AssetVersioner
 	Viceroy   github.AssetVersioner
 	WasmTools github.AssetVersioner
-}
-
-// displayTokenSource prints the token source.
-func displayTokenSource(source lookup.Source, out io.Writer, profileSource string) {
-	switch source {
-	case lookup.SourceFlag:
-		fmt.Fprintf(out, "Fastly API token provided via --token\n\n")
-	case lookup.SourceEnvironment:
-		fmt.Fprintf(out, "Fastly API token provided via %s\n\n", env.APIToken)
-	case lookup.SourceFile:
-		fmt.Fprintf(out, "Fastly API token provided via config file (profile: %s)\n\n", profileSource)
-	case lookup.SourceUndefined, lookup.SourceDefault:
-		fallthrough
-	default:
-		fmt.Fprintf(out, "Fastly API token not provided\n\n")
-	}
 }
 
 // determineProfile determines if the provided token was acquired via the
