@@ -212,7 +212,7 @@ func processToken(commands []cmd.Command, commandName string, m *manifest.Data, 
 	// Check for a profile override.
 	token, err = profile.Init(token, m, g, in, out)
 	if err != nil {
-		return token, err
+		return "", err
 	}
 
 	if g.Verbose() {
