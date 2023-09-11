@@ -11,6 +11,9 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 )
 
+// see type in data model at https://developer.fastly.com/reference/api/vcl-services/condition/
+var ConditionTypes = []string{"REQUEST", "CACHE", "RESPONSE", "PREFETCH"}
+
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	cmd.Base
@@ -54,7 +57,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("name", "Condition name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("priority", "Condition priority").Action(c.priority.Set).IntVar(&c.priority.Value)
 	c.CmdClause.Flag("statement", "Condition statement").Action(c.statement.Set).StringVar(&c.statement.Value)
-	c.CmdClause.Flag("type", "Condition type").Action(c.conditionType.Set).StringVar(&c.conditionType.Value)
+	c.CmdClause.Flag("type", "Condition type").HintOptions(ConditionTypes...).Action(c.conditionType.Set).EnumVar(&c.conditionType.Value, ConditionTypes...)
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,

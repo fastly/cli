@@ -16,11 +16,11 @@ func TestConditionCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("condition create --version 1"),
+			Args:      args("vcl condition create --version 1"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Args: args("condition create --service-id 123 --version 1 --name always_false --statement false --type request --autoclone"),
+			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type request --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -29,7 +29,7 @@ func TestConditionCreate(t *testing.T) {
 			WantOutput: "Created condition always_false (service 123 version 4)",
 		},
 		{
-			Args: args("condition create --service-id 123 --version 1 --name always_false --statement false --type request --priority 10 --autoclone"),
+			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type request --priority 10 --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -55,11 +55,11 @@ func TestConditionDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("condition delete --service-id 123 --version 1"),
+			Args:      args("vcl condition delete --service-id 123 --version 1"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("condition delete --service-id 123 --version 1 --name always_false --autoclone"),
+			Args: args("vcl condition delete --service-id 123 --version 1 --name always_false --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -68,7 +68,7 @@ func TestConditionDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("condition delete --service-id 123 --version 1 --name always_false --autoclone"),
+			Args: args("vcl condition delete --service-id 123 --version 1 --name always_false --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -94,11 +94,11 @@ func TestConditionUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("condition update --service-id 123 --version 1 --new-name false_always --comment "),
+			Args:      args("vcl condition update --service-id 123 --version 1 --new-name false_always --comment "),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("condition update --service-id 123 --version 1 --name always_false --autoclone"),
+			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -107,7 +107,7 @@ func TestConditionUpdate(t *testing.T) {
 			WantError: "error parsing arguments: must provide either --new-name, --statement, --type or --priority to update condition",
 		},
 		{
-			Args: args("condition update --service-id 123 --version 1 --name always_false --new-name false_always --autoclone"),
+			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --new-name false_always --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -116,7 +116,7 @@ func TestConditionUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("condition update --service-id 123 --version 1 --name always_false --new-name false_always --autoclone"),
+			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --new-name false_always --autoclone"),
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -142,11 +142,11 @@ func TestConditionDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("condition describe --service-id 123 --version 1"),
+			Args:      args("vcl condition describe --service-id 123 --version 1"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("condition describe --service-id 123 --version 1 --name always_false"),
+			Args: args("vcl condition describe --service-id 123 --version 1 --name always_false"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionError,
@@ -154,7 +154,7 @@ func TestConditionDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("condition describe --service-id 123 --version 1 --name always_false"),
+			Args: args("vcl condition describe --service-id 123 --version 1 --name always_false"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionOK,
@@ -179,7 +179,7 @@ func TestConditionList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args: args("condition list --service-id 123 --version 1"),
+			Args: args("vcl condition list --service-id 123 --version 1"),
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -187,7 +187,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsShortOutput,
 		},
 		{
-			Args: args("condition list --service-id 123 --version 1 --verbose"),
+			Args: args("vcl condition list --service-id 123 --version 1 --verbose"),
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -195,7 +195,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("condition list --service-id 123 --version 1 -v"),
+			Args: args("vcl condition list --service-id 123 --version 1 -v"),
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -203,7 +203,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("condition --verbose list --service-id 123 --version 1"),
+			Args: args("vcl condition --verbose list --service-id 123 --version 1"),
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -211,7 +211,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("-v condition list --service-id 123 --version 1"),
+			Args: args("-v vcl condition list --service-id 123 --version 1"),
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -219,7 +219,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("condition list --service-id 123 --version 1"),
+			Args: args("vcl condition list --service-id 123 --version 1"),
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsError,

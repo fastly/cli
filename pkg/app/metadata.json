@@ -315,33 +315,6 @@
       ]
     }
   },
-  "condition": {
-    "create": {
-      "apis": [
-        "https://developer.fastly.com/reference/api/vcl-services/condition/#create-condition"
-      ]
-    },
-    "delete": {
-      "apis": [
-        "https://developer.fastly.com/reference/api/vcl-services/condition/#delete-condition"
-      ]
-    },
-    "describe": {
-      "apis": [
-        "https://developer.fastly.com/reference/api/vcl-services/condition/#get-condition"
-      ]
-    },
-    "list": {
-      "apis": [
-        "https://developer.fastly.com/reference/api/vcl-services/condition/#list-conditions"
-      ]
-    },
-    "update": {
-      "apis": [
-        "https://developer.fastly.com/reference/api/vcl-services/condition/#update-condition"
-      ]
-    }
-  },
   "config-store-entry": {
     "delete": {
       "examples": [
@@ -1379,6 +1352,33 @@
     }
   },
   "vcl": {
+    "condition": {
+      "create": {
+        "apis": [
+          "https://developer.fastly.com/reference/api/vcl-services/condition/#create-condition"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://developer.fastly.com/reference/api/vcl-services/condition/#delete-condition"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://developer.fastly.com/reference/api/vcl-services/condition/#get-condition"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://developer.fastly.com/reference/api/vcl-services/condition/#list-conditions"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://developer.fastly.com/reference/api/vcl-services/condition/#update-condition"
+        ]
+      }
+    },
     "custom": {
       "create": {
         "apis": [

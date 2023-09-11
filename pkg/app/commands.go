@@ -9,7 +9,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/commands/condition"
 	"github.com/fastly/cli/pkg/commands/config"
 	"github.com/fastly/cli/pkg/commands/configstore"
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
@@ -71,6 +70,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/commands/vcl"
+	"github.com/fastly/cli/pkg/commands/vcl/condition"
 	"github.com/fastly/cli/pkg/commands/vcl/custom"
 	"github.com/fastly/cli/pkg/commands/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/version"
@@ -120,12 +120,6 @@ func defineCommands(
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, g, computeBuild, opts.Versioners.Viceroy, m)
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, g, m)
 	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, g, m)
-	conditionCmdRoot := condition.NewRootCommand(app, g)
-	conditionCreate := condition.NewCreateCommand(conditionCmdRoot.CmdClause, g, m)
-	conditionDelete := condition.NewDeleteCommand(conditionCmdRoot.CmdClause, g, m)
-	conditionDescribe := condition.NewDescribeCommand(conditionCmdRoot.CmdClause, g, m)
-	conditionList := condition.NewListCommand(conditionCmdRoot.CmdClause, g, m)
-	conditionUpdate := condition.NewUpdateCommand(conditionCmdRoot.CmdClause, g, m)
 	configCmdRoot := config.NewRootCommand(app, g)
 	configstoreCmdRoot := configstore.NewRootCommand(app, g)
 	configstoreCreate := configstore.NewCreateCommand(configstoreCmdRoot.CmdClause, g, m)
@@ -433,6 +427,12 @@ func defineCommands(
 	userList := user.NewListCommand(userCmdRoot.CmdClause, g, m)
 	userUpdate := user.NewUpdateCommand(userCmdRoot.CmdClause, g, m)
 	vclCmdRoot := vcl.NewRootCommand(app, g)
+	vclConditionCmdRoot := condition.NewRootCommand(vclCmdRoot.CmdClause, g)
+	vclConditionCreate := condition.NewCreateCommand(vclConditionCmdRoot.CmdClause, g, m)
+	vclConditionDelete := condition.NewDeleteCommand(vclConditionCmdRoot.CmdClause, g, m)
+	vclConditionDescribe := condition.NewDescribeCommand(vclConditionCmdRoot.CmdClause, g, m)
+	vclConditionList := condition.NewListCommand(vclConditionCmdRoot.CmdClause, g, m)
+	vclConditionUpdate := condition.NewUpdateCommand(vclConditionCmdRoot.CmdClause, g, m)
 	vclCustomCmdRoot := custom.NewRootCommand(vclCmdRoot.CmdClause, g)
 	vclCustomCreate := custom.NewCreateCommand(vclCustomCmdRoot.CmdClause, g, m)
 	vclCustomDelete := custom.NewDeleteCommand(vclCustomCmdRoot.CmdClause, g, m)
@@ -484,12 +484,6 @@ func defineCommands(
 		computeServe,
 		computeUpdate,
 		computeValidate,
-		conditionCmdRoot,
-		conditionCreate,
-		conditionDelete,
-		conditionDescribe,
-		conditionList,
-		conditionUpdate,
 		configCmdRoot,
 		configstoreCmdRoot,
 		configstoreCreate,
@@ -793,6 +787,12 @@ func defineCommands(
 		userList,
 		userUpdate,
 		vclCmdRoot,
+		vclConditionCmdRoot,
+		vclConditionCreate,
+		vclConditionDelete,
+		vclConditionDescribe,
+		vclConditionList,
+		vclConditionUpdate,
 		vclCustomCmdRoot,
 		vclCustomCreate,
 		vclCustomDelete,
