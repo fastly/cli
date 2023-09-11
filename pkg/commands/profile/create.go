@@ -71,9 +71,9 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Otherwise user has to create a token manually, then paste it when prompted.
 	useOAuthFlow := true
 	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		text.Info(out, "You can create a profile in one of two ways. Either paste in an already long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed.")
+		text.Info(out, "When creating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed.")
 		text.Break(out)
-		useOAuthFlow, err = text.AskYesNo(out, "Continue to generate a short-lived token? [y/N]: ", in)
+		useOAuthFlow, err = text.AskYesNo(out, "Continue with Fastly SSO (Single Sign-On) authentication for generating a short-lived token? [y/N]: ", in)
 		text.Break(out)
 		if err != nil {
 			return err
