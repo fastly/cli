@@ -21,7 +21,7 @@ make test TEST_ARGS="-run <...> <path>"
 **Example**:
 
 ```sh
-make test TEST_ARGS="-run TestBackendCreate ./pkg/backend/..."
+make test TEST_ARGS="-run TestBackendCreate ./pkg/commands/backend"
 ```
 
 Some integration tests aren't run outside of the CI environment, to enable these tests locally you'll need to set a specific environment variable relevant to the test.

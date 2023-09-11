@@ -70,6 +70,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/commands/vcl"
+	"github.com/fastly/cli/pkg/commands/vcl/condition"
 	"github.com/fastly/cli/pkg/commands/vcl/custom"
 	"github.com/fastly/cli/pkg/commands/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/version"
@@ -426,6 +427,12 @@ func defineCommands(
 	userList := user.NewListCommand(userCmdRoot.CmdClause, g, m)
 	userUpdate := user.NewUpdateCommand(userCmdRoot.CmdClause, g, m)
 	vclCmdRoot := vcl.NewRootCommand(app, g)
+	vclConditionCmdRoot := condition.NewRootCommand(vclCmdRoot.CmdClause, g)
+	vclConditionCreate := condition.NewCreateCommand(vclConditionCmdRoot.CmdClause, g, m)
+	vclConditionDelete := condition.NewDeleteCommand(vclConditionCmdRoot.CmdClause, g, m)
+	vclConditionDescribe := condition.NewDescribeCommand(vclConditionCmdRoot.CmdClause, g, m)
+	vclConditionList := condition.NewListCommand(vclConditionCmdRoot.CmdClause, g, m)
+	vclConditionUpdate := condition.NewUpdateCommand(vclConditionCmdRoot.CmdClause, g, m)
 	vclCustomCmdRoot := custom.NewRootCommand(vclCmdRoot.CmdClause, g)
 	vclCustomCreate := custom.NewCreateCommand(vclCustomCmdRoot.CmdClause, g, m)
 	vclCustomDelete := custom.NewDeleteCommand(vclCustomCmdRoot.CmdClause, g, m)
@@ -780,6 +787,12 @@ func defineCommands(
 		userList,
 		userUpdate,
 		vclCmdRoot,
+		vclConditionCmdRoot,
+		vclConditionCreate,
+		vclConditionDelete,
+		vclConditionDescribe,
+		vclConditionList,
+		vclConditionUpdate,
 		vclCustomCmdRoot,
 		vclCustomCreate,
 		vclCustomDelete,
