@@ -22,6 +22,15 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
+
+	// IMPORTANT: The following fields are public to the `profile` subcommands.
+
+	// NewProfile indicates if we should create a new profile.
+	NewProfile bool
+	// NewProfileName indicates the new profile name.
+	NewProfileName string
+	// ProfileDefault indicates if the affected profile should become the default.
+	ProfileDefault bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -34,10 +43,10 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	if !c.Globals.SkipAuthPrompt {
+	if !c.Globals.SkipAuthPrompt && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 		text.Warning(out, "We need to open your browser to authenticate you.")
 		text.Break(out)
-		cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
+		cont, err := text.AskYesNo(out, text.BoldYellow("Do you want to continue? [y/N]: "), in)
 		text.Break(out)
 		if err != nil {
 			return err
@@ -118,12 +127,28 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	profileDefault, _ := profile.Default(c.Globals.Config.Profiles)
 
-	// If no profiles configured at all, create a new default...
-	if profileOverride == "" && profileDefault == "" {
-		c.Globals.Config.Profiles = createNewDefaultProfile(c.Globals.Config.Profiles, ar)
-	} else {
+	switch {
+	case profileOverride == "" && profileDefault == "": // If no profiles configured at all, create a new default...
+		makeDefault := true
+		c.Globals.Config.Profiles = createNewProfile(profile.DefaultName, makeDefault, c.Globals.Config.Profiles, ar)
+	case c.NewProfile: // We know we've been triggered by `profile create` if this is set.
+		c.Globals.Config.Profiles = createNewProfile(c.NewProfileName, c.ProfileDefault, c.Globals.Config.Profiles, ar)
+
+		// If the user wants the newly created profile to be their new default, then
+		// we'll call Set for its side effect of resetting all other profiles to have
+		// their Default field set to false.
+		if c.ProfileDefault {
+			if p, ok := profile.SetDefault(c.NewProfileName, c.Globals.Config.Profiles); ok {
+				c.Globals.Config.Profiles = p
+			}
+		}
+	default:
 		// Otherwise, edit the existing profile to have the newly generated tokens.
-		ps, err := editProfile(profileDefault, profileOverride, c.Globals.Config.Profiles, ar)
+		profileName := profileDefault
+		if profileOverride != "" {
+			profileName = profileOverride
+		}
+		ps, err := editProfile(profileName, c.ProfileDefault, c.Globals.Config.Profiles, ar)
 		if err != nil {
 			return err
 		}
@@ -141,16 +166,16 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
-func createNewDefaultProfile(p config.Profiles, ar auth.AuthorizationResult) config.Profiles {
+func createNewProfile(profileName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) config.Profiles {
 	now := time.Now().Unix()
 	if p == nil {
 		p = make(config.Profiles)
 	}
-	p[profile.DefaultName] = &config.Profile{
+	p[profileName] = &config.Profile{
 		AccessToken:         ar.Jwt.AccessToken,
 		AccessTokenCreated:  now,
 		AccessTokenTTL:      ar.Jwt.ExpiresIn,
-		Default:             true,
+		Default:             makeDefault,
 		Email:               ar.Email,
 		RefreshToken:        ar.Jwt.RefreshToken,
 		RefreshTokenCreated: now,
@@ -162,13 +187,10 @@ func createNewDefaultProfile(p config.Profiles, ar auth.AuthorizationResult) con
 
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
-func editProfile(profileDefault, profileOverride string, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
-	profileName := profileDefault
-	if profileOverride != "" {
-		profileName = profileOverride
-	}
+func editProfile(profileName string, profileDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
 	ps, ok := profile.Edit(profileName, p, func(p *config.Profile) {
 		now := time.Now().Unix()
+		p.Default = profileDefault
 		p.AccessToken = ar.Jwt.AccessToken
 		p.AccessTokenCreated = now
 		p.AccessTokenTTL = ar.Jwt.ExpiresIn

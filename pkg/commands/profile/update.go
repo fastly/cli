@@ -46,20 +46,63 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	profileName, p, err := c.identifyProfile()
+	if err != nil {
+		return fmt.Errorf("failed to identify the profile to update: %w", err)
+	}
+	text.Info(out, "Profile being updated: '%s'.\n\n", profileName)
+
+	// Set to true for --auto-yes/--non-interactive flags, otherwise prompt user.
+	makeDefault := true
+	updateToken := true
+
+	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+		makeDefault, err = text.AskYesNo(out, text.BoldYellow("Make profile the default? [y/N] "), in)
+		text.Break(out)
+		if err != nil {
+			return err
+		}
+
+		updateToken, err = text.AskYesNo(out, text.BoldYellow("Update the token associated with this profile? [y/N]: "), in)
+		if err != nil {
+			return err
+		}
+	}
+
+	if updateToken {
+		err := c.updateToken(profileName, makeDefault, p, in, out)
+		if err != nil {
+			return fmt.Errorf("failed to update token: %w", err)
+		}
+	} else if makeDefault {
+		err := c.updateDefault(profileName, in, out)
+		if err != nil {
+			return fmt.Errorf("failed to update token: %w", err)
+		}
+	}
+
+	text.Success(out, "\nProfile '%s' updated", profileName)
+	return nil
+}
+
+func (c *UpdateCommand) identifyProfile() (string, *config.Profile, error) {
 	var (
 		profileName string
 		p           *config.Profile
 	)
 
+	// If profile argument not set and no --profile flag set, then identify the
+	// default profile to update.
 	if c.profile == "" && c.Globals.Flags.Profile == "" {
 		profileName, p = profile.Default(c.Globals.Config.Profiles)
 		if profileName == "" {
-			return fsterr.RemediationError{
+			return "", nil, fsterr.RemediationError{
 				Inner:       fmt.Errorf("no active profile"),
 				Remediation: profile.NoDefaults,
 			}
 		}
 	} else {
+		// Otherwise, acquire the profile the user has specified.
 		profileName = c.profile
 		if c.Globals.Flags.Profile != "" {
 			profileName = c.Globals.Flags.Profile
@@ -67,15 +110,17 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		profileName, p = profile.Get(profileName, c.Globals.Config.Profiles)
 		if profileName == "" {
 			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
-			return fsterr.RemediationError{
+			return "", nil, fsterr.RemediationError{
 				Inner:       fmt.Errorf(msg),
 				Remediation: fsterr.ProfileRemediation,
 			}
 		}
 	}
 
-	text.Info(out, "Profile being updated: '%s'.\n\n", profileName)
+	return profileName, p, nil
+}
 
+func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *config.Profile, in io.Reader, out io.Writer) error {
 	// Prompt user to decide on which token flow to take (OAuth or Static)
 	// Static being a traditional long-lived user/automation token.
 	//
@@ -86,17 +131,21 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		text.Info(out, "When updating a profile you can either paste in a long-lived token or allow the Fastly CLI to regenerate a short-lived token that can be automatically refreshed.")
 		text.Break(out)
 		var err error
-		useOAuthFlow, err = text.AskYesNo(out, "Continue with Fastly SSO (Single Sign-On) authentication for generating a short-lived token? [y/N]: ", in)
+		useOAuthFlow, err = text.AskYesNo(out, text.BoldYellow("Continue with Fastly SSO (Single Sign-On) authentication for generating a short-lived token? [y/N]: "), in)
 		text.Break(out)
 		if err != nil {
 			return err
 		}
 	}
+
 	if useOAuthFlow {
 		// IMPORTANT: We need to temporarily set profile override.
+		//
 		// This is so the `authenticate` command will use the override, rather than
-		// incorrectly updating the 'default' profile.
+		// incorrectly updating the 'default' profile. We also need to pass through
+		// whether the profile should be made the default.
 		c.Globals.Flags.Profile = profileName
+		c.authCmd.ProfileDefault = makeDefault
 
 		err := c.authCmd.Exec(in, out)
 		if err != nil {
@@ -104,17 +153,32 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		text.Break(out)
 	} else {
-		if err := c.staticTokenFlow(profileName, p, in, out); err != nil {
+		if err := c.staticTokenFlow(profileName, makeDefault, p, in, out); err != nil {
 			return fmt.Errorf("failed to process the static token flow: %w", err)
 		}
 	}
 
+	// Write the in-memory representation back to disk.
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 
-	text.Success(out, "\nProfile '%s' updated", profileName)
+	return nil
+}
+
+func (c *UpdateCommand) updateDefault(profileName string, in io.Reader, out io.Writer) error {
+	p, ok := profile.SetDefault(profileName, c.Globals.Config.Profiles)
+	if !ok {
+		return errors.New("failed to update the profile's default field")
+	}
+	c.Globals.Config.Profiles = p
+
+	// Write the in-memory representation back to disk.
+	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("error saving config file: %w", err)
+	}
 	return nil
 }
 
@@ -170,8 +234,7 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	return user.Login, nil
 }
 
-func (c *UpdateCommand) staticTokenFlow(profileName string, p *config.Profile, in io.Reader, out io.Writer) error {
-	var makeDefault bool
+func (c *UpdateCommand) staticTokenFlow(profileName string, makeDefault bool, p *config.Profile, in io.Reader, out io.Writer) error {
 	opts := []profile.EditOption{}
 
 	token, err := text.InputSecure(out, text.BoldYellow("Profile token: (leave blank to skip): "), in)
@@ -179,27 +242,20 @@ func (c *UpdateCommand) staticTokenFlow(profileName string, p *config.Profile, i
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-	if token != "" {
-		opts = append(opts, func(p *config.Profile) {
-			p.Token = token
-		})
-	}
-
-	text.Break(out)
-	text.Break(out)
-
-	makeDefault, err = text.AskYesNo(out, "Make profile the default? [y/N] ", in)
-	if err != nil {
-		return err
-	}
-	opts = append(opts, func(p *config.Profile) {
-		p.Default = makeDefault
-	})
 
 	// User didn't want to change their token value so reassign original.
 	if token == "" {
 		token = p.Token
+	} else {
+		opts = append(opts, func(p *config.Profile) {
+			p.Token = token
+		})
 	}
+	text.Break(out)
+
+	opts = append(opts, func(p *config.Profile) {
+		p.Default = makeDefault
+	})
 
 	text.Break(out)
 
