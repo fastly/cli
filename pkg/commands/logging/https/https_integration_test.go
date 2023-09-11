@@ -344,8 +344,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listHTTPSsVerboseOutput = strings.TrimSpace(`
-Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 

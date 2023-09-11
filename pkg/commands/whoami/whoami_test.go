@@ -141,8 +141,8 @@ var basicResponse = whoami.VerifyResponse{
 var basicOutput = "Alice Programmer <alice@example.com>\n"
 
 var basicOutputVerbose = strings.TrimSpace(`
-Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Customer ID: abc
 Customer name: Computer Company

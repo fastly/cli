@@ -442,13 +442,13 @@ func (f *File) Write(path string) error {
 type Environment struct {
 	// Account is the env var we look in for the Accounts endpoint.
 	Account string
-	// AllowStaticToken enables a user to avoid a CLI interactive prompt regarding
-	// their token not being generated via the Fastly OAuth flow.
-	AllowStaticToken string
 	// APIToken is the env var we look in for the Fastly API token.
 	APIToken string
 	// Endpoint is the env var we look in for the API endpoint.
 	Endpoint string
+	// UseOAuth indicates if user wants to use OAuth token flow.
+	// 1: enabled, 0: disabled.
+	UseOAuth string
 	// WasmMetadataDisable is the env var we look in to disable all data
 	// collection related to a Wasm binary.
 	// Set to "true" to disable all forms of data collection.
@@ -459,8 +459,9 @@ type Environment struct {
 func (e *Environment) Read(state map[string]string) {
 	e.APIToken = state[env.APIToken]
 	e.Account = state[env.Account]
-	e.AllowStaticToken = state[env.AllowStaticToken]
 	e.Endpoint = state[env.Endpoint]
+	e.Endpoint = state[env.Endpoint]
+	e.UseOAuth = state[env.UseOAuth]
 	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }
 

@@ -466,8 +466,8 @@ var (
 
 var updateDictionaryOutputVerbose = strings.Join(
 	[]string{
-		"Fastly API token provided via config file (profile: user)",
 		"Fastly API endpoint: https://api.fastly.com",
+		"Fastly API token provided via config file (profile: user)",
 		"",
 		"Service ID (via --service-id): 123",
 		"",
@@ -511,8 +511,8 @@ Deleted (UTC): 2001-02-03 04:05
 `) + "\n"
 
 var describeDictionaryOutputVerbose = strings.TrimSpace(`
-Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 

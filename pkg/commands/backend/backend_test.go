@@ -477,8 +477,8 @@ SERVICE  VERSION  NAME         ADDRESS          PORT  COMMENT
 `) + "\n"
 
 var listBackendsVerboseOutput = strings.Join([]string{
-	"Fastly API token provided via config file (profile: user)",
 	"Fastly API endpoint: https://api.fastly.com",
+	"Fastly API token provided via config file (profile: user)",
 	"",
 	"Service ID (via --service-id): 123",
 	"",

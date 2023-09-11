@@ -70,14 +70,17 @@ type Data struct {
 //   - The `profile` manifest field's associated profile token.
 //   - The 'default' profile associated token (if there is one).
 func (d *Data) Token() (string, lookup.Source) {
+	// --token
 	if d.Flags.Token != "" {
 		return d.Flags.Token, lookup.SourceFlag
 	}
 
+	// FASTLY_API_TOKEN
 	if d.Env.APIToken != "" {
 		return d.Env.APIToken, lookup.SourceEnvironment
 	}
 
+	// --profile
 	if d.Flags.Profile != "" {
 		for k, v := range d.Config.Profiles {
 			if k == d.Flags.Profile {
@@ -86,6 +89,7 @@ func (d *Data) Token() (string, lookup.Source) {
 		}
 	}
 
+	// `profile` field in fastly.toml
 	if d.Manifest.File.Profile != "" {
 		for k, v := range d.Config.Profiles {
 			if k == d.Manifest.File.Profile {
@@ -94,6 +98,7 @@ func (d *Data) Token() (string, lookup.Source) {
 		}
 	}
 
+	// [profile] section in app config
 	for _, v := range d.Config.Profiles {
 		if v.Default {
 			return v.Token, lookup.SourceFile

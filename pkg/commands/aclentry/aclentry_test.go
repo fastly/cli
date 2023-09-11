@@ -348,8 +348,8 @@ var listACLEntriesOutputPageTwo = `SERVICE ID  ID   IP         SUBNET  NEGATED
 123         789  127.0.0.2  0       true
 `
 
-var listACLEntriesOutputVerbose = `Fastly API token provided via config file (profile: user)
-Fastly API endpoint: https://api.fastly.com
+var listACLEntriesOutputVerbose = `Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 

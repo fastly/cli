@@ -368,8 +368,8 @@ Expires at: 2021-06-15 23:00:00 +0000 UTC`
 }
 
 func listTokenOutputVerbose() string {
-	return `Fastly API token provided via config file (profile: user)
-Fastly API endpoint: https://api.fastly.com
+	return `Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 
 ID: 123

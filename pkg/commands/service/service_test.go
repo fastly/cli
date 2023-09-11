@@ -445,8 +445,8 @@ Bar   456  wasm  1               2015-03-14 12:59
 `) + "\n"
 
 var listServicesVerboseOutput = strings.TrimSpace(`
-Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service 1/3
 	ID: 123
@@ -592,8 +592,8 @@ Versions: 2
 `) + "\n"
 
 var describeServiceVerboseOutput = strings.TrimSpace(`
-Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -702,8 +702,8 @@ Versions: 2
 `) + "\n"
 
 var searchServiceVerboseOutput = strings.TrimSpace(`
-Fastly API token provided via config file (profile: user)
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 ID: 123
 Name: Foo

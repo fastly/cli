@@ -817,6 +817,7 @@ func TestUpdate(t *testing.T) {
 				},
 			},
 			Stdin: []string{
+				"",  // we skip SSO prompt
 				"",  // we skip updating the token
 				"y", // we set the profile to be the default
 			},
