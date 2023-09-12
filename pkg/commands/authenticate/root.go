@@ -132,6 +132,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
+// processProfiles updates the relevant profile with the returned token data.
+//
+// First it checks the --profile flag and the `profile` fastly.toml field.
+// Second it checks to see which profile is currently the default.
+// Third it identifies which profile to be modified.
+// Fourth it writes the updated in-memory data back to disk.
 func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 	var profileOverride string
 	switch {
