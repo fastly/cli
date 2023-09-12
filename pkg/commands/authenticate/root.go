@@ -150,10 +150,10 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 	profileDefault, _ := profile.Default(c.Globals.Config.Profiles)
 
 	switch {
-	case profileOverride == "" && profileDefault == "": // If no profiles configured at all, create a new default...
+	case noProfilesConfigured(profileOverride, profileDefault):
 		makeDefault := true
 		c.Globals.Config.Profiles = createNewProfile(profile.DefaultName, makeDefault, c.Globals.Config.Profiles, ar)
-	case c.NewProfile: // We know we've been triggered by `profile create` if this is set.
+	case invokedByProfileCreateCommand(c):
 		c.Globals.Config.Profiles = createNewProfile(c.NewProfileName, c.ProfileDefault, c.Globals.Config.Profiles, ar)
 
 		// If the user wants the newly created profile to be their new default, then
@@ -181,6 +181,17 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 	return nil
+}
+
+// noProfilesConfigured determines if no profiles have been defined.
+func noProfilesConfigured(o, d string) bool {
+	return o == "" && d == ""
+}
+
+// invokedByProfileCreateCommand determines if this command was invoked by the
+// `profile create` subcommand.
+func invokedByProfileCreateCommand(c *RootCommand) bool {
+	return c.NewProfile && c.NewProfileName != ""
 }
 
 // IMPORTANT: Mutates the config.Profiles map type.
