@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/cap/oidc"
-	"github.com/skratchdot/open-golang/open"
 
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/cmd"
@@ -22,6 +21,7 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
+	openBrowser func(string) error
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
 
@@ -36,8 +36,9 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data, opener func(string) error) *RootCommand {
 	var c RootCommand
+	c.openBrowser = opener
 	c.Globals = g
 	c.CmdClause = parent.Command("authenticate", "SSO (Single Sign-On) authentication")
 	return &c
@@ -111,7 +112,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	text.Break(out)
 	text.Description(out, "We're opening the following URL in your default web browser so you may authenticate with Fastly", authorizationURL)
 
-	err = open.Run(authorizationURL)
+	err = c.openBrowser(authorizationURL)
 	if err != nil {
 		return fmt.Errorf("failed to open your default browser: %w", err)
 	}

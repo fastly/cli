@@ -10,6 +10,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/fatih/color"
+	"github.com/skratchdot/open-golang/open"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
@@ -100,6 +101,7 @@ func main() {
 		ExecuteWasmTools: compute.ExecuteWasmTools,
 		HTTPClient:       httpClient,
 		Manifest:         &md,
+		Opener:           open.Run,
 		Stdin:            in,
 		Stdout:           out,
 		Versioners: app.Versioners{

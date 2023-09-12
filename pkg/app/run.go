@@ -116,18 +116,34 @@ func Run(opts RunOpts) error {
 
 // RunOpts represent arguments to Run().
 type RunOpts struct {
-	APIClient        APIClientFactory
-	Args             []string
-	ConfigFile       config.File
-	ConfigPath       string
-	Env              config.Environment
-	ErrLog           fsterr.LogInterface
+	// APIClient is a factory function for creating an api.Interface type.
+	APIClient APIClientFactory
+	// Args are the command line arguments provided by the user.
+	Args []string
+	// ConfigFile is an instance of the CLI application config.
+	ConfigFile config.File
+	// ConfigPath is the location of the CLI application config.
+	ConfigPath string
+	// Env is an instance of the supported environment variables.
+	Env config.Environment
+	// ErrLog is an instance of a error log recorder.
+	ErrLog fsterr.LogInterface
+	// ExecuteWasmTools is a function that calls wasm-tools executable.
+	// Designed to be used for mocking in the CLI test suite.
 	ExecuteWasmTools func(bin string, args []string) error
-	HTTPClient       api.HTTPClient
-	Manifest         *manifest.Data
-	Stdin            io.Reader
-	Stdout           io.Writer
-	Versioners       Versioners
+	// HTTPClient is a standard HTTP client.
+	HTTPClient api.HTTPClient
+	// Manifest is the fastly.toml manifest file.
+	Manifest *manifest.Data
+	// Opener is a function that can open a browser window.
+	Opener func(string) error
+	// Stdin is the standard input destination.
+	Stdin io.Reader
+	// Stdout is the standard output destination.
+	Stdout io.Writer
+	// Versioners contains multiple software versioning checkers.
+	// e.g. Check for latest CLI or Viceroy version.
+	Versioners Versioners
 }
 
 func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {

@@ -227,11 +227,13 @@ type File struct {
 }
 
 // SetAutoYes sets the associated flag value.
+// This controls how the interactive prompts are handled.
 func (f *File) SetAutoYes(v bool) {
 	f.autoYes = v
 }
 
 // SetNonInteractive sets the associated flag value.
+// This controls how the interactive prompts are handled.
 func (f *File) SetNonInteractive(v bool) {
 	f.nonInteractive = v
 }

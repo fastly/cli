@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -82,7 +83,11 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 		},
 		HTTPClient: &http.Client{Timeout: time.Second * 5},
 		Manifest:   &md,
-		Stdout:     stdout,
+		Opener: func(input string) error {
+			fmt.Printf("open url: %s\n", input)
+			return nil // no-op
+		},
+		Stdout: stdout,
 	}
 }
 
