@@ -1,12 +1,13 @@
 package testutil
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/cap/oidc"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/auth"
@@ -55,6 +56,33 @@ func Args(args string) []string {
 	return s
 }
 
+// MockAuthServer is used to no-op the authentication server.
+type MockAuthServer struct {
+	auth.Starter
+
+	Result chan auth.AuthorizationResult
+}
+
+func (s MockAuthServer) GetResult() chan auth.AuthorizationResult {
+	return s.Result
+}
+
+func (s MockAuthServer) SetAccountEndpoint(_ string) {
+	// no-op
+}
+
+func (s MockAuthServer) SetAPIEndpoint(_ string) {
+	// no-op
+}
+
+func (s MockAuthServer) SetVerifier(_ *oidc.S256Verifier) {
+	// no-op
+}
+
+func (s MockAuthServer) Start() error {
+	return nil // no-op
+}
+
 // NewRunOpts returns a struct that can be used to populate a call to app.Run()
 // while the majority of fields will be pre-populated and only those fields
 // commonly changed for testing purposes will need to be provided.
@@ -73,7 +101,7 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 	return app.RunOpts{
 		Args:       args,
 		APIClient:  mock.APIClient(mock.API{}),
-		AuthServer: &auth.Server{},
+		AuthServer: &MockAuthServer{},
 		ConfigFile: config.File{
 			Profiles: TokenProfile(),
 		},
@@ -86,7 +114,6 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 		HTTPClient: &http.Client{Timeout: time.Second * 5},
 		Manifest:   &md,
 		Opener: func(input string) error {
-			fmt.Printf("open url: %s\n", input)
 			return nil // no-op
 		},
 		Stdout: stdout,

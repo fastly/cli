@@ -1,6 +1,7 @@
 package authenticate
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -107,8 +108,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	ar := <-c.authServer.GetResult()
 	if ar.Err != nil || ar.SessionToken == "" {
+		err := ar.Err
+		if ar.Err == nil {
+			err = errors.New("no session token")
+		}
 		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("failed to authorize: %w", ar.Err),
+			Inner:       fmt.Errorf("failed to authorize: %w", err),
 			Remediation: auth.Remediation,
 		}
 	}
