@@ -37,12 +37,17 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("authenticate", "Authenticate with Fastly (returns temporary, auto-rotated, API token)")
+	c.CmdClause = parent.Command("authenticate", "SSO (Single Sign-On) authentication")
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+	// We need to prompt the user, so they know we're about to open their web
+	// browser, but we also need to handle the scenario where the `authenticate`
+	// command is invoked indirectly via ../../app/run.go as that package will
+	// have its own (similar) prompt before invoking this command. So to avoid a
+	// double prompt, the app package will set `SkipAuthPrompt: true`.
 	if !c.Globals.SkipAuthPrompt && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 		text.Warning(out, "We need to open your browser to authenticate you.")
 		text.Break(out)
