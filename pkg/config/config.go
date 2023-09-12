@@ -446,9 +446,9 @@ type Environment struct {
 	APIToken string
 	// Endpoint is the env var we look in for the API endpoint.
 	Endpoint string
-	// UseOAuth indicates if user wants to use OAuth token flow.
+	// UseSSO indicates if user wants to use SSO/OAuth token flow.
 	// 1: enabled, 0: disabled.
-	UseOAuth string
+	UseSSO string
 	// WasmMetadataDisable is the env var we look in to disable all data
 	// collection related to a Wasm binary.
 	// Set to "true" to disable all forms of data collection.
@@ -461,7 +461,7 @@ func (e *Environment) Read(state map[string]string) {
 	e.Account = state[env.Account]
 	e.Endpoint = state[env.Endpoint]
 	e.Endpoint = state[env.Endpoint]
-	e.UseOAuth = state[env.UseOAuth]
+	e.UseSSO = state[env.UseSSO]
 	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }
 

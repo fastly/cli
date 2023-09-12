@@ -262,8 +262,8 @@ func checkProfileToken(
 			return tokenSource, warningMessage, fmt.Errorf("failed to locate '%s' profile", profileName)
 		}
 
-		// Allow user to opt-in to OAuth so they can replace their long-lived token.
-		if shouldSkipOAuth(profileData, out, g) {
+		// Allow user to opt-in to SSO/OAuth so they can replace their long-lived token.
+		if shouldSkipSSO(profileData, out, g) {
 			return tokenSource, warningMessage, nil
 		}
 
@@ -361,15 +361,15 @@ func checkProfileToken(
 	return tokenSource, warningMessage, nil
 }
 
-// shouldSkipOAuth identifies if a config is a pre-v4 config and, if it is,
+// shouldSkipSSO identifies if a config is a pre-v4 config and, if it is,
 // informs the user how they can use the OAuth flow. It checks if the OAuth
 // environment variable has been set and enables the OAuth flow if so.
-func shouldSkipOAuth(pd *config.Profile, out io.Writer, g *global.Data) bool {
+func shouldSkipSSO(pd *config.Profile, out io.Writer, g *global.Data) bool {
 	if noOAuthToken(pd) {
-		if g.Env.UseOAuth == "1" {
+		if g.Env.UseSSO == "1" {
 			return false // don't skip OAuth
 		}
-		text.Info(out, "Your token doesn't appear to have been generated using Fastly SSO (Single Sign-On) which offers more security and convenience. To use SSO, you'll need to opt into it by setting the environment variable `FASTLY_USE_OAUTH=1`. This variable only needs to be set once, then all future CLI invocations will default to SSO (--token and FASTLY_API_TOKEN can still be used as overrides).")
+		text.Info(out, "Your token doesn't appear to have been generated using Fastly SSO (Single Sign-On) which offers more security and convenience. To use SSO, you'll need to opt into it by setting the environment variable `FASTLY_USE_SSO=1`. This variable only needs to be set once, then all future CLI invocations will default to SSO (--token and FASTLY_API_TOKEN can still be used as overrides).")
 		text.Break(out)
 		return true // skip OAuth
 	}
