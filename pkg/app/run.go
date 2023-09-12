@@ -397,24 +397,25 @@ func ssoAuthentication(
 ) (string, lookup.Source, error) {
 	for _, command := range commands {
 		if command.Name() == "authenticate" {
-			text.Warning(out, "%s. We need to open your browser to authenticate you.", warningMessage)
-			text.Break(out)
-			cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
-			text.Break(out)
-			if err != nil {
-				return token, tokenSource, err
-			}
-			if !cont {
-				return token, tokenSource, nil
+			if !g.Flags.AutoYes && !g.Flags.NonInteractive {
+				text.Warning(out, "%s. We need to open your browser to authenticate you.", warningMessage)
+				text.Break(out)
+				cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
+				text.Break(out)
+				if err != nil {
+					return token, tokenSource, err
+				}
+				if !cont {
+					return token, tokenSource, nil
+				}
 			}
 
 			g.SkipAuthPrompt = true // skip the same prompt in `authenticate` command flow
-			err = command.Exec(in, out)
+			err := command.Exec(in, out)
 			if err != nil {
 				return token, tokenSource, fmt.Errorf("failed to authenticate: %w", err)
 			}
 			text.Break(out)
-
 			break
 		}
 	}
