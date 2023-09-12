@@ -143,8 +143,10 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 		//
 		// This is so the `authenticate` command will use the override, rather than
 		// incorrectly updating the 'default' profile. We also need to pass through
-		// whether the profile should be made the default.
+		// an indicator that an existing profile should be updated and also whether
+		// that existing profile should now be made the default.
 		c.Globals.Flags.Profile = profileName
+		c.authCmd.UpdateProfile = true
 		c.authCmd.ProfileDefault = makeDefault
 
 		err := c.authCmd.Exec(in, out)

@@ -31,6 +31,8 @@ type RootCommand struct {
 	NewProfileName string
 	// ProfileDefault indicates if the affected profile should become the default.
 	ProfileDefault bool
+	// UpdateProfile indicates if we should update a profile.
+	UpdateProfile bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -170,7 +172,13 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 		if profileOverride != "" {
 			profileName = profileOverride
 		}
-		ps, err := editProfile(profileName, c.ProfileDefault, c.Globals.Config.Profiles, ar)
+		makeDefault := c.ProfileDefault // this is set by `profile update` command.
+		if !c.UpdateProfile {           // if not invoked by `profile update`, then get current `Default` field value
+			if n, p := profile.Get(profileName, c.Globals.Config.Profiles); n != "" {
+				makeDefault = p.Default
+			}
+		}
+		ps, err := editProfile(profileName, makeDefault, c.Globals.Config.Profiles, ar)
 		if err != nil {
 			return err
 		}
@@ -217,10 +225,10 @@ func createNewProfile(profileName string, makeDefault bool, p config.Profiles, a
 
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
-func editProfile(profileName string, profileDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
+func editProfile(profileName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
 	ps, ok := profile.Edit(profileName, p, func(p *config.Profile) {
 		now := time.Now().Unix()
-		p.Default = profileDefault
+		p.Default = makeDefault
 		p.AccessToken = ar.Jwt.AccessToken
 		p.AccessTokenCreated = now
 		p.AccessTokenTTL = ar.Jwt.ExpiresIn
