@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
@@ -70,8 +71,9 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 	}
 
 	return app.RunOpts{
-		APIClient: mock.APIClient(mock.API{}),
-		Args:      args,
+		Args:       args,
+		APIClient:  mock.APIClient(mock.API{}),
+		AuthServer: &auth.Server{},
 		ConfigFile: config.File{
 			Profiles: TokenProfile(),
 		},

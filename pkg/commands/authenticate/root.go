@@ -3,10 +3,7 @@ package authenticate
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"time"
-
-	"github.com/hashicorp/cap/oidc"
 
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/cmd"
@@ -21,6 +18,7 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
+	authServer  auth.Starter
 	openBrowser func(string) error
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
@@ -36,8 +34,9 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data, opener func(string) error) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data, opener func(string) error, authServer auth.Starter) *RootCommand {
 	var c RootCommand
+	c.authServer = authServer
 	c.openBrowser = opener
 	c.Globals = g
 	c.CmdClause = parent.Command("authenticate", "SSO (Single Sign-On) authentication")
@@ -64,37 +63,26 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	verifier, err := oidc.NewCodeVerifier()
+	accountEndpoint, _ := c.Globals.Account()
+	apiEndpoint, _ := c.Globals.Endpoint()
+	verifier, err := auth.GenVerifier()
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to generate a code verifier: %w", err),
 			Remediation: auth.Remediation,
 		}
 	}
-
-	result := make(chan auth.AuthorizationResult)
-	apiEndpoint, _ := c.Globals.Endpoint()
-	accountEndpoint, _ := c.Globals.Account()
-
-	s := auth.Server{
-		APIEndpoint:     apiEndpoint,
-		AccountEndpoint: accountEndpoint,
-		HTTPClient:      c.Globals.HTTPClient,
-		Result:          result,
-		Router:          http.NewServeMux(),
-		Verifier:        verifier,
-	}
-	s.Routes()
+	c.authServer.SetAccountEndpoint(accountEndpoint)
+	c.authServer.SetAPIEndpoint(apiEndpoint)
+	c.authServer.SetVerifier(verifier)
 
 	var serverErr error
-
 	go func() {
-		err := s.Start()
+		err := c.authServer.Start()
 		if err != nil {
 			serverErr = err
 		}
 	}()
-
 	if serverErr != nil {
 		return serverErr
 	}
@@ -117,7 +105,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("failed to open your default browser: %w", err)
 	}
 
-	ar := <-result
+	ar := <-c.authServer.GetResult()
 	if ar.Err != nil || ar.SessionToken == "" {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to authorize: %w", ar.Err),

@@ -100,7 +100,7 @@ func defineCommands(
 	aclEntryDescribe := aclentry.NewDescribeCommand(aclEntryCmdRoot.CmdClause, g, m)
 	aclEntryList := aclentry.NewListCommand(aclEntryCmdRoot.CmdClause, g, m)
 	aclEntryUpdate := aclentry.NewUpdateCommand(aclEntryCmdRoot.CmdClause, g, m)
-	authenticateCmdRoot := authenticate.NewRootCommand(app, g, opts.Opener)
+	authenticateCmdRoot := authenticate.NewRootCommand(app, g, opts.Opener, opts.AuthServer)
 	authtokenCmdRoot := authtoken.NewRootCommand(app, g)
 	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, g, m)
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, g, m)

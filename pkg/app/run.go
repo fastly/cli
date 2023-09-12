@@ -120,6 +120,9 @@ type RunOpts struct {
 	APIClient APIClientFactory
 	// Args are the command line arguments provided by the user.
 	Args []string
+	// AuthServer is an instance of the authentication server type.
+	// Used for interacting with Fastly's SSO/OAuth authentication provider.
+	AuthServer auth.Starter
 	// ConfigFile is an instance of the CLI application config.
 	ConfigFile config.File
 	// ConfigPath is the location of the CLI application config.

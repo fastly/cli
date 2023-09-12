@@ -27,21 +27,54 @@ const ClientID = "fastly-cli"
 // RedirectURL is the endpoint the auth provider will pass an authorization code to.
 const RedirectURL = "http://localhost:8080/callback"
 
+// Starter defines the behaviour for the authentication server.
+type Starter interface {
+	// GetResult returns the results channel
+	GetResult() chan AuthorizationResult
+	// SetAccountEndpoint sets the account endpoint.
+	SetAccountEndpoint(endpoint string)
+	// SetEndpoint sets the API endpoint.
+	SetAPIEndpoint(endpoint string)
+	// SetVerifier sets the code verifier.
+	SetVerifier(verifier *oidc.S256Verifier)
+	// Start starts a local server for handling authentication processing.
+	Start() error
+}
+
 // Server is a local server responsible for authentication processing.
 type Server struct {
+	// APIEndpoint is the API endpoint.
+	APIEndpoint string
 	// AccountEndpoint is the accounts endpoint.
 	AccountEndpoint string
-	// HTTPClient is a HTTP client used to call the API to exchange the access
-	// token for a session token.
+	// HTTPClient is a HTTP client used to call the API to exchange the access token for a session token.
 	HTTPClient api.HTTPClient
 	// Result is a channel that reports the result of authorization.
 	Result chan AuthorizationResult
 	// Router is an HTTP request multiplexer.
 	Router *http.ServeMux
-	// Verifier represents an OAuth PKCE code verifier that uses the S256 challenge method
+	// Verifier represents an OAuth PKCE code verifier that uses the S256 challenge method.
 	Verifier *oidc.S256Verifier
-	// APIEndpoint is the API endpoint.
-	APIEndpoint string
+}
+
+// GetResult returns the result channel.
+func (s Server) GetResult() chan AuthorizationResult {
+	return s.Result
+}
+
+// SetAccountEndpoint sets the account endpoint.
+func (s *Server) SetAccountEndpoint(endpoint string) {
+	s.AccountEndpoint = endpoint
+}
+
+// SetAPIEndpoint sets the API endpoint.
+func (s *Server) SetAPIEndpoint(endpoint string) {
+	s.APIEndpoint = endpoint
+}
+
+// SetVerifier sets the code verifier endpoint.
+func (s *Server) SetVerifier(verifier *oidc.S256Verifier) {
+	s.Verifier = verifier
 }
 
 // Start starts a local server for handling authentication processing.
@@ -63,12 +96,8 @@ func (s *Server) Start() error {
 	return nil
 }
 
-// Routes configures the callback handler.
-func (s *Server) Routes() {
-	s.Router.HandleFunc("/callback", s.handleCallback())
-}
-
-func (s *Server) handleCallback() http.HandlerFunc {
+// HandleCallback processes the callback from the authentication service.
+func (s *Server) HandleCallback() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authorizationCode := r.URL.Query().Get("code")
 		if authorizationCode == "" {
@@ -151,6 +180,11 @@ type AuthorizationResult struct {
 	Jwt JWT
 	// SessionToken is a temporary API token.
 	SessionToken string
+}
+
+// GenVerifier creates a code verifier.
+func GenVerifier() (*oidc.S256Verifier, error) {
+	return oidc.NewCodeVerifier()
 }
 
 // GenURL constructs the required authorization_endpoint path.

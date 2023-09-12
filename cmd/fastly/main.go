@@ -14,6 +14,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
@@ -84,6 +85,17 @@ func main() {
 	// NOTE: We skip handling the error because not all commands relate to Compute.
 	_ = md.File.Read(manifest.Filename)
 
+	// Configure authentication inputs.
+	// We do this here so that we can mock the values in our test suite.
+	result := make(chan auth.AuthorizationResult)
+	router := http.NewServeMux()
+	s := &auth.Server{
+		HTTPClient: httpClient,
+		Result:     result,
+		Router:     router,
+	}
+	router.HandleFunc("/callback", s.HandleCallback())
+
 	// The `main` function is a shim for calling `app.Run()`.
 	err = app.Run(app.RunOpts{
 		APIClient: func(token, endpoint string, debugMode bool) (api.Interface, error) {
@@ -94,6 +106,7 @@ func main() {
 			return client, err
 		},
 		Args:             args,
+		AuthServer:       s,
 		ConfigFile:       cfg,
 		ConfigPath:       config.FilePath,
 		Env:              e,
