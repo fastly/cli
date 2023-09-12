@@ -174,7 +174,7 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 		}
 		makeDefault := c.ProfileDefault // this is set by `profile update` command.
 		if !c.UpdateProfile {           // if not invoked by `profile update`, then get current `Default` field value
-			if n, p := profile.Get(profileName, c.Globals.Config.Profiles); n != "" {
+			if p := profile.Get(profileName, c.Globals.Config.Profiles); p != nil {
 				makeDefault = p.Default
 			}
 		}

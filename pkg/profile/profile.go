@@ -43,13 +43,13 @@ func Default(p config.Profiles) (string, *config.Profile) {
 }
 
 // Get returns the specified profile.
-func Get(name string, p config.Profiles) (string, *config.Profile) {
+func Get(name string, p config.Profiles) *config.Profile {
 	for k, v := range p {
 		if k == name {
-			return k, v
+			return v
 		}
 	}
-	return "", new(config.Profile)
+	return nil
 }
 
 // SetDefault configures the named profile to be the default.
@@ -127,14 +127,14 @@ func Init(token string, m *manifest.Data, g *global.Data, in io.Reader, out io.W
 		return token, nil
 	}
 
-	name, p := Get(profile, g.Config.Profiles)
-	if name != "" {
+	p := Get(profile, g.Config.Profiles)
+	if p != nil {
 		return p.Token, nil
 	}
 
 	msg := fmt.Sprintf(DoesNotExist, profile)
-	name, p = Default(g.Config.Profiles)
-	if name == "" {
+	profile, p = Default(g.Config.Profiles)
+	if profile == "" {
 		msg = fmt.Sprintf("%s (no account profiles configured)", msg)
 		return token, fsterr.RemediationError{
 			Inner:       fmt.Errorf(msg),
@@ -147,7 +147,7 @@ func Init(token string, m *manifest.Data, g *global.Data, in io.Reader, out io.W
 	// first letter so the warning reads like a proper sentence (where as golang
 	// errors should always be lowercase).
 	msg = fmt.Sprintf("%s%s. ", bytes.ToUpper([]byte(msg[:1])), msg[1:])
-	msg = fmt.Sprintf("%sThe default profile '%s' (%s) will be used.", msg, name, p.Email)
+	msg = fmt.Sprintf("%sThe default profile '%s' (%s) will be used.", msg, profile, p.Email)
 
 	if !g.Flags.AutoYes {
 		text.Warning(out, msg)

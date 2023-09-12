@@ -39,7 +39,7 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 
 	if p != "" {
-		if name, p := profile.Get(p, c.Globals.Config.Profiles); name != "" {
+		if p := profile.Get(p, c.Globals.Config.Profiles); p != nil {
 			text.Output(out, p.Token)
 			return nil
 		}

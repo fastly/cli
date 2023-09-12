@@ -316,8 +316,8 @@ func checkProfileToken(
 			// So after we get the refreshed access token, we check to see if the
 			// refresh token that was returned by the API call has also changed when
 			// compared to the refresh token stored in the CLI config file.
-			name, current := profile.Get(profileName, g.Config.Profiles)
-			if name == "" {
+			current := profile.Get(profileName, g.Config.Profiles)
+			if current == nil {
 				return tokenSource, warningMessage, fmt.Errorf("failed to locate '%s' profile", profileName)
 			}
 			now := time.Now().Unix()

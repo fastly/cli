@@ -107,8 +107,8 @@ func (c *UpdateCommand) identifyProfile() (string, *config.Profile, error) {
 		if c.Globals.Flags.Profile != "" {
 			profileName = c.Globals.Flags.Profile
 		}
-		profileName, p = profile.Get(profileName, c.Globals.Config.Profiles)
-		if profileName == "" {
+		p = profile.Get(profileName, c.Globals.Config.Profiles)
+		if p == nil {
 			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 			return "", nil, fsterr.RemediationError{
 				Inner:       fmt.Errorf(msg),
