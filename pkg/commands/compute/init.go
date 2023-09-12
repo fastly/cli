@@ -139,8 +139,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Assign the default profile email if available.
 	email := ""
-	profileName, p := profile.Default(c.Globals.Config.Profiles)
-	if profileName != "" {
+	if _, p := profile.Default(c.Globals.Config.Profiles); p != nil {
 		email = p.Email
 	}
 

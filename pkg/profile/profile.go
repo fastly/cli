@@ -39,7 +39,7 @@ func Default(p config.Profiles) (string, *config.Profile) {
 			return k, v
 		}
 	}
-	return "", new(config.Profile)
+	return "", nil
 }
 
 // Get returns the specified profile.
@@ -134,7 +134,7 @@ func Init(token string, m *manifest.Data, g *global.Data, in io.Reader, out io.W
 
 	msg := fmt.Sprintf(DoesNotExist, profile)
 	profile, p = Default(g.Config.Profiles)
-	if profile == "" {
+	if p == nil {
 		msg = fmt.Sprintf("%s (no account profiles configured)", msg)
 		return token, fsterr.RemediationError{
 			Inner:       fmt.Errorf(msg),

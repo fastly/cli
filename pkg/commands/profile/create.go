@@ -57,7 +57,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// we should prompt the user to see if the new profile they're creating needs
 	// to become the new default.
 	makeDefault := true
-	if profileName, _ := profile.Default(c.Globals.Config.Profiles); profileName != "" && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+	if _, p := profile.Default(c.Globals.Config.Profiles); p != nil && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 		makeDefault, err = c.promptForDefault(in, out)
 		if err != nil {
 			return err

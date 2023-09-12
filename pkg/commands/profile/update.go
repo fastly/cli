@@ -95,7 +95,7 @@ func (c *UpdateCommand) identifyProfile() (string, *config.Profile, error) {
 	// default profile to update.
 	if c.profile == "" && c.Globals.Flags.Profile == "" {
 		profileName, p = profile.Default(c.Globals.Config.Profiles)
-		if profileName == "" {
+		if p == nil {
 			return "", nil, fsterr.RemediationError{
 				Inner:       fmt.Errorf("no active profile"),
 				Remediation: profile.NoDefaults,
