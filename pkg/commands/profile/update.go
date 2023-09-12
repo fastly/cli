@@ -74,7 +74,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("failed to update token: %w", err)
 		}
-	} else if makeDefault {
+	} else if makeDefault { // only set default if not updating the token (as updating the token already handles setting the default)
 		err := c.updateDefault(profileName, in, out)
 		if err != nil {
 			return fmt.Errorf("failed to update token: %w", err)
