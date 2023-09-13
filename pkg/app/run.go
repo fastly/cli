@@ -388,8 +388,10 @@ func shouldSkipSSO(pd *config.Profile, out io.Writer, g *global.Data) bool {
 		if g.Env.UseSSO == "1" {
 			return false // don't skip OAuth
 		}
-		text.Info(out, "Your token doesn't appear to have been generated using Fastly SSO (Single Sign-On) which offers more security and convenience. To use SSO, you'll need to opt into it by setting the environment variable `FASTLY_USE_SSO=1`. This variable only needs to be set once, then all future CLI invocations will default to SSO for the profile you used when authenticating with SSO (--token and FASTLY_API_TOKEN can still be used as overrides).")
-		text.Break(out)
+		if !g.Flags.Quiet {
+			text.Info(out, "Your token doesn't appear to have been generated using Fastly SSO (Single Sign-On) which offers more security and convenience. To use SSO, you'll need to opt into it by setting the environment variable `FASTLY_USE_SSO=1`. This variable only needs to be set once, then all future CLI invocations will default to SSO for the profile you used when authenticating with SSO (--token and FASTLY_API_TOKEN can still be used as overrides).")
+			text.Break(out)
+		}
 		return true // skip OAuth
 	}
 	return false // don't skip OAuth
