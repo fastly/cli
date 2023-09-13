@@ -22,6 +22,7 @@ func TestAuth(t *testing.T) {
 		testutil.TestScenario
 
 		AuthResult    *auth.AuthorizationResult
+		ConfigFile    *config.File
 		ConfigProfile *config.Profile
 		Opener        func(input string) error
 		Stdin         []string
@@ -79,11 +80,44 @@ func TestAuth(t *testing.T) {
 		// Success processing OAuth flow
 		{
 			TestScenario: testutil.TestScenario{
-				Args:       args("authenticate"),
-				WantOutput: "Session token (persisted to your local configuration): 123",
+				Args: args("authenticate"),
+				WantOutputs: []string{
+					"We're going to authenticate the 'user' profile.",
+					"We need to open your browser to authenticate you.",
+					"Session token (persisted to your local configuration): 123",
+				},
 			},
 			AuthResult: &auth.AuthorizationResult{
 				SessionToken: "123",
+			},
+			ConfigProfile: &config.Profile{
+				Token: "123",
+			},
+			Stdin: []string{
+				"Y", // when prompted to open a web browser to start authentication
+			},
+		},
+		// Success processing OAuth flow while setting specific profile (test_user)
+		{
+			TestScenario: testutil.TestScenario{
+				Args: args("authenticate test_user"),
+				WantOutputs: []string{
+					"We're going to authenticate the 'test_user' profile.",
+					"We need to open your browser to authenticate you.",
+					"Session token (persisted to your local configuration): 123",
+				},
+			},
+			AuthResult: &auth.AuthorizationResult{
+				SessionToken: "123",
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"test_user": &config.Profile{
+						Default: true,
+						Email:   "test@example.com",
+						Token:   "mock-token",
+					},
+				},
 			},
 			ConfigProfile: &config.Profile{
 				Token: "123",
@@ -101,6 +135,10 @@ func TestAuth(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
 
+			if testcase.ConfigFile != nil {
+				opts.ConfigFile = *testcase.ConfigFile
+			}
+
 			if testcase.AuthResult != nil {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
@@ -110,6 +148,7 @@ func TestAuth(t *testing.T) {
 					result <- *testcase.AuthResult
 				}()
 			}
+
 			if testcase.Opener != nil {
 				opts.Opener = testcase.Opener
 			}
@@ -164,7 +203,11 @@ func TestAuth(t *testing.T) {
 			}
 
 			if testcase.ConfigProfile != nil {
-				userProfile := opts.ConfigFile.Profiles["user"]
+				profileName := "user"
+				if len(testcase.Args) > 1 {
+					profileName = testcase.Args[1] // use the `profile` command argument
+				}
+				userProfile := opts.ConfigFile.Profiles[profileName]
 				if userProfile.Token != testcase.ConfigProfile.Token {
 					t.Errorf("want token: %s, got token: %s", testcase.ConfigProfile.Token, userProfile.Token)
 				}
@@ -173,7 +216,14 @@ func TestAuth(t *testing.T) {
 			t.Log(stdout.String())
 
 			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+
+			if testcase.WantOutputs != nil {
+				for _, s := range testcase.WantOutputs {
+					testutil.AssertStringContains(t, stdout.String(), s)
+				}
+			} else {
+				testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+			}
 		})
 	}
 }
