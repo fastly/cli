@@ -218,7 +218,7 @@ func (c *RootCommand) processCreateProfile(ar auth.AuthorizationResult, profileN
 		isDefault = c.ProfileDefault
 	}
 
-	c.Globals.Config.Profiles = createNewProfile(c.ProfileCreateName, isDefault, c.Globals.Config.Profiles, ar)
+	c.Globals.Config.Profiles = createNewProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
 
 	// If the user wants the newly created profile to be their new default, then
 	// we'll call Set for its side effect of resetting all other profiles to have
