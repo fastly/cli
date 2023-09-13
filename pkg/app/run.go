@@ -419,9 +419,9 @@ func ssoAuthentication(
 	for _, command := range commands {
 		if command.Name() == "authenticate" {
 			if !g.Flags.AutoYes && !g.Flags.NonInteractive {
-				text.Warning(out, "%s. We need to open your browser to authenticate you.", warningMessage)
+				text.Important(out, "%s. We need to open your browser to authenticate you.", warningMessage)
 				text.Break(out)
-				cont, err := text.AskYesNo(out, "Do you want to continue? [y/N]: ", in)
+				cont, err := text.AskYesNo(out, text.BoldYellow("Do you want to continue? [y/N]: "), in)
 				text.Break(out)
 				if err != nil {
 					return token, tokenSource, err
