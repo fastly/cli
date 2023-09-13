@@ -417,7 +417,8 @@ func ssoAuthentication(
 	g *global.Data,
 ) (string, lookup.Source, error) {
 	for _, command := range commands {
-		if command.Name() == "authenticate" {
+		commandName := strings.Split(command.Name(), " ")[0]
+		if commandName == "sso" {
 			if !g.Flags.AutoYes && !g.Flags.NonInteractive {
 				text.Important(out, "%s. We need to open your browser to authenticate you.", warningMessage)
 				text.Break(out)
