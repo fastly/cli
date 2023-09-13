@@ -257,8 +257,8 @@ SERVICE  VERSION  NAME                  STATEMENT  TYPE     PRIORITY
 `) + "\n"
 
 var listConditionsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
