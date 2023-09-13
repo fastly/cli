@@ -21,17 +21,20 @@ type RootCommand struct {
 	cmd.Base
 	authServer  auth.Starter
 	openBrowser func(string) error
+	profile     string
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
 
-	// NewProfile indicates if we should create a new profile.
-	NewProfile bool
-	// NewProfileName indicates the new profile name.
-	NewProfileName string
+	// InvokedFromProfileCreate indicates if we should create a new profile.
+	InvokedFromProfileCreate bool
+	// ProfileCreateName indicates the new profile name.
+	ProfileCreateName string
 	// ProfileDefault indicates if the affected profile should become the default.
 	ProfileDefault bool
-	// UpdateProfile indicates if we should update a profile.
-	UpdateProfile bool
+	// InvokedFromProfileUpdate indicates if we should update a profile.
+	InvokedFromProfileUpdate bool
+	// ProfileUpdateName indicates the profile name to update.
+	ProfileUpdateName string
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -41,6 +44,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, opener func(string) e
 	c.openBrowser = opener
 	c.Globals = g
 	c.CmdClause = parent.Command("authenticate", "SSO (Single Sign-On) authentication")
+	c.CmdClause.Arg("profile", "Profile to authenticate (i.e. create/update a token for)").Short('p').StringVar(&c.profile)
 	return &c
 }
 
@@ -52,7 +56,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// have its own (similar) prompt before invoking this command. So to avoid a
 	// double prompt, the app package will set `SkipAuthPrompt: true`.
 	if !c.Globals.SkipAuthPrompt && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		text.Warning(out, "We need to open your browser to authenticate you.")
+		profileName, _ := c.identifyProfileAndFlow()
+		msg := fmt.Sprintf("We're going to authenticate the '%s' profile", profileName)
+		text.Important(out, "%s. We need to open your browser to authenticate you.", msg)
 		text.Break(out)
 		cont, err := text.AskYesNo(out, text.BoldYellow("Do you want to continue? [y/N]: "), in)
 		text.Break(out)
@@ -128,13 +134,25 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// processProfiles updates the relevant profile with the returned token data.
-//
-// First it checks the --profile flag and the `profile` fastly.toml field.
-// Second it checks to see which profile is currently the default.
-// Third it identifies which profile to be modified.
-// Fourth it writes the updated in-memory data back to disk.
-func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
+// Source enumerates which profile flow to take.
+type ProfileFlow uint8
+
+const (
+	// ProfileNone indicates we need to create a new 'default' profile as no
+	// profiles currently exist.
+	ProfileNone ProfileFlow = iota
+
+	// ProfileUpdate indicates we need to create a new profile using details
+	// passed in either from the `authenticate` or `profile create` command.
+	ProfileCreate
+
+	// ProfileUpdate indicates we need to update a profile using details passed in
+	// either from the `authenticate` or `profile update` command.
+	ProfileUpdate
+)
+
+// identifyProfileAndFlow identifies the profile and the specific workflow.
+func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow ProfileFlow) {
 	var profileOverride string
 	switch {
 	case c.Globals.Flags.Profile != "":
@@ -143,57 +161,91 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 		profileOverride = c.Globals.Manifest.File.Profile
 	}
 
-	profileDefault, _ := profile.Default(c.Globals.Config.Profiles)
+	currentDefaultProfile, _ := profile.Default(c.Globals.Config.Profiles)
+
+	var newDefaultProfile string
+	if currentDefaultProfile == "" && len(c.Globals.Config.Profiles) > 0 {
+		newDefaultProfile, c.Globals.Config.Profiles = profile.SetADefault(c.Globals.Config.Profiles)
+	}
 
 	switch {
-	case noProfilesConfigured(profileOverride, profileDefault):
-		makeDefault := true
-		c.Globals.Config.Profiles = createNewProfile(profile.DefaultName, makeDefault, c.Globals.Config.Profiles, ar)
-	case invokedByProfileCreateCommand(c):
-		c.Globals.Config.Profiles = createNewProfile(c.NewProfileName, c.ProfileDefault, c.Globals.Config.Profiles, ar)
-
-		// If the user wants the newly created profile to be their new default, then
-		// we'll call Set for its side effect of resetting all other profiles to have
-		// their Default field set to false.
-		if c.ProfileDefault {
-			if p, ok := profile.SetDefault(c.NewProfileName, c.Globals.Config.Profiles); ok {
-				c.Globals.Config.Profiles = p
-			}
-		}
+	case profileOverride != "":
+		return profileOverride, ProfileUpdate
+	case c.profile != "":
+		return c.profile, ProfileUpdate
+	case c.InvokedFromProfileCreate && c.ProfileCreateName != "":
+		return c.ProfileCreateName, ProfileCreate
+	case c.InvokedFromProfileUpdate && c.ProfileUpdateName != "":
+		return c.ProfileUpdateName, ProfileUpdate
+	case currentDefaultProfile != "":
+		return currentDefaultProfile, ProfileUpdate
+	case newDefaultProfile != "":
+		return newDefaultProfile, ProfileUpdate
 	default:
-		// Otherwise, edit the existing profile to have the newly generated tokens.
-		profileName := profileDefault
-		if profileOverride != "" {
-			profileName = profileOverride
-		}
-		makeDefault := c.ProfileDefault // this is set by `profile update` command.
-		if !c.UpdateProfile {           // if not invoked by `profile update`, then get current `Default` field value
-			if p := profile.Get(profileName, c.Globals.Config.Profiles); p != nil {
-				makeDefault = p.Default
-			}
-		}
-		ps, err := editProfile(profileName, makeDefault, c.Globals.Config.Profiles, ar)
+		return profile.DefaultName, ProfileCreate
+	}
+}
+
+// processProfiles updates the relevant profile with the returned token data.
+//
+// First it checks the --profile flag and the `profile` fastly.toml field.
+// Second it checks to see which profile is currently the default.
+// Third it identifies which profile to be modified.
+// Fourth it writes the updated in-memory data back to disk.
+func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
+	profileName, flow := c.identifyProfileAndFlow()
+
+	switch flow {
+	case ProfileCreate:
+		c.processCreateProfile(ar, profileName)
+	case ProfileUpdate:
+		err := c.processUpdateProfile(ar, profileName)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to update profile: %w", err)
 		}
-		c.Globals.Config.Profiles = ps
 	}
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
-		return fmt.Errorf("error saving config file: %w", err)
+		return fmt.Errorf("failed to update config file: %w", err)
 	}
 	return nil
 }
 
-// noProfilesConfigured determines if no profiles have been defined.
-func noProfilesConfigured(o, d string) bool {
-	return o == "" && d == ""
+// processCreateProfile handles creating a new profile.
+func (c *RootCommand) processCreateProfile(ar auth.AuthorizationResult, profileName string) {
+	isDefault := true
+	if c.InvokedFromProfileCreate {
+		isDefault = c.ProfileDefault
+	}
+
+	c.Globals.Config.Profiles = createNewProfile(c.ProfileCreateName, isDefault, c.Globals.Config.Profiles, ar)
+
+	// If the user wants the newly created profile to be their new default, then
+	// we'll call Set for its side effect of resetting all other profiles to have
+	// their Default field set to false.
+	if c.ProfileDefault { // this is set by the `profile create` command.
+		if p, ok := profile.SetDefault(c.ProfileCreateName, c.Globals.Config.Profiles); ok {
+			c.Globals.Config.Profiles = p
+		}
+	}
 }
 
-// invokedByProfileCreateCommand determines if this command was invoked by the
-// `profile create` subcommand.
-func invokedByProfileCreateCommand(c *RootCommand) bool {
-	return c.NewProfile && c.NewProfileName != ""
+// processUpdateProfile handles updating a profile.
+func (c *RootCommand) processUpdateProfile(ar auth.AuthorizationResult, profileName string) error {
+	var isDefault bool
+	if p := profile.Get(profileName, c.Globals.Config.Profiles); p != nil {
+		isDefault = p.Default
+	}
+	if c.InvokedFromProfileUpdate {
+		isDefault = c.ProfileDefault
+	}
+
+	ps, err := editProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
+	if err != nil {
+		return err
+	}
+	c.Globals.Config.Profiles = ps
+	return nil
 }
 
 // IMPORTANT: Mutates the config.Profiles map type.

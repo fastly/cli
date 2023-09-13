@@ -83,8 +83,8 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		//
 		// This is so the `authenticate` command will use this information to create
 		// a new 'non-default' profile.
-		c.authCmd.NewProfile = true
-		c.authCmd.NewProfileName = c.profile
+		c.authCmd.InvokedFromProfileCreate = true
+		c.authCmd.ProfileCreateName = c.profile
 		c.authCmd.ProfileDefault = makeDefault
 
 		err = c.authCmd.Exec(in, out)

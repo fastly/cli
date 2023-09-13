@@ -75,7 +75,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 			return fmt.Errorf("failed to update token: %w", err)
 		}
 	} else if makeDefault { // only set default if not updating the token (as updating the token already handles setting the default)
-		err := c.updateDefault(profileName, in, out)
+		err := c.updateDefault(profileName, out)
 		if err != nil {
 			return fmt.Errorf("failed to update token: %w", err)
 		}
@@ -139,14 +139,12 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 	}
 
 	if useOAuthFlow {
-		// IMPORTANT: We need to temporarily set profile override.
+		// IMPORTANT: We need to set profile fields for authenticate command.
 		//
-		// This is so the `authenticate` command will use the override, rather than
-		// incorrectly updating the 'default' profile. We also need to pass through
-		// an indicator that an existing profile should be updated and also whether
-		// that existing profile should now be made the default.
-		c.Globals.Flags.Profile = profileName
-		c.authCmd.UpdateProfile = true
+		// This is so the `authenticate` command will use this information to update
+		// the specific profile.
+		c.authCmd.InvokedFromProfileUpdate = true
+		c.authCmd.ProfileUpdateName = profileName
 		c.authCmd.ProfileDefault = makeDefault
 
 		err := c.authCmd.Exec(in, out)
@@ -169,7 +167,7 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 	return nil
 }
 
-func (c *UpdateCommand) updateDefault(profileName string, in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) updateDefault(profileName string, out io.Writer) error {
 	p, ok := profile.SetDefault(profileName, c.Globals.Config.Profiles)
 	if !ok {
 		return errors.New("failed to update the profile's default field")
