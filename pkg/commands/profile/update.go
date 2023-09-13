@@ -9,7 +9,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/commands/authenticate"
+	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -25,7 +25,7 @@ type APIClientFactory func(token, endpoint string, debugMode bool) (api.Interfac
 // UpdateCommand represents a Kingpin command.
 type UpdateCommand struct {
 	cmd.Base
-	authCmd *authenticate.RootCommand
+	authCmd *sso.RootCommand
 
 	automationToken bool
 	clientFactory   APIClientFactory
@@ -33,7 +33,7 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data, authCmd *authenticate.RootCommand) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data, authCmd *sso.RootCommand) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = g
 	c.authCmd = authCmd

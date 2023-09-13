@@ -1,4 +1,4 @@
-package authenticate_test
+package sso_test
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-func TestAuth(t *testing.T) {
+func TestSSO(t *testing.T) {
 	args := testutil.Args
 	type ts struct {
 		testutil.TestScenario
@@ -31,7 +31,7 @@ func TestAuth(t *testing.T) {
 		// User cancels authentication prompt
 		{
 			TestScenario: testutil.TestScenario{
-				Args:      args("authenticate"),
+				Args:      args("sso"),
 				WantError: "user cancelled execution",
 			},
 			Stdin: []string{
@@ -41,7 +41,7 @@ func TestAuth(t *testing.T) {
 		// Error opening web browser
 		{
 			TestScenario: testutil.TestScenario{
-				Args:      args("authenticate"),
+				Args:      args("sso"),
 				WantError: "failed to open web browser",
 			},
 			Opener: func(input string) error {
@@ -54,7 +54,7 @@ func TestAuth(t *testing.T) {
 		// Error processing OAuth flow (error encountered)
 		{
 			TestScenario: testutil.TestScenario{
-				Args:      args("authenticate"),
+				Args:      args("sso"),
 				WantError: "failed to authorize: no authorization code returned",
 			},
 			AuthResult: &auth.AuthorizationResult{
@@ -67,7 +67,7 @@ func TestAuth(t *testing.T) {
 		// Error processing OAuth flow (empty SessionToken field)
 		{
 			TestScenario: testutil.TestScenario{
-				Args:      args("authenticate"),
+				Args:      args("sso"),
 				WantError: "failed to authorize: no session token",
 			},
 			AuthResult: &auth.AuthorizationResult{
@@ -80,7 +80,7 @@ func TestAuth(t *testing.T) {
 		// Success processing OAuth flow
 		{
 			TestScenario: testutil.TestScenario{
-				Args: args("authenticate"),
+				Args: args("sso"),
 				WantOutputs: []string{
 					"We're going to authenticate the 'user' profile.",
 					"We need to open your browser to authenticate you.",
@@ -100,7 +100,7 @@ func TestAuth(t *testing.T) {
 		// Success processing OAuth flow while setting specific profile (test_user)
 		{
 			TestScenario: testutil.TestScenario{
-				Args: args("authenticate test_user"),
+				Args: args("sso test_user"),
 				WantOutputs: []string{
 					"We're going to authenticate the 'test_user' profile.",
 					"We need to open your browser to authenticate you.",

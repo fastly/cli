@@ -1,4 +1,4 @@
-package authenticate
+package sso
 
 import (
 	"errors"
@@ -43,7 +43,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, opener func(string) e
 	c.authServer = authServer
 	c.openBrowser = opener
 	c.Globals = g
-	c.CmdClause = parent.Command("authenticate", "SSO (Single Sign-On) authentication")
+	c.CmdClause = parent.Command("sso", "Single Sign-On authentication")
 	c.CmdClause.Arg("profile", "Profile to authenticate (i.e. create/update a token for)").Short('p').StringVar(&c.profile)
 	return &c
 }

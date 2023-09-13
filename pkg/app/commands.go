@@ -6,7 +6,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
-	"github.com/fastly/cli/pkg/commands/authenticate"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -60,6 +59,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/serviceauth"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
+	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/stats"
 	tlsconfig "github.com/fastly/cli/pkg/commands/tls/config"
 	tlscustom "github.com/fastly/cli/pkg/commands/tls/custom"
@@ -88,6 +88,15 @@ func defineCommands(
 	opts RunOpts,
 ) []cmd.Command {
 	shellcompleteCmdRoot := shellcomplete.NewRootCommand(app, g)
+
+	// NOTE: The order commands are created are the order they appear in 'help'.
+	// But because we need to pass the SSO command into the profile commands, it
+	// means the SSO command must be created _before_ the profile commands. This
+	// messes up the order of the commands in the `--help` output. So to make the
+	// placement of the `sso` subcommand not look too odd we place it at the
+	// beginning of the list of commands.
+	ssoCmdRoot := sso.NewRootCommand(app, g, opts.Opener, opts.AuthServer)
+
 	aclCmdRoot := acl.NewRootCommand(app, g)
 	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, g, m)
 	aclDelete := acl.NewDeleteCommand(aclCmdRoot.CmdClause, g, m)
@@ -100,7 +109,6 @@ func defineCommands(
 	aclEntryDescribe := aclentry.NewDescribeCommand(aclEntryCmdRoot.CmdClause, g, m)
 	aclEntryList := aclentry.NewListCommand(aclEntryCmdRoot.CmdClause, g, m)
 	aclEntryUpdate := aclentry.NewUpdateCommand(aclEntryCmdRoot.CmdClause, g, m)
-	authenticateCmdRoot := authenticate.NewRootCommand(app, g, opts.Opener, opts.AuthServer)
 	authtokenCmdRoot := authtoken.NewRootCommand(app, g)
 	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, g, m)
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, g, m)
@@ -335,12 +343,12 @@ func defineCommands(
 	popCmdRoot := pop.NewRootCommand(app, g)
 	productsCmdRoot := products.NewRootCommand(app, g, m)
 	profileCmdRoot := profile.NewRootCommand(app, g)
-	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g, authenticateCmdRoot)
+	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g, ssoCmdRoot)
 	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, g)
 	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, g)
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, g)
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, g)
-	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g, authenticateCmdRoot)
+	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g, ssoCmdRoot)
 	purgeCmdRoot := purge.NewRootCommand(app, g, m)
 	rateLimitCmdRoot := ratelimit.NewRootCommand(app, g)
 	rateLimitCreate := ratelimit.NewCreateCommand(rateLimitCmdRoot.CmdClause, g, m)
@@ -467,7 +475,6 @@ func defineCommands(
 		aclEntryDescribe,
 		aclEntryList,
 		aclEntryUpdate,
-		authenticateCmdRoot,
 		authtokenCmdRoot,
 		authtokenCreate,
 		authtokenDelete,
@@ -747,6 +754,7 @@ func defineCommands(
 		serviceVersionList,
 		serviceVersionLock,
 		serviceVersionUpdate,
+		ssoCmdRoot,
 		statsCmdRoot,
 		statsHistorical,
 		statsRealtime,

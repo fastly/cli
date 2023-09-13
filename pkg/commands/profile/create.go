@@ -13,7 +13,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/commands/authenticate"
+	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -24,7 +24,7 @@ import (
 // CreateCommand represents a Kingpin command.
 type CreateCommand struct {
 	cmd.Base
-	authCmd *authenticate.RootCommand
+	authCmd *sso.RootCommand
 
 	automationToken bool
 	clientFactory   APIClientFactory
@@ -32,7 +32,7 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a new command registered in the parent.
-func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data, authCmd *authenticate.RootCommand) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data, authCmd *sso.RootCommand) *CreateCommand {
 	var c CreateCommand
 	c.Globals = g
 	c.authCmd = authCmd
