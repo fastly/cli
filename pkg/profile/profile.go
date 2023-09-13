@@ -68,6 +68,22 @@ func SetDefault(name string, p config.Profiles) (config.Profiles, bool) {
 	return p, ok
 }
 
+// SetADefault sets one of the profiles to be the default.
+//
+// NOTE: This is used by the `authenticate` command.
+// The reason it exists is because there could be profiles, but for some reason
+// the user has set them all to be not the default. To avoid errors in the CLI
+// we require at least one profile to be a default.
+func SetADefault(p config.Profiles) (string, config.Profiles) {
+	var profileName string
+	for k, v := range p {
+		profileName = k
+		v.Default = true
+		break
+	}
+	return profileName, p
+}
+
 // Delete removes the named profile from the profile configuration.
 func Delete(name string, p config.Profiles) bool {
 	var ok bool
