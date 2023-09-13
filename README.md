@@ -10,11 +10,12 @@
 </div>
 
 ## Quick links
+
 - [Installation](https://developer.fastly.com/learning/tools/cli#installing)
 - [Shell auto-completion](https://developer.fastly.com/learning/tools/cli#shell-auto-completion)
 - [Configuring](https://developer.fastly.com/learning/tools/cli#configuring)
 - [Commands](https://developer.fastly.com/reference/cli/#command-groups)
-- [Development](DEVELOP.md)
+- [Development](DEVELOPMENT.md)
 - [Testing](TESTING.md)
 - [Documentation](DOCUMENTATION.md)
 
@@ -27,8 +28,6 @@ Refer to [CONTRIBUTING.md](./CONTRIBUTING.md)
 If you encounter any non-security-related bug or unexpected behavior, please [file an issue][bug]
 using the bug report template.
 
-[bug]: https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md
-
 Please also check the [CHANGELOG](./CHANGELOG.md) for any breaking-changes or migration guidance.
 
 ### Security issues
@@ -38,3 +37,5 @@ Please see our [SECURITY.md](SECURITY.md) for guidance on reporting security-rel
 ## License
 
 [Apache 2.0](LICENSE).
+
+[bug]: https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md
