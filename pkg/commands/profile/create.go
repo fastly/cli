@@ -79,9 +79,9 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 	if useOAuthFlow {
-		// IMPORTANT: We need to set profile fields for authenticate command.
+		// IMPORTANT: We need to set profile fields for `sso` command.
 		//
-		// This is so the `authenticate` command will use this information to create
+		// This is so the `sso` command will use this information to create
 		// a new 'non-default' profile.
 		c.authCmd.InvokedFromProfileCreate = true
 		c.authCmd.ProfileCreateName = c.profile

@@ -139,9 +139,9 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 	}
 
 	if useOAuthFlow {
-		// IMPORTANT: We need to set profile fields for authenticate command.
+		// IMPORTANT: We need to set profile fields for `sso` command.
 		//
-		// This is so the `authenticate` command will use this information to update
+		// This is so the `sso` command will use this information to update
 		// the specific profile.
 		c.authCmd.InvokedFromProfileUpdate = true
 		c.authCmd.ProfileUpdateName = profileName

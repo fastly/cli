@@ -70,10 +70,11 @@ func SetDefault(name string, p config.Profiles) (config.Profiles, bool) {
 
 // SetADefault sets one of the profiles to be the default.
 //
-// NOTE: This is used by the `authenticate` command.
-// The reason it exists is because there could be profiles, but for some reason
-// the user has set them all to be not the default. To avoid errors in the CLI
-// we require at least one profile to be a default.
+// NOTE: This is used by the `sso` command.
+// The reason it exists is because there could be profiles that for some reason
+// the user has set them all to not be a default. So to avoid errors in the CLI
+// we require at least one profile to be a default and this function makes it
+// easy to just pick the first profile and generically set it as the default.
 func SetADefault(p config.Profiles) (string, config.Profiles) {
 	var profileName string
 	for k, v := range p {

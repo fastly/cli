@@ -197,7 +197,7 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 // validate if it has expired, and if it has we will attempt to refresh it.
 //
 // If both the access token and the refresh token has expired we will trigger
-// the `fastly authenticate` command to execute.
+// the `fastly sso` command to execute.
 //
 // Either way, the CLI config is updated to reflect the token that was either
 // refreshed or regenerated from the authentication process.
@@ -366,7 +366,7 @@ func checkProfileToken(
 			if !ok {
 				return tokenSource, warningMessage, fsterr.RemediationError{
 					Inner:       fmt.Errorf("failed to update '%s' profile with new token data", profileName),
-					Remediation: "Run `fastly authenticate` to retry.",
+					Remediation: "Run `fastly sso` to retry.",
 				}
 			}
 			g.Config.Profiles = ps
@@ -432,7 +432,7 @@ func ssoAuthentication(
 				}
 			}
 
-			g.SkipAuthPrompt = true // skip the same prompt in `authenticate` command flow
+			g.SkipAuthPrompt = true // skip the same prompt in `sso` command flow
 			err := command.Exec(in, out)
 			if err != nil {
 				return token, tokenSource, fmt.Errorf("failed to authenticate: %w", err)
@@ -571,7 +571,7 @@ func commandRequiresToken(command string) bool {
 	}
 	command = strings.Split(command, " ")[0]
 	switch command {
-	case "authenticate", "config", "profile", "update", "version":
+	case "config", "profile", "sso", "update", "version":
 		return false
 	}
 	return true

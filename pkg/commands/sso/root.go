@@ -51,10 +51,10 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, opener func(string) e
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// We need to prompt the user, so they know we're about to open their web
-	// browser, but we also need to handle the scenario where the `authenticate`
-	// command is invoked indirectly via ../../app/run.go as that package will
-	// have its own (similar) prompt before invoking this command. So to avoid a
-	// double prompt, the app package will set `SkipAuthPrompt: true`.
+	// browser, but we also need to handle the scenario where the `sso` command is
+	// invoked indirectly via ../../app/run.go as that package will have its own
+	// (similar) prompt before invoking this command. So to avoid a double prompt,
+	// the app package will set `SkipAuthPrompt: true`.
 	if !c.Globals.SkipAuthPrompt && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 		profileName, _ := c.identifyProfileAndFlow()
 		msg := fmt.Sprintf("We're going to authenticate the '%s' profile", profileName)
@@ -143,11 +143,11 @@ const (
 	ProfileNone ProfileFlow = iota
 
 	// ProfileUpdate indicates we need to create a new profile using details
-	// passed in either from the `authenticate` or `profile create` command.
+	// passed in either from the `sso` or `profile create` command.
 	ProfileCreate
 
 	// ProfileUpdate indicates we need to update a profile using details passed in
-	// either from the `authenticate` or `profile update` command.
+	// either from the `sso` or `profile update` command.
 	ProfileUpdate
 )
 
@@ -287,7 +287,7 @@ func editProfile(profileName string, makeDefault bool, p config.Profiles, ar aut
 	if !ok {
 		return ps, fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to update '%s' profile with new token data", profileName),
-			Remediation: "Run `fastly authenticate` to retry.",
+			Remediation: "Run `fastly sso` to retry.",
 		}
 	}
 	return ps, nil
