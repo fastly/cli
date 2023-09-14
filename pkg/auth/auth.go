@@ -128,6 +128,39 @@ func (s *Server) HandleCallback() http.HandlerFunc {
 			return
 		}
 
+		azp, ok := claims["azp"]
+		if !ok {
+			s.Result <- AuthorizationResult{
+				Err: errors.New("failed to extract azp from JWT claims"),
+			}
+			return
+		}
+		if azp != ClientID {
+			if !ok {
+				s.Result <- AuthorizationResult{
+					Err: fmt.Errorf("failed to match expected azp: %s", azp),
+				}
+				return
+			}
+		}
+
+		aud, ok := claims["aud"]
+		if !ok {
+			s.Result <- AuthorizationResult{
+				Err: errors.New("failed to extract aud from JWT claims"),
+			}
+			return
+		}
+
+		if aud != s.APIEndpoint {
+			if !ok {
+				s.Result <- AuthorizationResult{
+					Err: fmt.Errorf("failed to match expected aud: %s", s.APIEndpoint),
+				}
+				return
+			}
+		}
+
 		email, ok := claims["email"]
 		if !ok {
 			s.Result <- AuthorizationResult{
