@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
@@ -24,11 +25,12 @@ func TestSSO(t *testing.T) {
 		AuthResult            *auth.AuthorizationResult
 		ConfigFile            *config.File
 		ExpectedConfigProfile *config.Profile
+		HTTPClient            api.HTTPClient
 		Opener                func(input string) error
 		Stdin                 []string
 	}
 	scenarios := []ts{
-		// User cancels authentication prompt
+		// 0. User cancels authentication prompt
 		{
 			TestScenario: testutil.TestScenario{
 				Args:      args("sso"),
@@ -38,7 +40,7 @@ func TestSSO(t *testing.T) {
 				"N", // when prompted to open a web browser to start authentication
 			},
 		},
-		// Error opening web browser
+		// 1. Error opening web browser
 		{
 			TestScenario: testutil.TestScenario{
 				Args:      args("sso"),
@@ -51,7 +53,7 @@ func TestSSO(t *testing.T) {
 				"Y", // when prompted to open a web browser to start authentication
 			},
 		},
-		// Error processing OAuth flow (error encountered)
+		// 2. Error processing OAuth flow (error encountered)
 		{
 			TestScenario: testutil.TestScenario{
 				Args:      args("sso"),
@@ -64,7 +66,7 @@ func TestSSO(t *testing.T) {
 				"Y", // when prompted to open a web browser to start authentication
 			},
 		},
-		// Error processing OAuth flow (empty SessionToken field)
+		// 3. Error processing OAuth flow (empty SessionToken field)
 		{
 			TestScenario: testutil.TestScenario{
 				Args:      args("sso"),
@@ -77,7 +79,7 @@ func TestSSO(t *testing.T) {
 				"Y", // when prompted to open a web browser to start authentication
 			},
 		},
-		// Success processing OAuth flow
+		// 4. Success processing OAuth flow
 		{
 			TestScenario: testutil.TestScenario{
 				Args: args("sso"),
@@ -97,7 +99,7 @@ func TestSSO(t *testing.T) {
 				"Y", // when prompted to open a web browser to start authentication
 			},
 		},
-		// Success processing OAuth flow while setting specific profile (test_user)
+		// 5. Success processing OAuth flow while setting specific profile (test_user)
 		{
 			TestScenario: testutil.TestScenario{
 				Args: args("sso test_user"),
@@ -126,6 +128,97 @@ func TestSSO(t *testing.T) {
 				"Y", // when prompted to open a web browser to start authentication
 			},
 		},
+		// NOTE: The following tests indirectly validate our `app.Run()` logic.
+		// Specifically the processing of the token before invoking the subcommand.
+		// It allows us to check that the `sso` command is invoked when expected.
+		//
+		// 6. Success processing `whoami` command.
+		// We configure a non-SSO token so we can validate the INFO message.
+		// Otherwise no OAuth flow is happening here.
+		{
+			TestScenario: testutil.TestScenario{
+				Args: args("whoami"),
+				WantOutputs: []string{
+					"is not a Fastly SSO (Single Sign-On) generated token",
+					"Alice Programmer <alice@example.com>",
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"user": &config.Profile{
+						Default: true,
+						Email:   "test@example.com",
+						Token:   "mock-token",
+					},
+				},
+			},
+			ExpectedConfigProfile: &config.Profile{
+				Token: "mock-token",
+			},
+			HTTPClient: testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
+		},
+		// 7. Success processing `whoami` command.
+		// We set an SSO token that has expired.
+		// This allows us to validate the output message about expiration.
+		// We don't respond "Y" to prompt to reauthenticate.
+		// But we've mocked the request to succeeds still so it doesn't matter.
+		{
+			TestScenario: testutil.TestScenario{
+				Args: args("whoami"),
+				WantOutputs: []string{
+					"Your access token has expired and so has your refresh token.",
+					"Alice Programmer <alice@example.com>",
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"user": &config.Profile{
+						AccessTokenCreated: time.Now().Add(-(time.Duration(300) * time.Second)).Unix(), // 5 mins ago
+						Default:            true,
+						Email:              "test@example.com",
+						Token:              "mock-token",
+					},
+				},
+			},
+			ExpectedConfigProfile: &config.Profile{
+				Token: "mock-token",
+			},
+			HTTPClient: testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
+		},
+		// 8. Success processing OAuth flow via `whoami` command
+		// We set an SSO token that has expired.
+		// This allows us to validate the output messages.
+		{
+			TestScenario: testutil.TestScenario{
+				Args: args("whoami"),
+				WantOutputs: []string{
+					"Your access token has expired and so has your refresh token.",
+					"Starting a local server to handle the authentication flow.",
+					"Session token (persisted to your local configuration): 123",
+					"Alice Programmer <alice@example.com>",
+				},
+			},
+			AuthResult: &auth.AuthorizationResult{
+				SessionToken: "123",
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"user": &config.Profile{
+						AccessTokenCreated: time.Now().Add(-(time.Duration(300) * time.Second)).Unix(), // 5 mins ago
+						Default:            true,
+						Email:              "test@example.com",
+						Token:              "mock-token",
+					},
+				},
+			},
+			ExpectedConfigProfile: &config.Profile{
+				Token: "123",
+			},
+			HTTPClient: testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
+			Stdin: []string{
+				"Y", // when prompted to open a web browser to start authentication
+			},
+		},
 	}
 
 	for testcaseIdx := range scenarios {
@@ -134,6 +227,10 @@ func TestSSO(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
 			opts.APIClient = mock.APIClient(testcase.API)
+
+			if testcase.HTTPClient != nil {
+				opts.HTTPClient = testcase.HTTPClient
+			}
 
 			if testcase.ConfigFile != nil {
 				opts.ConfigFile = *testcase.ConfigFile

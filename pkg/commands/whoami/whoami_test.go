@@ -2,7 +2,6 @@ package whoami_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/whoami"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/testutil"
@@ -31,13 +29,13 @@ func TestWhoami(t *testing.T) {
 		{
 			name:       "basic response",
 			args:       args("whoami"),
-			client:     verifyClient(basicResponse),
+			client:     testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
 			wantOutput: basicOutput,
 		},
 		{
 			name:       "basic response verbose",
 			args:       args("whoami -v"),
-			client:     verifyClient(basicResponse),
+			client:     testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
 			wantOutput: basicOutputVerbose,
 		},
 		{
@@ -55,7 +53,7 @@ func TestWhoami(t *testing.T) {
 		{
 			name:   "alternative endpoint from flag",
 			args:   args("whoami --endpoint=https://staging.fastly.com -v"),
-			client: verifyClient(basicResponse),
+			client: testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
 				"Fastly API endpoint: https://api.fastly.com",
 				"Fastly API endpoint (via --endpoint): https://staging.fastly.com",
@@ -65,7 +63,7 @@ func TestWhoami(t *testing.T) {
 			name:   "alternative endpoint from environment",
 			args:   args("whoami -v"),
 			env:    config.Environment{Endpoint: "https://alternative.example.com"},
-			client: verifyClient(basicResponse),
+			client: testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
 			wantOutput: strings.ReplaceAll(basicOutputVerbose,
 				"Fastly API endpoint: https://api.fastly.com",
 				fmt.Sprintf("Fastly API endpoint (via %s): https://alternative.example.com", env.Endpoint),
@@ -86,17 +84,6 @@ func TestWhoami(t *testing.T) {
 	}
 }
 
-type verifyClient whoami.VerifyResponse
-
-func (c verifyClient) Do(*http.Request) (*http.Response, error) {
-	rec := httptest.NewRecorder()
-	err := json.NewEncoder(rec).Encode(whoami.VerifyResponse(c))
-	if err != nil {
-		return nil, fmt.Errorf("failed to encode response into json: %w", err)
-	}
-	return rec.Result(), nil
-}
-
 type codeClient struct {
 	code int
 }
@@ -113,29 +100,6 @@ type errorClient struct {
 
 func (c errorClient) Do(*http.Request) (*http.Response, error) {
 	return nil, c.err
-}
-
-var basicResponse = whoami.VerifyResponse{
-	Customer: whoami.Customer{
-		ID:   "abc",
-		Name: "Computer Company",
-	},
-	User: whoami.User{
-		ID:    "123",
-		Name:  "Alice Programmer",
-		Login: "alice@example.com",
-	},
-	Services: map[string]string{
-		"1xxaa": "First service",
-		"2baba": "Second service",
-	},
-	Token: whoami.Token{
-		ID:        "abcdefg",
-		Name:      "Token name",
-		CreatedAt: "2019-01-01T12:00:00Z",
-		// no ExpiresAt
-		Scope: "global",
-	},
 }
 
 var basicOutput = "Alice Programmer <alice@example.com>\n"
