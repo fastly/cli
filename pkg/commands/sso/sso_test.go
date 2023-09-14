@@ -21,11 +21,11 @@ func TestSSO(t *testing.T) {
 	type ts struct {
 		testutil.TestScenario
 
-		AuthResult    *auth.AuthorizationResult
-		ConfigFile    *config.File
-		ConfigProfile *config.Profile
-		Opener        func(input string) error
-		Stdin         []string
+		AuthResult            *auth.AuthorizationResult
+		ConfigFile            *config.File
+		ExpectedConfigProfile *config.Profile
+		Opener                func(input string) error
+		Stdin                 []string
 	}
 	scenarios := []ts{
 		// User cancels authentication prompt
@@ -90,7 +90,7 @@ func TestSSO(t *testing.T) {
 			AuthResult: &auth.AuthorizationResult{
 				SessionToken: "123",
 			},
-			ConfigProfile: &config.Profile{
+			ExpectedConfigProfile: &config.Profile{
 				Token: "123",
 			},
 			Stdin: []string{
@@ -119,7 +119,7 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			ConfigProfile: &config.Profile{
+			ExpectedConfigProfile: &config.Profile{
 				Token: "123",
 			},
 			Stdin: []string{
@@ -202,14 +202,14 @@ func TestSSO(t *testing.T) {
 				err = app.Run(opts)
 			}
 
-			if testcase.ConfigProfile != nil {
+			if testcase.ExpectedConfigProfile != nil {
 				profileName := "user"
 				if len(testcase.Args) > 1 {
 					profileName = testcase.Args[1] // use the `profile` command argument
 				}
 				userProfile := opts.ConfigFile.Profiles[profileName]
-				if userProfile.Token != testcase.ConfigProfile.Token {
-					t.Errorf("want token: %s, got token: %s", testcase.ConfigProfile.Token, userProfile.Token)
+				if userProfile.Token != testcase.ExpectedConfigProfile.Token {
+					t.Errorf("want token: %s, got token: %s", testcase.ExpectedConfigProfile.Token, userProfile.Token)
 				}
 			}
 
