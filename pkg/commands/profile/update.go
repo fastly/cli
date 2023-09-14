@@ -147,6 +147,8 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 		c.authCmd.ProfileUpdateName = profileName
 		c.authCmd.ProfileDefault = makeDefault
 
+		// NOTE: The `sso` command already handles writing config back to disk.
+		// So unlike `c.staticTokenFlow` (below) we don't have to do that here.
 		err := c.authCmd.Exec(in, out)
 		if err != nil {
 			return fmt.Errorf("failed to authenticate: %w", err)
@@ -156,12 +158,11 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 		if err := c.staticTokenFlow(profileName, makeDefault, p, in, out); err != nil {
 			return fmt.Errorf("failed to process the static token flow: %w", err)
 		}
-	}
-
-	// Write the in-memory representation back to disk.
-	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
-		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("error saving config file: %w", err)
+		// Write the in-memory representation back to disk.
+		if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error saving config file: %w", err)
+		}
 	}
 
 	return nil
