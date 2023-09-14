@@ -238,7 +238,7 @@ func GenURL(accountEndpoint, apiEndpoint string, verifier *oidc.S256Verifier) (s
 	return authorizationURL, nil
 }
 
-// GenJWT constructs and calls the token_endpoint path, returning a JWT
+// GetJWT constructs and calls the token_endpoint path, returning a JWT
 // containing the access and refresh tokens and associated TTLs.
 func GetJWT(accountEndpoint, codeVerifier, authorizationCode string) (JWT, error) {
 	path := "/realms/fastly/protocol/openid-connect/token"

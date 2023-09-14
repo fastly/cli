@@ -138,7 +138,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// Source enumerates which profile flow to take.
+// ProfileFlow enumerates which profile flow to take.
 type ProfileFlow uint8
 
 const (
@@ -146,7 +146,7 @@ const (
 	// profiles currently exist.
 	ProfileNone ProfileFlow = iota
 
-	// ProfileUpdate indicates we need to create a new profile using details
+	// ProfileCreate indicates we need to create a new profile using details
 	// passed in either from the `sso` or `profile create` command.
 	ProfileCreate
 

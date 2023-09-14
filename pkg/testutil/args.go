@@ -63,22 +63,27 @@ type MockAuthServer struct {
 	Result chan auth.AuthorizationResult
 }
 
+// GetResult returns the results channel
 func (s MockAuthServer) GetResult() chan auth.AuthorizationResult {
 	return s.Result
 }
 
+// SetAccountEndpoint sets the account endpoint.
 func (s MockAuthServer) SetAccountEndpoint(_ string) {
 	// no-op
 }
 
+// SetEndpoint sets the API endpoint.
 func (s MockAuthServer) SetAPIEndpoint(_ string) {
 	// no-op
 }
 
+// SetVerifier sets the code verifier.
 func (s MockAuthServer) SetVerifier(_ *oidc.S256Verifier) {
 	// no-op
 }
 
+// Start starts a local server for handling authentication processing.
 func (s MockAuthServer) Start() error {
 	return nil // no-op
 }
@@ -120,6 +125,7 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 	}
 }
 
+// TokenProfile generates a mock profile token.
 func TokenProfile() config.Profiles {
 	return config.Profiles{
 		// IMPORTANT: Tests mock the token to prevent runtime panics.
