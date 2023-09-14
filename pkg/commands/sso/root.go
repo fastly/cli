@@ -130,7 +130,11 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("failed to process profile data: %w", err)
 	}
 
-	text.Success(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
+	textFn := text.Success
+	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate {
+		textFn = text.Info
+	}
+	textFn(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
 	return nil
 }
 
