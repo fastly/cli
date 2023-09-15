@@ -38,8 +38,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	token, _ := c.Globals.Token()
 
-	// FIXME: Should we set `Authorization: Bearer <token>`?
 	req.Header.Set("Fastly-Key", token)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", useragent.Name)
 	resp, err := c.Globals.HTTPClient.Do(req)
