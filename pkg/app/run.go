@@ -304,7 +304,7 @@ func checkProfileToken(
 				return tokenSource, warningMessage, nil
 			}
 
-			if !g.Flags.Quiet {
+			if g.Flags.Verbose {
 				text.Info(out, "Your access token has now expired. We will attempt to refresh it")
 			}
 
@@ -344,7 +344,7 @@ func checkProfileToken(
 			refreshTokenCreated := current.RefreshTokenCreated
 			refreshTokenTTL := current.RefreshTokenTTL
 			if current.RefreshToken != updated.RefreshToken {
-				if !g.Flags.Quiet {
+				if g.Flags.Verbose {
 					text.Info(out, "Your refresh token was also updated")
 					text.Break(out)
 				}
