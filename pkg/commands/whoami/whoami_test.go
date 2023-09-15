@@ -42,7 +42,7 @@ func TestWhoami(t *testing.T) {
 			name:      "500 from API",
 			args:      args("whoami"),
 			client:    codeClient{code: http.StatusInternalServerError},
-			wantError: "error from API: 500 Internal Server Error",
+			wantError: "error executing API request: error response",
 		},
 		{
 			name:      "local error",

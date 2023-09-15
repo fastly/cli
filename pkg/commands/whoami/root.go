@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"strconv"
 
 	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/cmd"
@@ -29,6 +30,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
+	debugMode, _ := strconv.ParseBool(c.Globals.Env.DebugMode)
 	token, _ := c.Globals.Token()
 	apiEndpoint, _ := c.Globals.Endpoint()
 	data, err := undocumented.Call(undocumented.CallOptions{
@@ -47,6 +49,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		Method: http.MethodGet,
 		Path:   "/verify",
 		Token:  token,
+		Debug:  debugMode,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

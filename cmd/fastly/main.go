@@ -90,6 +90,7 @@ func main() {
 	result := make(chan auth.AuthorizationResult)
 	router := http.NewServeMux()
 	s := &auth.Server{
+		DebugMode:  e.DebugMode,
 		HTTPClient: httpClient,
 		Result:     result,
 		Router:     router,

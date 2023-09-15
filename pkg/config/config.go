@@ -446,7 +446,9 @@ type Environment struct {
 	Account string
 	// APIToken is the env var we look in for the Fastly API token.
 	APIToken string
-	// Endpoint is the env var we look in for the API endpoint.
+	// DebugMode indicates to the CLI it can display debug information.
+	DebugMode string
+	// Endpoint is the API endpoint to call.
 	Endpoint string
 	// UseSSO indicates if user wants to use SSO/OAuth token flow.
 	// 1: enabled, 0: disabled.
@@ -461,6 +463,7 @@ type Environment struct {
 func (e *Environment) Read(state map[string]string) {
 	e.APIToken = state[env.APIToken]
 	e.Account = state[env.Account]
+	e.DebugMode = state[env.DebugMode]
 	e.Endpoint = state[env.Endpoint]
 	e.Endpoint = state[env.Endpoint]
 	e.UseSSO = state[env.UseSSO]

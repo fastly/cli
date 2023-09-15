@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,6 +48,8 @@ type Server struct {
 	APIEndpoint string
 	// AccountEndpoint is the accounts endpoint.
 	AccountEndpoint string
+	// DebugMode indicates to the CLI it can display debug information.
+	DebugMode string
 	// HTTPClient is a HTTP client used to call the API to exchange the access token for a session token.
 	HTTPClient api.HTTPClient
 	// Result is a channel that reports the result of authorization.
@@ -170,7 +173,7 @@ func (s *Server) HandleCallback() http.HandlerFunc {
 		}
 
 		// Exchange the access token for a Fastly API token.
-		at, err := ExchangeAccessToken(j.AccessToken, s.APIEndpoint, s.HTTPClient)
+		at, err := ExchangeAccessToken(j.AccessToken, s.APIEndpoint, s.HTTPClient, s.DebugMode)
 		if err != nil {
 			s.Result <- AuthorizationResult{
 				Err: fmt.Errorf("failed to exchange access token for an API token: %w", err),
@@ -364,7 +367,8 @@ func RefreshAccessToken(accountEndpoint, refreshToken string) (JWT, error) {
 }
 
 // ExchangeAccessToken exchanges `accessToken` for a Fastly API token.
-func ExchangeAccessToken(accessToken, apiEndpoint string, httpClient api.HTTPClient) (*APIToken, error) {
+func ExchangeAccessToken(accessToken, apiEndpoint string, httpClient api.HTTPClient, debugMode string) (*APIToken, error) {
+	debug, _ := strconv.ParseBool(debugMode)
 	resp, err := undocumented.Call(undocumented.CallOptions{
 		APIEndpoint: apiEndpoint,
 		HTTPClient:  httpClient,
@@ -376,6 +380,7 @@ func ExchangeAccessToken(accessToken, apiEndpoint string, httpClient api.HTTPCli
 		},
 		Method: http.MethodPost,
 		Path:   "/login-enhanced",
+		Debug:  debug,
 	})
 	if err != nil {
 		if apiErr, ok := err.(undocumented.APIError); ok {

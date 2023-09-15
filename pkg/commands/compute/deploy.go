@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -379,7 +380,7 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 	}
 
 	endpoint, _ := c.Globals.Endpoint()
-	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
+	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient, c.Globals.Env.DebugMode)
 
 	return fnActivateTrial, serviceID, err
 }
@@ -495,7 +496,8 @@ func packageSize(path string) (size int64, err error) {
 type Activator func(customerID string) error
 
 // preconfigureActivateTrial activates a free trial on the customer account.
-func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) Activator {
+func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient, debugMode string) Activator {
+	debug, _ := strconv.ParseBool(debugMode)
 	return func(customerID string) error {
 		_, err := undocumented.Call(undocumented.CallOptions{
 			APIEndpoint: endpoint,
@@ -503,6 +505,7 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 			Method:      http.MethodPost,
 			Path:        fmt.Sprintf(undocumented.EdgeComputeTrial, customerID),
 			Token:       token,
+			Debug:       debug,
 		})
 		if err != nil {
 			apiErr, ok := err.(undocumented.APIError)

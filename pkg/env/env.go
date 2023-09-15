@@ -22,6 +22,10 @@ const (
 	// Assigned value should be a boolean 1/0 (enable/disable).
 	UseSSO = "FASTLY_USE_SSO"
 
+	// DebugMode indicates to the CLI it can display debug information.
+	// Set to "true" to enable debug mode.
+	DebugMode = "FASTLY_DEBUG_MODE"
+
 	// Endpoint is the env var we look in for the API endpoint.
 	Endpoint = "FASTLY_API_ENDPOINT"
 

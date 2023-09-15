@@ -324,7 +324,7 @@ func checkProfileToken(
 
 			// Exchange the access token for a Fastly API token
 			apiEndpoint, _ := g.Endpoint()
-			at, err := auth.ExchangeAccessToken(updated.AccessToken, apiEndpoint, g.HTTPClient)
+			at, err := auth.ExchangeAccessToken(updated.AccessToken, apiEndpoint, g.HTTPClient, g.Env.DebugMode)
 			if err != nil {
 				return tokenSource, warningMessage, fmt.Errorf("failed to exchange access token for an API token: %w", err)
 			}
