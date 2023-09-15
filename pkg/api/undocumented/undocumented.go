@@ -61,6 +61,8 @@ type CallOptions struct {
 }
 
 // Call calls the given API endpoint and returns its response data.
+//
+// WARNING: Loads entire response body into memory.
 func Call(opts CallOptions) (data []byte, err error) {
 	host := strings.TrimSuffix(opts.APIEndpoint, "/")
 	endpoint := fmt.Sprintf("%s%s", host, opts.Path)
