@@ -228,12 +228,6 @@ func processToken(commands []cmd.Command, commandName string, m *manifest.Data, 
 
 	checkConfigPermissions(g.Flags.Quiet, commandName, tokenSource, out)
 
-	// Check for a profile override.
-	token, err = profile.Init(token, m, g, in, out)
-	if err != nil {
-		return "", err
-	}
-
 	if g.Verbose() {
 		displayToken(tokenSource, m.File.Profile, *g, out)
 	}
