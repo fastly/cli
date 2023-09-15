@@ -74,8 +74,10 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("failed to update token: %w", err)
 		}
-	} else if makeDefault { // only set default if not updating the token (as updating the token already handles setting the default)
-		err := c.updateDefault(profileName)
+	}
+
+	if makeDefault {
+		err := c.setAsDefault(profileName)
 		if err != nil {
 			return fmt.Errorf("failed to update token: %w", err)
 		}
@@ -168,7 +170,7 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 	return nil
 }
 
-func (c *UpdateCommand) updateDefault(profileName string) error {
+func (c *UpdateCommand) setAsDefault(profileName string) error {
 	p, ok := profile.SetDefault(profileName, c.Globals.Config.Profiles)
 	if !ok {
 		return errors.New("failed to update the profile's default field")
