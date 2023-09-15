@@ -123,7 +123,7 @@ func (s *Server) HandleCallback() http.HandlerFunc {
 			return
 		}
 
-		claims, err := VerifyJWTSignature(s.AccountEndpoint, j.AccessToken)
+		email, at, err := ValidateAndRetrieveAPIToken(s.AccountEndpoint, s.APIEndpoint, j.AccessToken, s.DebugMode, s.HTTPClient)
 		if err != nil {
 			s.Result <- AuthorizationResult{
 				Err: err,
@@ -131,63 +131,58 @@ func (s *Server) HandleCallback() http.HandlerFunc {
 			return
 		}
 
-		azp, ok := claims["azp"]
-		if !ok {
-			s.Result <- AuthorizationResult{
-				Err: errors.New("failed to extract azp from JWT claims"),
-			}
-			return
-		}
-		if azp != ClientID {
-			if !ok {
-				s.Result <- AuthorizationResult{
-					Err: fmt.Errorf("failed to match expected azp: %s", azp),
-				}
-				return
-			}
-		}
-
-		aud, ok := claims["aud"]
-		if !ok {
-			s.Result <- AuthorizationResult{
-				Err: errors.New("failed to extract aud from JWT claims"),
-			}
-			return
-		}
-
-		if aud != s.APIEndpoint {
-			if !ok {
-				s.Result <- AuthorizationResult{
-					Err: fmt.Errorf("failed to match expected aud: %s", s.APIEndpoint),
-				}
-				return
-			}
-		}
-
-		email, ok := claims["email"]
-		if !ok {
-			s.Result <- AuthorizationResult{
-				Err: errors.New("failed to extract email from JWT claims"),
-			}
-			return
-		}
-
-		// Exchange the access token for a Fastly API token.
-		at, err := ExchangeAccessToken(j.AccessToken, s.APIEndpoint, s.HTTPClient, s.DebugMode)
-		if err != nil {
-			s.Result <- AuthorizationResult{
-				Err: fmt.Errorf("failed to exchange access token for an API token: %w", err),
-			}
-			return
-		}
-
 		fmt.Fprint(w, "Authenticated successfully. Please close this page and return to the Fastly CLI in your terminal.")
 		s.Result <- AuthorizationResult{
-			Email:        email.(string),
+			Email:        email,
 			Jwt:          j,
 			SessionToken: at.AccessToken,
 		}
 	}
+}
+
+// ValidateAndRetrieveAPIToken verifies the signature and the claims and
+// exchanges the access token for an API token.
+//
+// NOTE: This function exists as it's called by this package + app.Run()
+func ValidateAndRetrieveAPIToken(accountEndpoint, apiEndpoint, accessToken, debugMode string, httpClient api.HTTPClient) (string, *APIToken, error) {
+	claims, err := VerifyJWTSignature(accountEndpoint, accessToken)
+	if err != nil {
+		return "", nil, err
+	}
+
+	azp, ok := claims["azp"]
+	if !ok {
+		return "", nil, errors.New("failed to extract azp from JWT claims")
+	}
+	if azp != ClientID {
+		if !ok {
+			return "", nil, fmt.Errorf("failed to match expected azp: %s", azp)
+		}
+	}
+
+	aud, ok := claims["aud"]
+	if !ok {
+		return "", nil, errors.New("failed to extract aud from JWT claims")
+	}
+
+	if aud != apiEndpoint {
+		if !ok {
+			return "", nil, fmt.Errorf("failed to match expected aud: %s", apiEndpoint)
+		}
+	}
+
+	email, ok := claims["email"]
+	if !ok {
+		return "", nil, errors.New("failed to extract email from JWT claims")
+	}
+
+	// Exchange the access token for a Fastly API token.
+	at, err := ExchangeAccessToken(accessToken, apiEndpoint, httpClient, debugMode)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to exchange access token for an API token: %w", err)
+	}
+
+	return email.(string), at, nil
 }
 
 // APIToken is returned from the /login-enhanced endpoint.

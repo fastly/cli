@@ -1,7 +1,6 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -301,26 +300,17 @@ func checkProfileToken(
 			if g.Flags.Verbose {
 				text.Info(out, "Your access token has now expired. We will attempt to refresh it")
 			}
+			accountEndpoint, _ := g.Account()
+			apiEndpoint, _ := g.Endpoint()
 
-			account, _ := g.Account()
-			updated, err := auth.RefreshAccessToken(account, profileData.RefreshToken)
+			updatedJWT, err := auth.RefreshAccessToken(accountEndpoint, profileData.RefreshToken)
 			if err != nil {
 				return tokenSource, warningMessage, fmt.Errorf("failed to refresh access token: %w", err)
 			}
-			claims, err := auth.VerifyJWTSignature(account, updated.AccessToken)
-			if err != nil {
-				return tokenSource, warningMessage, fmt.Errorf("failed to verify refreshed JWT: %w", err)
-			}
-			email, ok := claims["email"]
-			if !ok {
-				return tokenSource, warningMessage, errors.New("failed to extract email from JWT claims")
-			}
 
-			// Exchange the access token for a Fastly API token
-			apiEndpoint, _ := g.Endpoint()
-			at, err := auth.ExchangeAccessToken(updated.AccessToken, apiEndpoint, g.HTTPClient, g.Env.DebugMode)
+			email, at, err := auth.ValidateAndRetrieveAPIToken(accountEndpoint, apiEndpoint, updatedJWT.AccessToken, g.Env.DebugMode, g.HTTPClient)
 			if err != nil {
-				return tokenSource, warningMessage, fmt.Errorf("failed to exchange access token for an API token: %w", err)
+				return tokenSource, warningMessage, fmt.Errorf("failed to validate JWT and retrieve API token: %w", err)
 			}
 
 			// NOTE: The refresh token can sometimes be refreshed along with the access token.
@@ -337,21 +327,21 @@ func checkProfileToken(
 			refreshToken := current.RefreshToken
 			refreshTokenCreated := current.RefreshTokenCreated
 			refreshTokenTTL := current.RefreshTokenTTL
-			if current.RefreshToken != updated.RefreshToken {
+			if current.RefreshToken != updatedJWT.RefreshToken {
 				if g.Flags.Verbose {
 					text.Info(out, "Your refresh token was also updated")
 					text.Break(out)
 				}
-				refreshToken = updated.RefreshToken
+				refreshToken = updatedJWT.RefreshToken
 				refreshTokenCreated = now
-				refreshTokenTTL = updated.RefreshExpiresIn
+				refreshTokenTTL = updatedJWT.RefreshExpiresIn
 			}
 
 			ps, ok := profile.Edit(profileName, g.Config.Profiles, func(p *config.Profile) {
-				p.AccessToken = updated.AccessToken
+				p.AccessToken = updatedJWT.AccessToken
 				p.AccessTokenCreated = now
-				p.AccessTokenTTL = updated.ExpiresIn
-				p.Email = email.(string)
+				p.AccessTokenTTL = updatedJWT.ExpiresIn
+				p.Email = email
 				p.RefreshToken = refreshToken
 				p.RefreshTokenCreated = refreshTokenCreated
 				p.RefreshTokenTTL = refreshTokenTTL
