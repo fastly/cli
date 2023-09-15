@@ -102,7 +102,7 @@ func Call(opts CallOptions) (data []byte, err error) {
 
 	if opts.Debug {
 		dump, _ := httputil.DumpResponse(res, true)
-		fmt.Printf("undocumented.Call request dump:\n\n%#v\n\n", string(dump))
+		fmt.Printf("undocumented.Call response dump:\n\n%#v\n\n", string(dump))
 	}
 
 	data, err = io.ReadAll(res.Body)
