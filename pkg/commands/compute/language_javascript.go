@@ -51,6 +51,7 @@ func NewJavaScript(
 
 		autoYes:        globals.Flags.AutoYes,
 		build:          fastlyManifest.Scripts.Build,
+		env:            fastlyManifest.Scripts.EnvVars,
 		errlog:         globals.ErrLog,
 		input:          in,
 		nonInteractive: globals.Flags.NonInteractive,
@@ -70,6 +71,8 @@ type JavaScript struct {
 	autoYes bool
 	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
+	// env is environment variables to be set.
+	env []string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
@@ -115,6 +118,7 @@ func (j *JavaScript) Build() error {
 		autoYes:        j.autoYes,
 		buildFn:        j.Shell.Build,
 		buildScript:    j.build,
+		env:            j.env,
 		errlog:         j.errlog,
 		in:             j.input,
 		nonInteractive: j.nonInteractive,

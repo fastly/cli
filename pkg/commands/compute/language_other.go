@@ -23,6 +23,7 @@ func NewOther(
 
 		autoYes:        globals.Flags.AutoYes,
 		build:          fastlyManifest.Scripts.Build,
+		env:            fastlyManifest.Scripts.EnvVars,
 		errlog:         globals.ErrLog,
 		input:          in,
 		nonInteractive: globals.Flags.NonInteractive,
@@ -42,6 +43,8 @@ type Other struct {
 	autoYes bool
 	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
+	// env is environment variables to be set.
+	env []string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
@@ -68,6 +71,7 @@ func (o Other) Build() error {
 		autoYes:        o.autoYes,
 		buildFn:        o.Shell.Build,
 		buildScript:    o.build,
+		env:            o.env,
 		errlog:         o.errlog,
 		in:             o.input,
 		nonInteractive: o.nonInteractive,
