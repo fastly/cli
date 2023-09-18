@@ -175,19 +175,51 @@ func (bt BuildToolchain) Build() error {
 			}
 		}
 
-		err = bt.spinner.Start()
-		if err != nil {
-			return err
+		// If we're in verbose mode, the build output is shown.
+		// So in that case we don't want to have a spinner as it'll interweave output.
+		// In non-verbose mode we have a spinner running while the build is happening.
+		if !bt.verbose {
+			err = bt.spinner.Start()
+			if err != nil {
+				return err
+			}
+			msg = "Running [scripts.post_build]..."
+			bt.spinner.Message(msg)
 		}
-		msg = "Running [scripts.post_build]..."
-		bt.spinner.Message(msg)
 
 		cmd, args := bt.buildFn(bt.postBuild)
 		err := bt.execCommand(cmd, args, msg)
 		if err != nil {
+			// In verbose mode we'll have the failure status AFTER the error output.
+			// But we can't just call StopFailMessage() without first starting the spinner.
+			if bt.verbose {
+				text.Break(bt.out)
+				err := bt.spinner.Start()
+				if err != nil {
+					return err
+				}
+				bt.spinner.Message(msg + "...")
+
+				bt.spinner.StopFailMessage(msg)
+				spinErr := bt.spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
+			}
 			// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
 			// It is handled internally by fstexec.Streaming.Exec().
 			return bt.handleError(err)
+		}
+
+		// In verbose mode we'll have the failure status AFTER the error output.
+		// But we can't just call StopMessage() without first starting the spinner.
+		if bt.verbose {
+			err = bt.spinner.Start()
+			if err != nil {
+				return err
+			}
+			bt.spinner.Message(msg + "...")
+			text.Break(bt.out)
 		}
 
 		bt.spinner.StopMessage(msg)

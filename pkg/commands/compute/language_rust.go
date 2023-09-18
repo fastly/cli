@@ -12,13 +12,14 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	toml "github.com/pelletier/go-toml"
+
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	toml "github.com/pelletier/go-toml"
 )
 
 // RustDefaultBuildCommand is a build command compiled into the CLI binary so it
@@ -56,6 +57,7 @@ func NewRust(
 		autoYes:        globals.Flags.AutoYes,
 		build:          fastlyManifest.Scripts.Build,
 		config:         globals.Config.Language.Rust,
+		env:            fastlyManifest.Scripts.EnvVars,
 		errlog:         globals.ErrLog,
 		input:          in,
 		nonInteractive: globals.Flags.NonInteractive,
@@ -77,6 +79,8 @@ type Rust struct {
 	build string
 	// config is the Rust specific application configuration.
 	config config.Rust
+	// env is environment variables to be set.
+	env []string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
@@ -121,6 +125,7 @@ func (r *Rust) Build() error {
 		autoYes:                   r.autoYes,
 		buildFn:                   r.Shell.Build,
 		buildScript:               r.build,
+		env:                       r.env,
 		errlog:                    r.errlog,
 		in:                        r.input,
 		internalPostBuildCallback: r.ProcessLocation,
