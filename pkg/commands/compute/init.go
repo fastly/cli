@@ -246,12 +246,21 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 		}
 
-		err = spinner.Start()
-		if err != nil {
-			return err
+		if c.Globals.Flags.Verbose && len(md.File.Scripts.EnvVars) > 0 {
+			text.Description(out, "Environment variables set", strings.Join(md.File.Scripts.EnvVars, " "))
 		}
+
+		// If we're in verbose mode, the command output is shown.
+		// So in that case we don't want to have a spinner as it'll interweave output.
+		// In non-verbose mode we have a spinner running while the command execution is happening.
 		msg := "Running [scripts.post_init]..."
-		spinner.Message(msg)
+		if !c.Globals.Flags.Verbose {
+			err = spinner.Start()
+			if err != nil {
+				return err
+			}
+			spinner.Message(msg)
+		}
 
 		s := Shell{}
 		command, args := s.Build(postInit)
@@ -263,7 +272,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		err := fstexec.Command(fstexec.CommandOpts{
 			Args:           args,
 			Command:        command,
-			Env:            c.manifest.File.Scripts.EnvVars,
+			Env:            md.File.Scripts.EnvVars,
 			ErrLog:         c.Globals.ErrLog,
 			Output:         out,
 			Spinner:        spinner,
@@ -272,7 +281,34 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Verbose:        c.Globals.Flags.Verbose,
 		})
 		if err != nil {
+			// In verbose mode we'll have the failure status AFTER the error output.
+			// But we can't just call StopFailMessage() without first starting the spinner.
+			if c.Globals.Flags.Verbose {
+				text.Break(out)
+				err := spinner.Start()
+				if err != nil {
+					return err
+				}
+				spinner.Message(msg + "...")
+
+				spinner.StopFailMessage(msg)
+				spinErr := spinner.StopFail()
+				if spinErr != nil {
+					return spinErr
+				}
+			}
 			return err
+		}
+
+		// In verbose mode we'll have the failure status AFTER the error output.
+		// But we can't just call StopMessage() without first starting the spinner.
+		if c.Globals.Flags.Verbose {
+			err = spinner.Start()
+			if err != nil {
+				return err
+			}
+			spinner.Message(msg + "...")
+			text.Break(out)
 		}
 
 		spinner.StopMessage(msg)
