@@ -67,7 +67,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	ac := c.Globals.APIClient
 
 	if c.enableProduct != "" && c.disableProduct != "" {
-		return fsterr.ErrInvalidProductEnablementFlagCombo
+		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
 
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {

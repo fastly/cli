@@ -3,6 +3,11 @@ config_version = 4
 [fastly]
 api_endpoint = "https://api.fastly.com"
 
+[telemetry]
+build_info = "disable"
+machine_info = "disable"
+package_info = "disable"
+
 [language]
 [language.go]
 tinygo_constraint = ">= 0.28.1-0"          # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).

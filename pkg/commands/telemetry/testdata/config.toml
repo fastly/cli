@@ -1,0 +1,4 @@
+[telemetry]
+build_info = "disable"
+machine_info = "disable"
+package_info = "disable"

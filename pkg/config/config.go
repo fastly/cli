@@ -62,6 +62,22 @@ type Fastly struct {
 	APIEndpoint string `toml:"api_endpoint"`
 }
 
+// Telemetry represents what telemetry data will be recorded.
+type Telemetry struct {
+	// BuildInfo represents information regarding the time taken for builds and
+	// compilation processes, helping us identify bottlenecks and optimize
+	// performance (enable/disable).
+	BuildInfo string `toml:"build_info"`
+	// MachineInfo represents general, non-identifying system specifications (CPU,
+	// RAM, operating system) to better understand the hardware landscape our CLI
+	// operates in (enable/disable).
+	MachineInfo string `toml:"machine_info"`
+	// PackageInfo represents packages and libraries utilized in your source code,
+	// enabling us to prioritize support for the most commonly used components
+	// (enable/disable).
+	PackageInfo string `toml:"package_info"`
+}
+
 // CLI represents CLI specific configuration.
 type CLI struct {
 	Version string `toml:"version"`
@@ -152,6 +168,7 @@ type File struct {
 	CLI           CLI                 `toml:"cli"`
 	ConfigVersion int                 `toml:"config_version"`
 	Fastly        Fastly              `toml:"fastly"`
+	Telemetry     Telemetry           `toml:"telemetry"`
 	Language      Language            `toml:"language"`
 	Profiles      Profiles            `toml:"profile"`
 	StarterKits   StarterKitLanguages `toml:"starter-kits"`

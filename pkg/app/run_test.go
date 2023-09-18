@@ -86,6 +86,7 @@ service
 service-auth
 service-version
 stats
+telemetry
 tls-config
 tls-custom
 tls-platform
@@ -117,7 +118,7 @@ whoami
 
 			go func() {
 				var buf bytes.Buffer
-				io.Copy(&buf, r)
+				_, _ = io.Copy(&buf, r)
 				outC <- buf.String()
 			}()
 
