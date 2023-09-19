@@ -67,13 +67,14 @@ type CLI struct {
 	Version string `toml:"version"`
 }
 
-// Viceroy represents viceroy specific configuration.
-type Viceroy struct {
-	// LastChecked is when the version of Viceroy was last checked.
+// Versioner represents GitHub assets configuration.
+// e.g. viceroy, wasm-tools etc
+type Versioner struct {
+	// LastChecked is when the asset version was last checked.
 	LastChecked string `toml:"last_checked"`
-	// LatestVersion is the latest Viceroy version at the time it is set.
+	// LatestVersion is the latest asset version at the time it is set.
 	LatestVersion string `toml:"latest_version"`
-	// TTL is how long the CLI waits before considering the version stale.
+	// TTL is how long the CLI waits before considering the asset version stale.
 	TTL string `toml:"ttl"`
 }
 
@@ -154,7 +155,8 @@ type File struct {
 	Language      Language            `toml:"language"`
 	Profiles      Profiles            `toml:"profile"`
 	StarterKits   StarterKitLanguages `toml:"starter-kits"`
-	Viceroy       Viceroy             `toml:"viceroy"`
+	Viceroy       Versioner           `toml:"viceroy"`
+	WasmTools     Versioner           `toml:"wasm-tools"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.

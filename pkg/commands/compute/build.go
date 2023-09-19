@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -14,7 +15,9 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
+	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/github"
@@ -29,6 +32,12 @@ const IgnoreFilePath = ".fastlyignore"
 // CustomPostScriptMessage is the message displayed to a user when there is
 // either a post_init or post_build script defined.
 const CustomPostScriptMessage = "This project has a custom post_%s script defined in the %s manifest"
+
+// ErrWasmtoolsNotFound represents an error finding the binary installed.
+var ErrWasmtoolsNotFound = fsterr.RemediationError{
+	Inner:       fmt.Errorf("wasm-tools not found"),
+	Remediation: fsterr.BugRemediation,
+}
 
 // Flags represents the flags defined for the command.
 type Flags struct {
@@ -106,6 +115,12 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
+
+	wasmtools, err := GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(io.Discard, "%#v\n", wasmtools)
 
 	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
@@ -313,6 +328,188 @@ func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 	}
 
 	return sanitize.BaseName(name), nil
+}
+
+// GetWasmTools returns the path to the wasm-tools binary.
+// If there is no version installed, install the latest version.
+// If there is a version installed, update to the latest version if not already.
+func GetWasmTools(spinner text.Spinner, out io.Writer, wasmtoolsVersioner github.AssetVersioner, g *global.Data) (binPath string, err error) {
+	binPath = filepath.Join(github.InstallDir, wasmtoolsVersioner.BinaryName())
+
+	// NOTE: When checking if wasm-tools is installed we don't use $PATH.
+	//
+	// $PATH is unreliable across OS platforms, but also we actually install
+	// wasm-tools in the same location as the CLI's app config, which means it
+	// wouldn't be found in the $PATH any way. We could pass the path for the app
+	// config into exec.LookPath() but it's simpler to attempt executing the binary.
+	//
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as the variables come from trusted sources.
+	// #nosec
+	// nosemgrep
+	c := exec.Command(binPath, "--version")
+
+	var installedVersion string
+
+	stdoutStderr, err := c.CombinedOutput()
+	if err != nil {
+		g.ErrLog.Add(err)
+	} else {
+		// Check the version output has the expected format: `wasm-tools 1.0.40`
+		installedVersion = strings.TrimSpace(string(stdoutStderr))
+		segs := strings.Split(installedVersion, " ")
+		if len(segs) < 2 {
+			return binPath, ErrWasmtoolsNotFound
+		}
+		installedVersion = segs[1]
+	}
+
+	if installedVersion == "" {
+		if g.Verbose() {
+			text.Info(out, "wasm-tools is not already installed, so we will install the latest version.")
+			text.Break(out)
+		}
+		err = installLatestWasmtools(binPath, spinner, wasmtoolsVersioner)
+		if err != nil {
+			g.ErrLog.Add(err)
+			return binPath, err
+		}
+
+		latestVersion, err := wasmtoolsVersioner.LatestVersion()
+		if err != nil {
+			return binPath, fmt.Errorf("failed to retrieve wasm-tools latest version: %w", err)
+		}
+
+		g.Config.WasmTools.LatestVersion = latestVersion
+		g.Config.WasmTools.LastChecked = time.Now().Format(time.RFC3339)
+
+		err = g.Config.Write(g.ConfigPath)
+		if err != nil {
+			return binPath, err
+		}
+	}
+
+	if installedVersion != "" {
+		err = updateWasmtools(binPath, spinner, out, wasmtoolsVersioner, g.Verbose(), installedVersion, g.Config.WasmTools, g.Config, g.ConfigPath)
+		if err != nil {
+			g.ErrLog.Add(err)
+			return binPath, err
+		}
+	}
+
+	err = github.SetBinPerms(binPath)
+	if err != nil {
+		g.ErrLog.Add(err)
+		return binPath, err
+	}
+
+	return binPath, nil
+}
+
+func installLatestWasmtools(binPath string, spinner text.Spinner, wasmtoolsVersioner github.AssetVersioner) error {
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Fetching latest wasm-tools release"
+	spinner.Message(msg + "...")
+
+	tmpBin, err := wasmtoolsVersioner.DownloadLatest()
+	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+		return fmt.Errorf("failed to download latest wasm-tools release: %w", err)
+	}
+	defer os.RemoveAll(tmpBin)
+
+	if err := os.Rename(tmpBin, binPath); err != nil {
+		if err := filesystem.CopyFile(tmpBin, binPath); err != nil {
+			spinner.StopFailMessage(msg)
+			spinErr := spinner.StopFail()
+			if spinErr != nil {
+				return spinErr
+			}
+			return fmt.Errorf("failed to move wasm-tools binary to accessible location: %w", err)
+		}
+	}
+
+	spinner.StopMessage(msg)
+	return spinner.Stop()
+}
+
+func updateWasmtools(
+	binPath string,
+	spinner text.Spinner,
+	out io.Writer,
+	wasmtoolsVersioner github.AssetVersioner,
+	verbose bool,
+	installedVersion string,
+	wasmtoolsConfig config.Versioner,
+	cfg config.File,
+	cfgPath string,
+) error {
+	stale := wasmtoolsConfig.LastChecked != "" && wasmtoolsConfig.LatestVersion != "" && check.Stale(wasmtoolsConfig.LastChecked, wasmtoolsConfig.TTL)
+	if !stale {
+		if verbose {
+			text.Info(out, "wasm-tools is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired.")
+			text.Break(out)
+		}
+		return nil
+	}
+
+	err := spinner.Start()
+	if err != nil {
+		return err
+	}
+	msg := "Checking latest wasm-tools release"
+	spinner.Message(msg + "...")
+
+	latestVersion, err := wasmtoolsVersioner.LatestVersion()
+	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return spinErr
+		}
+
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("error fetching latest version: %w", err),
+			Remediation: fsterr.NetworkRemediation,
+		}
+	}
+
+	spinner.StopMessage(msg)
+	err = spinner.Stop()
+	if err != nil {
+		return err
+	}
+
+	wasmtoolsConfig.LatestVersion = latestVersion
+	wasmtoolsConfig.LastChecked = time.Now().Format(time.RFC3339)
+
+	// Before attempting to write the config data back to disk we need to
+	// ensure we reassign the modified struct which is a copy (not reference).
+	cfg.WasmTools = wasmtoolsConfig
+
+	err = cfg.Write(cfgPath)
+	if err != nil {
+		return err
+	}
+
+	if verbose {
+		text.Info(out, "The CLI config (`fastly config`) has been updated with the latest wasm-tools version: %s", latestVersion)
+		text.Break(out)
+	}
+
+	if installedVersion == latestVersion {
+		return nil
+	}
+
+	return installLatestWasmtools(binPath, spinner, wasmtoolsVersioner)
 }
 
 // identifyToolchain determines the programming language.

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -46,7 +47,9 @@ func New(opts Opts) *Asset {
 
 	return &Asset{
 		binary:           binary,
+		external:         opts.External,
 		httpClient:       opts.HTTPClient,
+		nested:           opts.Nested,
 		org:              opts.Org,
 		repo:             opts.Repo,
 		versionRequested: opts.Version,
@@ -57,8 +60,15 @@ func New(opts Opts) *Asset {
 type Opts struct {
 	// Binary is the name of the executable binary.
 	Binary string
+	// External indicates the repository is a non-Fastly repo.
+	// This means we need a custom metadata fetcher (i.e. dont use metadataURL).
+	External bool
 	// HTTPClient is able to make HTTP requests.
 	HTTPClient api.HTTPClient
+	// Nested indicates if the binary is at the root of the archive or not.
+	// e.g. wasm-tools archive contains a folder which contains the binary.
+	// Where as Viceroy and CLI archives directly contain the binary.
+	Nested bool
 	// Org is a GitHub organisation.
 	Org string
 	// Repo is a GitHub repository.
@@ -73,8 +83,12 @@ type Opts struct {
 type Asset struct {
 	// binary is the name of the executable binary.
 	binary string
+	// external indicates the repository is a non-Fastly repo.
+	external bool
 	// httpClient is able to make HTTP requests.
 	httpClient api.HTTPClient
+	// nested indicates if the binary is at the root of the archive or not.
+	nested bool
 	// org is a GitHub organisation.
 	org string
 	// repo is a GitHub repository.
@@ -146,12 +160,13 @@ func (g *Asset) Download(endpoint string) (bin string, err error) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	archive, err := createArchive(filepath.Base(endpoint), tmpDir, res.Body)
+	assetBase := filepath.Base(endpoint)
+	archive, err := createArchive(assetBase, tmpDir, res.Body)
 	if err != nil {
 		return "", err
 	}
 
-	extractedBinary, err := extractBinary(archive, g.binary, tmpDir)
+	extractedBinary, err := extractBinary(archive, g.binary, tmpDir, assetBase, g.nested)
 	if err != nil {
 		return "", err
 	}
@@ -206,8 +221,11 @@ func (g *Asset) SetRequestedVersion(version string) {
 }
 
 // metadata acquires GitHub metadata.
-func (g *Asset) metadata() (m Metadata, err error) {
+func (g *Asset) metadata() (m DevHubMetadata, err error) {
 	endpoint := fmt.Sprintf(metadataURL, g.repo, runtime.GOOS, runtime.GOARCH)
+	if g.external {
+		endpoint = fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", g.org, g.repo)
+	}
 
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -231,6 +249,10 @@ func (g *Asset) metadata() (m Metadata, err error) {
 		return m, fmt.Errorf("failed to read GitHub's metadata response: %w", err)
 	}
 
+	if g.external {
+		return g.parseExternalMetadata(data)
+	}
+
 	err = json.Unmarshal(data, &m)
 	if err != nil {
 		return m, fmt.Errorf("failed to parse GitHub's metadata: %w", err)
@@ -239,8 +261,8 @@ func (g *Asset) metadata() (m Metadata, err error) {
 	return m, nil
 }
 
-// Metadata represents the DevHub API response for software metadata.
-type Metadata struct {
+// DevHubMetadata represents the DevHub API response for software metadata.
+type DevHubMetadata struct {
 	// URL is the endpoint for downloading the release asset.
 	URL string `json:"url"`
 	// Version is the release version of the asset (e.g. 10.1.0).
@@ -274,7 +296,7 @@ func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, e
 	// G304 (CWE-22): Potential file inclusion via variable
 	//
 	// Disabling as the inputs need to be dynamically determined.
-	/* #nosec */
+	// #nosec
 	archive, err := os.Create(filepath.Join(tmpDir, assetBase))
 	if err != nil {
 		return "", fmt.Errorf("failed to create a temporary file: %w", err)
@@ -292,13 +314,29 @@ func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, e
 	return archive.Name(), nil
 }
 
-// extractBinary extracts the executable binary (e.g. fastly or viceroy) from
-// the specified archive file, modifies its permissions and returns the path.
-func extractBinary(archive, filename, dst string) (bin string, err error) {
-	if err := archiver.Extract(archive, filename, dst); err != nil {
+// extractBinary extracts the executable binary (e.g. fastly, viceroy,
+// wasm-tools) from the specified archive file, modifies its permissions and
+// returns the path.
+//
+// NOTE: wasm-tools binary is within a nested directory.
+// So we have to account for that by extracting the directory from the archive
+// and then correct the path before attempting to modify the permissions.
+func extractBinary(archive, binaryName, dst, assetBase string, nested bool) (bin string, err error) {
+	extractPath := binaryName
+	if nested {
+		// e.g. extract the nested directory "wasm-tools-1.0.42-aarch64-macos"
+		// which itself contains the `wasm-tools` binary
+		extractPath = strings.TrimSuffix(assetBase, ".tar.gz")
+	}
+	if err := archiver.Extract(archive, extractPath, dst); err != nil {
 		return "", fmt.Errorf("failed to extract binary: %w", err)
 	}
-	extractedBinary := filepath.Join(dst, filename)
+
+	extractedBinary := filepath.Join(dst, binaryName)
+	if nested {
+		// e.g. reference the binary from within the nested directory
+		extractedBinary = filepath.Join(dst, extractPath, binaryName)
+	}
 
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
 	// gosec flagged this:
@@ -338,7 +376,7 @@ func moveExtractedBinary(binName, oldpath string) (path string, err error) {
 	return tmpBin.Name(), nil
 }
 
-// SetBinPerms ensures 0777 perms are set on the Viceroy binary.
+// SetBinPerms ensures 0777 perms are set on the binary.
 func SetBinPerms(bin string) error {
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
 	// gosec flagged this:
@@ -350,4 +388,75 @@ func SetBinPerms(bin string) error {
 		return fmt.Errorf("error setting executable permissions for %s: %w", bin, err)
 	}
 	return nil
+}
+
+// RawAsset represents a GitHub release asset.
+type RawAsset struct {
+	// BrowserDownloadURL is a fully qualified URL to download the release asset.
+	BrowserDownloadURL string `json:"browser_download_url"`
+}
+
+// Metadata represents the GitHub API metadata response for releases.
+type Metadata struct {
+	// Name is the release name.
+	Name string `json:"name"`
+	// Assets a list of all available assets within the release.
+	Assets []RawAsset `json:"assets"`
+
+	org, repo, binary string
+}
+
+// Version parses a semver from the name field.
+func (m Metadata) Version() string {
+	r := regexp.MustCompile(`[0-9]+\.[0-9]+\.[0-9]+(-(.*))?`)
+	return r.FindString(m.Name)
+}
+
+// URL filters the assets for a platform correct asset.
+//
+// NOTE: This only works with wasm-tools naming conventions.
+// If we add more tools to download in future then we can abstract as necessary.
+func (m Metadata) URL() string {
+	platform := runtime.GOOS
+	if platform == "darwin" {
+		platform = "macos"
+	}
+
+	arch := runtime.GOARCH
+	if arch == "arm64" {
+		arch = "aarch64"
+	}
+
+	for _, a := range m.Assets {
+		version := m.Version()
+		pattern := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s-%s/%s-%s-%s-%s.tar.gz", m.org, m.repo, m.binary, version, m.binary, version, arch, platform)
+		if matched, _ := regexp.MatchString(pattern, a.BrowserDownloadURL); matched {
+			return a.BrowserDownloadURL
+		}
+	}
+
+	return ""
+}
+
+// parseExternalMetadata takes the raw GitHub metadata and coerces it into a
+// DevHub specific metadata format.
+func (g *Asset) parseExternalMetadata(data []byte) (DevHubMetadata, error) {
+	var (
+		dhm DevHubMetadata
+		m   Metadata
+	)
+
+	err := json.Unmarshal(data, &m)
+	if err != nil {
+		return dhm, fmt.Errorf("failed to parse GitHub's metadata: %w", err)
+	}
+
+	m.org = g.org
+	m.repo = g.repo
+	m.binary = g.binary
+
+	dhm.Version = m.Version()
+	dhm.URL = m.URL()
+
+	return dhm, nil
 }

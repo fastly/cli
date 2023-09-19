@@ -116,6 +116,8 @@ func main() {
 				Org:        "bytecodealliance",
 				Repo:       "wasm-tools",
 				Binary:     "wasm-tools",
+				External:   true,
+				Nested:     true,
 			}),
 		},
 	})
