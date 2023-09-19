@@ -337,3 +337,17 @@ func moveExtractedBinary(binName, oldpath string) (path string, err error) {
 
 	return tmpBin.Name(), nil
 }
+
+// SetBinPerms ensures 0777 perms are set on the Viceroy binary.
+func SetBinPerms(bin string) error {
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as the file was not executable without it and we need all users
+	// to be able to execute the binary.
+	// #nosec
+	err := os.Chmod(bin, 0o777)
+	if err != nil {
+		return fmt.Errorf("error setting executable permissions for %s: %w", bin, err)
+	}
+	return nil
+}

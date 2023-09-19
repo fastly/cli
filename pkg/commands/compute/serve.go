@@ -368,7 +368,7 @@ func GetViceroy(
 		return bin, err
 	}
 
-	err = setBinPerms(bin)
+	err = github.SetBinPerms(bin)
 	if err != nil {
 		g.ErrLog.Add(err)
 		return bin, err
@@ -529,20 +529,6 @@ func installViceroy(
 
 	spinner.StopMessage(msg)
 	return spinner.Stop()
-}
-
-// setBinPerms ensures 0777 perms are set on the Viceroy binary.
-func setBinPerms(bin string) error {
-	// G302 (CWE-276): Expect file permissions to be 0600 or less
-	// gosec flagged this:
-	// Disabling as the file was not executable without it and we need all users
-	// to be able to execute the binary.
-	/* #nosec */
-	err := os.Chmod(bin, 0o777)
-	if err != nil {
-		return fmt.Errorf("error setting executable permissions on Viceroy binary: %w", err)
-	}
-	return nil
 }
 
 // localOpts represents the inputs for `local()`.
