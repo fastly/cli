@@ -111,6 +111,12 @@ func main() {
 				Binary:     "viceroy",
 				Version:    md.File.LocalServer.ViceroyVersion,
 			}),
+			WasmTools: github.New(github.Opts{
+				HTTPClient: httpClient,
+				Org:        "bytecodealliance",
+				Repo:       "wasm-tools",
+				Binary:     "wasm-tools",
+			}),
 		},
 	})
 

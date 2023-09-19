@@ -23,7 +23,7 @@ func TestPublishFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &g)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g, nil)
 	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g)
 	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd)
 
@@ -68,7 +68,7 @@ func TestServeFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
 	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd, versioner)
 
 	buildFlags := getFlags(bcmd.CmdClause)
@@ -120,7 +120,7 @@ func TestHashsumFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
 	hcmd := compute.NewHashsumCommand(rcmd.CmdClause, &cfg, bcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
@@ -164,7 +164,7 @@ func TestHashfilesFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
 	hcmd := compute.NewHashFilesCommand(rcmd.CmdClause, &cfg, bcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)

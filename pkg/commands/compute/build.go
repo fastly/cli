@@ -17,6 +17,7 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
@@ -42,6 +43,7 @@ type Flags struct {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	cmd.Base
+	wasmtoolsVersioner github.AssetVersioner
 
 	// NOTE: these are public so that the "serve" and "publish" composite
 	// commands can set the values appropriately before calling Exec().
@@ -49,9 +51,11 @@ type BuildCommand struct {
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent cmd.Registerer, g *global.Data) *BuildCommand {
+func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner github.AssetVersioner) *BuildCommand {
 	var c BuildCommand
 	c.Globals = g
+	c.wasmtoolsVersioner = wasmtoolsVersioner
+
 	c.CmdClause = parent.Command("build", "Build a Compute package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:

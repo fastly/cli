@@ -23,6 +23,7 @@ import (
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
@@ -39,22 +40,25 @@ var (
 type InitCommand struct {
 	cmd.Base
 
-	branch    string
-	dir       string
-	cloneFrom string
-	language  string
-	manifest  manifest.Data
-	tag       string
+	branch             string
+	dir                string
+	cloneFrom          string
+	language           string
+	manifest           manifest.Data
+	tag                string
+	wasmtoolsVersioner github.AssetVersioner
 }
 
 // Languages is a list of supported language options.
 var Languages = []string{"rust", "javascript", "go", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *InitCommand {
+func NewInitCommand(parent cmd.Registerer, g *global.Data, m manifest.Data, wasmtoolsVersioner github.AssetVersioner) *InitCommand {
 	var c InitCommand
 	c.Globals = g
 	c.manifest = m
+	c.wasmtoolsVersioner = wasmtoolsVersioner
+
 	c.CmdClause = parent.Command("init", "Initialize a new Compute package locally")
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)

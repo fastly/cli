@@ -42,8 +42,8 @@ var viceroyError = fsterr.RemediationError{
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
-	build *BuildCommand
-	av    github.AssetVersioner
+	build            *BuildCommand
+	viceroyVersioner github.AssetVersioner
 
 	// Build fields
 	dir         cmd.OptionalString
@@ -67,11 +67,11 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, av github.AssetVersioner) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, viceroyVersioner github.AssetVersioner) *ServeCommand {
 	var c ServeCommand
 
 	c.build = build
-	c.av = av
+	c.viceroyVersioner = viceroyVersioner
 
 	c.Globals = g
 	c.CmdClause = parent.Command("serve", "Build and run a Compute package locally")
@@ -163,13 +163,13 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return fmt.Errorf("failed to parse manifest '%s': %w", manifestPath, err)
 		}
-		c.av.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
+		c.viceroyVersioner.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
 		if c.Globals.Verbose() {
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
 		}
 	}
 
-	bin, err := GetViceroy(spinner, out, c.av, c.Globals, manifestPath, c.viceroyBinPath, c.forceCheckViceroyLatest)
+	bin, err := GetViceroy(spinner, out, c.viceroyVersioner, c.Globals, manifestPath, c.viceroyBinPath, c.forceCheckViceroyLatest)
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 func GetViceroy(
 	spinner text.Spinner,
 	out io.Writer,
-	av github.AssetVersioner,
+	viceroyVersioner github.AssetVersioner,
 	g *global.Data,
 	manifestPath, viceroyBinPath string,
 	forceCheckViceroyLatest bool,
@@ -317,7 +317,7 @@ func GetViceroy(
 		return filepath.Abs(path)
 	}
 
-	bin = filepath.Join(InstallDir, av.BinaryName())
+	bin = filepath.Join(InstallDir, viceroyVersioner.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
@@ -351,7 +351,7 @@ func GetViceroy(
 	// If the user hasn't explicitly set a Viceroy version, then we'll use
 	// whatever the latest version is.
 	versionToInstall := "latest"
-	if v := av.RequestedVersion(); v != "" {
+	if v := viceroyVersioner.RequestedVersion(); v != "" {
 		versionToInstall = v
 
 		if _, err := semver.Parse(versionToInstall); err != nil {
@@ -362,7 +362,7 @@ func GetViceroy(
 		}
 	}
 
-	err = installViceroy(installedVersion, versionToInstall, manifestPath, forceCheckViceroyLatest, spinner, av, bin, g)
+	err = installViceroy(installedVersion, versionToInstall, manifestPath, forceCheckViceroyLatest, spinner, viceroyVersioner, bin, g)
 	if err != nil {
 		g.ErrLog.Add(err)
 		return bin, err
