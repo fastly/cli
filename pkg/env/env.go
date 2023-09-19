@@ -26,6 +26,20 @@ const (
 	CustomerID = "FASTLY_CUSTOMER_ID"
 )
 
+// Parse transforms the local environment data structure into a map type.
+func Parse(environ []string) map[string]string {
+	env := map[string]string{}
+	for _, kv := range environ {
+		toks := strings.SplitN(kv, "=", 2)
+		if len(toks) != 2 {
+			continue
+		}
+		k, v := toks[0], toks[1]
+		env[k] = v
+	}
+	return env
+}
+
 // Vars returns a slice of environment variables appropriate to platform.
 // *nix: $HOME, $USER, ...
 // Windows: %HOME%, %USER%, ...
