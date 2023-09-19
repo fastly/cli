@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -63,7 +64,7 @@ func TestGetViceroy(t *testing.T) {
 	}
 	defer os.Chdir(wd)
 
-	compute.InstallDir = installDir
+	github.InstallDir = installDir
 
 	var out bytes.Buffer
 

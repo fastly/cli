@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -49,10 +48,10 @@ func TestVersion(t *testing.T) {
 	}
 
 	// Override the InstallDir where the viceroy binary is looked up.
-	orgInstallDir := compute.InstallDir
-	compute.InstallDir = rootdir
+	orgInstallDir := github.InstallDir
+	github.InstallDir = rootdir
 	defer func() {
-		compute.InstallDir = orgInstallDir
+		github.InstallDir = orgInstallDir
 	}()
 
 	// Before running the test, chdir into the temp environment.

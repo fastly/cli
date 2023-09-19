@@ -10,7 +10,6 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
@@ -44,7 +43,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", revision.AppVersion, revision.GitCommit)
 	fmt.Fprintf(out, "Built with %s\n", revision.GoVersion)
 
-	viceroy := filepath.Join(compute.InstallDir, c.viceroyVersioner.BinaryName())
+	viceroy := filepath.Join(github.InstallDir, c.viceroyVersioner.BinaryName())
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as we lookup the binary in a trusted location. For this to be a

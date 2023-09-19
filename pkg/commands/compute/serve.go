@@ -317,7 +317,7 @@ func GetViceroy(
 		return filepath.Abs(path)
 	}
 
-	bin = filepath.Join(InstallDir, viceroyVersioner.BinaryName())
+	bin = filepath.Join(github.InstallDir, viceroyVersioner.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
@@ -385,22 +385,6 @@ func checkViceroyEnvVar(value string) bool {
 	}
 	return false
 }
-
-// InstallDir represents the directory where the Viceroy binary should be
-// installed.
-//
-// NOTE: This is a package level variable as it makes testing the behaviour of
-// the package easier because the test code can replace the value when running
-// the test suite.
-var InstallDir = func() string {
-	if dir, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(dir, "fastly")
-	}
-	if dir, err := os.UserHomeDir(); err == nil {
-		return filepath.Join(dir, ".fastly")
-	}
-	panic("unable to deduce user config dir or user home dir")
-}()
 
 // installViceroy downloads the binary from GitHub.
 //

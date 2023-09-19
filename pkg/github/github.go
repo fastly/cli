@@ -22,6 +22,21 @@ const (
 	metadataURL = "https://developer.fastly.com/api/internal/releases/meta/%s/%s/%s"
 )
 
+// InstallDir represents the directory where the assets should be installed.
+//
+// NOTE: This is a package level variable as it makes testing the behaviour of
+// the package easier because the test code can replace the value when running
+// the test suite.
+var InstallDir = func() string {
+	if dir, err := os.UserConfigDir(); err == nil {
+		return filepath.Join(dir, "fastly")
+	}
+	if dir, err := os.UserHomeDir(); err == nil {
+		return filepath.Join(dir, ".fastly")
+	}
+	panic("unable to deduce user config dir or user home dir")
+}()
+
 // New returns a usable asset.
 func New(opts Opts) *Asset {
 	binary := opts.Binary
