@@ -115,7 +115,7 @@ func defineCommands(
 	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, g)
 	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, g, computeBuild)
 	computeHashsum := compute.NewHashsumCommand(computeCmdRoot.CmdClause, g, computeBuild)
-	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, g, m, opts.Versioners.WasmTools)
+	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, g, m)
 	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, g, m)
 	computePublish := compute.NewPublishCommand(computeCmdRoot.CmdClause, g, computeBuild, computeDeploy)
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, g, computeBuild, opts.Versioners.Viceroy)
