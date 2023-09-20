@@ -24,6 +24,7 @@ func NewOther(
 
 		autoYes:          globals.Flags.AutoYes,
 		build:            fastlyManifest.Scripts.Build,
+		defaultBuild:     true, // technically there is no default build for 'other'
 		env:              fastlyManifest.Scripts.EnvVars,
 		errlog:           globals.ErrLog,
 		input:            in,
@@ -45,6 +46,8 @@ type Other struct {
 	autoYes bool
 	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
+	// defaultBuild indicates if the default build script was used.
+	defaultBuild bool
 	// env is environment variables to be set.
 	env []string
 	// errlog is an abstraction for recording errors to disk.
@@ -66,6 +69,17 @@ type Other struct {
 	timeout int
 	// verbose indicates if the user set --verbose
 	verbose bool
+}
+
+// DefaultBuildScript indicates if a custom build script was used.
+func (o Other) DefaultBuildScript() bool {
+	return o.defaultBuild
+}
+
+// Dependencies returns all dependencies used by the project.
+func (o Other) Dependencies() map[string]string {
+	deps := make(map[string]string)
+	return deps
 }
 
 // Build implements the Toolchain interface and attempts to compile the package

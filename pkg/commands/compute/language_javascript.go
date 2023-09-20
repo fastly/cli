@@ -73,6 +73,8 @@ type JavaScript struct {
 	autoYes bool
 	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
+	// defaultBuild indicates if the default build script was used.
+	defaultBuild bool
 	// env is environment variables to be set.
 	env []string
 	// errlog is an abstraction for recording errors to disk.
@@ -96,13 +98,22 @@ type JavaScript struct {
 	verbose bool
 }
 
+// DefaultBuildScript indicates if a custom build script was used.
+func (j *JavaScript) DefaultBuildScript() bool {
+	return j.defaultBuild
+}
+
+// Dependencies returns all dependencies used by the project.
+func (j *JavaScript) Dependencies() map[string]string {
+	deps := make(map[string]string)
+	return deps
+}
+
 // Build compiles the user's source code into a Wasm binary.
 func (j *JavaScript) Build() error {
-	var noBuildScript bool
 	if j.build == "" {
-		noBuildScript = true
-
 		j.build = JsDefaultBuildCommand
+		j.defaultBuild = true
 
 		usesWebpack, err := j.checkForWebpack()
 		if err != nil {
@@ -113,7 +124,7 @@ func (j *JavaScript) Build() error {
 		}
 	}
 
-	if noBuildScript && j.verbose {
+	if j.defaultBuild && j.verbose {
 		text.Info(j.output, "No [scripts.build] found in %s. The following default build command for JavaScript will be used: `%s`\n\n", j.manifestFilename, j.build)
 	}
 

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -180,19 +181,40 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	var memBefore, memAfter runtime.MemStats
+	runtime.ReadMemStats(&memBefore)
+	startTime := time.Now()
 	if err := language.Build(); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": language.Name,
 		})
 		return err
 	}
+	endTime := time.Now()
+	runtime.ReadMemStats(&memAfter)
 
 	args := []string{
 		"metadata", "add", "bin/main.wasm",
-		"--language=whatever",
-		"--processed-by=FOO=BAR",
-		"--sdk=BEEP=BOOP",
+		"--language=" + language.Name,
+		fmt.Sprintf("--processed-by=RUNTIME_OS=%s", runtime.GOOS),
+		fmt.Sprintf("--processed-by=RUNTIME_ARCH=%s", runtime.GOARCH),
+		fmt.Sprintf("--processed-by=RUNTIME_COMPILER=%s", runtime.Compiler),
+		fmt.Sprintf("--processed-by=RUNTIME_MEM_USAGE_BEFORE=%d", memBefore.HeapAlloc),
+		fmt.Sprintf("--processed-by=RUNTIME_MEM_USAGE_AFTER=%d", memAfter.HeapAlloc),
+		fmt.Sprintf("--processed-by=RUNTIME_NUM_CPU=%d", runtime.NumCPU()),
+		fmt.Sprintf("--processed-by=RUNTIME_GO_VERSION=%s", runtime.Version()),
+		fmt.Sprintf("--processed-by=RUNTIME_BUILD_TIME=%s", endTime.Sub(startTime)),
+		fmt.Sprintf("--processed-by=SCRIPTS_DEFAULTBUILD=%t", language.DefaultBuildScript()),
+		fmt.Sprintf("--processed-by=SCRIPTS_BUILD=%s", c.Manifest.File.Scripts.Build),
+		fmt.Sprintf("--processed-by=SCRIPTS_ENVVARS=%s", c.Manifest.File.Scripts.EnvVars),
+		fmt.Sprintf("--processed-by=SCRIPTS_POSTINIT=%s", c.Manifest.File.Scripts.PostInit),
+		fmt.Sprintf("--processed-by=SCRIPTS_POSTBUILD=%s", c.Manifest.File.Scripts.PostBuild),
 	}
+
+	for k, v := range language.Dependencies() {
+		args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
+	}
+
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
 	// Disabling as we trust the source of the variable.
