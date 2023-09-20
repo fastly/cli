@@ -235,6 +235,7 @@ func (g *Asset) metadata() (m DevHubMetadata, err error) {
 	if g.httpClient == nil {
 		g.httpClient = http.DefaultClient
 	}
+	fmt.Printf("g.httpClient: %#v\n", g.httpClient)
 	res, err := g.httpClient.Do(req)
 	if err != nil {
 		return m, fmt.Errorf("failed to request GitHub metadata: %w", err)
