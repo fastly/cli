@@ -24,6 +24,10 @@ const (
 
 	// CustomerID is the env var we look in for a Customer ID.
 	CustomerID = "FASTLY_CUSTOMER_ID"
+
+	// TelemetryDisable is the env var we look in to disable all telemetry.
+	// Set to "true" to disable all telemetry.
+	TelemetryDisable = "FASTLY_TELEMETRY_DISABLE"
 )
 
 // Parse transforms the local environment data structure into a map type.
