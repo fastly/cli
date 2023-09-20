@@ -2,6 +2,7 @@ package compute
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 
@@ -99,6 +100,24 @@ func (a *AssemblyScript) DefaultBuildScript() bool {
 // Dependencies returns all dependencies used by the project.
 func (a *AssemblyScript) Dependencies() map[string]string {
 	deps := make(map[string]string)
+
+	lockfile := "npm-shrinkwrap.json"
+	_, err := os.Stat(lockfile)
+	if errors.Is(err, os.ErrNotExist) {
+		lockfile = "package-lock.json"
+	}
+
+	var jlf JavaScriptLockFile
+	if f, err := os.Open(lockfile); err == nil {
+		if err := json.NewDecoder(f).Decode(&jlf); err == nil {
+			for k, v := range jlf.Packages {
+				if k != "" { // avoid "root" package
+					deps[k] = v.Version
+				}
+			}
+		}
+	}
+
 	return deps
 }
 

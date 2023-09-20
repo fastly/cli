@@ -109,6 +109,21 @@ func (g *Go) DefaultBuildScript() bool {
 // Dependencies returns all dependencies used by the project.
 func (g *Go) Dependencies() map[string]string {
 	deps := make(map[string]string)
+
+	if f, err := os.Open("go.sum"); err == nil {
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			line := scanner.Text()
+			segs := strings.Split(line, " ")
+			if len(segs) >= 2 {
+				pkg := segs[0]
+				version := strings.Split(segs[1], "/")[0] // e.g. `v0.2.0/go.mod`
+				deps[pkg] = version
+			}
+		}
+	}
+
 	return deps
 }
 

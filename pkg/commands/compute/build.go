@@ -195,7 +195,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	args := []string{
 		"metadata", "add", "bin/main.wasm",
-		"--language=" + language.Name,
+		"--language=CLI_" + strings.ToUpper(language.Name),
 		fmt.Sprintf("--processed-by=RUNTIME_OS=%s", runtime.GOOS),
 		fmt.Sprintf("--processed-by=RUNTIME_ARCH=%s", runtime.GOARCH),
 		fmt.Sprintf("--processed-by=RUNTIME_COMPILER=%s", runtime.Compiler),

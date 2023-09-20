@@ -115,9 +115,30 @@ func (r *Rust) DefaultBuildScript() bool {
 	return r.defaultBuild
 }
 
+// CargoLockFilePackage represents a package within a Rust lockfile.
+type CargoLockFilePackage struct {
+	Name    string `toml:"name"`
+	Version string `toml:"version"`
+}
+
+// CargoLockFile represents a Rust lockfile.
+type CargoLockFile struct {
+	Packages []CargoLockFilePackage `toml:"package"`
+}
+
 // Dependencies returns all dependencies used by the project.
 func (r *Rust) Dependencies() map[string]string {
 	deps := make(map[string]string)
+
+	var clf CargoLockFile
+	if data, err := os.ReadFile("Cargo.lock"); err == nil {
+		if err := toml.Unmarshal(data, &clf); err == nil {
+			for _, v := range clf.Packages {
+				deps[v.Name] = v.Version
+			}
+		}
+	}
+
 	return deps
 }
 

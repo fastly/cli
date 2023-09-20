@@ -103,9 +103,37 @@ func (j *JavaScript) DefaultBuildScript() bool {
 	return j.defaultBuild
 }
 
+// JavaScriptPackage represents a package within a JavaScript lockfile.
+type JavaScriptPackage struct {
+	Version string `json:"version"`
+}
+
+// JavaScriptLockFile represents a JavaScript lockfile.
+type JavaScriptLockFile struct {
+	Packages map[string]JavaScriptPackage `json:"packages"`
+}
+
 // Dependencies returns all dependencies used by the project.
 func (j *JavaScript) Dependencies() map[string]string {
 	deps := make(map[string]string)
+
+	lockfile := "npm-shrinkwrap.json"
+	_, err := os.Stat(lockfile)
+	if errors.Is(err, os.ErrNotExist) {
+		lockfile = "package-lock.json"
+	}
+
+	var jlf JavaScriptLockFile
+	if f, err := os.Open(lockfile); err == nil {
+		if err := json.NewDecoder(f).Decode(&jlf); err == nil {
+			for k, v := range jlf.Packages {
+				if k != "" { // avoid "root" package
+					deps[k] = v.Version
+				}
+			}
+		}
+	}
+
 	return deps
 }
 
