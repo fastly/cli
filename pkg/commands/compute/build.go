@@ -120,7 +120,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(io.Discard, "%#v\n", wasmtools)
 
 	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
@@ -188,8 +187,34 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
+	args := []string{
+		"metadata", "add", "bin/main.wasm",
+		"--language=whatever",
+		"--processed-by=FOO=BAR",
+		"--sdk=BEEP=BOOP",
+	}
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
+	// Disabling as we trust the source of the variable.
+	// #nosec
+	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
+	command := exec.Command(wasmtools, args...)
+	wasmtoolsOutput, err := command.Output()
+	if err != nil {
+		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+	}
+	// Ensure the Wasm binary can be executed.
+	//
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as we want all users to be able to execute this binary.
+	// #nosec
+	err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
+	if err != nil {
+		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+	}
 
+	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
 	err = spinner.Process("Creating package archive", func(_ *text.SpinnerWrapper) error {
 		// IMPORTANT: The minimum package requirement is `fastly.toml` and `main.wasm`.
 		//
