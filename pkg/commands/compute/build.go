@@ -53,6 +53,7 @@ type Flags struct {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	cmd.Base
+	enableTelemetry    bool
 	wasmtoolsVersioner github.AssetVersioner
 
 	// NOTE: these are public so that the "serve" and "publish" composite
@@ -76,6 +77,9 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner g
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
+
+	// Hidden
+	c.CmdClause.Flag("enable-telemetry", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.enableTelemetry)
 
 	return &c
 }
@@ -117,9 +121,12 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	wasmtools, err := GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
-	if err != nil {
-		return err
+	var wasmtools string
+	if c.enableTelemetry {
+		wasmtools, err = GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
+		if err != nil {
+			return err
+		}
 	}
 
 	defer func(errLog fsterr.LogInterface) {
@@ -181,59 +188,68 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	var memBefore, memAfter runtime.MemStats
-	runtime.ReadMemStats(&memBefore)
-	startTime := time.Now()
+	var (
+		memBefore, memAfter runtime.MemStats
+		startTime           time.Time
+	)
+	if c.enableTelemetry {
+		runtime.ReadMemStats(&memBefore)
+		startTime = time.Now()
+	}
+
 	if err := language.Build(); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": language.Name,
 		})
 		return err
 	}
-	endTime := time.Now()
-	runtime.ReadMemStats(&memAfter)
 
-	args := []string{
-		"metadata", "add", "bin/main.wasm",
-		"--language=CLI_" + strings.ToUpper(language.Name),
-		fmt.Sprintf("--processed-by=RUNTIME_OS=%s", runtime.GOOS),
-		fmt.Sprintf("--processed-by=RUNTIME_ARCH=%s", runtime.GOARCH),
-		fmt.Sprintf("--processed-by=RUNTIME_COMPILER=%s", runtime.Compiler),
-		fmt.Sprintf("--processed-by=RUNTIME_MEM_USAGE_BEFORE=%d", memBefore.HeapAlloc),
-		fmt.Sprintf("--processed-by=RUNTIME_MEM_USAGE_AFTER=%d", memAfter.HeapAlloc),
-		fmt.Sprintf("--processed-by=RUNTIME_NUM_CPU=%d", runtime.NumCPU()),
-		fmt.Sprintf("--processed-by=RUNTIME_GO_VERSION=%s", runtime.Version()),
-		fmt.Sprintf("--processed-by=RUNTIME_BUILD_TIME=%s", endTime.Sub(startTime)),
-		fmt.Sprintf("--processed-by=SCRIPTS_DEFAULTBUILD=%t", language.DefaultBuildScript()),
-		fmt.Sprintf("--processed-by=SCRIPTS_BUILD=%s", c.Manifest.File.Scripts.Build),
-		fmt.Sprintf("--processed-by=SCRIPTS_ENVVARS=%s", c.Manifest.File.Scripts.EnvVars),
-		fmt.Sprintf("--processed-by=SCRIPTS_POSTINIT=%s", c.Manifest.File.Scripts.PostInit),
-		fmt.Sprintf("--processed-by=SCRIPTS_POSTBUILD=%s", c.Manifest.File.Scripts.PostBuild),
-	}
+	if c.enableTelemetry {
+		endTime := time.Now()
+		runtime.ReadMemStats(&memAfter)
 
-	for k, v := range language.Dependencies() {
-		args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
-	}
+		args := []string{
+			"metadata", "add", "bin/main.wasm",
+			"--language=CLI_" + strings.ToUpper(language.Name),
+			fmt.Sprintf("--processed-by=RUNTIME_OS=%s", runtime.GOOS),
+			fmt.Sprintf("--processed-by=RUNTIME_ARCH=%s", runtime.GOARCH),
+			fmt.Sprintf("--processed-by=RUNTIME_COMPILER=%s", runtime.Compiler),
+			fmt.Sprintf("--processed-by=RUNTIME_MEM_USAGE_BEFORE=%d", memBefore.HeapAlloc),
+			fmt.Sprintf("--processed-by=RUNTIME_MEM_USAGE_AFTER=%d", memAfter.HeapAlloc),
+			fmt.Sprintf("--processed-by=RUNTIME_NUM_CPU=%d", runtime.NumCPU()),
+			fmt.Sprintf("--processed-by=RUNTIME_GO_VERSION=%s", runtime.Version()),
+			fmt.Sprintf("--processed-by=RUNTIME_BUILD_TIME=%s", endTime.Sub(startTime)),
+			fmt.Sprintf("--processed-by=SCRIPTS_DEFAULTBUILD=%t", language.DefaultBuildScript()),
+			fmt.Sprintf("--processed-by=SCRIPTS_BUILD=%s", c.Manifest.File.Scripts.Build),
+			fmt.Sprintf("--processed-by=SCRIPTS_ENVVARS=%s", c.Manifest.File.Scripts.EnvVars),
+			fmt.Sprintf("--processed-by=SCRIPTS_POSTINIT=%s", c.Manifest.File.Scripts.PostInit),
+			fmt.Sprintf("--processed-by=SCRIPTS_POSTBUILD=%s", c.Manifest.File.Scripts.PostBuild),
+		}
 
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
-	// Disabling as we trust the source of the variable.
-	// #nosec
-	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
-	command := exec.Command(wasmtools, args...)
-	wasmtoolsOutput, err := command.Output()
-	if err != nil {
-		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
-	}
-	// Ensure the Wasm binary can be executed.
-	//
-	// G302 (CWE-276): Expect file permissions to be 0600 or less
-	// gosec flagged this:
-	// Disabling as we want all users to be able to execute this binary.
-	// #nosec
-	err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
-	if err != nil {
-		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+		for k, v := range language.Dependencies() {
+			args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
+		}
+
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
+		// Disabling as we trust the source of the variable.
+		// #nosec
+		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
+		command := exec.Command(wasmtools, args...)
+		wasmtoolsOutput, err := command.Output()
+		if err != nil {
+			return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+		}
+		// Ensure the Wasm binary can be executed.
+		//
+		// G302 (CWE-276): Expect file permissions to be 0600 or less
+		// gosec flagged this:
+		// Disabling as we want all users to be able to execute this binary.
+		// #nosec
+		err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
+		if err != nil {
+			return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+		}
 	}
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
