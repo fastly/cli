@@ -36,10 +36,19 @@ func TestPublishFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	ignoreBuildFlags := []string{
+		"enable-telemetry",
+	}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
+
 	iter = deployFlags.MapRange()
 	for iter.Next() {
 		expect[iter.Key().String()] = 1
@@ -79,9 +88,17 @@ func TestServeFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	ignoreBuildFlags := []string{
+		"enable-telemetry",
+	}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
 
 	// Some flags on `compute serve` are unique to it.
