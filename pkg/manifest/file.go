@@ -67,6 +67,7 @@ func (f *File) Read(path string) (err error) {
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
 	/* #nosec */
 	tree, err := toml.LoadFile(path)
+	fmt.Printf("%#v | %v\n", tree, err)
 	if err != nil {
 		// IMPORTANT: Only `fastly compute` references the fastly.toml file.
 		if len(f.Args) > 0 && f.Args[0] == "compute" {
