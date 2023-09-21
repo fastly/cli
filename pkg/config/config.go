@@ -165,15 +165,24 @@ func ensureConfigDirExists(path string) error {
 
 // File represents our application toml configuration.
 type File struct {
-	CLI           CLI                 `toml:"cli"`
-	ConfigVersion int                 `toml:"config_version"`
-	Fastly        Fastly              `toml:"fastly"`
-	Telemetry     Telemetry           `toml:"telemetry"`
-	Language      Language            `toml:"language"`
-	Profiles      Profiles            `toml:"profile"`
-	StarterKits   StarterKitLanguages `toml:"starter-kits"`
-	Viceroy       Versioner           `toml:"viceroy"`
-	WasmTools     Versioner           `toml:"wasm-tools"`
+	// CLI represents CLI specific configuration.
+	CLI CLI `toml:"cli"`
+	// ConfigVersion is the version of the config.
+	ConfigVersion int `toml:"config_version"`
+	// Fastly represents fastly specific configuration.
+	Fastly Fastly `toml:"fastly"`
+	// Telemetry represents what telemetry data will be recorded.
+	Telemetry Telemetry `toml:"telemetry"`
+	// Language represents C@E language specific configuration.
+	Language Language `toml:"language"`
+	// Profiles represents multiple profile accounts.
+	Profiles Profiles `toml:"profile"`
+	// StarterKitLanguages represents language specific starter kits.
+	StarterKits StarterKitLanguages `toml:"starter-kits"`
+	// Viceroy represents viceroy specific configuration.
+	Viceroy Versioner `toml:"viceroy"`
+	// WasmTools represents wasm-tools specific configuration.
+	WasmTools Versioner `toml:"wasm-tools"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
