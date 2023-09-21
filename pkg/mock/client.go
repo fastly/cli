@@ -1,7 +1,6 @@
 package mock
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/fastly/cli/pkg/api"
@@ -24,7 +23,6 @@ type mockHTTPClient struct {
 
 func (c mockHTTPClient) Do(_ *http.Request) (*http.Response, error) {
 	c.index++
-	fmt.Printf("res: %#v | len res: %d | index: %d\n", c.res, len(c.res), c.index)
 	return c.res[c.index], c.err[c.index]
 }
 
