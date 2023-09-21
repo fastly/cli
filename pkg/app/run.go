@@ -265,7 +265,7 @@ func determineProfile(manifestValue, flagValue string, profiles config.Profiles)
 func commandCollectsData(command string) bool {
 	switch command {
 	case "compute build", "compute publish", "compute serve":
-		return false
+		return true
 	}
-	return true
+	return false
 }
