@@ -54,27 +54,20 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	text.Info(out, "Profile being updated: '%s'.\n\n", profileName)
 
+	err = c.updateToken(profileName, p, in, out)
+	if err != nil {
+		return fmt.Errorf("failed to update token: %w", err)
+	}
+
 	// Set to true for --auto-yes/--non-interactive flags, otherwise prompt user.
 	makeDefault := true
-	updateToken := true
 
 	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+		text.Break(out)
 		makeDefault, err = text.AskYesNo(out, text.BoldYellow("Make profile the default? [y/N] "), in)
 		text.Break(out)
 		if err != nil {
 			return err
-		}
-
-		updateToken, err = text.AskYesNo(out, text.BoldYellow("Update the token associated with this profile? [y/N]: "), in)
-		if err != nil {
-			return err
-		}
-	}
-
-	if updateToken {
-		err := c.updateToken(profileName, makeDefault, p, in, out)
-		if err != nil {
-			return fmt.Errorf("failed to update token: %w", err)
 		}
 	}
 
@@ -124,7 +117,7 @@ func (c *UpdateCommand) identifyProfile() (string, *config.Profile, error) {
 	return profileName, p, nil
 }
 
-func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *config.Profile, in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) updateToken(profileName string, p *config.Profile, in io.Reader, out io.Writer) error {
 	if !c.sso && !isSSOToken(p) {
 		text.Info(out, "When updating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To update this profile to use an SSO-based token, pass the `--sso` flag: `fastly profile update --sso`.")
 	}
@@ -136,7 +129,7 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 		// the specific profile.
 		c.authCmd.InvokedFromProfileUpdate = true
 		c.authCmd.ProfileUpdateName = profileName
-		c.authCmd.ProfileDefault = makeDefault
+		c.authCmd.ProfileDefault = false // set to false, as later we prompt for this
 
 		// NOTE: The `sso` command already handles writing config back to disk.
 		// So unlike `c.staticTokenFlow` (below) we don't have to do that here.
@@ -146,7 +139,7 @@ func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *con
 		}
 		text.Break(out)
 	} else {
-		if err := c.staticTokenFlow(profileName, makeDefault, p, in, out); err != nil {
+		if err := c.staticTokenFlow(profileName, p, in, out); err != nil {
 			return fmt.Errorf("failed to process the static token flow: %w", err)
 		}
 		// Write the in-memory representation back to disk.
@@ -226,7 +219,7 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	return user.Login, nil
 }
 
-func (c *UpdateCommand) staticTokenFlow(profileName string, makeDefault bool, p *config.Profile, in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) staticTokenFlow(profileName string, p *config.Profile, in io.Reader, out io.Writer) error {
 	opts := []profile.EditOption{}
 
 	token, err := text.InputSecure(out, text.BoldYellow("Profile token: (leave blank to skip): "), in)
@@ -246,7 +239,7 @@ func (c *UpdateCommand) staticTokenFlow(profileName string, makeDefault bool, p 
 	text.Break(out)
 
 	opts = append(opts, func(p *config.Profile) {
-		p.Default = makeDefault
+		p.Default = false // set to false, as later we prompt for this
 	})
 
 	text.Break(out)
@@ -277,19 +270,6 @@ func (c *UpdateCommand) staticTokenFlow(profileName string, makeDefault bool, p 
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf(msg),
 			Remediation: fsterr.ProfileRemediation,
-		}
-	}
-	c.Globals.Config.Profiles = ps
-
-	if makeDefault {
-		// We call SetDefault for its side effect of resetting all other profiles to have
-		// their Default field set to false.
-		ps, ok = profile.SetDefault(profileName, ps)
-		if !ok {
-			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
-			err := errors.New(msg)
-			c.Globals.ErrLog.Add(err)
-			return err
 		}
 	}
 	c.Globals.Config.Profiles = ps
