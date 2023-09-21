@@ -29,6 +29,7 @@ type CreateCommand struct {
 	automationToken bool
 	clientFactory   APIClientFactory
 	profile         string
+	sso             bool
 }
 
 // NewCreateCommand returns a new command registered in the parent.
@@ -39,17 +40,27 @@ func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 	c.CmdClause = parent.Command("create", "Create user profile")
 	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default(profile.DefaultName).Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
+	c.CmdClause.Flag("sso", "Create an SSO-based token").BoolVar(&c.sso)
 	c.clientFactory = cf
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	if c.sso && c.automationToken {
+		return fsterr.ErrInvalidProfileSSOCombo
+	}
+
 	if profile.Exist(c.profile, c.Globals.Config.Profiles) {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("profile '%s' already exists", c.profile),
 			Remediation: "Re-run the command and pass a different value for the 'profile' argument.",
 		}
+	}
+
+	if !c.sso {
+		text.Info(out, "When creating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To create an SSO-based token, pass the `--sso` flag: `fastly profile create --sso`.")
+		text.Break(out)
 	}
 
 	// The Default status of a new profile should always be true unless there is
@@ -64,21 +75,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	// Prompt user to decide on which token flow to take (OAuth or Static)
-	// Static being a traditional long-lived user/automation token.
-	//
-	// Opting for the OAuth flow will generate a short-lived token.
-	// Otherwise user has to create a token manually, then paste it when prompted.
-	useOAuthFlow := true
-	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		text.Info(out, "When creating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed.\n\n")
-		useOAuthFlow, err = text.AskYesNo(out, text.BoldYellow("Continue with Fastly SSO (Single Sign-On) authentication for generating a short-lived token? [y/N]: "), in)
-		text.Break(out)
-		if err != nil {
-			return err
-		}
-	}
-	if useOAuthFlow {
+	if c.sso {
 		// IMPORTANT: We need to set profile fields for `sso` command.
 		//
 		// This is so the `sso` command will use this information to create

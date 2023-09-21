@@ -30,6 +30,7 @@ type UpdateCommand struct {
 	automationToken bool
 	clientFactory   APIClientFactory
 	profile         string
+	sso             bool
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -40,6 +41,7 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 	c.CmdClause = parent.Command("update", "Update user profile")
 	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
+	c.CmdClause.Flag("sso", "Update profile to use an SSO-based token").BoolVar(&c.sso)
 	c.clientFactory = cf
 	return &c
 }
@@ -123,24 +125,11 @@ func (c *UpdateCommand) identifyProfile() (string, *config.Profile, error) {
 }
 
 func (c *UpdateCommand) updateToken(profileName string, makeDefault bool, p *config.Profile, in io.Reader, out io.Writer) error {
-	// Prompt user to decide on which token flow to take (OAuth or Static)
-	// Static being a traditional long-lived user/automation token.
-	//
-	// Opting for the OAuth flow will generate a short-lived token.
-	// Otherwise user has to create a token manually, then paste it when prompted.
-	useOAuthFlow := true
-	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		text.Info(out, "When updating a profile you can either paste in a long-lived token or allow the Fastly CLI to regenerate a short-lived token that can be automatically refreshed.")
-		text.Break(out)
-		var err error
-		useOAuthFlow, err = text.AskYesNo(out, text.BoldYellow("Continue with Fastly SSO (Single Sign-On) authentication for generating a short-lived token? [y/N]: "), in)
-		text.Break(out)
-		if err != nil {
-			return err
-		}
+	if !c.sso && !isSSOToken(p) {
+		text.Info(out, "When updating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To update this profile to use an SSO-based token, pass the `--sso` flag: `fastly profile update --sso`.")
 	}
 
-	if useOAuthFlow {
+	if c.sso || isSSOToken(p) {
 		// IMPORTANT: We need to set profile fields for `sso` command.
 		//
 		// This is so the `sso` command will use this information to update
@@ -306,4 +295,8 @@ func (c *UpdateCommand) staticTokenFlow(profileName string, makeDefault bool, p 
 	c.Globals.Config.Profiles = ps
 
 	return nil
+}
+
+func isSSOToken(p *config.Profile) bool {
+	return p.AccessToken != "" && p.RefreshToken != "" && p.AccessTokenCreated > 0 && p.RefreshTokenCreated > 0
 }

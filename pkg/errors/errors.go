@@ -155,6 +155,13 @@ var ErrInvalidStdinFileDirCombo = RemediationError{
 	Remediation: "Use only one of --stdin, --file or --dir.",
 }
 
+// ErrInvalidProfileSSOCombo means the user specified both --sso and
+// --automation-token and only one should be set.
+var ErrInvalidProfileSSOCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid command, both --sso and --automation-token provided"),
+	Remediation: "Provide at only one of: --sso or --automation-token, not both.",
+}
+
 // ErrInvalidEnableDisableFlagCombo means the user provided both a --enable
 // and --disable flag which are mutually exclusive behaviours.
 var ErrInvalidEnableDisableFlagCombo = RemediationError{
