@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -26,10 +27,16 @@ func TestBuildRust(t *testing.T) {
 	}
 
 	wasmtoolsVersioner := github.New(github.Opts{
-		HTTPClient: mock.HTMLClient([]*http.Response{}, []error{}),
-		Org:        "bytecodealliance",
-		Repo:       "wasm-tools",
-		Binary:     "wasm-tools",
+		HTTPClient: mock.HTMLClient([]*http.Response{
+			{
+				Body:       io.NopCloser(strings.NewReader("...")),
+				Status:     http.StatusText(http.StatusOK),
+				StatusCode: http.StatusOK,
+			},
+		}, []error{}),
+		Org:    "bytecodealliance",
+		Repo:   "wasm-tools",
+		Binary: "wasm-tools",
 	})
 
 	args := testutil.Args
