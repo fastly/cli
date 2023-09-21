@@ -80,6 +80,11 @@ type Telemetry struct {
 
 // CLI represents CLI specific configuration.
 type CLI struct {
+	// TelemetryNoticeDisplayed indicates if the user has been notified of the
+	// telemetry behaviours being enabled by default and how they can opt-out.
+	TelemetryNoticeDisplayed bool `toml:"telemetry_notice_displayed"`
+	// Version indicates the CLI configuration version.
+	// It is updated each time a change is made to the config structure.
 	Version string `toml:"version"`
 }
 
