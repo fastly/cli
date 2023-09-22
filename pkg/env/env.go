@@ -34,11 +34,10 @@ const (
 func Parse(environ []string) map[string]string {
 	env := map[string]string{}
 	for _, kv := range environ {
-		toks := strings.SplitN(kv, "=", 2)
-		if len(toks) != 2 {
+		k, v, ok := strings.Cut(kv, "=")
+		if !ok {
 			continue
 		}
-		k, v := toks[0], toks[1]
 		env[k] = v
 	}
 	return env
