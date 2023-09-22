@@ -26,6 +26,7 @@ import (
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -218,37 +219,37 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		args := []string{
 			"metadata", "add", "bin/main.wasm",
-			"--language=CLI: " + strings.ToUpper(language.Name),
-			fmt.Sprintf("--processed-by=BuildInfoMemoryHeapAlloc=%d", memAfter.HeapAlloc-memBefore.HeapAlloc),
-			fmt.Sprintf("--processed-by=BuildInfoTime=%s", endTime.Sub(startTime)),
-			fmt.Sprintf("--processed-by=MachineInfoOS=%s", runtime.GOOS),
-			fmt.Sprintf("--processed-by=MachineInfoArch=%s", runtime.GOARCH),
-			fmt.Sprintf("--processed-by=MachineInfoCompiler=%s", runtime.Compiler),
-			fmt.Sprintf("--processed-by=MachineInfoGoVersion=%s", runtime.Version()),
-			fmt.Sprintf("--processed-by=MachineInfoCPUs=%d", runtime.NumCPU()),
+			fmt.Sprintf("--language=CLI_%s: %s", revision.AppVersion, strings.ToUpper(language.Name)),
+			fmt.Sprintf("--processed-by=CLI_BuildInfoMemoryHeapAlloc=%d", memAfter.HeapAlloc-memBefore.HeapAlloc),
+			fmt.Sprintf("--processed-by=CLI_BuildInfoTime=%s", endTime.Sub(startTime)),
+			fmt.Sprintf("--processed-by=CLI_MachineInfoOS=%s", runtime.GOOS),
+			fmt.Sprintf("--processed-by=CLI_MachineInfoArch=%s", runtime.GOARCH),
+			fmt.Sprintf("--processed-by=CLI_MachineInfoCompiler=%s", runtime.Compiler),
+			fmt.Sprintf("--processed-by=CLI_MachineInfoGoVersion=%s", runtime.Version()),
+			fmt.Sprintf("--processed-by=CLI_MachineInfoCPUs=%d", runtime.NumCPU()),
 		}
 
 		if c.Manifest.File.ClonedFrom != "" {
-			args = append(args, fmt.Sprintf("--processed-by=PackageInfoClonedFrom=%s", c.Manifest.File.ClonedFrom))
+			args = append(args, fmt.Sprintf("--processed-by=CLI_PackageInfoClonedFrom=%s", c.Manifest.File.ClonedFrom))
 		}
 
 		for i, v := range language.Imports() {
-			args = append(args, fmt.Sprintf("--processed-by=PackageInfoImported%d=%s", i, v))
+			args = append(args, fmt.Sprintf("--processed-by=CLI_PackageInfoImported%d=%s", i, v))
 		}
 
-		args = append(args, fmt.Sprintf("--processed-by=ScriptsDefaultBuildUsed=%t", language.DefaultBuildScript()))
+		args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsDefaultBuildUsed=%t", language.DefaultBuildScript()))
 
 		if c.Manifest.File.Scripts.Build != "" {
-			args = append(args, fmt.Sprintf("--processed-by=ScriptsBuild=%s", c.Manifest.File.Scripts.Build))
+			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsBuild=%s", c.Manifest.File.Scripts.Build))
 		}
 		if len(c.Manifest.File.Scripts.EnvVars) > 0 {
-			args = append(args, fmt.Sprintf("--processed-by=ScriptsEnvVars=%s", c.Manifest.File.Scripts.EnvVars))
+			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsEnvVars=%s", c.Manifest.File.Scripts.EnvVars))
 		}
 		if c.Manifest.File.Scripts.PostInit != "" {
-			args = append(args, fmt.Sprintf("--processed-by=ScriptsPostInit=%s", c.Manifest.File.Scripts.PostInit))
+			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsPostInit=%s", c.Manifest.File.Scripts.PostInit))
 		}
 		if c.Manifest.File.Scripts.PostBuild != "" {
-			args = append(args, fmt.Sprintf("--processed-by=ScriptsPostBuild=%s", c.Manifest.File.Scripts.PostBuild))
+			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsPostBuild=%s", c.Manifest.File.Scripts.PostBuild))
 		}
 
 		for k, v := range language.Dependencies() {
