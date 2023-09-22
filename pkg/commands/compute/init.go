@@ -228,7 +228,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	mf, err = updateManifest(mf, spinner, c.dir, name, desc, authors, language)
+	mf, err = updateManifest(mf, spinner, c.dir, name, desc, c.cloneFrom, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory":   c.dir,
@@ -996,7 +996,7 @@ func tempDir(prefix string) (abspath string, err error) {
 func updateManifest(
 	m manifest.File,
 	spinner text.Spinner,
-	path, name, desc string,
+	path, name, desc, clonedFrom string,
 	authors []string,
 	language *Language,
 ) (manifest.File, error) {
@@ -1014,6 +1014,7 @@ func updateManifest(
 					m.Description = desc
 					m.Authors = authors
 					m.Language = language.Name
+					m.ClonedFrom = clonedFrom
 					if err := m.Write(mp); err != nil {
 						return fmt.Errorf("error saving fastly.toml: %w", err)
 					}
@@ -1073,6 +1074,8 @@ func updateManifest(
 			return m, err
 		}
 	}
+
+	m.ClonedFrom = clonedFrom
 
 	err = spinner.Process("Saving manifest changes", func(_ *text.SpinnerWrapper) error {
 		if err := m.Write(mp); err != nil {

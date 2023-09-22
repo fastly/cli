@@ -214,20 +214,33 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		args := []string{
 			"metadata", "add", "bin/main.wasm",
-			"--language=CLI_" + strings.ToUpper(language.Name),
-			fmt.Sprintf("--processed-by=RUNTIME_OS=%s", runtime.GOOS),
-			fmt.Sprintf("--processed-by=RUNTIME_ARCH=%s", runtime.GOARCH),
-			fmt.Sprintf("--processed-by=RUNTIME_COMPILER=%s", runtime.Compiler),
-			fmt.Sprintf("--processed-by=RUNTIME_MEM_USAGE_BEFORE=%d", memBefore.HeapAlloc),
-			fmt.Sprintf("--processed-by=RUNTIME_MEM_USAGE_AFTER=%d", memAfter.HeapAlloc),
-			fmt.Sprintf("--processed-by=RUNTIME_NUM_CPU=%d", runtime.NumCPU()),
-			fmt.Sprintf("--processed-by=RUNTIME_GO_VERSION=%s", runtime.Version()),
-			fmt.Sprintf("--processed-by=RUNTIME_BUILD_TIME=%s", endTime.Sub(startTime)),
-			fmt.Sprintf("--processed-by=SCRIPTS_DEFAULTBUILD=%t", language.DefaultBuildScript()),
-			fmt.Sprintf("--processed-by=SCRIPTS_BUILD=%s", c.Manifest.File.Scripts.Build),
-			fmt.Sprintf("--processed-by=SCRIPTS_ENVVARS=%s", c.Manifest.File.Scripts.EnvVars),
-			fmt.Sprintf("--processed-by=SCRIPTS_POSTINIT=%s", c.Manifest.File.Scripts.PostInit),
-			fmt.Sprintf("--processed-by=SCRIPTS_POSTBUILD=%s", c.Manifest.File.Scripts.PostBuild),
+			"--language=CLI: " + strings.ToUpper(language.Name),
+			fmt.Sprintf("--processed-by=BuildInfoMemoryHeapAlloc=%d", memAfter.HeapAlloc-memBefore.HeapAlloc),
+			fmt.Sprintf("--processed-by=BuildInfoTime=%s", endTime.Sub(startTime)),
+			fmt.Sprintf("--processed-by=MachineInfoOS=%s", runtime.GOOS),
+			fmt.Sprintf("--processed-by=MachineInfoArch=%s", runtime.GOARCH),
+			fmt.Sprintf("--processed-by=MachineInfoCompiler=%s", runtime.Compiler),
+			fmt.Sprintf("--processed-by=MachineInfoGoVersion=%s", runtime.Version()),
+			fmt.Sprintf("--processed-by=MachineInfoCPUs=%d", runtime.NumCPU()),
+		}
+
+		if c.Manifest.File.ClonedFrom != "" {
+			args = append(args, fmt.Sprintf("--processed-by=PackageInfoClonedFrom=%s", c.Manifest.File.ClonedFrom))
+		}
+
+		args = append(args, fmt.Sprintf("--processed-by=ScriptsDefaultBuildUsed=%t", language.DefaultBuildScript()))
+
+		if c.Manifest.File.Scripts.Build != "" {
+			args = append(args, fmt.Sprintf("--processed-by=ScriptsBuild=%s", c.Manifest.File.Scripts.Build))
+		}
+		if len(c.Manifest.File.Scripts.EnvVars) > 0 {
+			args = append(args, fmt.Sprintf("--processed-by=ScriptsEnvVars=%s", c.Manifest.File.Scripts.EnvVars))
+		}
+		if c.Manifest.File.Scripts.PostInit != "" {
+			args = append(args, fmt.Sprintf("--processed-by=ScriptsPostInit=%s", c.Manifest.File.Scripts.PostInit))
+		}
+		if c.Manifest.File.Scripts.PostBuild != "" {
+			args = append(args, fmt.Sprintf("--processed-by=ScriptsPostBuild=%s", c.Manifest.File.Scripts.PostBuild))
 		}
 
 		for k, v := range language.Dependencies() {

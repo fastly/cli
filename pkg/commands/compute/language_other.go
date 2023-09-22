@@ -24,7 +24,7 @@ func NewOther(
 
 		autoYes:          globals.Flags.AutoYes,
 		build:            fastlyManifest.Scripts.Build,
-		defaultBuild:     true, // technically there is no default build for 'other'
+		defaultBuild:     false, // there is no default build for 'other'
 		env:              fastlyManifest.Scripts.EnvVars,
 		errlog:           globals.ErrLog,
 		input:            in,
