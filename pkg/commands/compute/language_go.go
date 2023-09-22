@@ -3,10 +3,15 @@ package compute
 import (
 	"bufio"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -125,6 +130,50 @@ func (g *Go) Dependencies() map[string]string {
 	}
 
 	return deps
+}
+
+// Imports returns all source code imported packages.
+func (g *Go) Imports() []string {
+	fs := token.NewFileSet()
+	importedPackages := make(map[string]bool)
+	var importPaths []string
+
+	root := "."
+	_ = filepath.Walk(root, func(path string, _ os.FileInfo, _ error) error {
+		if strings.HasSuffix(path, ".go") {
+			// gosec flagged this:
+			// G304 (CWE-22): Potential file inclusion via variable
+			// Disabling as we need to read files from the users machine.
+			// #nosec
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return nil
+			}
+
+			node, err := parser.ParseFile(fs, path, string(data), parser.AllErrors)
+			if err != nil {
+				return nil
+			}
+
+			for _, decl := range node.Decls {
+				if gd, isGenDecl := decl.(*ast.GenDecl); isGenDecl && gd.Tok == token.IMPORT {
+					for _, spec := range gd.Specs {
+						if ispec, isImportSpec := spec.(*ast.ImportSpec); isImportSpec {
+							importPath := strings.TrimSpace(ispec.Path.Value)
+							if !importedPackages[importPath] {
+								importPaths = append(importPaths, importPath)
+								importedPackages[importPath] = true
+							}
+						}
+					}
+				}
+			}
+		}
+		return nil
+	})
+
+	sort.Strings(importPaths)
+	return importPaths
 }
 
 // Build compiles the user's source code into a Wasm binary.

@@ -82,6 +82,11 @@ func (o Other) Dependencies() map[string]string {
 	return deps
 }
 
+// Imports returns all source code imported packages.
+func (o Other) Imports() []string {
+	return []string{}
+}
+
 // Build implements the Toolchain interface and attempts to compile the package
 // source to a Wasm binary.
 func (o Other) Build() error {

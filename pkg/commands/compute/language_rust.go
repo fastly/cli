@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -140,6 +142,152 @@ func (r *Rust) Dependencies() map[string]string {
 	}
 
 	return deps
+}
+
+// Variables used as part of parsing imports from Rust source files.
+var (
+	useSinglePattern               = regexp.MustCompile(`^\s*use\s+([^;]+);`)
+	useMultilineStartPattern       = regexp.MustCompile(`^\s*use\s+\{$`)
+	useMultilineEndPattern         = regexp.MustCompile(`^\s*};$`)
+	useMultilineNestedStartPattern = regexp.MustCompile(`^\s*((\w+::)+)\{$`)
+	useMultilineNestedEndPattern   = regexp.MustCompile(`^\s*}$`)
+	multilineNested                bool
+	multilineNestedPrefix          string
+)
+
+// Imports returns all source code imported packages.
+func (r *Rust) Imports() []string {
+	importedPackages := make(map[string]bool)
+
+	var importPaths []string
+
+	root := "/Users/integralist/Code/test-projects/testing-fastly-cli"
+	_ = filepath.Walk(root, func(path string, _ os.FileInfo, _ error) error {
+		if strings.HasSuffix(path, ".rs") {
+			if strings.Contains(path, "/target/") {
+				return nil
+			}
+
+			// gosec flagged this:
+			// G304 (CWE-22): Potential f inclusion via variable
+			// Disabling as we need to read files from the users machine.
+			// #nosec
+			f, err := os.Open(path)
+			if err != nil {
+				return nil
+			}
+			defer f.Close()
+
+			scanner := bufio.NewScanner(f)
+
+			var multilineUse bool
+
+			for scanner.Scan() {
+				line := scanner.Text()
+
+				// Parse single `use` declaration
+				match := useSinglePattern.FindStringSubmatch(line)
+				if len(match) >= 2 {
+					usePath := strings.TrimSpace(match[1])
+					var cont bool
+					importPaths, cont = parseUseDeclarations(usePath, importPaths, importedPackages)
+					if cont {
+						continue
+					}
+				}
+
+				// Parse multiline `use` declaration
+				if useMultilineStartPattern.MatchString(line) {
+					multilineUse = true
+					continue
+				}
+				if useMultilineEndPattern.MatchString(line) {
+					multilineUse = false
+					continue
+				}
+				if multilineUse && !useMultilineEndPattern.MatchString(line) {
+					usePath := strings.TrimSpace(line)
+					usePath = strings.TrimSuffix(usePath, ",")
+					importPaths, _ = parseUseDeclarations(usePath, importPaths, importedPackages)
+				}
+			}
+		}
+		return nil
+	})
+
+	sort.Strings(importPaths)
+	return importPaths
+}
+
+func parseUseDeclarations(
+	usePath string,
+	importPaths []string,
+	importedPackages map[string]bool,
+) ([]string, bool) {
+	// Parse a nested multiline crate declaration
+	//
+	// e.g.
+	// use {
+	//     fastly::http::header,
+	//     fastly::http::Method,
+	//     fastly::http::StatusCode,
+	//     fastly::{                           <<< this
+	//         mime, Error, Request, Response, <<< this
+	//     },                                  <<< this
+	// };
+	match := useMultilineNestedStartPattern.FindStringSubmatch(usePath)
+	if len(match) >= 2 {
+		multilineNested = true
+		multilineNestedPrefix = strings.TrimSpace(match[1])
+		return importPaths, true
+	}
+	if useMultilineNestedEndPattern.MatchString(usePath) {
+		multilineNested = false
+		multilineNestedPrefix = ""
+		return importPaths, true
+	}
+	if multilineNested && !useMultilineNestedEndPattern.MatchString(usePath) {
+		usePath := strings.TrimSpace(usePath)
+		usePath = strings.TrimSuffix(usePath, ",")
+		for _, v := range strings.Split(usePath, ",") {
+			item := fmt.Sprintf("%s%s", multilineNestedPrefix, strings.TrimSpace(v))
+			if !importedPackages[item] {
+				importPaths = append(importPaths, item)
+				importedPackages[item] = true
+			}
+		}
+		return importPaths, true
+	}
+
+	// Find the position of the opening and closing curly braces
+	openBraceIndex := strings.Index(usePath, "{")
+	closeBraceIndex := strings.Index(usePath, "}")
+
+	// Parse `use <path>::{<path>, <path>, <path>}`
+	if openBraceIndex != -1 && closeBraceIndex != -1 {
+		// Extract the prefix before the opening curly brace
+		prefix := usePath[:openBraceIndex]
+		// Extract the contents inside the curly braces
+		contents := usePath[openBraceIndex+1 : closeBraceIndex]
+
+		for _, item := range strings.Split(contents, ",") {
+			item = fmt.Sprintf("%s%s", strings.TrimSpace(prefix), strings.TrimSpace(item))
+			if !importedPackages[item] {
+				importPaths = append(importPaths, item)
+				importedPackages[item] = true
+			}
+		}
+		return importPaths, true
+	}
+
+	// Parse `use <path>;`
+	usePath = strings.TrimSpace(usePath)
+	if !importedPackages[usePath] {
+		importPaths = append(importPaths, usePath)
+		importedPackages[usePath] = true
+	}
+
+	return importPaths, false
 }
 
 // Build compiles the user's source code into a Wasm binary.

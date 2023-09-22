@@ -121,6 +121,11 @@ func (a *AssemblyScript) Dependencies() map[string]string {
 	return deps
 }
 
+// Imports returns all source code imported packages.
+func (a *AssemblyScript) Imports() []string {
+	return []string{}
+}
+
 // Build compiles the user's source code into a Wasm binary.
 func (a *AssemblyScript) Build() error {
 	if !a.verbose {

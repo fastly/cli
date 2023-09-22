@@ -137,6 +137,11 @@ func (j *JavaScript) Dependencies() map[string]string {
 	return deps
 }
 
+// Imports returns all source code imported packages.
+func (j *JavaScript) Imports() []string {
+	return []string{}
+}
+
 // Build compiles the user's source code into a Wasm binary.
 func (j *JavaScript) Build() error {
 	if j.build == "" {

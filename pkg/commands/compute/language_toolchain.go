@@ -47,6 +47,8 @@ type Toolchain interface {
 	DefaultBuildScript() bool
 	// Dependencies returns all dependencies used by the project.
 	Dependencies() map[string]string
+	// Imports returns all source code imported packages/crates/modules.
+	Imports() []string
 }
 
 // BuildToolchain enables a language toolchain to compile their build script.

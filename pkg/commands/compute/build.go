@@ -228,6 +228,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			args = append(args, fmt.Sprintf("--processed-by=PackageInfoClonedFrom=%s", c.Manifest.File.ClonedFrom))
 		}
 
+		for i, v := range language.Imports() {
+			args = append(args, fmt.Sprintf("--processed-by=PackageInfoImported%d=%s", i, v))
+		}
+
 		args = append(args, fmt.Sprintf("--processed-by=ScriptsDefaultBuildUsed=%t", language.DefaultBuildScript()))
 
 		if c.Manifest.File.Scripts.Build != "" {
