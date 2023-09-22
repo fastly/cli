@@ -39,6 +39,7 @@ func TestPublishFlagDivergence(t *testing.T) {
 	// Some flags on `compute build` are unique to it.
 	ignoreBuildFlags := []string{
 		"enable-telemetry",
+		"show-metadata",
 	}
 
 	iter := buildFlags.MapRange()
@@ -91,6 +92,7 @@ func TestServeFlagDivergence(t *testing.T) {
 	// Some flags on `compute build` are unique to it.
 	ignoreBuildFlags := []string{
 		"enable-telemetry",
+		"show-metadata",
 	}
 
 	iter := buildFlags.MapRange()

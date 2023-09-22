@@ -2,7 +2,9 @@ package compute
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -54,6 +56,7 @@ type Flags struct {
 type BuildCommand struct {
 	cmd.Base
 	enableTelemetry    bool
+	showMetadata       bool
 	wasmtoolsVersioner github.AssetVersioner
 
 	// NOTE: these are public so that the "serve" and "publish" composite
@@ -80,6 +83,7 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner g
 
 	// Hidden
 	c.CmdClause.Flag("enable-telemetry", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.enableTelemetry)
+	c.CmdClause.Flag("show-metadata", "Use wasm-tools to inspect metadata (requires --enable-telemetry)").Hidden().BoolVar(&c.showMetadata)
 
 	return &c
 }
@@ -270,6 +274,30 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
 		if err != nil {
 			return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+		}
+
+		if c.showMetadata {
+			// gosec flagged this:
+			// G204 (CWE-78): Subprocess launched with variable
+			// Disabling as the variables come from trusted sources.
+			// #nosec
+			// nosemgrep
+			command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm", "--json")
+			wasmtoolsOutput, err := command.Output()
+			if err != nil {
+				return fmt.Errorf("failed to execute wasm-tools metadata command: %w", err)
+			}
+			text.Info(out, "Below is the metadata attached to the Wasm binary")
+			text.Break(out)
+
+			var prettyJSON bytes.Buffer
+			err = json.Indent(&prettyJSON, wasmtoolsOutput, "", "  ")
+			if err != nil {
+				return fmt.Errorf("failed to indent JSON metadata response from wasm-tools: %w", err)
+			}
+
+			fmt.Fprintln(out, prettyJSON.String())
+			text.Break(out)
 		}
 	}
 
