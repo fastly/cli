@@ -98,6 +98,8 @@ func TestServeFlagDivergence(t *testing.T) {
 		"debug",
 		"env",
 		"file",
+		"profile-guest",
+		"profile-guest-dir",
 		"skip-build",
 		"viceroy-check",
 		"viceroy-path",

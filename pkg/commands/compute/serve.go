@@ -58,6 +58,8 @@ type ServeCommand struct {
 	env                     cmd.OptionalString
 	file                    string
 	forceCheckViceroyLatest bool
+	profileGuest            bool
+	profileGuestDir         cmd.OptionalString
 	skipBuild               bool
 	viceroyBinPath          string
 	watch                   bool
@@ -82,6 +84,8 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
+	c.CmdClause.Flag("profile-guest", "Profile the Wasm guest under Viceroy. View profiles at https://profiler.firefox.com/.").BoolVar(&c.profileGuest)
+	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 	c.CmdClause.Flag("viceroy-check", "Force the CLI to check for a newer version of the Viceroy binary").BoolVar(&c.forceCheckViceroyLatest)
@@ -138,7 +142,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	for {
-		err = local(bin, c.file, c.addr, c.env.Value, c.debug, c.watch, c.watchDir, c.Globals.Verbose(), out, c.Globals.ErrLog)
+		err = local(bin, c.file, c.addr, c.env.Value, c.debug, c.profileGuest, c.profileGuestDir, c.watch, c.watchDir, c.Globals.Verbose(), out, c.Globals.ErrLog)
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
@@ -511,7 +515,7 @@ func setBinPerms(bin string) error {
 }
 
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.OptionalString, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
+func local(bin, file, addr, env string, debug, profileGuest bool, profileGuestDir cmd.OptionalString, watch bool, watchDir cmd.OptionalString, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
 	if env != "" {
 		env = "." + env
 	}
@@ -531,6 +535,17 @@ func local(bin, file, addr, env string, debug, watch bool, watchDir cmd.Optional
 
 	if debug {
 		args = append(args, "--debug")
+	}
+
+	if profileGuest {
+		directory := "guest-profiles"
+		if profileGuestDir.WasSet {
+			directory = profileGuestDir.Value
+		}
+		args = append(args, "--profile-guest="+directory)
+		if verbose {
+			text.Info(out, "Saving per-request profiles to %s.", directory)
+		}
 	}
 
 	if verbose {
