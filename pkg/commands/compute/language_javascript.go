@@ -1,11 +1,15 @@
 package compute
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -137,9 +141,54 @@ func (j *JavaScript) Dependencies() map[string]string {
 	return deps
 }
 
+// Variables used as part of parsing imports from JavaScript source files.
+var (
+	importSingleLineBlockPattern = regexp.MustCompile(`^import (\{ [^;]+);`)
+	importAsPattern              = regexp.MustCompile(`as [^\s]+\s*`)
+)
+
 // Imports returns all source code imported packages.
 func (j *JavaScript) Imports() []string {
-	return []string{}
+	importedPackages := make(map[string]bool)
+
+	var importPaths []string
+
+	root := "."
+	_ = filepath.Walk(root, func(path string, _ os.FileInfo, _ error) error {
+		if strings.HasSuffix(path, ".js") {
+			if strings.Contains(path, "node_modules") {
+				return nil
+			}
+
+			// gosec flagged this:
+			// G304 (CWE-22): Potential f inclusion via variable
+			// Disabling as we need to read files from the users machine.
+			// #nosec
+			f, err := os.Open(path)
+			if err != nil {
+				return nil
+			}
+			defer f.Close()
+
+			scanner := bufio.NewScanner(f)
+
+			for scanner.Scan() {
+				line := scanner.Text()
+				match := importSingleLineBlockPattern.FindStringSubmatch(line)
+				if len(match) >= 2 {
+					item := importAsPattern.ReplaceAllString(match[1], "")
+					if !importedPackages[item] {
+						importPaths = append(importPaths, item)
+						importedPackages[item] = true
+					}
+				}
+			}
+		}
+		return nil
+	})
+
+	sort.Strings(importPaths)
+	return importPaths
 }
 
 // Build compiles the user's source code into a Wasm binary.
