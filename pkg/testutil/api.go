@@ -70,6 +70,7 @@ func CloneVersionError(_ *fastly.CloneVersionInput) (*fastly.Version, error) {
 // WhoamiVerifyClient is used by `whoami` and `sso` tests.
 type WhoamiVerifyClient whoami.VerifyResponse
 
+// Do executes the HTTP request.
 func (c WhoamiVerifyClient) Do(*http.Request) (*http.Response, error) {
 	rec := httptest.NewRecorder()
 	_ = json.NewEncoder(rec).Encode(whoami.VerifyResponse(c))

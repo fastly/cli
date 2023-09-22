@@ -73,7 +73,7 @@ func (s MockAuthServer) SetAccountEndpoint(_ string) {
 	// no-op
 }
 
-// SetEndpoint sets the API endpoint.
+// SetAPIEndpoint sets the API endpoint.
 func (s MockAuthServer) SetAPIEndpoint(_ string) {
 	// no-op
 }
