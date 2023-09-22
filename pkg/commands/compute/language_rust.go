@@ -161,7 +161,7 @@ func (r *Rust) Imports() []string {
 
 	var importPaths []string
 
-	root := "/Users/integralist/Code/test-projects/testing-fastly-cli"
+	root := "."
 	_ = filepath.Walk(root, func(path string, _ os.FileInfo, _ error) error {
 		if strings.HasSuffix(path, ".rs") {
 			if strings.Contains(path, "/target/") {
