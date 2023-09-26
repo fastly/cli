@@ -56,7 +56,7 @@ type Flags struct {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	cmd.Base
-	enableTelemetry    bool
+	enableMetadata     bool
 	showMetadata       bool
 	wasmtoolsVersioner github.AssetVersioner
 
@@ -83,8 +83,8 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner g
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
 	// Hidden
-	c.CmdClause.Flag("enable-telemetry", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.enableTelemetry)
-	c.CmdClause.Flag("show-metadata", "Use wasm-tools to inspect metadata (requires --enable-telemetry)").Hidden().BoolVar(&c.showMetadata)
+	c.CmdClause.Flag("enable-metadata", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.enableMetadata)
+	c.CmdClause.Flag("show-metadata", "Use wasm-tools to inspect metadata (requires --enable-metadata)").Hidden().BoolVar(&c.showMetadata)
 
 	return &c
 }
@@ -127,9 +127,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	var wasmtools string
-	// FIXME: When we remove feature flag, put in ability to disable telemetry.
+	// FIXME: When we remove feature flag, put in ability to disable metadata.
 	// disableWasmMetadata, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
-	if c.enableTelemetry /*|| !disableWasmMetadata*/ {
+	if c.enableMetadata /*|| !disableWasmMetadata*/ {
 		wasmtools, err = GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
 		if err != nil {
 			return err
@@ -199,8 +199,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		memBefore, memAfter runtime.MemStats
 		startTime           time.Time
 	)
-	// FIXME: When we remove feature flag, put in ability to disable telemetry.
-	if c.enableTelemetry /*|| !disableWasmMetadata*/ {
+	// FIXME: When we remove feature flag, put in ability to disable metadata.
+	if c.enableMetadata /*|| !disableWasmMetadata*/ {
 		runtime.ReadMemStats(&memBefore)
 		startTime = time.Now()
 	}
@@ -212,8 +212,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	// FIXME: When we remove feature flag, put in ability to disable telemetry.
-	if c.enableTelemetry /*|| !disableWasmMetadata*/ {
+	// FIXME: When we remove feature flag, put in ability to disable metadata.
+	if c.enableMetadata /*|| !disableWasmMetadata*/ {
 		endTime := time.Now()
 		runtime.ReadMemStats(&memAfter)
 

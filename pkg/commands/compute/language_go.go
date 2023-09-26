@@ -110,15 +110,51 @@ func (g *Go) DefaultBuildScript() bool {
 func (g *Go) Dependencies() map[string]string {
 	deps := make(map[string]string)
 
-	if f, err := os.Open("go.sum"); err == nil {
+	if f, err := os.Open("go.mod"); err == nil {
 		defer f.Close()
+		var insideRequireBlock bool
+
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
 			line := scanner.Text()
-			segs := strings.Split(line, " ")
-			if len(segs) >= 2 {
-				pkg := segs[0]
-				version := strings.Split(segs[1], "/")[0] // e.g. `v0.2.0/go.mod`
+			parts := strings.Fields(line)
+
+			// go.mod has two separate `require` definitions:
+			//
+			// 1.
+			// require github.com/fastly/compute-sdk-go v1.0.0
+			//
+			// 2.
+			// require (
+			//   github.com/fastly/compute-sdk-go v1.0.0
+			//   golang.org/x/mod v0.4.2 // indirect
+			// )
+			//
+			// We avoid including 'indirect' dependencies by ignoring lines with a
+			// length greater than three segments.
+
+			if len(parts) >= 2 && parts[0] == "require" && parts[1] == "(" {
+				insideRequireBlock = true
+				continue
+			}
+			if len(parts) == 1 && parts[0] == ")" {
+				insideRequireBlock = false
+				continue
+			}
+			if len(parts) >= 2 && !insideRequireBlock && parts[0] != "require" {
+				continue
+			}
+
+			var pkg, version string
+			switch len(parts) {
+			case 2:
+				pkg = parts[0]
+				version = parts[1]
+			case 3:
+				pkg = parts[1]
+				version = parts[2]
+			}
+			if pkg != "" && version != "" {
 				deps[pkg] = version
 			}
 		}
