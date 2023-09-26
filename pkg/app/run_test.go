@@ -86,7 +86,6 @@ service
 service-auth
 service-version
 stats
-telemetry
 tls-config
 tls-custom
 tls-platform

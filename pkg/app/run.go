@@ -114,14 +114,14 @@ func Run(opts RunOpts) error {
 		return nil
 	}
 
-	if !g.Config.CLI.TelemetryNoticeDisplayed && commandCollectsData(commandName) {
+	if !g.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
 		// FIXME: We need the actual URL to point users to.
 		text.Important(g.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about what data is being collected, why, and how to disable it: https://www.fastly.com/")
 		text.Break(g.Output)
-		g.Config.CLI.TelemetryNoticeDisplayed = true
+		g.Config.CLI.MetadataNoticeDisplayed = true
 		err := g.Config.Write(g.ConfigPath)
 		if err != nil {
-			return fmt.Errorf("failed to persist change to telemetry notice: %w", err)
+			return fmt.Errorf("failed to persist change to metadata notice: %w", err)
 		}
 		time.Sleep(5 * time.Second) // this message is only displayed once so give the user a chance to see it before it possibly scrolls off screen
 	}

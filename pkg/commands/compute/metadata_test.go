@@ -1,4 +1,4 @@
-package telemetry_test
+package compute_test
 
 import (
 	"bytes"
@@ -23,7 +23,7 @@ type Scenario struct {
 	ExpectedConfig config.WasmMetadata
 }
 
-func TestTelemetry(t *testing.T) {
+func TestMetadata(t *testing.T) {
 	var (
 		configPath string
 		data       []byte
@@ -37,7 +37,7 @@ func TestTelemetry(t *testing.T) {
 		}
 
 		// Read the test config.toml data
-		path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
+		path, err := filepath.Abs(filepath.Join("./", "testdata", "metadata", "config.toml"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -66,7 +66,7 @@ func TestTelemetry(t *testing.T) {
 	scenarios := []Scenario{
 		{
 			TestScenario: testutil.TestScenario{
-				Args:       args("telemetry --enable"),
+				Args:       args("compute metadata --enable"),
 				WantOutput: "SUCCESS: configuration updated (see: `fastly config`)",
 			},
 			ExpectedConfig: config.WasmMetadata{
@@ -77,7 +77,7 @@ func TestTelemetry(t *testing.T) {
 		},
 		{
 			TestScenario: testutil.TestScenario{
-				Args:       args("telemetry --disable"),
+				Args:       args("compute metadata --disable"),
 				WantOutput: "SUCCESS: configuration updated (see: `fastly config`)",
 			},
 			ExpectedConfig: config.WasmMetadata{
@@ -88,9 +88,9 @@ func TestTelemetry(t *testing.T) {
 		},
 		{
 			TestScenario: testutil.TestScenario{
-				Args: args("telemetry --enable --disable-build"),
+				Args: args("compute metadata --enable --disable-build"),
 				WantOutputs: []string{
-					"INFO: We will enable all telemetry except for the specified `--disable-*` flags",
+					"INFO: We will enable all metadata except for the specified `--disable-*` flags",
 					"SUCCESS: configuration updated (see: `fastly config`)",
 				},
 			},
@@ -102,9 +102,9 @@ func TestTelemetry(t *testing.T) {
 		},
 		{
 			TestScenario: testutil.TestScenario{
-				Args: args("telemetry --disable --enable-machine"),
+				Args: args("compute metadata --disable --enable-machine"),
 				WantOutputs: []string{
-					"INFO: We will disable all telemetry except for the specified `--enable-*` flags",
+					"INFO: We will disable all metadata except for the specified `--enable-*` flags",
 					"SUCCESS: configuration updated (see: `fastly config`)",
 				},
 			},

@@ -62,7 +62,7 @@ type Fastly struct {
 	APIEndpoint string `toml:"api_endpoint"`
 }
 
-// WasmMetadata represents what telemetry data will be recorded.
+// WasmMetadata represents what metadata will be collected.
 type WasmMetadata struct {
 	// BuildInfo represents information regarding the time taken for builds and
 	// compilation processes, helping us identify bottlenecks and optimize
@@ -72,7 +72,7 @@ type WasmMetadata struct {
 	// RAM, operating system) to better understand the hardware landscape our CLI
 	// operates in (enable/disable).
 	MachineInfo string `toml:"machine_info"`
-	// PackageInfo represents packages and libraries utilized in your source code,
+	// PackageInfo represents packages and libraries utilized by your source code,
 	// enabling us to prioritize support for the most commonly used components
 	// (enable/disable).
 	PackageInfo string `toml:"package_info"`
@@ -80,9 +80,9 @@ type WasmMetadata struct {
 
 // CLI represents CLI specific configuration.
 type CLI struct {
-	// TelemetryNoticeDisplayed indicates if the user has been notified of the
-	// telemetry behaviours being enabled by default and how they can opt-out.
-	TelemetryNoticeDisplayed bool `toml:"telemetry_notice_displayed"`
+	// MetadataNoticeDisplayed indicates if the user has been notified of the
+	// metadata behaviours being enabled by default and how they can opt-out.
+	MetadataNoticeDisplayed bool `toml:"metadata_notice_displayed"`
 	// Version indicates the CLI configuration version.
 	// It is updated each time a change is made to the config structure.
 	Version string `toml:"version"`

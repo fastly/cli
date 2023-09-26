@@ -3,7 +3,7 @@ config_version = 4
 [fastly]
 api_endpoint = "https://api.fastly.com"
 
-[telemetry]
+[wasm-metadata]
 build_info = "enable"
 machine_info = "enable"
 package_info = "enable"

@@ -60,7 +60,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/stats"
-	"github.com/fastly/cli/pkg/commands/telemetry"
 	tlsConfig "github.com/fastly/cli/pkg/commands/tls/config"
 	tlsCustom "github.com/fastly/cli/pkg/commands/tls/custom"
 	tlsCustomActivation "github.com/fastly/cli/pkg/commands/tls/custom/activation"
@@ -117,6 +116,7 @@ func defineCommands(
 	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, g, computeBuild)
 	computeHashsum := compute.NewHashsumCommand(computeCmdRoot.CmdClause, g, computeBuild)
 	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, g, m)
+	computeMetadata := compute.NewMetadataCommand(computeCmdRoot.CmdClause, g)
 	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, g, m)
 	computePublish := compute.NewPublishCommand(computeCmdRoot.CmdClause, g, computeBuild, computeDeploy)
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, g, computeBuild, opts.Versioners.Viceroy)
@@ -386,7 +386,6 @@ func defineCommands(
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, g, m)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, g, m)
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, g)
-	telemetryCmdRoot := telemetry.NewRootCommand(app, g)
 	tlsConfigCmdRoot := tlsConfig.NewRootCommand(app, g)
 	tlsConfigDescribe := tlsConfig.NewDescribeCommand(tlsConfigCmdRoot.CmdClause, g, m)
 	tlsConfigList := tlsConfig.NewListCommand(tlsConfigCmdRoot.CmdClause, g, m)
@@ -483,6 +482,7 @@ func defineCommands(
 		computeHashFiles,
 		computeHashsum,
 		computeInit,
+		computeMetadata,
 		computePack,
 		computePublish,
 		computeServe,
@@ -748,7 +748,6 @@ func defineCommands(
 		statsHistorical,
 		statsRealtime,
 		statsRegions,
-		telemetryCmdRoot,
 		tlsConfigCmdRoot,
 		tlsConfigDescribe,
 		tlsConfigList,
