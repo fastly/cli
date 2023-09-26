@@ -2,9 +2,7 @@ package compute
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/rand"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -126,14 +124,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	var wasmtools string
-	// FIXME: When we remove feature flag, put in ability to disable metadata.
-	// disableWasmMetadata, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
-	if c.enableMetadata /*|| !disableWasmMetadata*/ {
-		wasmtools, err = GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
-		if err != nil {
-			return err
-		}
+	wasmtools, err := GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
+	if err != nil {
+		return err
 	}
 
 	defer func(errLog fsterr.LogInterface) {
@@ -217,6 +210,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		endTime := time.Now()
 		runtime.ReadMemStats(&memAfter)
 
+		// FIXME: Once #1013 and #1016 merged, integrate granular disabling.
 		args := []string{
 			"metadata", "add", "bin/main.wasm",
 			fmt.Sprintf("--language=CLI_%s: %s", revision.AppVersion, strings.ToUpper(language.Name)),
@@ -252,25 +246,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
 		}
 
-		// gosec flagged this:
-		// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
-		// Disabling as we trust the source of the variable.
-		// #nosec
-		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
-		command := exec.Command(wasmtools, args...)
-		wasmtoolsOutput, err := command.Output()
+		err = c.executeWasmtools(wasmtools, args)
 		if err != nil {
-			return fmt.Errorf("failed to annotate binary with metadata: %w", err)
-		}
-		// Ensure the Wasm binary can be executed.
-		//
-		// G302 (CWE-276): Expect file permissions to be 0600 or less
-		// gosec flagged this:
-		// Disabling as we want all users to be able to execute this binary.
-		// #nosec
-		err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
-		if err != nil {
-			return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+			return err
 		}
 
 		if c.showMetadata {
@@ -279,7 +257,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// Disabling as the variables come from trusted sources.
 			// #nosec
 			// nosemgrep
-			command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm", "--json")
+			command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm")
 			wasmtoolsOutput, err := command.Output()
 			if err != nil {
 				return fmt.Errorf("failed to execute wasm-tools metadata command: %w", err)
@@ -287,14 +265,18 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			text.Info(out, "Below is the metadata attached to the Wasm binary")
 			text.Break(out)
 
-			var prettyJSON bytes.Buffer
-			err = json.Indent(&prettyJSON, wasmtoolsOutput, "", "  ")
-			if err != nil {
-				return fmt.Errorf("failed to indent JSON metadata response from wasm-tools: %w", err)
-			}
-
-			fmt.Fprintln(out, prettyJSON.String())
+			fmt.Fprintln(out, string(wasmtoolsOutput))
 			text.Break(out)
+		}
+	} else {
+		// NOTE: If not collecting metadata, just record the CLI version.
+		args := []string{
+			"metadata", "add", "bin/main.wasm",
+			fmt.Sprintf("--language=CLI_%s: %s", revision.AppVersion, strings.ToUpper(language.Name)),
+		}
+		err = c.executeWasmtools(wasmtools, args)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -375,6 +357,30 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	out = originalOut
 	text.Success(out, "\nBuilt package (%s)", dest)
+	return nil
+}
+
+func (c *BuildCommand) executeWasmtools(wasmtools string, args []string) error {
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
+	// Disabling as we trust the source of the variable.
+	// #nosec
+	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
+	command := exec.Command(wasmtools, args...)
+	wasmtoolsOutput, err := command.Output()
+	if err != nil {
+		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+	}
+	// Ensure the Wasm binary can be executed.
+	//
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as we want all users to be able to execute this binary.
+	// #nosec
+	err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
+	if err != nil {
+		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+	}
 	return nil
 }
 
