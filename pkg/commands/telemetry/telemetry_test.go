@@ -20,7 +20,7 @@ import (
 type Scenario struct {
 	testutil.TestScenario
 
-	ExpectedConfig config.Telemetry
+	ExpectedConfig config.WasmMetadata
 }
 
 func TestTelemetry(t *testing.T) {
@@ -69,7 +69,7 @@ func TestTelemetry(t *testing.T) {
 				Args:       args("telemetry --enable"),
 				WantOutput: "SUCCESS: configuration updated (see: `fastly config`)",
 			},
-			ExpectedConfig: config.Telemetry{
+			ExpectedConfig: config.WasmMetadata{
 				BuildInfo:   "enable",
 				MachineInfo: "enable",
 				PackageInfo: "enable",
@@ -80,7 +80,7 @@ func TestTelemetry(t *testing.T) {
 				Args:       args("telemetry --disable"),
 				WantOutput: "SUCCESS: configuration updated (see: `fastly config`)",
 			},
-			ExpectedConfig: config.Telemetry{
+			ExpectedConfig: config.WasmMetadata{
 				BuildInfo:   "disable",
 				MachineInfo: "disable",
 				PackageInfo: "disable",
@@ -94,7 +94,7 @@ func TestTelemetry(t *testing.T) {
 					"SUCCESS: configuration updated (see: `fastly config`)",
 				},
 			},
-			ExpectedConfig: config.Telemetry{
+			ExpectedConfig: config.WasmMetadata{
 				BuildInfo:   "disable",
 				MachineInfo: "enable",
 				PackageInfo: "enable",
@@ -108,7 +108,7 @@ func TestTelemetry(t *testing.T) {
 					"SUCCESS: configuration updated (see: `fastly config`)",
 				},
 			},
-			ExpectedConfig: config.Telemetry{
+			ExpectedConfig: config.WasmMetadata{
 				BuildInfo:   "disable",
 				MachineInfo: "enable",
 				PackageInfo: "disable",
@@ -162,14 +162,14 @@ func TestTelemetry(t *testing.T) {
 				t.Error(err)
 			}
 
-			if opts.ConfigFile.Telemetry.BuildInfo != testcase.ExpectedConfig.BuildInfo {
-				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.BuildInfo, opts.ConfigFile.Telemetry.BuildInfo)
+			if opts.ConfigFile.WasmMetadata.BuildInfo != testcase.ExpectedConfig.BuildInfo {
+				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.BuildInfo, opts.ConfigFile.WasmMetadata.BuildInfo)
 			}
-			if opts.ConfigFile.Telemetry.MachineInfo != testcase.ExpectedConfig.MachineInfo {
-				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.MachineInfo, opts.ConfigFile.Telemetry.MachineInfo)
+			if opts.ConfigFile.WasmMetadata.MachineInfo != testcase.ExpectedConfig.MachineInfo {
+				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.MachineInfo, opts.ConfigFile.WasmMetadata.MachineInfo)
 			}
-			if opts.ConfigFile.Telemetry.PackageInfo != testcase.ExpectedConfig.PackageInfo {
-				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.PackageInfo, opts.ConfigFile.Telemetry.PackageInfo)
+			if opts.ConfigFile.WasmMetadata.PackageInfo != testcase.ExpectedConfig.PackageInfo {
+				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.PackageInfo, opts.ConfigFile.WasmMetadata.PackageInfo)
 			}
 		})
 	}

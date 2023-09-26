@@ -62,8 +62,8 @@ type Fastly struct {
 	APIEndpoint string `toml:"api_endpoint"`
 }
 
-// Telemetry represents what telemetry data will be recorded.
-type Telemetry struct {
+// WasmMetadata represents what telemetry data will be recorded.
+type WasmMetadata struct {
 	// BuildInfo represents information regarding the time taken for builds and
 	// compilation processes, helping us identify bottlenecks and optimize
 	// performance (enable/disable).
@@ -176,8 +176,6 @@ type File struct {
 	ConfigVersion int `toml:"config_version"`
 	// Fastly represents fastly specific configuration.
 	Fastly Fastly `toml:"fastly"`
-	// Telemetry represents what telemetry data will be recorded.
-	Telemetry Telemetry `toml:"telemetry"`
 	// Language represents C@E language specific configuration.
 	Language Language `toml:"language"`
 	// Profiles represents multiple profile accounts.
@@ -186,6 +184,8 @@ type File struct {
 	StarterKits StarterKitLanguages `toml:"starter-kits"`
 	// Viceroy represents viceroy specific configuration.
 	Viceroy Versioner `toml:"viceroy"`
+	// WasmMetadata represents what metadata will be collected.
+	WasmMetadata WasmMetadata `toml:"wasm-metadata"`
 	// WasmTools represents wasm-tools specific configuration.
 	WasmTools Versioner `toml:"wasm-tools"`
 

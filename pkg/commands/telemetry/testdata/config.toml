@@ -1,4 +1,4 @@
-[telemetry]
+[wasm-metadata]
 build_info = "disable"
 machine_info = "disable"
 package_info = "disable"

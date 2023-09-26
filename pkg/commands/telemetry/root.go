@@ -48,10 +48,10 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
 	if c.disable {
-		c.Globals.Config.Telemetry = toggleAll("disable")
+		c.Globals.Config.WasmMetadata = toggleAll("disable")
 	}
 	if c.enable {
-		c.Globals.Config.Telemetry = toggleAll("enable")
+		c.Globals.Config.WasmMetadata = toggleAll("enable")
 	}
 	if c.disable && (c.enableBuild || c.enableMachine || c.enablePackage) {
 		text.Info(out, "We will disable all telemetry except for the specified `--enable-*` flags")
@@ -62,22 +62,22 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		text.Break(out)
 	}
 	if c.enableBuild {
-		c.Globals.Config.Telemetry.BuildInfo = "enable"
+		c.Globals.Config.WasmMetadata.BuildInfo = "enable"
 	}
 	if c.enableMachine {
-		c.Globals.Config.Telemetry.MachineInfo = "enable"
+		c.Globals.Config.WasmMetadata.MachineInfo = "enable"
 	}
 	if c.enablePackage {
-		c.Globals.Config.Telemetry.PackageInfo = "enable"
+		c.Globals.Config.WasmMetadata.PackageInfo = "enable"
 	}
 	if c.disableBuild {
-		c.Globals.Config.Telemetry.BuildInfo = "disable"
+		c.Globals.Config.WasmMetadata.BuildInfo = "disable"
 	}
 	if c.disableMachine {
-		c.Globals.Config.Telemetry.MachineInfo = "disable"
+		c.Globals.Config.WasmMetadata.MachineInfo = "disable"
 	}
 	if c.disablePackage {
-		c.Globals.Config.Telemetry.PackageInfo = "disable"
+		c.Globals.Config.WasmMetadata.PackageInfo = "disable"
 	}
 	err := c.Globals.Config.Write(c.Globals.ConfigPath)
 	if err != nil {
@@ -87,8 +87,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	return nil
 }
 
-func toggleAll(state string) config.Telemetry {
-	var t config.Telemetry
+func toggleAll(state string) config.WasmMetadata {
+	var t config.WasmMetadata
 	t.BuildInfo = state
 	t.MachineInfo = state
 	t.PackageInfo = state
