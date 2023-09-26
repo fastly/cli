@@ -393,16 +393,16 @@ func (f *File) Write(path string) error {
 // Environment represents all of the configuration parameters that can come
 // from environment variables.
 type Environment struct {
-	Token            string
-	Endpoint         string
-	TelemetryDisable string
+	Token               string
+	Endpoint            string
+	WasmMetadataDisable string
 }
 
 // Read populates the fields from the provided environment.
 func (e *Environment) Read(state map[string]string) {
 	e.Token = state[env.Token]
 	e.Endpoint = state[env.Endpoint]
-	e.TelemetryDisable = state[env.TelemetryDisable]
+	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }
 
 // invalidStaticConfigErr generates an error to alert the user to an issue with

@@ -128,8 +128,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var wasmtools string
 	// FIXME: When we remove feature flag, put in ability to disable telemetry.
-	// disableTelemetry, _ := strconv.ParseBool(c.Globals.Env.TelemetryDisable)
-	if c.enableTelemetry /*|| !disableTelemetry*/ {
+	// disableWasmMetadata, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
+	if c.enableTelemetry /*|| !disableWasmMetadata*/ {
 		wasmtools, err = GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
 		if err != nil {
 			return err
@@ -200,7 +200,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		startTime           time.Time
 	)
 	// FIXME: When we remove feature flag, put in ability to disable telemetry.
-	if c.enableTelemetry /*|| !disableTelemetry*/ {
+	if c.enableTelemetry /*|| !disableWasmMetadata*/ {
 		runtime.ReadMemStats(&memBefore)
 		startTime = time.Now()
 	}
@@ -213,7 +213,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	// FIXME: When we remove feature flag, put in ability to disable telemetry.
-	if c.enableTelemetry /*|| !disableTelemetry*/ {
+	if c.enableTelemetry /*|| !disableWasmMetadata*/ {
 		endTime := time.Now()
 		runtime.ReadMemStats(&memAfter)
 
