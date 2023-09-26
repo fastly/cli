@@ -10,8 +10,9 @@ import (
 
 // FileIO represents a source file and a destination.
 type FileIO struct {
-	Src string // path to a file inside ./testdata/ OR file content
-	Dst string // path to a file relative to test environment's root directory
+	Src        string // path to a file inside ./testdata/ OR file content
+	Dst        string // path to a file relative to test environment's root directory
+	Executable bool   // if path can be executed as a binary
 }
 
 // EnvOpts represents configuration when creating a new environment.
@@ -58,6 +59,11 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 
 		if err := os.WriteFile(dst, []byte(src), 0o777); err != nil /* #nosec */ {
 			opts.T.Fatal(err)
+		}
+		if f.Executable {
+			if err := os.Chmod(dst, os.FileMode(0o755)); err != nil {
+				opts.T.Fatal(err)
+			}
 		}
 	}
 

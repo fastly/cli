@@ -4,10 +4,11 @@ import "fmt"
 
 // AssetVersioner mocks the github.AssetVersioner interface.
 type AssetVersioner struct {
-	AssetVersion   string
-	BinaryFilename string
-	DownloadOK     bool
-	DownloadedFile string
+	AssetVersion    string
+	BinaryFilename  string
+	DownloadOK      bool
+	DownloadedFile  string
+	InstallFilePath string
 }
 
 // BinaryName implements github.Versioner interface.
@@ -51,4 +52,9 @@ func (av AssetVersioner) RequestedVersion() (version string) {
 // SetRequestedVersion implements github.Versioner interface.
 func (av AssetVersioner) SetRequestedVersion(_ string) {
 	// no-op
+}
+
+// InstallPath returns the location of where the binary should be installed.
+func (av AssetVersioner) InstallPath() string {
+	return av.InstallFilePath
 }

@@ -449,7 +449,7 @@ func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 // If there is no version installed, install the latest version.
 // If there is a version installed, update to the latest version if not already.
 func GetWasmTools(spinner text.Spinner, out io.Writer, wasmtoolsVersioner github.AssetVersioner, g *global.Data) (binPath string, err error) {
-	binPath = filepath.Join(github.InstallDir, wasmtoolsVersioner.BinaryName())
+	binPath = wasmtoolsVersioner.InstallPath()
 
 	// NOTE: When checking if wasm-tools is installed we don't use $PATH.
 	//

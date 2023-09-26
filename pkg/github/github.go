@@ -261,6 +261,10 @@ func (g *Asset) metadata() (m DevHubMetadata, err error) {
 	return m, nil
 }
 
+func (g *Asset) InstallPath() string {
+	return filepath.Join(InstallDir, g.BinaryName())
+}
+
 // DevHubMetadata represents the DevHub API response for software metadata.
 type DevHubMetadata struct {
 	// URL is the endpoint for downloading the release asset.
@@ -279,6 +283,8 @@ type AssetVersioner interface {
 	DownloadLatest() (bin string, err error)
 	// DownloadVersion downloads the specified version of the asset.
 	DownloadVersion(version string) (bin string, err error)
+	// InstallPath returns the location of where the binary should be installed.
+	InstallPath() string
 	// RequestedVersion returns the version defined in the fastly.toml file.
 	RequestedVersion() (version string)
 	// SetRequestedVersion sets the version of the asset to be downloaded.

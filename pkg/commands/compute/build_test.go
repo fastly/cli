@@ -2,8 +2,6 @@ package compute_test
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -26,19 +23,6 @@ func TestBuildRust(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	wasmtoolsVersioner := github.New(github.Opts{
-		HTTPClient: mock.HTMLClient([]*http.Response{
-			{
-				Body:       io.NopCloser(strings.NewReader("...")),
-				Status:     http.StatusText(http.StatusOK),
-				StatusCode: http.StatusOK,
-			},
-		}, []error{nil}),
-		Org:    "bytecodealliance",
-		Repo:   "wasm-tools",
-		Binary: "wasm-tools",
-	})
-
 	args := testutil.Args
 
 	scenarios := []struct {
@@ -50,16 +34,12 @@ func TestBuildRust(t *testing.T) {
 		wantError            string
 		wantRemediationError string
 		wantOutput           []string
-		versioners           *app.Versioners
 	}{
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute build"),
 			wantError:            "error reading fastly.toml",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "empty language",
@@ -68,9 +48,6 @@ func TestBuildRust(t *testing.T) {
 			manifest_version = 2
 			name = "test"`,
 			wantError: "language cannot be empty, please provide a language",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "unknown language",
@@ -80,9 +57,6 @@ func TestBuildRust(t *testing.T) {
 			name = "test"
 			language = "foobar"`,
 			wantError: "unsupported language foobar",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
@@ -117,9 +91,6 @@ func TestBuildRust(t *testing.T) {
 				"The following default build command for",
 				"cargo build --bin my-project",
 			},
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "build error",
@@ -147,9 +118,6 @@ func TestBuildRust(t *testing.T) {
       [scripts]
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
@@ -181,9 +149,6 @@ func TestBuildRust(t *testing.T) {
 				"Creating ./bin directory (for Wasm binary)",
 				"Built package",
 			},
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -196,6 +161,8 @@ func TestBuildRust(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			wasmtoolsBinName := "wasm-tools"
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
@@ -206,11 +173,14 @@ func TestBuildRust(t *testing.T) {
 					{Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"), Dst: filepath.Join("pkg", "package.tar.gz")},
 				},
 				Write: []testutil.FileIO{
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 					{Src: testcase.cargoManifest, Dst: "Cargo.toml"},
 				},
 			})
 			defer os.RemoveAll(rootdir)
+			wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
 
 			// Before running the test, chdir into the build environment.
 			// When we're done, chdir back to our original location.
@@ -223,9 +193,14 @@ func TestBuildRust(t *testing.T) {
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.ConfigFile = testcase.applicationConfig
-
-			if testcase.versioners != nil {
-				opts.Versioners = *testcase.versioners
+			opts.Versioners = app.Versioners{
+				WasmTools: mock.AssetVersioner{
+					AssetVersion:    "1.2.3",
+					BinaryFilename:  wasmtoolsBinName,
+					DownloadOK:      true,
+					DownloadedFile:  wasmtoolsBinPath,
+					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+				},
 			}
 
 			err = app.Run(opts)
@@ -252,13 +227,6 @@ func TestBuildGo(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	wasmtoolsVersioner := github.New(github.Opts{
-		HTTPClient: mock.HTMLClient([]*http.Response{}, []error{}),
-		Org:        "bytecodealliance",
-		Repo:       "wasm-tools",
-		Binary:     "wasm-tools",
-	})
-
 	args := testutil.Args
 
 	scenarios := []struct {
@@ -269,16 +237,12 @@ func TestBuildGo(t *testing.T) {
 		wantError            string
 		wantRemediationError string
 		wantOutput           []string
-		versioners           *app.Versioners
 	}{
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute build"),
 			wantError:            "error reading fastly.toml",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "empty language",
@@ -287,9 +251,6 @@ func TestBuildGo(t *testing.T) {
 			manifest_version = 2
 			name = "test"`,
 			wantError: "language cannot be empty, please provide a language",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "unknown language",
@@ -299,9 +260,6 @@ func TestBuildGo(t *testing.T) {
 			name = "test"
 			language = "foobar"`,
 			wantError: "unsupported language foobar",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
@@ -336,9 +294,6 @@ func TestBuildGo(t *testing.T) {
 				"Creating ./bin directory (for Wasm binary)",
 				"Built package",
 			},
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// The following test case is expected to fail because we specify a custom
 		// build script that doesn't actually produce a ./bin/main.wasm
@@ -362,9 +317,6 @@ func TestBuildGo(t *testing.T) {
       [scripts]
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -377,6 +329,8 @@ func TestBuildGo(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			wasmtoolsBinName := "wasm-tools"
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
@@ -385,10 +339,13 @@ func TestBuildGo(t *testing.T) {
 					{Src: filepath.Join("testdata", "build", "go", "main.go"), Dst: "main.go"},
 				},
 				Write: []testutil.FileIO{
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
 			})
 			defer os.RemoveAll(rootdir)
+			wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
 
 			// Before running the test, chdir into the build environment.
 			// When we're done, chdir back to our original location.
@@ -401,9 +358,14 @@ func TestBuildGo(t *testing.T) {
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.ConfigFile = testcase.applicationConfig
-
-			if testcase.versioners != nil {
-				opts.Versioners = *testcase.versioners
+			opts.Versioners = app.Versioners{
+				WasmTools: mock.AssetVersioner{
+					AssetVersion:    "1.2.3",
+					BinaryFilename:  wasmtoolsBinName,
+					DownloadOK:      true,
+					DownloadedFile:  wasmtoolsBinPath,
+					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+				},
 			}
 
 			err = app.Run(opts)
@@ -430,13 +392,6 @@ func TestBuildJavaScript(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	wasmtoolsVersioner := github.New(github.Opts{
-		HTTPClient: mock.HTMLClient([]*http.Response{}, []error{}),
-		Org:        "bytecodealliance",
-		Repo:       "wasm-tools",
-		Binary:     "wasm-tools",
-	})
-
 	args := testutil.Args
 
 	scenarios := []struct {
@@ -454,9 +409,6 @@ func TestBuildJavaScript(t *testing.T) {
 			args:                 args("compute build"),
 			wantError:            "error reading fastly.toml",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "empty language",
@@ -465,9 +417,6 @@ func TestBuildJavaScript(t *testing.T) {
 			manifest_version = 2
 			name = "test"`,
 			wantError: "language cannot be empty, please provide a language",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "unknown language",
@@ -477,9 +426,6 @@ func TestBuildJavaScript(t *testing.T) {
 			name = "test"
 			language = "foobar"`,
 			wantError: "unsupported language foobar",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
@@ -498,9 +444,6 @@ func TestBuildJavaScript(t *testing.T) {
 				"The following default build command for",
 				"npm exec webpack", // our testdata package.json references webpack
 			},
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "build error",
@@ -513,9 +456,6 @@ func TestBuildJavaScript(t *testing.T) {
       [scripts]
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
@@ -533,9 +473,6 @@ func TestBuildJavaScript(t *testing.T) {
 				"Built package",
 			},
 			npmInstall: true,
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -548,6 +485,8 @@ func TestBuildJavaScript(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			wasmtoolsBinName := "wasm-tools"
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
@@ -557,10 +496,13 @@ func TestBuildJavaScript(t *testing.T) {
 					{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
 				},
 				Write: []testutil.FileIO{
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
 			})
 			defer os.RemoveAll(rootdir)
+			wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
 
 			// Before running the test, chdir into the build environment.
 			// When we're done, chdir back to our original location.
@@ -587,9 +529,14 @@ func TestBuildJavaScript(t *testing.T) {
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-
-			if testcase.versioners != nil {
-				opts.Versioners = *testcase.versioners
+			opts.Versioners = app.Versioners{
+				WasmTools: mock.AssetVersioner{
+					AssetVersion:    "1.2.3",
+					BinaryFilename:  wasmtoolsBinName,
+					DownloadOK:      true,
+					DownloadedFile:  wasmtoolsBinPath,
+					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+				},
 			}
 
 			err = app.Run(opts)
@@ -616,13 +563,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	wasmtoolsVersioner := github.New(github.Opts{
-		HTTPClient: mock.HTMLClient([]*http.Response{}, []error{}),
-		Org:        "bytecodealliance",
-		Repo:       "wasm-tools",
-		Binary:     "wasm-tools",
-	})
-
 	args := testutil.Args
 
 	scenarios := []struct {
@@ -633,16 +573,12 @@ func TestBuildAssemblyScript(t *testing.T) {
 		wantRemediationError string
 		wantOutput           []string
 		npmInstall           bool
-		versioners           *app.Versioners
 	}{
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute build"),
 			wantError:            "error reading fastly.toml",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "empty language",
@@ -651,9 +587,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 			manifest_version = 2
 			name = "test"`,
 			wantError: "language cannot be empty, please provide a language",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "unknown language",
@@ -663,9 +596,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 			name = "test"
 			language = "foobar"`,
 			wantError: "unsupported language foobar",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
@@ -684,9 +614,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 				"The following default build command for",
 				"npm exec -- asc",
 			},
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "build error",
@@ -699,9 +626,6 @@ func TestBuildAssemblyScript(t *testing.T) {
       [scripts]
       build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
@@ -719,9 +643,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 				"Built package",
 			},
 			npmInstall: true,
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -734,6 +655,8 @@ func TestBuildAssemblyScript(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			wasmtoolsBinName := "wasm-tools"
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
@@ -742,10 +665,13 @@ func TestBuildAssemblyScript(t *testing.T) {
 					{Src: filepath.Join("testdata", "build", "assemblyscript", "assembly", "index.ts"), Dst: filepath.Join("assembly", "index.ts")},
 				},
 				Write: []testutil.FileIO{
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
 			})
 			defer os.RemoveAll(rootdir)
+			wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
 
 			// Before running the test, chdir into the build environment.
 			// When we're done, chdir back to our original location.
@@ -774,9 +700,14 @@ func TestBuildAssemblyScript(t *testing.T) {
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-
-			if testcase.versioners != nil {
-				opts.Versioners = *testcase.versioners
+			opts.Versioners = app.Versioners{
+				WasmTools: mock.AssetVersioner{
+					AssetVersion:    "1.2.3",
+					BinaryFilename:  wasmtoolsBinName,
+					DownloadOK:      true,
+					DownloadedFile:  wasmtoolsBinPath,
+					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+				},
 			}
 
 			err = app.Run(opts)
@@ -799,13 +730,6 @@ func TestBuildAssemblyScript(t *testing.T) {
 
 // NOTE: TestBuildOther also validates the post_build settings.
 func TestBuildOther(t *testing.T) {
-	wasmtoolsVersioner := github.New(github.Opts{
-		HTTPClient: mock.HTMLClient([]*http.Response{}, []error{}),
-		Org:        "bytecodealliance",
-		Repo:       "wasm-tools",
-		Binary:     "wasm-tools",
-	})
-
 	args := testutil.Args
 	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
@@ -818,6 +742,8 @@ func TestBuildOther(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	wasmtoolsBinName := "wasm-tools"
 
 	// Create test environment
 	//
@@ -840,10 +766,14 @@ func TestBuildOther(t *testing.T) {
 			{Src: "./testdata/main.wasm", Dst: "bin/main.wasm"},
 		},
 		Write: []testutil.FileIO{
+			{Src: `#!/usr/bin/env bash
+        echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
 			{Src: "mock content", Dst: "bin/testfile"},
 		},
 	})
 	defer os.RemoveAll(rootdir)
+	wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
+	mainwasmBinPath := filepath.Join(rootdir, "bin", "main.wasm")
 
 	// Before running the test, chdir into the build environment.
 	// When we're done, chdir back to our original location.
@@ -862,7 +792,6 @@ func TestBuildOther(t *testing.T) {
 		wantError            string
 		wantOutput           []string
 		wantRemediationError string
-		versioners           *app.Versioners
 	}{
 		{
 			name: "stop build process",
@@ -879,9 +808,6 @@ func TestBuildOther(t *testing.T) {
 				"Do you want to run this now?",
 			},
 			wantError: "build process stopped by user",
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		// NOTE: All following tests pass --verbose so we can see post_build output.
 		{
@@ -898,9 +824,6 @@ func TestBuildOther(t *testing.T) {
 				"echo doing a post build",
 				"Do you want to run this now?",
 				"Built package",
-			},
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
 			},
 		},
 		{
@@ -919,9 +842,6 @@ func TestBuildOther(t *testing.T) {
 				"Do you want to run this now?",
 				"Built package",
 			},
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 		{
 			name: "avoid prompt confirmation",
@@ -939,12 +859,22 @@ func TestBuildOther(t *testing.T) {
 				"Do you want to run this now?",
 			},
 			wantError: "exit status 1", // because we have to trigger an error to see the post_build output
-			versioners: &app.Versioners{
-				WasmTools: wasmtoolsVersioner,
-			},
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			// Make a backup of the bin/main.wasm as it will get modified by the
+			// post_build script and that will cause it to fail validation.
+			mainWasmBackup, err := os.ReadFile(mainwasmBinPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				err := os.WriteFile(mainwasmBinPath, mainWasmBackup, 0o777)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}()
+
 			if testcase.fastlyManifest != "" {
 				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
 					t.Fatal(err)
@@ -954,9 +884,14 @@ func TestBuildOther(t *testing.T) {
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
-
-			if testcase.versioners != nil {
-				opts.Versioners = *testcase.versioners
+			opts.Versioners = app.Versioners{
+				WasmTools: mock.AssetVersioner{
+					AssetVersion:    "1.2.3",
+					BinaryFilename:  wasmtoolsBinName,
+					DownloadOK:      true,
+					DownloadedFile:  wasmtoolsBinPath,
+					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+				},
 			}
 
 			err = app.Run(opts)
