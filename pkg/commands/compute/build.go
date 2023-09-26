@@ -124,11 +124,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	wasmtools, err := GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
-	if err != nil {
-		return err
-	}
-
 	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
 			errLog.Add(err)
@@ -150,6 +145,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	wasmtools, err := GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
 	if err != nil {
 		return err
 	}

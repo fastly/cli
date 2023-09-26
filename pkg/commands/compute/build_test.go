@@ -33,7 +33,7 @@ func TestBuildRust(t *testing.T) {
 				Status:     http.StatusText(http.StatusOK),
 				StatusCode: http.StatusOK,
 			},
-		}, []error{}),
+		}, []error{nil}),
 		Org:    "bytecodealliance",
 		Repo:   "wasm-tools",
 		Binary: "wasm-tools",
