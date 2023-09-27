@@ -48,13 +48,14 @@ func Run(opts RunOpts) error {
 	// The g will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	g := global.Data{
-		Env:        opts.Env,
-		ErrLog:     opts.ErrLog,
-		Config:     opts.ConfigFile,
-		ConfigPath: opts.ConfigPath,
-		HTTPClient: opts.HTTPClient,
-		Manifest:   *opts.Manifest,
-		Output:     opts.Stdout,
+		Config:           opts.ConfigFile,
+		ConfigPath:       opts.ConfigPath,
+		Env:              opts.Env,
+		ErrLog:           opts.ErrLog,
+		ExecuteWasmTools: opts.ExecuteWasmTools,
+		HTTPClient:       opts.HTTPClient,
+		Manifest:         *opts.Manifest,
+		Output:           opts.Stdout,
 	}
 
 	// Set up the main application root, including global flags, and then each
@@ -190,17 +191,18 @@ func Run(opts RunOpts) error {
 
 // RunOpts represent arguments to Run()
 type RunOpts struct {
-	APIClient  APIClientFactory
-	Args       []string
-	ConfigFile config.File
-	ConfigPath string
-	Env        config.Environment
-	ErrLog     fsterr.LogInterface
-	HTTPClient api.HTTPClient
-	Manifest   *manifest.Data
-	Stdin      io.Reader
-	Stdout     io.Writer
-	Versioners Versioners
+	APIClient        APIClientFactory
+	Args             []string
+	ConfigFile       config.File
+	ConfigPath       string
+	Env              config.Environment
+	ErrLog           fsterr.LogInterface
+	ExecuteWasmTools func(bin string, args []string) error
+	HTTPClient       api.HTTPClient
+	Manifest         *manifest.Data
+	Stdin            io.Reader
+	Stdout           io.Writer
+	Versioners       Versioners
 }
 
 // APIClientFactory creates a Fastly API client (modeled as an api.Interface)

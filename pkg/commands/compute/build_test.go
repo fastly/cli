@@ -85,7 +85,7 @@ func TestBuildRust(t *testing.T) {
 			fastlyManifest: `
 			manifest_version = 2
 			name = "test"
-      language = "rust"`,
+		    language = "rust"`,
 			wantOutput: []string{
 				"No [scripts.build] found in fastly.toml.", // requires --verbose
 				"The following default build command for",
@@ -115,8 +115,8 @@ func TestBuildRust(t *testing.T) {
 			name = "test"
 			language = "rust"
 
-      [scripts]
-      build = "echo no compilation happening"`,
+		    [scripts]
+		    build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
 		},
 		// NOTE: This test passes --verbose so we can validate specific outputs.
@@ -143,8 +143,8 @@ func TestBuildRust(t *testing.T) {
 			name = "test"
 			language = "rust"
 
-      [scripts]
-      build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName)),
+		    [scripts]
+		    build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName)),
 			wantOutput: []string{
 				"Creating ./bin directory (for Wasm binary)",
 				"Built package",
@@ -163,6 +163,24 @@ func TestBuildRust(t *testing.T) {
 
 			wasmtoolsBinName := "wasm-tools"
 
+			// Windows was having issues when trying to move a tmpBin file (which
+			// represents the latest binary downloaded from GitHub) to binPath (which
+			// represents the existing binary installed on a user's machine).
+			//
+			// The problem was, for the sake of the tests, I just create one file
+			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
+			// this works fine on *nix systems. But once Windows did `os.Rename()` and
+			// move tmpBin to binPath it would no longer be able to set permissions on
+			// the binPath because it didn't think the file existed any more. My guess
+			// is that moving a file over itself causes Windows to remove the file.
+			//
+			// So to work around that issue I just create two separate files because
+			// in reality that's what the CLI will be dealing with. I only used one
+			// file for the sake of test case convenience (which ironically became
+			// very INCONVENIENT when the tests started unexpectedly failing on
+			// Windows and caused me a long time debugging).
+			latestDownloaded := wasmtoolsBinName + "-latest-downloaded"
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
@@ -175,6 +193,8 @@ func TestBuildRust(t *testing.T) {
 				Write: []testutil.FileIO{
 					{Src: `#!/usr/bin/env bash
             echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 2.0.0`, Dst: latestDownloaded, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 					{Src: testcase.cargoManifest, Dst: "Cargo.toml"},
 				},
@@ -198,7 +218,7 @@ func TestBuildRust(t *testing.T) {
 					AssetVersion:    "1.2.3",
 					BinaryFilename:  wasmtoolsBinName,
 					DownloadOK:      true,
-					DownloadedFile:  wasmtoolsBinPath,
+					DownloadedFile:  latestDownloaded,
 					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
 				},
 			}
@@ -331,6 +351,24 @@ func TestBuildGo(t *testing.T) {
 
 			wasmtoolsBinName := "wasm-tools"
 
+			// Windows was having issues when trying to move a tmpBin file (which
+			// represents the latest binary downloaded from GitHub) to binPath (which
+			// represents the existing binary installed on a user's machine).
+			//
+			// The problem was, for the sake of the tests, I just create one file
+			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
+			// this works fine on *nix systems. But once Windows did `os.Rename()` and
+			// move tmpBin to binPath it would no longer be able to set permissions on
+			// the binPath because it didn't think the file existed any more. My guess
+			// is that moving a file over itself causes Windows to remove the file.
+			//
+			// So to work around that issue I just create two separate files because
+			// in reality that's what the CLI will be dealing with. I only used one
+			// file for the sake of test case convenience (which ironically became
+			// very INCONVENIENT when the tests started unexpectedly failing on
+			// Windows and caused me a long time debugging).
+			latestDownloaded := wasmtoolsBinName + "-latest-downloaded"
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
@@ -341,6 +379,8 @@ func TestBuildGo(t *testing.T) {
 				Write: []testutil.FileIO{
 					{Src: `#!/usr/bin/env bash
             echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 2.0.0`, Dst: latestDownloaded, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
 			})
@@ -363,7 +403,7 @@ func TestBuildGo(t *testing.T) {
 					AssetVersion:    "1.2.3",
 					BinaryFilename:  wasmtoolsBinName,
 					DownloadOK:      true,
-					DownloadedFile:  wasmtoolsBinPath,
+					DownloadedFile:  latestDownloaded,
 					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
 				},
 			}
@@ -487,6 +527,24 @@ func TestBuildJavaScript(t *testing.T) {
 
 			wasmtoolsBinName := "wasm-tools"
 
+			// Windows was having issues when trying to move a tmpBin file (which
+			// represents the latest binary downloaded from GitHub) to binPath (which
+			// represents the existing binary installed on a user's machine).
+			//
+			// The problem was, for the sake of the tests, I just create one file
+			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
+			// this works fine on *nix systems. But once Windows did `os.Rename()` and
+			// move tmpBin to binPath it would no longer be able to set permissions on
+			// the binPath because it didn't think the file existed any more. My guess
+			// is that moving a file over itself causes Windows to remove the file.
+			//
+			// So to work around that issue I just create two separate files because
+			// in reality that's what the CLI will be dealing with. I only used one
+			// file for the sake of test case convenience (which ironically became
+			// very INCONVENIENT when the tests started unexpectedly failing on
+			// Windows and caused me a long time debugging).
+			latestDownloaded := wasmtoolsBinName + "-latest-downloaded"
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
@@ -498,6 +556,8 @@ func TestBuildJavaScript(t *testing.T) {
 				Write: []testutil.FileIO{
 					{Src: `#!/usr/bin/env bash
             echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 2.0.0`, Dst: latestDownloaded, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
 			})
@@ -534,7 +594,7 @@ func TestBuildJavaScript(t *testing.T) {
 					AssetVersion:    "1.2.3",
 					BinaryFilename:  wasmtoolsBinName,
 					DownloadOK:      true,
-					DownloadedFile:  wasmtoolsBinPath,
+					DownloadedFile:  latestDownloaded,
 					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
 				},
 			}
@@ -657,6 +717,24 @@ func TestBuildAssemblyScript(t *testing.T) {
 
 			wasmtoolsBinName := "wasm-tools"
 
+			// Windows was having issues when trying to move a tmpBin file (which
+			// represents the latest binary downloaded from GitHub) to binPath (which
+			// represents the existing binary installed on a user's machine).
+			//
+			// The problem was, for the sake of the tests, I just create one file
+			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
+			// this works fine on *nix systems. But once Windows did `os.Rename()` and
+			// move tmpBin to binPath it would no longer be able to set permissions on
+			// the binPath because it didn't think the file existed any more. My guess
+			// is that moving a file over itself causes Windows to remove the file.
+			//
+			// So to work around that issue I just create two separate files because
+			// in reality that's what the CLI will be dealing with. I only used one
+			// file for the sake of test case convenience (which ironically became
+			// very INCONVENIENT when the tests started unexpectedly failing on
+			// Windows and caused me a long time debugging).
+			latestDownloaded := wasmtoolsBinName + "-latest-downloaded"
+
 			// Create test environment
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
@@ -667,6 +745,8 @@ func TestBuildAssemblyScript(t *testing.T) {
 				Write: []testutil.FileIO{
 					{Src: `#!/usr/bin/env bash
             echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 2.0.0`, Dst: latestDownloaded, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
 			})
@@ -705,7 +785,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 					AssetVersion:    "1.2.3",
 					BinaryFilename:  wasmtoolsBinName,
 					DownloadOK:      true,
-					DownloadedFile:  wasmtoolsBinPath,
+					DownloadedFile:  latestDownloaded,
 					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
 				},
 			}
@@ -735,53 +815,6 @@ func TestBuildOther(t *testing.T) {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
-
-	// We're going to chdir to a build environment,
-	// so save the PWD to return to, afterwards.
-	pwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	wasmtoolsBinName := "wasm-tools"
-
-	// Create test environment
-	//
-	// NOTE: Our only requirement is that there be a bin directory. The custom
-	// build script we're using in the test is not going to use any files in the
-	// directory (the script will just `echo` a message).
-	//
-	// NOTE: We create a "valid" main.wasm file with a quick shell script.
-	//
-	// Previously we set the build script to "touch ./bin/main.wasm" but since
-	// adding Wasm validation this no longer works as it's an empty file.
-	//
-	// So we use the following script to produce a file that LOOKS valid but isn't.
-	//
-	// magic="\x00\x61\x73\x6d\x01\x00\x00\x00"
-	// printf "$magic" > ./pkg/commands/compute/testdata/main.wasm
-	rootdir := testutil.NewEnv(testutil.EnvOpts{
-		T: t,
-		Copy: []testutil.FileIO{
-			{Src: "./testdata/main.wasm", Dst: "bin/main.wasm"},
-		},
-		Write: []testutil.FileIO{
-			{Src: `#!/usr/bin/env bash
-        echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
-			{Src: "mock content", Dst: "bin/testfile"},
-		},
-	})
-	defer os.RemoveAll(rootdir)
-	wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
-	mainwasmBinPath := filepath.Join(rootdir, "bin", "main.wasm")
-
-	// Before running the test, chdir into the build environment.
-	// When we're done, chdir back to our original location.
-	// This is so we can reliably copy the testdata/ fixtures.
-	if err := os.Chdir(rootdir); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chdir(pwd)
 
 	for _, testcase := range []struct {
 		args                 []string
@@ -862,8 +895,80 @@ func TestBuildOther(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			// We're going to chdir to a build environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			wasmtoolsBinName := "wasm-tools"
+
+			// Windows was having issues when trying to move a tmpBin file (which
+			// represents the latest binary downloaded from GitHub) to binPath (which
+			// represents the existing binary installed on a user's machine).
+			//
+			// The problem was, for the sake of the tests, I just create one file
+			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
+			// this works fine on *nix systems. But once Windows did `os.Rename()` and
+			// move tmpBin to binPath it would no longer be able to set permissions on
+			// the binPath because it didn't think the file existed any more. My guess
+			// is that moving a file over itself causes Windows to remove the file.
+			//
+			// So to work around that issue I just create two separate files because
+			// in reality that's what the CLI will be dealing with. I only used one
+			// file for the sake of test case convenience (which ironically became
+			// very INCONVENIENT when the tests started unexpectedly failing on
+			// Windows and caused me a long time debugging).
+			latestDownloaded := wasmtoolsBinName + "-latest-downloaded"
+
+			// Create test environment
+			//
+			// NOTE: Our only requirement is that there be a bin directory. The custom
+			// build script we're using in the test is not going to use any files in the
+			// directory (the script will just `echo` a message).
+			//
+			// NOTE: We create a "valid" main.wasm file with a quick shell script.
+			//
+			// Previously we set the build script to "touch ./bin/main.wasm" but since
+			// adding Wasm validation this no longer works as it's an empty file.
+			//
+			// So we use the following script to produce a file that LOOKS valid but isn't.
+			//
+			// magic="\x00\x61\x73\x6d\x01\x00\x00\x00"
+			// printf "$magic" > ./pkg/commands/compute/testdata/main.wasm
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: "./testdata/main.wasm", Dst: "bin/main.wasm"},
+				},
+				Write: []testutil.FileIO{
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 2.0.0`, Dst: latestDownloaded, Executable: true},
+					{Src: "mock content", Dst: "bin/testfile"},
+				},
+			})
+			defer os.RemoveAll(rootdir)
+			wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
+			mainwasmBinPath := filepath.Join(rootdir, "bin", "main.wasm")
+
+			// Before running the test, chdir into the build environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably copy the testdata/ fixtures.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(pwd)
+
 			// Make a backup of the bin/main.wasm as it will get modified by the
 			// post_build script and that will cause it to fail validation.
+			//
+			// TODO: Check if this backup is still needed?
+			// We had this back when the test environment was setup once.
+			// But we've moved to having the test environment created for each test case.
+			// So we might not need to restore mainwasmBinPath as it's created afresh.
 			mainWasmBackup, err := os.ReadFile(mainwasmBinPath)
 			if err != nil {
 				t.Fatal(err)
@@ -889,7 +994,7 @@ func TestBuildOther(t *testing.T) {
 					AssetVersion:    "1.2.3",
 					BinaryFilename:  wasmtoolsBinName,
 					DownloadOK:      true,
-					DownloadedFile:  wasmtoolsBinPath,
+					DownloadedFile:  latestDownloaded,
 					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
 				},
 			}

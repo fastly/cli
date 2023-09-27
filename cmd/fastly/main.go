@@ -13,6 +13,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -88,15 +89,16 @@ func main() {
 			client, err := fastly.NewClientForEndpoint(token, endpoint)
 			return client, err
 		},
-		Args:       args,
-		ConfigFile: cfg,
-		ConfigPath: config.FilePath,
-		Env:        e,
-		ErrLog:     fsterr.Log,
-		HTTPClient: httpClient,
-		Manifest:   &md,
-		Stdin:      in,
-		Stdout:     out,
+		Args:             args,
+		ConfigFile:       cfg,
+		ConfigPath:       config.FilePath,
+		Env:              e,
+		ErrLog:           fsterr.Log,
+		ExecuteWasmTools: compute.ExecuteWasmTools,
+		HTTPClient:       httpClient,
+		Manifest:         &md,
+		Stdin:            in,
+		Stdout:           out,
 		Versioners: app.Versioners{
 			CLI: github.New(github.Opts{
 				HTTPClient: httpClient,

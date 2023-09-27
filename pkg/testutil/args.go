@@ -69,12 +69,15 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 	}
 
 	return app.RunOpts{
-		ConfigPath: configPath,
-		Args:       args,
 		APIClient:  mock.APIClient(mock.API{}),
+		Args:       args,
+		ConfigFile: config.File{},
+		ConfigPath: configPath,
 		Env:        config.Environment{},
 		ErrLog:     errors.Log,
-		ConfigFile: config.File{},
+		ExecuteWasmTools: func(bin string, args []string) error {
+			return nil
+		},
 		HTTPClient: &http.Client{Timeout: time.Second * 5},
 		Manifest:   &md,
 		Stdout:     stdout,

@@ -246,7 +246,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
 		}
 
-		err = c.executeWasmtools(wasmtools, args)
+		err = c.Globals.ExecuteWasmTools(wasmtools, args)
 		if err != nil {
 			return err
 		}
@@ -274,7 +274,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			"metadata", "add", "bin/main.wasm",
 			fmt.Sprintf("--language=CLI_%s: %s", revision.AppVersion, strings.ToUpper(language.Name)),
 		}
-		err = c.executeWasmtools(wasmtools, args)
+		err = c.Globals.ExecuteWasmTools(wasmtools, args)
 		if err != nil {
 			return err
 		}
@@ -360,30 +360,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	return nil
 }
 
-func (c *BuildCommand) executeWasmtools(wasmtools string, args []string) error {
-	// gosec flagged this:
-	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
-	// Disabling as we trust the source of the variable.
-	// #nosec
-	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
-	command := exec.Command(wasmtools, args...)
-	wasmtoolsOutput, err := command.Output()
-	if err != nil {
-		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
-	}
-	// Ensure the Wasm binary can be executed.
-	//
-	// G302 (CWE-276): Expect file permissions to be 0600 or less
-	// gosec flagged this:
-	// Disabling as we want all users to be able to execute this binary.
-	// #nosec
-	err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
-	if err != nil {
-		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
-	}
-	return nil
-}
-
 // includeSourceCode calculates what source code files to include in the final
 // package.tar.gz that is uploaded to the Fastly API.
 //
@@ -443,6 +419,30 @@ func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 	}
 
 	return sanitize.BaseName(name), nil
+}
+
+func ExecuteWasmTools(wasmtools string, args []string) error {
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
+	// Disabling as we trust the source of the variable.
+	// #nosec
+	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
+	command := exec.Command(wasmtools, args...)
+	wasmtoolsOutput, err := command.Output()
+	if err != nil {
+		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+	}
+	// Ensure the Wasm binary can be executed.
+	//
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as we want all users to be able to execute this binary.
+	// #nosec
+	err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
+	if err != nil {
+		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+	}
+	return nil
 }
 
 // GetWasmTools returns the path to the wasm-tools binary.
