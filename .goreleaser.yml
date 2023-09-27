@@ -144,9 +144,14 @@ nfpms:
     maintainer: Fastly
     homepage: https://github.com/fastly/cli
     bindir: /usr/local/bin
+    description: CLI tool for interacting with the Fastly API.
     formats:
       - deb
       - rpm
+    contents:
+      - src: deb-copyright
+        dst: /usr/share/doc/fastly/copyright
+        packager: deb
 
 # https://goreleaser.com/customization/checksum/
 checksum:
