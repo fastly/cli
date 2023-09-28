@@ -11,11 +11,12 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/fastly/kingpin"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/kingpin"
 )
 
 // Usage returns a contextual usage string for the application. In order to deal
@@ -290,6 +291,13 @@ func processCommandInput(
 			err = fmt.Errorf("command not specified")
 		}
 		return command, cmdName, help(vars, err)
+	}
+
+	if len(opts.Args) == 1 && opts.Args[0] == "--" {
+		return command, cmdName, fsterr.RemediationError{
+			Inner:       errors.New("-- is invalid input when not followed by a positional argument"),
+			Remediation: "If looking for help output try: `fastly help` for full command list or `fastly --help` for command summary.",
+		}
 	}
 
 	// NOTE: `fastly help`, no flags, or only globals, should skip conditional.
