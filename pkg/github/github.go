@@ -261,6 +261,7 @@ func (g *Asset) metadata() (m DevHubMetadata, err error) {
 	return m, nil
 }
 
+// InstallPath returns the location of where the asset should be installed.
 func (g *Asset) InstallPath() string {
 	return filepath.Join(InstallDir, g.BinaryName())
 }

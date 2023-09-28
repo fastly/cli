@@ -223,23 +223,23 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			fmt.Sprintf("--processed-by=CLI_MachineInfoCPUs=%d", runtime.NumCPU()),
 		}
 
-		if c.Manifest.File.ClonedFrom != "" {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_PackageInfoClonedFrom=%s", c.Manifest.File.ClonedFrom))
+		if c.Globals.Manifest.File.ClonedFrom != "" {
+			args = append(args, fmt.Sprintf("--processed-by=CLI_PackageInfoClonedFrom=%s", c.Globals.Manifest.File.ClonedFrom))
 		}
 
 		args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsDefaultBuildUsed=%t", language.DefaultBuildScript()))
 
-		if c.Manifest.File.Scripts.Build != "" {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsBuild=%s", c.Manifest.File.Scripts.Build))
+		if c.Globals.Manifest.File.Scripts.Build != "" {
+			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsBuild=%s", c.Globals.Manifest.File.Scripts.Build))
 		}
-		if len(c.Manifest.File.Scripts.EnvVars) > 0 {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsEnvVars=%s", c.Manifest.File.Scripts.EnvVars))
+		if len(c.Globals.Manifest.File.Scripts.EnvVars) > 0 {
+			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsEnvVars=%s", c.Globals.Manifest.File.Scripts.EnvVars))
 		}
-		if c.Manifest.File.Scripts.PostInit != "" {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsPostInit=%s", c.Manifest.File.Scripts.PostInit))
+		if c.Globals.Manifest.File.Scripts.PostInit != "" {
+			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsPostInit=%s", c.Globals.Manifest.File.Scripts.PostInit))
 		}
-		if c.Manifest.File.Scripts.PostBuild != "" {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsPostBuild=%s", c.Manifest.File.Scripts.PostBuild))
+		if c.Globals.Manifest.File.Scripts.PostBuild != "" {
+			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsPostBuild=%s", c.Globals.Manifest.File.Scripts.PostBuild))
 		}
 
 		for k, v := range language.Dependencies() {
@@ -421,6 +421,7 @@ func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 	return sanitize.BaseName(name), nil
 }
 
+// ExecuteWasmTools calls the wasm-tools binary.
 func ExecuteWasmTools(wasmtools string, args []string) error {
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
