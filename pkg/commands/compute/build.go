@@ -83,77 +83,41 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}(c.Globals.ErrLog)
 
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Verifying fastly.toml"
-	spinner.Message(msg + "...")
-
-	err = c.Manifest.File.ReadError()
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			err = fsterr.ErrReadingManifest
+	err = spinner.Process("Verifying fastly.toml", func(_ *text.SpinnerWrapper) error {
+		err = c.Manifest.File.ReadError()
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				err = fsterr.ErrReadingManifest
+			}
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
-		c.Globals.ErrLog.Add(err)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+	var pkgName string
+	err = spinner.Process("Identifying package name", func(_ *text.SpinnerWrapper) error {
+		pkgName, err = packageName(c)
+		if err != nil {
+			return err
 		}
-
-		return err
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Identifying package name"
-	spinner.Message(msg + "...")
-
-	packageName, err := packageName(c)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+	var toolchain string
+	err = spinner.Process("Identifying toolchain", func(_ *text.SpinnerWrapper) error {
+		toolchain, err = identifyToolchain(c)
+		if err != nil {
+			return err
 		}
-		return err
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Identifying toolchain"
-	spinner.Message(msg + "...")
-
-	toolchain, err := toolchain(c)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-		return err
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -175,49 +139,28 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Creating package archive"
-	spinner.Message(msg + "...")
+	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
 
-	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", packageName))
-
-	// NOTE: The minimum package requirement is `fastly.toml` and `main.wasm`.
-	files := []string{
-		manifest.Filename,
-		"bin/main.wasm",
-	}
-
-	files, err = c.includeSourceCode(files, language.SourceDirectory)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+	err = spinner.Process("Creating package archive", func(_ *text.SpinnerWrapper) error {
+		// NOTE: The minimum package requirement is `fastly.toml` and `main.wasm`.
+		files := []string{
+			manifest.Filename,
+			"bin/main.wasm",
 		}
-		return err
-	}
-
-	err = CreatePackageArchive(files, dest)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Files":       files,
-			"Destination": dest,
-		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		files, err = c.includeSourceCode(files, language.SourceDirectory)
+		if err != nil {
+			return err
 		}
-
-		return fmt.Errorf("error creating package archive: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		err = CreatePackageArchive(files, dest)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Files":       files,
+				"Destination": dest,
+			})
+			return fmt.Errorf("error creating package archive: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -288,12 +231,12 @@ func packageName(c *BuildCommand) (string, error) {
 	return sanitize.BaseName(name), nil
 }
 
-// toolchain determines the programming language.
+// identifyToolchain determines the programming language.
 //
 // It prioritises the --language flag over the manifest field.
 // Will error if neither are provided.
 // Lastly, it will normalise with a trim and lowercase.
-func toolchain(c *BuildCommand) (string, error) {
+func identifyToolchain(c *BuildCommand) (string, error) {
 	var toolchain string
 
 	switch {

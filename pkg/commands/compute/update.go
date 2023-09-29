@@ -111,38 +111,24 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		}
 	}()
 
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Uploading package"
-	spinner.Message(msg + "...")
-
-	_, err = c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
-		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
-		PackagePath:    packagePath,
-	})
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+	err = spinner.Process("Uploading package", func(_ *text.SpinnerWrapper) error {
+		_, err = c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion.Number,
+			PackagePath:    packagePath,
 		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion.Number,
+			})
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("error uploading package: %w", err),
+				Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+			}
 		}
-
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("error uploading package: %w", err),
-			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
-		}
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		return nil
+	})
 	if err != nil {
 		return err
 	}

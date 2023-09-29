@@ -376,95 +376,52 @@ func verifyDestination(path string, spinner text.Spinner, out io.Writer) (dst st
 	}
 	if err != nil && errors.Is(err, fs.ErrNotExist) { // normal-ish case
 		text.Break(out)
-
-		err := spinner.Start()
-		if err != nil {
-			return "", err
-		}
-		msg := fmt.Sprintf("Creating %s", dst)
-		spinner.Message(msg + "...")
-
-		if err := os.MkdirAll(dst, 0o700); err != nil {
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return "", spinErr
+		err := spinner.Process(fmt.Sprintf("Creating %s", dst), func(_ *text.SpinnerWrapper) error {
+			if err := os.MkdirAll(dst, 0o700); err != nil {
+				return fmt.Errorf("error creating package destination: %w", err)
 			}
-			return dst, fmt.Errorf("error creating package destination: %w", err)
-		}
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
+			return nil
+		})
 		if err != nil {
 			return "", err
 		}
 	}
 
 	text.Break(out)
-	err = spinner.Start()
+
+	err = spinner.Process("Validating directory permissions", func(_ *text.SpinnerWrapper) error {
+		tmpname := make([]byte, 16)
+		n, err := rand.Read(tmpname)
+		if err != nil {
+			return fmt.Errorf("error generating random filename: %w", err)
+		}
+		if n != 16 {
+			return fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
+		}
+
+		// gosec flagged this:
+		// G304 (CWE-22): Potential file inclusion via variable
+		//
+		// Disabling as the input is determined by our own package.
+		// #nosec
+		f, err := os.Create(filepath.Join(dst, fmt.Sprintf("tmp_%x", tmpname)))
+		if err != nil {
+			return fmt.Errorf("error creating file in package destination: %w", err)
+		}
+
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("error closing file in package destination: %w", err)
+		}
+
+		if err := os.Remove(f.Name()); err != nil {
+			return fmt.Errorf("error removing file in package destination: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return "", err
 	}
-	msg := "Validating directory permissions"
-	spinner.Message(msg + "...")
 
-	tmpname := make([]byte, 16)
-	n, err := rand.Read(tmpname)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("error generating random filename: %w", err)
-	}
-	if n != 16 {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
-	}
-
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as the input is determined by our own package.
-	/* #nosec */
-	f, err := os.Create(filepath.Join(dst, fmt.Sprintf("tmp_%x", tmpname)))
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("error creating file in package destination: %w", err)
-	}
-
-	if err := f.Close(); err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("error closing file in package destination: %w", err)
-	}
-
-	if err := os.Remove(f.Name()); err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("error removing file in package destination: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return "", err
-	}
 	return dst, nil
 }
 
@@ -1045,192 +1002,124 @@ func updateManifest(
 	authors []string,
 	language *Language,
 ) (manifest.File, error) {
-	err := spinner.Start()
-	if err != nil {
-		return m, err
-	}
-	msg := "Reading fastly.toml"
-	spinner.Message(msg + "...")
-
+	var returnEarly bool
 	mp := filepath.Join(path, manifest.Filename)
 
-	if err := m.Read(mp); err != nil {
-		if language != nil {
-			if language.Name == "other" {
-				// We create a fastly.toml manifest on behalf of the user if they're
-				// bringing their own pre-compiled Wasm binary to be packaged.
-				m.ManifestVersion = manifest.ManifestLatestVersion
-				m.Name = name
-				m.Description = desc
-				m.Authors = authors
-				m.Language = language.Name
-				if err := m.Write(mp); err != nil {
-					spinner.StopFailMessage(msg)
-					spinErr := spinner.StopFail()
-					if spinErr != nil {
-						return m, spinErr
+	err := spinner.Process("Reading fastly.toml", func(_ *text.SpinnerWrapper) error {
+		if err := m.Read(mp); err != nil {
+			if language != nil {
+				if language.Name == "other" {
+					// We create a fastly.toml manifest on behalf of the user if they're
+					// bringing their own pre-compiled Wasm binary to be packaged.
+					m.ManifestVersion = manifest.ManifestLatestVersion
+					m.Name = name
+					m.Description = desc
+					m.Authors = authors
+					m.Language = language.Name
+					if err := m.Write(mp); err != nil {
+						return fmt.Errorf("error saving fastly.toml: %w", err)
 					}
-					return m, fmt.Errorf("error saving fastly.toml: %w", err)
+					returnEarly = true
+					return nil // EXIT updateManifest
 				}
-				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return m, spinErr
-				}
-				return m, nil
 			}
+			return fmt.Errorf("error reading fastly.toml: %w", err)
 		}
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return m, spinErr
-		}
-		return m, fmt.Errorf("error reading fastly.toml: %w", err)
+		return nil
+	})
+	if err != nil {
+		return m, err
+	}
+	if returnEarly {
+		return m, nil
 	}
 
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+	err = spinner.Process(fmt.Sprintf("Setting package name in manifest to %q", name), func(_ *text.SpinnerWrapper) error {
+		m.Name = name
+		return nil
+	})
 	if err != nil {
 		return m, err
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return m, err
-	}
-	msg = fmt.Sprintf("Setting package name in manifest to %q", name)
-	spinner.Message(msg + "...")
-
-	m.Name = name
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return m, err
-	}
-
-	// NOTE: We allow an empty description to be set.
-	m.Description = desc
+	var descMsg string
 	if desc != "" {
-		desc = " to '" + desc + "'"
+		descMsg = " to '" + desc + "'"
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return m, err
-	}
-	msg = fmt.Sprintf("Setting description in manifest%s", desc)
-	spinner.Message(msg + "...")
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+	err = spinner.Process(fmt.Sprintf("Setting description in manifest%s", descMsg), func(_ *text.SpinnerWrapper) error {
+		// NOTE: We allow an empty description to be set.
+		m.Description = desc
+		return nil
+	})
 	if err != nil {
 		return m, err
 	}
 
 	if len(authors) > 0 {
-		err := spinner.Start()
-		if err != nil {
-			return m, err
-		}
-		msg := fmt.Sprintf("Setting authors in manifest to '%s'", strings.Join(authors, ", "))
-		spinner.Message(msg + "...")
-
-		m.Authors = authors
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
+		err = spinner.Process(fmt.Sprintf("Setting authors in manifest to '%s'", strings.Join(authors, ", ")), func(_ *text.SpinnerWrapper) error {
+			m.Authors = authors
+			return nil
+		})
 		if err != nil {
 			return m, err
 		}
 	}
 
 	if language != nil {
-		err := spinner.Start()
-		if err != nil {
-			return m, err
-		}
-		msg := fmt.Sprintf("Setting language in manifest to '%s'", language.Name)
-		spinner.Message(msg + "...")
-
-		m.Language = language.Name
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
+		err = spinner.Process(fmt.Sprintf("Setting language in manifest to '%s'", language.Name), func(_ *text.SpinnerWrapper) error {
+			m.Language = language.Name
+			return nil
+		})
 		if err != nil {
 			return m, err
 		}
 	}
 
-	err = spinner.Start()
+	err = spinner.Process("Saving manifest changes", func(_ *text.SpinnerWrapper) error {
+		if err := m.Write(mp); err != nil {
+			return fmt.Errorf("error saving fastly.toml: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return m, err
 	}
-	msg = "Saving manifest changes"
-	spinner.Message(msg + "...")
-
-	if err := m.Write(mp); err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return m, spinErr
-		}
-		return m, fmt.Errorf("error saving fastly.toml: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	return m, spinner.Stop()
+	return m, nil
 }
 
 // initializeLanguage for newly cloned package.
 func initializeLanguage(spinner text.Spinner, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
-	err := spinner.Start()
+	err := spinner.Process("Initializing package", func(_ *text.SpinnerWrapper) error {
+		if wd != path {
+			err := os.Chdir(path)
+			if err != nil {
+				return fmt.Errorf("error changing to your project directory: %w", err)
+			}
+		}
+
+		// Language will not be set if user provides the --from flag. So we'll check
+		// the manifest content and ensure what's set there is the language instance
+		// used for the sake of `compute build` operations.
+		if language == nil {
+			var match bool
+			for _, l := range languages {
+				if strings.EqualFold(name, l.Name) {
+					language = l
+					match = true
+					break
+				}
+			}
+			if !match {
+				return fmt.Errorf("unrecognised package language")
+			}
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	msg := "Initializing package"
-	spinner.Message(msg + "...")
 
-	if wd != path {
-		err := os.Chdir(path)
-		if err != nil {
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return nil, spinErr
-			}
-			return nil, fmt.Errorf("error changing to your project directory: %w", err)
-		}
-	}
-
-	// Language will not be set if user provides the --from flag. So we'll check
-	// the manifest content and ensure what's set there is the language instance
-	// used for the sake of `compute build` operations.
-	if language == nil {
-		var match bool
-		for _, l := range languages {
-			if strings.EqualFold(name, l.Name) {
-				language = l
-				match = true
-				break
-			}
-		}
-		if !match {
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return nil, spinErr
-			}
-			return nil, fmt.Errorf("unrecognised package language")
-		}
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return nil, err
-	}
 	return language, nil
 }
 
