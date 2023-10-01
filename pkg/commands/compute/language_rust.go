@@ -142,7 +142,7 @@ func (r *Rust) Build() error {
 	return bt.Build()
 }
 
-// RustToolchain models a [toolchain] from a rust-toolchain.toml manifest.
+// RustToolchainManifest models a [toolchain] from a rust-toolchain.toml manifest.
 type RustToolchainManifest struct {
 	Toolchain RustToolchain `toml:"toolchain"`
 }
