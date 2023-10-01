@@ -154,7 +154,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	return spinner.Process("Creating package.tar.gz file", func(_ *text.SpinnerWrapper) error {
+	return spinner.Process(fmt.Sprintf("Creating %s.tar.gz file", filename), func(_ *text.SpinnerWrapper) error {
 		tar := archiver.NewTarGz()
 		tar.OverwriteExisting = true
 		{
