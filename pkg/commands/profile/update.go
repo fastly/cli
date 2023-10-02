@@ -144,69 +144,50 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 // validateToken ensures the token can be used to acquire user data.
 func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinner) (string, error) {
-	err := spinner.Start()
+	var (
+		client api.Interface
+		err    error
+		t      *fastly.Token
+	)
+	err = spinner.Process("Validating token", func(_ *text.SpinnerWrapper) error {
+		client, err = c.clientFactory(token, endpoint)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Endpoint": endpoint,
+			})
+			return fmt.Errorf("error regenerating Fastly API client: %w", err)
+		}
+
+		t, err = client.GetTokenSelf()
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error validating token: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return "", err
 	}
-	msg := "Validating token"
-	spinner.Message(msg + "...")
-
-	client, err := c.clientFactory(token, endpoint)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Endpoint": endpoint,
-		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-
-		return "", fmt.Errorf("error regenerating Fastly API client: %w", err)
-	}
-
-	t, err := client.GetTokenSelf()
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-
-		return "", fmt.Errorf("error validating token: %w", err)
-	}
-
 	if c.automationToken {
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
-		if err != nil {
-			return "", err
-		}
 		return fmt.Sprintf("Automation Token (%s)", t.ID), nil
 	}
 
-	user, err := client.GetUser(&fastly.GetUserInput{
-		ID: t.UserID,
-	})
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"User ID": t.UserID,
+	var user *fastly.User
+	err = spinner.Process("Getting user data", func(_ *text.SpinnerWrapper) error {
+		user, err = client.GetUser(&fastly.GetUserInput{
+			ID: t.UserID,
 		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"User ID": t.UserID,
+			})
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("error fetching token user: %w", err),
+				Remediation: "If providing an 'automation token', retry the command with the `--automation-token` flag set.",
+			}
 		}
-
-		return "", fmt.Errorf("error fetching token user: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		return nil
+	})
 	if err != nil {
 		return "", err
 	}

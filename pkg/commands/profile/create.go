@@ -11,6 +11,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -126,72 +127,50 @@ var ErrEmptyToken = errors.New("token cannot be empty")
 
 // validateToken ensures the token can be used to acquire user data.
 func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinner) (string, error) {
-	err := spinner.Start()
+	var (
+		client api.Interface
+		err    error
+		t      *fastly.Token
+	)
+	err = spinner.Process("Validating token", func(_ *text.SpinnerWrapper) error {
+		client, err = c.clientFactory(token, endpoint)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Endpoint": endpoint,
+			})
+			return fmt.Errorf("error regenerating Fastly API client: %w", err)
+		}
+
+		t, err = client.GetTokenSelf()
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error validating token: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return "", err
 	}
-	msg := "Validating token"
-	spinner.Message(msg + "...")
-
-	client, err := c.clientFactory(token, endpoint)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Endpoint": endpoint,
-		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-
-		return "", fmt.Errorf("error regenerating Fastly API client: %w", err)
-	}
-
-	t, err := client.GetTokenSelf()
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-
-		return "", fmt.Errorf("error validating token: %w", err)
-	}
-
 	if c.automationToken {
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
-		if err != nil {
-			return "", err
-		}
 		return fmt.Sprintf("Automation Token (%s)", t.ID), nil
 	}
 
-	user, err := client.GetUser(&fastly.GetUserInput{
-		ID: t.UserID,
-	})
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"User ID": t.UserID,
+	var user *fastly.User
+	err = spinner.Process("Getting user data", func(_ *text.SpinnerWrapper) error {
+		user, err = client.GetUser(&fastly.GetUserInput{
+			ID: t.UserID,
 		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"User ID": t.UserID,
+			})
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("error fetching token user: %w", err),
+				Remediation: "If providing an 'automation token', retry the command with the `--automation-token` flag set.",
+			}
 		}
-
-		return "", fsterr.RemediationError{
-			Inner:       fmt.Errorf("error fetching token user: %w", err),
-			Remediation: "If providing an 'automation token', retry the command with the `--automation-token` flag set.",
-		}
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		return nil
+	})
 	if err != nil {
 		return "", err
 	}
@@ -200,35 +179,28 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 
 // updateInMemCfg persists the updated configuration data in-memory.
 func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, def bool, spinner text.Spinner) error {
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Persisting configuration"
-	spinner.Message(msg + "...")
+	return spinner.Process("Persisting configuration", func(_ *text.SpinnerWrapper) error {
+		c.Globals.Config.Fastly.APIEndpoint = endpoint
 
-	c.Globals.Config.Fastly.APIEndpoint = endpoint
-
-	if c.Globals.Config.Profiles == nil {
-		c.Globals.Config.Profiles = make(config.Profiles)
-	}
-	c.Globals.Config.Profiles[c.profile] = &config.Profile{
-		Default: def,
-		Email:   email,
-		Token:   token,
-	}
-
-	// If the user wants the newly created profile to be their new default, then
-	// we'll call Set for its side effect of resetting all other profiles to have
-	// their Default field set to false.
-	if def {
-		if p, ok := profile.Set(c.profile, c.Globals.Config.Profiles); ok {
-			c.Globals.Config.Profiles = p
+		if c.Globals.Config.Profiles == nil {
+			c.Globals.Config.Profiles = make(config.Profiles)
 		}
-	}
+		c.Globals.Config.Profiles[c.profile] = &config.Profile{
+			Default: def,
+			Email:   email,
+			Token:   token,
+		}
 
-	spinner.StopMessage(msg)
-	return spinner.Stop()
+		// If the user wants the newly created profile to be their new default, then
+		// we'll call Set for its side effect of resetting all other profiles to have
+		// their Default field set to false.
+		if def {
+			if p, ok := profile.Set(c.profile, c.Globals.Config.Profiles); ok {
+				c.Globals.Config.Profiles = p
+			}
+		}
+		return nil
+	})
 }
 
 func (c *CreateCommand) persistCfg() error {

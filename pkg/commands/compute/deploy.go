@@ -803,30 +803,17 @@ func pkgCompare(client api.Interface, serviceID string, version int, filesHash s
 
 // pkgUpload uploads the package to the specified service and version.
 func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, version int, path string) error {
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Uploading package"
-	spinner.Message(msg + "...")
-
-	_, err = client.UpdatePackage(&fastly.UpdatePackageInput{
-		ServiceID:      serviceID,
-		ServiceVersion: version,
-		PackagePath:    path,
-	})
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+	return spinner.Process("Uploading package", func(_ *text.SpinnerWrapper) error {
+		_, err := client.UpdatePackage(&fastly.UpdatePackageInput{
+			ServiceID:      serviceID,
+			ServiceVersion: version,
+			PackagePath:    path,
+		})
+		if err != nil {
+			return fmt.Errorf("error uploading package: %w", err)
 		}
-
-		return fmt.Errorf("error uploading package: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	return spinner.Stop()
+		return nil
+	})
 }
 
 // setupObjects is a collection of backend objects created during setup.
@@ -1162,33 +1149,20 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, spin
 		}
 	}
 
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := fmt.Sprintf("Activating service (version %d)", serviceVersion)
-	spinner.Message(msg + "...")
-
-	_, err = c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
-		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion,
-	})
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
+	return spinner.Process(fmt.Sprintf("Activating service (version %d)", serviceVersion), func(_ *text.SpinnerWrapper) error {
+		_, err := c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion,
 		})
-		return fmt.Errorf("error activating version: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	return spinner.Stop()
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion,
+			})
+			return fmt.Errorf("error activating version: %w", err)
+		}
+		return nil
+	})
 }
 
 func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion int) (string, error) {
