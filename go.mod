@@ -31,7 +31,7 @@ require (
 	github.com/fastly/go-fastly/v8 v8.6.2
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
-	github.com/otiai10/copy v1.12.0
+	github.com/otiai10/copy v1.14.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/theckman/yacspin v0.13.12
 	golang.org/x/crypto v0.13.0
@@ -58,5 +58,6 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
