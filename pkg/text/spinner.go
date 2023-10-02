@@ -1,6 +1,7 @@
 package text
 
 import (
+	"fmt"
 	"io"
 	"time"
 
@@ -44,7 +45,7 @@ func (sp *SpinnerWrapper) Process(msg string, fn SpinnerProcess) error {
 		sp.StopFailMessage(msg)
 		spinStopErr := sp.StopFail()
 		if spinStopErr != nil {
-			return spinStopErr
+			return fmt.Errorf("failed to stop spinner (error: %w) when handling the error: %w", spinStopErr, err)
 		}
 		return err
 	}
