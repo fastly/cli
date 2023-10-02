@@ -3,6 +3,7 @@ package compute
 import (
 	"bufio"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -214,36 +215,40 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		endTime := time.Now()
 		runtime.ReadMemStats(&memAfter)
 
+		dc := DataCollection{
+			BuildInfo: DataCollectionBuildInfo{
+				MemoryHeapAlloc: memAfter.HeapAlloc - memBefore.HeapAlloc,
+				Time:            endTime.Sub(startTime),
+			},
+			MachineInfo: DataCollectionMachineInfo{
+				Arch:      runtime.GOARCH,
+				CPUs:      runtime.Version(),
+				Compiler:  runtime.Compiler,
+				GoVersion: runtime.Version(),
+				OS:        runtime.GOOS,
+			},
+			PackageInfo: DataCollectionPackageInfo{
+				ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
+			},
+			ScriptInfo: DataCollectionScriptInfo{
+				DefaultBuildUsed: language.DefaultBuildScript(),
+				BuildScript:      c.Globals.Manifest.File.Scripts.Build,
+				EnvVars:          c.Globals.Manifest.File.Scripts.EnvVars,
+				PostInitScript:   c.Globals.Manifest.File.Scripts.PostInit,
+				PostBuildScript:  c.Globals.Manifest.File.Scripts.PostBuild,
+			},
+		}
+
+		data, err := json.Marshal(dc)
+		if err != nil {
+			return err
+		}
+
 		// FIXME: Once #1013 and #1016 merged, integrate granular disabling.
 		args := []string{
 			"metadata", "add", "bin/main.wasm",
 			fmt.Sprintf("--processed-by=fastly=%s (%s)", revision.AppVersion, languageTitle),
-			fmt.Sprintf("--processed-by=CLI_BuildInfoMemoryHeapAlloc=%d", memAfter.HeapAlloc-memBefore.HeapAlloc),
-			fmt.Sprintf("--processed-by=CLI_BuildInfoTime=%s", endTime.Sub(startTime)),
-			fmt.Sprintf("--processed-by=CLI_MachineInfoOS=%s", runtime.GOOS),
-			fmt.Sprintf("--processed-by=CLI_MachineInfoArch=%s", runtime.GOARCH),
-			fmt.Sprintf("--processed-by=CLI_MachineInfoCompiler=%s", runtime.Compiler),
-			fmt.Sprintf("--processed-by=CLI_MachineInfoGoVersion=%s", runtime.Version()),
-			fmt.Sprintf("--processed-by=CLI_MachineInfoCPUs=%d", runtime.NumCPU()),
-		}
-
-		if c.Globals.Manifest.File.ClonedFrom != "" {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_PackageInfoClonedFrom=%s", c.Globals.Manifest.File.ClonedFrom))
-		}
-
-		args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsDefaultBuildUsed=%t", language.DefaultBuildScript()))
-
-		if c.Globals.Manifest.File.Scripts.Build != "" {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsBuild=%s", c.Globals.Manifest.File.Scripts.Build))
-		}
-		if len(c.Globals.Manifest.File.Scripts.EnvVars) > 0 {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsEnvVars=%s", c.Globals.Manifest.File.Scripts.EnvVars))
-		}
-		if c.Globals.Manifest.File.Scripts.PostInit != "" {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsPostInit=%s", c.Globals.Manifest.File.Scripts.PostInit))
-		}
-		if c.Globals.Manifest.File.Scripts.PostBuild != "" {
-			args = append(args, fmt.Sprintf("--processed-by=CLI_ScriptsPostBuild=%s", c.Globals.Manifest.File.Scripts.PostBuild))
+			fmt.Sprintf("--processed-by=fastly_data=%s", data),
 		}
 
 		for k, v := range language.Dependencies() {
@@ -872,4 +877,41 @@ func GetNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, er
 	})
 
 	return files, err
+}
+
+// DataCollection represents data annotated onto the Wasm binary.
+type DataCollection struct {
+	BuildInfo   DataCollectionBuildInfo   `json:"build_info"`
+	MachineInfo DataCollectionMachineInfo `json:"machine_info"`
+	PackageInfo DataCollectionPackageInfo `json:"package_info"`
+	ScriptInfo  DataCollectionScriptInfo  `json:"script_info"`
+}
+
+// DataCollectionBuildInfo represents build data annotated onto the Wasm binary.
+type DataCollectionBuildInfo struct {
+	MemoryHeapAlloc uint64        `json:"mem_heap_alloc"`
+	Time            time.Duration `json:"time"`
+}
+
+// DataCollectionMachineInfo represents machine data annotated onto the Wasm binary.
+type DataCollectionMachineInfo struct {
+	Arch      string `json:"arch"`
+	CPUs      string `json:"cpus"`
+	Compiler  string `json:"compiler"`
+	GoVersion string `json:"go_version"`
+	OS        string `json:"os"`
+}
+
+// DataCollectionPackageInfo represents package data annotated onto the Wasm binary.
+type DataCollectionPackageInfo struct {
+	ClonedFrom string `json:"cloned_from"`
+}
+
+// DataCollectionScriptInfo represents script data annotated onto the Wasm binary.
+type DataCollectionScriptInfo struct {
+	DefaultBuildUsed bool     `json:"default_build_used"`
+	BuildScript      string   `json:"build_script"`
+	EnvVars          []string `json:"env_vars"`
+	PostInitScript   string   `json:"post_init_script"`
+	PostBuildScript  string   `json:"post_build_script"`
 }
