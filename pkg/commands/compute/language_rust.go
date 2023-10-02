@@ -89,6 +89,8 @@ type Rust struct {
 	nonInteractive bool
 	// output is the users terminal stdout stream
 	output io.Writer
+	// packageName is the resolved package name from the project Cargo.toml
+	packageName string
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
@@ -110,7 +112,7 @@ func (r *Rust) Build() error {
 		noBuildScript = true
 	}
 
-	err := r.modifyCargoPackageName()
+	err := r.modifyCargoPackageName(noBuildScript)
 	if err != nil {
 		return err
 	}
@@ -140,10 +142,20 @@ func (r *Rust) Build() error {
 	return bt.Build()
 }
 
+// RustToolchainManifest models a [toolchain] from a rust-toolchain.toml manifest.
+type RustToolchainManifest struct {
+	Toolchain RustToolchain `toml:"toolchain"`
+}
+
+// RustToolchain models the rust-toolchain targets.
+type RustToolchain struct {
+	Targets []string `toml:"targets"`
+}
+
 // modifyCargoPackageName validates whether the --bin flag matches the
 // Cargo.toml package name. If it doesn't match, update the default build script
 // to match.
-func (r *Rust) modifyCargoPackageName() error {
+func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 	s := "cargo locate-project --quiet"
 	args := strings.Split(s, " ")
 
@@ -184,8 +196,52 @@ func (r *Rust) modifyCargoPackageName() error {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
 
-	if m.Package.Name != RustDefaultPackageName {
-		r.build = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
+	hasCustomBuildScript := !noBuildScript
+
+	switch {
+	case m.Package.Name != "":
+		// If using standard project structure.
+		// Cargo.toml won't be a Workspace, so it will contain a package name.
+		r.packageName = m.Package.Name
+	case len(m.Workspace.Members) > 0 && noBuildScript:
+		// If user has a Cargo Workspace AND no custom script.
+		// We need to identify which Workspace package is their application.
+		// Then extract the package name from its Cargo.toml manifest.
+		// We do this by checking for a rust-toolchain.toml containing a wasm32-wasi target.
+		//
+		// NOTE: This logic will need to change in the future.
+		// Specifically, when we support linking multiple Wasm binaries.
+		for _, m := range m.Workspace.Members {
+			var rtm RustToolchainManifest
+			// G304 (CWE-22): Potential file inclusion via variable.
+			// #nosec
+			data, err := os.ReadFile(filepath.Join(m, "rust-toolchain.toml"))
+			if err != nil {
+				return err
+			}
+			toml.Unmarshal(data, &rtm)
+			if len(rtm.Toolchain.Targets) > 0 && rtm.Toolchain.Targets[0] == "wasm32-wasi" {
+				var cm CargoManifest
+				cm.Read(filepath.Join(m, "Cargo.toml"))
+				r.packageName = cm.Package.Name
+			}
+		}
+	case len(m.Workspace.Members) > 0 && hasCustomBuildScript:
+		// If user has a Cargo Workspace AND a custom script.
+		// Trust their custom script aligns with the relevant Workspace package name.
+		// i.e. we parse the package name specified in their custom script.
+		parts := strings.Split(r.build, " ")
+		for i, p := range parts {
+			if p == "--bin" {
+				r.packageName = parts[i+1]
+				break
+			}
+		}
+	}
+
+	// Ensure the default build script matches the Cargo.toml package name.
+	if noBuildScript && r.packageName != "" && r.packageName != RustDefaultPackageName {
+		r.build = fmt.Sprintf(RustDefaultBuildCommand, r.packageName)
 	}
 
 	return nil
@@ -253,12 +309,8 @@ func (r *Rust) ProcessLocation() error {
 		r.errlog.Add(err)
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
-	var m CargoManifest
-	if err := m.Read(r.projectRoot); err != nil {
-		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
-	}
 
-	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", m.Package.Name))
+	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", r.packageName))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	err = filesystem.CopyFile(src, dst)
@@ -279,7 +331,8 @@ type CargoLocateProject struct {
 // manifest which we are interested in and are read from the Cargo.toml manifest
 // file within the $PWD of the package.
 type CargoManifest struct {
-	Package CargoPackage `toml:"package"`
+	Package   CargoPackage   `toml:"package"`
+	Workspace CargoWorkspace `toml:"workspace"`
 }
 
 // Read the contents of the Cargo.toml manifest from filename.
@@ -288,13 +341,17 @@ func (m *CargoManifest) Read(path string) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// Disabling as we need to load the Cargo.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-	/* #nosec */
+	// #nosec
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	err = toml.Unmarshal(data, m)
-	return err
+	return toml.Unmarshal(data, m)
+}
+
+// CargoWorkspace models the [workspace] config inside Cargo.toml
+type CargoWorkspace struct {
+	Members []string `toml:"members" json:"members"`
 }
 
 // CargoPackage models the package configuration properties of a Rust Cargo
