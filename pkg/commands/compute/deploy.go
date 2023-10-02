@@ -747,20 +747,22 @@ func manageExistingServiceFlow(
 	out io.Writer,
 	errLog fsterr.LogInterface,
 ) (serviceVersion *fastly.Version, err error) {
+	serviceVersion = currentServiceVersion
+
 	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
 	serviceDetails, err := apiClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
 	if err != nil {
 		errLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
+			"Service Version": serviceVersion.Number,
 		})
 		return serviceVersion, err
 	}
 	if serviceDetails.Type != "wasm" {
 		errLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceDetails.Type), map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
+			"Service Version": serviceVersion.Number,
 			"Service Type":    serviceDetails.Type,
 		})
 		return serviceVersion, fsterr.RemediationError{
