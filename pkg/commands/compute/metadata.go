@@ -83,6 +83,10 @@ func (c *MetadataCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("failed to persist metadata choices to disk: %w", err)
 	}
 	text.Success(out, "configuration updated (see: `fastly config`)")
+	text.Break(out)
+	text.Output(out, "Build Information: %s", c.Globals.Config.WasmMetadata.BuildInfo)
+	text.Output(out, "Machine Information: %s", c.Globals.Config.WasmMetadata.MachineInfo)
+	text.Output(out, "Package Information: %s", c.Globals.Config.WasmMetadata.PackageInfo)
 	return nil
 }
 
