@@ -20,6 +20,10 @@ type Spinner interface {
 }
 
 // SpinnerProcess is the logic to execute in between the spinner start/stop.
+//
+// NOTE: The `sp` SpinnerWrapper is passed in to handle more complex scenarios.
+// For example, the logic inside the SpinnerProcess might want to control the
+// Start/Stop mechanisms outside of the basic flow provided by `Process()`.
 type SpinnerProcess func(sp *SpinnerWrapper) error
 
 // SpinnerWrapper implements the Spinner interface.
