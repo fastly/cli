@@ -112,7 +112,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	newService, serviceID, serviceVersion, cont, err := serviceManagement(serviceID, source, c, in, out, fnActivateTrial, spinner)
+	newService, serviceID, serviceVersion, cont, err := serviceManagement(pkgPath, serviceID, source, c, in, out, fnActivateTrial, spinner)
 	if err != nil {
 		return err
 	}
@@ -146,14 +146,14 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	cont, err = processPackage(
-		c, pkgPath, serviceID, serviceVersion.Number, spinner, out,
-	)
+	err = pkgUpload(spinner, c.Globals.APIClient, serviceID, serviceVersion.Number, pkgPath)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path":    pkgPath,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
 		return err
-	}
-	if !cont {
-		return nil
 	}
 
 	if err = processService(c, serviceID, serviceVersion.Number, spinner); err != nil {
@@ -443,7 +443,7 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 }
 
 func serviceManagement(
-	serviceID string,
+	pkgPath, serviceID string,
 	source manifest.Source,
 	c *DeployCommand,
 	in io.Reader,
@@ -480,7 +480,36 @@ func serviceManagement(
 			}
 		}
 
-		serviceVersion, err = manageExistingServiceFlow(serviceID, c.ServiceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
+		serviceVersion, err = c.ServiceVersion.Parse(serviceID, c.Globals.APIClient)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Service ID": serviceID,
+			})
+			return false, "", serviceVersion, false, err
+		}
+
+		filesHash, err := getFilesHash(pkgPath)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Package path": pkgPath,
+			})
+			return false, "", nil, false, err
+		}
+
+		cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion.Number, filesHash, out)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Package path":    pkgPath,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion,
+			})
+			return false, "", nil, false, err
+		}
+		if !cont {
+			return false, "", nil, false, err
+		}
+
+		serviceVersion, err = manageExistingServiceFlow(serviceID, serviceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
 		if err != nil {
 			return false, "", nil, false, err
 		}
@@ -712,20 +741,12 @@ func updateManifestServiceID(m *manifest.File, manifestFilename string, serviceI
 // manageExistingServiceFlow clones service version if required.
 func manageExistingServiceFlow(
 	serviceID string,
-	serviceVersionFlag cmd.OptionalServiceVersion,
+	currentServiceVersion *fastly.Version,
 	apiClient api.Interface,
 	verbose bool,
 	out io.Writer,
 	errLog fsterr.LogInterface,
 ) (serviceVersion *fastly.Version, err error) {
-	serviceVersion, err = serviceVersionFlag.Parse(serviceID, apiClient)
-	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Service ID": serviceID,
-		})
-		return serviceVersion, err
-	}
-
 	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
 	serviceDetails, err := apiClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
@@ -752,18 +773,18 @@ func manageExistingServiceFlow(
 	// the compute deploy command is a composite of behaviours, and so as we
 	// already automatically activate a version we should autoclone without
 	// requiring the user to explicitly provide an --autoclone flag.
-	if serviceVersion.Active || serviceVersion.Locked {
+	if currentServiceVersion.Active || currentServiceVersion.Locked {
 		clonedVersion, err := apiClient.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion.Number,
+			ServiceVersion: currentServiceVersion.Number,
 		})
 		if err != nil {
-			errLogService(errLog, err, serviceID, serviceVersion.Number)
+			errLogService(errLog, err, serviceID, currentServiceVersion.Number)
 			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
 		}
 		if verbose {
 			msg := "Service version %d is not editable, so it was automatically cloned. Now operating on version %d.\n\n"
-			format := fmt.Sprintf(msg, serviceVersion.Number, clonedVersion.Number)
+			format := fmt.Sprintf(msg, currentServiceVersion.Number, clonedVersion.Number)
 			text.Output(out, format)
 		}
 		serviceVersion = clonedVersion
@@ -793,19 +814,18 @@ func checkServiceID(serviceID string, client api.Interface) error {
 
 // pkgCompare compares the local package files hash against the existing service
 // package version and exits early with message if identical.
-func pkgCompare(client api.Interface, serviceID string, version int, filesHash string, out io.Writer) (bool, error) {
+func pkgCompare(client api.Interface, serviceID string, version int, filesHash string, out io.Writer) (cont bool, err error) {
 	p, err := client.GetPackage(&fastly.GetPackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
 	})
-
-	if err == nil {
-		if filesHash == p.Metadata.FilesHash {
-			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
-			return false, nil
-		}
+	if err != nil {
+		return false, err
 	}
-
+	if filesHash == p.Metadata.FilesHash {
+		text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
+		return false, nil
+	}
 	return true, nil
 }
 
@@ -1102,47 +1122,6 @@ func processSetupCreation(
 	}
 
 	return nil
-}
-
-func processPackage(
-	c *DeployCommand,
-	pkgPath, serviceID string,
-	serviceVersion int,
-	spinner text.Spinner,
-	out io.Writer,
-) (cont bool, err error) {
-	filesHash, err := getFilesHash(pkgPath)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path": pkgPath,
-		})
-		return false, err
-	}
-
-	cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion, filesHash, out)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path":    pkgPath,
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
-		})
-		return false, err
-	}
-	if !cont {
-		return false, nil
-	}
-
-	err = pkgUpload(spinner, c.Globals.APIClient, serviceID, serviceVersion, pkgPath)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path":    pkgPath,
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
-		})
-		return false, err
-	}
-
-	return true, nil
 }
 
 func processService(c *DeployCommand, serviceID string, serviceVersion int, spinner text.Spinner) error {
