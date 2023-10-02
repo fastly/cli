@@ -15,6 +15,8 @@ import (
 
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
+	"golang.org/x/text/cases"
+	textlang "golang.org/x/text/language"
 
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/cmd"
@@ -205,6 +207,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	languageTitle := cases.Title(textlang.English).String(language.Name)
+
 	// FIXME: When we remove feature flag, put in ability to disable metadata.
 	if c.enableMetadata /*|| !disableWasmMetadata*/ {
 		endTime := time.Now()
@@ -213,7 +217,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// FIXME: Once #1013 and #1016 merged, integrate granular disabling.
 		args := []string{
 			"metadata", "add", "bin/main.wasm",
-			fmt.Sprintf("--language=CLI_%s: %s", revision.AppVersion, strings.ToUpper(language.Name)),
+			fmt.Sprintf("--processed-by=fastly=%s (%s)", revision.AppVersion, languageTitle),
 			fmt.Sprintf("--processed-by=CLI_BuildInfoMemoryHeapAlloc=%d", memAfter.HeapAlloc-memBefore.HeapAlloc),
 			fmt.Sprintf("--processed-by=CLI_BuildInfoTime=%s", endTime.Sub(startTime)),
 			fmt.Sprintf("--processed-by=CLI_MachineInfoOS=%s", runtime.GOOS),
@@ -272,7 +276,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// NOTE: If not collecting metadata, just record the CLI version.
 		args := []string{
 			"metadata", "add", "bin/main.wasm",
-			fmt.Sprintf("--language=CLI_%s: %s", revision.AppVersion, strings.ToUpper(language.Name)),
+			fmt.Sprintf("--processed-by=fastly=%s (%s)", revision.AppVersion, languageTitle),
 		}
 		err = c.Globals.ExecuteWasmTools(wasmtools, args)
 		if err != nil {
