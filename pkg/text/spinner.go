@@ -35,7 +35,7 @@ type SpinnerProcess func(sp *SpinnerWrapper) error
 // SpinnerWrapper implements the Spinner interface.
 type SpinnerWrapper struct {
 	*yacspin.Spinner
-	stopFailErr error
+	err error
 }
 
 // Process starts/stops the spinner with `msg` and executes `fn` in between.
@@ -60,20 +60,42 @@ func (sp *SpinnerWrapper) Process(msg string, fn SpinnerProcess) error {
 	return sp.Stop()
 }
 
+// Start is a proxy to the underlying spinner implementation. It sets the
+// internal err to the error that is returned from a call to the underlying
+// Start() so it can be used by a call subsequent to WrapErr().
+func (sp *SpinnerWrapper) Start() error {
+	err := sp.Spinner.Start()
+	if err != nil {
+		sp.err = err
+	}
+	return err
+}
+
 // StopFail is a proxy to the underlying spinner implementation. It sets the
-// internal stopFailErr to the error that is returned so it can be used by a
-// call to WrapErr().
+// internal err to the error that is returned from a call to the underlying
+// StopFail() so it can be used by a call subsequent to WrapErr().
 func (sp *SpinnerWrapper) StopFail() error {
 	err := sp.Spinner.StopFail()
 	if err != nil {
-		sp.stopFailErr = err
+		sp.err = err
+	}
+	return err
+}
+
+// Stop is a proxy to the underlying spinner implementation. It sets the
+// internal err to the error that is returned from a call to the underlying
+// Stop() so it can be used by a call subsequent to WrapErr().
+func (sp *SpinnerWrapper) Stop() error {
+	err := sp.Spinner.Stop()
+	if err != nil {
+		sp.err = err
 	}
 	return err
 }
 
 // WrapErr returns a spinner error that wraps err.
 func (sp *SpinnerWrapper) WrapErr(err error) error {
-	return fmt.Errorf(SpinnerErrWrapper, sp.stopFailErr, err)
+	return fmt.Errorf(SpinnerErrWrapper, sp.err, err)
 }
 
 // NewSpinner returns a new instance of a terminal prompt spinner.
@@ -93,7 +115,7 @@ func NewSpinner(out io.Writer) (Spinner, error) {
 	}
 
 	return &SpinnerWrapper{
-		Spinner:     spinner,
-		stopFailErr: nil,
+		Spinner: spinner,
+		err:     nil,
 	}, nil
 }

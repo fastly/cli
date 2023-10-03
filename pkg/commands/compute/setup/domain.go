@@ -172,7 +172,7 @@ func (d *Domains) createDomain(name string, attempt int) error {
 		d.Spinner.StopFailMessage(msg)
 		spinErr := d.Spinner.StopFail()
 		if spinErr != nil {
-			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+			return d.Spinner.WrapErr(err)
 		}
 
 		if attempt > d.RetryLimit {

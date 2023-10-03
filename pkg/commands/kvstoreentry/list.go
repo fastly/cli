@@ -78,7 +78,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+					return spinner.WrapErr(err)
 				}
 			}
 			return err

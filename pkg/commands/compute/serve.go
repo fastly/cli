@@ -435,7 +435,7 @@ func installViceroy(
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+				return spinner.WrapErr(err)
 			}
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("error fetching latest version: %w", err),
@@ -484,7 +484,7 @@ func installViceroy(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+			return spinner.WrapErr(err)
 		}
 		return fmt.Errorf("error downloading Viceroy release: %w", err)
 	}
@@ -495,7 +495,7 @@ func installViceroy(
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+				return spinner.WrapErr(err)
 			}
 			return fmt.Errorf("error moving latest Viceroy binary in place: %w", err)
 		}

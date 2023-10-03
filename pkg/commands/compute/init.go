@@ -303,7 +303,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+					return spinner.WrapErr(err)
 				}
 			}
 			return err
@@ -691,7 +691,7 @@ func fetchPackageTemplate(
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+				return spinner.WrapErr(err)
 			}
 			return err
 		}
@@ -708,7 +708,7 @@ func fetchPackageTemplate(
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+					return spinner.WrapErr(err)
 				}
 				return err
 			}
@@ -738,7 +738,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+			return spinner.WrapErr(err)
 		}
 		return fmt.Errorf("failed to get package: %w", err)
 	}
@@ -750,7 +750,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+			return spinner.WrapErr(err)
 		}
 		return err
 	}
@@ -769,7 +769,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+			return spinner.WrapErr(err)
 		}
 		return fmt.Errorf("failed to create local %s archive: %w", filename, err)
 	}
@@ -790,7 +790,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+			return spinner.WrapErr(err)
 		}
 		return fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
 	}
@@ -839,7 +839,7 @@ mimes:
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+					return spinner.WrapErr(err)
 				}
 				return err
 			}
@@ -855,7 +855,7 @@ mimes:
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+				return spinner.WrapErr(err)
 			}
 			return fmt.Errorf("failed to extract %s archive content: %w", filename, err)
 		}
@@ -868,7 +868,7 @@ mimes:
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+			return spinner.WrapErr(err)
 		}
 		return err
 	}

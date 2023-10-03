@@ -607,7 +607,7 @@ func createService(
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+					return "", nil, spinner.WrapErr(err)
 				}
 
 				return serviceID, serviceVersion, fsterr.RemediationError{
@@ -621,7 +621,7 @@ func createService(
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+					return "", nil, spinner.WrapErr(err)
 				}
 
 				return serviceID, serviceVersion, fsterr.RemediationError{
@@ -1228,7 +1228,7 @@ func checkingServiceAvailability(
 			spinner.StopFailMessage(msg + returnedStatus)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return status, fmt.Errorf(text.SpinnerErrWrapper, spinErr, timeoutErr)
+				return status, spinner.WrapErr(timeoutErr)
 			}
 			return status, timeoutErr
 		case t := <-ticker.C:
@@ -1249,7 +1249,7 @@ func checkingServiceAvailability(
 				spinner.StopFailMessage(msg + returnedStatus)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return status, fmt.Errorf(text.SpinnerErrWrapper, spinErr, pingErr)
+					return status, spinner.WrapErr(pingErr)
 				}
 				return status, pingErr
 			}

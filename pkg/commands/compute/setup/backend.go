@@ -101,7 +101,7 @@ func (b *Backends) Create() error {
 				b.Spinner.StopFailMessage(msg)
 				spinErr := b.Spinner.StopFail()
 				if spinErr != nil {
-					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+					return b.Spinner.WrapErr(err)
 				}
 			}
 
