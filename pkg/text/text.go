@@ -47,21 +47,29 @@ func Wrap(text string, width uint) string {
 		if line == "" {
 			continue
 		}
-		b.WriteString(line + " ")
+		_, _ = b.WriteString(line + " ")
 	}
 	return wordwrap.WrapString(strings.TrimSpace(b.String()), width)
 }
 
 // WrapIndent a string at word boundaries with a maximum line length of width
 // and indenting the lines by a specified number of spaces.
-func WrapIndent(s string, lim uint, indent uint) string {
-	lim -= indent
-	wrapped := wordwrap.WrapString(s, lim)
+func WrapIndent(s string, limit uint, indent uint) string {
+	limit -= indent
+	wrapped := wordwrap.WrapString(s, limit)
 	var result []string
 	for _, line := range strings.Split(wrapped, "\n") {
 		result = append(result, strings.Repeat(" ", int(indent))+line)
 	}
 	return strings.Join(result, "\n")
+}
+
+// Indent writes the help text to the writer using WrapIndent with
+// DefaultTextWidth, suffixed by a newlines. It's intended to be used to provide
+// detailed information, context, or help to the user.
+func Indent(w io.Writer, indent uint, format string, args ...any) {
+	text := fmt.Sprintf(format, args...)
+	fmt.Fprintf(w, "%s\n", WrapIndent(text, DefaultTextWidth, indent))
 }
 
 // Output writes the help text to the writer using Wrap with DefaultTextWidth,
@@ -194,12 +202,6 @@ func Error(w io.Writer, format string, args ...any) {
 	fmt.Fprintf(w, "\n"+Wrap(BoldRed("ERROR: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
-// Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
-func Warning(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldYellow("WARNING: ")+format, DefaultTextWidth)+"\n", args...)
-}
-
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
 func Info(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
@@ -212,6 +214,12 @@ func Success(w io.Writer, format string, args ...any) {
 	fmt.Fprintf(w, "\n"+Wrap(BoldGreen("SUCCESS: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
+// Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
+func Warning(w io.Writer, format string, args ...any) {
+	format = strings.TrimRight(format, "\r\n") + "\n"
+	fmt.Fprintf(w, "\n"+Wrap(BoldYellow("WARNING: ")+format, DefaultTextWidth)+"\n", args...)
+}
+
 // Description formats the output of a description item. A description item
 // consists of a `intro` and a `description`. Emphasis is placed on the
 // `description` using Bold(). For example:
@@ -220,12 +228,4 @@ func Success(w io.Writer, format string, args ...any) {
 //	    fastly compute build
 func Description(w io.Writer, intro, description string) {
 	fmt.Fprintf(w, "%s:\n\t%s\n\n", intro, Bold(description))
-}
-
-// Indent writes the help text to the writer using WrapIndent with
-// DefaultTextWidth, suffixed by a newlines. It's intended to be used to provide
-// detailed information, context, or help to the user.
-func Indent(w io.Writer, indent uint, format string, args ...any) {
-	text := fmt.Sprintf(format, args...)
-	fmt.Fprintf(w, "%s\n", WrapIndent(text, DefaultTextWidth, indent))
 }

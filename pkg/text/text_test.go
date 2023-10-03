@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestInput(t *testing.T) {
@@ -129,11 +131,25 @@ func TestPrefixes(t *testing.T) {
 		want   string
 	}{
 		{
+			name:   "Deprecated",
+			f:      text.Deprecated,
+			format: "Test string %d.",
+			args:   []any{123},
+			want:   "\nDEPRECATED: Test string 123.\n",
+		},
+		{
 			name:   "Error",
 			f:      text.Error,
 			format: "Test string %d.",
 			args:   []any{123},
 			want:   "\nERROR: Test string 123.\n",
+		},
+		{
+			name:   "Info",
+			f:      text.Info,
+			format: "Test string %d.",
+			args:   []any{123},
+			want:   "\nINFO: Test string 123.\n",
 		},
 		{
 			name:   "Success",
@@ -142,11 +158,81 @@ func TestPrefixes(t *testing.T) {
 			args:   []any{"Good", "job", 99},
 			want:   "\nSUCCESS: Good \"job\" 99.\n",
 		},
+		{
+			name:   "Warning",
+			f:      text.Warning,
+			format: "Test string %d.",
+			args:   []any{123},
+			want:   "\nWARNING: Test string 123.\n",
+		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			testcase.f(&buf, testcase.format, testcase.args...)
 			if want, have := testcase.want, buf.String(); want != have {
+				t.Error(cmp.Diff(want, have))
+			}
+		})
+	}
+}
+
+func TestWrap(t *testing.T) {
+	for i, testcase := range []struct {
+		text, want string
+		limit      uint
+	}{
+		{
+			text:  "Example text goes here.",
+			limit: 2,
+			want:  "Example\ntext\ngoes\nhere.", // notice it won't split individual words
+		},
+		{
+			text:  "Example text goes here.",
+			limit: 12,
+			want:  "Example text\ngoes here.",
+		},
+		{
+			text:  "Example text goes here.",
+			limit: 100,
+			want:  "Example text goes here.",
+		},
+	} {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			output := text.Wrap(testcase.text, testcase.limit)
+			if want, have := testcase.want, output; want != have {
+				t.Error(cmp.Diff(want, have))
+			}
+		})
+	}
+}
+
+func TestWrapIndent(t *testing.T) {
+	for i, testcase := range []struct {
+		text, want    string
+		limit, indent uint // internally limit subtracts the indent
+	}{
+		{
+			text:   "Example text goes here.",
+			limit:  2,
+			indent: 2,
+			want:   "  Example text goes here.", // indent causes limit to become zero so we effectively just get an indent.
+		},
+		{
+			text:   "Example text goes here.",
+			limit:  20,
+			indent: 4,
+			want:   "    Example text\n    goes here.",
+		},
+		{
+			text:   "Example text goes here.",
+			limit:  100,
+			indent: 6,
+			want:   "      Example text goes here.",
+		},
+	} {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			output := text.WrapIndent(testcase.text, testcase.limit, testcase.indent)
+			if want, have := testcase.want, output; want != have {
 				t.Error(cmp.Diff(want, have))
 			}
 		})
