@@ -201,7 +201,17 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	languageTitle := cases.Title(textlang.English).String(language.Name)
 
 	// FIXME: When we remove feature flag, put in ability to disable metadata.
-	if c.enableMetadata /*|| !disableWasmMetadata*/ {
+	if !c.enableMetadata /*|| disableWasmMetadata*/ {
+		// NOTE: If not collecting metadata, just record the CLI version.
+		args := []string{
+			"metadata", "add", "bin/main.wasm",
+			fmt.Sprintf("--processed-by=fastly=%s (%s)", revision.AppVersion, languageTitle),
+		}
+		err = c.Globals.ExecuteWasmTools(wasmtools, args)
+		if err != nil {
+			return err
+		}
+	} else {
 		var ms runtime.MemStats
 		runtime.ReadMemStats(&ms)
 
@@ -248,34 +258,24 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
+	}
 
-		if c.showMetadata {
-			// gosec flagged this:
-			// G204 (CWE-78): Subprocess launched with variable
-			// Disabling as the variables come from trusted sources.
-			// #nosec
-			// nosemgrep
-			command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm")
-			wasmtoolsOutput, err := command.Output()
-			if err != nil {
-				return fmt.Errorf("failed to execute wasm-tools metadata command: %w", err)
-			}
-			text.Info(out, "Below is the metadata attached to the Wasm binary")
-			text.Break(out)
-
-			fmt.Fprintln(out, string(wasmtoolsOutput))
-			text.Break(out)
-		}
-	} else {
-		// NOTE: If not collecting metadata, just record the CLI version.
-		args := []string{
-			"metadata", "add", "bin/main.wasm",
-			fmt.Sprintf("--processed-by=fastly=%s (%s)", revision.AppVersion, languageTitle),
-		}
-		err = c.Globals.ExecuteWasmTools(wasmtools, args)
+	if c.showMetadata {
+		// gosec flagged this:
+		// G204 (CWE-78): Subprocess launched with variable
+		// Disabling as the variables come from trusted sources.
+		// #nosec
+		// nosemgrep
+		command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm")
+		wasmtoolsOutput, err := command.Output()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to execute wasm-tools metadata command: %w", err)
 		}
+		text.Info(out, "Below is the metadata attached to the Wasm binary")
+		text.Break(out)
+
+		fmt.Fprintln(out, string(wasmtoolsOutput))
+		text.Break(out)
 	}
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
