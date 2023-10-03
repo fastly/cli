@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	fsterrors "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // SecretStores represents the service state related to secret stores defined
@@ -126,8 +127,8 @@ func (s *SecretStores) Create() error {
 		})
 		if err != nil {
 			s.Spinner.StopFailMessage(msg)
-			if serr := s.Spinner.StopFail(); serr != nil {
-				return serr
+			if spinErr := s.Spinner.StopFail(); spinErr != nil {
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return fmt.Errorf("error creating secret store %q: %w", secretStore.Name, err)
 		}
@@ -150,8 +151,8 @@ func (s *SecretStores) Create() error {
 			})
 			if err != nil {
 				s.Spinner.StopFailMessage(msg)
-				if serr := s.Spinner.StopFail(); serr != nil {
-					return serr
+				if spinErr := s.Spinner.StopFail(); spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return fmt.Errorf("error creating secret store entry %q: %w", entry.Name, err)
 			}
@@ -178,8 +179,8 @@ func (s *SecretStores) Create() error {
 		})
 		if err != nil {
 			s.Spinner.StopFailMessage(msg)
-			if serr := s.Spinner.StopFail(); serr != nil {
-				return serr
+			if spinErr := s.Spinner.StopFail(); spinErr != nil {
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return fmt.Errorf("error creating resource link between the service %q and the secret store %q: %w", s.ServiceID, store.Name, err)
 		}

@@ -128,7 +128,7 @@ func (o *KVStores) Create() error {
 			o.Spinner.StopFailMessage(msg)
 			spinErr := o.Spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return fmt.Errorf("error creating kv store: %w", err)
 		}
@@ -157,7 +157,7 @@ func (o *KVStores) Create() error {
 					o.Spinner.StopFailMessage(msg)
 					spinErr := o.Spinner.StopFail()
 					if spinErr != nil {
-						return spinErr
+						return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 					}
 					return fmt.Errorf("error creating kv store key: %w", err)
 				}
@@ -188,7 +188,7 @@ func (o *KVStores) Create() error {
 			o.Spinner.StopFailMessage(msg)
 			spinErr := o.Spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return fmt.Errorf("error creating resource link between the service '%s' and the kv store '%s': %w", o.ServiceID, store.Name, err)
 		}

@@ -607,7 +607,7 @@ func createService(
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return "", nil, spinErr
+					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 
 				return serviceID, serviceVersion, fsterr.RemediationError{
@@ -621,7 +621,7 @@ func createService(
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return "", nil, spinErr
+					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 
 				return serviceID, serviceVersion, fsterr.RemediationError{
@@ -1220,16 +1220,17 @@ func checkingServiceAvailability(
 	for {
 		select {
 		case <-timeout:
+			timeoutErr := fsterr.RemediationError{
+				Inner:       errors.New("service not yet available"),
+				Remediation: fmt.Sprintf(remediation, "timed out", expected, status),
+			}
 			returnedStatus := fmt.Sprintf(" (status: %d)", status)
 			spinner.StopFailMessage(msg + returnedStatus)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return status, spinErr
+				return status, fmt.Errorf(text.SpinnerErrWrapper, spinErr, timeoutErr)
 			}
-			return status, fsterr.RemediationError{
-				Inner:       errors.New("service not yet available"),
-				Remediation: fmt.Sprintf(remediation, "timed out", expected, status),
-			}
+			return status, timeoutErr
 		case t := <-ticker.C:
 			var (
 				ok  bool
@@ -1240,17 +1241,19 @@ func checkingServiceAvailability(
 			// and success scenarios.
 			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient, c.StatusCheckCode)
 			if err != nil {
+				pingErr := fsterr.RemediationError{
+					Inner:       err,
+					Remediation: fmt.Sprintf(remediation, "failed", expected, status),
+				}
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
 				spinner.StopFailMessage(msg + returnedStatus)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return status, spinErr
+					return status, fmt.Errorf(text.SpinnerErrWrapper, spinErr, pingErr)
 				}
-				return status, fsterr.RemediationError{
-					Inner:       err,
-					Remediation: fmt.Sprintf(remediation, "failed", expected, status),
-				}
-			} else if ok {
+				return status, pingErr
+			}
+			if ok {
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
 				spinner.StopMessage(msg + returnedStatus)
 				return status, spinner.Stop()

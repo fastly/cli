@@ -106,16 +106,15 @@ func (bt BuildToolchain) Build() error {
 		// But we can't just call StopFailMessage() without first starting the spinner.
 		if bt.verbose {
 			text.Break(bt.out)
-			err := bt.spinner.Start()
-			if err != nil {
-				return err
+			spinErr := bt.spinner.Start()
+			if spinErr != nil {
+				return fmt.Errorf("failed to start spinner (error: %w) when handling the error: %w", spinErr, err)
 			}
 			bt.spinner.Message(msg + "...")
-
 			bt.spinner.StopFailMessage(msg)
-			spinErr := bt.spinner.StopFail()
+			spinErr = bt.spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 		}
 		// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
@@ -193,16 +192,15 @@ func (bt BuildToolchain) Build() error {
 			// But we can't just call StopFailMessage() without first starting the spinner.
 			if bt.verbose {
 				text.Break(bt.out)
-				err := bt.spinner.Start()
-				if err != nil {
-					return err
+				spinErr := bt.spinner.Start()
+				if spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				bt.spinner.Message(msg + "...")
-
 				bt.spinner.StopFailMessage(msg)
-				spinErr := bt.spinner.StopFail()
+				spinErr = bt.spinner.StopFail()
 				if spinErr != nil {
-					return spinErr
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
