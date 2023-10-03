@@ -190,6 +190,17 @@ func Break(w io.Writer) {
 	fmt.Fprintln(w)
 }
 
+// BreakN writes n newlines to the writer. It's intended to be used between
+// blocks of text that would otherwise be adjacent, a sort of semantic markup.
+func BreakN(w io.Writer, n int) {
+	if n == 0 {
+		return
+	}
+	for i := 1; i <= n; i++ {
+		fmt.Fprintln(w)
+	}
+}
+
 // Deprecated is a wrapper for fmt.Fprintf with a bold red "DEPRECATED: " prefix.
 func Deprecated(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
