@@ -191,16 +191,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	var (
-		memBefore, memAfter runtime.MemStats
-		startTime           time.Time
-	)
-	// FIXME: When we remove feature flag, put in ability to disable metadata.
-	if c.enableMetadata /*|| !disableWasmMetadata*/ {
-		runtime.ReadMemStats(&memBefore)
-		startTime = time.Now()
-	}
-
 	if err := language.Build(); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Language": language.Name,
@@ -212,13 +202,12 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// FIXME: When we remove feature flag, put in ability to disable metadata.
 	if c.enableMetadata /*|| !disableWasmMetadata*/ {
-		endTime := time.Now()
-		runtime.ReadMemStats(&memAfter)
+		var ms runtime.MemStats
+		runtime.ReadMemStats(&ms)
 
 		dc := DataCollection{
 			BuildInfo: DataCollectionBuildInfo{
-				MemoryHeapAlloc: memAfter.HeapAlloc - memBefore.HeapAlloc,
-				Time:            endTime.Sub(startTime),
+				MemoryHeapAlloc: ms.HeapAlloc,
 			},
 			MachineInfo: DataCollectionMachineInfo{
 				Arch:      runtime.GOARCH,
@@ -889,8 +878,7 @@ type DataCollection struct {
 
 // DataCollectionBuildInfo represents build data annotated onto the Wasm binary.
 type DataCollectionBuildInfo struct {
-	MemoryHeapAlloc uint64        `json:"mem_heap_alloc"`
-	Time            time.Duration `json:"time"`
+	MemoryHeapAlloc uint64 `json:"mem_heap_alloc"`
 }
 
 // DataCollectionMachineInfo represents machine data annotated onto the Wasm binary.
