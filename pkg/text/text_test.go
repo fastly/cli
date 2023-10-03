@@ -161,7 +161,7 @@ func TestPrefixes(t *testing.T) {
 		{
 			name:   "Warning",
 			f:      text.Warning,
-			format: "Test string %d.",
+			format: "\nTest string %d.", // notice leading linebreaks are stripped (this is a side-effect of internally using `Wrap()`)
 			args:   []any{123},
 			want:   "WARNING: Test string 123.\n\n",
 		},
