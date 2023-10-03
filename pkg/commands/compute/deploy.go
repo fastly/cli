@@ -526,8 +526,8 @@ func manageNoServiceIDFlow(
 	var serviceName string
 
 	// The service name will be whatever is set in the --service-name flag.
-	// If the flag isn't set, and we're able to prompt, we'll ask the user.
 	// If the flag isn't set, and we're non-interactive, we'll use the default.
+	// If the flag isn't set, and we're interactive, we'll prompt the user.
 	switch {
 	case serviceNameFlag.WasSet:
 		serviceName = serviceNameFlag.Value
