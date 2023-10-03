@@ -193,31 +193,31 @@ func Break(w io.Writer) {
 // Deprecated is a wrapper for fmt.Fprintf with a bold red "DEPRECATED: " prefix.
 func Deprecated(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldRed("DEPRECATED: ")+format, DefaultTextWidth)+"\n", args...)
+	fmt.Fprintf(w, Wrap(BoldRed("DEPRECATED: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Error is a wrapper for fmt.Fprintf with a bold red "ERROR: " prefix.
 func Error(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldRed("ERROR: ")+format, DefaultTextWidth)+"\n", args...)
+	fmt.Fprintf(w, Wrap(BoldRed("ERROR: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
 func Info(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(Bold("INFO: ")+format, DefaultTextWidth)+"\n", args...)
+	fmt.Fprintf(w, Wrap(Bold("INFO: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Success is a wrapper for fmt.Fprintf with a bold green "SUCCESS: " prefix.
 func Success(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldGreen("SUCCESS: ")+format, DefaultTextWidth)+"\n", args...)
+	fmt.Fprintf(w, Wrap(BoldGreen("SUCCESS: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
 func Warning(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldYellow("WARNING: ")+format, DefaultTextWidth)+"\n", args...)
+	fmt.Fprintf(w, Wrap(BoldYellow("WARNING: ")+format, DefaultTextWidth)+"\n", args...)
 }
 
 // Description formats the output of a description item. A description item
