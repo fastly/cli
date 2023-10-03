@@ -131,6 +131,12 @@ func (s *Streaming) Exec() error {
 	s.Process = cmd.Process
 
 	if err := cmd.Wait(); err != nil {
+		// IMPORTANT: We MUST wrap the original error.
+		// This is because the `compute serve` command requires it for --watch
+		// Specifically we need to check the error message for "killed".
+		// This enables the watching logic to restart the Viceroy binary.
+		err = fmt.Errorf("error during execution process (see 'command output' above): %w", err)
+
 		text.Output(output, divider)
 
 		// If we're in verbose mode, the build output is shown.
@@ -149,11 +155,7 @@ func (s *Streaming) Exec() error {
 		// Display the buffer stored output as we have an error.
 		fmt.Fprintf(s.Output, "%s", buf.String())
 
-		// IMPORTANT: We MUST wrap the original error.
-		// This is because the `compute serve` command requires it for --watch
-		// Specifically we need to check the error message for "killed".
-		// This enables the watching logic to restart the Viceroy binary.
-		return fmt.Errorf("error during execution process (see 'command output' above): %w", err)
+		return err
 	}
 
 	text.Output(output, divider)

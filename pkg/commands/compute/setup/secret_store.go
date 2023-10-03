@@ -126,11 +126,12 @@ func (s *SecretStores) Create() error {
 			Name: secretStore.Name,
 		})
 		if err != nil {
+			err = fmt.Errorf("error creating secret store %q: %w", secretStore.Name, err)
 			s.Spinner.StopFailMessage(msg)
 			if spinErr := s.Spinner.StopFail(); spinErr != nil {
 				return s.Spinner.WrapErr(err)
 			}
-			return fmt.Errorf("error creating secret store %q: %w", secretStore.Name, err)
+			return err
 		}
 		s.Spinner.StopMessage(msg)
 		if err = s.Spinner.Stop(); err != nil {
@@ -150,11 +151,12 @@ func (s *SecretStores) Create() error {
 				Secret: []byte(entry.Secret),
 			})
 			if err != nil {
+				err = fmt.Errorf("error creating secret store entry %q: %w", entry.Name, err)
 				s.Spinner.StopFailMessage(msg)
 				if spinErr := s.Spinner.StopFail(); spinErr != nil {
 					return s.Spinner.WrapErr(err)
 				}
-				return fmt.Errorf("error creating secret store entry %q: %w", entry.Name, err)
+				return err
 			}
 
 			s.Spinner.StopMessage(msg)
@@ -178,11 +180,12 @@ func (s *SecretStores) Create() error {
 			ResourceID:     fastly.String(store.ID),
 		})
 		if err != nil {
+			err = fmt.Errorf("error creating resource link between the service %q and the secret store %q: %w", s.ServiceID, store.Name, err)
 			s.Spinner.StopFailMessage(msg)
 			if spinErr := s.Spinner.StopFail(); spinErr != nil {
 				return s.Spinner.WrapErr(err)
 			}
-			return fmt.Errorf("error creating resource link between the service %q and the secret store %q: %w", s.ServiceID, store.Name, err)
+			return err
 		}
 
 		s.Spinner.StopMessage(msg)

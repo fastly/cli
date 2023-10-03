@@ -108,7 +108,7 @@ func (bt BuildToolchain) Build() error {
 			text.Break(bt.out)
 			spinErr := bt.spinner.Start()
 			if spinErr != nil {
-				return fmt.Errorf("failed to start spinner (error: %w) when handling the error: %w", spinErr, err)
+				return bt.spinner.WrapErr(err)
 			}
 			bt.spinner.Message(msg + "...")
 			bt.spinner.StopFailMessage(msg)

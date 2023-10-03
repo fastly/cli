@@ -1,7 +1,6 @@
 package kvstoreentry
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/fastly/go-fastly/v8/fastly"
