@@ -100,7 +100,6 @@ func (s *Streaming) Exec() error {
 
 	// We store all output in a buffer to hide it unless there was an error.
 	var buf threadsafe.Buffer
-
 	var output io.Writer
 	output = &buf
 
@@ -142,13 +141,10 @@ func (s *Streaming) Exec() error {
 		// If we're in verbose mode, the build output is shown.
 		// So in that case we don't want to have a spinner as it'll interweave output.
 		// In non-verbose mode we have a spinner running while the build is happening.
-		if !s.Verbose {
-			if s.Spinner != nil {
-				s.Spinner.StopFailMessage(s.SpinnerMessage)
-				spinErr := s.Spinner.StopFail()
-				if spinErr != nil {
-					return s.Spinner.WrapErr(err)
-				}
+		if !s.Verbose && s.Spinner != nil {
+			s.Spinner.StopFailMessage(s.SpinnerMessage)
+			if spinErr := s.Spinner.StopFail(); spinErr != nil {
+				return s.Spinner.WrapErr(err)
 			}
 		}
 
