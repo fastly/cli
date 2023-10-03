@@ -70,7 +70,7 @@ func (s *Streaming) MonitorSignalsAsync() {
 	// killed the process. The reason this line still exists is for users running
 	// their application locally without the --watch flag and who then execute
 	// Ctrl-C to kill the process.
-	s.Signal(os.Kill)
+	_ = s.Signal(os.Kill)
 }
 
 // Exec executes the compiler command and pipes the child process stdout and

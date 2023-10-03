@@ -788,7 +788,7 @@ func ignoreFiles(watchDir cmd.OptionalString) *ignore.GitIgnore {
 	if watchDir.WasSet {
 		root = watchDir.Value
 		if !strings.HasPrefix(root, "/") {
-			root = root + "/"
+			root += "/"
 		}
 	}
 
