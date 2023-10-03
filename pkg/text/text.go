@@ -75,6 +75,8 @@ func Indent(w io.Writer, indent uint, format string, args ...any) {
 // Output writes the help text to the writer using Wrap with DefaultTextWidth,
 // suffixed by a newlines. It's intended to be used to provide detailed
 // information, context, or help to the user.
+// Any line breaks within the `format` are removed.
+// A single line break is inserted at the end.
 func Output(w io.Writer, format string, args ...any) {
 	text := fmt.Sprintf(format, args...)
 	fmt.Fprintf(w, "%s\n", Wrap(text, DefaultTextWidth))
@@ -202,6 +204,7 @@ func BreakN(w io.Writer, n int) {
 }
 
 // Deprecated is a wrapper for fmt.Fprintf with a bold red "DEPRECATED: " prefix.
+// Any line breaks within the `format` are removed.
 // Two line breaks are inserted at the end to provide visual spacing.
 func Deprecated(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
@@ -209,6 +212,7 @@ func Deprecated(w io.Writer, format string, args ...any) {
 }
 
 // Error is a wrapper for fmt.Fprintf with a bold red "ERROR: " prefix.
+// Any line breaks within the `format` are removed.
 // Two line breaks are inserted at the end to provide visual spacing.
 func Error(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
@@ -216,6 +220,7 @@ func Error(w io.Writer, format string, args ...any) {
 }
 
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
+// Any line breaks within the `format` are removed.
 // Two line breaks are inserted at the end to provide visual spacing.
 func Info(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
@@ -223,6 +228,7 @@ func Info(w io.Writer, format string, args ...any) {
 }
 
 // Success is a wrapper for fmt.Fprintf with a bold green "SUCCESS: " prefix.
+// Any line breaks within the `format` are removed.
 // Two line breaks are inserted at the end to provide visual spacing.
 func Success(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
@@ -230,6 +236,7 @@ func Success(w io.Writer, format string, args ...any) {
 }
 
 // Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
+// Any line breaks within the `format` are removed.
 // Two line breaks are inserted at the end to provide visual spacing.
 func Warning(w io.Writer, format string, args ...any) {
 	format = strings.TrimRight(format, "\r\n") + "\n"
