@@ -81,11 +81,11 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner g
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
+	c.CmdClause.Flag("show-metadata", "Use wasm-tools to inspect the Wasm binary metadata").BoolVar(&c.showMetadata)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
 	// Hidden
 	c.CmdClause.Flag("enable-metadata", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.enableMetadata)
-	c.CmdClause.Flag("show-metadata", "Use wasm-tools to inspect metadata (requires --enable-metadata)").Hidden().BoolVar(&c.showMetadata)
 
 	return &c
 }
