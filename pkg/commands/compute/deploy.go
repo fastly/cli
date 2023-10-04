@@ -344,7 +344,7 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, ver
 	}
 
 	if verbose {
-		text.Info(out, "Using fastly.toml within --package archive:\n\t%s", packageFlag)
+		text.Info(out, "Using fastly.toml within --package archive: %s", packageFlag)
 	}
 
 	return nil

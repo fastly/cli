@@ -201,6 +201,5 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		action = "Recreated"
 	}
 	text.Success(out, "%s secret '%s' in Secret Store '%s' (digest: %s)", action, o.Name, c.Input.ID, hex.EncodeToString(o.Digest))
-
 	return nil
 }

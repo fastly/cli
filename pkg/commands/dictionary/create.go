@@ -90,7 +90,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
 	}
-
 	if c.name.WasSet {
 		input.Name = &c.name.Value
 	}

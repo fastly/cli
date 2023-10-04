@@ -69,6 +69,5 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Deleted secret '%s' from Secret Store '%s'", c.Input.Name, c.Input.ID)
-
 	return nil
 }

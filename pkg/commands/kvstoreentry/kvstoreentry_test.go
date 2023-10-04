@@ -82,7 +82,7 @@ func TestCreateCommand(t *testing.T) {
 						return nil
 					},
 				},
-				WantOutput: "\nSUCCESS: Inserted keys into KV Store\n\n",
+				WantOutput: "SUCCESS: Inserted keys into KV Store\n",
 			},
 		},
 		{
@@ -93,7 +93,7 @@ func TestCreateCommand(t *testing.T) {
 						return nil
 					},
 				},
-				WantOutput: "\nSUCCESS: Inserted keys into KV Store\n\n",
+				WantOutput: "SUCCESS: Inserted keys into KV Store\n",
 			},
 		},
 		{

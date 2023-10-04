@@ -8,10 +8,11 @@ import (
 	"strings"
 	"testing"
 
+	toml "github.com/pelletier/go-toml"
+
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/testutil"
-	toml "github.com/pelletier/go-toml"
 )
 
 //go:embed testdata/static/config.toml

@@ -73,13 +73,14 @@ func Indent(w io.Writer, indent uint, format string, args ...any) {
 }
 
 // Output writes the help text to the writer using Wrap with DefaultTextWidth,
-// suffixed by a newlines. It's intended to be used to provide detailed
+// suffixed by a newline. It's intended to be used to provide detailed
 // information, context, or help to the user.
-// Any line breaks within the `format` are removed.
-// A single line break is inserted at the end.
 func Output(w io.Writer, format string, args ...any) {
-	text := fmt.Sprintf(format, args...)
-	fmt.Fprintf(w, "%s\n", Wrap(text, DefaultTextWidth))
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, strings.Repeat("\n", prefix)+Wrap(txt, DefaultTextWidth)+strings.Repeat("\n", suffix), args...)
 }
 
 // Input prints the prefix to the writer, and then reads a single line from the
@@ -204,53 +205,54 @@ func BreakN(w io.Writer, n int) {
 }
 
 // Deprecated is a wrapper for fmt.Fprintf with a bold red "DEPRECATED: " prefix.
-//
-// Any line breaks within the `format` are removed.
-// One line break is inserted at the start of the output.
-// Two line breaks are inserted at the end to provide visual spacing.
 func Deprecated(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldRed("DEPRECATED: ")+format, DefaultTextWidth)+"\n\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldRed, "DEPRECATED", txt, prefix, suffix), args...)
 }
 
 // Error is a wrapper for fmt.Fprintf with a bold red "ERROR: " prefix.
-//
-// Any line breaks within the `format` are removed.
-// One line break is inserted at the start of the output.
-// Two line breaks are inserted at the end to provide visual spacing.
 func Error(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldRed("ERROR: ")+format, DefaultTextWidth)+"\n\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldRed, "ERROR", txt, prefix, suffix), args...)
 }
 
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
-//
-// Any line breaks within the `format` are removed.
-// One line break is inserted at the start of the output.
-// Two line breaks are inserted at the end to provide visual spacing.
 func Info(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(Bold("INFO: ")+format, DefaultTextWidth)+"\n\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(Bold, "INFO", txt, prefix, suffix), args...)
 }
 
 // Success is a wrapper for fmt.Fprintf with a bold green "SUCCESS: " prefix.
-//
-// Any line breaks within the `format` are removed.
-// One line break is inserted at the start of the output.
-// Two line breaks are inserted at the end to provide visual spacing.
 func Success(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldGreen("SUCCESS: ")+format, DefaultTextWidth)+"\n\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldGreen, "SUCCESS", txt, prefix, suffix), args...)
 }
 
 // Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
-//
-// Any line breaks within the `format` are removed.
-// One line break is inserted at the start of the output.
-// Two line breaks are inserted at the end to provide visual spacing.
 func Warning(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldYellow("WARNING: ")+format, DefaultTextWidth)+"\n\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldYellow, "WARNING", txt, prefix, suffix), args...)
+}
+
+// WrapString produces string with correct wrapping and prefix/suffix linebreaks.
+func WrapString(fn ColorFn, msg, txt string, prefix, suffix int) string {
+	msg = fmt.Sprintf("%s: ", msg)
+	return strings.Repeat("\n", prefix) + Wrap(fn(msg)+txt, DefaultTextWidth) + strings.Repeat("\n", suffix)
 }
 
 // Description formats the output of a description item. A description item

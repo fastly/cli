@@ -41,7 +41,7 @@ func (re RemediationError) Print(w io.Writer) {
 		fmt.Fprintf(w, "%s\n\n", strings.TrimRight(re.Prefix, "\r\n"))
 	}
 	if re.Inner != nil {
-		text.Error(w, "%s.", re.Inner.Error()) // single "\n" ensured by text.Error
+		text.Error(w, "%s.\n\n", re.Inner.Error()) // single "\n" ensured by text.Error
 	}
 	if re.Remediation != "" {
 		fmt.Fprintf(w, "%s\n", strings.TrimRight(re.Remediation, "\r\n"))

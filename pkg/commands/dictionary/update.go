@@ -94,7 +94,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if !c.newname.WasSet && !c.writeOnly.WasSet {
 		return fsterr.RemediationError{Inner: fmt.Errorf("error parsing arguments: required flag --new-name or --write-only not provided"), Remediation: "To fix this error, provide at least one of the aforementioned flags"}
 	}
-
 	if c.newname.WasSet {
 		c.input.NewName = &c.newname.Value
 	}
@@ -121,11 +120,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Updated dictionary %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
-
 	if c.Globals.Verbose() {
-		text.Output(out, "Version: %d", d.ServiceVersion)
+		text.Output(out, "\nVersion: %d\n", d.ServiceVersion)
 		text.PrintDictionary(out, "", d)
 	}
-
 	return nil
 }

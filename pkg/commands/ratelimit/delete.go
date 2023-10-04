@@ -51,7 +51,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted rate limter '%s'", c.id)
+	text.Success(out, "Deleted rate limiter '%s'", c.id)
 	return nil
 }
 

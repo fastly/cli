@@ -326,10 +326,7 @@ func (f *File) NeedsUpdating(data []byte, out io.Writer, errLog fsterr.LogInterf
 		// If the ConfigVersion doesn't match, then this suggests a breaking change
 		// divergence in either the user's config or the CLI's config.
 		if verbose {
-			text.Output(out, `
-				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
-				Your configuration will be migrated to a compatible configuration format.
-			`)
+			text.Output(out, "Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version. Your configuration will be migrated to a compatible configuration format.")
 			text.Break(out)
 		}
 		return true

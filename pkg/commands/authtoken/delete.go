@@ -80,6 +80,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 		text.Success(out, "Deleted tokens")
 		if c.Globals.Verbose() {
+			text.Break(out)
 			c.printTokens(out, input.Tokens)
 		}
 		return nil

@@ -61,11 +61,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if err = c.customerID.Parse(); err == nil {
 		if !c.customerID.WasSet && !c.Globals.Flags.Quiet {
-			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable")
+			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n")
 		}
-
 		input := c.constructInput()
-
 		o, err = c.Globals.APIClient.ListCustomerTokens(input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)

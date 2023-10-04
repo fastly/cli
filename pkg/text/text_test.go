@@ -135,35 +135,42 @@ func TestPrefixes(t *testing.T) {
 			f:      text.Deprecated,
 			format: "Test string %d.",
 			args:   []any{123},
-			want:   "\nDEPRECATED: Test string 123.\n\n",
+			want:   "DEPRECATED: Test string 123.\n",
 		},
 		{
 			name:   "Error",
 			f:      text.Error,
 			format: "Test string %d.",
 			args:   []any{123},
-			want:   "\nERROR: Test string 123.\n\n",
+			want:   "ERROR: Test string 123.\n",
 		},
 		{
 			name:   "Info",
 			f:      text.Info,
 			format: "Test string %d.",
 			args:   []any{123},
-			want:   "\nINFO: Test string 123.\n\n",
+			want:   "INFO: Test string 123.\n",
 		},
 		{
 			name:   "Success",
 			f:      text.Success,
 			format: "%s %q %d.",
 			args:   []any{"Good", "job", 99},
-			want:   "\nSUCCESS: Good \"job\" 99.\n\n",
+			want:   "SUCCESS: Good \"job\" 99.\n",
 		},
 		{
 			name:   "Warning",
 			f:      text.Warning,
-			format: "\nTest string %d.", // notice leading linebreaks are stripped (this is a side-effect of internally using `Wrap()`)
+			format: "\nTest string %d.\n\n", // notice inline line breaks override the default single suffix line break
 			args:   []any{123},
 			want:   "\nWARNING: Test string 123.\n\n",
+		},
+		{
+			name:   "Info with irregular line breaks and tabs placement",
+			f:      text.Info,
+			format: "\n\nTest string\n\t%s", // notice the irregular placement of a linebreak causes unexpected behaviour
+			args:   []any{"anything"},
+			want:   "\n\nINFO: \tanything\n",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {

@@ -61,7 +61,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-
 	_, err = c.Globals.APIClient.CreateDictionaryItem(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -71,6 +70,5 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Created dictionary item %s (service %s, dictionary %s)", c.Input.ItemKey, c.Input.ServiceID, c.Input.DictionaryID)
-
 	return nil
 }
