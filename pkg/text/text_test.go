@@ -135,35 +135,35 @@ func TestPrefixes(t *testing.T) {
 			f:      text.Deprecated,
 			format: "Test string %d.",
 			args:   []any{123},
-			want:   "DEPRECATED: Test string 123.\n\n",
+			want:   "\nDEPRECATED: Test string 123.\n\n",
 		},
 		{
 			name:   "Error",
 			f:      text.Error,
 			format: "Test string %d.",
 			args:   []any{123},
-			want:   "ERROR: Test string 123.\n\n",
+			want:   "\nERROR: Test string 123.\n\n",
 		},
 		{
 			name:   "Info",
 			f:      text.Info,
 			format: "Test string %d.",
 			args:   []any{123},
-			want:   "INFO: Test string 123.\n\n",
+			want:   "\nINFO: Test string 123.\n\n",
 		},
 		{
 			name:   "Success",
 			f:      text.Success,
 			format: "%s %q %d.",
 			args:   []any{"Good", "job", 99},
-			want:   "SUCCESS: Good \"job\" 99.\n\n",
+			want:   "\nSUCCESS: Good \"job\" 99.\n\n",
 		},
 		{
 			name:   "Warning",
 			f:      text.Warning,
 			format: "\nTest string %d.", // notice leading linebreaks are stripped (this is a side-effect of internally using `Wrap()`)
 			args:   []any{123},
-			want:   "WARNING: Test string 123.\n\n",
+			want:   "\nWARNING: Test string 123.\n\n",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {

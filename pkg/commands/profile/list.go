@@ -61,6 +61,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	for k, v := range c.Globals.Config.Profiles {
 		if !v.Default {
+			text.Break(out)
 			display(k, v, out, text.Bold)
 		}
 	}
@@ -68,7 +69,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 func display(k string, v *config.Profile, out io.Writer, style func(a ...any) string) {
-	text.Break(out)
 	text.Output(out, style(k))
 	text.Break(out)
 	text.Output(out, "%s: %t", style("Default"), v.Default)

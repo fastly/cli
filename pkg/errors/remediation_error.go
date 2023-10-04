@@ -43,9 +43,6 @@ func (re RemediationError) Print(w io.Writer) {
 	if re.Inner != nil {
 		text.Error(w, "%s.", re.Inner.Error()) // single "\n" ensured by text.Error
 	}
-	if re.Inner != nil && re.Remediation != "" {
-		fmt.Fprintln(w) // additional "\n" to allow breathing room
-	}
 	if re.Remediation != "" {
 		fmt.Fprintf(w, "%s\n", strings.TrimRight(re.Remediation, "\r\n"))
 	}

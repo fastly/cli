@@ -141,8 +141,23 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	var restart bool
 	for {
-		err = local(bin, c.file, c.addr, c.env.Value, c.debug, c.profileGuest, c.profileGuestDir, c.watch, c.watchDir, c.Globals.Verbose(), out, c.Globals.ErrLog)
+		err = local(localOpts{
+			addr:            c.addr,
+			bin:             bin,
+			debug:           c.debug,
+			env:             c.env.Value,
+			errLog:          c.Globals.ErrLog,
+			file:            c.file,
+			out:             out,
+			profileGuest:    c.profileGuest,
+			profileGuestDir: c.profileGuestDir,
+			restarted:       restart,
+			verbose:         c.Globals.Verbose(),
+			watch:           c.watch,
+			watchDir:        c.watchDir,
+		})
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
@@ -153,7 +168,6 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 
 			// Before restarting Viceroy we should rebuild.
-			text.Break(out)
 			err = c.Build(in, out)
 			if err != nil {
 				// NOTE: build errors at this point are going to be user related, so we
@@ -161,6 +175,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				// rebuild successfully once the user has fixed the issues.
 				fsterr.Deduce(err).Print(color.Error)
 			}
+			restart = true
 		}
 	}
 }
@@ -186,8 +201,6 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Break(out)
-
 	return nil
 }
 
@@ -196,8 +209,6 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 // set if the URL defined uses a hostname (e.g. http://127.0.0.1/ won't) so we
 // can set the override_host to match the hostname.
 func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer) {
-	var missingOverrideHost bool
-
 	for k, backend := range c.Globals.Manifest.File.LocalServer.Backends {
 		if backend.OverrideHost == "" {
 			if u, err := url.Parse(backend.URL); err == nil {
@@ -208,14 +219,9 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 					}
 					backend.OverrideHost = u.Host
 					c.Globals.Manifest.File.LocalServer.Backends[k] = backend
-					missingOverrideHost = true
 				}
 			}
 		}
-	}
-
-	if missingOverrideHost && c.Globals.Verbose() {
-		text.Break(out)
 	}
 }
 
@@ -238,7 +244,6 @@ func GetViceroy(
 	if viceroyBinPath != "" {
 		if g.Verbose() {
 			text.Info(out, "Using user provided install of Viceroy via --viceroy-path flag: %s", viceroyBinPath)
-			text.Break(out)
 		}
 		return filepath.Abs(viceroyBinPath)
 	}
@@ -251,7 +256,6 @@ func GetViceroy(
 		}
 		if g.Verbose() {
 			text.Info(out, "Using user provided install of Viceroy via $PATH lookup: %s", path)
-			text.Break(out)
 		}
 		return filepath.Abs(path)
 	}
@@ -365,7 +369,6 @@ func installViceroy(
 	case installedVersion == "": // Viceroy not installed
 		if g.Verbose() {
 			text.Info(g.Output, "Viceroy is not already installed, so we will install the %s version.", versionToInstall)
-			text.Break(g.Output)
 		}
 		err = spinner.Start()
 		if err != nil {
@@ -383,13 +386,11 @@ func installViceroy(
 		if installedVersion == versionToInstall {
 			if g.Verbose() {
 				text.Info(g.Output, "Viceroy is already installed, and the installed version matches the required version (%s) in the fastly.toml file.", versionToInstall)
-				text.Break(g.Output)
 			}
 			return nil
 		}
 		if g.Verbose() {
 			text.Info(g.Output, "Viceroy is already installed, but the installed version (%s) doesn't match the required version (%s) specified in the fastly.toml file.", installedVersion, versionToInstall)
-			text.Break(g.Output)
 		}
 
 		err = spinner.Start()
@@ -408,7 +409,6 @@ func installViceroy(
 		if !stale && !forceCheckViceroyLatest {
 			if g.Verbose() {
 				text.Info(g.Output, "Viceroy is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired. To force a refresh, re-run the command with the `--viceroy-check` flag.")
-				text.Break(g.Output)
 			}
 			return nil
 		}
@@ -458,7 +458,6 @@ func installViceroy(
 
 		if g.Verbose() {
 			text.Info(g.Output, "The CLI config (`fastly config`) has been updated with the latest Viceroy version: %s", latestVersion)
-			text.Break(g.Output)
 		}
 
 		if installedVersion != "" && installedVersion == latestVersion {
@@ -514,84 +513,102 @@ func setBinPerms(bin string) error {
 	return nil
 }
 
+// localOpts represents the inputs for `local()`.
+type localOpts struct {
+	addr            string
+	bin             string
+	debug           bool
+	env             string
+	errLog          fsterr.LogInterface
+	file            string
+	out             io.Writer
+	profileGuest    bool
+	profileGuestDir cmd.OptionalString
+	restarted       bool
+	verbose         bool
+	watch           bool
+	watchDir        cmd.OptionalString
+}
+
 // local spawns a subprocess that runs the compiled binary.
-func local(bin, file, addr, env string, debug, profileGuest bool, profileGuestDir cmd.OptionalString, watch bool, watchDir cmd.OptionalString, verbose bool, out io.Writer, errLog fsterr.LogInterface) error {
-	if env != "" {
-		env = "." + env
+func local(opts localOpts) error {
+	if opts.env != "" {
+		opts.env = "." + opts.env
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		errLog.Add(err)
+		opts.errLog.Add(err)
 		return err
 	}
 
-	manifestPath := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", env))
+	manifestPath := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", opts.env))
 
 	// NOTE: Viceroy no longer displays errors unless in verbose mode.
 	// This can cause confusion for customers: https://github.com/fastly/cli/issues/913
 	// So regardless of CLI --verbose flag we'll always set verbose for Viceroy.
-	args := []string{"-v", "-C", manifestPath, "--addr", addr, file}
+	args := []string{"-v", "-C", manifestPath, "--addr", opts.addr, opts.file}
 
-	if debug {
+	if opts.debug {
 		args = append(args, "--debug")
 	}
 
-	if profileGuest {
+	if opts.profileGuest {
 		directory := "guest-profiles"
-		if profileGuestDir.WasSet {
-			directory = profileGuestDir.Value
+		if opts.profileGuestDir.WasSet {
+			directory = opts.profileGuestDir.Value
 		}
 		args = append(args, "--profile-guest="+directory)
-		if verbose {
-			text.Info(out, "Saving per-request profiles to %s.", directory)
+		if opts.verbose {
+			text.Info(opts.out, "Saving per-request profiles to %s.", directory)
 		}
+	} else if opts.verbose && !opts.restarted {
+		text.Break(opts.out)
 	}
 
-	if verbose {
-		text.Break(out)
-		text.Output(out, "%s: %s", text.BoldYellow("Manifest"), manifestPath)
-		text.Output(out, "%s: %s", text.BoldYellow("Wasm binary"), file)
-		text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy binary"), bin)
+	if opts.verbose {
+		text.Output(opts.out, "%s: %s", text.BoldYellow("Manifest"), manifestPath)
+		text.Output(opts.out, "%s: %s", text.BoldYellow("Wasm binary"), opts.file)
+		text.Output(opts.out, "%s:\n%s", text.BoldYellow("Viceroy binary"), opts.bin)
 
 		// gosec flagged this:
 		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
 		// Disabling as we trust the source of the variable.
 		// #nosec
 		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
-		c := exec.Command(bin, "--version")
+		c := exec.Command(opts.bin, "--version")
 		if output, err := c.Output(); err == nil {
-			text.Output(out, "%s:\n%s", text.BoldYellow("Viceroy version"), string(output))
+			text.Output(opts.out, "%s:\n%s", text.BoldYellow("Viceroy version"), string(output))
 		}
 	} else {
 		// IMPORTANT: Viceroy 0.4.0 changed its INFO log output behind a -v flag.
 		// We display the address unless in verbose mode to avoid duplicate output.
-		text.Info(out, "Listening on http://%s", addr)
+		text.Info(opts.out, "Listening on http://%s", opts.addr)
 	}
 
 	s := &fstexec.Streaming{
 		Args:        args,
-		Command:     bin,
+		Command:     opts.bin,
 		Env:         os.Environ(),
 		ForceOutput: true,
-		Output:      out,
+		Output:      opts.out,
 		SignalCh:    make(chan os.Signal, 1),
 	}
 	s.MonitorSignals()
 
 	restart := make(chan bool)
-	if watch {
+	if opts.watch {
 		root := "."
-		if watchDir.WasSet {
-			root = watchDir.Value
+		if opts.watchDir.WasSet {
+			root = opts.watchDir.Value
 		}
 
-		if verbose {
-			text.Info(out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
+		if opts.verbose {
+			text.Info(opts.out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
 		}
 
-		gi := ignoreFiles(watchDir)
-		go watchFiles(root, gi, verbose, s, out, restart)
+		gi := ignoreFiles(opts.watchDir)
+		go watchFiles(root, gi, opts.verbose, s, opts.out, restart)
 	}
 
 	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
@@ -616,7 +633,7 @@ func local(bin, file, addr, env string, debug, profileGuest bool, profileGuestDi
 	// makes, because having lots of signal listeners could exhaust resources.
 	if err := s.Exec(); err != nil {
 		if !strings.Contains(err.Error(), "signal: ") {
-			errLog.Add(err)
+			opts.errLog.Add(err)
 		}
 		e := strings.TrimSpace(err.Error())
 		if strings.Contains(e, "interrupt") {

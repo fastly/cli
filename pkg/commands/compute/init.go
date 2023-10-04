@@ -73,16 +73,15 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		introContext = " (using --from to locate package template)"
 	}
 
-	text.Break(out)
 	text.Output(out, "Creating a new Compute@Edge project%s.", introContext)
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
 
 	if c.cloneFrom != "" && c.language == "" {
 		text.Warning(out, "When using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
+	} else {
+		text.Break(out)
 	}
-
-	text.Break(out)
 
 	cont, err := verifyDirectory(c.Globals.Flags, c.dir, out, in)
 	if err != nil {
@@ -114,7 +113,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.dir == "" && !mf.Exists() && c.Globals.Verbose() {
 		text.Info(out, "--directory not specified, using current directory")
-		text.Break(out)
 		c.dir = wd
 	}
 
@@ -123,7 +121,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	dst, err := verifyDestination(c.dir, spinner, out)
+	dst, err := verifyDestination(c.dir, spinner)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory": c.dir,
@@ -341,12 +339,12 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 
 	if strings.Contains(dir, " ") && !flags.AutoYes && !flags.NonInteractive {
 		text.Warning(out, "Your project path contains spaces. In some cases this can result in issues with your installed language toolchain, e.g. `npm`. Consider removing any spaces.")
-		text.Break(out)
 	}
 
 	if len(files) > 0 && !flags.AutoYes && !flags.NonInteractive {
 		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
 		result, err := text.AskYesNo(out, label, in)
+		text.Break(out)
 		if err != nil {
 			return false, err
 		}
@@ -361,7 +359,7 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, spinner text.Spinner, out io.Writer) (dst string, err error) {
+func verifyDestination(path string, spinner text.Spinner) (dst string, err error) {
 	dst, err = filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -375,7 +373,6 @@ func verifyDestination(path string, spinner text.Spinner, out io.Writer) (dst st
 		return dst, fmt.Errorf("package destination is not a directory") // specific problem
 	}
 	if err != nil && errors.Is(err, fs.ErrNotExist) { // normal-ish case
-		text.Break(out)
 		err := spinner.Process(fmt.Sprintf("Creating %s", dst), func(_ *text.SpinnerWrapper) error {
 			if err := os.MkdirAll(dst, 0o700); err != nil {
 				return fmt.Errorf("error creating package destination: %w", err)
@@ -386,8 +383,6 @@ func verifyDestination(path string, spinner text.Spinner, out io.Writer) (dst st
 			return "", err
 		}
 	}
-
-	text.Break(out)
 
 	err = spinner.Process("Validating directory permissions", func(_ *text.SpinnerWrapper) error {
 		tmpname := make([]byte, 16)
@@ -612,14 +607,13 @@ func promptForStarterKit(flags global.Flags, kits []config.StarterKit, in io.Rea
 			fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
 			text.Indent(out, 4, "%s\n%s", kit.Description, kit.Path)
 		}
-
 		text.Info(out, "For a complete list of Starter Kits:\n\thttps://developer.fastly.com/solutions/starters/")
-		text.Break(out)
 
 		option, err = text.Input(out, "Choose option or paste git URL: [1] ", in, validateTemplateOptionOrURL(kits))
 		if err != nil {
 			return "", "", "", fmt.Errorf("error reading input: %w", err)
 		}
+		text.Break(out)
 	}
 
 	if option == "" {
@@ -664,8 +658,6 @@ func fetchPackageTemplate(
 	spinner text.Spinner,
 	out io.Writer,
 ) error {
-	text.Break(out)
-
 	err := spinner.Start()
 	if err != nil {
 		return err
@@ -778,7 +770,6 @@ func fetchPackageTemplate(
 		err := os.Remove(filename)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
-			text.Break(out)
 			text.Info(out, "We were unable to clean-up the local %s file (it can be safely removed)", filename)
 		}
 	}()
@@ -1127,7 +1118,6 @@ func initializeLanguage(spinner text.Spinner, language *Language, languages []*L
 // the define post_init script in the fastly.toml manifest file.
 func promptForPostInitContinue(msg, script string, out io.Writer, in io.Reader) error {
 	text.Info(out, "%s:\n", msg)
-	text.Break(out)
 	text.Indent(out, 4, "%s", script)
 
 	label := "\nDo you want to run this now? [y/N] "

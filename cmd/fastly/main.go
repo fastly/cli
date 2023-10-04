@@ -126,14 +126,12 @@ func main() {
 
 	if err != nil {
 		fsterr.Deduce(err).Print(color.Error)
-
 		exitError := fsterr.SkipExitError{}
 		if errors.As(err, &exitError) {
 			if exitError.Skip {
 				return // skip returning an error for 'help' output
 			}
 		}
-
 		os.Exit(1)
 	}
 }

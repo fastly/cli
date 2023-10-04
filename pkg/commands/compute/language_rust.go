@@ -179,7 +179,6 @@ func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 	}
 
 	if r.verbose {
-		text.Break(r.output)
 		text.Output(r.output, "Command output for '%s': %s", s, stdout.String())
 	}
 
@@ -291,7 +290,6 @@ func (r *Rust) toolchainConstraint() {
 
 	if !c.Check(v) {
 		text.Warning(r.output, "The Rust version '%s' didn't meet the constraint '%s'", version, r.config.ToolchainConstraint)
-		text.Break(r.output)
 	}
 }
 

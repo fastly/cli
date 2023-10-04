@@ -40,7 +40,6 @@ func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if !c.Globals.Flags.Quiet {
 		text.Warning(out, "This command is deprecated. Use `fastly compute hash-files` instead.")
-		text.Break(out)
 	}
 
 	if !c.SkipBuild {

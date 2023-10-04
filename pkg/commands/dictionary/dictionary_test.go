@@ -456,11 +456,11 @@ var (
 )
 
 var (
-	createDictionaryOutput          = "\nSUCCESS: Created dictionary denylist (id 456, service 123, version 4)\n"
-	createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (id 456, service 123, version 4)\n"
-	deleteDictionaryOutput          = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 4)\n"
-	updateDictionaryOutput          = "\nSUCCESS: Updated dictionary oldname (service 123 version 4)\n"
-	updateDictionaryNameOutput      = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 4)\n"
+	createDictionaryOutput          = "\nSUCCESS: Created dictionary denylist (id 456, service 123, version 4)\n\n"
+	createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (id 456, service 123, version 4)\n\n"
+	deleteDictionaryOutput          = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 4)\n\n"
+	updateDictionaryOutput          = "\nSUCCESS: Updated dictionary oldname (service 123 version 4)\n\n"
+	updateDictionaryNameOutput      = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 4)\n\n"
 )
 
 var updateDictionaryOutputVerbose = strings.Join(
@@ -474,6 +474,7 @@ var updateDictionaryOutputVerbose = strings.Join(
 		"version 4.",
 		"",
 		strings.TrimSpace(updateDictionaryNameOutput),
+		"",
 		updateDictionaryOutputVersionCloned,
 	},
 	"\n")

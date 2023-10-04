@@ -178,20 +178,21 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// Because the service availability can return an error (which we ignore),
 		// then we need to check for the 'no error' scenarios.
 		if err == nil {
-			if validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode {
+			switch {
+			case validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode:
 				// If the user set a specific status code expectation...
 				text.Warning(out, "The service path `%s` responded with a status code (%d) that didn't match what was expected (%d).", c.StatusCheckPath, status, c.StatusCheckCode)
-			} else if !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest {
+			case !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest:
 				// If no status code was specified, and the actual status response was an error...
 				text.Info(out, "The service path `%s` responded with a non-successful status code (%d). Please check your application code if this is an unexpected response.", c.StatusCheckPath, status)
+			default:
+				text.Break(out)
 			}
 		}
 	}
 
-	text.Break(out)
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 	text.Description(out, "View this service at", serviceURL)
-
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
 }
@@ -505,9 +506,9 @@ func manageNoServiceIDFlow(
 
 		if manifestFile.Setup.Defined() {
 			text.Info(out, "Processing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
+		} else {
+			text.Break(out)
 		}
-
-		text.Break(out)
 
 		answer, err := text.AskYesNo(out, text.BoldYellow("Create new service: [y/N] "), in)
 		if err != nil {
@@ -516,7 +517,6 @@ func manageNoServiceIDFlow(
 		if !answer {
 			return serviceID, serviceVersion, nil
 		}
-
 		text.Break(out)
 	}
 

@@ -80,7 +80,6 @@ func (bt BuildToolchain) Build() error {
 	cmd, args := bt.buildFn(bt.buildScript)
 
 	if bt.verbose {
-		text.Break(bt.out)
 		text.Description(bt.out, "Build script to execute", fmt.Sprintf("%s %s", cmd, strings.Join(args, " ")))
 		if len(bt.env) > 0 {
 			text.Description(bt.out, "Build environment variables set", strings.Join(bt.env, " "))
@@ -302,7 +301,6 @@ func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage stri
 // when there is a post_build in the fastly.toml manifest file.
 func (bt BuildToolchain) promptForPostBuildContinue(msg, script string, out io.Writer, in io.Reader) error {
 	text.Info(out, "%s:\n", msg)
-	text.Break(out)
 	text.Indent(out, 4, "%s", script)
 
 	label := "\nDo you want to run this now? [y/N] "

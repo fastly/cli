@@ -6,11 +6,12 @@ import (
 	"io"
 	"os"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a dictionary item.
@@ -90,7 +91,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Updated dictionary item (service %s)", d.ServiceID)
-	text.Break(out)
 	text.PrintDictionaryItem(out, "", d)
 	return nil
 }

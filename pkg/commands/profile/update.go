@@ -70,8 +70,6 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	opts := []profile.EditOption{}
 
-	text.Break(out)
-
 	token, err := text.InputSecure(out, text.BoldYellow("Profile token: (leave blank to skip): "), in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
