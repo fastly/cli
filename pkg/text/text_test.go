@@ -238,3 +238,55 @@ func TestWrapIndent(t *testing.T) {
 		})
 	}
 }
+
+func TestParseBreaks(t *testing.T) {
+	for _, testcase := range []struct {
+		name   string
+		in     string
+		prefix int
+		suffix int
+		txt    string
+	}{
+		{
+			name:   "no linebreaks",
+			in:     "example",
+			prefix: 0,
+			suffix: 0,
+			txt:    "example",
+		},
+		{
+			name:   "starting linebreaks",
+			in:     "\n\n\nexample",
+			prefix: 3,
+			suffix: 0,
+			txt:    "example",
+		},
+		{
+			name:   "ending linebreaks",
+			in:     "example\n\n\n",
+			prefix: 0,
+			suffix: 3,
+			txt:    "example",
+		},
+		{
+			name:   "both ends linebreaks",
+			in:     "\n\nexample\n\n\n",
+			prefix: 2,
+			suffix: 3,
+			txt:    "example",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			prefix, suffix, txt := text.ParseBreaks(testcase.in)
+			if prefix != testcase.prefix {
+				t.Errorf("want: %d, have: %d", testcase.prefix, prefix)
+			}
+			if suffix != testcase.suffix {
+				t.Errorf("want: %d, have: %d", testcase.suffix, suffix)
+			}
+			if txt != testcase.txt {
+				t.Errorf("want: %s, have: %s", testcase.txt, txt)
+			}
+		})
+	}
+}

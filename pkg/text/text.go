@@ -262,3 +262,23 @@ func Warning(w io.Writer, format string, args ...any) {
 func Description(w io.Writer, intro, description string) {
 	fmt.Fprintf(w, "%s:\n\t%s\n\n", intro, Bold(description))
 }
+
+// ParseBreaks returns the linebreak count at the start/end of the input.
+func ParseBreaks(input string) (prefix, suffix int, txt string) {
+	var incrementSuffix bool
+	parts := strings.Split(input, "\n")
+	for _, p := range parts {
+		if p == "" && !incrementSuffix {
+			prefix++
+			continue
+		} else {
+			incrementSuffix = true
+		}
+		if p == "" {
+			suffix++
+		} else {
+			txt = p
+		}
+	}
+	return prefix, suffix, txt
+}
