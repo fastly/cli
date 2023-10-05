@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreate(t *testing.T) {
@@ -74,7 +75,7 @@ func TestDelete(t *testing.T) {
 				},
 			},
 			Args:       args("rate-limit delete --id 123 --token abc"),
-			WantOutput: "\nSUCCESS: Deleted rate limter '123'\n",
+			WantOutput: "SUCCESS: Deleted rate limiter '123'\n",
 		},
 	}
 

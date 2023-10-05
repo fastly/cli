@@ -133,6 +133,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	text.Success(out, "Updated package (service %s, version %v)", serviceID, serviceVersion.Number)
+	text.Success(out, "\nUpdated package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
 }

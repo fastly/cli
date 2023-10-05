@@ -106,8 +106,10 @@ func (g *Go) Build() error {
 		g.build = TinyGoDefaultBuildCommand
 		tinygoToolchain = true
 		toolchainConstraint = g.config.ToolchainConstraintTinyGo
-		text.Info(g.output, "No [scripts.build] found in fastly.toml. Visit https://developer.fastly.com/learning/compute/go/ to learn how to target standard Go vs TinyGo.")
-		text.Break(g.output)
+		if !g.verbose {
+			text.Break(g.output)
+		}
+		text.Info(g.output, "No [scripts.build] found in fastly.toml. Visit https://developer.fastly.com/learning/compute/go/ to learn how to target standard Go vs TinyGo.\n\n")
 		text.Description(g.output, "The following default build command for TinyGo will be used", g.build)
 	}
 
@@ -244,7 +246,7 @@ func identifyTinyGoConstraint(configConstraint, fallback string) string {
 // the opportunity to do something about it if they choose.
 func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
 	if g.verbose {
-		text.Info(g.output, "The Fastly CLI build step requires a %s version '%s'. ", toolchain, constraint)
+		text.Info(g.output, "The Fastly CLI build step requires a %s version '%s'.\n\n", toolchain, constraint)
 	}
 
 	versionCommand := fmt.Sprintf("%s version", toolchain)
@@ -280,7 +282,6 @@ func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
 	}
 
 	if !c.Check(v) {
-		text.Warning(g.output, "The %s version '%s' didn't meet the constraint '%s'", toolchain, version, constraint)
-		text.Break(g.output)
+		text.Warning(g.output, "The %s version '%s' didn't meet the constraint '%s'\n\n", toolchain, version, constraint)
 	}
 }

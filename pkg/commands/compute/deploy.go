@@ -178,20 +178,24 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		// Because the service availability can return an error (which we ignore),
 		// then we need to check for the 'no error' scenarios.
 		if err == nil {
-			if validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode {
+			switch {
+			case validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode:
 				// If the user set a specific status code expectation...
 				text.Warning(out, "The service path `%s` responded with a status code (%d) that didn't match what was expected (%d).", c.StatusCheckPath, status, c.StatusCheckCode)
-			} else if !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest {
+			case !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest:
 				// If no status code was specified, and the actual status response was an error...
 				text.Info(out, "The service path `%s` responded with a non-successful status code (%d). Please check your application code if this is an unexpected response.", c.StatusCheckPath, status)
+			default:
+				text.Break(out)
 			}
 		}
 	}
 
-	text.Break(out)
+	if !newService {
+		text.Break(out)
+	}
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 	text.Description(out, "View this service at", serviceURL)
-
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
 	return nil
 }
@@ -343,7 +347,7 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, ver
 	}
 
 	if verbose {
-		text.Info(out, "Using fastly.toml within --package archive:\n\t%s", packageFlag)
+		text.Info(out, "Using fastly.toml within --package archive: %s\n\n", packageFlag)
 	}
 
 	return nil
@@ -504,11 +508,10 @@ func manageNoServiceIDFlow(
 		text.Output(out, "Press ^C at any time to quit.")
 
 		if manifestFile.Setup.Defined() {
-			text.Info(out, "Processing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
+			text.Info(out, "\nProcessing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
 		}
 
 		text.Break(out)
-
 		answer, err := text.AskYesNo(out, text.BoldYellow("Create new service: [y/N] "), in)
 		if err != nil {
 			return serviceID, serviceVersion, err
@@ -516,7 +519,6 @@ func manageNoServiceIDFlow(
 		if !answer {
 			return serviceID, serviceVersion, nil
 		}
-
 		text.Break(out)
 	}
 
@@ -526,15 +528,16 @@ func manageNoServiceIDFlow(
 	// The service name will be whatever is set in the --service-name flag.
 	// If the flag isn't set, and we're able to prompt, we'll ask the user.
 	// If the flag isn't set, and we're non-interactive, we'll use the default.
-	if serviceNameFlag.WasSet {
+	switch {
+	case serviceNameFlag.WasSet:
 		serviceName = serviceNameFlag.Value
-	} else if !f.AcceptDefaults && !f.NonInteractive {
+	case f.AcceptDefaults || f.NonInteractive:
+		serviceName = defaultServiceName
+	default:
 		serviceName, err = text.Input(out, text.BoldYellow(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
 		if err != nil || serviceName == "" {
 			serviceName = defaultServiceName
 		}
-	} else {
-		serviceName = defaultServiceName
 	}
 
 	// There is no service and so we'll do a one time creation of the service
@@ -641,6 +644,12 @@ func createService(
 			return createService(f, serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
 		}
 
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return "", nil, spinErr
+		}
+
 		errLog.AddWithContext(err, map[string]any{
 			"Service Name": serviceName,
 		})
@@ -659,7 +668,7 @@ func createService(
 // It deletes the service, which will cause any contained resources to be deleted.
 // It will also strip the Service ID from the fastly.toml manifest file.
 func cleanupService(apiClient api.Interface, serviceID string, m manifest.Data, out io.Writer) error {
-	text.Info(out, "Cleaning up service")
+	text.Info(out, "\nCleaning up service\n\n")
 
 	err := apiClient.DeleteService(&fastly.DeleteServiceInput{
 		ID: serviceID,
@@ -668,7 +677,7 @@ func cleanupService(apiClient api.Interface, serviceID string, m manifest.Data, 
 		return err
 	}
 
-	text.Info(out, "Removing Service ID from fastly.toml")
+	text.Info(out, "Removing Service ID from fastly.toml\n\n")
 
 	err = updateManifestServiceID(&m.File, manifest.Filename, "")
 	if err != nil {
@@ -753,10 +762,9 @@ func manageExistingServiceFlow(
 			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
 		}
 		if verbose {
-			msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned. Now operating on version %d.", serviceVersion.Number, clonedVersion.Number)
-			text.Break(out)
-			text.Output(out, msg)
-			text.Break(out)
+			msg := "Service version %d is not editable, so it was automatically cloned. Now operating on version %d.\n\n"
+			format := fmt.Sprintf(msg, serviceVersion.Number, clonedVersion.Number)
+			text.Output(out, format)
 		}
 		serviceVersion = clonedVersion
 	}

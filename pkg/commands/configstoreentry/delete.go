@@ -82,8 +82,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 	if c.deleteAll {
 		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-			text.Warning(out, "This will delete ALL entries from your store!")
-			text.Break(out)
+			text.Warning(out, "This will delete ALL entries from your store!\n\n")
 			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [yes/no]: ", in)
 			if err != nil {
 				return err
@@ -117,7 +116,6 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Deleted key '%s' from Config Store '%s'", c.input.Key, c.input.StoreID)
-
 	return nil
 }
 
@@ -184,6 +182,6 @@ func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 		return fmt.Errorf("failed to delete keys: %s", strings.Join(failedKeys, ", "))
 	}
 
-	text.Success(out, "Deleted all keys from Config Store '%s'", c.input.StoreID)
+	text.Success(out, "\nDeleted all keys from Config Store '%s'", c.input.StoreID)
 	return nil
 }

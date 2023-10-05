@@ -184,7 +184,7 @@ func (b *Backends) checkPredefined() error {
 			}
 			if input != "" {
 				if i, err := strconv.Atoi(input); err != nil {
-					text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)", port))
+					text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)\n\n", port))
 				} else {
 					port = int(i)
 				}
@@ -240,7 +240,7 @@ func (b *Backends) promptForBackend() error {
 		}
 		if input != "" {
 			if portnumber, err := strconv.Atoi(input); err != nil {
-				text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)", port))
+				text.Warning(b.Stdout, fmt.Sprintf("error converting prompt input, using default port number (%d)\n\n", port))
 			} else {
 				port = int(portnumber)
 			}

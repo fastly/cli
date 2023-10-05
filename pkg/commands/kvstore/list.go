@@ -74,6 +74,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 						return err
 					}
 					if printNext {
+						text.Break(out)
 						cursor = cur
 						continue
 					}

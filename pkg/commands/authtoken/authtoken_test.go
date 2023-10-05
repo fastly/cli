@@ -423,7 +423,7 @@ Expires at: 2021-06-15 23:00:00 +0000 UTC
 func listTokenOutputSummary(env bool) string {
 	var msg string
 	if env {
-		msg = "\nINFO: Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n"
+		msg = "INFO: Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n"
 	}
 	return fmt.Sprintf(`%sNAME  TOKEN ID  USER ID  SCOPE                  SERVICES
 Foo   123       456      purge_all global:read  a, b

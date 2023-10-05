@@ -204,26 +204,6 @@ func TestInit(t *testing.T) {
 			authors = ["test@fastly.com"]`,
 			wantOutput: []string{
 				"Reading fastly.toml",
-				"Initializing package",
-			},
-		},
-		{
-			name: "with existing fastly.toml",
-			args: args("compute init --auto-yes"), // --force will ignore a directory that isn't empty
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
-			manifest: `
-			manifest_version = 2
-			service_id = 1234
-			name = "test"
-			language = "rust"
-			description = "test"
-			authors = ["test@fastly.com"]`,
-			wantOutput: []string{
-				"Reading fastly.toml",
 				"Saving manifest changes",
 				"Initializing package",
 			},
@@ -245,7 +225,8 @@ func TestInit(t *testing.T) {
 				"SECURITY.md",
 			},
 			wantOutput: []string{
-				"Author (email): Language:",
+				"Author (email):",
+				"Language:",
 				"Fetching package template",
 				"Reading fastly.toml",
 				"Saving manifest changes",

@@ -31,7 +31,9 @@ func NewSwitchCommand(parent cmd.Registerer, g *global.Data) *SwitchCommand {
 func (c *SwitchCommand) Exec(_ io.Reader, out io.Writer) error {
 	var ok bool
 
-	p, ok := profile.Set(c.profile, c.Globals.Config.Profiles)
+	// We call SetDefault for its side effect of resetting all other profiles to have
+	// their Default field set to false.
+	p, ok := profile.SetDefault(c.profile, c.Globals.Config.Profiles)
 	if !ok {
 		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 		err := errors.New(msg)

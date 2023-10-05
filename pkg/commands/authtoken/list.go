@@ -5,13 +5,14 @@ import (
 	"io"
 	"strings"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
@@ -60,12 +61,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if err = c.customerID.Parse(); err == nil {
 		if !c.customerID.WasSet && !c.Globals.Flags.Quiet {
-			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable")
-			text.Break(out)
+			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n")
 		}
-
 		input := c.constructInput()
-
 		o, err = c.Globals.APIClient.ListCustomerTokens(input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)

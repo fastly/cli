@@ -100,12 +100,8 @@ func (c *CreateCommand) tokenFlow(def bool, in io.Reader, out io.Writer) error {
 }
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
-	text.Break(out)
-	text.Output(out, `An API token is used to authenticate requests to the Fastly API.
-			To create a token, visit https://manage.fastly.com/account/personal/tokens
-		`)
-	text.Break(out)
-	token, err := text.InputSecure(out, "Fastly API token: ", in, validateTokenNotEmpty)
+	text.Output(out, "\nAn API token is used to authenticate requests to the Fastly API. To create a token, visit https://manage.fastly.com/account/personal/tokens\n\n")
+	token, err := text.InputSecure(out, text.BoldYellow("Fastly API token: "), in, validateTokenNotEmpty)
 	if err != nil {
 		errLog.Add(err)
 		return "", err
@@ -192,10 +188,10 @@ func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, def bool, 
 		}
 
 		// If the user wants the newly created profile to be their new default, then
-		// we'll call Set for its side effect of resetting all other profiles to have
-		// their Default field set to false.
+		// we'll call SetDefault for its side effect of resetting all other profiles
+		// to have their Default field set to false.
 		if def {
-			if p, ok := profile.Set(c.profile, c.Globals.Config.Profiles); ok {
+			if p, ok := profile.SetDefault(c.profile, c.Globals.Config.Profiles); ok {
 				c.Globals.Config.Profiles = p
 			}
 		}
@@ -238,8 +234,7 @@ func displayCfgPath(path string, out io.Writer) {
 }
 
 func (c *CreateCommand) promptForDefault(in io.Reader, out io.Writer) (bool, error) {
-	text.Break(out)
-	cont, err := text.AskYesNo(out, "Set this profile to be your default? [y/N] ", in)
+	cont, err := text.AskYesNo(out, text.BoldYellow("Set this profile to be your default? [y/N] "), in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return false, err

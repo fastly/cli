@@ -3,12 +3,13 @@ package dictionary
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a service.
@@ -89,7 +90,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion.Number,
 	}
-
 	if c.name.WasSet {
 		input.Name = &c.name.Value
 	}

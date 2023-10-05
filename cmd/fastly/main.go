@@ -17,6 +17,7 @@ import (
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/sync"
+	"github.com/fastly/cli/pkg/text"
 )
 
 func main() {
@@ -125,15 +126,14 @@ func main() {
 	}
 
 	if err != nil {
+		text.Break(out)
 		fsterr.Deduce(err).Print(color.Error)
-
 		exitError := fsterr.SkipExitError{}
 		if errors.As(err, &exitError) {
 			if exitError.Skip {
 				return // skip returning an error for 'help' output
 			}
 		}
-
 		os.Exit(1)
 	}
 }

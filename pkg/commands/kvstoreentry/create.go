@@ -108,7 +108,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Created key '%s' in KV Store '%s'", c.Input.Key, c.Input.ID)
-
 	return nil
 }
 
@@ -175,6 +174,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 		if !cont {
 			return nil
 		}
+		text.Break(out)
 	}
 
 	path, err := filepath.Abs(c.dirPath)
@@ -332,7 +332,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	}
 
 	if len(processingErrors) == 0 {
-		text.Success(out, "Inserted %d keys into KV Store", len(filteredFiles))
+		text.Success(out, "\nInserted %d keys into KV Store", len(filteredFiles))
 		return nil
 	}
 
@@ -405,6 +405,9 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 		return err
 	}
 
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
 	text.Success(out, "Inserted keys into KV Store")
 	return nil
 }

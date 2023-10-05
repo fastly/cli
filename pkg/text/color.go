@@ -16,3 +16,6 @@ var BoldGreen = color.New(color.Bold, color.FgGreen).SprintFunc()
 
 // Reset is a Sprint-class function that resets the color for the arguments.
 var Reset = color.New(color.Reset).SprintFunc()
+
+// ColorFn is a function returned from a color.SprintFunc() call.
+type ColorFn func(a ...any) string

@@ -66,6 +66,5 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Deleted Config Store '%s'", c.input.ID)
-
 	return nil
 }

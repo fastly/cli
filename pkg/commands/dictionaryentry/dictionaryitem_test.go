@@ -7,10 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestDictionaryItemDescribe(t *testing.T) {
@@ -201,7 +202,7 @@ func TestDictionaryItemCreate(t *testing.T) {
 		{
 			args:       args("dictionary-entry create --service-id 123 --dictionary-id 456 --key foo --value bar"),
 			api:        mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
-			wantOutput: "\nSUCCESS: Created dictionary item foo (service 123, dictionary 456)\n",
+			wantOutput: "SUCCESS: Created dictionary item foo (service 123, dictionary 456)\n",
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -264,7 +265,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 			args:       args("dictionary-entry update --service-id 123 --dictionary-id 456 --file filePath"),
 			fileData:   dictionaryItemBatchModifyInputOK,
 			api:        mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsOK},
-			wantOutput: "\nSUCCESS: Made 4 modifications of Dictionary 456 on service 123\n",
+			wantOutput: "SUCCESS: Made 4 modifications of Dictionary 456 on service 123\n",
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -314,7 +315,7 @@ func TestDictionaryItemDelete(t *testing.T) {
 		{
 			args:       args("dictionary-entry delete --service-id 123 --dictionary-id 456 --key foo"),
 			api:        mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
-			wantOutput: "\nSUCCESS: Deleted dictionary item foo (service 123, dictionary 456)\n",
+			wantOutput: "SUCCESS: Deleted dictionary item foo (service 123, dictionary 456)\n",
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -349,8 +350,7 @@ Created (UTC): 2001-02-03 04:05
 Last edited (UTC): 2001-02-03 04:05
 `
 
-var updateDictionaryItemOutput = `
-SUCCESS: Updated dictionary item (service 123)
+var updateDictionaryItemOutput = `SUCCESS: Updated dictionary item (service 123)
 
 Dictionary ID: 456
 Item Key: foo
