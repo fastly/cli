@@ -53,7 +53,7 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	pkgPath, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	pkgPath, err := validatePackage(c.Manifest, c.Package, c.Globals.ErrLog)
 	if err != nil {
 		var skipBuildMsg string
 		if c.SkipBuild {
