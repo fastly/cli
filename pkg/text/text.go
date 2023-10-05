@@ -266,6 +266,7 @@ func Description(w io.Writer, intro, description string) {
 }
 
 // ParseBreaks returns the linebreak count at the start/end of the input.
+// FIXME: Use of \n or \t within the string causes txt to be empty.
 func ParseBreaks(input string) (prefix, suffix int, txt string) {
 	var incrementSuffix bool
 	parts := strings.Split(input, "\n")

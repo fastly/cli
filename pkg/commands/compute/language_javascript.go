@@ -110,7 +110,7 @@ func (j *JavaScript) Build() error {
 	}
 
 	if noBuildScript && j.verbose {
-		text.Info(j.output, "No [scripts.build] found in fastly.toml. The following default build command for JavaScript will be used: `%s`\n", j.build)
+		text.Info(j.output, "No [scripts.build] found in fastly.toml. The following default build command for JavaScript will be used: `%s`\n\n", j.build)
 	}
 
 	bt := BuildToolchain{

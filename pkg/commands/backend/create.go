@@ -4,12 +4,13 @@ import (
 	"io"
 	"net"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // CreateCommand calls the Fastly API to create backends.
@@ -208,7 +209,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Port = &c.port.Value
 	case c.useSSL.WasSet && c.useSSL.Value:
 		if c.Globals.Flags.Verbose {
-			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443")
+			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443\n\n")
 		}
 		input.Port = fastly.Int(443)
 	}

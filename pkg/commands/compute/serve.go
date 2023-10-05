@@ -116,6 +116,8 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
+	text.Break(out)
+
 	c.setBackendsWithDefaultOverrideHostIfMissing(out)
 
 	spinner, err := text.NewSpinner(out)
@@ -141,6 +143,8 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	text.Break(out)
+
 	var restart bool
 	for {
 		err = local(localOpts{
@@ -161,13 +165,14 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
 				if err == fsterr.ErrSignalInterrupt || err == fsterr.ErrSignalKilled {
-					text.Info(out, "Local server stopped")
+					text.Info(out, "\nLocal server stopped")
 					return nil
 				}
 				return err
 			}
 
 			// Before restarting Viceroy we should rebuild.
+			text.Break(out)
 			err = c.Build(in, out)
 			if err != nil {
 				// NOTE: build errors at this point are going to be user related, so we
@@ -408,7 +413,7 @@ func installViceroy(
 		stale := g.Config.Viceroy.LastChecked != "" && g.Config.Viceroy.LatestVersion != "" && check.Stale(g.Config.Viceroy.LastChecked, g.Config.Viceroy.TTL)
 		if !stale && !forceCheckViceroyLatest {
 			if g.Verbose() {
-				text.Info(g.Output, "Viceroy is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired. To force a refresh, re-run the command with the `--viceroy-check` flag.")
+				text.Info(g.Output, "Viceroy is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired. To force a refresh, re-run the command with the `--viceroy-check` flag.\n\n")
 			}
 			return nil
 		}
@@ -562,14 +567,15 @@ func local(opts localOpts) error {
 		if opts.verbose {
 			text.Info(opts.out, "Saving per-request profiles to %s.", directory)
 		}
-	} else if opts.verbose && !opts.restarted {
-		text.Break(opts.out)
 	}
 
 	if opts.verbose {
+		if opts.restarted {
+			text.Break(opts.out)
+		}
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Manifest"), manifestPath)
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Wasm binary"), opts.file)
-		text.Output(opts.out, "%s:\n%s", text.BoldYellow("Viceroy binary"), opts.bin)
+		text.Output(opts.out, "%s: %s", text.BoldYellow("Viceroy binary"), opts.bin)
 
 		// gosec flagged this:
 		// G204 (CWE-78): Subprocess launched with function call as argument or cmd arguments
@@ -578,12 +584,15 @@ func local(opts localOpts) error {
 		// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
 		c := exec.Command(opts.bin, "--version")
 		if output, err := c.Output(); err == nil {
-			text.Output(opts.out, "%s:\n%s", text.BoldYellow("Viceroy version"), string(output))
+			text.Output(opts.out, "%s: %s", text.BoldYellow("Viceroy version"), string(output))
 		}
 	} else {
 		// IMPORTANT: Viceroy 0.4.0 changed its INFO log output behind a -v flag.
 		// We display the address unless in verbose mode to avoid duplicate output.
-		text.Info(opts.out, "Listening on http://%s", opts.addr)
+		if opts.restarted {
+			text.Break(opts.out)
+		}
+		text.Info(opts.out, "Listening on http://%s\n\n", opts.addr)
 	}
 
 	s := &fstexec.Streaming{
@@ -604,7 +613,7 @@ func local(opts localOpts) error {
 		}
 
 		if opts.verbose {
-			text.Info(opts.out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
+			text.Info(opts.out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).\n\n", root)
 		}
 
 		gi := ignoreFiles(opts.watchDir)
@@ -764,7 +773,7 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 	if verbose {
 		text.Output(out, "%s", text.BoldYellow("Watching..."))
 		text.Break(out)
-		text.Output(out, buf.String())
+		fmt.Fprint(out, buf.String()) // FIXME: Bug in ParseBreaks means text.Output can't be used here.
 		text.Break(out)
 	}
 

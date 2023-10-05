@@ -65,6 +65,5 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Updated Config Store '%s' (%s)", o.Name, o.ID)
-
 	return nil
 }

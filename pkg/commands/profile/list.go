@@ -55,7 +55,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if name == "" {
 		text.Warning(out, profile.NoDefaults)
 	} else {
-		text.Info(out, "Default profile highlighted in red.")
+		text.Info(out, "Default profile highlighted in red.\n\n")
 		display(name, p, out, text.BoldRed)
 	}
 

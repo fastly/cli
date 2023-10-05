@@ -166,7 +166,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	out = originalOut
-	text.Success(out, "Built package (%s)", dest)
+	text.Success(out, "\nBuilt package (%s)", dest)
 	return nil
 }
 
@@ -330,7 +330,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 // The directory is required so a main.wasm can be placed inside it.
 func binDir(c *BuildCommand) error {
 	if c.Globals.Verbose() {
-		text.Info(c.Globals.Output, "Creating ./bin directory (for Wasm binary)")
+		text.Info(c.Globals.Output, "\nCreating ./bin directory (for Wasm binary)\n\n")
 	}
 	dir, err := os.Getwd()
 	if err != nil {

@@ -94,9 +94,8 @@ func (f *File) Read(path string) (err error) {
 		f.ManifestVersion = ManifestLatestVersion
 
 		if !f.quiet {
-			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.", ManifestLatestVersion))
-			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s", SpecURL))
-			text.Break(f.output)
+			text.Warning(f.output, fmt.Sprintf("The fastly.toml was missing a `manifest_version` field. A default schema version of `%d` will be used.\n\n", ManifestLatestVersion))
+			text.Output(f.output, fmt.Sprintf("Refer to the fastly.toml package manifest format: %s\n\n", SpecURL))
 		}
 		err = f.Write(path)
 		if err != nil {
@@ -106,11 +105,10 @@ func (f *File) Read(path string) (err error) {
 	}
 
 	if dt := tree.Get("setup.dictionaries"); dt != nil {
-		text.Warning(f.output, "Your fastly.toml manifest contains `[setup.dictionaries]`, which should be updated to `[setup.config_stores]`. Refer to the documentation at https://developer.fastly.com/reference/compute/fastly-toml/")
+		text.Warning(f.output, "Your fastly.toml manifest contains `[setup.dictionaries]`, which should be updated to `[setup.config_stores]`. Refer to the documentation at https://developer.fastly.com/reference/compute/fastly-toml/\n\n")
 	}
 
 	f.exists = true
-
 	return nil
 }
 

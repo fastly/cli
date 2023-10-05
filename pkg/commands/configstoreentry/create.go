@@ -105,6 +105,5 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Created key '%s' in Config Store '%s'", o.Key, o.StoreID)
-
 	return nil
 }

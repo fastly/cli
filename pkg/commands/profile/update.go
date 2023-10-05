@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -66,7 +67,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	text.Info(out, "Profile being updated: '%s'.", name)
+	text.Info(out, "Profile being updated: '%s'.\n\n", name)
 
 	opts := []profile.EditOption{}
 
@@ -84,12 +85,12 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	text.Break(out)
 	text.Break(out)
 
-	def, err := text.AskYesNo(out, "Make profile the default? [y/N] ", in)
+	makeDefault, err := text.AskYesNo(out, text.BoldYellow("Make profile the default? [y/N] "), in)
 	if err != nil {
 		return err
 	}
 	opts = append(opts, func(p *config.Profile) {
-		p.Default = def
+		p.Default = makeDefault
 	})
 
 	// User didn't want to change their token value so reassign original.
@@ -129,6 +130,19 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}
+
+	if makeDefault {
+		// We call SetDefault for its side effect of resetting all other profiles to have
+		// their Default field set to false.
+		ps, ok = profile.SetDefault(c.profile, ps)
+		if !ok {
+			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
+			err := errors.New(msg)
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+	}
+
 	c.Globals.Config.Profiles = ps
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
@@ -136,7 +150,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 
-	text.Success(out, "Profile '%s' updated", name)
+	text.Success(out, "\nProfile '%s' updated", name)
 	return nil
 }
 

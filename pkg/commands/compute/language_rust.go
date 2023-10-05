@@ -118,7 +118,7 @@ func (r *Rust) Build() error {
 	}
 
 	if noBuildScript && r.verbose {
-		text.Info(r.output, "No [scripts.build] found in fastly.toml. The following default build command for Rust will be used: `%s`\n", r.build)
+		text.Info(r.output, "No [scripts.build] found in fastly.toml. The following default build command for Rust will be used: `%s`\n\n", r.build)
 	}
 
 	r.toolchainConstraint()
@@ -253,7 +253,7 @@ func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 // the opportunity to do something about it if they choose.
 func (r *Rust) toolchainConstraint() {
 	if r.verbose {
-		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'. ", r.config.ToolchainConstraint)
+		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'.\n\n", r.config.ToolchainConstraint)
 	}
 
 	versionCommand := "cargo version --quiet"
@@ -289,7 +289,7 @@ func (r *Rust) toolchainConstraint() {
 	}
 
 	if !c.Check(v) {
-		text.Warning(r.output, "The Rust version '%s' didn't meet the constraint '%s'", version, r.config.ToolchainConstraint)
+		text.Warning(r.output, "The Rust version '%s' didn't meet the constraint '%s'\n\n", version, r.config.ToolchainConstraint)
 	}
 }
 

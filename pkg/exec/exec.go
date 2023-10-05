@@ -111,6 +111,9 @@ func (s *Streaming) Exec() error {
 		output = s.Output
 	}
 
+	if !s.Verbose {
+		text.Break(output)
+	}
 	text.Info(output, "Command output:")
 	text.Output(output, divider)
 

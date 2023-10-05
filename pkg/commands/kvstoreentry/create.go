@@ -174,6 +174,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 		if !cont {
 			return nil
 		}
+		text.Break(out)
 	}
 
 	path, err := filepath.Abs(c.dirPath)

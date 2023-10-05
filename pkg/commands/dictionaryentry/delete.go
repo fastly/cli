@@ -60,7 +60,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-
 	err = c.Globals.APIClient.DeleteDictionaryItem(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{

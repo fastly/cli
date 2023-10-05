@@ -142,6 +142,6 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated %s to %s.", currentBin, latest)
+	text.Success(out, "\nUpdated %s to %s.", currentBin, latest)
 	return nil
 }

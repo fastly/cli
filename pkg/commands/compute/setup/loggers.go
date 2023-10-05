@@ -24,7 +24,7 @@ type Logger struct {
 
 // Configure prompts the user for specific values related to the service resource.
 func (l *Loggers) Configure() error {
-	text.Info(l.Stdout, "The package code requires the following log endpoints to be created.")
+	text.Info(l.Stdout, "The package code requires the following log endpoints to be created.\n\n")
 
 	for name, settings := range l.Setup {
 		text.Output(l.Stdout, "%s %s", text.Bold("Name:"), name)

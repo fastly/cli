@@ -78,12 +78,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Output(out, "Press ^C at any time to quit.")
 
 	if c.cloneFrom != "" && c.language == "" {
-		text.Warning(out, "When using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
-	} else {
-		text.Break(out)
+		text.Warning(out, "\nWhen using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
 	}
 
-	cont, err := verifyDirectory(c.Globals.Flags, c.dir, out, in)
+	text.Break(out)
+	cont, notEmpty, err := verifyDirectory(c.Globals.Flags, c.dir, out, in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -112,7 +111,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		mf.SetQuiet(true)
 	}
 	if c.dir == "" && !mf.Exists() && c.Globals.Verbose() {
-		text.Info(out, "--directory not specified, using current directory")
+		text.Info(out, "--directory not specified, using current directory\n\n")
 		c.dir = wd
 	}
 
@@ -121,7 +120,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	dst, err := verifyDestination(c.dir, spinner)
+	dst, err := verifyDestination(notEmpty, c.dir, spinner, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory": c.dir,
@@ -150,7 +149,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var language *Language
 
-	if c.language == "" && c.cloneFrom == "" {
+	if c.language == "" && c.cloneFrom == "" && c.Globals.Manifest.File.Language == "" {
 		language, err = promptForLanguage(c.Globals.Flags, languages, in, out)
 		if err != nil {
 			return err
@@ -172,7 +171,8 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// fastly.toml manifest, or the language they selected was "other" (meaning
 	// they're bringing their own project code), then we'll prompt the user to
 	// select a starter kit project.
-	if c.cloneFrom == "" && !mf.Exists() && language.Name != "other" {
+	triggerStarterKitPrompt := c.cloneFrom == "" && !mf.Exists() && language.Name != "other"
+	if triggerStarterKitPrompt {
 		from, branch, tag, err = promptForStarterKit(c.Globals.Flags, language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -206,6 +206,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			})
 			return err
 		}
+	}
+
+	// If the user was prompted to fill the name/desc/authors/lang, then we insert
+	// a line break so the following spinner instances have spacing. But only if
+	// the starter kit wasn't prompted for as that already handles spacing.
+	if (mf.Name == "" || mf.Description == "" || mf.Language == "" || len(mf.Authors) == 0) && !triggerStarterKitPrompt {
+		text.Break(out)
 	}
 
 	mf, err = updateManifest(mf, spinner, c.dir, name, desc, authors, language)
@@ -323,35 +330,34 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // verifyDirectory indicates if the user wants to continue with the execution
 // flow when presented with a prompt that suggests the current directory isn't
 // empty.
-func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader) (bool, error) {
+func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader) (cont, notEmpty bool, err error) {
 	if dir == "" {
 		dir = "."
 	}
-	dir, err := filepath.Abs(dir)
+	dir, err = filepath.Abs(dir)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 
 	files, err := os.ReadDir(dir)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 
-	if strings.Contains(dir, " ") && !flags.AutoYes && !flags.NonInteractive {
-		text.Warning(out, "Your project path contains spaces. In some cases this can result in issues with your installed language toolchain, e.g. `npm`. Consider removing any spaces.")
+	if strings.Contains(dir, " ") && !flags.Quiet {
+		text.Warning(out, "Your project path contains spaces. In some cases this can result in issues with your installed language toolchain, e.g. `npm`. Consider removing any spaces.\n\n")
 	}
 
 	if len(files) > 0 && !flags.AutoYes && !flags.NonInteractive {
 		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
 		result, err := text.AskYesNo(out, label, in)
-		text.Break(out)
 		if err != nil {
-			return false, err
+			return false, true, err
 		}
-		return result, nil
+		return result, true, nil
 	}
 
-	return true, nil
+	return true, false, nil
 }
 
 // verifyDestination checks the provided path exists and is a directory.
@@ -359,7 +365,7 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, spinner text.Spinner) (dst string, err error) {
+func verifyDestination(notEmpty bool, path string, spinner text.Spinner, out io.Writer) (dst string, err error) {
 	dst, err = filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -384,6 +390,9 @@ func verifyDestination(path string, spinner text.Spinner) (dst string, err error
 		}
 	}
 
+	if notEmpty {
+		text.Break(out)
+	}
 	err = spinner.Process("Validating directory permissions", func(_ *text.SpinnerWrapper) error {
 		tmpname := make([]byte, 16)
 		n, err := rand.Read(tmpname)
@@ -434,25 +443,25 @@ func promptOrReturn(
 	description, _ = m.Description()
 	authors, _ = m.Authors()
 
-	if name == "" || description == "" || len(authors) == 0 {
+	if name == "" {
 		text.Break(out)
 	}
-
 	name, err = promptPackageName(flags, name, path, in, out)
 	if err != nil {
 		return "", description, authors, err
 	}
 
+	if description == "" {
+		text.Break(out)
+	}
 	description, err = promptPackageDescription(flags, description, in, out)
 	if err != nil {
 		return name, "", authors, err
 	}
 
-	// This catches scenarios where someone runs `compute init` multiple times.
-	if name != "" && len(authors) > 0 {
+	if len(authors) == 0 {
 		text.Break(out)
 	}
-
 	authors, err = promptPackageAuthors(flags, authors, email, in, out)
 	if err != nil {
 		return name, description, []string{}, err
@@ -552,12 +561,13 @@ func promptForLanguage(flags global.Flags, languages []*Language, in io.Reader, 
 	)
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
-		text.Output(out, "%s", text.Bold("Language:"))
+		text.Output(out, "\n%s", text.Bold("Language:"))
 		text.Output(out, "(Find out more about language support at https://developer.fastly.com/learning/compute)")
 		for i, lang := range languages {
 			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
 		}
 
+		text.Break(out)
 		option, err = text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
 		if err != nil {
 			return nil, fmt.Errorf("reading input %w", err)
@@ -602,12 +612,14 @@ func promptForStarterKit(flags global.Flags, kits []config.StarterKit, in io.Rea
 	var option string
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
-		text.Output(out, "%s", text.Bold("Starter kit:"))
+		text.Output(out, "\n%s", text.Bold("Starter kit:"))
 		for i, kit := range kits {
 			fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
 			text.Indent(out, 4, "%s\n%s", kit.Description, kit.Path)
 		}
-		text.Info(out, "For a complete list of Starter Kits:\n\thttps://developer.fastly.com/solutions/starters/")
+		text.Info(out, "\nFor a complete list of Starter Kits:")
+		text.Indent(out, 4, "https://developer.fastly.com/solutions/starters/")
+		text.Break(out)
 
 		option, err = text.Input(out, "Choose option or paste git URL: [1] ", in, validateTemplateOptionOrURL(kits))
 		if err != nil {
@@ -1117,7 +1129,7 @@ func initializeLanguage(spinner text.Spinner, language *Language, languages []*L
 // promptForPostInitContinue ensures the user is happy to continue with running
 // the define post_init script in the fastly.toml manifest file.
 func promptForPostInitContinue(msg, script string, out io.Writer, in io.Reader) error {
-	text.Info(out, "%s:\n", msg)
+	text.Info(out, "\n%s:\n", msg)
 	text.Indent(out, 4, "%s", script)
 
 	label := "\nDo you want to run this now? [y/N] "

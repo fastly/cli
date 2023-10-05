@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a service version.
@@ -86,11 +87,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = serviceVersion.Number
-
 	if !c.comment.WasSet {
 		return fmt.Errorf("error parsing arguments: required flag --comment not provided")
 	}
-
 	c.input.Comment = &c.comment.Value
 
 	ver, err := c.Globals.APIClient.UpdateVersion(&c.input)

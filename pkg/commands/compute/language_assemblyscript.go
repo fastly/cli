@@ -87,7 +87,10 @@ type AssemblyScript struct {
 
 // Build compiles the user's source code into a Wasm binary.
 func (a *AssemblyScript) Build() error {
-	text.Deprecated(a.output, "The Fastly AssemblyScript SDK is being deprecated in favor of the more up-to-date and feature-rich JavaScript SDK. You can learn more about the JavaScript SDK on our Developer Hub Page - https://developer.fastly.com/learning/compute/javascript/")
+	if !a.verbose {
+		text.Break(a.output)
+	}
+	text.Deprecated(a.output, "The Fastly AssemblyScript SDK is being deprecated in favor of the more up-to-date and feature-rich JavaScript SDK. You can learn more about the JavaScript SDK on our Developer Hub Page - https://developer.fastly.com/learning/compute/javascript/\n\n")
 
 	var noBuildScript bool
 	if a.build == "" {
@@ -104,7 +107,7 @@ func (a *AssemblyScript) Build() error {
 	}
 
 	if noBuildScript && a.verbose {
-		text.Info(a.output, "No [scripts.build] found in fastly.toml. The following default build command for AssemblyScript will be used: `%s`\n", a.build)
+		text.Info(a.output, "No [scripts.build] found in fastly.toml. The following default build command for AssemblyScript will be used: `%s`\n\n", a.build)
 	}
 
 	bt := BuildToolchain{

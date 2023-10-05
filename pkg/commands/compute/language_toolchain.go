@@ -119,7 +119,7 @@ func (bt BuildToolchain) Build() error {
 			}
 		}
 		// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
-		// If we're in non-verbose mode, then the spiner is BEFORE the error output.
+		// If we're in non-verbose mode, then the spinner is BEFORE the error output.
 		// Also, in non-verbose mode stopping the spinner is handled internally.
 		// See the call to StopFailMessage() inside fstexec.Streaming.Exec().
 		return bt.handleError(err)

@@ -40,6 +40,9 @@ func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if !c.Globals.Flags.Quiet {
 		text.Warning(out, "This command is deprecated. Use `fastly compute hash-files` instead.")
+		if c.Globals.Verbose() || c.SkipBuild {
+			text.Break(out)
+		}
 	}
 
 	if !c.SkipBuild {
@@ -47,6 +50,7 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
+		text.Break(out)
 	}
 
 	pkgPath, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
@@ -59,10 +63,6 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			Inner:       fmt.Errorf("failed to validate package: %w", err),
 			Remediation: fmt.Sprintf("Run `fastly compute build` to produce a Compute@Edge package, alternatively%s use the --package flag to reference a package outside of the current project.", skipBuildMsg),
 		}
-	}
-
-	if c.Globals.Verbose() {
-		text.Break(out)
 	}
 
 	hashSum, err := getHashSum(pkgPath)

@@ -3,12 +3,13 @@ package configstoreentry
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -119,6 +120,5 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "%s config store item %s in store %s", action, o.Key, o.StoreID)
-
 	return nil
 }

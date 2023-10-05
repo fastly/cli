@@ -116,7 +116,6 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Deleted key '%s' from Config Store '%s'", c.input.Key, c.input.StoreID)
-
 	return nil
 }
 

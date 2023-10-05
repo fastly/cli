@@ -3,12 +3,13 @@ package acl
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -84,7 +85,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput(serviceID, serviceVersion.Number)
-
 	a, err := c.Globals.APIClient.CreateACL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
