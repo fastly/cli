@@ -157,9 +157,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	// NOTE: The --language flag is an EnumVar, meaning it's already validated.
-	if c.language != "" {
+	if c.language != "" || mf.Language != "" {
+		l := c.language
+		if c.language == "" {
+			l = mf.Language
+		}
 		for _, recognisedLanguage := range languages {
-			if strings.EqualFold(c.language, recognisedLanguage.Name) {
+			if strings.EqualFold(l, recognisedLanguage.Name) {
 				language = recognisedLanguage
 			}
 		}
