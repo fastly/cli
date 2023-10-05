@@ -644,6 +644,12 @@ func createService(
 			return createService(f, serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
 		}
 
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return "", nil, spinErr
+		}
+
 		errLog.AddWithContext(err, map[string]any{
 			"Service Name": serviceName,
 		})
