@@ -168,9 +168,9 @@ func TestPrefixes(t *testing.T) {
 		{
 			name:   "Info with irregular line breaks and tabs placement",
 			f:      text.Info,
-			format: "\n\nTest string\n\t%s", // notice the irregular placement of a linebreak causes unexpected behaviour
+			format: "\n\nTest string\n\t%s",
 			args:   []any{"anything"},
-			want:   "\n\nINFO: \tanything\n",
+			want:   "\n\nINFO: Test string \tanything\n",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -255,32 +255,39 @@ func TestParseBreaks(t *testing.T) {
 		txt    string
 	}{
 		{
-			name:   "no linebreaks",
+			name:   "no line breaks",
 			in:     "example",
 			prefix: 0,
 			suffix: 0,
 			txt:    "example",
 		},
 		{
-			name:   "starting linebreaks",
+			name:   "starting line breaks",
 			in:     "\n\n\nexample",
 			prefix: 3,
 			suffix: 0,
 			txt:    "example",
 		},
 		{
-			name:   "ending linebreaks",
+			name:   "ending line breaks",
 			in:     "example\n\n\n",
 			prefix: 0,
 			suffix: 3,
 			txt:    "example",
 		},
 		{
-			name:   "both ends linebreaks",
+			name:   "both ends line breaks",
 			in:     "\n\nexample\n\n\n",
 			prefix: 2,
 			suffix: 3,
 			txt:    "example",
+		},
+		{
+			name:   "line breaks in the main text",
+			in:     "\n\nexample message with\na line break inside\n\n\n",
+			prefix: 2,
+			suffix: 3,
+			txt:    "example message with a line break inside",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {

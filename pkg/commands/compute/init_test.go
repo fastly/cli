@@ -225,7 +225,8 @@ func TestInit(t *testing.T) {
 				"SECURITY.md",
 			},
 			wantOutput: []string{
-				"Author (email): Language:",
+				"Author (email):",
+				"Language:",
 				"Fetching package template",
 				"Reading fastly.toml",
 				"Saving manifest changes",

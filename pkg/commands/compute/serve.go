@@ -143,7 +143,9 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	text.Break(out)
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
 
 	var restart bool
 	for {
@@ -586,13 +588,10 @@ func local(opts localOpts) error {
 		if output, err := c.Output(); err == nil {
 			text.Output(opts.out, "%s: %s", text.BoldYellow("Viceroy version"), string(output))
 		}
-	} else {
-		// IMPORTANT: Viceroy 0.4.0 changed its INFO log output behind a -v flag.
-		// We display the address unless in verbose mode to avoid duplicate output.
-		if opts.restarted {
+		text.Info(opts.out, "Listening on http://%s", opts.addr)
+		if opts.watch {
 			text.Break(opts.out)
 		}
-		text.Info(opts.out, "Listening on http://%s\n\n", opts.addr)
 	}
 
 	s := &fstexec.Streaming{
@@ -613,7 +612,7 @@ func local(opts localOpts) error {
 		}
 
 		if opts.verbose {
-			text.Info(opts.out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).\n\n", root)
+			text.Info(opts.out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
 		}
 
 		gi := ignoreFiles(opts.watchDir)
@@ -773,7 +772,7 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 	if verbose {
 		text.Output(out, "%s", text.BoldYellow("Watching..."))
 		text.Break(out)
-		fmt.Fprint(out, buf.String()) // FIXME: Bug in ParseBreaks means text.Output can't be used here.
+		text.Output(out, buf.String())
 		text.Break(out)
 	}
 
