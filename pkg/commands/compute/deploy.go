@@ -741,14 +741,12 @@ func updateManifestServiceID(m *manifest.File, manifestFilename string, serviceI
 // manageExistingServiceFlow clones service version if required.
 func manageExistingServiceFlow(
 	serviceID string,
-	currentServiceVersion *fastly.Version,
+	serviceVersion *fastly.Version,
 	apiClient api.Interface,
 	verbose bool,
 	out io.Writer,
 	errLog fsterr.LogInterface,
-) (serviceVersion *fastly.Version, err error) {
-	serviceVersion = currentServiceVersion
-
+) (*fastly.Version, error) {
 	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
 	serviceDetails, err := apiClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
@@ -775,18 +773,18 @@ func manageExistingServiceFlow(
 	// the compute deploy command is a composite of behaviours, and so as we
 	// already automatically activate a version we should autoclone without
 	// requiring the user to explicitly provide an --autoclone flag.
-	if currentServiceVersion.Active || currentServiceVersion.Locked {
+	if serviceVersion.Active || serviceVersion.Locked {
 		clonedVersion, err := apiClient.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      serviceID,
-			ServiceVersion: currentServiceVersion.Number,
+			ServiceVersion: serviceVersion.Number,
 		})
 		if err != nil {
-			errLogService(errLog, err, serviceID, currentServiceVersion.Number)
+			errLogService(errLog, err, serviceID, serviceVersion.Number)
 			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
 		}
 		if verbose {
 			msg := "Service version %d is not editable, so it was automatically cloned. Now operating on version %d.\n\n"
-			format := fmt.Sprintf(msg, currentServiceVersion.Number, clonedVersion.Number)
+			format := fmt.Sprintf(msg, serviceVersion.Number, clonedVersion.Number)
 			text.Output(out, format)
 		}
 		serviceVersion = clonedVersion
