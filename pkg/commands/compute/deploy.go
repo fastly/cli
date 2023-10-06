@@ -171,8 +171,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return fmt.Errorf("error configuring service domains: %w", err)
 		}
 	}
-	if err = c.ConfigureServiceResources(sr, serviceID, serviceVersion.Number); err != nil {
-		return err
+	if noExistingService {
+		if err = c.ConfigureServiceResources(sr, serviceID, serviceVersion.Number); err != nil {
+			return err
+		}
 	}
 
 	if sr.domains.Missing() {
@@ -188,8 +190,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 	}
-	if err = c.CreateServiceResources(sr, spinner, serviceID, serviceVersion.Number); err != nil {
-		return err
+	if noExistingService {
+		if err = c.CreateServiceResources(sr, spinner, serviceID, serviceVersion.Number); err != nil {
+			return err
+		}
 	}
 
 	err = c.UploadPackage(spinner, serviceID, serviceVersion.Number)
@@ -309,8 +313,11 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial activator, service
 		c.PackagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
 	}
 
-	err = c.ValidatePackage(out)
+	err = validatePackage(c.PackagePath)
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path": c.PackagePath,
+		})
 		return defaultActivator, serviceID, err
 	}
 
@@ -320,14 +327,11 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial activator, service
 	return fnActivateTrial, serviceID, err
 }
 
-// ValidatePackage checks the package and returns its path, which can change
+// validatePackage checks the package and returns its path, which can change
 // depending on the user flow scenario.
-func (c *DeployCommand) ValidatePackage(out io.Writer) error {
-	pkgSize, err := packageSize(c.PackagePath)
+func validatePackage(pkgPath string) error {
+	pkgSize, err := packageSize(pkgPath)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path": c.PackagePath,
-		})
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading package size: %w", err),
 			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
@@ -339,14 +343,9 @@ func (c *DeployCommand) ValidatePackage(out io.Writer) error {
 			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
-	if err := validatePackageContent(c.PackagePath); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path": c.PackagePath,
-			"Package size": pkgSize,
-		})
+	if err := validatePackageContent(pkgPath); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -807,50 +806,50 @@ func (c *DeployCommand) ConstructNewServiceResources(
 // ConfigureServiceResources calls the .Predefined() and .Configure() methods
 // for each [setup] resource, which first checks if a [setup] config has been
 // defined for the resource type, and if so it prompts the user for details.
-func (c *DeployCommand) ConfigureServiceResources(so ServiceResources, serviceID string, serviceVersion int) error {
+func (c *DeployCommand) ConfigureServiceResources(sr ServiceResources, serviceID string, serviceVersion int) error {
 	// NOTE: A service can't be activated without at least one backend defined.
 	// This explains why the following block of code isn't wrapped in a call to
 	// the .Predefined() method, as the call to .Configure() will ensure the
 	// user is prompted regardless of whether there is a [setup.backends]
 	// defined in the fastly.toml configuration.
-	if err := so.backends.Configure(); err != nil {
+	if err := sr.backends.Configure(); err != nil {
 		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 		return fmt.Errorf("error configuring service backends: %w", err)
 	}
 
-	if so.configStores.Predefined() {
-		if err := so.configStores.Configure(); err != nil {
+	if sr.configStores.Predefined() {
+		if err := sr.configStores.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 			return fmt.Errorf("error configuring service config stores: %w", err)
 		}
 	}
 
-	if so.loggers.Predefined() {
+	if sr.loggers.Predefined() {
 		// NOTE: We don't handle errors from the Configure() method because we
 		// don't actually do anything other than display a message to the user
 		// informing them that they need to create a log endpoint and which
 		// provider type they should be. The reason we don't implement logic for
 		// creating logging objects is because the API input fields vary
 		// significantly between providers.
-		_ = so.loggers.Configure()
+		_ = sr.loggers.Configure()
 	}
 
-	if so.objectStores.Predefined() {
-		if err := so.objectStores.Configure(); err != nil {
+	if sr.objectStores.Predefined() {
+		if err := sr.objectStores.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 			return fmt.Errorf("error configuring service object stores: %w", err)
 		}
 	}
 
-	if so.kvStores.Predefined() {
-		if err := so.kvStores.Configure(); err != nil {
+	if sr.kvStores.Predefined() {
+		if err := sr.kvStores.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 			return fmt.Errorf("error configuring service kv stores: %w", err)
 		}
 	}
 
-	if so.secretStores.Predefined() {
-		if err := so.secretStores.Configure(); err != nil {
+	if sr.secretStores.Predefined() {
+		if err := sr.secretStores.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
 			return fmt.Errorf("error configuring service secret stores: %w", err)
 		}

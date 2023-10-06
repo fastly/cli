@@ -258,6 +258,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn: createServiceError,
+				DeleteServiceFn: deleteServiceOK,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -277,6 +278,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
 				GetCurrentUserFn: getCurrentUserError,
+				DeleteServiceFn:  deleteServiceOK,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -294,6 +296,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
 				GetCurrentUserFn: getCurrentUser,
+				DeleteServiceFn:  deleteServiceOK,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -322,6 +325,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
 				GetCurrentUserFn: getCurrentUser,
+				DeleteServiceFn:  deleteServiceOK,
 			},
 			httpClientRes: []*http.Response{
 				nil,
