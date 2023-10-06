@@ -92,7 +92,7 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	fnActivateTrial, serviceID, pkgPath, err := setupDeploy(c, out)
+	fnActivateTrial, serviceID, err := c.Setup(out)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return nil // user declined service creation prompt
 		}
 	} else {
-		serviceVersion, err = c.ExistingServiceVersion(serviceID, pkgPath, out)
+		serviceVersion, err = c.ExistingServiceVersion(serviceID, out)
 		if err != nil {
 			if errors.Is(err, ErrPackageUnchanged) {
 				text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, serviceVersion)
@@ -192,10 +192,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	err = pkgUpload(spinner, c.Globals.APIClient, serviceID, serviceVersion.Number, pkgPath)
+	err = c.UploadPackage(spinner, serviceID, serviceVersion.Number)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path":    pkgPath,
+			"Package path":    c.PackagePath,
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion,
 		})
@@ -264,108 +264,90 @@ func validStatusCodeRange(status int) bool {
 	return false
 }
 
-// setupDeploy prepares the environment.
-// It will do things like:
-//   - Check if there is an API token missing.
-//   - Acquire the Service ID/Version.
-//   - Validate there is a package to deploy.
-//   - Determine if a trial needs to be activated on the user's account.
-func setupDeploy(c *DeployCommand, out io.Writer) (
-	fnActivateTrial activator,
-	serviceID, pkgPath string,
-	err error,
-) {
+// Setup prepares the environment.
+//
+// - Check if there is an API token missing.
+// - Acquire the Service ID/Version.
+// - Validate there is a package to deploy.
+// - Determine if a trial needs to be activated on the user's account.
+func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial activator, serviceID string, err error) {
 	defaultActivator := func(customerID string) error { return nil }
 
 	token, s := c.Globals.Token()
 	if s == lookup.SourceUndefined {
-		return defaultActivator, "", "", fsterr.ErrNoToken
+		return defaultActivator, "", fsterr.ErrNoToken
 	}
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
 	// This is because later in the Exec() flow we might create a 'new' service.
-	// Refer to manageNoServiceIDFlow()
 	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err == nil && c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	pkgPath, err = validatePackage(c.Manifest, c.PackagePath, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	err = c.Manifest.File.ReadError()
 	if err != nil {
-		return defaultActivator, serviceID, "", err
+		if c.PackagePath == "" {
+			if errors.Is(err, os.ErrNotExist) {
+				err = fsterr.ErrReadingManifest
+			}
+			return defaultActivator, serviceID, err
+		}
+		// NOTE: Before returning the manifest read error, we'll attempt to read
+		// the manifest from within the given package archive.
+		err := readManifestFromPackageArchive(&c.Manifest, c.PackagePath, c.Globals.Verbose(), out)
+		if err != nil {
+			return defaultActivator, serviceID, err
+		}
+	}
+
+	if c.PackagePath == "" {
+		projectName, source := c.Manifest.Name()
+		if source == manifest.SourceUndefined {
+			return defaultActivator, serviceID, fsterr.ErrReadingManifest
+		}
+		c.PackagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
+	}
+
+	err = c.ValidatePackage(out)
+	if err != nil {
+		return defaultActivator, serviceID, err
 	}
 
 	endpoint, _ := c.Globals.Endpoint()
 	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
 
-	return fnActivateTrial, serviceID, pkgPath, err
+	return fnActivateTrial, serviceID, err
 }
 
-// validatePackage short-circuits the deploy command if the user hasn't first
-// built a package to be deployed.
-//
-// NOTE: It also validates if the package size exceeds limit:
-// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-func validatePackage(
-	data manifest.Data,
-	packageFlag string,
-	verbose bool,
-	errLog fsterr.LogInterface,
-	out io.Writer,
-) (pkgPath string, err error) {
-	err = data.File.ReadError()
+// ValidatePackage checks the package and returns its path, which can change
+// depending on the user flow scenario.
+func (c *DeployCommand) ValidatePackage(out io.Writer) error {
+	pkgSize, err := packageSize(c.PackagePath)
 	if err != nil {
-		if packageFlag == "" {
-			if errors.Is(err, os.ErrNotExist) {
-				err = fsterr.ErrReadingManifest
-			}
-			return pkgPath, err
-		}
-
-		// NOTE: Before returning the manifest read error, we'll attempt to read
-		// the manifest from within the given package archive.
-		err := readManifestFromPackageArchive(&data, packageFlag, verbose, out)
-		if err != nil {
-			return pkgPath, err
-		}
-	}
-
-	projectName, source := data.Name()
-	pkgPath, err = packagePath(packageFlag, projectName, source)
-	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Package path": packageFlag,
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path": c.PackagePath,
 		})
-		return pkgPath, err
-	}
-
-	pkgSize, err := packageSize(pkgPath)
-	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Package path": pkgPath,
-		})
-		return pkgPath, fsterr.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading package size: %w", err),
 			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
-
 	if pkgSize > MaxPackageSize {
-		return pkgPath, fsterr.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
-
-	if err := validatePackageContent(pkgPath); err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Package path": pkgPath,
+	if err := validatePackageContent(c.PackagePath); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path": c.PackagePath,
 			"Package size": pkgSize,
 		})
-		return pkgPath, err
+		return err
 	}
 
-	return pkgPath, nil
+	return nil
 }
 
 // readManifestFromPackageArchive extracts the manifest file from the given
@@ -441,19 +423,10 @@ func locateManifest(path string) (string, error) {
 	return "", fmt.Errorf("error locating manifest within the given path: %s", path)
 }
 
-// packagePath generates a path that points to a package tar inside the pkg
-// directory if the package path flag was not set by the user.
-func packagePath(path, projectName string, source manifest.Source) (string, error) {
-	if path == "" {
-		if source == manifest.SourceUndefined {
-			return "", fsterr.ErrReadingManifest
-		}
-		path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
-	}
-	return path, nil
-}
-
 // packageSize returns the size of the .tar.gz package.
+//
+// Reference:
+// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
 func packageSize(path string) (size int64, err error) {
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -716,8 +689,8 @@ func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 
 // CompareLocalRemotePackage compares the local package files hash against the
 // existing service package version and exits early with message if identical.
-func (c *DeployCommand) CompareLocalRemotePackage(pkgPath, serviceID string, version int) error {
-	filesHash, err := getFilesHash(pkgPath)
+func (c *DeployCommand) CompareLocalRemotePackage(serviceID string, version int) error {
+	filesHash, err := getFilesHash(c.PackagePath)
 	if err != nil {
 		return err
 	}
@@ -734,13 +707,13 @@ func (c *DeployCommand) CompareLocalRemotePackage(pkgPath, serviceID string, ver
 	return nil
 }
 
-// pkgUpload uploads the package to the specified service and version.
-func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, version int, path string) error {
+// UploadPackage uploads the package to the specified service and version.
+func (c *DeployCommand) UploadPackage(spinner text.Spinner, serviceID string, version int) error {
 	return spinner.Process("Uploading package", func(_ *text.SpinnerWrapper) error {
-		_, err := client.UpdatePackage(&fastly.UpdatePackageInput{
+		_, err := c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
 			ServiceID:      serviceID,
 			ServiceVersion: version,
-			PackagePath:    path,
+			PackagePath:    c.PackagePath,
 		})
 		if err != nil {
 			return fmt.Errorf("error uploading package: %w", err)
@@ -1120,7 +1093,7 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatus
 
 // ExistingServiceVersion returns a Service Version for an existing service.
 // If the current service version is active or locked, we clone the version.
-func (c *DeployCommand) ExistingServiceVersion(serviceID, pkgPath string, out io.Writer) (*fastly.Version, error) {
+func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) (*fastly.Version, error) {
 	var (
 		err            error
 		serviceVersion *fastly.Version
@@ -1144,16 +1117,16 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID, pkgPath string, out io
 	serviceVersion, err = c.ServiceVersion.Parse(serviceID, c.Globals.APIClient)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path": pkgPath,
+			"Package path": c.PackagePath,
 			"Service ID":   serviceID,
 		})
 		return nil, err
 	}
 
-	err = c.CompareLocalRemotePackage(pkgPath, serviceID, serviceVersion.Number)
+	err = c.CompareLocalRemotePackage(serviceID, serviceVersion.Number)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path":    pkgPath,
+			"Package path":    c.PackagePath,
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion,
 		})

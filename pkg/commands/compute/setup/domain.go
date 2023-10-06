@@ -118,6 +118,7 @@ func (d *Domains) Predefined() bool {
 }
 
 // Validate checks if the service has the required resources.
+// For a domain resource, we simply check there is at least one domain.
 //
 // NOTE: It should set an internal `missing` field (boolean) accordingly so that
 // the Missing() method can report the state of the resource.
@@ -130,7 +131,6 @@ func (d *Domains) Validate() error {
 		return fmt.Errorf("error fetching service domains: %w", err)
 	}
 	d.available = available
-
 	if len(d.available) == 0 {
 		d.missing = true
 	}
