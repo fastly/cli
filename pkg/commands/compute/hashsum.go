@@ -39,6 +39,7 @@ func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 // Exec implements the command interface.
 func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if !c.Globals.Flags.Quiet {
+		// FIXME: Remove `hashsum` subcommand before v11.0.0 is released.
 		text.Warning(out, "This command is deprecated. Use `fastly compute hash-files` instead.")
 		if c.Globals.Verbose() || c.SkipBuild {
 			text.Break(out)
