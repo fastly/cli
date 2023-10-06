@@ -98,17 +98,14 @@ func (b *Backends) Create() error {
 		_, err := b.APIClient.CreateBackend(opts)
 		if err != nil {
 			if !b.isOriginless() {
+				err = fmt.Errorf("error creating backend: %w", err)
 				b.Spinner.StopFailMessage(msg)
 				spinErr := b.Spinner.StopFail()
 				if spinErr != nil {
-					return spinErr
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
-
-			if b.isOriginless() {
-				return fmt.Errorf("error configuring the service: %w", err)
-			}
-			return fmt.Errorf("error creating backend: %w", err)
+			return fmt.Errorf("error configuring the service: %w", err)
 		}
 
 		if !b.isOriginless() {

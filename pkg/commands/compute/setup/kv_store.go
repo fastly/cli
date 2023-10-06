@@ -125,12 +125,13 @@ func (o *KVStores) Create() error {
 			Name: kvStore.Name,
 		})
 		if err != nil {
+			err = fmt.Errorf("error creating kv store: %w", err)
 			o.Spinner.StopFailMessage(msg)
 			spinErr := o.Spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
-			return fmt.Errorf("error creating kv store: %w", err)
+			return err
 		}
 
 		o.Spinner.StopMessage(msg)
@@ -154,12 +155,13 @@ func (o *KVStores) Create() error {
 					Value: item.Value,
 				})
 				if err != nil {
+					err = fmt.Errorf("error creating kv store key: %w", err)
 					o.Spinner.StopFailMessage(msg)
 					spinErr := o.Spinner.StopFail()
 					if spinErr != nil {
-						return spinErr
+						return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 					}
-					return fmt.Errorf("error creating kv store key: %w", err)
+					return err
 				}
 
 				o.Spinner.StopMessage(msg)
@@ -185,12 +187,13 @@ func (o *KVStores) Create() error {
 			ResourceID:     fastly.String(store.ID),
 		})
 		if err != nil {
+			err = fmt.Errorf("error creating resource link between the service '%s' and the kv store '%s': %w", o.ServiceID, store.Name, err)
 			o.Spinner.StopFailMessage(msg)
 			spinErr := o.Spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
-			return fmt.Errorf("error creating resource link between the service '%s' and the kv store '%s': %w", o.ServiceID, store.Name, err)
+			return err
 		}
 
 		o.Spinner.StopMessage(msg)

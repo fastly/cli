@@ -432,14 +432,14 @@ func installViceroy(
 
 		latestVersion, err = av.LatestVersion()
 		if err != nil {
+			err = fmt.Errorf("error fetching latest version: %w", err)
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
-
 			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("error fetching latest version: %w", err),
+				Inner:       err,
 				Remediation: fsterr.NetworkRemediation,
 			}
 		}
@@ -482,23 +482,26 @@ func installViceroy(
 	}
 
 	if err != nil {
+		err = fmt.Errorf("error downloading Viceroy release: %w", err)
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-		return fmt.Errorf("error downloading Viceroy release: %w", err)
+		return err
 	}
 	defer os.RemoveAll(tmpBin)
 
 	if err := os.Rename(tmpBin, bin); err != nil {
-		if err := filesystem.CopyFile(tmpBin, bin); err != nil {
+		err = fmt.Errorf("failed to rename/move file: %w", err)
+		if copyErr := filesystem.CopyFile(tmpBin, bin); copyErr != nil {
+			err = fmt.Errorf("failed to copy file: %w (original error: %w)", copyErr, err)
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
-			return fmt.Errorf("error moving latest Viceroy binary in place: %w", err)
+			return err
 		}
 	}
 
@@ -789,7 +792,7 @@ func ignoreFiles(watchDir cmd.OptionalString) *ignore.GitIgnore {
 	if watchDir.WasSet {
 		root = watchDir.Value
 		if !strings.HasPrefix(root, "/") {
-			root = root + "/"
+			root += "/"
 		}
 	}
 

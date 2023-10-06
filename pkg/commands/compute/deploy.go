@@ -555,8 +555,8 @@ func manageNoServiceIDFlow(
 	var serviceName string
 
 	// The service name will be whatever is set in the --service-name flag.
-	// If the flag isn't set, and we're able to prompt, we'll ask the user.
 	// If the flag isn't set, and we're non-interactive, we'll use the default.
+	// If the flag isn't set, and we're interactive, we'll prompt the user.
 	switch {
 	case serviceNameFlag.WasSet:
 		serviceName = serviceNameFlag.Value
@@ -633,28 +633,28 @@ func createService(
 		if strings.Contains(err.Error(), trialNotActivated) {
 			user, err := apiClient.GetCurrentUser()
 			if err != nil {
+				err = fmt.Errorf("unable to identify user associated with the given token: %w", err)
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return "", nil, spinErr
+					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
-
 				return serviceID, serviceVersion, fsterr.RemediationError{
-					Inner:       fmt.Errorf("unable to identify user associated with the given token: %w", err),
+					Inner:       err,
 					Remediation: "To ensure you have access to the Compute@Edge platform we need your Customer ID. " + fsterr.AuthRemediation,
 				}
 			}
 
 			err = fnActivateTrial(user.CustomerID)
 			if err != nil {
+				err = fmt.Errorf("error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account")
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return "", nil, spinErr
+					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
-
 				return serviceID, serviceVersion, fsterr.RemediationError{
-					Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account"),
+					Inner:       err,
 					Remediation: fsterr.ComputeTrialRemediation,
 				}
 			}
@@ -1199,14 +1199,15 @@ func checkingServiceAvailability(
 	for {
 		select {
 		case <-timeout:
+			err := errors.New("timeout: service not yet available")
 			returnedStatus := fmt.Sprintf(" (status: %d)", status)
 			spinner.StopFailMessage(msg + returnedStatus)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return status, spinErr
+				return status, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return status, fsterr.RemediationError{
-				Inner:       errors.New("service not yet available"),
+				Inner:       err,
 				Remediation: fmt.Sprintf(remediation, "timed out", expected, status),
 			}
 		case t := <-ticker.C:
@@ -1219,17 +1220,19 @@ func checkingServiceAvailability(
 			// and success scenarios.
 			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient, c.StatusCheckCode)
 			if err != nil {
+				err := fmt.Errorf("failed to ping service URL: %w", err)
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
 				spinner.StopFailMessage(msg + returnedStatus)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return status, spinErr
+					return status, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return status, fsterr.RemediationError{
 					Inner:       err,
 					Remediation: fmt.Sprintf(remediation, "failed", expected, status),
 				}
-			} else if ok {
+			}
+			if ok {
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
 				spinner.StopMessage(msg + returnedStatus)
 				return status, spinner.Stop()

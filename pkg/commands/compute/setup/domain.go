@@ -8,10 +8,11 @@ import (
 	"strings"
 
 	petname "github.com/dustinkirkland/golang-petname"
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const defaultTopLevelDomain = "edgecompute.app"
@@ -167,11 +168,13 @@ func (d *Domains) createDomain(name string, attempt int) error {
 		Name:           &name,
 	})
 	if err != nil {
+		err = fmt.Errorf("error creating domain: %w", err)
+
 		// We have to stop the ticker so we can now prompt the user.
 		d.Spinner.StopFailMessage(msg)
 		spinErr := d.Spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 
 		if attempt > d.RetryLimit {
@@ -203,7 +206,7 @@ func (d *Domains) createDomain(name string, attempt int) error {
 			}
 		}
 
-		return fmt.Errorf("error creating domain: %w", err)
+		return err
 	}
 
 	d.Spinner.StopMessage(msg)

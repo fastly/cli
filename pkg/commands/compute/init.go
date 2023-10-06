@@ -294,16 +294,15 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// But we can't just call StopFailMessage() without first starting the spinner.
 			if c.Globals.Flags.Verbose {
 				text.Break(out)
-				err := spinner.Start()
-				if err != nil {
-					return err
+				spinErr := spinner.Start()
+				if spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				spinner.Message(msg + "...")
-
 				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
+				spinErr = spinner.StopFail()
 				if spinErr != nil {
-					return spinErr
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			return err
@@ -683,36 +682,34 @@ func fetchPackageTemplate(
 
 	// If the user has provided a local file path, we'll recursively copy the
 	// directory to c.dir.
-	fi, err := os.Stat(c.cloneFrom)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-	} else if fi.IsDir() {
+	if fi, err := os.Stat(c.cloneFrom); err == nil && fi.IsDir() {
 		if err := cp.Copy(c.cloneFrom, c.dir); err != nil {
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}
-
 		spinner.StopMessage(msg)
 		return spinner.Stop()
 	}
+	c.Globals.ErrLog.Add(err)
 
 	req, err := http.NewRequest("GET", c.cloneFrom, nil)
 	if err != nil {
+		err = fmt.Errorf("failed to construct package request URL: %w", err)
 		c.Globals.ErrLog.Add(err)
+
 		if gitRepositoryRegEx.MatchString(c.cloneFrom) {
 			if err := clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir); err != nil {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return spinErr
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return err
 			}
-
 			spinner.StopMessage(msg)
 			return spinner.Stop()
 		}
@@ -720,10 +717,9 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
-		return fmt.Errorf("failed to construct package request URL: %w", err)
+		return err
 	}
 
 	for _, archive := range archives {
@@ -734,28 +730,25 @@ func fetchPackageTemplate(
 
 	res, err := c.Globals.HTTPClient.Do(req)
 	if err != nil {
+		err = fmt.Errorf("failed to get package: %w", err)
 		c.Globals.ErrLog.Add(err)
-
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
-		return fmt.Errorf("failed to get package: %w", err)
+		return err
 	}
 	defer res.Body.Close() // #nosec G307
 
 	if res.StatusCode != http.StatusOK {
 		err := fmt.Errorf("failed to get package: %s", res.Status)
 		c.Globals.ErrLog.Add(err)
-
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
 		return err
 	}
 
@@ -769,15 +762,14 @@ func fetchPackageTemplate(
 	/* #nosec */
 	f, err := os.Create(filename)
 	if err != nil {
+		err = fmt.Errorf("failed to create local %s archive: %w", filename, err)
 		c.Globals.ErrLog.Add(err)
-
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
-		return fmt.Errorf("failed to create local %s archive: %w", filename, err)
+		return err
 	}
 	defer func() {
 		// NOTE: Later on we rename the file to include an extension and the
@@ -792,15 +784,14 @@ func fetchPackageTemplate(
 
 	_, err = io.Copy(f, res.Body)
 	if err != nil {
+		err = fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
 		c.Globals.ErrLog.Add(err)
-
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
-		return fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
+		return err
 	}
 
 	// NOTE: We used to `defer` the closing of the file after its creation but
@@ -844,13 +835,11 @@ mimes:
 			err := os.Rename(filename, filenameWithExt)
 			if err != nil {
 				c.Globals.ErrLog.Add(err)
-
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return spinErr
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
-
 				return err
 			}
 			filename = filenameWithExt
@@ -861,15 +850,14 @@ mimes:
 
 		err = archive.Extract()
 		if err != nil {
+			err = fmt.Errorf("failed to extract %s archive content: %w", filename, err)
 			c.Globals.ErrLog.Add(err)
-
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
-
-			return fmt.Errorf("failed to extract %s archive content: %w", filename, err)
+			return err
 		}
 
 		spinner.StopMessage(msg)
@@ -880,7 +868,7 @@ mimes:
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}

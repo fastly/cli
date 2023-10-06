@@ -8,6 +8,10 @@ import (
 	"github.com/theckman/yacspin"
 )
 
+// SpinnerErrWrapper is a generic error message the caller can interpolate their
+// own error into.
+const SpinnerErrWrapper = "failed to stop spinner (error: %w) when handling the error: %w"
+
 // Spinner represents a terminal prompt status indicator.
 type Spinner interface {
 	Status() yacspin.SpinnerStatus
@@ -30,6 +34,7 @@ type SpinnerProcess func(sp *SpinnerWrapper) error
 // SpinnerWrapper implements the Spinner interface.
 type SpinnerWrapper struct {
 	*yacspin.Spinner
+	err error
 }
 
 // Process starts/stops the spinner with `msg` and executes `fn` in between.
@@ -43,9 +48,9 @@ func (sp *SpinnerWrapper) Process(msg string, fn SpinnerProcess) error {
 	err = fn(sp)
 	if err != nil {
 		sp.StopFailMessage(msg)
-		spinStopErr := sp.StopFail()
-		if spinStopErr != nil {
-			return fmt.Errorf("failed to stop spinner (error: %w) when handling the error: %w", spinStopErr, err)
+		spinErr := sp.StopFail()
+		if spinErr != nil {
+			return fmt.Errorf("failed to stop spinner (error: %w) when handling the error: %w", spinErr, err)
 		}
 		return err
 	}
@@ -70,5 +75,8 @@ func NewSpinner(out io.Writer) (Spinner, error) {
 		return nil, err
 	}
 
-	return &SpinnerWrapper{spinner}, nil
+	return &SpinnerWrapper{
+		Spinner: spinner,
+		err:     nil,
+	}, nil
 }

@@ -70,7 +70,7 @@ func (s *Streaming) MonitorSignalsAsync() {
 	// killed the process. The reason this line still exists is for users running
 	// their application locally without the --watch flag and who then execute
 	// Ctrl-C to kill the process.
-	s.Signal(os.Kill)
+	_ = s.Signal(os.Kill)
 }
 
 // Exec executes the compiler command and pipes the child process stdout and
@@ -100,7 +100,6 @@ func (s *Streaming) Exec() error {
 
 	// We store all output in a buffer to hide it unless there was an error.
 	var buf threadsafe.Buffer
-
 	var output io.Writer
 	output = &buf
 
@@ -131,29 +130,28 @@ func (s *Streaming) Exec() error {
 	s.Process = cmd.Process
 
 	if err := cmd.Wait(); err != nil {
+		// IMPORTANT: We MUST wrap the original error.
+		// This is because the `compute serve` command requires it for --watch
+		// Specifically we need to check the error message for "killed".
+		// This enables the watching logic to restart the Viceroy binary.
+		err = fmt.Errorf("error during execution process (see 'command output' above): %w", err)
+
 		text.Output(output, divider)
 
 		// If we're in verbose mode, the build output is shown.
 		// So in that case we don't want to have a spinner as it'll interweave output.
 		// In non-verbose mode we have a spinner running while the build is happening.
-		if !s.Verbose {
-			if s.Spinner != nil {
-				s.Spinner.StopFailMessage(s.SpinnerMessage)
-				spinErr := s.Spinner.StopFail()
-				if spinErr != nil {
-					return spinErr
-				}
+		if !s.Verbose && s.Spinner != nil {
+			s.Spinner.StopFailMessage(s.SpinnerMessage)
+			if spinErr := s.Spinner.StopFail(); spinErr != nil {
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 		}
 
 		// Display the buffer stored output as we have an error.
 		fmt.Fprintf(s.Output, "%s", buf.String())
 
-		// IMPORTANT: We MUST wrap the original error.
-		// This is because the `compute serve` command requires it for --watch
-		// Specifically we need to check the error message for "killed".
-		// This enables the watching logic to restart the Viceroy binary.
-		return fmt.Errorf("error during execution process (see 'command output' above): %w", err)
+		return err
 	}
 
 	text.Output(output, divider)
