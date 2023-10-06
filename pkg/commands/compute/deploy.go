@@ -160,12 +160,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	domain, err := getServiceDomain(c.Globals.APIClient, serviceID, serviceVersion.Number)
+	serviceURL, err := getServiceURL(c.Globals.APIClient, serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}
-
-	serviceURL := fmt.Sprintf("https://%s", domain)
 
 	if !c.StatusCheckOff && newService {
 		var status int
@@ -1154,7 +1152,8 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, spin
 	})
 }
 
-func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion int) (string, error) {
+// getServiceURL returns the service URL.
+func getServiceURL(apiClient api.Interface, serviceID string, serviceVersion int) (string, error) {
 	latestDomains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
@@ -1166,7 +1165,7 @@ func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion 
 	if segs := strings.Split(name, "*."); len(segs) > 1 {
 		name = segs[1]
 	}
-	return name, nil
+	return fmt.Sprintf("https://%s", name), nil
 }
 
 // checkingServiceAvailability pings the service URL until either there is a
