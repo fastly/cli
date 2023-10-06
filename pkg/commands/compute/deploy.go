@@ -121,7 +121,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var serviceVersion *fastly.Version
 
 	if noExistingService {
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(
+		serviceID, serviceVersion, err = c.NewService(
 			c.Globals.Flags, in, out,
 			c.Globals.APIClient, c.Package, c.Globals.ErrLog,
 			&c.Manifest.File, fnActivateTrial, spinner, c.ServiceName,
@@ -455,8 +455,8 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 	}
 }
 
-// manageNoServiceIDFlow handles creating a new service when no Service ID is found.
-func manageNoServiceIDFlow(
+// NewService handles creating a new service when no Service ID is found.
+func (c *DeployCommand) NewService(
 	f global.Flags,
 	in io.Reader,
 	out io.Writer,
