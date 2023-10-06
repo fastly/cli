@@ -1124,6 +1124,8 @@ func processSetupCreation(
 	return nil
 }
 
+// processService updates the service version comment and then activates the
+// service version.
 func processService(c *DeployCommand, serviceID string, serviceVersion int, spinner text.Spinner) error {
 	if c.Comment.WasSet {
 		_, err := c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
