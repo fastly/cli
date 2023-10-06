@@ -167,11 +167,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if err = processService(c, serviceID, serviceVersion.Number, spinner); err != nil {
+	if err = c.ProcessService(serviceID, serviceVersion.Number, spinner); err != nil {
 		return err
 	}
 
-	serviceURL, err := getServiceURL(c.Globals.APIClient, serviceID, serviceVersion.Number)
+	serviceURL, err := c.GetServiceURL(serviceID, serviceVersion.Number)
 	if err != nil {
 		return err
 	}
@@ -1060,9 +1060,9 @@ func processSetupCreation(
 	return nil
 }
 
-// processService updates the service version comment and then activates the
+// ProcessService updates the service version comment and then activates the
 // service version.
-func processService(c *DeployCommand, serviceID string, serviceVersion int, spinner text.Spinner) error {
+func (c *DeployCommand) ProcessService(serviceID string, serviceVersion int, spinner text.Spinner) error {
 	if c.Comment.WasSet {
 		_, err := c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
 			ServiceID:      serviceID,
@@ -1090,9 +1090,9 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, spin
 	})
 }
 
-// getServiceURL returns the service URL.
-func getServiceURL(apiClient api.Interface, serviceID string, serviceVersion int) (string, error) {
-	latestDomains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
+// GetServiceURL returns the service URL.
+func (c *DeployCommand) GetServiceURL(serviceID string, serviceVersion int) (string, error) {
+	latestDomains, err := c.Globals.APIClient.ListDomains(&fastly.ListDomainsInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 	})
