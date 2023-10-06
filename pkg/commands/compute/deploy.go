@@ -107,6 +107,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return nil
 	})
 
+	defer func(errLog fsterr.LogInterface) {
+		if err != nil {
+			errLog.Add(err)
+		}
+		undoStack.RunIfError(out, err)
+	}(c.Globals.ErrLog)
+
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
 		return err
@@ -132,13 +139,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	); err != nil {
 		return err
 	}
-
-	defer func(errLog fsterr.LogInterface) {
-		if err != nil {
-			errLog.Add(err)
-		}
-		undoStack.RunIfError(out, err)
-	}(c.Globals.ErrLog)
 
 	if err = processSetupCreation(
 		newService, so, spinner, c, serviceID, serviceVersion.Number,
