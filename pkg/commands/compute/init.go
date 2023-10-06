@@ -448,7 +448,7 @@ func promptOrReturn(
 	description, _ = m.Description()
 	authors, _ = m.Authors()
 
-	if name == "" {
+	if name == "" && !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Break(out)
 	}
 	name, err = promptPackageName(flags, name, path, in, out)
@@ -456,7 +456,7 @@ func promptOrReturn(
 		return "", description, authors, err
 	}
 
-	if description == "" {
+	if description == "" && !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Break(out)
 	}
 	description, err = promptPackageDescription(flags, description, in, out)
@@ -464,7 +464,7 @@ func promptOrReturn(
 		return name, "", authors, err
 	}
 
-	if len(authors) == 0 {
+	if len(authors) == 0 && !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Break(out)
 	}
 	authors, err = promptPackageAuthors(flags, authors, email, in, out)
