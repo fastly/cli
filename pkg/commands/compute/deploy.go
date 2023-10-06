@@ -32,6 +32,9 @@ const (
 	trialNotActivated    = "Valid values for 'type' are: 'vcl'"
 )
 
+// ErrPackageUnchanged is an error that indicates the package hasn't changed.
+var ErrPackageUnchanged = errors.New("package is unchanged")
+
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
 	cmd.Base
@@ -130,52 +133,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return nil // user declined service creation prompt
 		}
 	} else {
-		// There is a scenario where a user already has a Service ID within the
-		// fastly.toml manifest but they want to deploy their project to a different
-		// service (e.g. deploy to a staging service).
-		//
-		// In this scenario we end up here because we have found a Service ID in the
-		// manifest but if the --service-name flag is set, then we need to ignore
-		// what's set in the manifest and instead identify the ID of the service
-		// name the user has provided.
-		if c.ServiceName.WasSet {
-			serviceID, err = c.ServiceName.Parse(c.Globals.APIClient)
-			if err != nil {
-				return err
+		serviceID, serviceVersion, err = c.ExistingServiceIDVersion(pkgPath, out)
+		if err != nil {
+			if errors.Is(err, ErrPackageUnchanged) {
+				text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, serviceVersion)
+				return nil
 			}
-		}
-
-		serviceVersion, err = c.ServiceVersion.Parse(serviceID, c.Globals.APIClient)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID": serviceID,
-			})
-			return err
-		}
-
-		filesHash, err := getFilesHash(pkgPath)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Package path": pkgPath,
-			})
-			return err
-		}
-
-		cont, err := pkgCompare(c.Globals.APIClient, serviceID, serviceVersion.Number, filesHash, out)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Package path":    pkgPath,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
-		if !cont {
-			return nil
-		}
-
-		serviceVersion, err = manageExistingServiceFlow(serviceID, serviceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
-		if err != nil {
 			return err
 		}
 	}
@@ -788,19 +751,22 @@ func checkServiceID(serviceID string, client api.Interface) error {
 
 // pkgCompare compares the local package files hash against the existing service
 // package version and exits early with message if identical.
-func pkgCompare(client api.Interface, serviceID string, version int, filesHash string, out io.Writer) (cont bool, err error) {
+func pkgCompare(client api.Interface, pkgPath, serviceID string, version int) error {
+	filesHash, err := getFilesHash(pkgPath)
+	if err != nil {
+		return err
+	}
 	p, err := client.GetPackage(&fastly.GetPackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
 	})
 	if err != nil {
-		return false, err
+		return err
 	}
 	if filesHash == p.Metadata.FilesHash {
-		text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
-		return false, nil
+		return ErrPackageUnchanged
 	}
-	return true, nil
+	return nil
 }
 
 // pkgUpload uploads the package to the specified service and version.
@@ -1256,4 +1222,55 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatus
 		return true, resp.StatusCode, nil
 	}
 	return false, resp.StatusCode, nil
+}
+
+// ExistingServiceIDVersion returns an ID and Version for an existing service.
+// If the current service version is active or locked, we clone the version.
+func (c *DeployCommand) ExistingServiceIDVersion(pkgPath string, out io.Writer) (string, *fastly.Version, error) {
+	var (
+		err            error
+		serviceID      string
+		serviceVersion *fastly.Version
+	)
+
+	// There is a scenario where a user already has a Service ID within the
+	// fastly.toml manifest but they want to deploy their project to a different
+	// service (e.g. deploy to a staging service).
+	//
+	// In this scenario we end up here because we have found a Service ID in the
+	// manifest but if the --service-name flag is set, then we need to ignore
+	// what's set in the manifest and instead identify the ID of the service
+	// name the user has provided.
+	if c.ServiceName.WasSet {
+		serviceID, err = c.ServiceName.Parse(c.Globals.APIClient)
+		if err != nil {
+			return "", nil, err
+		}
+	}
+
+	serviceVersion, err = c.ServiceVersion.Parse(serviceID, c.Globals.APIClient)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path": pkgPath,
+			"Service ID":   serviceID,
+		})
+		return serviceID, nil, err
+	}
+
+	err = pkgCompare(c.Globals.APIClient, pkgPath, serviceID, serviceVersion.Number)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path":    pkgPath,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return serviceID, serviceVersion, err
+	}
+
+	serviceVersion, err = manageExistingServiceFlow(serviceID, serviceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
+	if err != nil {
+		return serviceID, serviceVersion, err
+	}
+
+	return serviceID, serviceVersion, nil
 }
