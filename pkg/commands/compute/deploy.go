@@ -691,10 +691,10 @@ func createService(
 	return service.ID, &fastly.Version{Number: 1}, nil
 }
 
-// cleanupService is executed if a new service flow has errors.
+// cleanupNewService is executed if a new service flow has errors.
 // It deletes the service, which will cause any contained resources to be deleted.
 // It will also strip the Service ID from the fastly.toml manifest file.
-func cleanupService(apiClient api.Interface, serviceID string, m manifest.Data, out io.Writer) error {
+func cleanupNewService(apiClient api.Interface, serviceID string, m manifest.Data, out io.Writer) error {
 	text.Info(out, "\nCleaning up service\n\n")
 
 	err := apiClient.DeleteService(&fastly.DeleteServiceInput{
