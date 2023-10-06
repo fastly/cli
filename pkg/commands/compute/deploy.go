@@ -94,15 +94,15 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	// SourceUndefined means...
+	//   - the flags --service-id/--service-name were not set.
+	//   - no service_id attribute was set in the fastly.toml manifest.
+	noExistingService := source == manifest.SourceUndefined
+
 	undoStack := undo.NewStack()
 	undoStack.Push(func() error {
-		// We'll only clean-up the service if it's a new service.
-		//
-		// SourceUndefined means...
-		//   - the flags --service-id/--service-name were not set.
-		//   - no service_id attribute was set in the fastly.toml manifest.
-		if source == manifest.SourceUndefined {
-			return cleanupService(c.Globals.APIClient, serviceID, c.Manifest, out)
+		if noExistingService {
+			return cleanupNewService(c.Globals.APIClient, serviceID, c.Manifest, out)
 		}
 		return nil
 	})
