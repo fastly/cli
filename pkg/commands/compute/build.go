@@ -355,6 +355,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	out = originalOut
 	text.Success(out, "\nBuilt package (%s)", dest)
+
+	// FIXME: Remove this notice in the CLI version 10.6.0
+	if !c.Globals.Flags.Quiet {
+		text.Important(out, "\nIn the next release (10.6.0), the Fastly CLI will collect data related to Wasm builds. If you have questions, comments or feedback, join the discussion at https://bit.ly/wasm-metadata")
+	}
 	return nil
 }
 
@@ -569,8 +574,7 @@ func updateWasmtools(
 	stale := wasmtoolsConfig.LastChecked != "" && wasmtoolsConfig.LatestVersion != "" && check.Stale(wasmtoolsConfig.LastChecked, wasmtoolsConfig.TTL)
 	if !stale {
 		if verbose {
-			text.Info(out, "wasm-tools is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired.")
-			text.Break(out)
+			text.Info(out, "\nwasm-tools is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired.\n\n")
 		}
 		return nil
 	}
