@@ -734,14 +734,14 @@ func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 	})
 }
 
-// pkgCompare compares the local package files hash against the existing service
-// package version and exits early with message if identical.
-func pkgCompare(client api.Interface, pkgPath, serviceID string, version int) error {
+// CompareLocalRemotePackage compares the local package files hash against the
+// existing service package version and exits early with message if identical.
+func (c *DeployCommand) CompareLocalRemotePackage(pkgPath, serviceID string, version int) error {
 	filesHash, err := getFilesHash(pkgPath)
 	if err != nil {
 		return err
 	}
-	p, err := client.GetPackage(&fastly.GetPackageInput{
+	p, err := c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
 	})
@@ -1232,7 +1232,7 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID, pkgPath string, out io
 		return nil, err
 	}
 
-	err = pkgCompare(c.Globals.APIClient, pkgPath, serviceID, serviceVersion.Number)
+	err = c.CompareLocalRemotePackage(pkgPath, serviceID, serviceVersion.Number)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Package path":    pkgPath,
