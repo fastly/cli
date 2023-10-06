@@ -436,7 +436,7 @@ func installViceroy(
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return fsterr.RemediationError{
 				Inner:       err,
@@ -486,7 +486,7 @@ func installViceroy(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinner.WrapErr(err)
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
@@ -499,7 +499,7 @@ func installViceroy(
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}

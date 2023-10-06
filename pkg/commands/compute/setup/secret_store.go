@@ -129,7 +129,7 @@ func (s *SecretStores) Create() error {
 			err = fmt.Errorf("error creating secret store %q: %w", secretStore.Name, err)
 			s.Spinner.StopFailMessage(msg)
 			if spinErr := s.Spinner.StopFail(); spinErr != nil {
-				return s.Spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}
@@ -154,7 +154,7 @@ func (s *SecretStores) Create() error {
 				err = fmt.Errorf("error creating secret store entry %q: %w", entry.Name, err)
 				s.Spinner.StopFailMessage(msg)
 				if spinErr := s.Spinner.StopFail(); spinErr != nil {
-					return s.Spinner.WrapErr(err)
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return err
 			}
@@ -183,7 +183,7 @@ func (s *SecretStores) Create() error {
 			err = fmt.Errorf("error creating resource link between the service %q and the secret store %q: %w", s.ServiceID, store.Name, err)
 			s.Spinner.StopFailMessage(msg)
 			if spinErr := s.Spinner.StopFail(); spinErr != nil {
-				return s.Spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}

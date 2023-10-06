@@ -102,7 +102,7 @@ func (b *Backends) Create() error {
 				b.Spinner.StopFailMessage(msg)
 				spinErr := b.Spinner.StopFail()
 				if spinErr != nil {
-					return b.Spinner.WrapErr(err)
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			return fmt.Errorf("error configuring the service: %w", err)

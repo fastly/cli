@@ -129,7 +129,7 @@ func (o *ConfigStores) Create() error {
 			o.Spinner.StopFailMessage(msg)
 			spinErr := o.Spinner.StopFail()
 			if spinErr != nil {
-				return o.Spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}
@@ -159,7 +159,7 @@ func (o *ConfigStores) Create() error {
 					o.Spinner.StopFailMessage(msg)
 					spinErr := o.Spinner.StopFail()
 					if spinErr != nil {
-						return o.Spinner.WrapErr(err)
+						return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 					}
 					return err
 				}
@@ -191,7 +191,7 @@ func (o *ConfigStores) Create() error {
 			o.Spinner.StopFailMessage(msg)
 			spinErr := o.Spinner.StopFail()
 			if spinErr != nil {
-				return o.Spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}

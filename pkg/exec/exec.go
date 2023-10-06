@@ -144,7 +144,7 @@ func (s *Streaming) Exec() error {
 		if !s.Verbose && s.Spinner != nil {
 			s.Spinner.StopFailMessage(s.SpinnerMessage)
 			if spinErr := s.Spinner.StopFail(); spinErr != nil {
-				return s.Spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 		}
 

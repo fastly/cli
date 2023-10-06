@@ -1,6 +1,7 @@
 package kvstoreentry
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -77,7 +78,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return spinner.WrapErr(err)
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			return err

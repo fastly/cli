@@ -108,13 +108,13 @@ func (bt BuildToolchain) Build() error {
 			text.Break(bt.out)
 			spinErr := bt.spinner.Start()
 			if spinErr != nil {
-				return bt.spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			bt.spinner.Message(msg + "...")
 			bt.spinner.StopFailMessage(msg)
 			spinErr = bt.spinner.StopFail()
 			if spinErr != nil {
-				return bt.spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 		}
 		// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
@@ -194,13 +194,13 @@ func (bt BuildToolchain) Build() error {
 				text.Break(bt.out)
 				spinErr := bt.spinner.Start()
 				if spinErr != nil {
-					return bt.spinner.WrapErr(err)
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				bt.spinner.Message(msg + "...")
 				bt.spinner.StopFailMessage(msg)
 				spinErr = bt.spinner.StopFail()
 				if spinErr != nil {
-					return bt.spinner.WrapErr(err)
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.

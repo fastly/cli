@@ -294,15 +294,15 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// But we can't just call StopFailMessage() without first starting the spinner.
 			if c.Globals.Flags.Verbose {
 				text.Break(out)
-				err := spinner.Start()
-				if err != nil {
-					return spinner.WrapErr(err)
+				spinErr := spinner.Start()
+				if spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				spinner.Message(msg + "...")
 				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
+				spinErr = spinner.StopFail()
 				if spinErr != nil {
-					return spinner.WrapErr(err)
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			return err
@@ -687,7 +687,7 @@ func fetchPackageTemplate(
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}
@@ -706,7 +706,7 @@ func fetchPackageTemplate(
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return spinner.WrapErr(err)
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return err
 			}
@@ -717,7 +717,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinner.WrapErr(err)
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
@@ -735,7 +735,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinner.WrapErr(err)
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
@@ -747,7 +747,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinner.WrapErr(err)
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
@@ -767,7 +767,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinner.WrapErr(err)
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
@@ -789,7 +789,7 @@ func fetchPackageTemplate(
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinner.WrapErr(err)
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
@@ -838,7 +838,7 @@ mimes:
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return spinner.WrapErr(err)
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return err
 			}
@@ -855,7 +855,7 @@ mimes:
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return spinner.WrapErr(err)
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}
@@ -868,7 +868,7 @@ mimes:
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
-			return spinner.WrapErr(err)
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
