@@ -109,7 +109,7 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Reset the fields on the DeployCommand based on PublishCommand values.
 	if c.pkg.WasSet {
-		c.deploy.Package = c.pkg.Value
+		c.deploy.PackagePath = c.pkg.Value
 	}
 	if c.serviceName.WasSet {
 		c.deploy.ServiceName = c.serviceName // deploy's field is a cmd.OptionalServiceNameID

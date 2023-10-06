@@ -138,22 +138,57 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	so, err := c.ConstructSetupObjects(
-		noExistingService, serviceID, serviceVersion.Number, in, out,
-	)
-	if err != nil {
+	var sr ServiceResources
+
+	// NOTE: A 'domain' resource isn't strictly part of the [setup] config.
+	// It's part of the implementation so that we can utilise the same interface.
+	// A domain is required regardless of whether it's a new service or existing.
+	sr.domains = &setup.Domains{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		PackageDomain:  c.Domain,
+		RetryLimit:     5,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion.Number,
+		Stdin:          in,
+		Stdout:         out,
+		Verbose:        c.Globals.Verbose(),
+	}
+	if err = sr.domains.Validate(); err != nil {
+		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion.Number)
+		return fmt.Errorf("error configuring service domains: %w", err)
+	}
+	if noExistingService {
+		c.ConstructNewServiceResources(
+			&sr, serviceID, serviceVersion.Number, in, out,
+		)
+	}
+
+	if sr.domains.Missing() {
+		if err := sr.domains.Configure(); err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion.Number)
+			return fmt.Errorf("error configuring service domains: %w", err)
+		}
+	}
+	if err = c.ConfigureServiceResources(sr, serviceID, serviceVersion.Number); err != nil {
 		return err
 	}
 
-	if err = processSetupConfig(
-		noExistingService, so, serviceID, serviceVersion.Number, c,
-	); err != nil {
-		return err
+	if sr.domains.Missing() {
+		sr.domains.Spinner = spinner
+		if err := sr.domains.Create(); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Accept defaults": c.Globals.Flags.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flags.AutoYes,
+				"Non-interactive": c.Globals.Flags.NonInteractive,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion,
+			})
+			return err
+		}
 	}
-
-	if err = processSetupCreation(
-		noExistingService, so, spinner, c, serviceID, serviceVersion.Number,
-	); err != nil {
+	if err = c.CreateServiceResources(sr, spinner, serviceID, serviceVersion.Number); err != nil {
 		return err
 	}
 
@@ -714,9 +749,9 @@ func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, ver
 	})
 }
 
-// setupObjects is a collection of backend objects created during setup.
+// ServiceResources is a collection of backend objects created during setup.
 // Objects may be nil.
-type setupObjects struct {
+type ServiceResources struct {
 	domains      *setup.Domains
 	backends     *setup.Backends
 	configStores *setup.ConfigStores
@@ -726,260 +761,198 @@ type setupObjects struct {
 	secretStores *setup.SecretStores
 }
 
-func (c *DeployCommand) ConstructSetupObjects(
-	newService bool,
+// ConstructNewServiceResources instantiates multiple [setup] config resources for a
+// new Service to process.
+func (c *DeployCommand) ConstructNewServiceResources(
+	sr *ServiceResources,
 	serviceID string,
 	serviceVersion int,
 	in io.Reader,
 	out io.Writer,
-) (setupObjects, error) {
-	var (
-		so  setupObjects
-		err error
-	)
-
-	// Because a service_id exists in the fastly.toml doesn't mean it's valid
-	// e.g. it could be missing required resources such as a domain or backend.
-	// We check and allow the user to configure these settings before continuing.
-
-	so.domains = &setup.Domains{
+) {
+	sr.backends = &setup.Backends{
 		APIClient:      c.Globals.APIClient,
 		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 		NonInteractive: c.Globals.Flags.NonInteractive,
-		PackageDomain:  c.Domain,
-		RetryLimit:     5,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
+		Setup:          c.Manifest.File.Setup.Backends,
 		Stdin:          in,
 		Stdout:         out,
-		Verbose:        c.Globals.Verbose(),
 	}
 
-	if err = so.domains.Validate(); err != nil {
-		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-		return setupObjects{}, fmt.Errorf("error configuring service domains: %w", err)
+	sr.configStores = &setup.ConfigStores{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Manifest.File.Setup.ConfigStores,
+		Stdin:          in,
+		Stdout:         out,
 	}
 
-	if newService {
-		so.backends = &setup.Backends{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.Backends,
-			Stdin:          in,
-			Stdout:         out,
-		}
-
-		so.configStores = &setup.ConfigStores{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.ConfigStores,
-			Stdin:          in,
-			Stdout:         out,
-		}
-
-		so.loggers = &setup.Loggers{
-			Setup:  c.Manifest.File.Setup.Loggers,
-			Stdout: out,
-		}
-
-		so.objectStores = &setup.KVStores{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.ObjectStores,
-			Stdin:          in,
-			Stdout:         out,
-		}
-
-		so.kvStores = &setup.KVStores{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.KVStores,
-			Stdin:          in,
-			Stdout:         out,
-		}
-
-		so.secretStores = &setup.SecretStores{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.SecretStores,
-			Stdin:          in,
-			Stdout:         out,
-		}
+	sr.loggers = &setup.Loggers{
+		Setup:  c.Manifest.File.Setup.Loggers,
+		Stdout: out,
 	}
 
-	return so, nil
+	sr.objectStores = &setup.KVStores{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Manifest.File.Setup.ObjectStores,
+		Stdin:          in,
+		Stdout:         out,
+	}
+
+	sr.kvStores = &setup.KVStores{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Manifest.File.Setup.KVStores,
+		Stdin:          in,
+		Stdout:         out,
+	}
+
+	sr.secretStores = &setup.SecretStores{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Manifest.File.Setup.SecretStores,
+		Stdin:          in,
+		Stdout:         out,
+	}
 }
 
-func processSetupConfig(
-	newService bool,
-	so setupObjects,
-	serviceID string,
-	serviceVersion int,
-	c *DeployCommand,
-) error {
-	if so.domains.Missing() {
-		if err := so.domains.Configure(); err != nil {
+// ConfigureServiceResources calls the .Predefined() and .Configure() methods
+// for each [setup] resource, which first checks if a [setup] config has been
+// defined for the resource type, and if so it prompts the user for details.
+func (c *DeployCommand) ConfigureServiceResources(so ServiceResources, serviceID string, serviceVersion int) error {
+	// NOTE: A service can't be activated without at least one backend defined.
+	// This explains why the following block of code isn't wrapped in a call to
+	// the .Predefined() method, as the call to .Configure() will ensure the
+	// user is prompted regardless of whether there is a [setup.backends]
+	// defined in the fastly.toml configuration.
+	if err := so.backends.Configure(); err != nil {
+		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
+		return fmt.Errorf("error configuring service backends: %w", err)
+	}
+
+	if so.configStores.Predefined() {
+		if err := so.configStores.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-			return fmt.Errorf("error configuring service domains: %w", err)
+			return fmt.Errorf("error configuring service config stores: %w", err)
 		}
 	}
 
-	// IMPORTANT: The pointer refs in this block are not checked for nil.
-	// We presume if we're dealing with newService they have been set.
-	if newService {
-		// NOTE: A service can't be activated without at least one backend defined.
-		// This explains why the following block of code isn't wrapped in a call to
-		// the .Predefined() method, as the call to .Configure() will ensure the
-		// user is prompted regardless of whether there is a [setup.backends]
-		// defined in the fastly.toml configuration.
-		if err := so.backends.Configure(); err != nil {
+	if so.loggers.Predefined() {
+		// NOTE: We don't handle errors from the Configure() method because we
+		// don't actually do anything other than display a message to the user
+		// informing them that they need to create a log endpoint and which
+		// provider type they should be. The reason we don't implement logic for
+		// creating logging objects is because the API input fields vary
+		// significantly between providers.
+		_ = so.loggers.Configure()
+	}
+
+	if so.objectStores.Predefined() {
+		if err := so.objectStores.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-			return fmt.Errorf("error configuring service backends: %w", err)
+			return fmt.Errorf("error configuring service object stores: %w", err)
 		}
+	}
 
-		if so.configStores.Predefined() {
-			if err := so.configStores.Configure(); err != nil {
-				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service config stores: %w", err)
-			}
+	if so.kvStores.Predefined() {
+		if err := so.kvStores.Configure(); err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
+			return fmt.Errorf("error configuring service kv stores: %w", err)
 		}
+	}
 
-		if so.loggers.Predefined() {
-			// NOTE: We don't handle errors from the Configure() method because we
-			// don't actually do anything other than display a message to the user
-			// informing them that they need to create a log endpoint and which
-			// provider type they should be. The reason we don't implement logic for
-			// creating logging objects is because the API input fields vary
-			// significantly between providers.
-			_ = so.loggers.Configure()
-		}
-
-		if so.objectStores.Predefined() {
-			if err := so.objectStores.Configure(); err != nil {
-				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service object stores: %w", err)
-			}
-		}
-
-		if so.kvStores.Predefined() {
-			if err := so.kvStores.Configure(); err != nil {
-				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service kv stores: %w", err)
-			}
-		}
-
-		if so.secretStores.Predefined() {
-			if err := so.secretStores.Configure(); err != nil {
-				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service secret stores: %w", err)
-			}
+	if so.secretStores.Predefined() {
+		if err := so.secretStores.Configure(); err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
+			return fmt.Errorf("error configuring service secret stores: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func processSetupCreation(
-	newService bool,
-	so setupObjects,
+// CreateServiceResources makes API calls to create resources that have been
+// defined in the fastly.toml [setup] configuration.
+func (c *DeployCommand) CreateServiceResources(
+	sr ServiceResources,
 	spinner text.Spinner,
-	c *DeployCommand,
 	serviceID string,
 	serviceVersion int,
 ) error {
-	if so.domains.Missing() {
-		so.domains.Spinner = spinner
+	sr.backends.Spinner = spinner
+	sr.configStores.Spinner = spinner
+	sr.objectStores.Spinner = spinner
+	sr.kvStores.Spinner = spinner
+	sr.secretStores.Spinner = spinner
 
-		if err := so.domains.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
+	if err := sr.backends.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
 	}
 
-	// IMPORTANT: The pointer refs in this block are not checked for nil.
-	// We presume if we're dealing with newService they have been set.
-	if newService {
-		so.backends.Spinner = spinner
-		so.configStores.Spinner = spinner
-		so.objectStores.Spinner = spinner
-		so.kvStores.Spinner = spinner
-		so.secretStores.Spinner = spinner
+	if err := sr.configStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
+	}
 
-		if err := so.backends.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
+	if err := sr.objectStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
+	}
 
-		if err := so.configStores.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
+	if err := sr.kvStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
+	}
 
-		if err := so.objectStores.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
-
-		if err := so.kvStores.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
-
-		if err := so.secretStores.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
+	if err := sr.secretStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
 	}
 
 	return nil
