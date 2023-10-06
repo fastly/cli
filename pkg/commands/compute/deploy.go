@@ -89,15 +89,11 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	fnActivateTrial, source, serviceID, pkgPath, err := setupDeploy(c, out)
+	fnActivateTrial, serviceID, pkgPath, err := setupDeploy(c, out)
 	if err != nil {
 		return err
 	}
-
-	// SourceUndefined means...
-	//   - the flags --service-id/--service-name were not set.
-	//   - no service_id attribute was set in the fastly.toml manifest.
-	noExistingService := source == manifest.SourceUndefined
+	noExistingService := serviceID == ""
 
 	undoStack := undo.NewStack()
 	undoStack.Push(func() error {
@@ -119,29 +115,86 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	newService, serviceID, serviceVersion, cont, err := serviceManagement(pkgPath, serviceID, source, c, in, out, fnActivateTrial, spinner)
-	if err != nil {
-		return err
-	}
-	if !cont {
-		return nil
+	var serviceVersion *fastly.Version
+
+	if noExistingService {
+		serviceID, serviceVersion, err = manageNoServiceIDFlow(
+			c.Globals.Flags, in, out,
+			c.Globals.APIClient, c.Package, c.Globals.ErrLog,
+			&c.Manifest.File, fnActivateTrial, spinner, c.ServiceName,
+		)
+		if err != nil {
+			return err
+		}
+		if serviceID == "" {
+			return nil // user declined service creation prompt
+		}
+	} else {
+		// There is a scenario where a user already has a Service ID within the
+		// fastly.toml manifest but they want to deploy their project to a different
+		// service (e.g. deploy to a staging service).
+		//
+		// In this scenario we end up here because we have found a Service ID in the
+		// manifest but if the --service-name flag is set, then we need to ignore
+		// what's set in the manifest and instead identify the ID of the service
+		// name the user has provided.
+		if c.ServiceName.WasSet {
+			serviceID, err = c.ServiceName.Parse(c.Globals.APIClient)
+			if err != nil {
+				return err
+			}
+		}
+
+		serviceVersion, err = c.ServiceVersion.Parse(serviceID, c.Globals.APIClient)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Service ID": serviceID,
+			})
+			return err
+		}
+
+		filesHash, err := getFilesHash(pkgPath)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Package path": pkgPath,
+			})
+			return err
+		}
+
+		cont, err := pkgCompare(c.Globals.APIClient, serviceID, serviceVersion.Number, filesHash, out)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Package path":    pkgPath,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion,
+			})
+			return err
+		}
+		if !cont {
+			return nil
+		}
+
+		serviceVersion, err = manageExistingServiceFlow(serviceID, serviceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
+		if err != nil {
+			return err
+		}
 	}
 
 	so, err := constructSetupObjects(
-		newService, serviceID, serviceVersion.Number, c, in, out,
+		noExistingService, serviceID, serviceVersion.Number, c, in, out,
 	)
 	if err != nil {
 		return err
 	}
 
 	if err = processSetupConfig(
-		newService, so, serviceID, serviceVersion.Number, c,
+		noExistingService, so, serviceID, serviceVersion.Number, c,
 	); err != nil {
 		return err
 	}
 
 	if err = processSetupCreation(
-		newService, so, spinner, c, serviceID, serviceVersion.Number,
+		noExistingService, so, spinner, c, serviceID, serviceVersion.Number,
 	); err != nil {
 		return err
 	}
@@ -165,7 +218,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if !c.StatusCheckOff && newService {
+	if !c.StatusCheckOff && noExistingService {
 		var status int
 		if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
 			if re, ok := err.(fsterr.RemediationError); ok {
@@ -189,7 +242,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if !newService {
+	if !noExistingService {
 		text.Break(out)
 	}
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
@@ -215,7 +268,6 @@ func validStatusCodeRange(status int) bool {
 //   - Determine if a trial needs to be activated on the user's account.
 func setupDeploy(c *DeployCommand, out io.Writer) (
 	fnActivateTrial activator,
-	source manifest.Source,
 	serviceID, pkgPath string,
 	err error,
 ) {
@@ -223,7 +275,7 @@ func setupDeploy(c *DeployCommand, out io.Writer) (
 
 	token, s := c.Globals.Token()
 	if s == lookup.SourceUndefined {
-		return defaultActivator, 0, "", "", fsterr.ErrNoToken
+		return defaultActivator, "", "", fsterr.ErrNoToken
 	}
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
@@ -236,13 +288,13 @@ func setupDeploy(c *DeployCommand, out io.Writer) (
 
 	pkgPath, err = validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
 	if err != nil {
-		return defaultActivator, source, serviceID, "", err
+		return defaultActivator, serviceID, "", err
 	}
 
 	endpoint, _ := c.Globals.Endpoint()
 	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
 
-	return fnActivateTrial, source, serviceID, pkgPath, err
+	return fnActivateTrial, serviceID, pkgPath, err
 }
 
 // validatePackage short-circuits the deploy command if the user hasn't first
@@ -438,82 +490,6 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 		}
 		return nil
 	}
-}
-
-func serviceManagement(
-	pkgPath, serviceID string,
-	source manifest.Source,
-	c *DeployCommand,
-	in io.Reader,
-	out io.Writer,
-	fnActivateTrial activator,
-	spinner text.Spinner,
-) (newService bool, updatedServiceID string, serviceVersion *fastly.Version, cont bool, err error) {
-	if source == manifest.SourceUndefined {
-		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(
-			c.Globals.Flags, in, out,
-			c.Globals.APIClient, c.Package, c.Globals.ErrLog,
-			&c.Manifest.File, fnActivateTrial, spinner, c.ServiceName,
-		)
-		if err != nil {
-			return newService, "", nil, false, err
-		}
-		if serviceID == "" {
-			return newService, "", nil, false, nil // user declined service creation prompt
-		}
-	} else {
-		// There is a scenario where a user already has a Service ID within the
-		// fastly.toml manifest but they want to deploy their project to a different
-		// service (e.g. deploy to a staging service).
-		//
-		// In this scenario we end up here because we have found a Service ID in the
-		// manifest but if the --service-name flag is set, then we need to ignore
-		// what's set in the manifest and instead identify the ID of the service
-		// name the user has provided.
-		if c.ServiceName.WasSet {
-			serviceID, err = c.ServiceName.Parse(c.Globals.APIClient)
-			if err != nil {
-				return false, "", nil, false, err
-			}
-		}
-
-		serviceVersion, err = c.ServiceVersion.Parse(serviceID, c.Globals.APIClient)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Service ID": serviceID,
-			})
-			return false, "", serviceVersion, false, err
-		}
-
-		filesHash, err := getFilesHash(pkgPath)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Package path": pkgPath,
-			})
-			return false, "", nil, false, err
-		}
-
-		cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion.Number, filesHash, out)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Package path":    pkgPath,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return false, "", nil, false, err
-		}
-		if !cont {
-			return false, "", nil, false, err
-		}
-
-		serviceVersion, err = manageExistingServiceFlow(serviceID, serviceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
-		if err != nil {
-			return false, "", nil, false, err
-		}
-	}
-
-	return newService, serviceID, serviceVersion, true, nil
 }
 
 // manageNoServiceIDFlow handles creating a new service when no Service ID is found.
