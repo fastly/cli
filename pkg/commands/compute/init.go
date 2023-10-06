@@ -120,7 +120,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	dst, err := verifyDestination(notEmpty, c.dir, spinner, out)
+	dst, err := verifyDestination(c.dir, spinner)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory": c.dir,
@@ -128,6 +128,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 	c.dir = dst
+
+	if notEmpty {
+		text.Break(out)
+	}
+	err = spinner.Process("Validating directory permissions", validateDirectoryPermissions(dst))
+	if err != nil {
+		return err
+	}
 
 	// Assign the default profile email if available.
 	email := ""
@@ -368,12 +376,11 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(notEmpty bool, path string, spinner text.Spinner, out io.Writer) (dst string, err error) {
+func verifyDestination(path string, spinner text.Spinner) (dst string, err error) {
 	dst, err = filepath.Abs(path)
 	if err != nil {
 		return "", err
 	}
-
 	fi, err := os.Stat(dst)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return dst, fmt.Errorf("couldn't verify package directory: %w", err) // generic error
@@ -392,11 +399,11 @@ func verifyDestination(notEmpty bool, path string, spinner text.Spinner, out io.
 			return "", err
 		}
 	}
+	return dst, nil
+}
 
-	if notEmpty {
-		text.Break(out)
-	}
-	err = spinner.Process("Validating directory permissions", func(_ *text.SpinnerWrapper) error {
+func validateDirectoryPermissions(dst string) text.SpinnerProcess {
+	return func(_ *text.SpinnerWrapper) error {
 		tmpname := make([]byte, 16)
 		n, err := rand.Read(tmpname)
 		if err != nil {
@@ -424,12 +431,7 @@ func verifyDestination(notEmpty bool, path string, spinner text.Spinner, out io.
 			return fmt.Errorf("error removing file in package destination: %w", err)
 		}
 		return nil
-	})
-	if err != nil {
-		return "", err
 	}
-
-	return dst, nil
 }
 
 // promptOrReturn will prompt the user for information missing from the
