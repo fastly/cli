@@ -177,36 +177,47 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	if !c.StatusCheckOff && noExistingService {
-		var status int
-		if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
-			if re, ok := err.(fsterr.RemediationError); ok {
-				text.Warning(out, re.Remediation)
-			}
-		}
+		c.StatusCheck(serviceURL, spinner, out)
+	}
 
-		// Because the service availability can return an error (which we ignore),
-		// then we need to check for the 'no error' scenarios.
-		if err == nil {
-			switch {
-			case validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode:
-				// If the user set a specific status code expectation...
-				text.Warning(out, "The service path `%s` responded with a status code (%d) that didn't match what was expected (%d).", c.StatusCheckPath, status, c.StatusCheckCode)
-			case !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest:
-				// If no status code was specified, and the actual status response was an error...
-				text.Info(out, "The service path `%s` responded with a non-successful status code (%d). Please check your application code if this is an unexpected response.", c.StatusCheckPath, status)
-			default:
-				text.Break(out)
-			}
+	displayDeployOutput(noExistingService, out, manageServiceBaseURL, serviceID, serviceURL, serviceVersion.Number)
+	return nil
+}
+
+func (c *DeployCommand) StatusCheck(serviceURL string, spinner text.Spinner, out io.Writer) {
+	var (
+		err    error
+		status int
+	)
+	if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
+		if re, ok := err.(fsterr.RemediationError); ok {
+			text.Warning(out, re.Remediation)
 		}
 	}
 
+	// Because the service availability can return an error (which we ignore),
+	// then we need to check for the 'no error' scenarios.
+	if err == nil {
+		switch {
+		case validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode:
+			// If the user set a specific status code expectation...
+			text.Warning(out, "The service path `%s` responded with a status code (%d) that didn't match what was expected (%d).", c.StatusCheckPath, status, c.StatusCheckCode)
+		case !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest:
+			// If no status code was specified, and the actual status response was an error...
+			text.Info(out, "The service path `%s` responded with a non-successful status code (%d). Please check your application code if this is an unexpected response.", c.StatusCheckPath, status)
+		default:
+			text.Break(out)
+		}
+	}
+}
+
+func displayDeployOutput(noExistingService bool, out io.Writer, manageServiceBaseURL, serviceID, serviceURL string, serviceVersion int) {
 	if !noExistingService {
 		text.Break(out)
 	}
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 	text.Description(out, "View this service at", serviceURL)
-	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
-	return nil
+	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion)
 }
 
 // validStatusCodeRange checks the status is a valid status code.

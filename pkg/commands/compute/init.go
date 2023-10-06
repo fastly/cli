@@ -248,7 +248,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			err := promptForPostInitContinue(msg, postInit, out, in)
 			if err != nil {
 				if errors.Is(err, fsterr.ErrPostInitStopped) {
-					displayOutput(mf.Name, dst, language.Name, out)
+					displayInitOutput(mf.Name, dst, language.Name, out)
 					return nil
 				}
 				return err
@@ -326,7 +326,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	displayOutput(mf.Name, dst, language.Name, out)
+	displayInitOutput(mf.Name, dst, language.Name, out)
 	return nil
 }
 
@@ -1136,8 +1136,8 @@ func promptForPostInitContinue(msg, script string, out io.Writer, in io.Reader) 
 	return nil
 }
 
-// displayOutput of package information and useful links.
-func displayOutput(name, dst, language string, out io.Writer) {
+// displayInitOutput of package information and useful links.
+func displayInitOutput(name, dst, language string, out io.Writer) {
 	text.Break(out)
 	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(name)), dst)
 
