@@ -671,61 +671,6 @@ func (c *DeployCommand) UpdateManifestServiceID(serviceID string) error {
 	return nil
 }
 
-// manageExistingServiceFlow clones service version if required.
-func manageExistingServiceFlow(
-	serviceID string,
-	serviceVersion *fastly.Version,
-	apiClient api.Interface,
-	verbose bool,
-	out io.Writer,
-	errLog fsterr.LogInterface,
-) (*fastly.Version, error) {
-	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
-	// VCL service, for which we cannot upload a wasm package format to.
-	serviceDetails, err := apiClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
-	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
-		})
-		return serviceVersion, err
-	}
-	if serviceDetails.Type != "wasm" {
-		errLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceDetails.Type), map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
-			"Service Type":    serviceDetails.Type,
-		})
-		return serviceVersion, fsterr.RemediationError{
-			Inner:       fmt.Errorf("invalid service type: %s", serviceDetails.Type),
-			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
-		}
-	}
-
-	// Unlike other CLI commands that are a direct mapping to an API endpoint,
-	// the compute deploy command is a composite of behaviours, and so as we
-	// already automatically activate a version we should autoclone without
-	// requiring the user to explicitly provide an --autoclone flag.
-	if serviceVersion.Active || serviceVersion.Locked {
-		clonedVersion, err := apiClient.CloneVersion(&fastly.CloneVersionInput{
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion.Number,
-		})
-		if err != nil {
-			errLogService(errLog, err, serviceID, serviceVersion.Number)
-			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
-		}
-		if verbose {
-			msg := "Service version %d is not editable, so it was automatically cloned. Now operating on version %d.\n\n"
-			format := fmt.Sprintf(msg, serviceVersion.Number, clonedVersion.Number)
-			text.Output(out, format)
-		}
-		serviceVersion = clonedVersion
-	}
-
-	return serviceVersion, nil
-}
-
 // errLogService records the error, service id and version into the error log.
 func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 	l.AddWithContext(err, map[string]any{
@@ -1242,9 +1187,47 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID, pkgPath string, out io
 		return serviceVersion, err
 	}
 
-	serviceVersion, err = manageExistingServiceFlow(serviceID, serviceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
+	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
+	// VCL service, for which we cannot upload a wasm package format to.
+	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
 	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
 		return serviceVersion, err
+	}
+	if serviceDetails.Type != "wasm" {
+		c.Globals.ErrLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceDetails.Type), map[string]any{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+			"Service Type":    serviceDetails.Type,
+		})
+		return serviceVersion, fsterr.RemediationError{
+			Inner:       fmt.Errorf("invalid service type: %s", serviceDetails.Type),
+			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
+		}
+	}
+
+	// Unlike other CLI commands that are a direct mapping to an API endpoint,
+	// the compute deploy command is a composite of behaviours, and so as we
+	// already automatically activate a version we should autoclone without
+	// requiring the user to explicitly provide an --autoclone flag.
+	if serviceVersion.Active || serviceVersion.Locked {
+		clonedVersion, err := c.Globals.APIClient.CloneVersion(&fastly.CloneVersionInput{
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion.Number,
+		})
+		if err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion.Number)
+			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
+		}
+		if c.Globals.Verbose() {
+			msg := "Service version %d is not editable, so it was automatically cloned. Now operating on version %d.\n\n"
+			format := fmt.Sprintf(msg, serviceVersion.Number, clonedVersion.Number)
+			text.Output(out, format)
+		}
+		serviceVersion = clonedVersion
 	}
 
 	return serviceVersion, nil
