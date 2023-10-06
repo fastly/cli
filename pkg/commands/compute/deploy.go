@@ -44,7 +44,7 @@ type DeployCommand struct {
 	Comment            cmd.OptionalString
 	Domain             string
 	Manifest           manifest.Data
-	Package            string
+	PackagePath        string
 	ServiceName        cmd.OptionalServiceNameID
 	ServiceVersion     cmd.OptionalServiceVersion
 	StatusCheckCode    int
@@ -82,7 +82,7 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	})
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
+	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
 	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check").IntVar(&c.StatusCheckCode)
 	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.StatusCheckOff)
 	c.CmdClause.Flag("status-check-path", "Specify the URL path for the service availability check").Default("/").StringVar(&c.StatusCheckPath)
@@ -101,7 +101,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	undoStack := undo.NewStack()
 	undoStack.Push(func() error {
 		if noExistingService {
-			return cleanupNewService(c.Globals.APIClient, serviceID, c.Manifest, out)
+			return c.CleanupNewService(serviceID, out)
 		}
 		return nil
 	})
@@ -119,13 +119,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	var serviceVersion *fastly.Version
-
 	if noExistingService {
-		serviceID, serviceVersion, err = c.NewService(
-			c.Globals.Flags, in, out,
-			c.Globals.APIClient, c.Package, c.Globals.ErrLog,
-			&c.Manifest.File, fnActivateTrial, spinner, c.ServiceName,
-		)
+		serviceID, serviceVersion, err = c.NewServiceIDVersion(fnActivateTrial, spinner, in, out)
 		if err != nil {
 			return err
 		}
@@ -249,7 +244,7 @@ func setupDeploy(c *DeployCommand, out io.Writer) (
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	pkgPath, err = validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	pkgPath, err = validatePackage(c.Manifest, c.PackagePath, c.Globals.Verbose(), c.Globals.ErrLog, out)
 	if err != nil {
 		return defaultActivator, serviceID, "", err
 	}
@@ -455,25 +450,20 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 	}
 }
 
-// NewService handles creating a new service when no Service ID is found.
-func (c *DeployCommand) NewService(
-	f global.Flags,
-	in io.Reader,
-	out io.Writer,
-	apiClient api.Interface,
-	packageFlag string,
-	errLog fsterr.LogInterface,
-	manifestFile *manifest.File,
-	fnActivateTrial activator,
-	spinner text.Spinner,
-	serviceNameFlag cmd.OptionalServiceNameID,
-) (serviceID string, serviceVersion *fastly.Version, err error) {
-	if !f.AutoYes && !f.NonInteractive {
+// NewServiceIDVersion handles creating a new service when no Service ID is found.
+func (c *DeployCommand) NewServiceIDVersion(fnActivateTrial activator, spinner text.Spinner, in io.Reader, out io.Writer) (string, *fastly.Version, error) {
+	var (
+		err            error
+		serviceID      string
+		serviceVersion *fastly.Version
+	)
+
+	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
 		text.Break(out)
 		text.Output(out, "Press ^C at any time to quit.")
 
-		if manifestFile.Setup.Defined() {
+		if c.Manifest.File.Setup.Defined() {
 			text.Info(out, "\nProcessing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
 		}
 
@@ -488,16 +478,16 @@ func (c *DeployCommand) NewService(
 		text.Break(out)
 	}
 
-	defaultServiceName := manifestFile.Name
+	defaultServiceName := c.Manifest.File.Name
 	var serviceName string
 
 	// The service name will be whatever is set in the --service-name flag.
 	// If the flag isn't set, and we're non-interactive, we'll use the default.
 	// If the flag isn't set, and we're interactive, we'll prompt the user.
 	switch {
-	case serviceNameFlag.WasSet:
-		serviceName = serviceNameFlag.Value
-	case f.AcceptDefaults || f.NonInteractive:
+	case c.ServiceName.WasSet:
+		serviceName = c.ServiceName.Value
+	case c.Globals.Flags.AcceptDefaults || c.Globals.Flags.NonInteractive:
 		serviceName = defaultServiceName
 	default:
 		serviceName, err = text.Input(out, text.BoldYellow(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
@@ -508,16 +498,16 @@ func (c *DeployCommand) NewService(
 
 	// There is no service and so we'll do a one time creation of the service
 	//
-	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
-	serviceID, serviceVersion, err = createService(f, serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
+	// NOTE: we're shadowing the `serviceID` and `serviceVersion` variables.
+	serviceID, serviceVersion, err = createService(c.Globals.Flags, serviceName, c.Globals.APIClient, fnActivateTrial, spinner, c.Globals.ErrLog, out)
 	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service name": serviceName,
 		})
 		return serviceID, serviceVersion, err
 	}
 
-	err = updateManifestServiceID(manifestFile, manifest.Filename, serviceID)
+	err = c.UpdateManifestServiceID(serviceID)
 
 	// NOTE: Skip error if --package flag is set.
 	//
@@ -528,8 +518,8 @@ func (c *DeployCommand) NewService(
 	// If the user does happen to be in a project directory and they use the
 	// --package flag, then the above function call to update the manifest will
 	// have succeeded and so there will be no error.
-	if err != nil && packageFlag == "" {
-		errLog.AddWithContext(err, map[string]any{
+	if err != nil && c.PackagePath == "" {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return serviceID, serviceVersion, err
@@ -630,13 +620,12 @@ func createService(
 	return service.ID, &fastly.Version{Number: 1}, nil
 }
 
-// cleanupNewService is executed if a new service flow has errors.
+// CleanupNewService is executed if a new service flow has errors.
 // It deletes the service, which will cause any contained resources to be deleted.
 // It will also strip the Service ID from the fastly.toml manifest file.
-func cleanupNewService(apiClient api.Interface, serviceID string, m manifest.Data, out io.Writer) error {
+func (c *DeployCommand) CleanupNewService(serviceID string, out io.Writer) error {
 	text.Info(out, "\nCleaning up service\n\n")
-
-	err := apiClient.DeleteService(&fastly.DeleteServiceInput{
+	err := c.Globals.APIClient.DeleteService(&fastly.DeleteServiceInput{
 		ID: serviceID,
 	})
 	if err != nil {
@@ -644,8 +633,7 @@ func cleanupNewService(apiClient api.Interface, serviceID string, m manifest.Dat
 	}
 
 	text.Info(out, "Removing Service ID from fastly.toml\n\n")
-
-	err = updateManifestServiceID(&m.File, manifest.Filename, "")
+	err = c.UpdateManifestServiceID("")
 	if err != nil {
 		return err
 	}
@@ -654,24 +642,21 @@ func cleanupNewService(apiClient api.Interface, serviceID string, m manifest.Dat
 	return nil
 }
 
-// updateManifestServiceID updates the Service ID in the manifest.
+// UpdateManifestServiceID updates the Service ID in the manifest.
 //
 // There are two scenarios where this function is called. The first is when we
 // have a Service ID to insert into the manifest. The other is when there is an
 // error in the deploy flow, and for which the Service ID will be set to an
 // empty string (otherwise the service itself will be deleted while the
 // manifest will continue to hold a reference to it).
-func updateManifestServiceID(m *manifest.File, manifestFilename string, serviceID string) error {
-	if err := m.Read(manifestFilename); err != nil {
+func (c *DeployCommand) UpdateManifestServiceID(serviceID string) error {
+	if err := c.Manifest.File.Read(manifest.Filename); err != nil {
 		return fmt.Errorf("error reading fastly.toml: %w", err)
 	}
-
-	m.ServiceID = serviceID
-
-	if err := m.Write(manifestFilename); err != nil {
+	c.Manifest.File.ServiceID = serviceID
+	if err := c.Manifest.File.Write(manifest.Filename); err != nil {
 		return fmt.Errorf("error saving fastly.toml: %w", err)
 	}
-
 	return nil
 }
 
