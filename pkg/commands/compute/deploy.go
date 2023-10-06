@@ -128,7 +128,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return nil // user declined service creation prompt
 		}
 	} else {
-		serviceID, serviceVersion, err = c.ExistingServiceIDVersion(pkgPath, out)
+		serviceVersion, err = c.ExistingServiceVersion(serviceID, pkgPath, out)
 		if err != nil {
 			if errors.Is(err, ErrPackageUnchanged) {
 				text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, serviceVersion)
@@ -138,8 +138,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	so, err := constructSetupObjects(
-		noExistingService, serviceID, serviceVersion.Number, c, in, out,
+	so, err := c.ConstructSetupObjects(
+		noExistingService, serviceID, serviceVersion.Number, in, out,
 	)
 	if err != nil {
 		return err
@@ -734,17 +734,6 @@ func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 	})
 }
 
-// checkServiceID validates the given Service ID maps to a real service.
-func checkServiceID(serviceID string, client api.Interface) error {
-	_, err := client.GetService(&fastly.GetServiceInput{
-		ID: serviceID,
-	})
-	if err != nil {
-		return fmt.Errorf("error fetching service details: %w", err)
-	}
-	return nil
-}
-
 // pkgCompare compares the local package files hash against the existing service
 // package version and exits early with message if identical.
 func pkgCompare(client api.Interface, pkgPath, serviceID string, version int) error {
@@ -792,11 +781,10 @@ type setupObjects struct {
 	secretStores *setup.SecretStores
 }
 
-func constructSetupObjects(
+func (c *DeployCommand) ConstructSetupObjects(
 	newService bool,
 	serviceID string,
 	serviceVersion int,
-	c *DeployCommand,
 	in io.Reader,
 	out io.Writer,
 ) (setupObjects, error) {
@@ -804,14 +792,6 @@ func constructSetupObjects(
 		so  setupObjects
 		err error
 	)
-
-	// We only check the Service ID is valid when handling an existing service.
-	if !newService {
-		if err = checkServiceID(serviceID, c.Globals.APIClient); err != nil {
-			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-			return setupObjects{}, err
-		}
-	}
 
 	// Because a service_id exists in the fastly.toml doesn't mean it's valid
 	// e.g. it could be missing required resources such as a domain or backend.
@@ -1220,12 +1200,11 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatus
 	return false, resp.StatusCode, nil
 }
 
-// ExistingServiceIDVersion returns an ID and Version for an existing service.
+// ExistingServiceVersion returns a Service Version for an existing service.
 // If the current service version is active or locked, we clone the version.
-func (c *DeployCommand) ExistingServiceIDVersion(pkgPath string, out io.Writer) (string, *fastly.Version, error) {
+func (c *DeployCommand) ExistingServiceVersion(serviceID, pkgPath string, out io.Writer) (*fastly.Version, error) {
 	var (
 		err            error
-		serviceID      string
 		serviceVersion *fastly.Version
 	)
 
@@ -1240,7 +1219,7 @@ func (c *DeployCommand) ExistingServiceIDVersion(pkgPath string, out io.Writer) 
 	if c.ServiceName.WasSet {
 		serviceID, err = c.ServiceName.Parse(c.Globals.APIClient)
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
 	}
 
@@ -1250,7 +1229,7 @@ func (c *DeployCommand) ExistingServiceIDVersion(pkgPath string, out io.Writer) 
 			"Package path": pkgPath,
 			"Service ID":   serviceID,
 		})
-		return serviceID, nil, err
+		return nil, err
 	}
 
 	err = pkgCompare(c.Globals.APIClient, pkgPath, serviceID, serviceVersion.Number)
@@ -1260,13 +1239,13 @@ func (c *DeployCommand) ExistingServiceIDVersion(pkgPath string, out io.Writer) 
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion,
 		})
-		return serviceID, serviceVersion, err
+		return serviceVersion, err
 	}
 
 	serviceVersion, err = manageExistingServiceFlow(serviceID, serviceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
 	if err != nil {
-		return serviceID, serviceVersion, err
+		return serviceVersion, err
 	}
 
-	return serviceID, serviceVersion, nil
+	return serviceVersion, nil
 }
