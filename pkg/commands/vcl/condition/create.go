@@ -3,12 +3,13 @@ package condition
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ConditionTypes are the allowed input values for the --type flag.
@@ -40,7 +41,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("create", "Create a condtion on a Fastly service version").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a condition on a Fastly service version").Alias("add")
 
 	// Required flags
 	c.RegisterFlag(cmd.StringFlagOpts{
