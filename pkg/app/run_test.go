@@ -75,6 +75,7 @@ kv-store-entry
 log-tail
 logging
 pops
+products
 profile
 purge
 rate-limit
