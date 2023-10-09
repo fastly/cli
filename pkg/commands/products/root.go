@@ -17,11 +17,11 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	manifest manifest.Data
+	cmd.JSONOutput
 
-	// Optional.
 	disableProduct string
 	enableProduct  string
+	manifest       manifest.Data
 	serviceName    cmd.OptionalServiceNameID
 }
 
@@ -41,8 +41,11 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Roo
 	c.Globals = g
 	c.manifest = m
 	c.CmdClause = parent.Command("products", "Enable, disable, and check the enablement status of products on your services")
-	c.CmdClause.Flag("enable", "Enable product").HintOptions(ProductEnablementOptions...).EnumVar(&c.enableProduct, ProductEnablementOptions...)
+
+	// Optional.
 	c.CmdClause.Flag("disable", "Disable product").HintOptions(ProductEnablementOptions...).EnumVar(&c.disableProduct, ProductEnablementOptions...)
+	c.CmdClause.Flag("enable", "Enable product").HintOptions(ProductEnablementOptions...).EnumVar(&c.enableProduct, ProductEnablementOptions...)
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -64,6 +67,10 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if c.enableProduct != "" && c.disableProduct != "" {
 		return fsterr.ErrInvalidProductEnablementFlagCombo
+	}
+
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	serviceID, _, _, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
@@ -130,6 +137,24 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		ServiceID: serviceID,
 	}); err == nil {
 		wsEnabled = true
+	}
+
+	if ok, err := c.WriteJSON(out, struct {
+		BrotliCompression bool `json:"brotli_compression"`
+		DomainInspector   bool `json:"domain_inspector"`
+		Fanout            bool `json:"fanout"`
+		ImageOptimizer    bool `json:"image_optimizer"`
+		OriginInspector   bool `json:"origin_inspector"`
+		WebSockets        bool `json:"websockets"`
+	}{
+		BrotliCompression: brotliEnabled,
+		DomainInspector:   brotliEnabled,
+		Fanout:            brotliEnabled,
+		ImageOptimizer:    brotliEnabled,
+		OriginInspector:   brotliEnabled,
+		WebSockets:        brotliEnabled,
+	}); ok {
+		return err
 	}
 
 	t := text.NewTable(out)

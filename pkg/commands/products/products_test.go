@@ -20,7 +20,7 @@ func TestProductEnablement(t *testing.T) {
 			WantError: "failed to identify Service ID: error reading service: no service ID found",
 		},
 		{
-			Name:      "validate invalid flag combo",
+			Name:      "validate invalid enable/disable flag combo",
 			Args:      args("products --enable fanout --disable fanout"),
 			WantError: "invalid flag combination: --enable and --disable",
 		},
@@ -87,6 +87,45 @@ Web Sockets         true
 			},
 			Args:       args("products --service-id 123 --disable brotli_compression"),
 			WantOutput: "SUCCESS: Successfully disabled product 'brotli_compression'",
+		},
+		{
+			Name:      "validate invalid json/verbose flag combo",
+			Args:      args("products --service-id 123 --json --verbose"),
+			WantError: "invalid flag combination, --verbose and --json",
+		},
+		{
+			Name: "validate API error for product status with --json output",
+			API: mock.API{
+				GetProductFn: func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args: args("products --service-id 123 --json"),
+			WantOutput: `{
+  "brotli_compression": false,
+  "domain_inspector": false,
+  "fanout": false,
+  "image_optimizer": false,
+  "origin_inspector": false,
+  "websockets": false
+}`,
+		},
+		{
+			Name: "validate API success for product status with --json output",
+			API: mock.API{
+				GetProductFn: func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+					return nil, nil
+				},
+			},
+			Args: args("products --service-id 123 --json"),
+			WantOutput: `{
+  "brotli_compression": true,
+  "domain_inspector": true,
+  "fanout": true,
+  "image_optimizer": true,
+  "origin_inspector": true,
+  "websockets": true
+}`,
 		},
 	}
 
