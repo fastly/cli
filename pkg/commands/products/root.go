@@ -93,9 +93,6 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	// NOTE: The API returns a 400 if a product is not enabled.
-	// The API client returns an error if a non-2xx is returned from the API.
-
 	var brotliEnabled, diEnabled, fanoutEnabled, ioEnabled, oiEnabled, wsEnabled bool
 
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
