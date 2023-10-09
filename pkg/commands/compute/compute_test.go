@@ -39,6 +39,7 @@ func TestPublishFlagDivergence(t *testing.T) {
 	// Some flags on `compute build` are unique to it.
 	ignoreBuildFlags := []string{
 		"enable-metadata",
+		"filter-metadata-envvars",
 		"show-metadata",
 	}
 
@@ -92,6 +93,7 @@ func TestServeFlagDivergence(t *testing.T) {
 	// Some flags on `compute build` are unique to it.
 	ignoreBuildFlags := []string{
 		"enable-metadata",
+		"filter-metadata-envvars",
 		"show-metadata",
 	}
 
