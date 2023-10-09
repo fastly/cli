@@ -1,6 +1,7 @@
 package products
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -79,8 +80,12 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.enableProduct != "" {
+		p := identifyProduct(c.enableProduct)
+		if p == fastly.ProductUndefined {
+			return errors.New("unrecognised product")
+		}
 		if _, err := ac.EnableProduct(&fastly.ProductEnablementInput{
-			ProductID: identifyProduct(c.enableProduct),
+			ProductID: p,
 			ServiceID: serviceID,
 		}); err != nil {
 			return fmt.Errorf("failed to enable product '%s': %w", c.enableProduct, err)
@@ -90,8 +95,12 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.disableProduct != "" {
+		p := identifyProduct(c.disableProduct)
+		if p == fastly.ProductUndefined {
+			return errors.New("unrecognised product")
+		}
 		if err := ac.DisableProduct(&fastly.ProductEnablementInput{
-			ProductID: identifyProduct(c.disableProduct),
+			ProductID: p,
 			ServiceID: serviceID,
 		}); err != nil {
 			return fmt.Errorf("failed to disable product '%s': %w", c.disableProduct, err)
