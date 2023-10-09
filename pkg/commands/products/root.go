@@ -148,11 +148,11 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		WebSockets        bool `json:"websockets"`
 	}{
 		BrotliCompression: brotliEnabled,
-		DomainInspector:   brotliEnabled,
-		Fanout:            brotliEnabled,
-		ImageOptimizer:    brotliEnabled,
-		OriginInspector:   brotliEnabled,
-		WebSockets:        brotliEnabled,
+		DomainInspector:   diEnabled,
+		Fanout:            fanoutEnabled,
+		ImageOptimizer:    ioEnabled,
+		OriginInspector:   oiEnabled,
+		WebSockets:        wsEnabled,
 	}); ok {
 		return err
 	}
