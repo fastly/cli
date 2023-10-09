@@ -577,7 +577,7 @@ func local(opts localOpts) error {
 		if opts.profileGuestDir.WasSet {
 			directory = opts.profileGuestDir.Value
 		}
-		args = append(args, "--profile-guest="+directory)
+		args = append(args, "--profile=guest,"+directory)
 		if opts.verbose {
 			text.Info(opts.out, "Saving per-request profiles to %s.", directory)
 		}
