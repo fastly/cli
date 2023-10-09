@@ -40,7 +40,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Roo
 	var c RootCommand
 	c.Globals = g
 	c.manifest = m
-	c.CmdClause = parent.Command("products", "Enable, disable, and check the enablement status of products on your services")
+	c.CmdClause = parent.Command("products", "Enable, disable, and check the enablement status of products")
 
 	// Optional.
 	c.CmdClause.Flag("disable", "Disable product").HintOptions(ProductEnablementOptions...).EnumVar(&c.disableProduct, ProductEnablementOptions...)
