@@ -58,6 +58,7 @@ type Flags struct {
 type BuildCommand struct {
 	cmd.Base
 	enableMetadata     bool
+	filterEnvVars      string
 	showMetadata       bool
 	wasmtoolsVersioner github.AssetVersioner
 
@@ -86,6 +87,7 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner g
 
 	// Hidden
 	c.CmdClause.Flag("enable-metadata", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.enableMetadata)
+	c.CmdClause.Flag("filter-metadata-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().StringVar(&c.filterEnvVars)
 
 	return &c
 }
@@ -236,6 +238,43 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				PostInitScript:   c.Globals.Manifest.File.Scripts.PostInit,
 				PostBuildScript:  c.Globals.Manifest.File.Scripts.PostBuild,
 			},
+		}
+
+		filters := []string{
+			"GITHUB_TOKEN",
+			"AWS_SECRET_ACCESS_KEY",
+			"AWS_SESSION_TOKEN",
+			"DOCKER_PASSWORD",
+			"VAULT_TOKEN",
+		}
+
+		customFilters := strings.Split(c.filterEnvVars, ",")
+		for _, v := range customFilters {
+			if v == "" {
+				continue
+			}
+			var found bool
+			for _, f := range filters {
+				if f == v {
+					found = true
+					break
+				}
+			}
+			if !found {
+				filters = append(filters, v)
+			}
+		}
+
+		for i, v := range dc.ScriptInfo.EnvVars {
+			for _, f := range filters {
+				k := strings.Split(v, "=")[0]
+				if strings.HasPrefix(k, f) {
+					dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
+					if c.Globals.Verbose() {
+						text.Important(out, "The fastly.toml [scripts.env_vars] contains a possible security key '%s' so we've redacted it from the Wasm binary metadata annotation", k)
+					}
+				}
+			}
 		}
 
 		data, err := json.Marshal(dc)
