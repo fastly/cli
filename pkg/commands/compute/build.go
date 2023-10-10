@@ -2,6 +2,7 @@ package compute
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -16,6 +17,10 @@ import (
 
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
+	"github.com/trufflesecurity/trufflehog/v3/pkg/context"
+	"github.com/trufflesecurity/trufflehog/v3/pkg/detectors"
+	"github.com/trufflesecurity/trufflehog/v3/pkg/engine"
+	"github.com/trufflesecurity/trufflehog/v3/pkg/sources"
 	"golang.org/x/text/cases"
 	textlang "golang.org/x/text/language"
 
@@ -240,6 +245,37 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			},
 		}
 
+		// NOTE: To debug pass printer to Start()
+		// printer := new(output.JSONPrinter)
+		// engine.Start(ctx, engine.WithPrinter(printer))
+		ctx := context.Background()
+		e, err := engine.Start(
+			ctx,
+			engine.WithConcurrency(uint8(runtime.NumCPU())), // prevent log output
+		)
+		if err != nil {
+			return err
+		}
+		cfg := sources.FilesystemConfig{
+			Paths: []string{manifest.Filename},
+		}
+		if err = e.ScanFileSystem(ctx, cfg); err != nil {
+			return err
+		}
+		err = e.Finish(ctx)
+		if err != nil {
+			return err
+		}
+		metrics := e.GetMetrics()
+		fmt.Printf("metrics.VerifiedSecretsFound: %d\n", metrics.VerifiedSecretsFound)
+		fmt.Printf("metrics.UnverifiedSecretsFound: %d\n", metrics.UnverifiedSecretsFound)
+		var results []detectors.ResultWithMetadata
+		ch := e.ResultsChan()
+		for result := range ch {
+			fmt.Printf("result: %#v\n", result)
+			results = append(results, result)
+		}
+
 		filters := []string{
 			"GITHUB_TOKEN",
 			"AWS_SECRET_ACCESS_KEY",
@@ -280,6 +316,12 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		data, err := json.Marshal(dc)
 		if err != nil {
 			return err
+		}
+
+		fmt.Printf("%#v\n", "LOOP OVER RESULTS ARRAY POPULATED BY RANGING OVER CHANNEL")
+		for _, r := range results {
+			fmt.Printf("TO REDACT: %q | Verified: %t\n", r.Redacted, r.Verified)
+			data = bytes.ReplaceAll(data, []byte(r.Redacted), []byte("REDACTED"))
 		}
 
 		// FIXME: Once #1013 and #1016 merged, integrate granular disabling.
