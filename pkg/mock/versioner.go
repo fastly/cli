@@ -47,3 +47,8 @@ func (av AssetVersioner) LatestVersion() (string, error) {
 func (av AssetVersioner) RequestedVersion() (version string) {
 	return ""
 }
+
+// SetRequestedVersion implements github.Versioner interface.
+func (av AssetVersioner) SetRequestedVersion(version string) {
+	// no-op
+}

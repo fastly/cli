@@ -184,6 +184,12 @@ func (g *Asset) RequestedVersion() string {
 	return g.versionRequested
 }
 
+// SetRequestedVersion sets the version of the asset to be downloaded.
+// This is typically used by `compute serve` when an `--env` flag is set.
+func (g *Asset) SetRequestedVersion(version string) {
+	g.versionRequested = version
+}
+
 // metadata acquires GitHub metadata.
 func (g *Asset) metadata() (m Metadata, err error) {
 	endpoint := fmt.Sprintf(metadataURL, g.repo, runtime.GOOS, runtime.GOARCH)
@@ -238,6 +244,8 @@ type AssetVersioner interface {
 	DownloadVersion(version string) (bin string, err error)
 	// RequestedVersion returns the version defined in the fastly.toml file.
 	RequestedVersion() (version string)
+	// SetRequestedVersion sets the version of the asset to be downloaded.
+	SetRequestedVersion(version string)
 	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.
 	URL() (url string, err error)
 	// LatestVersion returns the latest version.

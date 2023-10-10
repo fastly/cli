@@ -95,9 +95,10 @@ func TestGetViceroy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	manifestPath := "fastly.toml"
 	viceroyBinPath := "" // --viceroy-path flag for overriding CLI handling the Viceroy checks/downloads.
 	viceroyCheck := false
-	_, err = compute.GetViceroy(spinner, &out, av, &g, viceroyBinPath, viceroyCheck)
+	_, err = compute.GetViceroy(spinner, &out, av, &g, manifestPath, viceroyBinPath, viceroyCheck)
 	if err != nil {
 		t.Fatal(err)
 	}

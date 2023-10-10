@@ -125,7 +125,27 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	bin, err := GetViceroy(spinner, out, c.av, c.Globals, c.viceroyBinPath, c.forceCheckViceroyLatest)
+	if c.env.Value != "" {
+		c.env.Value = "." + c.env.Value
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	manifestPath := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", c.env.Value))
+	if c.env.Value != "" {
+		err := c.manifest.File.Read(manifestPath)
+		if err != nil {
+			return fmt.Errorf("failed to parse manifest '%s': %w", manifestPath, err)
+		}
+		c.av.SetRequestedVersion(c.manifest.File.LocalServer.ViceroyVersion)
+		if c.Globals.Verbose() {
+			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
+		}
+	}
+
+	bin, err := GetViceroy(spinner, out, c.av, c.Globals, manifestPath, c.viceroyBinPath, c.forceCheckViceroyLatest)
 	if err != nil {
 		return err
 	}
@@ -153,9 +173,9 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			addr:            c.addr,
 			bin:             bin,
 			debug:           c.debug,
-			env:             c.env.Value,
 			errLog:          c.Globals.ErrLog,
 			file:            c.file,
+			manifestPath:    manifestPath,
 			out:             out,
 			profileGuest:    c.profileGuest,
 			profileGuestDir: c.profileGuestDir,
@@ -245,12 +265,12 @@ func GetViceroy(
 	out io.Writer,
 	av github.AssetVersioner,
 	g *global.Data,
-	viceroyBinPath string,
+	manifestPath, viceroyBinPath string,
 	forceCheckViceroyLatest bool,
 ) (bin string, err error) {
 	if viceroyBinPath != "" {
 		if g.Verbose() {
-			text.Info(out, "Using user provided install of Viceroy via --viceroy-path flag: %s", viceroyBinPath)
+			text.Info(out, "Using user provided install of Viceroy via --viceroy-path flag: %s\n\n", viceroyBinPath)
 		}
 		return filepath.Abs(viceroyBinPath)
 	}
@@ -262,7 +282,7 @@ func GetViceroy(
 			return "", fmt.Errorf("failed to lookup viceroy binary in user $PATH (user has set $FASTLY_VICEROY_USE_PATH): %w", err)
 		}
 		if g.Verbose() {
-			text.Info(out, "Using user provided install of Viceroy via $PATH lookup: %s", path)
+			text.Info(out, "Using user provided install of Viceroy via $PATH lookup: %s\n\n", path)
 		}
 		return filepath.Abs(path)
 	}
@@ -307,12 +327,12 @@ func GetViceroy(
 		if _, err := semver.Parse(versionToInstall); err != nil {
 			return bin, fsterr.RemediationError{
 				Inner:       fmt.Errorf("failed to parse configured version as a semver: %w", err),
-				Remediation: fmt.Sprintf("Ensure the fastly.toml `viceroy_version` value '%s' (under the [local_server] section) is a valid semver (https://semver.org/), e.g. `0.1.0`)", versionToInstall),
+				Remediation: fmt.Sprintf("Ensure the %s `viceroy_version` value '%s' (under the [local_server] section) is a valid semver (https://semver.org/), e.g. `0.1.0`)", manifestPath, versionToInstall),
 			}
 		}
 	}
 
-	err = installViceroy(installedVersion, versionToInstall, forceCheckViceroyLatest, spinner, av, bin, g)
+	err = installViceroy(installedVersion, versionToInstall, manifestPath, forceCheckViceroyLatest, spinner, av, bin, g)
 	if err != nil {
 		g.ErrLog.Add(err)
 		return bin, err
@@ -360,7 +380,7 @@ var InstallDir = func() string {
 // 2. If so, check the latest release matches the installed version.
 // 3. If not latest, check the installed version matches the expected version.
 func installViceroy(
-	installedVersion, versionToInstall string,
+	installedVersion, versionToInstall, manifestPath string,
 	forceCheckViceroyLatest bool,
 	spinner text.Spinner,
 	av github.AssetVersioner,
@@ -392,12 +412,12 @@ func installViceroy(
 	case versionToInstall != "latest":
 		if installedVersion == versionToInstall {
 			if g.Verbose() {
-				text.Info(g.Output, "Viceroy is already installed, and the installed version matches the required version (%s) in the fastly.toml file.\n\n", versionToInstall)
+				text.Info(g.Output, "Viceroy is already installed, and the installed version matches the required version (%s) in the %s file.\n\n", versionToInstall, manifestPath)
 			}
 			return nil
 		}
 		if g.Verbose() {
-			text.Info(g.Output, "Viceroy is already installed, but the installed version (%s) doesn't match the required version (%s) specified in the fastly.toml file.\n\n", installedVersion, versionToInstall)
+			text.Info(g.Output, "Viceroy is already installed, but the installed version (%s) doesn't match the required version (%s) specified in the %s file.\n\n", installedVersion, versionToInstall, manifestPath)
 		}
 
 		err = spinner.Start()
@@ -528,9 +548,9 @@ type localOpts struct {
 	addr            string
 	bin             string
 	debug           bool
-	env             string
 	errLog          fsterr.LogInterface
 	file            string
+	manifestPath    string
 	out             io.Writer
 	profileGuest    bool
 	profileGuestDir cmd.OptionalString
@@ -542,22 +562,10 @@ type localOpts struct {
 
 // local spawns a subprocess that runs the compiled binary.
 func local(opts localOpts) error {
-	if opts.env != "" {
-		opts.env = "." + opts.env
-	}
-
-	wd, err := os.Getwd()
-	if err != nil {
-		opts.errLog.Add(err)
-		return err
-	}
-
-	manifestPath := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", opts.env))
-
 	// NOTE: Viceroy no longer displays errors unless in verbose mode.
 	// This can cause confusion for customers: https://github.com/fastly/cli/issues/913
 	// So regardless of CLI --verbose flag we'll always set verbose for Viceroy.
-	args := []string{"-v", "-C", manifestPath, "--addr", opts.addr, opts.file}
+	args := []string{"-v", "-C", opts.manifestPath, "--addr", opts.addr, opts.file}
 
 	if opts.debug {
 		args = append(args, "--debug")
@@ -578,7 +586,7 @@ func local(opts localOpts) error {
 		if opts.restarted {
 			text.Break(opts.out)
 		}
-		text.Output(opts.out, "%s: %s", text.BoldYellow("Manifest"), manifestPath)
+		text.Output(opts.out, "%s: %s", text.BoldYellow("Manifest"), opts.manifestPath)
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Wasm binary"), opts.file)
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Viceroy binary"), opts.bin)
 
