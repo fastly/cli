@@ -380,6 +380,10 @@ type API struct {
 	GetConditionFn    func(i *fastly.GetConditionInput) (*fastly.Condition, error)
 	ListConditionsFn  func(i *fastly.ListConditionsInput) ([]*fastly.Condition, error)
 	UpdateConditionFn func(i *fastly.UpdateConditionInput) (*fastly.Condition, error)
+
+	GetProductFn     func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
+	EnableProductFn  func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
+	DisableProductFn func(i *fastly.ProductEnablementInput) error
 }
 
 // AllDatacenters implements Interface.
@@ -1930,4 +1934,19 @@ func (m API) ListConditions(i *fastly.ListConditionsInput) ([]*fastly.Condition,
 // UpdateCondition implements Interface.
 func (m API) UpdateCondition(i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
 	return m.UpdateConditionFn(i)
+}
+
+// GetProduct implements Interface.
+func (m API) GetProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+	return m.GetProductFn(i)
+}
+
+// EnableProduct implements Interface.
+func (m API) EnableProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+	return m.EnableProductFn(i)
+}
+
+// DisableProduct implements Interface.
+func (m API) DisableProduct(i *fastly.ProductEnablementInput) error {
+	return m.DisableProductFn(i)
 }

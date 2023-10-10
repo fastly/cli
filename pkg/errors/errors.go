@@ -154,3 +154,10 @@ var ErrInvalidStdinFileDirCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination"),
 	Remediation: "Use only one of --stdin, --file or --dir.",
 }
+
+// ErrInvalidProductEnablementFlagCombo means the user omitted both the --all and --key
+// flags and we need at least one of them.
+var ErrInvalidProductEnablementFlagCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid flag combination: --enable and --disable"),
+	Remediation: "Use either --enable or --disable, not both.",
+}

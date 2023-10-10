@@ -388,6 +388,10 @@ type Interface interface {
 	GetCondition(i *fastly.GetConditionInput) (*fastly.Condition, error)
 	ListConditions(i *fastly.ListConditionsInput) ([]*fastly.Condition, error)
 	UpdateCondition(i *fastly.UpdateConditionInput) (*fastly.Condition, error)
+
+	GetProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
+	EnableProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
+	DisableProduct(i *fastly.ProductEnablementInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.

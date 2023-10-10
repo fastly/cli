@@ -48,6 +48,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/pop"
+	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
 	"github.com/fastly/cli/pkg/commands/ratelimit"
@@ -329,6 +330,7 @@ func defineCommands(
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, g, m)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, g, m)
 	popCmdRoot := pop.NewRootCommand(app, g)
+	productsCmdRoot := products.NewRootCommand(app, g, m)
 	profileCmdRoot := profile.NewRootCommand(app, g)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g)
 	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, g)
@@ -691,6 +693,7 @@ func defineCommands(
 		loggingSyslogList,
 		loggingSyslogUpdate,
 		popCmdRoot,
+		productsCmdRoot,
 		profileCmdRoot,
 		profileCreate,
 		profileDelete,
