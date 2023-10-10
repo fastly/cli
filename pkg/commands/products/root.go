@@ -109,71 +109,57 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	var brotliEnabled, diEnabled, fanoutEnabled, ioEnabled, oiEnabled, wsEnabled bool
+	ps := ProductStatus{}
 
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
 		ProductID: fastly.ProductBrotliCompression,
 		ServiceID: serviceID,
 	}); err == nil {
-		brotliEnabled = true
+		ps.BrotliCompression = true
 	}
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
 		ProductID: fastly.ProductDomainInspector,
 		ServiceID: serviceID,
 	}); err == nil {
-		diEnabled = true
+		ps.DomainInspector = true
 	}
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
 		ProductID: fastly.ProductFanout,
 		ServiceID: serviceID,
 	}); err == nil {
-		fanoutEnabled = true
+		ps.Fanout = true
 	}
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
 		ProductID: fastly.ProductImageOptimizer,
 		ServiceID: serviceID,
 	}); err == nil {
-		ioEnabled = true
+		ps.ImageOptimizer = true
 	}
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
 		ProductID: fastly.ProductOriginInspector,
 		ServiceID: serviceID,
 	}); err == nil {
-		oiEnabled = true
+		ps.OriginInspector = true
 	}
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
 		ProductID: fastly.ProductWebSockets,
 		ServiceID: serviceID,
 	}); err == nil {
-		wsEnabled = true
+		ps.WebSockets = true
 	}
 
-	if ok, err := c.WriteJSON(out, struct {
-		BrotliCompression bool `json:"brotli_compression"`
-		DomainInspector   bool `json:"domain_inspector"`
-		Fanout            bool `json:"fanout"`
-		ImageOptimizer    bool `json:"image_optimizer"`
-		OriginInspector   bool `json:"origin_inspector"`
-		WebSockets        bool `json:"websockets"`
-	}{
-		BrotliCompression: brotliEnabled,
-		DomainInspector:   diEnabled,
-		Fanout:            fanoutEnabled,
-		ImageOptimizer:    ioEnabled,
-		OriginInspector:   oiEnabled,
-		WebSockets:        wsEnabled,
-	}); ok {
+	if ok, err := c.WriteJSON(out, ps); ok {
 		return err
 	}
 
 	t := text.NewTable(out)
 	t.AddHeader("PRODUCT", "ENABLED")
-	t.AddLine("Brotli Compression", brotliEnabled)
-	t.AddLine("Domain Inspector", diEnabled)
-	t.AddLine("Fanout", fanoutEnabled)
-	t.AddLine("Image Optimizer", ioEnabled)
-	t.AddLine("Origin Inspector", oiEnabled)
-	t.AddLine("Web Sockets", wsEnabled)
+	t.AddLine("Brotli Compression", ps.BrotliCompression)
+	t.AddLine("Domain Inspector", ps.DomainInspector)
+	t.AddLine("Fanout", ps.Fanout)
+	t.AddLine("Image Optimizer", ps.ImageOptimizer)
+	t.AddLine("Origin Inspector", ps.OriginInspector)
+	t.AddLine("Web Sockets", ps.WebSockets)
 	t.Print()
 	return nil
 }
@@ -195,4 +181,14 @@ func identifyProduct(product string) fastly.Product {
 	default:
 		return fastly.ProductUndefined
 	}
+}
+
+// ProductStatus indicates the status for each product.
+type ProductStatus struct {
+	BrotliCompression bool `json:"brotli_compression"`
+	DomainInspector   bool `json:"domain_inspector"`
+	Fanout            bool `json:"fanout"`
+	ImageOptimizer    bool `json:"image_optimizer"`
+	OriginInspector   bool `json:"origin_inspector"`
+	WebSockets        bool `json:"websockets"`
 }
