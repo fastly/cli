@@ -223,7 +223,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			},
 			MachineInfo: DataCollectionMachineInfo{
 				Arch:      runtime.GOARCH,
-				CPUs:      runtime.Version(),
+				CPUs:      runtime.NumCPU(),
 				Compiler:  runtime.Compiler,
 				GoVersion: runtime.Version(),
 				OS:        runtime.GOOS,
@@ -271,7 +271,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				if strings.HasPrefix(k, f) {
 					dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
 					if c.Globals.Verbose() {
-						text.Important(out, "The fastly.toml [scripts.env_vars] contains a possible security key '%s' so we've redacted it from the Wasm binary metadata annotation", k)
+						text.Important(out, "The fastly.toml [scripts.env_vars] contains a possible security key '%s' so we've redacted it from the Wasm binary metadata annotation\n\n", k)
 					}
 				}
 			}
@@ -525,8 +525,7 @@ func GetWasmTools(spinner text.Spinner, out io.Writer, wasmtoolsVersioner github
 
 	if installedVersion == "" {
 		if g.Verbose() {
-			text.Info(out, "wasm-tools is not already installed, so we will install the latest version.")
-			text.Break(out)
+			text.Info(out, "\nwasm-tools is not already installed, so we will install the latest version.\n\n")
 		}
 		err = installLatestWasmtools(binPath, spinner, wasmtoolsVersioner)
 		if err != nil {
@@ -658,8 +657,7 @@ func updateWasmtools(
 	}
 
 	if verbose {
-		text.Info(out, "The CLI config (`fastly config`) has been updated with the latest wasm-tools version: %s", latestVersion)
-		text.Break(out)
+		text.Info(out, "\nThe CLI config (`fastly config`) has been updated with the latest wasm-tools version: %s\n\n", latestVersion)
 	}
 
 	if installedVersion == latestVersion {
@@ -927,7 +925,7 @@ type DataCollectionBuildInfo struct {
 // DataCollectionMachineInfo represents machine data annotated onto the Wasm binary.
 type DataCollectionMachineInfo struct {
 	Arch      string `json:"arch"`
-	CPUs      string `json:"cpus"`
+	CPUs      int    `json:"cpus"`
 	Compiler  string `json:"compiler"`
 	GoVersion string `json:"go_version"`
 	OS        string `json:"os"`
