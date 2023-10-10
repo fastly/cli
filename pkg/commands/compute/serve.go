@@ -234,9 +234,9 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 
 // GetViceroy returns the path to the installed binary.
 //
-// NOTE: if Viceroy is installed then it is updated, otherwise download the
-// latest version and install it in the same directory as the application
-// configuration data.
+// If Viceroy is installed we either update it or pin it to the version defined
+// in the fastly.toml [viceroy.viceroy_version]. Otherwise, if not installed, we
+// install it in the same directory as the application configuration data.
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
@@ -375,7 +375,7 @@ func installViceroy(
 	switch {
 	case installedVersion == "": // Viceroy not installed
 		if g.Verbose() {
-			text.Info(g.Output, "Viceroy is not already installed, so we will install the %s version.", versionToInstall)
+			text.Info(g.Output, "Viceroy is not already installed, so we will install the %s version.\n\n", versionToInstall)
 		}
 		err = spinner.Start()
 		if err != nil {
@@ -392,12 +392,12 @@ func installViceroy(
 	case versionToInstall != "latest":
 		if installedVersion == versionToInstall {
 			if g.Verbose() {
-				text.Info(g.Output, "Viceroy is already installed, and the installed version matches the required version (%s) in the fastly.toml file.", versionToInstall)
+				text.Info(g.Output, "Viceroy is already installed, and the installed version matches the required version (%s) in the fastly.toml file.\n\n", versionToInstall)
 			}
 			return nil
 		}
 		if g.Verbose() {
-			text.Info(g.Output, "Viceroy is already installed, but the installed version (%s) doesn't match the required version (%s) specified in the fastly.toml file.", installedVersion, versionToInstall)
+			text.Info(g.Output, "Viceroy is already installed, but the installed version (%s) doesn't match the required version (%s) specified in the fastly.toml file.\n\n", installedVersion, versionToInstall)
 		}
 
 		err = spinner.Start()
@@ -464,7 +464,7 @@ func installViceroy(
 		}
 
 		if g.Verbose() {
-			text.Info(g.Output, "The CLI config (`fastly config`) has been updated with the latest Viceroy version: %s", latestVersion)
+			text.Info(g.Output, "The CLI config (`fastly config`) has been updated with the latest Viceroy version: %s\n\n", latestVersion)
 		}
 
 		if installedVersion != "" && installedVersion == latestVersion {
