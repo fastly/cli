@@ -44,7 +44,7 @@ func NewMetadataCommand(parent cmd.Registerer, g *global.Data) *MetadataCommand 
 // Exec implements the command interface.
 func (c *MetadataCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.disable && c.enable {
-		return fsterr.ErrInvalidMetadataEnableDisableCombo
+		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
 	if c.disable {
 		c.Globals.Config.WasmMetadata = toggleAll("disable")
