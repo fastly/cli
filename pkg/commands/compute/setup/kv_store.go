@@ -53,34 +53,34 @@ type KVStoreItem struct {
 
 // Configure prompts the user for specific values related to the service resource.
 func (o *KVStores) Configure() error {
-	for name, settings := range o.Setup {
-		var (
-			cursor         string
-			existingStores []fastly.KVStore
-		)
+	var (
+		cursor         string
+		existingStores []fastly.KVStore
+	)
 
-		for {
-			kvs, err := o.APIClient.ListKVStores(&fastly.ListKVStoresInput{
-				Cursor: cursor,
-			})
-			if err != nil {
-				return err
-			}
-
-			if kvs != nil {
-				for _, store := range kvs.Data {
-					// Avoid gosec loop aliasing check
-					store := store
-					existingStores = append(existingStores, store)
-				}
-				if cur, ok := kvs.Meta["next_cursor"]; ok && cur != "" && cur != cursor {
-					cursor = cur
-					continue
-				}
-				break
-			}
+	for {
+		kvs, err := o.APIClient.ListKVStores(&fastly.ListKVStoresInput{
+			Cursor: cursor,
+		})
+		if err != nil {
+			return err
 		}
 
+		if kvs != nil {
+			for _, store := range kvs.Data {
+				// Avoid gosec loop aliasing check
+				store := store
+				existingStores = append(existingStores, store)
+			}
+			if cur, ok := kvs.Meta["next_cursor"]; ok && cur != "" && cur != cursor {
+				cursor = cur
+				continue
+			}
+			break
+		}
+	}
+
+	for name, settings := range o.Setup {
 		var (
 			existingStoreID   string
 			linkExistingStore bool
