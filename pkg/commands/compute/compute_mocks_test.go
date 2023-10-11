@@ -130,6 +130,30 @@ func getKVStoreOk(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 	}, nil
 }
 
+func listConfigStoresOk() ([]*fastly.ConfigStore, error) {
+	return []*fastly.ConfigStore{
+		{
+			ID:   "123",
+			Name: "example",
+		},
+		{
+			ID:   "456",
+			Name: "example_two",
+		},
+	}, nil
+}
+
+func listConfigStoresEmpty() ([]*fastly.ConfigStore, error) {
+	return []*fastly.ConfigStore{}, nil
+}
+
+func getConfigStoreOk(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
+	return &fastly.ConfigStore{
+		ID:   "123",
+		Name: "example",
+	}, nil
+}
+
 func getServiceDetailsWasm(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
 		Type: "wasm",

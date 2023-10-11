@@ -1241,6 +1241,7 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
 				UpdatePackageFn:         updatePackageOk,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1285,6 +1286,69 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
+			name: "success with setup.config_stores configuration and no existing service and a conflicting store name",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:       activateVersionOk,
+				CreateBackendFn:         createBackendOK,
+				CreateConfigStoreFn:     createConfigStoreOK,
+				CreateConfigStoreItemFn: createConfigStoreItemOK,
+				CreateResourceFn:        createResourceOK,
+				CreateDomainFn:          createDomainOK,
+				CreateServiceFn:         createServiceOK,
+				GetPackageFn:            getPackageOk,
+				GetServiceFn:            getServiceOK,
+				GetServiceDetailsFn:     getServiceDetailsWasm,
+				ListDomainsFn:           listDomainsOk,
+				ListVersionsFn:          testutil.ListVersions,
+				UpdatePackageFn:         updatePackageOk,
+				ListConfigStoresFn:      listConfigStoresOk,
+				GetConfigStoreFn:        getConfigStoreOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.config_stores.example]
+			description = "My first store"
+			[setup.config_stores.example.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.config_stores.example.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"WARNING: A Config Store called 'example' already exists",
+				"Retrieving existing Config Store 'example'",
+				"Configuring config store 'example'",
+				"My first store",
+				"Create a config store key called 'foo'",
+				"my default value for foo",
+				"Create a config store key called 'bar'",
+				"my default value for bar",
+				"Creating config store item 'foo'",
+				"Creating config store item 'bar'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
 			name: "success with setup.config_stores configuration and no existing service and --non-interactive",
 			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
@@ -1301,6 +1365,7 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
 				UpdatePackageFn:         updatePackageOk,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1355,6 +1420,7 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
 				UpdatePackageFn:         updatePackageOk,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 			},
 			httpClientRes: []*http.Response{
 				{

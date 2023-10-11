@@ -35,8 +35,10 @@ type ConfigStores struct {
 // ConfigStore represents the configuration parameters for creating a config
 // store via the API client.
 type ConfigStore struct {
-	Name  string
-	Items []ConfigStoreItem
+	Name              string
+	Items             []ConfigStoreItem
+	LinkExistingStore bool
+	ExistingStoreID   string
 }
 
 // ConfigStoreItem represents the configuration parameters for creating config
@@ -48,7 +50,39 @@ type ConfigStoreItem struct {
 
 // Configure prompts the user for specific values related to the service resource.
 func (o *ConfigStores) Configure() error {
+	existingStores, err := o.APIClient.ListConfigStores()
+	if err != nil {
+		return err
+	}
+
 	for name, settings := range o.Setup {
+		var (
+			existingStoreID   string
+			linkExistingStore bool
+		)
+
+		for _, store := range existingStores {
+			if store.Name == name {
+				if o.AcceptDefaults || o.NonInteractive {
+					linkExistingStore = true
+					existingStoreID = store.ID
+				} else {
+					text.Warning(o.Stdout, "\nA Config Store called '%s' already exists\n\n", name)
+					prompt := text.BoldYellow("Use a different store name (or leave empty to use the existing store): ")
+					value, err := text.Input(o.Stdout, prompt, o.Stdin)
+					if err != nil {
+						return fmt.Errorf("error reading prompt input: %w", err)
+					}
+					text.Break(o.Stdout)
+					if value == "" {
+						linkExistingStore = true
+					} else {
+						name = value
+					}
+				}
+			}
+		}
+
 		if !o.AcceptDefaults && !o.NonInteractive {
 			text.Output(o.Stdout, "\nConfiguring config store '%s'", name)
 			if settings.Description != "" {
@@ -94,8 +128,10 @@ func (o *ConfigStores) Configure() error {
 		}
 
 		o.required = append(o.required, ConfigStore{
-			Name:  name,
-			Items: items,
+			Name:              name,
+			Items:             items,
+			LinkExistingStore: linkExistingStore,
+			ExistingStoreID:   existingStoreID,
 		})
 	}
 
@@ -111,27 +147,42 @@ func (o *ConfigStores) Create() error {
 		}
 	}
 
-	for _, store := range o.required {
+	for _, configStore := range o.required {
 		var (
 			err error
 			cs  *fastly.ConfigStore
 		)
 
-		err = o.Spinner.Process(fmt.Sprintf("Creating config store '%s'", store.Name), func(_ *text.SpinnerWrapper) error {
-			cs, err = o.APIClient.CreateConfigStore(&fastly.CreateConfigStoreInput{
-				Name: store.Name,
+		if configStore.LinkExistingStore {
+			err = o.Spinner.Process(fmt.Sprintf("Retrieving existing Config Store '%s'", configStore.Name), func(_ *text.SpinnerWrapper) error {
+				cs, err = o.APIClient.GetConfigStore(&fastly.GetConfigStoreInput{
+					ID: configStore.ExistingStoreID,
+				})
+				if err != nil {
+					return fmt.Errorf("failed to get existing store '%s': %w", configStore.Name, err)
+				}
+				return nil
 			})
 			if err != nil {
-				return fmt.Errorf("error creating config store: %w", err)
+				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return err
+		} else {
+			err = o.Spinner.Process(fmt.Sprintf("Creating config store '%s'", configStore.Name), func(_ *text.SpinnerWrapper) error {
+				cs, err = o.APIClient.CreateConfigStore(&fastly.CreateConfigStoreInput{
+					Name: configStore.Name,
+				})
+				if err != nil {
+					return fmt.Errorf("error creating config store: %w", err)
+				}
+				return nil
+			})
+			if err != nil {
+				return err
+			}
 		}
 
-		if len(store.Items) > 0 {
-			for _, item := range store.Items {
+		if len(configStore.Items) > 0 {
+			for _, item := range configStore.Items {
 				err = o.Spinner.Process(fmt.Sprintf("Creating config store item '%s'", item.Key), func(_ *text.SpinnerWrapper) error {
 					_, err = o.APIClient.CreateConfigStoreItem(&fastly.CreateConfigStoreItemInput{
 						StoreID: cs.ID,
@@ -158,7 +209,7 @@ func (o *ConfigStores) Create() error {
 				ResourceID:     fastly.String(cs.ID),
 			})
 			if err != nil {
-				return fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, store.Name, err)
+				return fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, configStore.Name, err)
 			}
 			return nil
 		})
