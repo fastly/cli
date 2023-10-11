@@ -1646,12 +1646,11 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with setup.kv_stores configuration and no existing service plus use of file",
+			name: "success with setup.kv_stores configuration and no existing service plus use of file and existing store",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				CreateBackendFn:     createBackendOK,
-				CreateKVStoreFn:     createKVStoreOK,
 				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				CreateResourceFn:    createResourceOK,
 				CreateDomainFn:      createDomainOK,
@@ -1662,6 +1661,8 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
+				ListKVStoresFn:      listKVStoresOk,
+				GetKVStoreFn:        getKVStoreOk,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1694,11 +1695,11 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring kv store 'store_one'",
+				"WARNING: A KV Store called 'store_one' already exists",
+				"Retrieving existing kv store 'store_one'",
 				"Create a kv store key called 'foo'",
 				"Create a kv store key called 'bar'",
 				"Create a kv store key called 'baz'",
-				"Creating kv store 'store_one'",
 				"Creating kv store key 'foo'",
 				"Creating kv store key 'bar'",
 				"Creating kv store key 'baz'",
@@ -1723,6 +1724,7 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				DeleteServiceFn:     deleteServiceOK,
+				ListKVStoresFn:      listKVStoresEmpty,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1771,6 +1773,7 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
+				ListKVStoresFn:      listKVStoresEmpty,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1825,6 +1828,7 @@ func TestDeploy(t *testing.T) {
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
+				ListKVStoresFn:      listKVStoresEmpty,
 			},
 			httpClientRes: []*http.Response{
 				{

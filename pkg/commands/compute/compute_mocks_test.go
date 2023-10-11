@@ -5,8 +5,9 @@ package compute_test
 // also a mocked HTTP client).
 
 import (
-	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v8/fastly"
+
+	"github.com/fastly/cli/pkg/testutil"
 )
 
 func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
@@ -100,6 +101,32 @@ func updateVersionOk(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
 		{Name: "https://directly-careful-coyote.edgecompute.app"},
+	}, nil
+}
+
+func listKVStoresOk(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+	return &fastly.ListKVStoresResponse{
+		Data: []fastly.KVStore{
+			{
+				ID:   "123",
+				Name: "store_one",
+			},
+			{
+				ID:   "456",
+				Name: "store_two",
+			},
+		},
+	}, nil
+}
+
+func listKVStoresEmpty(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+	return &fastly.ListKVStoresResponse{}, nil
+}
+
+func getKVStoreOk(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
+	return &fastly.KVStore{
+		ID:   "123",
+		Name: "store_one",
 	}, nil
 }
 
