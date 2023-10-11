@@ -125,15 +125,16 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if c.env.Value != "" {
-		c.env.Value = "." + c.env.Value
-	}
 	wd, err := os.Getwd()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-	manifestPath := filepath.Join(wd, fmt.Sprintf("fastly%s.toml", c.env.Value))
+	filename := "fastly.toml"
+	if c.env.Value != "" {
+		filename = fmt.Sprintf("fastly.%s.toml", c.env.Value)
+	}
+	manifestPath := filepath.Join(wd, filename)
 	if c.env.Value != "" {
 		err := c.manifest.File.Read(manifestPath)
 		if err != nil {
