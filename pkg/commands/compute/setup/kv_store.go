@@ -46,6 +46,7 @@ type KVStore struct {
 type KVStoreItem struct {
 	Key   string
 	Value string
+	Body  fastly.LengthReader
 }
 
 // Configure prompts the user for specific values related to the service resource.
@@ -96,22 +97,34 @@ func (o *KVStores) Configure() error {
 				value = dv
 			}
 
+			var f *os.File
 			if item.File != "" {
 				abs, err := filepath.Abs(item.File)
 				if err != nil {
 					return fmt.Errorf("failed to construct absolute path for '%s': %w", item.File, err)
 				}
-				data, err := os.ReadFile(abs)
+				// G304 (CWE-22): Potential file inclusion via variable
+				// Disabling as we trust the source of the variable.
+				// #nosec
+				f, err = os.Open(abs)
 				if err != nil {
-					return fmt.Errorf("failed to read file '%s': %w", abs, err)
+					return fmt.Errorf("failed to open file '%s': %w", abs, err)
 				}
-				value = string(data)
 			}
 
-			items = append(items, KVStoreItem{
-				Key:   key,
-				Value: value,
-			})
+			kvsi := KVStoreItem{
+				Key: key,
+			}
+			if item.File != "" && f != nil {
+				lr, err := fastly.FileLengthReader(f)
+				if err != nil {
+					return fmt.Errorf("failed to convert file to a LengthReader: %w", err)
+				}
+				kvsi.Body = lr
+			} else {
+				kvsi.Value = value
+			}
+			items = append(items, kvsi)
 		}
 
 		o.required = append(o.required, KVStore{
@@ -168,11 +181,16 @@ func (o *KVStores) Create() error {
 				msg := fmt.Sprintf("Creating kv store key '%s'...", item.Key)
 				o.Spinner.Message(msg)
 
-				err = o.APIClient.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
-					ID:    store.ID,
-					Key:   item.Key,
-					Value: item.Value,
-				})
+				input := &fastly.InsertKVStoreKeyInput{
+					ID:  store.ID,
+					Key: item.Key,
+				}
+				if item.Body != nil {
+					input.Body = item.Body
+				} else {
+					input.Value = item.Value
+				}
+				err = o.APIClient.InsertKVStoreKey(input)
 				if err != nil {
 					err = fmt.Errorf("error creating kv store key: %w", err)
 					o.Spinner.StopFailMessage(msg)
