@@ -63,6 +63,7 @@ type SetupKVStore struct {
 
 // SetupKVStoreItems represents a '[setup.kv_stores.<T>.items]' instance.
 type SetupKVStoreItems struct {
+	File        string `toml:"file,omitempty"`
 	Value       string `toml:"value,omitempty"`
 	Description string `toml:"description,omitempty"`
 }

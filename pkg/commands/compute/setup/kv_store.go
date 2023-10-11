@@ -3,6 +3,8 @@ package setup
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -44,6 +46,7 @@ type KVStore struct {
 type KVStoreItem struct {
 	Key   string
 	Value string
+	Body  fastly.LengthReader
 }
 
 // Configure prompts the user for specific values related to the service resource.
@@ -60,11 +63,22 @@ func (o *KVStores) Configure() error {
 		var items []KVStoreItem
 
 		for key, item := range settings.Items {
+			if item.Value != "" && item.File != "" {
+				return errors.RemediationError{
+					Inner:       fmt.Errorf("invalid config: both 'value' and 'file' were set"),
+					Remediation: fmt.Sprintf("Edit the [setup.kv_stores.%s.items.%s] configuration to use either 'value' or 'file', not both", name, key),
+				}
+			}
+			promptMessage := "Value"
 			dv := "example"
 			if item.Value != "" {
 				dv = item.Value
 			}
-			prompt := text.BoldYellow(fmt.Sprintf("Value: [%s] ", dv))
+			if item.File != "" {
+				promptMessage = "File"
+				dv = item.File
+			}
+			prompt := text.BoldYellow(fmt.Sprintf("%s: [%s] ", promptMessage, dv))
 
 			var (
 				value string
@@ -73,7 +87,7 @@ func (o *KVStores) Configure() error {
 
 			if !o.AcceptDefaults && !o.NonInteractive {
 				text.Break(o.Stdout)
-				text.Output(o.Stdout, "Create an kv store key called '%s'", key)
+				text.Output(o.Stdout, "Create a kv store key called '%s'", key)
 				if item.Description != "" {
 					text.Output(o.Stdout, item.Description)
 				}
@@ -83,16 +97,40 @@ func (o *KVStores) Configure() error {
 				if err != nil {
 					return fmt.Errorf("error reading prompt input: %w", err)
 				}
+				text.Break(o.Stdout)
 			}
-
 			if value == "" {
 				value = dv
 			}
 
-			items = append(items, KVStoreItem{
-				Key:   key,
-				Value: value,
-			})
+			var f *os.File
+			if item.File != "" {
+				abs, err := filepath.Abs(item.File)
+				if err != nil {
+					return fmt.Errorf("failed to construct absolute path for '%s': %w", item.File, err)
+				}
+				// G304 (CWE-22): Potential file inclusion via variable
+				// Disabling as we trust the source of the variable.
+				// #nosec
+				f, err = os.Open(abs)
+				if err != nil {
+					return fmt.Errorf("failed to open file '%s': %w", abs, err)
+				}
+			}
+
+			kvsi := KVStoreItem{
+				Key: key,
+			}
+			if item.File != "" && f != nil {
+				lr, err := fastly.FileLengthReader(f)
+				if err != nil {
+					return fmt.Errorf("failed to convert file to a LengthReader: %w", err)
+				}
+				kvsi.Body = lr
+			} else {
+				kvsi.Value = value
+			}
+			items = append(items, kvsi)
 		}
 
 		o.required = append(o.required, KVStore{
@@ -149,11 +187,16 @@ func (o *KVStores) Create() error {
 				msg := fmt.Sprintf("Creating kv store key '%s'...", item.Key)
 				o.Spinner.Message(msg)
 
-				err = o.APIClient.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
-					ID:    store.ID,
-					Key:   item.Key,
-					Value: item.Value,
-				})
+				input := &fastly.InsertKVStoreKeyInput{
+					ID:  store.ID,
+					Key: item.Key,
+				}
+				if item.Body != nil {
+					input.Body = item.Body
+				} else {
+					input.Value = item.Value
+				}
+				err = o.APIClient.InsertKVStoreKey(input)
 				if err != nil {
 					err = fmt.Errorf("error creating kv store key: %w", err)
 					o.Spinner.StopFailMessage(msg)
