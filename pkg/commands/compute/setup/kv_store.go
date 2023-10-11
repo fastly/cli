@@ -3,6 +3,8 @@ package setup
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -60,11 +62,16 @@ func (o *KVStores) Configure() error {
 		var items []KVStoreItem
 
 		for key, item := range settings.Items {
+			promptMessage := "Value"
 			dv := "example"
 			if item.Value != "" {
 				dv = item.Value
 			}
-			prompt := text.BoldYellow(fmt.Sprintf("Value: [%s] ", dv))
+			if item.File != "" {
+				promptMessage = "File"
+				dv = item.File
+			}
+			prompt := text.BoldYellow(fmt.Sprintf("%s: [%s] ", promptMessage, dv))
 
 			var (
 				value string
@@ -73,7 +80,7 @@ func (o *KVStores) Configure() error {
 
 			if !o.AcceptDefaults && !o.NonInteractive {
 				text.Break(o.Stdout)
-				text.Output(o.Stdout, "Create an kv store key called '%s'", key)
+				text.Output(o.Stdout, "Create a kv store key called '%s'", key)
 				if item.Description != "" {
 					text.Output(o.Stdout, item.Description)
 				}
@@ -83,10 +90,22 @@ func (o *KVStores) Configure() error {
 				if err != nil {
 					return fmt.Errorf("error reading prompt input: %w", err)
 				}
+				text.Break(o.Stdout)
 			}
-
 			if value == "" {
 				value = dv
+			}
+
+			if item.File != "" {
+				abs, err := filepath.Abs(item.File)
+				if err != nil {
+					return fmt.Errorf("failed to construct absolute path for '%s': %w", item.File, err)
+				}
+				data, err := os.ReadFile(abs)
+				if err != nil {
+					return fmt.Errorf("failed to read file '%s': %w", abs, err)
+				}
+				value = string(data)
 			}
 
 			items = append(items, KVStoreItem{

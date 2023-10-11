@@ -67,6 +67,12 @@ func TestDeploy(t *testing.T) {
 				Dst: filepath.Join("pkg", "package.tar.gz"),
 			},
 		},
+		Write: []testutil.FileIO{
+			{
+				Src: "This is my data for the KV Store 'store_one' baz field.",
+				Dst: "kv_store_one_baz.txt",
+			},
+		},
 	})
 	defer os.RemoveAll(rootdir)
 
@@ -1628,15 +1634,15 @@ func TestDeploy(t *testing.T) {
 			},
 			dontWantOutput: []string{
 				"Configuring kv store 'store_one'",
-				"Create an kv store key called 'foo'",
-				"Create an kv store key called 'bar'",
+				"Create a kv store key called 'foo'",
+				"Create a kv store key called 'bar'",
 				"Creating kv store 'store_one'",
 				"Creating kv store key 'foo'",
 				"Creating kv store key 'bar'",
 			},
 		},
 		{
-			name: "success with setup.kv_stores configuration and no existing service",
+			name: "success with setup.kv_stores configuration and no existing service with file",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
@@ -1676,17 +1682,21 @@ func TestDeploy(t *testing.T) {
 			[setup.kv_stores.store_one.items.bar]
 			value = "my default value for bar"
 			description = "a good description about bar"
+			[setup.kv_stores.store_one.items.baz]
+			file = "./kv_store_one_baz.txt"
+			description = "a file containing the data for this key"
 			`,
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
 				"Configuring kv store 'store_one'",
-				"Create an kv store key called 'foo'",
-				"Create an kv store key called 'bar'",
+				"Create a kv store key called 'foo'",
+				"Create a kv store key called 'bar'",
 				"Creating kv store 'store_one'",
 				"Creating kv store key 'foo'",
 				"Creating kv store key 'bar'",
+				"Creating kv store key 'baz'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1788,8 +1798,8 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"Configuring kv store 'store_one'",
-				"Create an kv store key called 'foo'",
-				"Create an kv store key called 'bar'",
+				"Create a kv store key called 'foo'",
+				"Create a kv store key called 'bar'",
 				"Creating kv store 'store_one'",
 				"Creating kv store key 'foo'",
 				"Creating kv store key 'bar'",
