@@ -63,6 +63,12 @@ func (o *KVStores) Configure() error {
 		var items []KVStoreItem
 
 		for key, item := range settings.Items {
+			if item.Value != "" && item.File != "" {
+				return errors.RemediationError{
+					Inner:       fmt.Errorf("invalid config: both 'value' and 'file' were set"),
+					Remediation: fmt.Sprintf("Edit the [setup.kv_stores.%s.items.%s] configuration to use either 'value' or 'file', not both", name, key),
+				}
+			}
 			promptMessage := "Value"
 			dv := "example"
 			if item.Value != "" {

@@ -1693,6 +1693,7 @@ func TestDeploy(t *testing.T) {
 				"Configuring kv store 'store_one'",
 				"Create a kv store key called 'foo'",
 				"Create a kv store key called 'bar'",
+				"Create a kv store key called 'baz'",
 				"Creating kv store 'store_one'",
 				"Creating kv store key 'foo'",
 				"Creating kv store key 'bar'",
@@ -1701,6 +1702,52 @@ func TestDeploy(t *testing.T) {
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
+		},
+		{
+			name: "success with setup.kv_stores configuration and no existing service with file and value on same key",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				CreateBackendFn:     createBackendOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
+				CreateResourceFn:    createResourceOK,
+				CreateDomainFn:      createDomainOK,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.kv_stores.store_one]
+			description = "My first kv store"
+			[setup.kv_stores.store_one.items.baz]
+      value = "some_value"
+			file = "./kv_store_one_baz.txt"
+			description = "a file containing the data for this key"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Configuring kv store 'store_one'",
+			},
+			wantError: "invalid config: both 'value' and 'file' were set",
 		},
 		{
 			name: "success with setup.kv_stores configuration and no existing service and --non-interactive",
