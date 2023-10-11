@@ -105,7 +105,7 @@ func (o *KVStores) Configure() error {
 
 			var f *os.File
 			if item.File != "" {
-				abs, err := filepath.Abs(item.File)
+				abs, err := filepath.Abs(value)
 				if err != nil {
 					return fmt.Errorf("failed to construct absolute path for '%s': %w", item.File, err)
 				}
