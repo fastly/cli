@@ -50,8 +50,7 @@ type ConfigStoreItem struct {
 func (o *ConfigStores) Configure() error {
 	for name, settings := range o.Setup {
 		if !o.AcceptDefaults && !o.NonInteractive {
-			text.Break(o.Stdout)
-			text.Output(o.Stdout, "Configuring config store '%s'", name)
+			text.Output(o.Stdout, "\nConfiguring config store '%s'", name)
 			if settings.Description != "" {
 				text.Output(o.Stdout, settings.Description)
 			}
@@ -72,8 +71,7 @@ func (o *ConfigStores) Configure() error {
 			)
 
 			if !o.AcceptDefaults && !o.NonInteractive {
-				text.Break(o.Stdout)
-				text.Output(o.Stdout, "Create a config store key called '%s'", key)
+				text.Output(o.Stdout, "\nCreate a config store key called '%s'", key)
 				if item.Description != "" {
 					text.Output(o.Stdout, item.Description)
 				}
@@ -114,90 +112,56 @@ func (o *ConfigStores) Create() error {
 	}
 
 	for _, store := range o.required {
-		err := o.Spinner.Start()
-		if err != nil {
-			return err
-		}
-		msg := fmt.Sprintf("Creating config store '%s'", store.Name)
-		o.Spinner.Message(msg + "...")
+		var (
+			err error
+			cs  *fastly.ConfigStore
+		)
 
-		cs, err := o.APIClient.CreateConfigStore(&fastly.CreateConfigStoreInput{
-			Name: store.Name,
-		})
-		if err != nil {
-			err = fmt.Errorf("error creating config store: %w", err)
-			o.Spinner.StopFailMessage(msg)
-			spinErr := o.Spinner.StopFail()
-			if spinErr != nil {
-				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		err = o.Spinner.Process(fmt.Sprintf("Creating config store '%s'", store.Name), func(_ *text.SpinnerWrapper) error {
+			cs, err = o.APIClient.CreateConfigStore(&fastly.CreateConfigStoreInput{
+				Name: store.Name,
+			})
+			if err != nil {
+				return fmt.Errorf("error creating config store: %w", err)
 			}
-			return err
-		}
-
-		o.Spinner.StopMessage(msg)
-		err = o.Spinner.Stop()
+			return nil
+		})
 		if err != nil {
 			return err
 		}
 
 		if len(store.Items) > 0 {
 			for _, item := range store.Items {
-				err := o.Spinner.Start()
-				if err != nil {
-					return err
-				}
-				msg := fmt.Sprintf("Creating config store item '%s'", item.Key)
-				o.Spinner.Message(msg + "...")
-
-				_, err = o.APIClient.CreateConfigStoreItem(&fastly.CreateConfigStoreItemInput{
-					StoreID: cs.ID,
-					Key:     item.Key,
-					Value:   item.Value,
+				err = o.Spinner.Process(fmt.Sprintf("Creating config store item '%s'", item.Key), func(_ *text.SpinnerWrapper) error {
+					_, err = o.APIClient.CreateConfigStoreItem(&fastly.CreateConfigStoreItemInput{
+						StoreID: cs.ID,
+						Key:     item.Key,
+						Value:   item.Value,
+					})
+					if err != nil {
+						return fmt.Errorf("error creating config store item: %w", err)
+					}
+					return nil
 				})
 				if err != nil {
-					err = fmt.Errorf("error creating config store item: %w", err)
-					o.Spinner.StopFailMessage(msg)
-					spinErr := o.Spinner.StopFail()
-					if spinErr != nil {
-						return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
-					}
-					return err
-				}
-
-				o.Spinner.StopMessage(msg)
-				err = o.Spinner.Stop()
-				if err != nil {
 					return err
 				}
 			}
 		}
-
-		err = o.Spinner.Start()
-		if err != nil {
-			return err
-		}
-		msg = fmt.Sprintf("Creating resource link between service and config store '%s'...", cs.Name)
-		o.Spinner.Message(msg)
 
 		// IMPORTANT: We need to link the config store to the Compute Service.
-		_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
-			ServiceID:      o.ServiceID,
-			ServiceVersion: o.ServiceVersion,
-			Name:           fastly.String(cs.Name),
-			ResourceID:     fastly.String(cs.ID),
-		})
-		if err != nil {
-			err = fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, store.Name, err)
-			o.Spinner.StopFailMessage(msg)
-			spinErr := o.Spinner.StopFail()
-			if spinErr != nil {
-				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		err = o.Spinner.Process(fmt.Sprintf("Creating resource link between service and config store '%s'...", cs.Name), func(_ *text.SpinnerWrapper) error {
+			_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
+				ServiceID:      o.ServiceID,
+				ServiceVersion: o.ServiceVersion,
+				Name:           fastly.String(cs.Name),
+				ResourceID:     fastly.String(cs.ID),
+			})
+			if err != nil {
+				return fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, store.Name, err)
 			}
-			return err
-		}
-
-		o.Spinner.StopMessage(msg)
-		err = o.Spinner.Stop()
+			return nil
+		})
 		if err != nil {
 			return err
 		}
