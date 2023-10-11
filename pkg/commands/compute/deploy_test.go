@@ -1646,7 +1646,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with setup.kv_stores configuration and no existing service with file",
+			name: "success with setup.kv_stores configuration and no existing service plus use of file",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
