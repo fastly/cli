@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+
+	"github.com/kennygrant/sanitize"
 
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -17,10 +20,10 @@ import (
 type HashsumCommand struct {
 	cmd.Base
 
-	buildCmd  *BuildCommand
-	Manifest  manifest.Data
-	Package   string
-	SkipBuild bool
+	buildCmd    *BuildCommand
+	Manifest    manifest.Data
+	PackagePath string
+	SkipBuild   bool
 }
 
 // NewHashsumCommand returns a usable command registered under the parent.
@@ -31,7 +34,7 @@ func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 	c.Globals = g
 	c.Manifest = m
 	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute@Edge package").Hidden()
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
+	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)
 	return &c
 }
@@ -54,7 +57,15 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	pkgPath, err := validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	if c.PackagePath == "" {
+		projectName, source := c.Manifest.Name()
+		if source == manifest.SourceUndefined {
+			return fsterr.ErrReadingManifest
+		}
+		c.PackagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
+	}
+
+	err = validatePackage(c.PackagePath)
 	if err != nil {
 		var skipBuildMsg string
 		if c.SkipBuild {
@@ -66,7 +77,7 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	hashSum, err := getHashSum(pkgPath)
+	hashSum, err := getHashSum(c.PackagePath)
 	if err != nil {
 		return err
 	}

@@ -258,6 +258,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn: createServiceError,
+				DeleteServiceFn: deleteServiceOK,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -277,6 +278,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
 				GetCurrentUserFn: getCurrentUserError,
+				DeleteServiceFn:  deleteServiceOK,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -294,6 +296,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
 				GetCurrentUserFn: getCurrentUser,
+				DeleteServiceFn:  deleteServiceOK,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -322,6 +325,7 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
 				GetCurrentUserFn: getCurrentUser,
+				DeleteServiceFn:  deleteServiceOK,
 			},
 			httpClientRes: []*http.Response{
 				nil,
@@ -1704,7 +1708,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
-			name: "success with setup.kv_stores configuration and no existing service with file and value on same key",
+			name: "error with setup.kv_stores configuration and no existing service with file and value on same key",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateBackendFn:     createBackendOK,
@@ -1718,6 +1722,7 @@ func TestDeploy(t *testing.T) {
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
+				DeleteServiceFn:     deleteServiceOK,
 			},
 			httpClientRes: []*http.Response{
 				{
