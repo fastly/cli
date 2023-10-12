@@ -73,8 +73,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		introContext = " (using --from to locate package template)"
 	}
 
-	text.Output(out, "Creating a new Compute project%s.", introContext)
-	text.Break(out)
+	text.Output(out, "Creating a new Compute project%s.\n\n", introContext)
 	text.Output(out, "Press ^C at any time to quit.")
 
 	if c.cloneFrom != "" && c.language == "" {
