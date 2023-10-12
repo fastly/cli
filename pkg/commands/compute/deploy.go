@@ -120,7 +120,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var serviceVersion *fastly.Version
 	if noExistingService {
-		serviceID, serviceVersion, err = c.NewServiceIDVersion(fnActivateTrial, spinner, in, out)
+		serviceID, serviceVersion, err = c.NewService(fnActivateTrial, spinner, in, out)
 		if err != nil {
 			return err
 		}
@@ -219,10 +219,14 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.StatusCheck(serviceURL, spinner, out)
 	}
 
-	displayDeployOutput(noExistingService, out, manageServiceBaseURL, serviceID, serviceURL, serviceVersion.Number)
+	if !noExistingService {
+		text.Break(out)
+	}
+	displayDeployOutput(out, manageServiceBaseURL, serviceID, serviceURL, serviceVersion.Number)
 	return nil
 }
 
+// StatusCheck checks the service URL and identifies when it's ready.
 func (c *DeployCommand) StatusCheck(serviceURL string, spinner text.Spinner, out io.Writer) {
 	var (
 		err    error
@@ -250,10 +254,7 @@ func (c *DeployCommand) StatusCheck(serviceURL string, spinner text.Spinner, out
 	}
 }
 
-func displayDeployOutput(noExistingService bool, out io.Writer, manageServiceBaseURL, serviceID, serviceURL string, serviceVersion int) {
-	if !noExistingService {
-		text.Break(out)
-	}
+func displayDeployOutput(out io.Writer, manageServiceBaseURL, serviceID, serviceURL string, serviceVersion int) {
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
 	text.Description(out, "View this service at", serviceURL)
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion)
@@ -274,7 +275,7 @@ func validStatusCodeRange(status int) bool {
 // - Acquire the Service ID/Version.
 // - Validate there is a package to deploy.
 // - Determine if a trial needs to be activated on the user's account.
-func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial activator, serviceID string, err error) {
+func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, serviceID string, err error) {
 	defaultActivator := func(customerID string) error { return nil }
 
 	token, s := c.Globals.Token()
@@ -299,9 +300,12 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial activator, service
 		}
 		// NOTE: Before returning the manifest read error, we'll attempt to read
 		// the manifest from within the given package archive.
-		err := readManifestFromPackageArchive(&c.Manifest, c.PackagePath, c.Globals.Verbose(), out)
+		err := readManifestFromPackageArchive(&c.Manifest, c.PackagePath)
 		if err != nil {
 			return defaultActivator, serviceID, err
+		}
+		if c.Globals.Verbose() {
+			text.Info(out, "Using fastly.toml within --package archive: %s\n\n", c.PackagePath)
 		}
 	}
 
@@ -343,15 +347,12 @@ func validatePackage(pkgPath string) error {
 			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
-	if err := validatePackageContent(pkgPath); err != nil {
-		return err
-	}
-	return nil
+	return validatePackageContent(pkgPath)
 }
 
 // readManifestFromPackageArchive extracts the manifest file from the given
 // package archive file and reads it into memory.
-func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, verbose bool, out io.Writer) error {
+func readManifestFromPackageArchive(data *manifest.Data, packageFlag string) error {
 	dst, err := os.MkdirTemp("", fmt.Sprintf("%s-*", manifest.Filename))
 	if err != nil {
 		return err
@@ -379,10 +380,6 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, ver
 			err = fsterr.ErrReadingManifest
 		}
 		return err
-	}
-
-	if verbose {
-		text.Info(out, "Using fastly.toml within --package archive: %s\n\n", packageFlag)
 	}
 
 	return nil
@@ -434,18 +431,18 @@ func packageSize(path string) (size int64, err error) {
 	return fi.Size(), nil
 }
 
-// activator represents a function that calls an undocumented API endpoint for
+// Activator represents a function that calls an undocumented API endpoint for
 // activating a Compute@Edge free trial on the given customer account.
 //
 // It is preconfigured with the Fastly API endpoint, a user token and a simple
 // HTTP Client.
 //
-// This design allows us to pass an activator rather than passing multiple
+// This design allows us to pass an Activator rather than passing multiple
 // unrelated arguments through several nested functions.
-type activator func(customerID string) error
+type Activator func(customerID string) error
 
 // preconfigureActivateTrial activates a free trial on the customer account.
-func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) activator {
+func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) Activator {
 	return func(customerID string) error {
 		_, err := undocumented.Call(undocumented.CallOptions{
 			APIEndpoint: endpoint,
@@ -468,8 +465,8 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 	}
 }
 
-// NewServiceIDVersion handles creating a new service when no Service ID is found.
-func (c *DeployCommand) NewServiceIDVersion(fnActivateTrial activator, spinner text.Spinner, in io.Reader, out io.Writer) (string, *fastly.Version, error) {
+// NewService handles creating a new service when no Service ID is found.
+func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinner, in io.Reader, out io.Writer) (string, *fastly.Version, error) {
 	var (
 		err            error
 		serviceID      string
@@ -554,7 +551,7 @@ func createService(
 	f global.Flags,
 	serviceName string,
 	apiClient api.Interface,
-	fnActivateTrial activator,
+	fnActivateTrial Activator,
 	spinner text.Spinner,
 	errLog fsterr.LogInterface,
 	out io.Writer,
