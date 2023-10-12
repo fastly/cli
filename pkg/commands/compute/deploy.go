@@ -188,7 +188,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		serviceVersion, err = c.ExistingServiceVersion(serviceID, out)
 		if err != nil {
 			if errors.Is(err, ErrPackageUnchanged) {
-				text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, serviceVersion)
+				text.Info(out, "Skipping package deployment, local and service version are identical. (service %s, version %d) ", serviceID, serviceVersion.Number)
 				return nil
 			}
 			return err
