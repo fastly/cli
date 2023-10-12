@@ -73,9 +73,9 @@ func (o *ConfigStores) Configure() error {
 					if err != nil {
 						return fmt.Errorf("error reading prompt input: %w", err)
 					}
-					text.Break(o.Stdout)
 					if value == "" {
 						linkExistingStore = true
+						existingStoreID = store.ID
 					} else {
 						name = value
 					}
