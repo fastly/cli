@@ -1119,16 +1119,6 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 		return nil, err
 	}
 
-	err = c.CompareLocalRemotePackage(serviceID, serviceVersion.Number)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path":    c.PackagePath,
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
-		})
-		return serviceVersion, err
-	}
-
 	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
 	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
@@ -1149,6 +1139,16 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 			Inner:       fmt.Errorf("invalid service type: %s", serviceDetails.Type),
 			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
 		}
+	}
+
+	err = c.CompareLocalRemotePackage(serviceID, serviceVersion.Number)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path":    c.PackagePath,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return serviceVersion, err
 	}
 
 	// Unlike other CLI commands that are a direct mapping to an API endpoint,
