@@ -13,5 +13,5 @@
 
 ## Footnotes
 
-1. <a name="note1"></a>We utilize [semantic versioning](https://semver.org/) and only include relevant/significant changes within the CHANGELOG (be sure to document changes to the app config if `config_version` has changed).
+1. <a name="note1"></a>We utilize [semantic versioning](https://semver.org/) and only include relevant/significant changes within the CHANGELOG (be sure to document changes to the app config if `config_version` has changed, and if any breaking interface changes are made to the fastly.toml manifest those should be documented on developer.fastly.com).
 1. <a name="note2"></a>Triggers a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_release.yml) that produces a 'draft' release.
