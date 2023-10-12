@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// KVStores represents the service state related to kv stores defined
+// KVStores represents the service state related to KV Stores defined
 // within the fastly.toml [setup] configuration.
 //
 // NOTE: It implements the setup.Interface interface.
@@ -109,7 +109,7 @@ func (o *KVStores) Configure() error {
 		}
 
 		if !o.AcceptDefaults && !o.NonInteractive {
-			text.Output(o.Stdout, "\nConfiguring kv store '%s'", name)
+			text.Output(o.Stdout, "\nConfiguring KV Store '%s'", name)
 			if settings.Description != "" {
 				text.Output(o.Stdout, settings.Description)
 			}
@@ -141,7 +141,7 @@ func (o *KVStores) Configure() error {
 			)
 
 			if !o.AcceptDefaults && !o.NonInteractive {
-				text.Output(o.Stdout, "\nCreate a kv store key called '%s'", key)
+				text.Output(o.Stdout, "\nCreate a KV Store key called '%s'", key)
 				if item.Description != "" {
 					text.Output(o.Stdout, item.Description)
 				}
@@ -214,7 +214,7 @@ func (o *KVStores) Create() error {
 		)
 
 		if kvStore.LinkExistingStore {
-			err = o.Spinner.Process(fmt.Sprintf("Retrieving existing kv store '%s'", kvStore.Name), func(_ *text.SpinnerWrapper) error {
+			err = o.Spinner.Process(fmt.Sprintf("Retrieving existing KV Store '%s'", kvStore.Name), func(_ *text.SpinnerWrapper) error {
 				store, err = o.APIClient.GetKVStore(&fastly.GetKVStoreInput{
 					ID: kvStore.ExistingStoreID,
 				})
@@ -227,12 +227,12 @@ func (o *KVStores) Create() error {
 				return err
 			}
 		} else {
-			err = o.Spinner.Process(fmt.Sprintf("Creating kv store '%s'", kvStore.Name), func(_ *text.SpinnerWrapper) error {
+			err = o.Spinner.Process(fmt.Sprintf("Creating KV Store '%s'", kvStore.Name), func(_ *text.SpinnerWrapper) error {
 				store, err = o.APIClient.CreateKVStore(&fastly.CreateKVStoreInput{
 					Name: kvStore.Name,
 				})
 				if err != nil {
-					return fmt.Errorf("error creating kv store: %w", err)
+					return fmt.Errorf("error creating KV Store: %w", err)
 				}
 				return nil
 			})
@@ -243,7 +243,7 @@ func (o *KVStores) Create() error {
 
 		if len(kvStore.Items) > 0 {
 			for _, item := range kvStore.Items {
-				err = o.Spinner.Process(fmt.Sprintf("Creating kv store key '%s'...", item.Key), func(_ *text.SpinnerWrapper) error {
+				err = o.Spinner.Process(fmt.Sprintf("Creating KV Store key '%s'...", item.Key), func(_ *text.SpinnerWrapper) error {
 					input := &fastly.InsertKVStoreKeyInput{
 						ID:  store.ID,
 						Key: item.Key,
@@ -255,7 +255,7 @@ func (o *KVStores) Create() error {
 					}
 					err = o.APIClient.InsertKVStoreKey(input)
 					if err != nil {
-						return fmt.Errorf("error creating kv store key: %w", err)
+						return fmt.Errorf("error creating KV Store key: %w", err)
 					}
 					return nil
 				})
@@ -266,7 +266,7 @@ func (o *KVStores) Create() error {
 		}
 
 		// IMPORTANT: We need to link the KV Store to the Compute Service.
-		err = o.Spinner.Process(fmt.Sprintf("Creating resource link between service and kv store '%s'...", kvStore.Name), func(_ *text.SpinnerWrapper) error {
+		err = o.Spinner.Process(fmt.Sprintf("Creating resource link between service and KV Store '%s'...", kvStore.Name), func(_ *text.SpinnerWrapper) error {
 			_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
 				ServiceID:      o.ServiceID,
 				ServiceVersion: o.ServiceVersion,
@@ -274,7 +274,7 @@ func (o *KVStores) Create() error {
 				ResourceID:     fastly.String(store.ID),
 			})
 			if err != nil {
-				return fmt.Errorf("error creating resource link between the service '%s' and the kv store '%s': %w", o.ServiceID, store.Name, err)
+				return fmt.Errorf("error creating resource link between the service '%s' and the KV Store '%s': %w", o.ServiceID, store.Name, err)
 			}
 			return nil
 		})

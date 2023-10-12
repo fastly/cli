@@ -1689,7 +1689,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
@@ -1703,12 +1703,12 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
-				"Configuring kv store 'store_one'",
-				"Create a kv store key called 'foo'",
-				"Create a kv store key called 'bar'",
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Configuring KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 			},
 		},
 		{
@@ -1746,7 +1746,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
@@ -1762,13 +1762,13 @@ func TestDeploy(t *testing.T) {
 			},
 			wantOutput: []string{
 				"WARNING: A KV Store called 'store_one' already exists",
-				"Retrieving existing kv store 'store_one'",
-				"Create a kv store key called 'foo'",
-				"Create a kv store key called 'bar'",
-				"Create a kv store key called 'baz'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
-				"Creating kv store key 'baz'",
+				"Retrieving existing KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Create a KV Store key called 'baz'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
+				"Creating KV Store key 'baz'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1808,7 +1808,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.baz]
       value = "some_value"
 			file = "./kv_store_one_baz.txt"
@@ -1818,7 +1818,7 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring kv store 'store_one'",
+				"Configuring KV Store 'store_one'",
 			},
 			wantError: "invalid config: both 'value' and 'file' were set",
 		},
@@ -1857,7 +1857,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
@@ -1869,9 +1869,9 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1919,12 +1919,12 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring kv store 'store_one'",
-				"Create a kv store key called 'foo'",
-				"Create a kv store key called 'bar'",
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Configuring KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1934,7 +1934,7 @@ func TestDeploy(t *testing.T) {
 			// be present in the stdout/stderr as the [setup/dictionaries]
 			// configuration does not define them.
 			dontWantOutput: []string{
-				"My first kv store",
+				"My first KV Store",
 				"my default value for foo",
 				"my default value for bar",
 			},
