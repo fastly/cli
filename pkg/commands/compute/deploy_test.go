@@ -1939,6 +1939,189 @@ func TestDeploy(t *testing.T) {
 				"my default value for bar",
 			},
 		},
+		// NOTE: The following test validates [setup] only works for a new service.
+		{
+			name: "success with setup.secret_stores configuration and existing service",
+			args: args("compute deploy --service-id 123 --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				CreateBackendFn:     createBackendOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			description = "My first Secret Store"
+			[setup.secret_stores.store_one.entries.foo]
+			description = "a good description about foo"
+			[setup.secret_stores.store_one.entries.bar]
+			description = "a good description about bar"
+			`,
+			wantOutput: []string{
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 123, version 4)",
+			},
+			dontWantOutput: []string{
+				"Configuring Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Creating Secret Store 'store_one'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+			},
+		},
+		{
+			name: "success with setup.secret_stores configuration and no existing service but an existing store",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateResourceFn:    createResourceOK,
+				CreateDomainFn:      createDomainOK,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+				ListSecretStoresFn:  listSecretStoresOk,
+				GetSecretStoreFn:    getSecretStoreOk,
+				CreateSecretFn:      createSecretOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			description = "My first Secret Store"
+			[setup.secret_stores.store_one.entries.foo]
+			description = "a good description about foo"
+			[setup.secret_stores.store_one.entries.bar]
+			description = "a good description about bar"
+			[setup.secret_stores.store_one.entries.baz]
+			description = "a file containing the data for this entry"
+			`,
+			stdin: []string{
+				"Y",         // when prompted to create a new service
+				"",          // leave blank for service name prompt
+				"",          // leave blank for backend prompt
+				"",          // leave blank for using existing store prompt
+				"my_secret", // when prompted to add a secret for foo (this can't be empty)
+				"my_secret", // when prompted to add a secret for bar (this can't be empty)
+				"my_secret", // when prompted to add a secret for baz (this can't be empty)
+			},
+			wantOutput: []string{
+				"WARNING: A Secret Store called 'store_one' already exists",
+				"Retrieving existing Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Create a Secret Store entry called 'baz'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+				"Creating Secret Store entry 'baz'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with setup.secret_stores configuration and no existing service and no predefined values",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateResourceFn:    createResourceOK,
+				CreateDomainFn:      createDomainOK,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+				ListSecretStoresFn:  listSecretStoresEmpty,
+				CreateSecretStoreFn: createSecretStoreOk,
+				CreateSecretFn:      createSecretOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			[setup.secret_stores.store_one.entries.foo]
+			[setup.secret_stores.store_one.entries.bar]
+			`,
+			stdin: []string{
+				"Y",         // when prompted to create a new service
+				"",          // leave blank for service name prompt
+				"",          // leave blank for backend prompt
+				"my_secret", // when prompted to add a secret for foo (this can't be empty)
+				"my_secret", // when prompted to add a secret for bar (this can't be empty)
+			},
+			wantOutput: []string{
+				"Configuring Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Creating Secret Store 'store_one'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			// The following are predefined values for the `description` and `value`
+			// fields from the prior setup.dictionaries tests that we expect to not
+			// be present in the stdout/stderr as the [setup/dictionaries]
+			// configuration does not define them.
+			dontWantOutput: []string{
+				"My first Secret Store",
+				"my default value for foo",
+				"my default value for bar",
+			},
+		},
 	}
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
@@ -2024,6 +2207,7 @@ func TestDeploy(t *testing.T) {
 				case <-done:
 					// Wait for app.Run() to finish
 				case <-time.After(10 * time.Second):
+					t.Log(stdout.String())
 					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
 				}
 			} else {

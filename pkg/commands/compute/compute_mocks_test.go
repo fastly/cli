@@ -130,6 +130,46 @@ func getKVStoreOk(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 	}, nil
 }
 
+func listSecretStoresOk(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+	return &fastly.SecretStores{
+		Data: []fastly.SecretStore{
+			{
+				ID:   "123",
+				Name: "store_one",
+			},
+			{
+				ID:   "456",
+				Name: "store_two",
+			},
+		},
+	}, nil
+}
+
+func listSecretStoresEmpty(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+	return &fastly.SecretStores{}, nil
+}
+
+func getSecretStoreOk(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+	return &fastly.SecretStore{
+		ID:   "123",
+		Name: "store_one",
+	}, nil
+}
+
+func createSecretStoreOk(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+	return &fastly.SecretStore{
+		ID:   "123",
+		Name: "store_one",
+	}, nil
+}
+
+func createSecretOk(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+	return &fastly.Secret{
+		Digest: []byte("123"),
+		Name:   "foo",
+	}, nil
+}
+
 func listConfigStoresOk() ([]*fastly.ConfigStore, error) {
 	return []*fastly.ConfigStore{
 		{
