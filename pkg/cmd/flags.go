@@ -276,12 +276,7 @@ func Content(flagval string) string {
 	content := flagval
 	if path, err := filepath.Abs(flagval); err == nil {
 		if _, err := os.Stat(path); err == nil {
-			// gosec flagged this:
-			// G304 (CWE-22): Potential file inclusion via variable
-			//
-			// Disabling as we require a user to configure their own environment.
-			/* #nosec */
-			if data, err := os.ReadFile(path); err == nil {
+			if data, err := os.ReadFile(path); err == nil /* #nosec */ {
 				content = string(data)
 			}
 		}

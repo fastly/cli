@@ -47,6 +47,7 @@ type ServeCommand struct {
 	av       github.AssetVersioner
 
 	// Build fields
+	dir         cmd.OptionalString
 	includeSrc  cmd.OptionalBool
 	lang        cmd.OptionalString
 	packageName cmd.OptionalString
@@ -79,6 +80,7 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
 	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
+	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Action(c.dir.Set).StringVar(&c.dir.Value)
 	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
@@ -117,6 +119,24 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	text.Break(out)
+
+	if c.dir.WasSet {
+		projectDir, err := filepath.Abs(c.dir.Value)
+		if err != nil {
+			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.dir.Value, err)
+		}
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %w", err)
+		}
+		if err := os.Chdir(projectDir); err != nil {
+			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
+		}
+		defer os.Chdir(wd)
+		if c.Globals.Verbose() {
+			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+		}
+	}
 
 	c.setBackendsWithDefaultOverrideHostIfMissing(out)
 
@@ -211,6 +231,9 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // Build constructs and executes the build logic.
 func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	// Reset the fields on the BuildCommand based on ServeCommand values.
+	if c.dir.WasSet {
+		c.build.Flags.Dir = c.dir.Value
+	}
 	if c.includeSrc.WasSet {
 		c.build.Flags.IncludeSrc = c.includeSrc.Value
 	}

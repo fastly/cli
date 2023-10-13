@@ -38,10 +38,12 @@ var ErrPackageUnchanged = errors.New("package is unchanged")
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
 	cmd.Base
+	manifestPath string
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
 	Comment            cmd.OptionalString
+	Dir                string
 	Domain             string
 	Manifest           manifest.Data
 	PackagePath        string
@@ -65,7 +67,7 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.Manifest.Flag.ServiceID,
+		Dst:         &c.Globals.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -81,6 +83,7 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 		Name:        cmd.FlagVersionName,
 	})
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
+	c.CmdClause.Flag("dir", "Project directory (default: current directory)").StringVar(&c.Dir)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
 	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check").IntVar(&c.StatusCheckCode)
@@ -92,6 +95,65 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	var projectDir string
+	if c.Dir != "" {
+		projectDir, err = filepath.Abs(c.Dir)
+		if err != nil {
+			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.Dir, err)
+		}
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %w", err)
+		}
+		if err := os.Chdir(projectDir); err != nil {
+			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
+		}
+		defer os.Chdir(wd)
+		if c.Globals.Verbose() {
+			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+		}
+		c.manifestPath = filepath.Join(projectDir, manifest.Filename)
+	}
+
+	spinner, err := text.NewSpinner(out)
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Process("Verifying fastly.toml", func(_ *text.SpinnerWrapper) error {
+		if projectDir == "" {
+			err = c.Globals.Manifest.File.ReadError()
+		} else {
+			err = c.Globals.Manifest.File.Read(c.manifestPath)
+		}
+		if err != nil {
+			// If the user hasn't specified a package to deploy, then we'll just check
+			// the read error and return it.
+			if c.PackagePath == "" {
+				if errors.Is(err, os.ErrNotExist) {
+					err = fsterr.ErrReadingManifest
+				}
+				c.Globals.ErrLog.Add(err)
+				return err
+			}
+			// Otherwise, we'll attempt to read the manifest from within the given
+			// package archive.
+			if err := readManifestFromPackageArchive(&c.Globals.Manifest, c.PackagePath); err != nil {
+				return err
+			}
+			if c.Globals.Verbose() {
+				text.Info(out, "Using fastly.toml within --package archive: %s\n\n", c.PackagePath)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if !c.Globals.Flags.NonInteractive {
+		text.Break(out)
+	}
+
 	fnActivateTrial, serviceID, err := c.Setup(out)
 	if err != nil {
 		return err
@@ -112,11 +174,6 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 		undoStack.RunIfError(out, err)
 	}(c.Globals.ErrLog)
-
-	spinner, err := text.NewSpinner(out)
-	if err != nil {
-		return err
-	}
 
 	var serviceVersion *fastly.Version
 	if noExistingService {
@@ -285,32 +342,13 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
 	// This is because later in the Exec() flow we might create a 'new' service.
-	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err == nil && c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	err = c.Manifest.File.ReadError()
-	if err != nil {
-		if c.PackagePath == "" {
-			if errors.Is(err, os.ErrNotExist) {
-				err = fsterr.ErrReadingManifest
-			}
-			return defaultActivator, serviceID, err
-		}
-		// NOTE: Before returning the manifest read error, we'll attempt to read
-		// the manifest from within the given package archive.
-		err := readManifestFromPackageArchive(&c.Manifest, c.PackagePath)
-		if err != nil {
-			return defaultActivator, serviceID, err
-		}
-		if c.Globals.Verbose() {
-			text.Info(out, "Using fastly.toml within --package archive: %s\n\n", c.PackagePath)
-		}
-	}
-
 	if c.PackagePath == "" {
-		projectName, source := c.Manifest.Name()
+		projectName, source := c.Globals.Manifest.Name()
 		if source == manifest.SourceUndefined {
 			return defaultActivator, serviceID, fsterr.ErrReadingManifest
 		}
@@ -478,7 +516,7 @@ func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinn
 		text.Break(out)
 		text.Output(out, "Press ^C at any time to quit.")
 
-		if c.Manifest.File.Setup.Defined() {
+		if c.Globals.Manifest.File.Setup.Defined() {
 			text.Info(out, "\nProcessing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
 		}
 
@@ -493,7 +531,7 @@ func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinn
 		text.Break(out)
 	}
 
-	defaultServiceName := c.Manifest.File.Name
+	defaultServiceName := c.Globals.Manifest.File.Name
 	var serviceName string
 
 	// The service name will be whatever is set in the --service-name flag.
@@ -522,7 +560,7 @@ func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinn
 		return serviceID, serviceVersion, err
 	}
 
-	err = c.UpdateManifestServiceID(serviceID)
+	err = c.UpdateManifestServiceID(serviceID, c.manifestPath)
 
 	// NOTE: Skip error if --package flag is set.
 	//
@@ -648,7 +686,7 @@ func (c *DeployCommand) CleanupNewService(serviceID string, out io.Writer) error
 	}
 
 	text.Info(out, "Removing Service ID from fastly.toml\n\n")
-	err = c.UpdateManifestServiceID("")
+	err = c.UpdateManifestServiceID("", c.manifestPath)
 	if err != nil {
 		return err
 	}
@@ -664,12 +702,15 @@ func (c *DeployCommand) CleanupNewService(serviceID string, out io.Writer) error
 // error in the deploy flow, and for which the Service ID will be set to an
 // empty string (otherwise the service itself will be deleted while the
 // manifest will continue to hold a reference to it).
-func (c *DeployCommand) UpdateManifestServiceID(serviceID string) error {
-	if err := c.Manifest.File.Read(manifest.Filename); err != nil {
+func (c *DeployCommand) UpdateManifestServiceID(serviceID, manifestPath string) error {
+	if manifestPath == "" {
+		manifestPath = manifest.Filename
+	}
+	if err := c.Globals.Manifest.File.Read(manifestPath); err != nil {
 		return fmt.Errorf("error reading fastly.toml: %w", err)
 	}
-	c.Manifest.File.ServiceID = serviceID
-	if err := c.Manifest.File.Write(manifest.Filename); err != nil {
+	c.Globals.Manifest.File.ServiceID = serviceID
+	if err := c.Globals.Manifest.File.Write(manifestPath); err != nil {
 		return fmt.Errorf("error saving fastly.toml: %w", err)
 	}
 	return nil
@@ -745,7 +786,7 @@ func (c *DeployCommand) ConstructNewServiceResources(
 		NonInteractive: c.Globals.Flags.NonInteractive,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
-		Setup:          c.Manifest.File.Setup.Backends,
+		Setup:          c.Globals.Manifest.File.Setup.Backends,
 		Stdin:          in,
 		Stdout:         out,
 	}
@@ -756,13 +797,13 @@ func (c *DeployCommand) ConstructNewServiceResources(
 		NonInteractive: c.Globals.Flags.NonInteractive,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
-		Setup:          c.Manifest.File.Setup.ConfigStores,
+		Setup:          c.Globals.Manifest.File.Setup.ConfigStores,
 		Stdin:          in,
 		Stdout:         out,
 	}
 
 	sr.loggers = &setup.Loggers{
-		Setup:  c.Manifest.File.Setup.Loggers,
+		Setup:  c.Globals.Manifest.File.Setup.Loggers,
 		Stdout: out,
 	}
 
@@ -772,7 +813,7 @@ func (c *DeployCommand) ConstructNewServiceResources(
 		NonInteractive: c.Globals.Flags.NonInteractive,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
-		Setup:          c.Manifest.File.Setup.ObjectStores,
+		Setup:          c.Globals.Manifest.File.Setup.ObjectStores,
 		Stdin:          in,
 		Stdout:         out,
 	}
@@ -783,7 +824,7 @@ func (c *DeployCommand) ConstructNewServiceResources(
 		NonInteractive: c.Globals.Flags.NonInteractive,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
-		Setup:          c.Manifest.File.Setup.KVStores,
+		Setup:          c.Globals.Manifest.File.Setup.KVStores,
 		Stdin:          in,
 		Stdout:         out,
 	}
@@ -794,7 +835,7 @@ func (c *DeployCommand) ConstructNewServiceResources(
 		NonInteractive: c.Globals.Flags.NonInteractive,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
-		Setup:          c.Manifest.File.Setup.SecretStores,
+		Setup:          c.Globals.Manifest.File.Setup.SecretStores,
 		Stdin:          in,
 		Stdout:         out,
 	}

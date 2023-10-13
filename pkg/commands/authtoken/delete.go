@@ -123,11 +123,7 @@ func (c *DeleteCommand) constructInputBatch() (*fastly.BatchDeleteTokensInput, e
 
 	if path, err = filepath.Abs(c.file); err == nil {
 		if _, err = os.Stat(path); err == nil {
-			// gosec flagged this:
-			// G304 (CWE-22): Potential file inclusion via variable
-			// Disabling as we trust the source of the path variable.
-			/* #nosec */
-			if file, err = os.Open(path); err == nil {
+			if file, err = os.Open(path); err == nil /* #nosec */ {
 				scanner := bufio.NewScanner(file)
 				for scanner.Scan() {
 					tokens = append(tokens, &fastly.BatchToken{ID: scanner.Text()})

@@ -1,7 +1,10 @@
 package compute
 
 import (
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
@@ -17,6 +20,7 @@ type PublishCommand struct {
 	deploy   *DeployCommand
 
 	// Build fields
+	dir         cmd.OptionalString
 	includeSrc  cmd.OptionalBool
 	lang        cmd.OptionalString
 	packageName cmd.OptionalString
@@ -44,6 +48,7 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 	c.CmdClause = parent.Command("publish", "Build and deploy a Compute@Edge package to a Fastly service")
 
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
+	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Action(c.dir.Set).StringVar(&c.dir.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
@@ -85,6 +90,9 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 // the progress indicator.
 func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Reset the fields on the BuildCommand based on PublishCommand values.
+	if c.dir.WasSet {
+		c.build.Flags.Dir = c.dir.Value
+	}
 	if c.includeSrc.WasSet {
 		c.build.Flags.IncludeSrc = c.includeSrc.Value
 	}
@@ -107,7 +115,28 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
+	if c.dir.WasSet {
+		projectDir, err := filepath.Abs(c.dir.Value)
+		if err != nil {
+			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.dir.Value, err)
+		}
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %w", err)
+		}
+		if err := os.Chdir(projectDir); err != nil {
+			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
+		}
+		defer os.Chdir(wd)
+		if c.Globals.Verbose() {
+			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+		}
+	}
+
 	// Reset the fields on the DeployCommand based on PublishCommand values.
+	if c.dir.WasSet {
+		c.deploy.Dir = c.dir.Value
+	}
 	if c.pkg.WasSet {
 		c.deploy.PackagePath = c.pkg.Value
 	}
