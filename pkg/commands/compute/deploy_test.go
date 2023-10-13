@@ -1231,7 +1231,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
 				CreateDomainFn:          createDomainOK,
 				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
@@ -1241,6 +1240,7 @@ func TestDeploy(t *testing.T) {
 				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1292,7 +1292,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
 				CreateDomainFn:          createDomainOK,
 				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
@@ -1303,6 +1302,7 @@ func TestDeploy(t *testing.T) {
 				ListConfigStoresFn:      listConfigStoresOk,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1355,7 +1355,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
 				CreateDomainFn:          createDomainOK,
 				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
@@ -1365,6 +1364,7 @@ func TestDeploy(t *testing.T) {
 				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1410,7 +1410,6 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
 				CreateDomainFn:          createDomainOK,
 				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
@@ -1420,6 +1419,7 @@ func TestDeploy(t *testing.T) {
 				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{

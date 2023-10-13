@@ -184,7 +184,8 @@ func (o *ConfigStores) Create() error {
 		if len(configStore.Items) > 0 {
 			for _, item := range configStore.Items {
 				err = o.Spinner.Process(fmt.Sprintf("Creating config store item '%s'", item.Key), func(_ *text.SpinnerWrapper) error {
-					_, err = o.APIClient.CreateConfigStoreItem(&fastly.CreateConfigStoreItemInput{
+					_, err = o.APIClient.UpdateConfigStoreItem(&fastly.UpdateConfigStoreItemInput{
+						Upsert:  true, // Use upsert to avoid conflicts when reusing a starter kit.
 						StoreID: cs.ID,
 						Key:     item.Key,
 						Value:   item.Value,

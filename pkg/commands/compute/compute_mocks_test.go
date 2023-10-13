@@ -39,7 +39,7 @@ func createConfigStoreOK(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore,
 	}, nil
 }
 
-func createConfigStoreItemOK(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
+func updateConfigStoreItemOK(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 	return &fastly.ConfigStoreItem{
 		Key:   i.Key,
 		Value: i.Value,
