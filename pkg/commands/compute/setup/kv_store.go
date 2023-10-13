@@ -93,7 +93,7 @@ func (o *KVStores) Configure() error {
 					existingStoreID = store.ID
 				} else {
 					text.Warning(o.Stdout, "\nA KV Store called '%s' already exists\n\n", name)
-					prompt := text.BoldYellow("Use a different store name (or leave empty to use the existing store): ")
+					prompt := text.Prompt("Use a different store name (or leave empty to use the existing store): ")
 					value, err := text.Input(o.Stdout, prompt, o.Stdin)
 					if err != nil {
 						return fmt.Errorf("error reading prompt input: %w", err)
@@ -133,7 +133,7 @@ func (o *KVStores) Configure() error {
 				promptMessage = "File"
 				dv = item.File
 			}
-			prompt := text.BoldYellow(fmt.Sprintf("%s: [%s] ", promptMessage, dv))
+			prompt := text.Prompt(fmt.Sprintf("%s: [%s] ", promptMessage, dv))
 
 			var (
 				value string

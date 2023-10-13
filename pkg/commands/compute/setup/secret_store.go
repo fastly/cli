@@ -92,7 +92,7 @@ func (s *SecretStores) Configure() error {
 					existingStoreID = store.ID
 				} else {
 					text.Warning(s.Stdout, "\nA Secret Store called '%s' already exists\n\n", name)
-					prompt := text.BoldYellow("Use a different store name (or leave empty to use the existing store): ")
+					prompt := text.Prompt("Use a different store name (or leave empty to use the existing store): ")
 					value, err := text.Input(s.Stdout, prompt, s.Stdin)
 					if err != nil {
 						return fmt.Errorf("error reading prompt input: %w", err)
@@ -134,7 +134,7 @@ func (s *SecretStores) Configure() error {
 				}
 				text.Break(s.Stdout)
 
-				prompt := text.BoldYellow("Value: ")
+				prompt := text.Prompt("Value: ")
 				value, err = text.InputSecure(s.Stdout, prompt, s.Stdin)
 				if err != nil {
 					return fmt.Errorf("error reading prompt input: %w", err)

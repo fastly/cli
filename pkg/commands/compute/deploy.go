@@ -521,7 +521,7 @@ func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinn
 		}
 
 		text.Break(out)
-		answer, err := text.AskYesNo(out, text.BoldYellow("Create new service: [y/N] "), in)
+		answer, err := text.AskYesNo(out, "Create new service: [y/N] ", in)
 		if err != nil {
 			return serviceID, serviceVersion, err
 		}
@@ -543,7 +543,7 @@ func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinn
 	case c.Globals.Flags.AcceptDefaults || c.Globals.Flags.NonInteractive:
 		serviceName = defaultServiceName
 	default:
-		serviceName, err = text.Input(out, text.BoldYellow(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
+		serviceName, err = text.Input(out, text.Prompt(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
 		if err != nil || serviceName == "" {
 			serviceName = defaultServiceName
 		}

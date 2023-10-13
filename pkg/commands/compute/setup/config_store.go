@@ -68,7 +68,7 @@ func (o *ConfigStores) Configure() error {
 					existingStoreID = store.ID
 				} else {
 					text.Warning(o.Stdout, "\nA Config Store called '%s' already exists\n\n", name)
-					prompt := text.BoldYellow("Use a different store name (or leave empty to use the existing store): ")
+					prompt := text.Prompt("Use a different store name (or leave empty to use the existing store): ")
 					value, err := text.Input(o.Stdout, prompt, o.Stdin)
 					if err != nil {
 						return fmt.Errorf("error reading prompt input: %w", err)
@@ -97,7 +97,7 @@ func (o *ConfigStores) Configure() error {
 			if item.Value != "" {
 				dv = item.Value
 			}
-			prompt := text.BoldYellow(fmt.Sprintf("Value: [%s] ", dv))
+			prompt := text.Prompt(fmt.Sprintf("Value: [%s] ", dv))
 
 			var (
 				value string

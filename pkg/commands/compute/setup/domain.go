@@ -68,7 +68,7 @@ func (d *Domains) Configure() error {
 	)
 	if !d.AcceptDefaults && !d.NonInteractive {
 		text.Break(d.Stdout)
-		domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
+		domain, err = text.Input(d.Stdout, text.Prompt(fmt.Sprintf("Domain: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
 		}
@@ -191,7 +191,7 @@ func (d *Domains) createDomain(name string, attempt int) error {
 						defaultDomain := generateDomainName()
 						if !d.AcceptDefaults && !d.NonInteractive {
 							text.Break(d.Stdout)
-							domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain already taken, please choose another (attempt %d of %d): [%s] ", attempt, d.RetryLimit, defaultDomain)), d.Stdin, d.validateDomain)
+							domain, err = text.Input(d.Stdout, text.Prompt(fmt.Sprintf("Domain already taken, please choose another (attempt %d of %d): [%s] ", attempt, d.RetryLimit, defaultDomain)), d.Stdin, d.validateDomain)
 							if err != nil {
 								return fmt.Errorf("error reading input %w", err)
 							}

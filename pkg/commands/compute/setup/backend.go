@@ -158,7 +158,7 @@ func (b *Backends) checkPredefined() error {
 			defaultAddress = settings.Address
 		}
 
-		prompt := text.BoldYellow(fmt.Sprintf("Hostname or IP address: [%s] ", defaultAddress))
+		prompt := text.Prompt(fmt.Sprintf("Hostname or IP address: [%s] ", defaultAddress))
 
 		if !b.AcceptDefaults && !b.NonInteractive {
 			addr, err = text.Input(b.Stdout, prompt, b.Stdin, b.validateAddress)
@@ -175,7 +175,7 @@ func (b *Backends) checkPredefined() error {
 			port = settings.Port
 		}
 		if !b.AcceptDefaults && !b.NonInteractive {
-			input, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Port: [%d] ", port)), b.Stdin)
+			input, err := text.Input(b.Stdout, text.Prompt(fmt.Sprintf("Port: [%d] ", port)), b.Stdin)
 			if err != nil {
 				return fmt.Errorf("error reading prompt input: %w", err)
 			}
@@ -217,7 +217,7 @@ func (b *Backends) promptForBackend() error {
 		}
 		i++
 
-		addr, err := text.Input(b.Stdout, text.BoldYellow("Backend (hostname or IP address, or leave blank to stop adding backends): "), b.Stdin, b.validateAddress)
+		addr, err := text.Input(b.Stdout, text.Prompt("Backend (hostname or IP address, or leave blank to stop adding backends): "), b.Stdin, b.validateAddress)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input %w", err)
 		}
@@ -231,7 +231,7 @@ func (b *Backends) promptForBackend() error {
 		}
 
 		port := int(443)
-		input, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Backend port number: [%d] ", port)), b.Stdin)
+		input, err := text.Input(b.Stdout, text.Prompt(fmt.Sprintf("Backend port number: [%d] ", port)), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input: %w", err)
 		}
@@ -244,7 +244,7 @@ func (b *Backends) promptForBackend() error {
 		}
 
 		defaultName := fmt.Sprintf("backend_%d", i)
-		name, err := text.Input(b.Stdout, text.BoldYellow(fmt.Sprintf("Backend name: [%s] ", defaultName)), b.Stdin)
+		name, err := text.Input(b.Stdout, text.Prompt(fmt.Sprintf("Backend name: [%s] ", defaultName)), b.Stdin)
 		if err != nil {
 			return fmt.Errorf("error reading prompt input %w", err)
 		}
