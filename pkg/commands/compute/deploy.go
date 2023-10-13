@@ -726,6 +726,15 @@ func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 
 // CompareLocalRemotePackage compares the local package files hash against the
 // existing service package version and exits early with message if identical.
+//
+// NOTE: We can't avoid the first 'no-changes' upload after the initial deploy.
+// This is because the fastly.toml manifest does actual change after first deploy.
+// When user first deploys, there is no value for service_id.
+// That version of the manifest is inside the package we're checking against.
+// So on the second deploy, even if user has made no changes themselves, we will
+// still upload that package because technically there was a change made by the
+// CLI to add the Service ID. Any subsequent deploys will be aborted because
+// there will be no changes made by the CLI nor the user.
 func (c *DeployCommand) CompareLocalRemotePackage(serviceID string, version int) error {
 	filesHash, err := getFilesHash(c.PackagePath)
 	if err != nil {
