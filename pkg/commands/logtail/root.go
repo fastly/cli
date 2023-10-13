@@ -46,7 +46,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Roo
 	var c RootCommand
 	c.Globals = g
 	c.manifest = m
-	c.CmdClause = parent.Command("log-tail", "Tail Compute@Edge logs")
+	c.CmdClause = parent.Command("log-tail", "Tail Compute logs")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -480,7 +480,7 @@ type (
 		stream string
 	}
 
-	// Log defines the message envelope that compute@edge (C@E) wraps the
+	// Log defines the message envelope that Compute (Compute) wraps the
 	// user messages in.
 	Log struct {
 		// SequenceNum is the message sequence number used to reorder
@@ -489,7 +489,7 @@ type (
 		// RequestTime is the time in microseconds when the request
 		// was received.
 		RequestStart int64 `json:"request_start_us"`
-		// Stream is the C@E stream, either stdout or stderr.
+		// Stream is the Compute stream, either stdout or stderr.
 		Stream string `json:"stream"`
 		// RequestID is a UUID representing individual requests to the
 		// particular Wasm service.

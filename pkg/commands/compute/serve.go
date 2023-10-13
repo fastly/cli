@@ -74,7 +74,7 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.av = av
 
 	c.Globals = g
-	c.CmdClause = parent.Command("serve", "Build and run a Compute@Edge package locally")
+	c.CmdClause = parent.Command("serve", "Build and run a Compute package locally")
 	c.manifest = m
 
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)

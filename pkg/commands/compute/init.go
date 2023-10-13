@@ -35,7 +35,7 @@ var (
 	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md|CHANGELOG\.md|screenshot\.png`)
 )
 
-// InitCommand initializes a Compute@Edge project package on the local machine.
+// InitCommand initializes a Compute project package on the local machine.
 type InitCommand struct {
 	cmd.Base
 
@@ -55,7 +55,7 @@ func NewInitCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Ini
 	var c InitCommand
 	c.Globals = g
 	c.manifest = m
-	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
+	c.CmdClause = parent.Command("init", "Initialize a new Compute package locally")
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
@@ -73,7 +73,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		introContext = " (using --from to locate package template)"
 	}
 
-	text.Output(out, "Creating a new Compute@Edge project%s.", introContext)
+	text.Output(out, "Creating a new Compute project%s.", introContext)
 	text.Break(out)
 	text.Output(out, "Press ^C at any time to quit.")
 
@@ -360,7 +360,7 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 	}
 
 	if len(files) > 0 && !flags.AutoYes && !flags.NonInteractive {
-		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
+		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute project in %s? [y/N] ", dir)
 		result, err := text.AskYesNo(out, label, in)
 		if err != nil {
 			return false, true, err
@@ -1150,6 +1150,6 @@ func displayInitOutput(name, dst, language string, out io.Writer) {
 		text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
 	}
 
-	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
+	text.Description(out, "To learn about deploying Compute projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
 	text.Success(out, "Initialized package %s", text.Bold(name))
 }

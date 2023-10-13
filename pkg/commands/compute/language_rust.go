@@ -23,7 +23,7 @@ import (
 )
 
 // RustDefaultBuildCommand is a build command compiled into the CLI binary so it
-// can be used as a fallback for customer's who have an existing C@E project and
+// can be used as a fallback for customer's who have an existing Compute project and
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.

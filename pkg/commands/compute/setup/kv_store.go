@@ -222,7 +222,7 @@ func (o *KVStores) Create() error {
 		msg = fmt.Sprintf("Creating resource link between service and kv store '%s'...", kvStore.Name)
 		o.Spinner.Message(msg)
 
-		// IMPORTANT: We need to link the kv store to the C@E Service.
+		// IMPORTANT: We need to link the kv store to the Compute Service.
 		_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
 			ServiceID:      o.ServiceID,
 			ServiceVersion: o.ServiceVersion,

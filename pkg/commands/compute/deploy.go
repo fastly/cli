@@ -58,7 +58,7 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	var c DeployCommand
 	c.Globals = g
 	c.Manifest = m
-	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
+	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute service")
 
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
@@ -338,7 +338,7 @@ func validatePackage(pkgPath string) error {
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading package size: %w", err),
-			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+			Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
 	if pkgSize > MaxPackageSize {
@@ -432,7 +432,7 @@ func packageSize(path string) (size int64, err error) {
 }
 
 // Activator represents a function that calls an undocumented API endpoint for
-// activating a Compute@Edge free trial on the given customer account.
+// activating a Compute free trial on the given customer account.
 //
 // It is preconfigured with the Fastly API endpoint, a user token and a simple
 // HTTP Client.
@@ -456,7 +456,7 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 			if !ok {
 				return err
 			}
-			// 409 Conflict == The Compute@Edge trial has already been created.
+			// 409 Conflict == The Compute trial has already been created.
 			if apiErr.StatusCode != http.StatusConflict {
 				return fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
 			}
@@ -583,13 +583,13 @@ func createService(
 				}
 				return serviceID, serviceVersion, fsterr.RemediationError{
 					Inner:       err,
-					Remediation: "To ensure you have access to the Compute@Edge platform we need your Customer ID. " + fsterr.AuthRemediation,
+					Remediation: "To ensure you have access to the Compute platform we need your Customer ID. " + fsterr.AuthRemediation,
 				}
 			}
 
 			err = fnActivateTrial(user.CustomerID)
 			if err != nil {
-				err = fmt.Errorf("error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account")
+				err = fmt.Errorf("error creating service: you do not have the Compute free trial enabled on your Fastly account")
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
@@ -1119,7 +1119,7 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 		return nil, err
 	}
 
-	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
+	// Validate that we're dealing with a Compute 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
 	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
 	if err != nil {

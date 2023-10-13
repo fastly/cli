@@ -116,7 +116,7 @@ var IDRemediation = strings.Join([]string{
 // PackageSizeRemediation suggests checking the resources documentation for the
 // current package size limit.
 var PackageSizeRemediation = strings.Join([]string{
-	"Please check our Compute@Edge resource limits:",
+	"Please check our Compute resource limits:",
 	"https://developer.fastly.com/learning/compute/#limitations-and-constraints",
 }, " ")
 

@@ -218,7 +218,7 @@
         {
           "cmd": "fastly compute build",
           "description": "In the `fastly.toml` manifest define a new `[scripts]` table and within it define a `build` key with your Yarn instructions. For example, `build = \"yarn install && yarn build\"`.",
-          "title": "Build a JavaScript Compute@Edge package using Yarn instead of NPM"
+          "title": "Build a JavaScript Compute package using Yarn instead of NPM"
         }
       ]
     },
@@ -227,12 +227,12 @@
         {
           "cmd": "fastly compute deploy --accept-defaults",
           "description": "The optional `--accept-defaults` flag accepts default values for all prompts if configured via the [fastly.toml](https://developer.fastly.com/reference/compute/fastly-toml/) `[setup]` section and performs a deploy non-interactively",
-          "title": "Deploy a package to a Fastly Compute@Edge service"
+          "title": "Deploy a package to a Fastly Compute service"
         },
         {
           "cmd": "fastly compute deploy --package ./pkg/example.tar.gz",
           "description": "Use the <kdb>fastly compute pack</kbd> command to package up a pre-compiled Wasm binary and then reference the generated archive file when deploying.",
-          "title": "Deploy a custom package to a Fastly Compute@Edge service"
+          "title": "Deploy a custom package to a Fastly Compute service"
         }
       ],
       "apis": [
@@ -246,18 +246,18 @@
       "examples": [
         {
           "cmd": "fastly compute init --name example --language rust",
-          "description": "To initialize a new Compute@Edge package you must select a supported language. The language can be provided using the optional `--language` flag, which supports tab completion hints, or the flag can be omitted and you'll be prompted interactively. The `--name` flag can also be omitted, which will result in the CLI prompting you interactively.",
-          "title": "Initialize a new Compute@Edge package locally"
+          "description": "To initialize a new Compute package you must select a supported language. The language can be provided using the optional `--language` flag, which supports tab completion hints, or the flag can be omitted and you'll be prompted interactively. The `--name` flag can also be omitted, which will result in the CLI prompting you interactively.",
+          "title": "Initialize a new Compute package locally"
         },
         {
           "cmd": "fastly compute init --from=https://fiddle.fastly.dev/fiddle/0220c0d2",
-          "description": "Any [Compute@Edge examples](https://developer.fastly.com/solutions/examples/) can be used as a source template for your new package.",
-          "title": "Initialize a new Compute@Edge package locally using a remote package template"
+          "description": "Any [Compute examples](https://developer.fastly.com/solutions/examples/) can be used as a source template for your new package.",
+          "title": "Initialize a new Compute package locally using a remote package template"
         },
         {
           "cmd": "fastly compute init --directory ./example",
           "description": "We recommend that you change to the new project directory after running this command, before executing further CLI commands.",
-          "title": "Initialize a new Compute@Edge package locally in a different directory"
+          "title": "Initialize a new Compute package locally in a different directory"
         }
       ]
     },
@@ -265,8 +265,8 @@
       "examples": [
         {
           "cmd": "fastly compute pack --wasm-binary ./bin/main.wasm",
-          "description": "Write Compute@Edge applications in [any WASI-supporting language](https://developer.fastly.com/learning/compute/custom/) and use <kbd>fastly compute pack</kbd> to package the pre-compiled Wasm binary into a supported format.",
-          "title": "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service"
+          "description": "Write Compute applications in [any WASI-supporting language](https://developer.fastly.com/learning/compute/custom/) and use <kbd>fastly compute pack</kbd> to package the pre-compiled Wasm binary into a supported format.",
+          "title": "Package a pre-compiled Wasm binary for a Fastly Compute service"
         }
       ]
     },
@@ -275,7 +275,7 @@
         {
           "cmd": "fastly compute publish --accept-defaults",
           "description": "The <kbd>fastly compute publish</kbd> command is a convenience wrapper around the existing build and deploy commands. All flags present on the <kbd>fastly compute build</kbd> and <kbd>fastly compute deploy</kbd> commands are available to use here.",
-          "title": "Build and deploy a Compute@Edge package to a Fastly service"
+          "title": "Build and deploy a Compute package to a Fastly service"
         }
       ],
       "apis": [
@@ -290,7 +290,7 @@
         {
           "cmd": "fastly compute serve --watch",
           "description": "The `compute serve` command wraps the existing build command. All flags present on the <kbd>fastly compute build</kbd> command are available to use here. Additionally, the `--watch` command enables 'hot reloading' of your project code whenever changes are made to the source code.",
-          "title": "Build and run a Compute@Edge package locally"
+          "title": "Build and run a Compute package locally"
         }
       ]
     },
@@ -310,7 +310,7 @@
       "examples": [
         {
           "cmd": "fastly compute validate --package ./pkg/example.tar.gz",
-          "title": "Validate a Compute@Edge package"
+          "title": "Validate a Compute package"
         }
       ]
     }

@@ -311,7 +311,7 @@ func TestDeploy(t *testing.T) {
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
-			wantError:            "error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account",
+			wantError:            "error creating service: you do not have the Compute free trial enabled on your Fastly account",
 			wantRemediationError: errors.ComputeTrialRemediation,
 			wantOutput: []string{
 				"Creating service",
@@ -336,7 +336,7 @@ func TestDeploy(t *testing.T) {
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
-			wantError:            "error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account",
+			wantError:            "error creating service: you do not have the Compute free trial enabled on your Fastly account",
 			wantRemediationError: errors.ComputeTrialRemediation,
 			wantOutput: []string{
 				"Creating service",
@@ -555,7 +555,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// NOTE: The following test ensures that if the user runs the CLI from a
-		// directory that isn't a C@E project directory (i.e. it has no manifest
+		// directory that isn't a Compute project directory (i.e. it has no manifest
 		// file present) then the deploy command should try to locate a manifest
 		// inside the given package tar.gz archive.
 		{

@@ -34,7 +34,7 @@ function main(req: Request): Response {
 
     // If request is a `GET` to the `/` path, send a default response.
     if (method == "GET" && path == "/") {
-        return new Response(String.UTF8.encode("Welcome to Fastly Compute@Edge!"), {
+        return new Response(String.UTF8.encode("Welcome to Fastly Compute!"), {
           status: 200,
         });
     }

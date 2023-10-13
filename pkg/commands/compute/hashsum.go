@@ -33,7 +33,7 @@ func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 	c.buildCmd = build
 	c.Globals = g
 	c.Manifest = m
-	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute@Edge package").Hidden()
+	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute package").Hidden()
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)
 	return &c
@@ -73,7 +73,7 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to validate package: %w", err),
-			Remediation: fmt.Sprintf("Run `fastly compute build` to produce a Compute@Edge package, alternatively%s use the --package flag to reference a package outside of the current project.", skipBuildMsg),
+			Remediation: fmt.Sprintf("Run `fastly compute build` to produce a Compute package, alternatively%s use the --package flag to reference a package outside of the current project.", skipBuildMsg),
 		}
 	}
 

@@ -41,7 +41,7 @@ func NewHashFilesCommand(parent cmd.Registerer, g *global.Data, build *BuildComm
 	c.buildCmd = build
 	c.Globals = g
 	c.Manifest = m
-	c.CmdClause = parent.Command("hash-files", "Generate a SHA512 digest from the contents of the Compute@Edge package")
+	c.CmdClause = parent.Command("hash-files", "Generate a SHA512 digest from the contents of the Compute package")
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)
 	return &c

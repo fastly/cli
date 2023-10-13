@@ -179,7 +179,7 @@ func (o *ConfigStores) Create() error {
 		msg = fmt.Sprintf("Creating resource link between service and config store '%s'...", cs.Name)
 		o.Spinner.Message(msg)
 
-		// IMPORTANT: We need to link the config store to the C@E Service.
+		// IMPORTANT: We need to link the config store to the Compute Service.
 		_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
 			ServiceID:      o.ServiceID,
 			ServiceVersion: o.ServiceVersion,

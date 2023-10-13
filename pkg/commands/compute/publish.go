@@ -41,7 +41,7 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 	c.manifest = m
 	c.build = build
 	c.deploy = deploy
-	c.CmdClause = parent.Command("publish", "Build and deploy a Compute@Edge package to a Fastly service")
+	c.CmdClause = parent.Command("publish", "Build and deploy a Compute package to a Fastly service")
 
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)

@@ -73,7 +73,7 @@ func NewLanguage(options *LanguageOptions) *Language {
 	}
 }
 
-// Language models a Compute@Edge source language.
+// Language models a Compute source language.
 type Language struct {
 	Name            string
 	DisplayName     string

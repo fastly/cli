@@ -51,7 +51,7 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Bu
 	var c BuildCommand
 	c.Globals = g
 	c.Manifest = m
-	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
+	c.CmdClause = parent.Command("build", "Build a Compute package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.

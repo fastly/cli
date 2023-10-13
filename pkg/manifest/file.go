@@ -118,9 +118,9 @@ func (f *File) Read(path string) (err error) {
 // within app.Run() but we don't handle any errors that are returned from the
 // Read() method. This is because failing to read the manifest is fine if the
 // error is caused by the file not existing in a directory where the user is
-// working on a non-C@E project. This will enable code elsewhere in the CLI to
+// working on a non-Compute project. This will enable code elsewhere in the CLI to
 // understand why the Read() failed. For example, we can use errors.Is() to
-// allow returning a specific remediation error from a C@E related command.
+// allow returning a specific remediation error from a Compute related command.
 func (f *File) ReadError() error {
 	return f.readError
 }

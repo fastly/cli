@@ -82,7 +82,7 @@ func main() {
 	md.File.SetErrLog(fsterr.Log)
 	md.File.SetOutput(out)
 
-	// NOTE: We skip handling the error because not all commands relate to C@E.
+	// NOTE: We skip handling the error because not all commands relate to Compute.
 	_ = md.File.Read(manifest.Filename)
 
 	// Main is basically just a shim to call Run, so we do that here.

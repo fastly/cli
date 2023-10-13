@@ -32,7 +32,7 @@ const (
 	SourceFlag
 
 	// SpecIntro informs the user of what the manifest file is for.
-	SpecIntro = "This file describes a Fastly Compute@Edge package. To learn more visit:"
+	SpecIntro = "This file describes a Fastly Compute package. To learn more visit:"
 
 	// SpecURL points to the fastly.toml manifest specification reference.
 	SpecURL = "https://developer.fastly.com/reference/fastly-toml/"
