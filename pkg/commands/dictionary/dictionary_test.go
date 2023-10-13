@@ -470,7 +470,7 @@ var updateDictionaryOutputVerbose = strings.Join(
 		"",
 		"Service ID (via --service-id): 123",
 		"",
-		"Service version 1 is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on",
+		"INFO: Service version 1 is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on",
 		"version 4.",
 		"",
 		strings.TrimSpace(updateDictionaryNameOutput),
