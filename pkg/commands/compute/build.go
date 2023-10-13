@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/kennygrant/sanitize"
@@ -245,13 +246,17 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			},
 		}
 
-		// NOTE: To debug pass printer to Start()
-		// printer := new(output.JSONPrinter)
-		// engine.Start(ctx, engine.WithPrinter(printer))
+		// NOTE: There's an open issue (2023.10.13) with ResultsChan().
+		// https://github.com/trufflesecurity/trufflehog/issues/1881
+		//
+		// So as a workaround I have implemented a custom printer that tracks the
+		// results from trufflehog.
+		printer := new(SecretPrinter)
 		ctx := context.Background()
 		e, err := engine.Start(
 			ctx,
 			engine.WithConcurrency(uint8(runtime.NumCPU())), // prevent log output
+			engine.WithPrinter(printer),
 		)
 		if err != nil {
 			return err
@@ -265,15 +270,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		err = e.Finish(ctx)
 		if err != nil {
 			return err
-		}
-		metrics := e.GetMetrics()
-		fmt.Printf("metrics.VerifiedSecretsFound: %d\n", metrics.VerifiedSecretsFound)
-		fmt.Printf("metrics.UnverifiedSecretsFound: %d\n", metrics.UnverifiedSecretsFound)
-		var results []detectors.ResultWithMetadata
-		ch := e.ResultsChan()
-		for result := range ch {
-			fmt.Printf("result: %#v\n", result)
-			results = append(results, result)
 		}
 
 		filters := []string{
@@ -307,7 +303,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				if strings.HasPrefix(k, f) {
 					dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
 					if c.Globals.Verbose() {
-						text.Important(out, "The fastly.toml [scripts.env_vars] contains a possible security key '%s' so we've redacted it from the Wasm binary metadata annotation\n\n", k)
+						text.Important(out, "The fastly.toml [scripts.env_vars] contains a possible SECRET key '%s' so we've redacted it from the Wasm binary metadata annotation\n\n", k)
 					}
 				}
 			}
@@ -318,10 +314,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 
-		fmt.Printf("results: %#v\n", results)
-		for _, r := range results {
-			fmt.Printf("TO REDACT: %q | Verified: %t\n", r.Redacted, r.Verified)
-			data = bytes.ReplaceAll(data, []byte(r.Redacted), []byte("REDACTED"))
+		for _, r := range printer.Results {
+			data = bytes.ReplaceAll(data, []byte(r.Secret), []byte("REDACTED"))
+			if c.Globals.Verbose() {
+				text.Important(out, "The fastly.toml contains a possible SECRET value so we've redacted it from the Wasm binary metadata annotation\n\n")
+			}
 		}
 
 		// FIXME: Once #1013 and #1016 merged, integrate granular disabling.
@@ -352,9 +349,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return fmt.Errorf("failed to execute wasm-tools metadata command: %w", err)
 		}
-		text.Info(out, "Below is the metadata attached to the Wasm binary")
-		text.Break(out)
-
+		text.Info(out, "\nBelow is the metadata attached to the Wasm binary\n\n")
 		fmt.Fprintln(out, string(wasmtoolsOutput))
 		text.Break(out)
 	}
@@ -985,4 +980,26 @@ type DataCollectionScriptInfo struct {
 	EnvVars          []string `json:"env_vars"`
 	PostInitScript   string   `json:"post_init_script"`
 	PostBuildScript  string   `json:"post_build_script"`
+}
+
+type Result struct {
+	Secret   string
+	Verified bool
+}
+
+// SecretPrinter tracks the results returned by trufflehog.
+type SecretPrinter struct {
+	mu      sync.Mutex
+	Results []Result
+}
+
+// Print implements the trufflehog Printer interface.
+func (p *SecretPrinter) Print(_ context.Context, r *detectors.ResultWithMetadata) error {
+	p.mu.Lock()
+	p.Results = append(p.Results, Result{
+		Secret:   string(r.Raw),
+		Verified: r.Verified,
+	})
+	p.mu.Unlock()
+	return nil
 }
