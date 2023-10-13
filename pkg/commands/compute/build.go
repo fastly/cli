@@ -318,7 +318,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 
-		fmt.Printf("%#v\n", "LOOP OVER RESULTS ARRAY POPULATED BY RANGING OVER CHANNEL")
+		fmt.Printf("results: %#v\n", results)
 		for _, r := range results {
 			fmt.Printf("TO REDACT: %q | Verified: %t\n", r.Redacted, r.Verified)
 			data = bytes.ReplaceAll(data, []byte(r.Redacted), []byte("REDACTED"))
