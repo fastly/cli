@@ -30,6 +30,7 @@ const CustomPostScriptMessage = "This project has a custom post_%s script define
 
 // Flags represents the flags defined for the command.
 type Flags struct {
+	Dir         string
 	IncludeSrc  bool
 	Lang        string
 	PackageName string
@@ -50,11 +51,12 @@ type BuildCommand struct {
 func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = g
-	c.Manifest = m
+	c.Manifest = m // TODO: Stop passing a non-mutable 'copy' in any commands.
 	c.CmdClause = parent.Command("build", "Build a Compute package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
+	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').StringVar(&c.Flags.Dir)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
@@ -72,6 +74,25 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		out = io.Discard
 	}
 
+	var projectDir string
+	if c.Flags.Dir != "" {
+		projectDir, err = filepath.Abs(c.Flags.Dir)
+		if err != nil {
+			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.Flags.Dir, err)
+		}
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %w", err)
+		}
+		if err := os.Chdir(projectDir); err != nil {
+			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
+		}
+		defer os.Chdir(wd)
+		if c.Globals.Verbose() {
+			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+		}
+	}
+
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
 		return err
@@ -84,7 +105,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}(c.Globals.ErrLog)
 
 	err = spinner.Process("Verifying fastly.toml", func(_ *text.SpinnerWrapper) error {
-		err = c.Manifest.File.ReadError()
+		if projectDir == "" {
+			err = c.Globals.Manifest.File.ReadError()
+		} else {
+			err = c.Globals.Manifest.File.Read(filepath.Join(projectDir, manifest.Filename))
+		}
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				err = fsterr.ErrReadingManifest
@@ -219,8 +244,8 @@ func packageName(c *BuildCommand) (string, error) {
 	switch {
 	case c.Flags.PackageName != "":
 		name = c.Flags.PackageName
-	case c.Manifest.File.Name != "":
-		name = c.Manifest.File.Name // use the project name as a fallback
+	case c.Globals.Manifest.File.Name != "":
+		name = c.Globals.Manifest.File.Name // use the project name as a fallback
 	default:
 		return "", fsterr.RemediationError{
 			Inner:       fmt.Errorf("package name is missing"),
@@ -242,8 +267,8 @@ func identifyToolchain(c *BuildCommand) (string, error) {
 	switch {
 	case c.Flags.Lang != "":
 		toolchain = c.Flags.Lang
-	case c.Manifest.File.Language != "":
-		toolchain = c.Manifest.File.Language
+	case c.Globals.Manifest.File.Language != "":
+		toolchain = c.Globals.Manifest.File.Language
 	default:
 		return "", fmt.Errorf("language cannot be empty, please provide a language")
 	}
@@ -260,7 +285,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 			Name:            "assemblyscript",
 			SourceDirectory: AsSourceDirectory,
 			Toolchain: NewAssemblyScript(
-				&c.Manifest.File,
+				&c.Globals.Manifest.File,
 				c.Globals,
 				c.Flags,
 				in,
@@ -273,7 +298,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 			Name:            "go",
 			SourceDirectory: GoSourceDirectory,
 			Toolchain: NewGo(
-				&c.Manifest.File,
+				&c.Globals.Manifest.File,
 				c.Globals,
 				c.Flags,
 				in,
@@ -286,7 +311,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 			Name:            "javascript",
 			SourceDirectory: JsSourceDirectory,
 			Toolchain: NewJavaScript(
-				&c.Manifest.File,
+				&c.Globals.Manifest.File,
 				c.Globals,
 				c.Flags,
 				in,
@@ -299,7 +324,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
 			Toolchain: NewRust(
-				&c.Manifest.File,
+				&c.Globals.Manifest.File,
 				c.Globals,
 				c.Flags,
 				in,
@@ -311,7 +336,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 		language = NewLanguage(&LanguageOptions{
 			Name: "other",
 			Toolchain: NewOther(
-				&c.Manifest.File,
+				&c.Globals.Manifest.File,
 				c.Globals,
 				c.Flags,
 				in,

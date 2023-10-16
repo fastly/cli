@@ -236,11 +236,7 @@ func populateKeys(fpath string, errLog fsterr.LogInterface) (keys []string, err 
 
 	if path, err = filepath.Abs(fpath); err == nil {
 		if _, err = os.Stat(path); err == nil {
-			// gosec flagged this:
-			// G304 (CWE-22): Potential file inclusion via variable
-			// Disabling as we trust the source of the fpath variable.
-			/* #nosec */
-			if file, err = os.Open(path); err == nil {
+			if file, err = os.Open(path); err == nil /* #nosec */ {
 				scanner := bufio.NewScanner(file)
 				for scanner.Scan() {
 					keys = append(keys, scanner.Text())
