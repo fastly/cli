@@ -56,7 +56,7 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Bu
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
-	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").StringVar(&c.Flags.Dir)
+	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').StringVar(&c.Flags.Dir)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
