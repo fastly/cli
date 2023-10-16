@@ -555,7 +555,7 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// NOTE: The following test ensures that if the user runs the CLI from a
-		// directory that isn't a C@E project directory (i.e. it has no manifest
+		// directory that isn't a Compute project directory (i.e. it has no manifest
 		// file present) then the deploy command should try to locate a manifest
 		// inside the given package tar.gz archive.
 		{

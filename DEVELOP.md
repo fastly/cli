@@ -65,3 +65,11 @@ The file is added to `.gitignore` to avoid it being added to the git repository.
 When compiling the CLI for a new release, it will execute [`./scripts/config.sh`](./scripts/config.sh). The script uses [`./.fastly/config.toml`](./.fastly/config.toml) as a template file to then dynamically inject a list of starter kits (pulling their data from their public repositories).
 
 The resulting configuration is then saved to disk at `./pkg/config/config.toml` and embedded into the CLI when compiled.
+
+### Running Compute commands locally
+
+If you need to test the Fastly CLI locally while developing a Compute feature, then use the `--dir` flag (exposed on `compute build`, `compute deploy`, `compute serve` and `compute publish`) to ensure the CLI doesn't attempt to treat the repository directory as your project directory.
+
+```shell
+go run cmd/fastly/main.go compute deploy --verbose --dir ../../test-projects/testing-fastly-cli
+```

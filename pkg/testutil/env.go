@@ -56,12 +56,7 @@ func NewEnv(opts EnvOpts) (rootdir string) {
 		// given file to disk.
 		createIntermediaryDirectories(f.Dst, rootdir, opts.T)
 
-		// gosec flagged this:
-		// G304 (CWE-22): Potential file inclusion via variable
-		//
-		// Disabling as this is part of our test suite.
-		/* #nosec */
-		if err := os.WriteFile(dst, []byte(src), 0o777); err != nil {
+		if err := os.WriteFile(dst, []byte(src), 0o777); err != nil /* #nosec */ {
 			opts.T.Fatal(err)
 		}
 	}
