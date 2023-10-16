@@ -316,9 +316,16 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		for _, r := range printer.Results {
 			data = bytes.ReplaceAll(data, []byte(r.Secret), []byte("REDACTED"))
-			if c.Globals.Verbose() {
-				text.Important(out, "The fastly.toml contains a possible SECRET value so we've redacted it from the Wasm binary metadata annotation\n\n")
+		}
+		resultsLength := len(printer.Results)
+		if resultsLength > 0 && c.Globals.Verbose() {
+			var plural string
+			pronoun := "it"
+			if resultsLength > 1 {
+				plural = "s"
+				pronoun = "them"
 			}
+			text.Important(out, "The fastly.toml might contain %d SECRET value%s, so we've redacted %s from the Wasm binary metadata annotation\n\n", resultsLength, plural, pronoun)
 		}
 
 		// FIXME: Once #1013 and #1016 merged, integrate granular disabling.
