@@ -97,12 +97,10 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data) *DeployCommand {
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	// TODO: Refactor logic duplicated across build/serve/deploy/validate/hashsum.
-	manifestFilename := manifest.Filename
+	manifestFilename := EnvironmentManifest(c.Env)
 	if c.Env != "" {
-		manifestFilename = fmt.Sprintf("fastly.%s.toml", c.Env)
 		if c.Globals.Verbose() {
-			text.Info(out, "Using the '%s' environment manifest (it will be packaged up as %s)\n\n", manifestFilename, manifest.Filename)
+			text.Info(out, EnvManifestMsg, manifestFilename, manifest.Filename)
 		}
 	}
 	wd, err := os.Getwd()
@@ -112,17 +110,13 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	defer os.Chdir(wd)
 	c.manifestPath = filepath.Join(wd, manifestFilename)
 
-	var projectDir string
-	if c.Dir != "" {
-		projectDir, err = filepath.Abs(c.Dir)
-		if err != nil {
-			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.Dir, err)
-		}
-		if err := os.Chdir(projectDir); err != nil {
-			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
-		}
+	projectDir, err := ChangeProjectDirectory(c.Dir)
+	if err != nil {
+		return err
+	}
+	if projectDir != "" {
 		if c.Globals.Verbose() {
-			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+			text.Info(out, ProjectDirMsg, projectDir)
 		}
 		c.manifestPath = filepath.Join(projectDir, manifestFilename)
 	}

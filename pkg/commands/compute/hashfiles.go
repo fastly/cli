@@ -77,10 +77,7 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var pkgPath string
 
 	if c.Package == "" {
-		manifestFilename := manifest.Filename
-		if c.env.WasSet {
-			manifestFilename = fmt.Sprintf("fastly.%s.toml", c.env.Value)
-		}
+		manifestFilename := EnvironmentManifest(c.env.Value)
 		wd, err := os.Getwd()
 		if err != nil {
 			return fmt.Errorf("failed to get current working directory: %w", err)
@@ -88,17 +85,13 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		defer os.Chdir(wd)
 		manifestPath := filepath.Join(wd, manifestFilename)
 
-		var projectDir string
-		if c.dir.WasSet {
-			projectDir, err = filepath.Abs(c.dir.Value)
-			if err != nil {
-				return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.dir.Value, err)
-			}
-			if err := os.Chdir(projectDir); err != nil {
-				return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
-			}
+		projectDir, err := ChangeProjectDirectory(c.dir.Value)
+		if err != nil {
+			return err
+		}
+		if projectDir != "" {
 			if c.Globals.Verbose() {
-				text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+				text.Info(out, ProjectDirMsg, projectDir)
 			}
 			manifestPath = filepath.Join(projectDir, manifestFilename)
 		}

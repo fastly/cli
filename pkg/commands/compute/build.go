@@ -74,11 +74,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		out = io.Discard
 	}
 
-	manifestFilename := manifest.Filename
+	manifestFilename := EnvironmentManifest(c.Flags.Env)
 	if c.Flags.Env != "" {
-		manifestFilename = fmt.Sprintf("fastly.%s.toml", c.Flags.Env)
 		if c.Globals.Verbose() {
-			text.Info(out, "Using the '%s' environment manifest (it will be packaged up as %s)\n\n", manifestFilename, manifest.Filename)
+			text.Info(out, EnvManifestMsg, manifestFilename, manifest.Filename)
 		}
 	}
 	wd, err := os.Getwd()
@@ -88,17 +87,13 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	defer os.Chdir(wd)
 	manifestPath := filepath.Join(wd, manifestFilename)
 
-	var projectDir string
-	if c.Flags.Dir != "" {
-		projectDir, err = filepath.Abs(c.Flags.Dir)
-		if err != nil {
-			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.Flags.Dir, err)
-		}
-		if err := os.Chdir(projectDir); err != nil {
-			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
-		}
+	projectDir, err := ChangeProjectDirectory(c.Flags.Dir)
+	if err != nil {
+		return err
+	}
+	if projectDir != "" {
 		if c.Globals.Verbose() {
-			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+			text.Info(out, ProjectDirMsg, projectDir)
 		}
 		manifestPath = filepath.Join(projectDir, manifestFilename)
 	}
