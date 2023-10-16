@@ -9,7 +9,7 @@ To update or create a help page, add or edit the Markdown files in this director
 ```md
 ---
 id: ecp-feature
-title: Compute@Edge is not enabled on your account
+title: Compute is not enabled on your account
 template: help
 ---
 

@@ -38,7 +38,7 @@ For more information on fastly.toml configuration settings, refer to https://dev
 		text.BoldYellow("Here are some steps you can follow to debug the issue"))
 }()
 
-// Toolchain abstracts a Compute@Edge source language toolchain.
+// Toolchain abstracts a Compute source language toolchain.
 type Toolchain interface {
 	// Build compiles the user's source code into a Wasm binary.
 	Build() error

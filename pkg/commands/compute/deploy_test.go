@@ -311,7 +311,7 @@ func TestDeploy(t *testing.T) {
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
-			wantError:            "error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account",
+			wantError:            "error creating service: you do not have the Compute free trial enabled on your Fastly account",
 			wantRemediationError: errors.ComputeTrialRemediation,
 			wantOutput: []string{
 				"Creating service",
@@ -336,7 +336,7 @@ func TestDeploy(t *testing.T) {
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
-			wantError:            "error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account",
+			wantError:            "error creating service: you do not have the Compute free trial enabled on your Fastly account",
 			wantRemediationError: errors.ComputeTrialRemediation,
 			wantOutput: []string{
 				"Creating service",

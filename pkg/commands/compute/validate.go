@@ -22,7 +22,7 @@ func NewValidateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	var c ValidateCommand
 	c.Globals = g
 	c.manifest = m
-	c.CmdClause = parent.Command("validate", "Validate a Compute@Edge package")
+	c.CmdClause = parent.Command("validate", "Validate a Compute package")
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.path)
 	return &c
 }
@@ -35,7 +35,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		if source == manifest.SourceUndefined {
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("failed to read project name: %w", fsterr.ErrReadingManifest),
-				Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+				Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
 			}
 		}
 		packagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
@@ -55,7 +55,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		})
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to validate package: %w", err),
-			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+			Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
 

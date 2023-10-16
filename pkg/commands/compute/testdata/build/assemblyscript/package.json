@@ -1,7 +1,7 @@
 {
   "name": "compute-starter-kit-assemblyscript-default",
   "version": "1.0.0",
-  "description": "Default package starter kit for AssemblyScript based Compute@Edge projects",
+  "description": "Default package starter kit for AssemblyScript based Compute projects",
   "main": "src/index.ts",
   "repository": {
     "type": "git",

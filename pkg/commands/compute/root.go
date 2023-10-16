@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("compute", "Manage Compute@Edge packages")
+	c.CmdClause = parent.Command("compute", "Manage Compute packages")
 	return &c
 }
 

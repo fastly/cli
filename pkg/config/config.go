@@ -77,13 +77,13 @@ type Viceroy struct {
 	TTL string `toml:"ttl"`
 }
 
-// Language represents C@E language specific configuration.
+// Language represents Compute language specific configuration.
 type Language struct {
 	Go   Go   `toml:"go"`
 	Rust Rust `toml:"rust"`
 }
 
-// Go represents Go C@E language specific configuration.
+// Go represents Go Compute language specific configuration.
 type Go struct {
 	// TinyGoConstraint is the `tinygo` version that we support.
 	TinyGoConstraint string `toml:"tinygo_constraint"`
@@ -102,7 +102,7 @@ type Go struct {
 	ToolchainConstraintTinyGo string `toml:"toolchain_constraint_tinygo"`
 }
 
-// Rust represents Rust C@E language specific configuration.
+// Rust represents Rust Compute language specific configuration.
 type Rust struct {
 	// ToolchainConstraint is the `rustup` toolchain constraint for the compiler
 	// that we support (a range is expected, e.g. >= 1.49.0 < 2.0.0).

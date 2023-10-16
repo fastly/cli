@@ -52,7 +52,7 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Bu
 	var c BuildCommand
 	c.Globals = g
 	c.Manifest = m // TODO: Stop passing a non-mutable 'copy' in any commands.
-	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
+	c.CmdClause = parent.Command("build", "Build a Compute package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.

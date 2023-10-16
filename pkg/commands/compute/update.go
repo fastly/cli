@@ -34,7 +34,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 		},
 		manifest: m,
 	}
-	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute@Edge service version")
+	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute service version")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
@@ -91,7 +91,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		if source == manifest.SourceUndefined {
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("failed to read project name: %w", fsterr.ErrReadingManifest),
-				Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+				Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
 			}
 		}
 		packagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
@@ -124,7 +124,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 			})
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("error uploading package: %w", err),
-				Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+				Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
 			}
 		}
 		return nil
