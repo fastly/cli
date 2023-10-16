@@ -1,6 +1,7 @@
 # Release Process
 
 1. Merge all PRs intended for the release.
+1. Ensure any relevant `FIXME` notes in the code are addressed (e.g. `FIXME: remove this feature before next major release`).
 1. Rebase latest remote main branch locally (`git pull --rebase origin main`).
 1. Ensure all analysis checks and tests are passing (`time TEST_COMPUTE_INIT=1 TEST_COMPUTE_BUILD=1 TEST_COMPUTE_DEPLOY=1 make all`).
 1. Ensure goreleaser builds locally (`make release GORELEASER_ARGS="--skip-validate --skip-post-hooks --clean"`).

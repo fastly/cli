@@ -15,23 +15,25 @@ func NewOther(
 	globals *global.Data,
 	flags Flags,
 	in io.Reader,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Other {
 	return &Other{
 		Shell: Shell{},
 
-		autoYes:        globals.Flags.AutoYes,
-		build:          fastlyManifest.Scripts.Build,
-		env:            fastlyManifest.Scripts.EnvVars,
-		errlog:         globals.ErrLog,
-		input:          in,
-		nonInteractive: globals.Flags.NonInteractive,
-		output:         out,
-		postBuild:      fastlyManifest.Scripts.PostBuild,
-		spinner:        spinner,
-		timeout:        flags.Timeout,
-		verbose:        globals.Verbose(),
+		autoYes:          globals.Flags.AutoYes,
+		build:            fastlyManifest.Scripts.Build,
+		env:              fastlyManifest.Scripts.EnvVars,
+		errlog:           globals.ErrLog,
+		input:            in,
+		manifestFilename: manifestFilename,
+		nonInteractive:   globals.Flags.NonInteractive,
+		output:           out,
+		postBuild:        fastlyManifest.Scripts.PostBuild,
+		spinner:          spinner,
+		timeout:          flags.Timeout,
+		verbose:          globals.Verbose(),
 	}
 }
 
@@ -49,6 +51,8 @@ type Other struct {
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
 	input io.Reader
+	// manifestFilename is the name of the manifest file.
+	manifestFilename string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -68,18 +72,19 @@ type Other struct {
 // source to a Wasm binary.
 func (o Other) Build() error {
 	bt := BuildToolchain{
-		autoYes:        o.autoYes,
-		buildFn:        o.Shell.Build,
-		buildScript:    o.build,
-		env:            o.env,
-		errlog:         o.errlog,
-		in:             o.input,
-		nonInteractive: o.nonInteractive,
-		out:            o.output,
-		postBuild:      o.postBuild,
-		spinner:        o.spinner,
-		timeout:        o.timeout,
-		verbose:        o.verbose,
+		autoYes:          o.autoYes,
+		buildFn:          o.Shell.Build,
+		buildScript:      o.build,
+		env:              o.env,
+		errlog:           o.errlog,
+		in:               o.input,
+		manifestFilename: o.manifestFilename,
+		nonInteractive:   o.nonInteractive,
+		out:              o.output,
+		postBuild:        o.postBuild,
+		spinner:          o.spinner,
+		timeout:          o.timeout,
+		verbose:          o.verbose,
 	}
 	return bt.Build()
 }

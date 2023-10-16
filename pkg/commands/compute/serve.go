@@ -42,9 +42,8 @@ var viceroyError = fsterr.RemediationError{
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	build    *BuildCommand
-	av       github.AssetVersioner
+	build *BuildCommand
+	av    github.AssetVersioner
 
 	// Build fields
 	dir         cmd.OptionalString
@@ -68,7 +67,7 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, av github.AssetVersioner, m manifest.Data) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, av github.AssetVersioner) *ServeCommand {
 	var c ServeCommand
 
 	c.build = build
@@ -76,12 +75,11 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 
 	c.Globals = g
 	c.CmdClause = parent.Command("serve", "Build and run a Compute package locally")
-	c.manifest = m
 
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)
 	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
 	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').Action(c.dir.Set).StringVar(&c.dir.Value)
-	c.CmdClause.Flag("env", "The environment configuration to use (e.g. stage)").Action(c.env.Set).StringVar(&c.env.Value)
+	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
@@ -116,26 +114,36 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
+		text.Break(out)
 	}
 
-	text.Break(out)
+	manifestFilename := manifest.Filename
+	if c.env.Value != "" {
+		manifestFilename = fmt.Sprintf("fastly.%s.toml", c.env.Value)
+		if c.Globals.Verbose() {
+			text.Info(out, "Using the '%s' environment manifest (it will be packaged up as %s)\n\n", manifestFilename, manifest.Filename)
+		}
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	defer os.Chdir(wd)
+	manifestPath := filepath.Join(wd, manifestFilename)
 
 	if c.dir.WasSet {
 		projectDir, err := filepath.Abs(c.dir.Value)
 		if err != nil {
 			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.dir.Value, err)
 		}
-		wd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("failed to get current working directory: %w", err)
-		}
 		if err := os.Chdir(projectDir); err != nil {
 			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
 		}
-		defer os.Chdir(wd)
 		if c.Globals.Verbose() {
 			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
 		}
+		manifestPath = filepath.Join(projectDir, manifestFilename)
 	}
 
 	c.setBackendsWithDefaultOverrideHostIfMissing(out)
@@ -145,22 +153,21 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	wd, err := os.Getwd()
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
-	filename := "fastly.toml"
-	if c.env.Value != "" {
-		filename = fmt.Sprintf("fastly.%s.toml", c.env.Value)
-	}
-	manifestPath := filepath.Join(wd, filename)
-	if c.env.Value != "" {
-		err := c.manifest.File.Read(manifestPath)
+	// NOTE: We read again the manifest to catch a skip-build scenario.
+	//
+	// For example, a user runs `compute build` then `compute serve --skip-build`.
+	// In that scenario our in-memory manifest could be invalid as the user might
+	// have also called `compute serve --skip-build --env <...> --dir <...>`.
+	//
+	// If the user doesn't set --skip-build then `compute serve` will call
+	// `compute build` and the logic there will update the manifest in-memory data
+	// with the relevant project directory and environment manifest content.
+	if c.skipBuild {
+		err := c.Globals.Manifest.File.Read(manifestPath)
 		if err != nil {
 			return fmt.Errorf("failed to parse manifest '%s': %w", manifestPath, err)
 		}
-		c.av.SetRequestedVersion(c.manifest.File.LocalServer.ViceroyVersion)
+		c.av.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
 		if c.Globals.Verbose() {
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
 		}
@@ -233,6 +240,9 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	// Reset the fields on the BuildCommand based on ServeCommand values.
 	if c.dir.WasSet {
 		c.build.Flags.Dir = c.dir.Value
+	}
+	if c.env.WasSet {
+		c.build.Flags.Env = c.env.Value
 	}
 	if c.includeSrc.WasSet {
 		c.build.Flags.IncludeSrc = c.includeSrc.Value
@@ -456,7 +466,7 @@ func installViceroy(
 		// Viceroy is already installed, so we check if the installed version matches the latest.
 		// But we'll skip that check if the TTL for the Viceroy LastChecked hasn't expired.
 
-		stale := g.Config.Viceroy.LastChecked != "" && g.Config.Viceroy.LatestVersion != "" && check.Stale(g.Config.Viceroy.LastChecked, g.Config.Viceroy.TTL)
+		stale := check.Stale(g.Config.Viceroy.LastChecked, g.Config.Viceroy.TTL)
 		if !stale && !forceCheckViceroyLatest {
 			if g.Verbose() {
 				text.Info(g.Output, "Viceroy is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired. To force a refresh, re-run the command with the `--viceroy-check` flag.\n\n")
@@ -464,32 +474,19 @@ func installViceroy(
 			return nil
 		}
 
-		err = spinner.Start()
-		if err != nil {
-			return err
-		}
-		msg = "Checking latest Viceroy release"
-		spinner.Message(msg + "...")
-
 		// IMPORTANT: We declare separately so to shadow `err` from parent scope.
 		var latestVersion string
 
-		latestVersion, err = av.LatestVersion()
-		if err != nil {
-			err = fmt.Errorf("error fetching latest version: %w", err)
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		err = spinner.Process("Checking latest Viceroy release", func(_ *text.SpinnerWrapper) error {
+			latestVersion, err = av.LatestVersion()
+			if err != nil {
+				return fsterr.RemediationError{
+					Inner:       fmt.Errorf("error fetching latest version: %w", err),
+					Remediation: fsterr.NetworkRemediation,
+				}
 			}
-			return fsterr.RemediationError{
-				Inner:       err,
-				Remediation: fsterr.NetworkRemediation,
-			}
-		}
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
+			return nil
+		})
 		if err != nil {
 			return err
 		}
@@ -508,7 +505,7 @@ func installViceroy(
 		}
 
 		if g.Verbose() {
-			text.Info(g.Output, "The CLI config (`fastly config`) has been updated with the latest Viceroy version: %s\n\n", latestVersion)
+			text.Info(g.Output, "\nThe CLI config (`fastly config`) has been updated with the latest Viceroy version: %s\n\n", latestVersion)
 		}
 
 		if installedVersion != "" && installedVersion == latestVersion {
@@ -525,6 +522,7 @@ func installViceroy(
 		tmpBin, err = av.DownloadLatest()
 	}
 
+	// NOTE: The above `switch` needs to shadow the function-level `err` variable.
 	if err != nil {
 		err = fmt.Errorf("error downloading Viceroy release: %w", err)
 		spinner.StopFailMessage(msg)

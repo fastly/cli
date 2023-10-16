@@ -11,6 +11,7 @@ import (
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -60,6 +61,8 @@ type BuildToolchain struct {
 	in io.Reader
 	// internalPostBuildCallback is run after the build but before post build.
 	internalPostBuildCallback func() error
+	// manifestFilename is the name of the manifest file.
+	manifestFilename string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// out is the users terminal stdout stream
@@ -166,7 +169,10 @@ func (bt BuildToolchain) Build() error {
 
 	if bt.postBuild != "" {
 		if !bt.autoYes && !bt.nonInteractive {
-			msg := fmt.Sprintf(CustomPostScriptMessage, "build")
+			if bt.manifestFilename == "" {
+				bt.manifestFilename = manifest.Filename
+			}
+			msg := fmt.Sprintf(CustomPostScriptMessage, "build", bt.manifestFilename)
 			err := bt.promptForPostBuildContinue(msg, bt.postBuild, bt.out, bt.in)
 			if err != nil {
 				return err

@@ -38,24 +38,26 @@ func NewGo(
 	globals *global.Data,
 	flags Flags,
 	in io.Reader,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Go {
 	return &Go{
 		Shell: Shell{},
 
-		autoYes:        globals.Flags.AutoYes,
-		build:          fastlyManifest.Scripts.Build,
-		config:         globals.Config.Language.Go,
-		env:            fastlyManifest.Scripts.EnvVars,
-		errlog:         globals.ErrLog,
-		input:          in,
-		nonInteractive: globals.Flags.NonInteractive,
-		output:         out,
-		postBuild:      fastlyManifest.Scripts.PostBuild,
-		spinner:        spinner,
-		timeout:        flags.Timeout,
-		verbose:        globals.Verbose(),
+		autoYes:          globals.Flags.AutoYes,
+		build:            fastlyManifest.Scripts.Build,
+		config:           globals.Config.Language.Go,
+		env:              fastlyManifest.Scripts.EnvVars,
+		errlog:           globals.ErrLog,
+		input:            in,
+		manifestFilename: manifestFilename,
+		nonInteractive:   globals.Flags.NonInteractive,
+		output:           out,
+		postBuild:        fastlyManifest.Scripts.PostBuild,
+		spinner:          spinner,
+		timeout:          flags.Timeout,
+		verbose:          globals.Verbose(),
 	}
 }
 
@@ -80,6 +82,8 @@ type Go struct {
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
 	input io.Reader
+	// manifestFilename is the name of the manifest file.
+	manifestFilename string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -109,7 +113,7 @@ func (g *Go) Build() error {
 		if !g.verbose {
 			text.Break(g.output)
 		}
-		text.Info(g.output, "No [scripts.build] found in fastly.toml. Visit https://developer.fastly.com/learning/compute/go/ to learn how to target standard Go vs TinyGo.\n\n")
+		text.Info(g.output, "No [scripts.build] found in %s. Visit https://developer.fastly.com/learning/compute/go/ to learn how to target standard Go vs TinyGo.\n\n", g.manifestFilename)
 		text.Description(g.output, "The following default build command for TinyGo will be used", g.build)
 	}
 
@@ -144,18 +148,19 @@ func (g *Go) Build() error {
 	}
 
 	bt := BuildToolchain{
-		autoYes:        g.autoYes,
-		buildFn:        g.Shell.Build,
-		buildScript:    g.build,
-		env:            g.env,
-		errlog:         g.errlog,
-		in:             g.input,
-		nonInteractive: g.nonInteractive,
-		out:            g.output,
-		postBuild:      g.postBuild,
-		spinner:        g.spinner,
-		timeout:        g.timeout,
-		verbose:        g.verbose,
+		autoYes:          g.autoYes,
+		buildFn:          g.Shell.Build,
+		buildScript:      g.build,
+		env:              g.env,
+		errlog:           g.errlog,
+		in:               g.input,
+		manifestFilename: g.manifestFilename,
+		nonInteractive:   g.nonInteractive,
+		out:              g.output,
+		postBuild:        g.postBuild,
+		spinner:          g.spinner,
+		timeout:          g.timeout,
+		verbose:          g.verbose,
 	}
 
 	return bt.Build()

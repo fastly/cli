@@ -47,7 +47,7 @@ type DeployCommand struct {
 	Comment            cmd.OptionalString
 	Dir                string
 	Domain             string
-	Manifest           manifest.Data
+	Env                string
 	PackagePath        string
 	ServiceName        cmd.OptionalServiceNameID
 	ServiceVersion     cmd.OptionalServiceVersion
@@ -58,10 +58,9 @@ type DeployCommand struct {
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
-func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeployCommand {
+func NewDeployCommand(parent cmd.Registerer, g *global.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = g
-	c.Manifest = m
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute service")
 
 	// NOTE: when updating these flags, be sure to update the composite command:
@@ -87,6 +86,7 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("dir", "Project directory (default: current directory)").Short('C').StringVar(&c.Dir)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
+	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Env)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
 	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check").IntVar(&c.StatusCheckCode)
 	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.StatusCheckOff)
@@ -97,24 +97,34 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	// TODO: Refactor logic duplicated across build/serve/deploy/validate/hashsum.
+	manifestFilename := manifest.Filename
+	if c.Env != "" {
+		manifestFilename = fmt.Sprintf("fastly.%s.toml", c.Env)
+		if c.Globals.Verbose() {
+			text.Info(out, "Using the '%s' environment manifest (it will be packaged up as %s)\n\n", manifestFilename, manifest.Filename)
+		}
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	defer os.Chdir(wd)
+	c.manifestPath = filepath.Join(wd, manifestFilename)
+
 	var projectDir string
 	if c.Dir != "" {
 		projectDir, err = filepath.Abs(c.Dir)
 		if err != nil {
 			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.Dir, err)
 		}
-		wd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("failed to get current working directory: %w", err)
-		}
 		if err := os.Chdir(projectDir); err != nil {
 			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
 		}
-		defer os.Chdir(wd)
 		if c.Globals.Verbose() {
 			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
 		}
-		c.manifestPath = filepath.Join(projectDir, manifest.Filename)
+		c.manifestPath = filepath.Join(projectDir, manifestFilename)
 	}
 
 	spinner, err := text.NewSpinner(out)
@@ -122,11 +132,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	err = spinner.Process("Verifying fastly.toml", func(_ *text.SpinnerWrapper) error {
-		if projectDir == "" {
-			err = c.Globals.Manifest.File.ReadError()
-		} else {
+	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), func(_ *text.SpinnerWrapper) error {
+		if projectDir != "" || c.Env != "" {
 			err = c.Globals.Manifest.File.Read(c.manifestPath)
+		} else {
+			err = c.Globals.Manifest.File.ReadError()
 		}
 		if err != nil {
 			// If the user hasn't specified a package to deploy, then we'll just check
@@ -140,11 +150,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 			// Otherwise, we'll attempt to read the manifest from within the given
 			// package archive.
-			if err := readManifestFromPackageArchive(&c.Globals.Manifest, c.PackagePath); err != nil {
+			if err := readManifestFromPackageArchive(&c.Globals.Manifest, c.PackagePath, manifestFilename); err != nil {
 				return err
 			}
 			if c.Globals.Verbose() {
-				text.Info(out, "Using fastly.toml within --package archive: %s\n\n", c.PackagePath)
+				text.Info(out, "Using %s within --package archive: %s\n\n", manifestFilename, c.PackagePath)
 			}
 		}
 		return nil
@@ -165,7 +175,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	undoStack := undo.NewStack()
 	undoStack.Push(func() error {
 		if noExistingService {
-			return c.CleanupNewService(serviceID, out)
+			return c.CleanupNewService(serviceID, manifestFilename, out)
 		}
 		return nil
 	})
@@ -183,7 +193,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var serviceVersion *fastly.Version
 	if noExistingService {
-		serviceID, serviceVersion, err = c.NewService(fnActivateTrial, spinner, in, out)
+		serviceID, serviceVersion, err = c.NewService(manifestFilename, fnActivateTrial, spinner, in, out)
 		if err != nil {
 			return err
 		}
@@ -396,8 +406,8 @@ func validatePackage(pkgPath string) error {
 
 // readManifestFromPackageArchive extracts the manifest file from the given
 // package archive file and reads it into memory.
-func readManifestFromPackageArchive(data *manifest.Data, packageFlag string) error {
-	dst, err := os.MkdirTemp("", fmt.Sprintf("%s-*", manifest.Filename))
+func readManifestFromPackageArchive(data *manifest.Data, packageFlag, manifestFilename string) error {
+	dst, err := os.MkdirTemp("", fmt.Sprintf("%s-*", manifestFilename))
 	if err != nil {
 		return err
 	}
@@ -413,7 +423,7 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string) err
 	}
 	extractedDirName := files[0].Name()
 
-	manifestPath, err := locateManifest(filepath.Join(dst, extractedDirName))
+	manifestPath, err := locateManifest(filepath.Join(dst, extractedDirName), manifestFilename)
 	if err != nil {
 		return err
 	}
@@ -431,7 +441,7 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string) err
 
 // locateManifest attempts to find the manifest within the given path's
 // directory tree.
-func locateManifest(path string) (string, error) {
+func locateManifest(path, manifestFilename string) (string, error) {
 	root, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -443,7 +453,7 @@ func locateManifest(path string) (string, error) {
 		if err != nil {
 			return err
 		}
-		if !entry.IsDir() && filepath.Base(path) == manifest.Filename {
+		if !entry.IsDir() && filepath.Base(path) == manifestFilename {
 			foundManifest = path
 			return fsterr.ErrStopWalk
 		}
@@ -510,7 +520,7 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 }
 
 // NewService handles creating a new service when no Service ID is found.
-func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinner, in io.Reader, out io.Writer) (string, *fastly.Version, error) {
+func (c *DeployCommand) NewService(manifestFilename string, fnActivateTrial Activator, spinner text.Spinner, in io.Reader, out io.Writer) (string, *fastly.Version, error) {
 	var (
 		err            error
 		serviceID      string
@@ -518,12 +528,11 @@ func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinn
 	)
 
 	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
-		text.Break(out)
+		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the %s file, otherwise follow the prompts to create a service now.\n\n", manifestFilename)
 		text.Output(out, "Press ^C at any time to quit.")
 
 		if c.Globals.Manifest.File.Setup.Defined() {
-			text.Info(out, "\nProcessing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
+			text.Info(out, "\nProcessing of the %s [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.", manifestFilename)
 		}
 
 		text.Break(out)
@@ -682,7 +691,7 @@ func createService(
 // CleanupNewService is executed if a new service flow has errors.
 // It deletes the service, which will cause any contained resources to be deleted.
 // It will also strip the Service ID from the fastly.toml manifest file.
-func (c *DeployCommand) CleanupNewService(serviceID string, out io.Writer) error {
+func (c *DeployCommand) CleanupNewService(serviceID, manifestFilename string, out io.Writer) error {
 	text.Info(out, "\nCleaning up service\n\n")
 	err := c.Globals.APIClient.DeleteService(&fastly.DeleteServiceInput{
 		ID: serviceID,
@@ -691,7 +700,7 @@ func (c *DeployCommand) CleanupNewService(serviceID string, out io.Writer) error
 		return err
 	}
 
-	text.Info(out, "Removing Service ID from fastly.toml\n\n")
+	text.Info(out, "Removing Service ID from %s\n\n", manifestFilename)
 	err = c.UpdateManifestServiceID("", c.manifestPath)
 	if err != nil {
 		return err
@@ -709,15 +718,12 @@ func (c *DeployCommand) CleanupNewService(serviceID string, out io.Writer) error
 // empty string (otherwise the service itself will be deleted while the
 // manifest will continue to hold a reference to it).
 func (c *DeployCommand) UpdateManifestServiceID(serviceID, manifestPath string) error {
-	if manifestPath == "" {
-		manifestPath = manifest.Filename
-	}
 	if err := c.Globals.Manifest.File.Read(manifestPath); err != nil {
-		return fmt.Errorf("error reading fastly.toml: %w", err)
+		return fmt.Errorf("error reading %s: %w", manifestPath, err)
 	}
 	c.Globals.Manifest.File.ServiceID = serviceID
 	if err := c.Globals.Manifest.File.Write(manifestPath); err != nil {
-		return fmt.Errorf("error saving fastly.toml: %w", err)
+		return fmt.Errorf("error saving %s: %w", manifestPath, err)
 	}
 	return nil
 }

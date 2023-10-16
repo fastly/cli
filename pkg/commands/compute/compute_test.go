@@ -12,7 +12,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -20,16 +19,13 @@ import (
 // within the `compute publish` command doesn't fall out of sync with the
 // `compute build` and `compute deploy` commands from which publish is composed.
 func TestPublishFlagDivergence(t *testing.T) {
-	var (
-		g    global.Data
-		data manifest.Data
-	)
+	var g global.Data
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &g)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g, data)
-	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g, data)
-	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd, data)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g)
+	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g)
+	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
 	deployFlags := getFlags(dcmd.CmdClause)
@@ -63,10 +59,7 @@ func TestPublishFlagDivergence(t *testing.T) {
 // within the `compute serve` command doesn't fall out of sync with the
 // `compute build` command as `compute serve` delegates to build.
 func TestServeFlagDivergence(t *testing.T) {
-	var (
-		cfg  global.Data
-		data manifest.Data
-	)
+	var cfg global.Data
 	versioner := github.New(github.Opts{
 		Org:    "fastly",
 		Repo:   "viceroy",
@@ -75,8 +68,8 @@ func TestServeFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, data)
-	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd, versioner, data)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd, versioner)
 
 	buildFlags := getFlags(bcmd.CmdClause)
 	serveFlags := getFlags(scmd.CmdClause)
@@ -96,7 +89,6 @@ func TestServeFlagDivergence(t *testing.T) {
 	ignoreServeFlags := []string{
 		"addr",
 		"debug",
-		"env",
 		"file",
 		"profile-guest",
 		"profile-guest-dir",
