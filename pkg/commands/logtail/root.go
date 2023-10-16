@@ -480,7 +480,7 @@ type (
 		stream string
 	}
 
-	// Log defines the message envelope that Compute (Compute) wraps the
+	// Log defines the message envelope that the Compute platform wraps the
 	// user messages in.
 	Log struct {
 		// SequenceNum is the message sequence number used to reorder
