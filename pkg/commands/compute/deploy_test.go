@@ -198,9 +198,9 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123 --version 1"),
 			api: mock.API{
 				CloneVersionFn:      testutil.CloneVersionError,
+				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				ListVersionsFn:      testutil.ListVersions,
-				GetPackageFn:        getPackageOk,
 			},
 			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
 		},
@@ -209,11 +209,11 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				CloneVersionFn:      testutil.CloneVersionResult(4),
+				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsError,
 				ListVersionsFn:      testutil.ListVersions,
-				GetPackageFn:        getPackageOk,
 			},
 			wantError: fmt.Sprintf("error fetching service domains: %s", testutil.Err.Error()),
 		},
@@ -277,8 +277,8 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
-				GetCurrentUserFn: getCurrentUserError,
 				DeleteServiceFn:  deleteServiceOK,
+				GetCurrentUserFn: getCurrentUserError,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -295,8 +295,8 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
-				GetCurrentUserFn: getCurrentUser,
 				DeleteServiceFn:  deleteServiceOK,
+				GetCurrentUserFn: getCurrentUser,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -324,8 +324,8 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
-				GetCurrentUserFn: getCurrentUser,
 				DeleteServiceFn:  deleteServiceOK,
+				GetCurrentUserFn: getCurrentUser,
 			},
 			httpClientRes: []*http.Response{
 				nil,
@@ -430,11 +430,11 @@ func TestDeploy(t *testing.T) {
 			name: "undo stack is executed",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn: createServiceOK,
-				ListDomainsFn:   listDomainsNone,
-				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendError,
+				CreateDomainFn:  createDomainOK,
+				CreateServiceFn: createServiceOK,
 				DeleteServiceFn: deleteServiceOK,
+				ListDomainsFn:   listDomainsNone,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -455,8 +455,8 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionError,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -480,8 +480,8 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageIdentical,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 			},
@@ -496,8 +496,8 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionOk,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -528,8 +528,8 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -564,8 +564,8 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -598,8 +598,8 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -627,8 +627,8 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionOk,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -656,8 +656,8 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionOk,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -685,8 +685,8 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionOk,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -1091,8 +1091,8 @@ func TestDeploy(t *testing.T) {
 				CreateBackendFn:     createBackendOK,
 				CreateServiceFn:     createServiceOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -1128,8 +1128,8 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -1180,8 +1180,8 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -1231,15 +1231,16 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
-				CreateResourceFn:        createResourceOK,
 				CreateDomainFn:          createDomainOK,
+				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
 				GetPackageFn:            getPackageOk,
-				GetServiceFn:            getServiceOK,
 				GetServiceDetailsFn:     getServiceDetailsWasm,
+				GetServiceFn:            getServiceOK,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1285,21 +1286,85 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
+			name: "success with setup.config_stores configuration and no existing service and a conflicting store name",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:       activateVersionOk,
+				CreateBackendFn:         createBackendOK,
+				CreateConfigStoreFn:     createConfigStoreOK,
+				CreateDomainFn:          createDomainOK,
+				CreateResourceFn:        createResourceOK,
+				CreateServiceFn:         createServiceOK,
+				GetConfigStoreFn:        getConfigStoreOk,
+				GetPackageFn:            getPackageOk,
+				GetServiceDetailsFn:     getServiceDetailsWasm,
+				GetServiceFn:            getServiceOK,
+				ListConfigStoresFn:      listConfigStoresOk,
+				ListDomainsFn:           listDomainsOk,
+				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
+				UpdatePackageFn:         updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.config_stores.example]
+			description = "My first store"
+			[setup.config_stores.example.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.config_stores.example.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"WARNING: A Config Store called 'example' already exists",
+				"Retrieving existing Config Store 'example'",
+				"Configuring config store 'example'",
+				"My first store",
+				"Create a config store key called 'foo'",
+				"my default value for foo",
+				"Create a config store key called 'bar'",
+				"my default value for bar",
+				"Creating config store item 'foo'",
+				"Creating config store item 'bar'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
 			name: "success with setup.config_stores configuration and no existing service and --non-interactive",
 			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
-				CreateResourceFn:        createResourceOK,
 				CreateDomainFn:          createDomainOK,
+				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
 				GetPackageFn:            getPackageOk,
-				GetServiceFn:            getServiceOK,
 				GetServiceDetailsFn:     getServiceDetailsWasm,
+				GetServiceFn:            getServiceOK,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1345,15 +1410,16 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
-				CreateResourceFn:        createResourceOK,
 				CreateDomainFn:          createDomainOK,
+				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
 				GetPackageFn:            getPackageOk,
-				GetServiceFn:            getServiceOK,
 				GetServiceDetailsFn:     getServiceDetailsWasm,
+				GetServiceFn:            getServiceOK,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1407,8 +1473,8 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -1455,8 +1521,8 @@ func TestDeploy(t *testing.T) {
 				CreateDomainFn:         createDomainOK,
 				CreateServiceFn:        createServiceOK,
 				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
 				GetServiceDetailsFn:    getServiceDetailsWasm,
+				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
@@ -1504,8 +1570,8 @@ func TestDeploy(t *testing.T) {
 				CreateDomainFn:         createDomainOK,
 				CreateServiceFn:        createServiceOK,
 				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
 				GetServiceDetailsFn:    getServiceDetailsWasm,
+				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
@@ -1554,8 +1620,8 @@ func TestDeploy(t *testing.T) {
 				CreateDomainFn:         createDomainOK,
 				CreateServiceFn:        createServiceOK,
 				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
 				GetServiceDetailsFn:    getServiceDetailsWasm,
+				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
@@ -1601,8 +1667,8 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -1623,7 +1689,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
@@ -1637,29 +1703,30 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
-				"Configuring kv store 'store_one'",
-				"Create a kv store key called 'foo'",
-				"Create a kv store key called 'bar'",
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Configuring KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 			},
 		},
 		{
-			name: "success with setup.kv_stores configuration and no existing service with file",
+			name: "success with setup.kv_stores configuration and no existing service plus use of file and existing store",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				CreateBackendFn:     createBackendOK,
-				CreateKVStoreFn:     createKVStoreOK,
-				InsertKVStoreKeyFn:  createKVStoreItemOK,
-				CreateResourceFn:    createResourceOK,
 				CreateDomainFn:      createDomainOK,
+				CreateResourceFn:    createResourceOK,
 				CreateServiceFn:     createServiceOK,
+				GetKVStoreFn:        getKVStoreOk,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
+				ListKVStoresFn:      listKVStoresOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
@@ -1679,7 +1746,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
@@ -1694,14 +1761,14 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring kv store 'store_one'",
-				"Create a kv store key called 'foo'",
-				"Create a kv store key called 'bar'",
-				"Create a kv store key called 'baz'",
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
-				"Creating kv store key 'baz'",
+				"WARNING: A KV Store called 'store_one' already exists",
+				"Retrieving existing KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Create a KV Store key called 'baz'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
+				"Creating KV Store key 'baz'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1712,17 +1779,18 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateBackendFn:     createBackendOK,
-				CreateKVStoreFn:     createKVStoreOK,
-				InsertKVStoreKeyFn:  createKVStoreItemOK,
-				CreateResourceFn:    createResourceOK,
 				CreateDomainFn:      createDomainOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				CreateResourceFn:    createResourceOK,
 				CreateServiceFn:     createServiceOK,
-				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
-				GetServiceDetailsFn: getServiceDetailsWasm,
-				ListDomainsFn:       listDomainsOk,
-				ListVersionsFn:      testutil.ListVersions,
 				DeleteServiceFn:     deleteServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
+				ListDomainsFn:       listDomainsOk,
+				ListKVStoresFn:      listKVStoresEmpty,
+				ListVersionsFn:      testutil.ListVersions,
 			},
 			httpClientRes: []*http.Response{
 				{
@@ -1740,7 +1808,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.baz]
       value = "some_value"
 			file = "./kv_store_one_baz.txt"
@@ -1750,7 +1818,7 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring kv store 'store_one'",
+				"Configuring KV Store 'store_one'",
 			},
 			wantError: "invalid config: both 'value' and 'file' were set",
 		},
@@ -1760,15 +1828,16 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				CreateBackendFn:     createBackendOK,
-				CreateKVStoreFn:     createKVStoreOK,
-				InsertKVStoreKeyFn:  createKVStoreItemOK,
-				CreateResourceFn:    createResourceOK,
 				CreateDomainFn:      createDomainOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				CreateResourceFn:    createResourceOK,
 				CreateServiceFn:     createServiceOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
+				ListKVStoresFn:      listKVStoresEmpty,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
@@ -1788,7 +1857,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
@@ -1800,9 +1869,9 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1814,15 +1883,16 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				CreateBackendFn:     createBackendOK,
-				CreateKVStoreFn:     createKVStoreOK,
-				InsertKVStoreKeyFn:  createKVStoreItemOK,
-				CreateResourceFn:    createResourceOK,
 				CreateDomainFn:      createDomainOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				CreateResourceFn:    createResourceOK,
 				CreateServiceFn:     createServiceOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
+				ListKVStoresFn:      listKVStoresEmpty,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
@@ -1849,12 +1919,12 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring kv store 'store_one'",
-				"Create a kv store key called 'foo'",
-				"Create a kv store key called 'bar'",
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Configuring KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1864,7 +1934,190 @@ func TestDeploy(t *testing.T) {
 			// be present in the stdout/stderr as the [setup/dictionaries]
 			// configuration does not define them.
 			dontWantOutput: []string{
-				"My first kv store",
+				"My first KV Store",
+				"my default value for foo",
+				"my default value for bar",
+			},
+		},
+		// NOTE: The following test validates [setup] only works for a new service.
+		{
+			name: "success with setup.secret_stores configuration and existing service",
+			args: args("compute deploy --service-id 123 --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				CreateBackendFn:     createBackendOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			description = "My first Secret Store"
+			[setup.secret_stores.store_one.entries.foo]
+			description = "a good description about foo"
+			[setup.secret_stores.store_one.entries.bar]
+			description = "a good description about bar"
+			`,
+			wantOutput: []string{
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 123, version 4)",
+			},
+			dontWantOutput: []string{
+				"Configuring Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Creating Secret Store 'store_one'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+			},
+		},
+		{
+			name: "success with setup.secret_stores configuration and no existing service but an existing store",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateDomainFn:      createDomainOK,
+				CreateResourceFn:    createResourceOK,
+				CreateSecretFn:      createSecretOk,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetSecretStoreFn:    getSecretStoreOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				ListDomainsFn:       listDomainsOk,
+				ListSecretStoresFn:  listSecretStoresOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			description = "My first Secret Store"
+			[setup.secret_stores.store_one.entries.foo]
+			description = "a good description about foo"
+			[setup.secret_stores.store_one.entries.bar]
+			description = "a good description about bar"
+			[setup.secret_stores.store_one.entries.baz]
+			description = "a file containing the data for this entry"
+			`,
+			stdin: []string{
+				"Y",         // when prompted to create a new service
+				"",          // leave blank for service name prompt
+				"",          // leave blank for backend prompt
+				"",          // leave blank for using existing store prompt
+				"my_secret", // when prompted to add a secret for foo (this can't be empty)
+				"my_secret", // when prompted to add a secret for bar (this can't be empty)
+				"my_secret", // when prompted to add a secret for baz (this can't be empty)
+			},
+			wantOutput: []string{
+				"WARNING: A Secret Store called 'store_one' already exists",
+				"Retrieving existing Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Create a Secret Store entry called 'baz'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+				"Creating Secret Store entry 'baz'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with setup.secret_stores configuration and no existing service and no predefined values",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateDomainFn:      createDomainOK,
+				CreateResourceFn:    createResourceOK,
+				CreateSecretFn:      createSecretOk,
+				CreateSecretStoreFn: createSecretStoreOk,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				ListDomainsFn:       listDomainsOk,
+				ListSecretStoresFn:  listSecretStoresEmpty,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("success")),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			[setup.secret_stores.store_one.entries.foo]
+			[setup.secret_stores.store_one.entries.bar]
+			`,
+			stdin: []string{
+				"Y",         // when prompted to create a new service
+				"",          // leave blank for service name prompt
+				"",          // leave blank for backend prompt
+				"my_secret", // when prompted to add a secret for foo (this can't be empty)
+				"my_secret", // when prompted to add a secret for bar (this can't be empty)
+			},
+			wantOutput: []string{
+				"Configuring Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Creating Secret Store 'store_one'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			// The following are predefined values for the `description` and `value`
+			// fields from the prior setup.dictionaries tests that we expect to not
+			// be present in the stdout/stderr as the [setup/dictionaries]
+			// configuration does not define them.
+			dontWantOutput: []string{
+				"My first Secret Store",
 				"my default value for foo",
 				"my default value for bar",
 			},
@@ -1954,6 +2207,7 @@ func TestDeploy(t *testing.T) {
 				case <-done:
 					// Wait for app.Run() to finish
 				case <-time.After(10 * time.Second):
+					t.Log(stdout.String())
 					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
 				}
 			} else {

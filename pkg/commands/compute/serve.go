@@ -805,8 +805,7 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 	}
 
 	if verbose {
-		text.Output(out, "%s", text.BoldYellow("Watching..."))
-		text.Break(out)
+		text.Output(out, "%s\n\n", text.BoldYellow("Watching..."))
 		text.Output(out, buf.String())
 		text.Break(out)
 	}

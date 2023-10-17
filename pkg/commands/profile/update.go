@@ -71,7 +71,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 
 	opts := []profile.EditOption{}
 
-	token, err := text.InputSecure(out, text.BoldYellow("Profile token: (leave blank to skip): "), in)
+	token, err := text.InputSecure(out, text.Prompt("Profile token: (leave blank to skip): "), in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -85,7 +85,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	text.Break(out)
 	text.Break(out)
 
-	makeDefault, err := text.AskYesNo(out, text.BoldYellow("Make profile the default? [y/N] "), in)
+	makeDefault, err := text.AskYesNo(out, "Make profile the default? [y/N] ", in)
 	if err != nil {
 		return err
 	}

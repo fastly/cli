@@ -101,7 +101,7 @@ func (c *CreateCommand) tokenFlow(def bool, in io.Reader, out io.Writer) error {
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
 	text.Output(out, "\nAn API token is used to authenticate requests to the Fastly API. To create a token, visit https://manage.fastly.com/account/personal/tokens\n\n")
-	token, err := text.InputSecure(out, text.BoldYellow("Fastly API token: "), in, validateTokenNotEmpty)
+	token, err := text.InputSecure(out, text.Prompt("Fastly API token: "), in, validateTokenNotEmpty)
 	if err != nil {
 		errLog.Add(err)
 		return "", err
@@ -234,7 +234,7 @@ func displayCfgPath(path string, out io.Writer) {
 }
 
 func (c *CreateCommand) promptForDefault(in io.Reader, out io.Writer) (bool, error) {
-	cont, err := text.AskYesNo(out, text.BoldYellow("Set this profile to be your default? [y/N] "), in)
+	cont, err := text.AskYesNo(out, "Set this profile to be your default? [y/N] ", in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return false, err

@@ -5,8 +5,9 @@ package compute_test
 // also a mocked HTTP client).
 
 import (
-	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v8/fastly"
+
+	"github.com/fastly/cli/pkg/testutil"
 )
 
 func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
@@ -38,7 +39,7 @@ func createConfigStoreOK(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore,
 	}, nil
 }
 
-func createConfigStoreItemOK(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
+func updateConfigStoreItemOK(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 	return &fastly.ConfigStoreItem{
 		Key:   i.Key,
 		Value: i.Value,
@@ -100,6 +101,96 @@ func updateVersionOk(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
 		{Name: "https://directly-careful-coyote.edgecompute.app"},
+	}, nil
+}
+
+func listKVStoresOk(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+	return &fastly.ListKVStoresResponse{
+		Data: []fastly.KVStore{
+			{
+				ID:   "123",
+				Name: "store_one",
+			},
+			{
+				ID:   "456",
+				Name: "store_two",
+			},
+		},
+	}, nil
+}
+
+func listKVStoresEmpty(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+	return &fastly.ListKVStoresResponse{}, nil
+}
+
+func getKVStoreOk(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
+	return &fastly.KVStore{
+		ID:   "123",
+		Name: "store_one",
+	}, nil
+}
+
+func listSecretStoresOk(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+	return &fastly.SecretStores{
+		Data: []fastly.SecretStore{
+			{
+				ID:   "123",
+				Name: "store_one",
+			},
+			{
+				ID:   "456",
+				Name: "store_two",
+			},
+		},
+	}, nil
+}
+
+func listSecretStoresEmpty(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+	return &fastly.SecretStores{}, nil
+}
+
+func getSecretStoreOk(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+	return &fastly.SecretStore{
+		ID:   "123",
+		Name: "store_one",
+	}, nil
+}
+
+func createSecretStoreOk(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+	return &fastly.SecretStore{
+		ID:   "123",
+		Name: "store_one",
+	}, nil
+}
+
+func createSecretOk(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+	return &fastly.Secret{
+		Digest: []byte("123"),
+		Name:   "foo",
+	}, nil
+}
+
+func listConfigStoresOk() ([]*fastly.ConfigStore, error) {
+	return []*fastly.ConfigStore{
+		{
+			ID:   "123",
+			Name: "example",
+		},
+		{
+			ID:   "456",
+			Name: "example_two",
+		},
+	}, nil
+}
+
+func listConfigStoresEmpty() ([]*fastly.ConfigStore, error) {
+	return []*fastly.ConfigStore{}, nil
+}
+
+func getConfigStoreOk(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
+	return &fastly.ConfigStore{
+		ID:   "123",
+		Name: "example",
 	}, nil
 }
 

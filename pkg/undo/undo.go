@@ -3,6 +3,8 @@ package undo
 import (
 	"fmt"
 	"io"
+
+	"github.com/fastly/cli/pkg/text"
 )
 
 // Fn is a function with no arguments which returns an error or nil.
@@ -68,6 +70,16 @@ func (s *Stack) RunIfError(w io.Writer, err error) {
 	for i := len(s.states) - 1; i >= 0; i-- {
 		if err := s.states[i](); err != nil {
 			fmt.Fprintln(w, err)
+		}
+	}
+}
+
+// Unwind unwinds the stack by serially calling each Fn function state in FIFO
+// order. If any Fn returns an error, it gets logged to the provided writer.
+func (s *Stack) Unwind(w io.Writer) {
+	for i := len(s.states) - 1; i >= 0; i-- {
+		if err := s.states[i](); err != nil {
+			text.Error(w, "failed to execute clean-up task: %s", err.Error())
 		}
 	}
 }

@@ -7,8 +7,10 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -175,6 +177,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		undoStack.RunIfError(out, err)
 	}(c.Globals.ErrLog)
 
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+	go monitorSignals(signalCh, noExistingService, out, undoStack, spinner)
+
 	var serviceVersion *fastly.Version
 	if noExistingService {
 		serviceID, serviceVersion, err = c.NewService(fnActivateTrial, spinner, in, out)
@@ -188,7 +194,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		serviceVersion, err = c.ExistingServiceVersion(serviceID, out)
 		if err != nil {
 			if errors.Is(err, ErrPackageUnchanged) {
-				text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, serviceVersion)
+				text.Info(out, "Skipping package deployment, local and service version are identical. (service %s, version %d) ", serviceID, serviceVersion.Number)
 				return nil
 			}
 			return err
@@ -521,7 +527,7 @@ func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinn
 		}
 
 		text.Break(out)
-		answer, err := text.AskYesNo(out, text.BoldYellow("Create new service: [y/N] "), in)
+		answer, err := text.AskYesNo(out, "Create new service: [y/N] ", in)
 		if err != nil {
 			return serviceID, serviceVersion, err
 		}
@@ -543,7 +549,7 @@ func (c *DeployCommand) NewService(fnActivateTrial Activator, spinner text.Spinn
 	case c.Globals.Flags.AcceptDefaults || c.Globals.Flags.NonInteractive:
 		serviceName = defaultServiceName
 	default:
-		serviceName, err = text.Input(out, text.BoldYellow(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
+		serviceName, err = text.Input(out, text.Prompt(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
 		if err != nil || serviceName == "" {
 			serviceName = defaultServiceName
 		}
@@ -726,6 +732,15 @@ func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 
 // CompareLocalRemotePackage compares the local package files hash against the
 // existing service package version and exits early with message if identical.
+//
+// NOTE: We can't avoid the first 'no-changes' upload after the initial deploy.
+// This is because the fastly.toml manifest does actual change after first deploy.
+// When user first deploys, there is no value for service_id.
+// That version of the manifest is inside the package we're checking against.
+// So on the second deploy, even if user has made no changes themselves, we will
+// still upload that package because technically there was a change made by the
+// CLI to add the Service ID. Any subsequent deploys will be aborted because
+// there will be no changes made by the CLI nor the user.
 func (c *DeployCommand) CompareLocalRemotePackage(serviceID string, version int) error {
 	filesHash, err := getFilesHash(c.PackagePath)
 	if err != nil {
@@ -1214,4 +1229,16 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 	}
 
 	return serviceVersion, nil
+}
+
+func monitorSignals(signalCh chan os.Signal, noExistingService bool, out io.Writer, undoStack *undo.Stack, spinner text.Spinner) {
+	<-signalCh
+	signal.Stop(signalCh)
+	spinner.StopFailMessage("Signal received to interrupt/terminate the Fastly CLI process")
+	spinner.StopFail()
+	text.Important(out, "\n\nThe Fastly CLI process will be terminated after any clean-up tasks have been processed")
+	if noExistingService {
+		undoStack.Unwind(out)
+	}
+	os.Exit(1)
 }

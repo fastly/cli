@@ -176,7 +176,7 @@ outer:
 // one of true (yes and its variants) or false (no, its variants and
 // anything else) on success.
 func AskYesNo(w io.Writer, prompt string, r io.Reader) (bool, error) {
-	answer, err := Input(w, prompt, r)
+	answer, err := Input(w, Prompt(prompt), r)
 	if err != nil {
 		return false, fmt.Errorf("error reading input %w", err)
 	}
@@ -222,13 +222,22 @@ func Error(w io.Writer, format string, args ...any) {
 	fmt.Fprintf(w, WrapString(BoldRed, "ERROR", txt, prefix, suffix), args...)
 }
 
+// Important is a wrapper for fmt.Fprintf with a bold yellow "IMPORTANT: " prefix.
+func Important(w io.Writer, format string, args ...any) {
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldYellow, "IMPORTANT", txt, prefix, suffix), args...)
+}
+
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
 func Info(w io.Writer, format string, args ...any) {
 	prefix, suffix, txt := ParseBreaks(format)
 	if suffix == 0 {
 		suffix++
 	}
-	fmt.Fprintf(w, WrapString(Bold, "INFO", txt, prefix, suffix), args...)
+	fmt.Fprintf(w, WrapString(BoldCyan, "INFO", txt, prefix, suffix), args...)
 }
 
 // Success is a wrapper for fmt.Fprintf with a bold green "SUCCESS: " prefix.

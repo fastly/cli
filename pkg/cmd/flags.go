@@ -235,7 +235,7 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 		if verbose {
 			msg := "Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.\n\n"
 			format := fmt.Sprintf(msg, v.Number, version.Number)
-			text.Output(out, format)
+			text.Info(out, format)
 		}
 		return version, nil
 	}
