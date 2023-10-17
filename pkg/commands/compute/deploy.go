@@ -7,8 +7,10 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -174,6 +176,10 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 		undoStack.RunIfError(out, err)
 	}(c.Globals.ErrLog)
+
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+	go monitorSignals(signalCh, noExistingService, out, undoStack, spinner)
 
 	var serviceVersion *fastly.Version
 	if noExistingService {
@@ -1223,4 +1229,16 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 	}
 
 	return serviceVersion, nil
+}
+
+func monitorSignals(signalCh chan os.Signal, noExistingService bool, out io.Writer, undoStack *undo.Stack, spinner text.Spinner) {
+	<-signalCh
+	signal.Stop(signalCh)
+	spinner.StopFailMessage("Signal received to interrupt/terminate the Fastly CLI process")
+	spinner.StopFail()
+	text.Important(out, "\n\nThe Fastly CLI process will be terminated after any clean-up tasks have been processed")
+	if noExistingService {
+		undoStack.Unwind(out)
+	}
+	os.Exit(1)
 }

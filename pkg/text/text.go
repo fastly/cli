@@ -222,6 +222,15 @@ func Error(w io.Writer, format string, args ...any) {
 	fmt.Fprintf(w, WrapString(BoldRed, "ERROR", txt, prefix, suffix), args...)
 }
 
+// Important is a wrapper for fmt.Fprintf with a bold yellow "IMPORTANT: " prefix.
+func Important(w io.Writer, format string, args ...any) {
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldYellow, "IMPORTANT", txt, prefix, suffix), args...)
+}
+
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
 func Info(w io.Writer, format string, args ...any) {
 	prefix, suffix, txt := ParseBreaks(format)
