@@ -67,7 +67,7 @@ func (o *ConfigStores) Configure() error {
 					linkExistingStore = true
 					existingStoreID = store.ID
 				} else {
-					text.Warning(o.Stdout, "\nA Config Store called '%s' already exists\n\n", name)
+					text.Warning(o.Stdout, "\nA Config Store called '%s' already exists. If you use this store, then this implies that any keys defined in your setup configuration will either be newly created or will update an existing one. To avoid updating an existing key, then stop the command now and edit the setup configuration before re-running the deployment process\n\n", name)
 					prompt := text.Prompt("Use a different store name (or leave empty to use the existing store): ")
 					value, err := text.Input(o.Stdout, prompt, o.Stdin)
 					if err != nil {
@@ -88,7 +88,6 @@ func (o *ConfigStores) Configure() error {
 			if settings.Description != "" {
 				text.Output(o.Stdout, settings.Description)
 			}
-			text.Info(o.Stdout, "\nThe creation of Config Store keys will use an 'upsert' operation. This implies that the key will either be newly created or update an existing one. If you wish to avoid updating an existing key, then stop the command and edit the setup configuration\n")
 		}
 
 		var items []ConfigStoreItem
