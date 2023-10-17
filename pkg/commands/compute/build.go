@@ -291,7 +291,7 @@ func (c *BuildCommand) includeSourceCode(files []string, srcDir string) ([]strin
 	return files, nil
 }
 
-// packageName acquires the package name from either a flag or manifest.
+// PackageName acquires the package name from either a flag or manifest.
 // Additionally it will sanitize the name.
 func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 	var name string
