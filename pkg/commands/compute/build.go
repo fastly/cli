@@ -989,6 +989,7 @@ type DataCollectionScriptInfo struct {
 	PostBuildScript  string   `json:"post_build_script"`
 }
 
+// Result represents an identified secret.
 type Result struct {
 	Secret   string
 	Verified bool
