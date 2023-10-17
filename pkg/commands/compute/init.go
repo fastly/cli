@@ -57,7 +57,6 @@ func NewInitCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Ini
 	c.manifest = m
 
 	c.CmdClause = parent.Command("init", "Initialize a new Compute package locally")
-	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
