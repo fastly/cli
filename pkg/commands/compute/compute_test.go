@@ -112,6 +112,94 @@ func TestServeFlagDivergence(t *testing.T) {
 	}
 }
 
+// TestHashsumFlagDivergence validates that the manually curated list of flags
+// within the `compute hashsum` command doesn't fall out of sync with the
+// `compute build` command as `compute hashsum` delegates to build.
+func TestHashsumFlagDivergence(t *testing.T) {
+	var cfg global.Data
+	acmd := kingpin.New("foo", "bar")
+
+	rcmd := compute.NewRootCommand(acmd, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	hcmd := compute.NewHashsumCommand(rcmd.CmdClause, &cfg, bcmd)
+
+	buildFlags := getFlags(bcmd.CmdClause)
+	hashsumFlags := getFlags(hcmd.CmdClause)
+
+	var (
+		expect = make(map[string]int)
+		have   = make(map[string]int)
+	)
+
+	iter := buildFlags.MapRange()
+	for iter.Next() {
+		expect[iter.Key().String()] = 1
+	}
+
+	// Some flags on `compute hashsum` are unique to it.
+	// We only want to be sure hashsum contains all build flags.
+	ignoreServeFlags := []string{
+		"package",
+		"skip-build",
+	}
+
+	iter = hashsumFlags.MapRange()
+	for iter.Next() {
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreServeFlags, flag) {
+			have[flag] = 1
+		}
+	}
+
+	if !reflect.DeepEqual(expect, have) {
+		t.Fatalf("the flags between build and hashsum don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
+	}
+}
+
+// TestHashfilesFlagDivergence validates that the manually curated list of flags
+// within the `compute hashsum` command doesn't fall out of sync with the
+// `compute build` command as `compute hashsum` delegates to build.
+func TestHashfilesFlagDivergence(t *testing.T) {
+	var cfg global.Data
+	acmd := kingpin.New("foo", "bar")
+
+	rcmd := compute.NewRootCommand(acmd, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	hcmd := compute.NewHashFilesCommand(rcmd.CmdClause, &cfg, bcmd)
+
+	buildFlags := getFlags(bcmd.CmdClause)
+	hashfilesFlags := getFlags(hcmd.CmdClause)
+
+	var (
+		expect = make(map[string]int)
+		have   = make(map[string]int)
+	)
+
+	iter := buildFlags.MapRange()
+	for iter.Next() {
+		expect[iter.Key().String()] = 1
+	}
+
+	// Some flags on `compute hashsum` are unique to it.
+	// We only want to be sure hashsum contains all build flags.
+	ignoreServeFlags := []string{
+		"package",
+		"skip-build",
+	}
+
+	iter = hashfilesFlags.MapRange()
+	for iter.Next() {
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreServeFlags, flag) {
+			have[flag] = 1
+		}
+	}
+
+	if !reflect.DeepEqual(expect, have) {
+		t.Fatalf("the flags between build and hash-files don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
+	}
+}
+
 // ignoreFlag indicates if needle should be omitted from comparison.
 func ignoreFlag(ignore []string, flag string) bool {
 	for _, i := range ignore {
