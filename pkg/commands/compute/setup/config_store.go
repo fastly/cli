@@ -88,6 +88,7 @@ func (o *ConfigStores) Configure() error {
 			if settings.Description != "" {
 				text.Output(o.Stdout, settings.Description)
 			}
+			text.Info(o.Stdout, "\nThe creation of Config Store keys will use an 'upsert' operation. This implies that the key will either be newly created or update an existing one. If you wish to avoid updating an existing key, then stop the command and edit the setup configuration\n")
 		}
 
 		var items []ConfigStoreItem
