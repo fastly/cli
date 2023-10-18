@@ -36,11 +36,11 @@ endif
 # You can pass flags to goreleaser via GORELEASER_ARGS
 # --clean will save you deleting the dist dir
 # --single-target will be quicker and only build for your os & architecture
-# --skip-post-hooks which prevents errors such as trying to execute the binary for each OS (e.g. we call scripts/documentation.sh and we can't run Windows exe on a Mac).
-# --skip-validate will skip the checks (e.g. git tag checks which result in a 'dirty git state' error)
+# --skip=post-hooks which prevents errors such as trying to execute the binary for each OS (e.g. we call scripts/documentation.sh and we can't run Windows exe on a Mac).
+# --skip=validate will skip the checks (e.g. git tag checks which result in a 'dirty git state' error)
 #
 # EXAMPLE:
-# make release GORELEASER_ARGS="--clean --skip-post-hooks --skip-validate"
+# make release GORELEASER_ARGS="--clean --skip=post-hooks --skip=validate"
 release: dependencies $(GO_FILES) ## Build executables using goreleaser
 	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
 
