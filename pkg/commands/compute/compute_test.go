@@ -152,14 +152,24 @@ func TestHashsumFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	ignoreBuildFlags := []string{
+		"enable-metadata",
+		"filter-metadata-envvars",
+		"show-metadata",
+	}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
 
 	// Some flags on `compute hashsum` are unique to it.
 	// We only want to be sure hashsum contains all build flags.
-	ignoreServeFlags := []string{
+	ignoreHashsumFlags := []string{
 		"package",
 		"skip-build",
 	}
@@ -167,7 +177,7 @@ func TestHashsumFlagDivergence(t *testing.T) {
 	iter = hashsumFlags.MapRange()
 	for iter.Next() {
 		flag := iter.Key().String()
-		if !ignoreFlag(ignoreServeFlags, flag) {
+		if !ignoreFlag(ignoreHashsumFlags, flag) {
 			have[flag] = 1
 		}
 	}
@@ -196,14 +206,24 @@ func TestHashfilesFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	ignoreBuildFlags := []string{
+		"enable-metadata",
+		"filter-metadata-envvars",
+		"show-metadata",
+	}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
 
 	// Some flags on `compute hashsum` are unique to it.
 	// We only want to be sure hashsum contains all build flags.
-	ignoreServeFlags := []string{
+	ignoreHashfilesFlags := []string{
 		"package",
 		"skip-build",
 	}
@@ -211,7 +231,7 @@ func TestHashfilesFlagDivergence(t *testing.T) {
 	iter = hashfilesFlags.MapRange()
 	for iter.Next() {
 		flag := iter.Key().String()
-		if !ignoreFlag(ignoreServeFlags, flag) {
+		if !ignoreFlag(ignoreHashfilesFlags, flag) {
 			have[flag] = 1
 		}
 	}
