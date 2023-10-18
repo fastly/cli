@@ -251,7 +251,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	postInit := md.File.Scripts.PostInit
 	if postInit != "" {
 		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-			msg := fmt.Sprintf(CustomPostScriptMessage, "init")
+			msg := fmt.Sprintf(CustomPostScriptMessage, "init", manifest.Filename)
 			err := promptForPostInitContinue(msg, postInit, out, in)
 			if err != nil {
 				if errors.Is(err, fsterr.ErrPostInitStopped) {

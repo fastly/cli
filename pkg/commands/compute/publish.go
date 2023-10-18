@@ -4,20 +4,17 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // PublishCommand produces and deploys an artifact from files on the local disk.
 type PublishCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	build    *BuildCommand
-	deploy   *DeployCommand
+	build  *BuildCommand
+	deploy *DeployCommand
 
 	// Build fields
 	dir         cmd.OptionalString
@@ -29,6 +26,7 @@ type PublishCommand struct {
 	// Deploy fields
 	comment            cmd.OptionalString
 	domain             cmd.OptionalString
+	env                cmd.OptionalString
 	pkg                cmd.OptionalString
 	serviceName        cmd.OptionalServiceNameID
 	serviceVersion     cmd.OptionalServiceVersion
@@ -39,10 +37,9 @@ type PublishCommand struct {
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
-func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, deploy *DeployCommand, m manifest.Data) *PublishCommand {
+func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, deploy *DeployCommand) *PublishCommand {
 	var c PublishCommand
 	c.Globals = g
-	c.manifest = m
 	c.build = build
 	c.deploy = deploy
 	c.CmdClause = parent.Command("publish", "Build and deploy a Compute package to a Fastly service")
@@ -50,6 +47,7 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').Action(c.dir.Set).StringVar(&c.dir.Value)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
+	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.pkg.Set).StringVar(&c.pkg.Value)
@@ -57,7 +55,7 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &c.Globals.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -93,6 +91,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.dir.WasSet {
 		c.build.Flags.Dir = c.dir.Value
 	}
+	if c.env.WasSet {
+		c.build.Flags.Env = c.env.Value
+	}
 	if c.includeSrc.WasSet {
 		c.build.Flags.IncludeSrc = c.includeSrc.Value
 	}
@@ -105,7 +106,6 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.timeout.WasSet {
 		c.build.Flags.Timeout = c.timeout.Value
 	}
-	c.build.Manifest = c.manifest
 
 	err = c.build.Exec(in, out)
 	if err != nil {
@@ -115,21 +115,19 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	text.Break(out)
 
-	if c.dir.WasSet {
-		projectDir, err := filepath.Abs(c.dir.Value)
-		if err != nil {
-			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.dir.Value, err)
-		}
-		wd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("failed to get current working directory: %w", err)
-		}
-		if err := os.Chdir(projectDir); err != nil {
-			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
-		}
-		defer os.Chdir(wd)
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	defer os.Chdir(wd)
+
+	projectDir, err := ChangeProjectDirectory(c.dir.Value)
+	if err != nil {
+		return err
+	}
+	if projectDir != "" {
 		if c.Globals.Verbose() {
-			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+			text.Info(out, ProjectDirMsg, projectDir)
 		}
 	}
 
@@ -149,10 +147,12 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.domain.WasSet {
 		c.deploy.Domain = c.domain.Value
 	}
+	if c.env.WasSet {
+		c.deploy.Env = c.env.Value
+	}
 	if c.comment.WasSet {
 		c.deploy.Comment = c.comment
 	}
-	c.deploy.Manifest = c.manifest
 	if c.statusCheckCode > 0 {
 		c.deploy.StatusCheckCode = c.statusCheckCode
 	}

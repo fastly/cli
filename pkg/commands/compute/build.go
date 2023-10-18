@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
@@ -26,11 +27,12 @@ const IgnoreFilePath = ".fastlyignore"
 
 // CustomPostScriptMessage is the message displayed to a user when there is
 // either a post_init or post_build script defined.
-const CustomPostScriptMessage = "This project has a custom post_%s script defined in the fastly.toml manifest"
+const CustomPostScriptMessage = "This project has a custom post_%s script defined in the %s manifest"
 
 // Flags represents the flags defined for the command.
 type Flags struct {
 	Dir         string
+	Env         string
 	IncludeSrc  bool
 	Lang        string
 	PackageName string
@@ -43,20 +45,19 @@ type BuildCommand struct {
 
 	// NOTE: these are public so that the "serve" and "publish" composite
 	// commands can set the values appropriately before calling Exec().
-	Flags    Flags
-	Manifest manifest.Data
+	Flags Flags
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *BuildCommand {
+func NewBuildCommand(parent cmd.Registerer, g *global.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = g
-	c.Manifest = m // TODO: Stop passing a non-mutable 'copy' in any commands.
 	c.CmdClause = parent.Command("build", "Build a Compute package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
 	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').StringVar(&c.Flags.Dir)
+	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Flags.Env)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
@@ -69,28 +70,32 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Bu
 func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// We'll restore this at the end to print a final successful build output.
 	originalOut := out
-
 	if c.Globals.Flags.Quiet {
 		out = io.Discard
 	}
 
-	var projectDir string
-	if c.Flags.Dir != "" {
-		projectDir, err = filepath.Abs(c.Flags.Dir)
-		if err != nil {
-			return fmt.Errorf("failed to construct absolute path to directory '%s': %w", c.Flags.Dir, err)
-		}
-		wd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("failed to get current working directory: %w", err)
-		}
-		if err := os.Chdir(projectDir); err != nil {
-			return fmt.Errorf("failed to change working directory to '%s': %w", projectDir, err)
-		}
-		defer os.Chdir(wd)
+	manifestFilename := EnvironmentManifest(c.Flags.Env)
+	if c.Flags.Env != "" {
 		if c.Globals.Verbose() {
-			text.Info(out, "Changed project directory to '%s'\n\n", projectDir)
+			text.Info(out, EnvManifestMsg, manifestFilename, manifest.Filename)
 		}
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	defer os.Chdir(wd)
+	manifestPath := filepath.Join(wd, manifestFilename)
+
+	projectDir, err := ChangeProjectDirectory(c.Flags.Dir)
+	if err != nil {
+		return err
+	}
+	if projectDir != "" {
+		if c.Globals.Verbose() {
+			text.Info(out, ProjectDirMsg, projectDir)
+		}
+		manifestPath = filepath.Join(projectDir, manifestFilename)
 	}
 
 	spinner, err := text.NewSpinner(out)
@@ -104,11 +109,11 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}(c.Globals.ErrLog)
 
-	err = spinner.Process("Verifying fastly.toml", func(_ *text.SpinnerWrapper) error {
-		if projectDir == "" {
-			err = c.Globals.Manifest.File.ReadError()
+	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), func(_ *text.SpinnerWrapper) error {
+		if projectDir != "" || c.Flags.Env != "" {
+			err = c.Globals.Manifest.File.Read(manifestPath)
 		} else {
-			err = c.Globals.Manifest.File.Read(filepath.Join(projectDir, manifest.Filename))
+			err = c.Globals.Manifest.File.ReadError()
 		}
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
@@ -125,7 +130,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var pkgName string
 	err = spinner.Process("Identifying package name", func(_ *text.SpinnerWrapper) error {
-		pkgName, err = packageName(c)
+		pkgName, err = c.PackageName(manifestFilename)
 		if err != nil {
 			return err
 		}
@@ -147,7 +152,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err := language(toolchain, c, in, out, spinner)
+	language, err := language(toolchain, manifestFilename, c, in, out, spinner)
 	if err != nil {
 		return err
 	}
@@ -167,7 +172,57 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
 
 	err = spinner.Process("Creating package archive", func(_ *text.SpinnerWrapper) error {
-		// NOTE: The minimum package requirement is `fastly.toml` and `main.wasm`.
+		// IMPORTANT: The minimum package requirement is `fastly.toml` and `main.wasm`.
+		//
+		// The Fastly platform will reject a package that doesn't have a manifest
+		// named exactly fastly.toml which means if the user is building and
+		// deploying a package with an environment manifest (e.g. fastly.stage.toml)
+		// then we need to:
+		//
+		// 1. Rename any existing fastly.toml to fastly.toml.backup.<TIMESTAMP>
+		// 2. Make a temp copy of the environment manifest and name it fastly.toml
+		// 3. Remove the newly created fastly.toml once the packaging is done
+		// 4. Rename the fastly.toml.backup back to fastly.toml
+		if c.Flags.Env != "" {
+			// 1. Rename any existing fastly.toml to fastly.toml.backup.<TIMESTAMP>
+			//
+			// For example, the user is trying to deploy a fastly.stage.toml rather
+			// than the standard fastly.toml manifest.
+			if _, err := os.Stat(manifest.Filename); err == nil {
+				backup := fmt.Sprintf("%s.backup.%d", manifest.Filename, time.Now().Unix())
+				if err := os.Rename(manifest.Filename, backup); err != nil {
+					return fmt.Errorf("failed to backup primary manifest file: %w", err)
+				}
+				defer func() {
+					// 4. Rename the fastly.toml.backup back to fastly.toml
+					if err = os.Rename(backup, manifest.Filename); err != nil {
+						text.Error(out, err.Error())
+					}
+				}()
+			} else {
+				// 3. Remove the newly created fastly.toml once the packaging is done
+				//
+				// If there wasn't an existing fastly.toml because the user only wants
+				// to work with environment manifests (e.g. fastly.stage.toml and
+				// fastly.production.toml) then we should remove the fastly.toml that we
+				// created just for the packaging process (see step 2. below).
+				defer func() {
+					if err = os.Remove(manifest.Filename); err != nil {
+						text.Error(out, err.Error())
+					}
+				}()
+			}
+			// 2. Make a temp copy of the environment manifest and name it fastly.toml
+			//
+			// If there was no existing fastly.toml then this step will create one, so
+			// we need to make sure we remove it after packaging has finished so as to
+			// not confuse the user with a fastly.toml that has suddenly appeared (see
+			// step 3. above).
+			if err := filesystem.CopyFile(manifestFilename, manifest.Filename); err != nil {
+				return fmt.Errorf("failed to copy environment manifest file: %w", err)
+			}
+		}
+
 		files := []string{
 			manifest.Filename,
 			"bin/main.wasm",
@@ -236,9 +291,9 @@ func (c *BuildCommand) includeSourceCode(files []string, srcDir string) ([]strin
 	return files, nil
 }
 
-// packageName acquires the package name from either a flag or manifest.
+// PackageName acquires the package name from either a flag or manifest.
 // Additionally it will sanitize the name.
-func packageName(c *BuildCommand) (string, error) {
+func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 	var name string
 
 	switch {
@@ -249,7 +304,7 @@ func packageName(c *BuildCommand) (string, error) {
 	default:
 		return "", fsterr.RemediationError{
 			Inner:       fmt.Errorf("package name is missing"),
-			Remediation: "Add a name to the fastly.toml 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/",
+			Remediation: fmt.Sprintf("Add a name to the %s 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/", manifestFilename),
 		}
 	}
 
@@ -277,7 +332,7 @@ func identifyToolchain(c *BuildCommand) (string, error) {
 }
 
 // language returns a pointer to a supported language.
-func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, spinner text.Spinner) (*Language, error) {
+func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader, out io.Writer, spinner text.Spinner) (*Language, error) {
 	var language *Language
 	switch toolchain {
 	case "assemblyscript":
@@ -289,6 +344,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 				c.Globals,
 				c.Flags,
 				in,
+				manifestFilename,
 				out,
 				spinner,
 			),
@@ -302,6 +358,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 				c.Globals,
 				c.Flags,
 				in,
+				manifestFilename,
 				out,
 				spinner,
 			),
@@ -315,6 +372,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 				c.Globals,
 				c.Flags,
 				in,
+				manifestFilename,
 				out,
 				spinner,
 			),
@@ -328,6 +386,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 				c.Globals,
 				c.Flags,
 				in,
+				manifestFilename,
 				out,
 				spinner,
 			),
@@ -340,6 +399,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 				c.Globals,
 				c.Flags,
 				in,
+				manifestFilename,
 				out,
 				spinner,
 			),

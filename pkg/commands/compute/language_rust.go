@@ -48,24 +48,26 @@ func NewRust(
 	globals *global.Data,
 	flags Flags,
 	in io.Reader,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Rust {
 	return &Rust{
 		Shell: Shell{},
 
-		autoYes:        globals.Flags.AutoYes,
-		build:          fastlyManifest.Scripts.Build,
-		config:         globals.Config.Language.Rust,
-		env:            fastlyManifest.Scripts.EnvVars,
-		errlog:         globals.ErrLog,
-		input:          in,
-		nonInteractive: globals.Flags.NonInteractive,
-		output:         out,
-		postBuild:      fastlyManifest.Scripts.PostBuild,
-		spinner:        spinner,
-		timeout:        flags.Timeout,
-		verbose:        globals.Verbose(),
+		autoYes:          globals.Flags.AutoYes,
+		build:            fastlyManifest.Scripts.Build,
+		config:           globals.Config.Language.Rust,
+		env:              fastlyManifest.Scripts.EnvVars,
+		errlog:           globals.ErrLog,
+		input:            in,
+		manifestFilename: manifestFilename,
+		nonInteractive:   globals.Flags.NonInteractive,
+		output:           out,
+		postBuild:        fastlyManifest.Scripts.PostBuild,
+		spinner:          spinner,
+		timeout:          flags.Timeout,
+		verbose:          globals.Verbose(),
 	}
 }
 
@@ -85,6 +87,8 @@ type Rust struct {
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
 	input io.Reader
+	// manifestFilename is the name of the manifest file.
+	manifestFilename string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -118,7 +122,7 @@ func (r *Rust) Build() error {
 	}
 
 	if noBuildScript && r.verbose {
-		text.Info(r.output, "No [scripts.build] found in fastly.toml. The following default build command for Rust will be used: `%s`\n\n", r.build)
+		text.Info(r.output, "No [scripts.build] found in %s. The following default build command for Rust will be used: `%s`\n\n", r.manifestFilename, r.build)
 	}
 
 	r.toolchainConstraint()
@@ -131,6 +135,7 @@ func (r *Rust) Build() error {
 		errlog:                    r.errlog,
 		in:                        r.input,
 		internalPostBuildCallback: r.ProcessLocation,
+		manifestFilename:          r.manifestFilename,
 		nonInteractive:            r.nonInteractive,
 		out:                       r.output,
 		postBuild:                 r.postBuild,

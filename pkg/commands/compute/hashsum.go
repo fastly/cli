@@ -2,6 +2,7 @@ package compute
 
 import (
 	"crypto/sha512"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -20,22 +21,34 @@ import (
 type HashsumCommand struct {
 	cmd.Base
 
+	// Build fields
+	dir         cmd.OptionalString
+	env         cmd.OptionalString
+	includeSrc  cmd.OptionalBool
+	lang        cmd.OptionalString
+	packageName cmd.OptionalString
+	timeout     cmd.OptionalInt
+
 	buildCmd    *BuildCommand
-	Manifest    manifest.Data
 	PackagePath string
 	SkipBuild   bool
 }
 
 // NewHashsumCommand returns a usable command registered under the parent.
 // Deprecated: Use NewHashFilesCommand instead.
-func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, m manifest.Data) *HashsumCommand {
+func NewHashsumCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand) *HashsumCommand {
 	var c HashsumCommand
 	c.buildCmd = build
 	c.Globals = g
-	c.Manifest = m
 	c.CmdClause = parent.Command("hashsum", "Generate a SHA512 digest from a Compute package").Hidden()
+	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').Action(c.dir.Set).StringVar(&c.dir.Value)
+	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
+	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
+	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
+	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)
+	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
 	return &c
 }
 
@@ -49,7 +62,8 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if !c.SkipBuild {
+	// No point in building a package if the user provides a package path.
+	if !c.SkipBuild && c.PackagePath == "" {
 		err = c.Build(in, out)
 		if err != nil {
 			return err
@@ -57,15 +71,48 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	if c.PackagePath == "" {
-		projectName, source := c.Manifest.Name()
+	pkgPath := c.PackagePath
+	if pkgPath == "" {
+		manifestFilename := EnvironmentManifest(c.env.Value)
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %w", err)
+		}
+		defer os.Chdir(wd)
+		manifestPath := filepath.Join(wd, manifestFilename)
+
+		projectDir, err := ChangeProjectDirectory(c.dir.Value)
+		if err != nil {
+			return err
+		}
+		if projectDir != "" {
+			if c.Globals.Verbose() {
+				text.Info(out, ProjectDirMsg, projectDir)
+			}
+			manifestPath = filepath.Join(projectDir, manifestFilename)
+		}
+
+		if projectDir != "" || c.env.WasSet {
+			err = c.Globals.Manifest.File.Read(manifestPath)
+		} else {
+			err = c.Globals.Manifest.File.ReadError()
+		}
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				err = fsterr.ErrReadingManifest
+			}
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+
+		projectName, source := c.Globals.Manifest.Name()
 		if source == manifest.SourceUndefined {
 			return fsterr.ErrReadingManifest
 		}
-		c.PackagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
+		pkgPath = filepath.Join(projectDir, "pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
 	}
 
-	err = validatePackage(c.PackagePath)
+	err = validatePackage(pkgPath)
 	if err != nil {
 		var skipBuildMsg string
 		if c.SkipBuild {
@@ -91,6 +138,24 @@ func (c *HashsumCommand) Build(in io.Reader, out io.Writer) error {
 	output := out
 	if !c.Globals.Verbose() {
 		output = io.Discard
+	}
+	if c.dir.WasSet {
+		c.buildCmd.Flags.Dir = c.dir.Value
+	}
+	if c.env.WasSet {
+		c.buildCmd.Flags.Env = c.env.Value
+	}
+	if c.includeSrc.WasSet {
+		c.buildCmd.Flags.IncludeSrc = c.includeSrc.Value
+	}
+	if c.lang.WasSet {
+		c.buildCmd.Flags.Lang = c.lang.Value
+	}
+	if c.packageName.WasSet {
+		c.buildCmd.Flags.PackageName = c.packageName.Value
+	}
+	if c.timeout.WasSet {
+		c.buildCmd.Flags.Timeout = c.timeout.Value
 	}
 	return c.buildCmd.Exec(in, output)
 }

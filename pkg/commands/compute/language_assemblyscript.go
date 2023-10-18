@@ -41,20 +41,22 @@ func NewAssemblyScript(
 	globals *global.Data,
 	flags Flags,
 	in io.Reader,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *AssemblyScript {
 	return &AssemblyScript{
 		Shell: Shell{},
 
-		build:     fastlyManifest.Scripts.Build,
-		errlog:    globals.ErrLog,
-		input:     in,
-		output:    out,
-		postBuild: fastlyManifest.Scripts.PostBuild,
-		spinner:   spinner,
-		timeout:   flags.Timeout,
-		verbose:   globals.Verbose(),
+		build:            fastlyManifest.Scripts.Build,
+		errlog:           globals.ErrLog,
+		input:            in,
+		manifestFilename: manifestFilename,
+		output:           out,
+		postBuild:        fastlyManifest.Scripts.PostBuild,
+		spinner:          spinner,
+		timeout:          flags.Timeout,
+		verbose:          globals.Verbose(),
 	}
 }
 
@@ -70,6 +72,8 @@ type AssemblyScript struct {
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
 	input io.Reader
+	// manifestFilename is the name of the manifest file.
+	manifestFilename string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -107,21 +111,22 @@ func (a *AssemblyScript) Build() error {
 	}
 
 	if noBuildScript && a.verbose {
-		text.Info(a.output, "No [scripts.build] found in fastly.toml. The following default build command for AssemblyScript will be used: `%s`\n\n", a.build)
+		text.Info(a.output, "No [scripts.build] found in %s. The following default build command for AssemblyScript will be used: `%s`\n\n", a.manifestFilename, a.build)
 	}
 
 	bt := BuildToolchain{
-		autoYes:        a.autoYes,
-		buildFn:        a.Shell.Build,
-		buildScript:    a.build,
-		errlog:         a.errlog,
-		in:             a.input,
-		nonInteractive: a.nonInteractive,
-		out:            a.output,
-		postBuild:      a.postBuild,
-		spinner:        a.spinner,
-		timeout:        a.timeout,
-		verbose:        a.verbose,
+		autoYes:          a.autoYes,
+		buildFn:          a.Shell.Build,
+		buildScript:      a.build,
+		errlog:           a.errlog,
+		in:               a.input,
+		manifestFilename: a.manifestFilename,
+		nonInteractive:   a.nonInteractive,
+		out:              a.output,
+		postBuild:        a.postBuild,
+		spinner:          a.spinner,
+		timeout:          a.timeout,
+		verbose:          a.verbose,
 	}
 
 	return bt.Build()
