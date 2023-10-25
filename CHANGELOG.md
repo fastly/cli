@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [v10.5.1](https://github.com/fastly/cli/releases/tag/v10.5.1) (2023-10-25)
+
+**Bug fixes:**
+
+- fix(compute/deploy): ignore package comparison error [#1053](https://github.com/fastly/cli/pull/1053)
+
+**Enhancements:**
+
+- refactor(compute/deploy): add setup message for existing service users [#1052](https://github.com/fastly/cli/pull/1052)
+
+**Dependencies:**
+
+- build(deps): bump github.com/fsnotify/fsnotify from 1.6.0 to 1.7.0 [#1050](https://github.com/fastly/cli/pull/1050)
+- build(deps): bump actions/setup-node from 3 to 4 [#1051](https://github.com/fastly/cli/pull/1051)
+
 ## [v10.5.0](https://github.com/fastly/cli/releases/tag/v10.5.0) (2023-10-18)
 
 The Fastly CLI internal configuration file has been updated to version `4`, with the only change being the addition of the Fastly [TinyGo Compute Starter Kit](https://github.com/fastly/compute-starter-kit-go-tinygo).
