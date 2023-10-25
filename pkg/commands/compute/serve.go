@@ -46,11 +46,14 @@ type ServeCommand struct {
 	viceroyVersioner github.AssetVersioner
 
 	// Build fields
-	dir         cmd.OptionalString
-	includeSrc  cmd.OptionalBool
-	lang        cmd.OptionalString
-	packageName cmd.OptionalString
-	timeout     cmd.OptionalInt
+	dir                   cmd.OptionalString
+	includeSrc            cmd.OptionalBool
+	lang                  cmd.OptionalString
+	metadataEnable        cmd.OptionalBool
+	metadataFilterEnvVars cmd.OptionalString
+	metadataShow          cmd.OptionalBool
+	packageName           cmd.OptionalString
+	timeout               cmd.OptionalInt
 
 	// Serve fields
 	addr                    string
@@ -83,6 +86,7 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
+	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.CmdClause.Flag("profile-guest", "Profile the Wasm guest under Viceroy (requires Viceroy 0.9.1 or higher). View profiles at https://profiler.firefox.com/.").BoolVar(&c.profileGuest)
 	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
@@ -92,6 +96,10 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.viceroyBinPath)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
 	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
+
+	// Hidden
+	c.CmdClause.Flag("metadata-enable", "Feature flag to trial the Wasm binary metadata annotations").Hidden().Action(c.metadataEnable.Set).BoolVar(&c.metadataEnable.Value)
+	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
 
 	return &c
 }
@@ -251,6 +259,15 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	}
 	if c.timeout.WasSet {
 		c.build.Flags.Timeout = c.timeout.Value
+	}
+	if c.metadataEnable.WasSet {
+		c.build.MetadataEnable = c.metadataEnable.Value
+	}
+	if c.metadataFilterEnvVars.WasSet {
+		c.build.MetadataFilterEnvVars = c.metadataFilterEnvVars.Value
+	}
+	if c.metadataShow.WasSet {
+		c.build.MetadataShow = c.metadataShow.Value
 	}
 
 	err := c.build.Exec(in, out)

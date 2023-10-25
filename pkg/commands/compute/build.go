@@ -65,14 +65,15 @@ type Flags struct {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	cmd.Base
-	metadataEnable        bool
-	metadataFilterEnvVars string
-	metadataShow          bool
-	wasmtoolsVersioner    github.AssetVersioner
+	wasmtoolsVersioner github.AssetVersioner
 
-	// NOTE: these are public so that the "serve" and "publish" composite
-	// commands can set the values appropriately before calling Exec().
-	Flags Flags
+	// NOTE: Composite commands require these build flags to be public.
+	// e.g. serve, publish, hashsum, hash-files
+	// This is so they can set values appropriately before calling Build.Exec().
+	Flags                 Flags
+	MetadataEnable        bool
+	MetadataFilterEnvVars string
+	MetadataShow          bool
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
@@ -89,13 +90,13 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner g
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Flags.Env)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
-	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").BoolVar(&c.metadataShow)
+	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").BoolVar(&c.MetadataShow)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
 	// Hidden
-	c.CmdClause.Flag("metadata-enable", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.metadataEnable)
-	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().StringVar(&c.metadataFilterEnvVars)
+	c.CmdClause.Flag("metadata-enable", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.MetadataEnable)
+	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().StringVar(&c.MetadataFilterEnvVars)
 
 	return &c
 }
@@ -218,8 +219,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// FIXME: For feature launch replace enable flag with disable equivalent.
 	// e.g. define --metadata-disable and check for that first with env var.
+	// Also make sure hidden flags (across all composite commands) aren't hidden.
 	metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
-	if c.metadataEnable && !metadataDisable {
+	if c.MetadataEnable && !metadataDisable {
 		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language, out); err != nil {
 			return err
 		}
@@ -228,7 +230,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 	}
-	if c.metadataShow {
+	if c.MetadataShow {
 		if err := c.ShowMetadata(wasmtools, out); err != nil {
 			return err
 		}
@@ -392,7 +394,7 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	}
 
 	// Allow customer to specify their own env variables to be filtered.
-	customFilters := strings.Split(c.metadataFilterEnvVars, ",")
+	customFilters := strings.Split(c.MetadataFilterEnvVars, ",")
 	for _, v := range customFilters {
 		if v == "" {
 			continue

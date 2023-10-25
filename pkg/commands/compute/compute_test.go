@@ -15,10 +15,10 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-// TestPublishFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergencePublish validates that the manually curated list of flags
 // within the `compute publish` command doesn't fall out of sync with the
 // `compute build` and `compute deploy` commands from which publish is composed.
-func TestPublishFlagDivergence(t *testing.T) {
+func TestFlagDivergencePublish(t *testing.T) {
 	var g global.Data
 	acmd := kingpin.New("foo", "bar")
 
@@ -37,11 +37,8 @@ func TestPublishFlagDivergence(t *testing.T) {
 	)
 
 	// Some flags on `compute build` are unique to it.
-	ignoreBuildFlags := []string{
-		"metadata-enable",
-		"metadata-filter-envvars",
-		"show-metadata",
-	}
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
 
 	iter := buildFlags.MapRange()
 	for iter.Next() {
@@ -66,10 +63,10 @@ func TestPublishFlagDivergence(t *testing.T) {
 	}
 }
 
-// TestServeFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergenceServe validates that the manually curated list of flags
 // within the `compute serve` command doesn't fall out of sync with the
 // `compute build` command as `compute serve` delegates to build.
-func TestServeFlagDivergence(t *testing.T) {
+func TestFlagDivergenceServe(t *testing.T) {
 	var cfg global.Data
 	versioner := github.New(github.Opts{
 		Org:    "fastly",
@@ -91,11 +88,8 @@ func TestServeFlagDivergence(t *testing.T) {
 	)
 
 	// Some flags on `compute build` are unique to it.
-	ignoreBuildFlags := []string{
-		"metadata-enable",
-		"metadata-filter-envvars",
-		"show-metadata",
-	}
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
 
 	iter := buildFlags.MapRange()
 	for iter.Next() {
@@ -133,10 +127,10 @@ func TestServeFlagDivergence(t *testing.T) {
 	}
 }
 
-// TestHashsumFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergenceHashSum validates that the manually curated list of flags
 // within the `compute hashsum` command doesn't fall out of sync with the
 // `compute build` command as `compute hashsum` delegates to build.
-func TestHashsumFlagDivergence(t *testing.T) {
+func TestFlagDivergenceHashSum(t *testing.T) {
 	var cfg global.Data
 	acmd := kingpin.New("foo", "bar")
 
@@ -153,11 +147,8 @@ func TestHashsumFlagDivergence(t *testing.T) {
 	)
 
 	// Some flags on `compute build` are unique to it.
-	ignoreBuildFlags := []string{
-		"enable-metadata",
-		"filter-metadata-envvars",
-		"show-metadata",
-	}
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
 
 	iter := buildFlags.MapRange()
 	for iter.Next() {
@@ -187,10 +178,10 @@ func TestHashsumFlagDivergence(t *testing.T) {
 	}
 }
 
-// TestHashfilesFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergenceHashFiles validates that the manually curated list of flags
 // within the `compute hashsum` command doesn't fall out of sync with the
 // `compute build` command as `compute hashsum` delegates to build.
-func TestHashfilesFlagDivergence(t *testing.T) {
+func TestFlagDivergenceHashFiles(t *testing.T) {
 	var cfg global.Data
 	acmd := kingpin.New("foo", "bar")
 
@@ -207,11 +198,8 @@ func TestHashfilesFlagDivergence(t *testing.T) {
 	)
 
 	// Some flags on `compute build` are unique to it.
-	ignoreBuildFlags := []string{
-		"enable-metadata",
-		"filter-metadata-envvars",
-		"show-metadata",
-	}
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
 
 	iter := buildFlags.MapRange()
 	for iter.Next() {

@@ -33,12 +33,15 @@ type HashFilesCommand struct {
 	cmd.Base
 
 	// Build fields
-	dir         cmd.OptionalString
-	env         cmd.OptionalString
-	includeSrc  cmd.OptionalBool
-	lang        cmd.OptionalString
-	packageName cmd.OptionalString
-	timeout     cmd.OptionalInt
+	dir                   cmd.OptionalString
+	env                   cmd.OptionalString
+	includeSrc            cmd.OptionalBool
+	lang                  cmd.OptionalString
+	metadataEnable        cmd.OptionalBool
+	metadataFilterEnvVars cmd.OptionalString
+	metadataShow          cmd.OptionalBool
+	packageName           cmd.OptionalString
+	timeout               cmd.OptionalInt
 
 	buildCmd  *BuildCommand
 	Package   string
@@ -55,10 +58,16 @@ func NewHashFilesCommand(parent cmd.Registerer, g *global.Data, build *BuildComm
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
+	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.SkipBuild)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
+
+	// Hidden
+	c.CmdClause.Flag("metadata-enable", "Feature flag to trial the Wasm binary metadata annotations").Hidden().Action(c.metadataEnable.Set).BoolVar(&c.metadataEnable.Value)
+	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
+
 	return &c
 }
 
@@ -153,6 +162,15 @@ func (c *HashFilesCommand) Build(in io.Reader, out io.Writer) error {
 	}
 	if c.timeout.WasSet {
 		c.buildCmd.Flags.Timeout = c.timeout.Value
+	}
+	if c.metadataEnable.WasSet {
+		c.buildCmd.MetadataEnable = c.metadataEnable.Value
+	}
+	if c.metadataFilterEnvVars.WasSet {
+		c.buildCmd.MetadataFilterEnvVars = c.metadataFilterEnvVars.Value
+	}
+	if c.metadataShow.WasSet {
+		c.buildCmd.MetadataShow = c.metadataShow.Value
 	}
 	return c.buildCmd.Exec(in, output)
 }
