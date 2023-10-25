@@ -393,8 +393,13 @@ func (f *File) Write(path string) error {
 // Environment represents all of the configuration parameters that can come
 // from environment variables.
 type Environment struct {
-	Token               string
-	Endpoint            string
+	// Token is the env var we look in for the Fastly API token.
+	Token string
+	// Endpoint is the env var we look in for the API endpoint.
+	Endpoint string
+	// WasmMetadataDisable is the env var we look in to disable all data
+	// collection related to a Wasm binary.
+	// Set to "true" to disable all forms of data collection.
 	WasmMetadataDisable string
 }
 

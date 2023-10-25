@@ -11,7 +11,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -214,10 +216,10 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		"metadata", "add", "bin/main.wasm", metadataProcessedBy,
 	}
 
-	// FIXME: When we remove feature flag, put in ability to disable metadata.
-	// e.g. define --metadata-disable and FASTlY_WASM_METADATA_DISABLE=true
-	// And check for those first, and if set, only annotate CLI version.
-	if c.metadataEnable {
+	// FIXME: For feature launch replace enable flag with disable equivalent.
+	// e.g. define --metadata-disable and check for that first with env var.
+	metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
+	if c.metadataEnable && !metadataDisable {
 		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language, out); err != nil {
 			return err
 		}
@@ -377,14 +379,19 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		return err
 	}
 
+	// Miscellaneous env vars.
+	// Most other variables should be caught by `filterPattern` below.
 	filters := []string{
-		"GITHUB_TOKEN",
-		"AWS_SECRET_ACCESS_KEY",
-		"AWS_SESSION_TOKEN",
-		"DOCKER_PASSWORD",
-		"VAULT_TOKEN",
+		"AZURE_CLIENT_ID",
+		"CI_JOB_JWT",
+		"CI_JOB_JWT_V2",
+		"FACEBOOK_APP_ID",
+		"MSI_ENDPOINT",
+		"OKTA_AUTHN_GROUPID",
+		"OKTA_OAUTH2_CLIENTID",
 	}
 
+	// Allow customer to specify their own env variables to be filtered.
 	customFilters := strings.Split(c.metadataFilterEnvVars, ",")
 	for _, v := range customFilters {
 		if v == "" {
@@ -402,14 +409,13 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		}
 	}
 
+	// Filter environment variables using combination of user provided filters and
+	// the CLI hard-coded filters.
 	for i, v := range dc.ScriptInfo.EnvVars {
 		for _, f := range filters {
 			k := strings.Split(v, "=")[0]
 			if strings.HasPrefix(k, f) {
 				dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
-				if c.Globals.Verbose() {
-					text.Important(out, "The fastly.toml [scripts.env_vars] contains a possible SECRET key '%s' so we've redacted it from the Wasm binary metadata annotation\n\n", k)
-				}
 			}
 		}
 	}
@@ -419,18 +425,13 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		return err
 	}
 
+	// Opt on the side of caution and filter anything that matches this pattern.
+	filterPattern := regexp.MustCompile(`(?i)_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=\s?[^\s"]+`)
+	data = filterPattern.ReplaceAll(data, []byte("_REDACTED"))
+
+	// Use TruffleHog last to hopefully catch any secret 'values'.
 	for _, r := range printer.Results {
 		data = bytes.ReplaceAll(data, []byte(r.Secret), []byte("REDACTED"))
-	}
-	resultsLength := len(printer.Results)
-	if resultsLength > 0 && c.Globals.Verbose() {
-		var plural string
-		pronoun := "it"
-		if resultsLength > 1 {
-			plural = "s"
-			pronoun = "them"
-		}
-		text.Important(out, "The fastly.toml might contain %d SECRET value%s, so we've redacted %s from the Wasm binary metadata annotation\n\n", resultsLength, plural, pronoun)
 	}
 
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
