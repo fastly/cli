@@ -63,10 +63,10 @@ type Flags struct {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	cmd.Base
-	enableMetadata     bool
-	filterEnvVars      string
-	showMetadata       bool
-	wasmtoolsVersioner github.AssetVersioner
+	metadataEnable        bool
+	metadataFilterEnvVars string
+	metadataShow          bool
+	wasmtoolsVersioner    github.AssetVersioner
 
 	// NOTE: these are public so that the "serve" and "publish" composite
 	// commands can set the values appropriately before calling Exec().
@@ -87,13 +87,13 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner g
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Flags.Env)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
+	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").BoolVar(&c.metadataShow)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
-	c.CmdClause.Flag("show-metadata", "Use wasm-tools to inspect the Wasm binary metadata").BoolVar(&c.showMetadata)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
 	// Hidden
-	c.CmdClause.Flag("enable-metadata", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.enableMetadata)
-	c.CmdClause.Flag("filter-metadata-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().StringVar(&c.filterEnvVars)
+	c.CmdClause.Flag("metadata-enable", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.metadataEnable)
+	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().StringVar(&c.metadataFilterEnvVars)
 
 	return &c
 }
@@ -206,159 +206,30 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	languageTitle := cases.Title(textlang.English).String(language.Name)
+	metadataProcessedBy := fmt.Sprintf(
+		"--processed-by=fastly=%s (%s)",
+		revision.AppVersion, cases.Title(textlang.English).String(language.Name),
+	)
+	metadataArgs := []string{
+		"metadata", "add", "bin/main.wasm", metadataProcessedBy,
+	}
 
 	// FIXME: When we remove feature flag, put in ability to disable metadata.
-	if !c.enableMetadata /*|| disableWasmMetadata*/ {
-		// NOTE: If not collecting metadata, just record the CLI version.
-		args := []string{
-			"metadata", "add", "bin/main.wasm",
-			fmt.Sprintf("--processed-by=fastly=%s (%s)", revision.AppVersion, languageTitle),
-		}
-		err = c.Globals.ExecuteWasmTools(wasmtools, args)
-		if err != nil {
+	// e.g. define --metadata-disable and FASTlY_WASM_METADATA_DISABLE=true
+	// And check for those first, and if set, only annotate CLI version.
+	if c.metadataEnable {
+		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language, out); err != nil {
 			return err
 		}
 	} else {
-		var ms runtime.MemStats
-		runtime.ReadMemStats(&ms)
-
-		dc := DataCollection{
-			BuildInfo: DataCollectionBuildInfo{
-				MemoryHeapAlloc: ms.HeapAlloc,
-			},
-			MachineInfo: DataCollectionMachineInfo{
-				Arch:      runtime.GOARCH,
-				CPUs:      runtime.NumCPU(),
-				Compiler:  runtime.Compiler,
-				GoVersion: runtime.Version(),
-				OS:        runtime.GOOS,
-			},
-			PackageInfo: DataCollectionPackageInfo{
-				ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
-			},
-			ScriptInfo: DataCollectionScriptInfo{
-				DefaultBuildUsed: language.DefaultBuildScript(),
-				BuildScript:      c.Globals.Manifest.File.Scripts.Build,
-				EnvVars:          c.Globals.Manifest.File.Scripts.EnvVars,
-				PostInitScript:   c.Globals.Manifest.File.Scripts.PostInit,
-				PostBuildScript:  c.Globals.Manifest.File.Scripts.PostBuild,
-			},
-		}
-
-		// NOTE: There's an open issue (2023.10.13) with ResultsChan().
-		// https://github.com/trufflesecurity/trufflehog/issues/1881
-		//
-		// So as a workaround I have implemented a custom printer that tracks the
-		// results from trufflehog.
-		printer := new(SecretPrinter)
-		ctx := context.Background()
-		e, err := engine.Start(
-			ctx,
-			engine.WithConcurrency(uint8(runtime.NumCPU())), // prevent log output
-			engine.WithPrinter(printer),
-		)
-		if err != nil {
-			return err
-		}
-		cfg := sources.FilesystemConfig{
-			Paths: []string{manifest.Filename},
-		}
-		if err = e.ScanFileSystem(ctx, cfg); err != nil {
-			return err
-		}
-		err = e.Finish(ctx)
-		if err != nil {
-			return err
-		}
-
-		filters := []string{
-			"GITHUB_TOKEN",
-			"AWS_SECRET_ACCESS_KEY",
-			"AWS_SESSION_TOKEN",
-			"DOCKER_PASSWORD",
-			"VAULT_TOKEN",
-		}
-
-		customFilters := strings.Split(c.filterEnvVars, ",")
-		for _, v := range customFilters {
-			if v == "" {
-				continue
-			}
-			var found bool
-			for _, f := range filters {
-				if f == v {
-					found = true
-					break
-				}
-			}
-			if !found {
-				filters = append(filters, v)
-			}
-		}
-
-		for i, v := range dc.ScriptInfo.EnvVars {
-			for _, f := range filters {
-				k := strings.Split(v, "=")[0]
-				if strings.HasPrefix(k, f) {
-					dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
-					if c.Globals.Verbose() {
-						text.Important(out, "The fastly.toml [scripts.env_vars] contains a possible SECRET key '%s' so we've redacted it from the Wasm binary metadata annotation\n\n", k)
-					}
-				}
-			}
-		}
-
-		data, err := json.Marshal(dc)
-		if err != nil {
-			return err
-		}
-
-		for _, r := range printer.Results {
-			data = bytes.ReplaceAll(data, []byte(r.Secret), []byte("REDACTED"))
-		}
-		resultsLength := len(printer.Results)
-		if resultsLength > 0 && c.Globals.Verbose() {
-			var plural string
-			pronoun := "it"
-			if resultsLength > 1 {
-				plural = "s"
-				pronoun = "them"
-			}
-			text.Important(out, "The fastly.toml might contain %d SECRET value%s, so we've redacted %s from the Wasm binary metadata annotation\n\n", resultsLength, plural, pronoun)
-		}
-
-		// FIXME: Once #1013 and #1016 merged, integrate granular disabling.
-		args := []string{
-			"metadata", "add", "bin/main.wasm",
-			fmt.Sprintf("--processed-by=fastly=%s (%s)", revision.AppVersion, languageTitle),
-			fmt.Sprintf("--processed-by=fastly_data=%s", data),
-		}
-
-		for k, v := range language.Dependencies() {
-			args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
-		}
-
-		err = c.Globals.ExecuteWasmTools(wasmtools, args)
-		if err != nil {
+		if err := c.AnnotateWasmBinaryShort(wasmtools, metadataArgs); err != nil {
 			return err
 		}
 	}
-
-	if c.showMetadata {
-		// gosec flagged this:
-		// G204 (CWE-78): Subprocess launched with variable
-		// Disabling as the variables come from trusted sources.
-		// #nosec
-		// nosemgrep
-		command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm")
-		wasmtoolsOutput, err := command.Output()
-		if err != nil {
-			return fmt.Errorf("failed to execute wasm-tools metadata command: %w", err)
+	if c.metadataShow {
+		if err := c.ShowMetadata(wasmtools, out); err != nil {
+			return err
 		}
-		text.Info(out, "\nBelow is the metadata attached to the Wasm binary\n\n")
-		fmt.Fprintln(out, string(wasmtoolsOutput))
-		text.Break(out)
 	}
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
@@ -439,10 +310,153 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	out = originalOut
 	text.Success(out, "\nBuilt package (%s)", dest)
 
-	// FIXME: Remove this notice in the CLI version 10.6.0
+	// FIXME: Remove this notice in the CLI version 10.7.0
 	if !c.Globals.Flags.Quiet {
-		text.Important(out, "\nIn the next release (10.6.0), the Fastly CLI will collect data related to Wasm builds. If you have questions, comments or feedback, join the discussion at https://bit.ly/wasm-metadata")
+		text.Important(out, "\nIn the next release (10.7.0), the Fastly CLI will collect data related to Wasm builds. If you have questions, comments or feedback, join the discussion at https://bit.ly/wasm-metadata")
 	}
+	return nil
+}
+
+// AnnotateWasmBinaryShort annotates the Wasm binary with only the CLI version.
+func (c *BuildCommand) AnnotateWasmBinaryShort(wasmtools string, args []string) error {
+	return c.Globals.ExecuteWasmTools(wasmtools, args)
+}
+
+// AnnotateWasmBinaryLong annotates the Wasm binary will all available data.
+func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, language *Language, out io.Writer) error {
+	var ms runtime.MemStats
+	runtime.ReadMemStats(&ms)
+
+	dc := DataCollection{
+		BuildInfo: DataCollectionBuildInfo{
+			MemoryHeapAlloc: ms.HeapAlloc,
+		},
+		MachineInfo: DataCollectionMachineInfo{
+			Arch:      runtime.GOARCH,
+			CPUs:      runtime.NumCPU(),
+			Compiler:  runtime.Compiler,
+			GoVersion: runtime.Version(),
+			OS:        runtime.GOOS,
+		},
+		PackageInfo: DataCollectionPackageInfo{
+			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
+		},
+		ScriptInfo: DataCollectionScriptInfo{
+			DefaultBuildUsed: language.DefaultBuildScript(),
+			BuildScript:      c.Globals.Manifest.File.Scripts.Build,
+			EnvVars:          c.Globals.Manifest.File.Scripts.EnvVars,
+			PostInitScript:   c.Globals.Manifest.File.Scripts.PostInit,
+			PostBuildScript:  c.Globals.Manifest.File.Scripts.PostBuild,
+		},
+	}
+
+	// NOTE: There's an open issue (2023.10.13) with ResultsChan().
+	// https://github.com/trufflesecurity/trufflehog/issues/1881
+	// As a workaround: I've implemented a custom printer to track results.
+	//
+	// IMPORTANT: This is a 'best effort' approach.
+	// We'll evaluate during the trial period and consider other approaches.
+	printer := new(SecretPrinter)
+	ctx := context.Background()
+	e, err := engine.Start(
+		ctx,
+		engine.WithConcurrency(uint8(runtime.NumCPU())), // prevent log output
+		engine.WithPrinter(printer),
+	)
+	if err != nil {
+		return err
+	}
+	cfg := sources.FilesystemConfig{
+		Paths: []string{manifest.Filename},
+	}
+	if err = e.ScanFileSystem(ctx, cfg); err != nil {
+		return err
+	}
+	err = e.Finish(ctx)
+	if err != nil {
+		return err
+	}
+
+	filters := []string{
+		"GITHUB_TOKEN",
+		"AWS_SECRET_ACCESS_KEY",
+		"AWS_SESSION_TOKEN",
+		"DOCKER_PASSWORD",
+		"VAULT_TOKEN",
+	}
+
+	customFilters := strings.Split(c.metadataFilterEnvVars, ",")
+	for _, v := range customFilters {
+		if v == "" {
+			continue
+		}
+		var found bool
+		for _, f := range filters {
+			if f == v {
+				found = true
+				break
+			}
+		}
+		if !found {
+			filters = append(filters, v)
+		}
+	}
+
+	for i, v := range dc.ScriptInfo.EnvVars {
+		for _, f := range filters {
+			k := strings.Split(v, "=")[0]
+			if strings.HasPrefix(k, f) {
+				dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
+				if c.Globals.Verbose() {
+					text.Important(out, "The fastly.toml [scripts.env_vars] contains a possible SECRET key '%s' so we've redacted it from the Wasm binary metadata annotation\n\n", k)
+				}
+			}
+		}
+	}
+
+	data, err := json.Marshal(dc)
+	if err != nil {
+		return err
+	}
+
+	for _, r := range printer.Results {
+		data = bytes.ReplaceAll(data, []byte(r.Secret), []byte("REDACTED"))
+	}
+	resultsLength := len(printer.Results)
+	if resultsLength > 0 && c.Globals.Verbose() {
+		var plural string
+		pronoun := "it"
+		if resultsLength > 1 {
+			plural = "s"
+			pronoun = "them"
+		}
+		text.Important(out, "The fastly.toml might contain %d SECRET value%s, so we've redacted %s from the Wasm binary metadata annotation\n\n", resultsLength, plural, pronoun)
+	}
+
+	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
+
+	for k, v := range language.Dependencies() {
+		args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
+	}
+
+	return c.Globals.ExecuteWasmTools(wasmtools, args)
+}
+
+// ShowMetadata displays the metadata attached to the Wasm binary.
+func (c *BuildCommand) ShowMetadata(wasmtools string, out io.Writer) error {
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as the variables come from trusted sources.
+	// #nosec
+	// nosemgrep
+	command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm")
+	wasmtoolsOutput, err := command.Output()
+	if err != nil {
+		return fmt.Errorf("failed to execute wasm-tools metadata command: %w", err)
+	}
+	text.Info(out, "\nBelow is the metadata attached to the Wasm binary\n\n")
+	fmt.Fprintln(out, string(wasmtoolsOutput))
+	text.Break(out)
 	return nil
 }
 
@@ -609,37 +623,19 @@ func GetWasmTools(spinner text.Spinner, out io.Writer, wasmtoolsVersioner github
 }
 
 func installLatestWasmtools(binPath string, spinner text.Spinner, wasmtoolsVersioner github.AssetVersioner) error {
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Fetching latest wasm-tools release"
-	spinner.Message(msg + "...")
-
-	tmpBin, err := wasmtoolsVersioner.DownloadLatest()
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+	return spinner.Process("Fetching latest wasm-tools release", func(_ *text.SpinnerWrapper) error {
+		tmpBin, err := wasmtoolsVersioner.DownloadLatest()
+		if err != nil {
+			return fmt.Errorf("failed to download latest wasm-tools release: %w", err)
 		}
-		return fmt.Errorf("failed to download latest wasm-tools release: %w", err)
-	}
-	defer os.RemoveAll(tmpBin)
-
-	if err := os.Rename(tmpBin, binPath); err != nil {
-		if err := filesystem.CopyFile(tmpBin, binPath); err != nil {
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return spinErr
+		defer os.RemoveAll(tmpBin)
+		if err := os.Rename(tmpBin, binPath); err != nil {
+			if err := filesystem.CopyFile(tmpBin, binPath); err != nil {
+				return fmt.Errorf("failed to move wasm-tools binary to accessible location: %w", err)
 			}
-			return fmt.Errorf("failed to move wasm-tools binary to accessible location: %w", err)
 		}
-	}
-
-	spinner.StopMessage(msg)
-	return spinner.Stop()
+		return nil
+	})
 }
 
 func updateWasmtools(
@@ -661,29 +657,18 @@ func updateWasmtools(
 		return nil
 	}
 
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Checking latest wasm-tools release"
-	spinner.Message(msg + "...")
-
-	latestVersion, err := wasmtoolsVersioner.LatestVersion()
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+	var latestVersion string
+	err := spinner.Process("Checking latest wasm-tools release", func(_ *text.SpinnerWrapper) error {
+		var err error
+		latestVersion, err = wasmtoolsVersioner.LatestVersion()
+		if err != nil {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("error fetching latest version: %w", err),
+				Remediation: fsterr.NetworkRemediation,
+			}
 		}
-
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("error fetching latest version: %w", err),
-			Remediation: fsterr.NetworkRemediation,
-		}
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -699,11 +684,9 @@ func updateWasmtools(
 	if err != nil {
 		return err
 	}
-
 	if verbose {
 		text.Info(out, "\nThe CLI config (`fastly config`) has been updated with the latest wasm-tools version: %s\n\n", latestVersion)
 	}
-
 	if installedVersion == latestVersion {
 		return nil
 	}
