@@ -66,9 +66,6 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if !c.Globals.Flags.Quiet {
 		// FIXME: Remove `hashsum` subcommand before v11.0.0 is released.
 		text.Warning(out, "This command is deprecated. Use `fastly compute hash-files` instead.")
-		if c.Globals.Verbose() || c.SkipBuild {
-			text.Break(out)
-		}
 	}
 
 	// No point in building a package if the user provides a package path.
@@ -77,7 +74,9 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
-		text.Break(out)
+		if !c.Globals.Flags.Quiet {
+			text.Break(out)
+		}
 	}
 
 	pkgPath := c.PackagePath
@@ -133,7 +132,7 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	hashSum, err := getHashSum(c.PackagePath)
+	hashSum, err := getHashSum(pkgPath)
 	if err != nil {
 		return err
 	}
@@ -145,8 +144,10 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 // Build constructs and executes the build logic.
 func (c *HashsumCommand) Build(in io.Reader, out io.Writer) error {
 	output := out
-	if !c.Globals.Verbose() {
+	if !c.Globals.Verbose() && !c.metadataShow.WasSet {
 		output = io.Discard
+	} else {
+		text.Break(out)
 	}
 	if c.dir.WasSet {
 		c.buildCmd.Flags.Dir = c.dir.Value
