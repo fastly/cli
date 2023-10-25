@@ -753,10 +753,12 @@ func (c *DeployCommand) CompareLocalRemotePackage(serviceID string, version int)
 		ServiceID:      serviceID,
 		ServiceVersion: version,
 	})
-	if err != nil {
-		return err
-	}
-	if filesHash == p.Metadata.FilesHash {
+	// IMPORTANT: Skip error as some services won't have a package to compare.
+	// This happens in situations where a user will create the service outside of
+	// the CLI and then reference the Service ID in their fastly.toml manifest.
+	// In that scenario the service might just be an empty service and so trying
+	// to get the package from the service with 404.
+	if err == nil && filesHash == p.Metadata.FilesHash {
 		return ErrPackageUnchanged
 	}
 	return nil
