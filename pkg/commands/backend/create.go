@@ -34,6 +34,7 @@ type CreateCommand struct {
 	maxTLSVersion       cmd.OptionalString
 	minTLSVersion       cmd.OptionalString
 	name                cmd.OptionalString
+	noSSLCheckCert      cmd.OptionalBool
 	overrideHost        cmd.OptionalString
 	port                cmd.OptionalInt
 	requestCondition    cmd.OptionalString
@@ -85,6 +86,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.maxTLSVersion.Set).StringVar(&c.maxTLSVersion.Value)
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.minTLSVersion.Set).StringVar(&c.minTLSVersion.Value)
 	c.CmdClause.Flag("name", "Backend name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
+	c.CmdClause.Flag("no-ssl-check-cert", "Skip checking SSL certs").Action(c.noSSLCheckCert.Set).BoolVar(&c.noSSLCheckCert.Value)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
 	c.CmdClause.Flag("port", "Port number of the address").Action(c.port.Set).IntVar(&c.port.Value)
 	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").Action(c.requestCondition.Set).StringVar(&c.requestCondition.Value)
@@ -170,6 +172,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.minTLSVersion.WasSet {
 		input.MinTLSVersion = &c.minTLSVersion.Value
 	}
+	if c.noSSLCheckCert.WasSet {
+		input.SSLCheckCert = fastly.CBool(false)
+	}
 	if c.overrideHost.WasSet {
 		input.OverrideHost = &c.overrideHost.Value
 	}
@@ -186,6 +191,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.SSLCertHostname = &c.sslCertHostname.Value
 	}
 	if c.sslCheckCert.WasSet {
+		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
 		input.SSLCheckCert = fastly.CBool(c.sslCheckCert.Value)
 	}
 	if c.sslCiphers.WasSet {

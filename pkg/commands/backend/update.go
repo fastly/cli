@@ -3,12 +3,13 @@ package backend
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update backends.
@@ -20,31 +21,32 @@ type UpdateCommand struct {
 	autoClone      cmd.OptionalAutoClone
 
 	name                string
-	NewName             cmd.OptionalString
-	Comment             cmd.OptionalString
 	Address             cmd.OptionalString
-	Port                cmd.OptionalInt
-	OverrideHost        cmd.OptionalString
-	ConnectTimeout      cmd.OptionalInt
-	MaxConn             cmd.OptionalInt
-	FirstByteTimeout    cmd.OptionalInt
-	BetweenBytesTimeout cmd.OptionalInt
 	AutoLoadbalance     cmd.OptionalBool
-	Weight              cmd.OptionalInt
-	RequestCondition    cmd.OptionalString
+	BetweenBytesTimeout cmd.OptionalInt
+	Comment             cmd.OptionalString
+	ConnectTimeout      cmd.OptionalInt
+	FirstByteTimeout    cmd.OptionalInt
 	HealthCheck         cmd.OptionalString
 	Hostname            cmd.OptionalString
-	Shield              cmd.OptionalString
-	UseSSL              cmd.OptionalBool
-	SSLCheckCert        cmd.OptionalBool
+	MaxConn             cmd.OptionalInt
+	MaxTLSVersion       cmd.OptionalString
+	MinTLSVersion       cmd.OptionalString
+	NewName             cmd.OptionalString
+	NoSSLCheckCert      cmd.OptionalBool
+	OverrideHost        cmd.OptionalString
+	Port                cmd.OptionalInt
+	RequestCondition    cmd.OptionalString
 	SSLCACert           cmd.OptionalString
+	SSLCertHostname     cmd.OptionalString
+	SSLCheckCert        cmd.OptionalBool
+	SSLCiphers          cmd.OptionalString
 	SSLClientCert       cmd.OptionalString
 	SSLClientKey        cmd.OptionalString
-	SSLCertHostname     cmd.OptionalString
 	SSLSNIHostname      cmd.OptionalString
-	MinTLSVersion       cmd.OptionalString
-	MaxTLSVersion       cmd.OptionalString
-	SSLCiphers          cmd.OptionalString
+	Shield              cmd.OptionalString
+	UseSSL              cmd.OptionalBool
+	Weight              cmd.OptionalInt
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -82,6 +84,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.MaxTLSVersion.Set).StringVar(&c.MaxTLSVersion.Value)
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.MinTLSVersion.Set).StringVar(&c.MinTLSVersion.Value)
 	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
+	c.CmdClause.Flag("no-ssl-check-cert", "Skip checking SSL certs").Action(c.NoSSLCheckCert.Set).BoolVar(&c.NoSSLCheckCert.Value)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.OverrideHost.Set).StringVar(&c.OverrideHost.Value)
 	c.CmdClause.Flag("port", "Port number of the address").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.CmdClause.Flag("request-condition", "condition, which if met, will select this backend during a request").Action(c.RequestCondition.Set).StringVar(&c.RequestCondition.Value)
@@ -195,7 +198,12 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.UseSSL = fastly.CBool(c.UseSSL.Value)
 	}
 
+	if c.NoSSLCheckCert.WasSet {
+		input.SSLCheckCert = fastly.CBool(false)
+	}
+
 	if c.SSLCheckCert.WasSet {
+		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
 		input.SSLCheckCert = fastly.CBool(c.SSLCheckCert.Value)
 	}
 
