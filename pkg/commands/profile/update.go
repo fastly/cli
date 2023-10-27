@@ -19,7 +19,7 @@ import (
 // APIClientFactory allows the profile command to regenerate the global Fastly
 // API client when a new token is provided, in order to validate that token.
 // It's a redeclaration of the app.APIClientFactory to avoid an import loop.
-type APIClientFactory func(token, endpoint string) (api.Interface, error)
+type APIClientFactory func(token, endpoint string, debugMode bool) (api.Interface, error)
 
 // UpdateCommand represents a Kingpin command.
 type UpdateCommand struct {
