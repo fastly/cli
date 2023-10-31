@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -114,7 +116,9 @@ func Run(opts RunOpts) error {
 		return nil
 	}
 
-	if !g.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
+	// FIXME: Remove this notice after the CLI version 10.7.0
+	metadataDisable, _ := strconv.ParseBool(g.Env.WasmMetadataDisable)
+	if slices.Contains(opts.Args, "--metadata-enable") && !metadataDisable && !g.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
 		text.Important(g.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about what data is being collected, why, and how to disable it: https://bit.ly/wasm-metadata")
 		text.Break(g.Output)
 		g.Config.CLI.MetadataNoticeDisplayed = true

@@ -220,6 +220,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// FIXME: For feature launch replace enable flag with disable equivalent.
 	// e.g. define --metadata-disable and check for that first with env var.
 	// Also make sure hidden flags (across all composite commands) aren't hidden.
+	// Also update the run.go app package which also displays a warning.
 	metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
 	if c.MetadataEnable && !metadataDisable {
 		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
