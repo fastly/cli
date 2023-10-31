@@ -17,11 +17,14 @@ type PublishCommand struct {
 	deploy *DeployCommand
 
 	// Build fields
-	dir         cmd.OptionalString
-	includeSrc  cmd.OptionalBool
-	lang        cmd.OptionalString
-	packageName cmd.OptionalString
-	timeout     cmd.OptionalInt
+	dir                   cmd.OptionalString
+	includeSrc            cmd.OptionalBool
+	lang                  cmd.OptionalString
+	metadataEnable        cmd.OptionalBool
+	metadataFilterEnvVars cmd.OptionalString
+	metadataShow          cmd.OptionalBool
+	packageName           cmd.OptionalString
+	timeout               cmd.OptionalInt
 
 	// Deploy fields
 	comment            cmd.OptionalString
@@ -50,6 +53,7 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
+	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.pkg.Set).StringVar(&c.pkg.Value)
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -75,6 +79,10 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 		Action:      c.serviceVersion.Set,
 	})
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
+
+	// Hidden
+	c.CmdClause.Flag("metadata-enable", "Feature flag to trial the Wasm binary metadata annotations").Hidden().Action(c.metadataEnable.Set).BoolVar(&c.metadataEnable.Value)
+	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
 
 	return &c
 }
@@ -105,6 +113,15 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	if c.timeout.WasSet {
 		c.build.Flags.Timeout = c.timeout.Value
+	}
+	if c.metadataEnable.WasSet {
+		c.build.MetadataEnable = c.metadataEnable.Value
+	}
+	if c.metadataFilterEnvVars.WasSet {
+		c.build.MetadataFilterEnvVars = c.metadataFilterEnvVars.Value
+	}
+	if c.metadataShow.WasSet {
+		c.build.MetadataShow = c.metadataShow.Value
 	}
 
 	err = c.build.Exec(in, out)

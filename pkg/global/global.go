@@ -33,6 +33,8 @@ type Data struct {
 	Config config.File
 	// ConfigPath is the path to the CLI's application configuration.
 	ConfigPath string
+	// ExecuteWasmTools is a function that executes the wasm-tools binary.
+	ExecuteWasmTools func(bin string, args []string) error
 	// Flags are all the global CLI flags.
 	Flags Flags
 	// Manifest is the fastly.toml manifest file.

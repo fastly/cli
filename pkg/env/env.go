@@ -24,7 +24,25 @@ const (
 
 	// CustomerID is the env var we look in for a Customer ID.
 	CustomerID = "FASTLY_CUSTOMER_ID"
+
+	// WasmMetadataDisable is the env var we look in to disable all data
+	// collection related to a Wasm binary.
+	// Set to "true" to disable all forms of data collection.
+	WasmMetadataDisable = "FASTLY_WASM_METADATA_DISABLE"
 )
+
+// Parse transforms the local environment data structure into a map type.
+func Parse(environ []string) map[string]string {
+	env := map[string]string{}
+	for _, kv := range environ {
+		k, v, ok := strings.Cut(kv, "=")
+		if !ok {
+			continue
+		}
+		env[k] = v
+	}
+	return env
+}
 
 // Vars returns a slice of environment variables appropriate to platform.
 // *nix: $HOME, $USER, ...

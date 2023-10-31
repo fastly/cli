@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"golang.org/x/mod/modfile"
 
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -76,6 +77,8 @@ type Go struct {
 	build string
 	// config is the Go specific application configuration.
 	config config.Go
+	// defaultBuild indicates if the default build script was used.
+	defaultBuild bool
 	// env is environment variables to be set.
 	env []string
 	// errlog is an abstraction for recording errors to disk.
@@ -99,6 +102,31 @@ type Go struct {
 	verbose bool
 }
 
+// DefaultBuildScript indicates if a custom build script was used.
+func (g *Go) DefaultBuildScript() bool {
+	return g.defaultBuild
+}
+
+// Dependencies returns all dependencies used by the project.
+func (g *Go) Dependencies() map[string]string {
+	deps := make(map[string]string)
+	data, err := os.ReadFile("go.mod")
+	if err != nil {
+		return deps
+	}
+	f, err := modfile.ParseLax("go.mod", data, nil)
+	if err != nil {
+		return deps
+	}
+	for _, req := range f.Require {
+		if req.Indirect {
+			continue
+		}
+		deps[req.Mod.Path] = req.Mod.Version
+	}
+	return deps
+}
+
 // Build compiles the user's source code into a Wasm binary.
 func (g *Go) Build() error {
 	var (
@@ -108,6 +136,7 @@ func (g *Go) Build() error {
 
 	if g.build == "" {
 		g.build = TinyGoDefaultBuildCommand
+		g.defaultBuild = true
 		tinygoToolchain = true
 		toolchainConstraint = g.config.ToolchainConstraintTinyGo
 		if !g.verbose {

@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -42,17 +41,17 @@ func TestVersion(t *testing.T) {
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
 	// gosec flagged this:
 	// Disabling as this is for test suite purposes only.
-	/* #nosec */
+	// #nosec
 	err = os.Chmod(filepath.Join(rootdir, "viceroy"), 0o777)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Override the InstallDir where the viceroy binary is looked up.
-	orgInstallDir := compute.InstallDir
-	compute.InstallDir = rootdir
+	orgInstallDir := github.InstallDir
+	github.InstallDir = rootdir
 	defer func() {
-		compute.InstallDir = orgInstallDir
+		github.InstallDir = orgInstallDir
 	}()
 
 	// Before running the test, chdir into the temp environment.

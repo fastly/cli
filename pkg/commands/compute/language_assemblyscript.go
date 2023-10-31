@@ -2,6 +2,7 @@ package compute
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 
@@ -68,6 +69,8 @@ type AssemblyScript struct {
 	autoYes bool
 	// build is a shell command defined in fastly.toml using [scripts.build].
 	build string
+	// defaultBuild indicates if the default build script was used.
+	defaultBuild bool
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
@@ -89,6 +92,35 @@ type AssemblyScript struct {
 	verbose bool
 }
 
+// DefaultBuildScript indicates if a custom build script was used.
+func (a *AssemblyScript) DefaultBuildScript() bool {
+	return a.defaultBuild
+}
+
+// Dependencies returns all dependencies used by the project.
+func (a *AssemblyScript) Dependencies() map[string]string {
+	deps := make(map[string]string)
+
+	lockfile := "npm-shrinkwrap.json"
+	_, err := os.Stat(lockfile)
+	if errors.Is(err, os.ErrNotExist) {
+		lockfile = "package-lock.json"
+	}
+
+	var jlf JavaScriptLockFile
+	if f, err := os.Open(lockfile); err == nil {
+		if err := json.NewDecoder(f).Decode(&jlf); err == nil {
+			for k, v := range jlf.Packages {
+				if k != "" { // avoid "root" package
+					deps[k] = v.Version
+				}
+			}
+		}
+	}
+
+	return deps
+}
+
 // Build compiles the user's source code into a Wasm binary.
 func (a *AssemblyScript) Build() error {
 	if !a.verbose {
@@ -96,10 +128,9 @@ func (a *AssemblyScript) Build() error {
 	}
 	text.Deprecated(a.output, "The Fastly AssemblyScript SDK is being deprecated in favor of the more up-to-date and feature-rich JavaScript SDK. You can learn more about the JavaScript SDK on our Developer Hub Page - https://developer.fastly.com/learning/compute/javascript/\n\n")
 
-	var noBuildScript bool
 	if a.build == "" {
 		a.build = AsDefaultBuildCommand
-		noBuildScript = true
+		a.defaultBuild = true
 	}
 
 	usesWebpack, err := a.checkForWebpack()
@@ -110,7 +141,7 @@ func (a *AssemblyScript) Build() error {
 		a.build = AsDefaultBuildCommandForWebpack
 	}
 
-	if noBuildScript && a.verbose {
+	if a.defaultBuild && a.verbose {
 		text.Info(a.output, "No [scripts.build] found in %s. The following default build command for AssemblyScript will be used: `%s`\n\n", a.manifestFilename, a.build)
 	}
 

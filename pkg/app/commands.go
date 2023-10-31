@@ -111,7 +111,7 @@ func defineCommands(
 	backendList := backend.NewListCommand(backendCmdRoot.CmdClause, g, m)
 	backendUpdate := backend.NewUpdateCommand(backendCmdRoot.CmdClause, g, m)
 	computeCmdRoot := compute.NewRootCommand(app, g)
-	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, g)
+	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, g, opts.Versioners.WasmTools)
 	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, g)
 	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, g, computeBuild)
 	computeHashsum := compute.NewHashsumCommand(computeCmdRoot.CmdClause, g, computeBuild)

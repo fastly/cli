@@ -19,6 +19,9 @@ type File struct {
 	Args []string `toml:"-"`
 	// Authors is a list of project authors (typically an email).
 	Authors []string `toml:"authors"`
+	// ClonedFrom indicates the GitHub repo the starter kit was cloned from.
+	// This could be an empty value if the user doesn't use `compute init`.
+	ClonedFrom string `toml:"cloned_from,omitempty"`
 	// Description is the project description.
 	Description string `toml:"description"`
 	// Language is the programming language used for the project.

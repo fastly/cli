@@ -81,6 +81,8 @@ type Rust struct {
 	build string
 	// config is the Rust specific application configuration.
 	config config.Rust
+	// defaultBuild indicates if the default build script was used.
+	defaultBuild bool
 	// env is environment variables to be set.
 	env []string
 	// errlog is an abstraction for recording errors to disk.
@@ -108,20 +110,51 @@ type Rust struct {
 	verbose bool
 }
 
-// Build compiles the user's source code into a Wasm binary.
-func (r *Rust) Build() error {
-	var noBuildScript bool
-	if r.build == "" {
-		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)
-		noBuildScript = true
+// DefaultBuildScript indicates if a custom build script was used.
+func (r *Rust) DefaultBuildScript() bool {
+	return r.defaultBuild
+}
+
+// CargoLockFilePackage represents a package within a Rust lockfile.
+type CargoLockFilePackage struct {
+	Name    string `toml:"name"`
+	Version string `toml:"version"`
+}
+
+// CargoLockFile represents a Rust lockfile.
+type CargoLockFile struct {
+	Packages []CargoLockFilePackage `toml:"package"`
+}
+
+// Dependencies returns all dependencies used by the project.
+func (r *Rust) Dependencies() map[string]string {
+	deps := make(map[string]string)
+
+	var clf CargoLockFile
+	if data, err := os.ReadFile("Cargo.lock"); err == nil {
+		if err := toml.Unmarshal(data, &clf); err == nil {
+			for _, v := range clf.Packages {
+				deps[v.Name] = v.Version
+			}
+		}
 	}
 
-	err := r.modifyCargoPackageName(noBuildScript)
+	return deps
+}
+
+// Build compiles the user's source code into a Wasm binary.
+func (r *Rust) Build() error {
+	if r.build == "" {
+		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)
+		r.defaultBuild = true
+	}
+
+	err := r.modifyCargoPackageName(r.defaultBuild)
 	if err != nil {
 		return err
 	}
 
-	if noBuildScript && r.verbose {
+	if r.defaultBuild && r.verbose {
 		text.Info(r.output, "No [scripts.build] found in %s. The following default build command for Rust will be used: `%s`\n\n", r.manifestFilename, r.build)
 	}
 

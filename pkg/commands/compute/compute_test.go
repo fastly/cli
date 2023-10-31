@@ -15,15 +15,15 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-// TestPublishFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergencePublish validates that the manually curated list of flags
 // within the `compute publish` command doesn't fall out of sync with the
 // `compute build` and `compute deploy` commands from which publish is composed.
-func TestPublishFlagDivergence(t *testing.T) {
+func TestFlagDivergencePublish(t *testing.T) {
 	var g global.Data
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &g)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g, nil)
 	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g)
 	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd)
 
@@ -36,10 +36,18 @@ func TestPublishFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
+
 	iter = deployFlags.MapRange()
 	for iter.Next() {
 		expect[iter.Key().String()] = 1
@@ -55,10 +63,10 @@ func TestPublishFlagDivergence(t *testing.T) {
 	}
 }
 
-// TestServeFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergenceServe validates that the manually curated list of flags
 // within the `compute serve` command doesn't fall out of sync with the
 // `compute build` command as `compute serve` delegates to build.
-func TestServeFlagDivergence(t *testing.T) {
+func TestFlagDivergenceServe(t *testing.T) {
 	var cfg global.Data
 	versioner := github.New(github.Opts{
 		Org:    "fastly",
@@ -68,7 +76,7 @@ func TestServeFlagDivergence(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
 	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd, versioner)
 
 	buildFlags := getFlags(bcmd.CmdClause)
@@ -79,9 +87,16 @@ func TestServeFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
 
 	// Some flags on `compute serve` are unique to it.
@@ -112,15 +127,15 @@ func TestServeFlagDivergence(t *testing.T) {
 	}
 }
 
-// TestHashsumFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergenceHashSum validates that the manually curated list of flags
 // within the `compute hashsum` command doesn't fall out of sync with the
 // `compute build` command as `compute hashsum` delegates to build.
-func TestHashsumFlagDivergence(t *testing.T) {
+func TestFlagDivergenceHashSum(t *testing.T) {
 	var cfg global.Data
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
 	hcmd := compute.NewHashsumCommand(rcmd.CmdClause, &cfg, bcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
@@ -131,14 +146,21 @@ func TestHashsumFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
 
 	// Some flags on `compute hashsum` are unique to it.
 	// We only want to be sure hashsum contains all build flags.
-	ignoreServeFlags := []string{
+	ignoreHashsumFlags := []string{
 		"package",
 		"skip-build",
 	}
@@ -146,7 +168,7 @@ func TestHashsumFlagDivergence(t *testing.T) {
 	iter = hashsumFlags.MapRange()
 	for iter.Next() {
 		flag := iter.Key().String()
-		if !ignoreFlag(ignoreServeFlags, flag) {
+		if !ignoreFlag(ignoreHashsumFlags, flag) {
 			have[flag] = 1
 		}
 	}
@@ -156,15 +178,15 @@ func TestHashsumFlagDivergence(t *testing.T) {
 	}
 }
 
-// TestHashfilesFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergenceHashFiles validates that the manually curated list of flags
 // within the `compute hashsum` command doesn't fall out of sync with the
 // `compute build` command as `compute hashsum` delegates to build.
-func TestHashfilesFlagDivergence(t *testing.T) {
+func TestFlagDivergenceHashFiles(t *testing.T) {
 	var cfg global.Data
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
 	hcmd := compute.NewHashFilesCommand(rcmd.CmdClause, &cfg, bcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
@@ -175,14 +197,21 @@ func TestHashfilesFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
 
 	// Some flags on `compute hashsum` are unique to it.
 	// We only want to be sure hashsum contains all build flags.
-	ignoreServeFlags := []string{
+	ignoreHashfilesFlags := []string{
 		"package",
 		"skip-build",
 	}
@@ -190,7 +219,7 @@ func TestHashfilesFlagDivergence(t *testing.T) {
 	iter = hashfilesFlags.MapRange()
 	for iter.Next() {
 		flag := iter.Key().String()
-		if !ignoreFlag(ignoreServeFlags, flag) {
+		if !ignoreFlag(ignoreHashfilesFlags, flag) {
 			have[flag] = 1
 		}
 	}

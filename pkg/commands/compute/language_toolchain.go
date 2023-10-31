@@ -43,6 +43,10 @@ For more information on fastly.toml configuration settings, refer to https://dev
 type Toolchain interface {
 	// Build compiles the user's source code into a Wasm binary.
 	Build() error
+	// DefaultBuildScript indicates if a default build script was used.
+	DefaultBuildScript() bool
+	// Dependencies returns all dependencies used by the project.
+	Dependencies() map[string]string
 }
 
 // BuildToolchain enables a language toolchain to compile their build script.

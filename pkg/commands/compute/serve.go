@@ -42,15 +42,18 @@ var viceroyError = fsterr.RemediationError{
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
-	build *BuildCommand
-	av    github.AssetVersioner
+	build            *BuildCommand
+	viceroyVersioner github.AssetVersioner
 
 	// Build fields
-	dir         cmd.OptionalString
-	includeSrc  cmd.OptionalBool
-	lang        cmd.OptionalString
-	packageName cmd.OptionalString
-	timeout     cmd.OptionalInt
+	dir                   cmd.OptionalString
+	includeSrc            cmd.OptionalBool
+	lang                  cmd.OptionalString
+	metadataEnable        cmd.OptionalBool
+	metadataFilterEnvVars cmd.OptionalString
+	metadataShow          cmd.OptionalBool
+	packageName           cmd.OptionalString
+	timeout               cmd.OptionalInt
 
 	// Serve fields
 	addr                    string
@@ -67,11 +70,11 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, av github.AssetVersioner) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, viceroyVersioner github.AssetVersioner) *ServeCommand {
 	var c ServeCommand
 
 	c.build = build
-	c.av = av
+	c.viceroyVersioner = viceroyVersioner
 
 	c.Globals = g
 	c.CmdClause = parent.Command("serve", "Build and run a Compute package locally")
@@ -83,6 +86,7 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("file", "The Wasm file to run").Default("bin/main.wasm").StringVar(&c.file)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
+	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
 	c.CmdClause.Flag("profile-guest", "Profile the Wasm guest under Viceroy (requires Viceroy 0.9.1 or higher). View profiles at https://profiler.firefox.com/.").BoolVar(&c.profileGuest)
 	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
@@ -92,6 +96,10 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.viceroyBinPath)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
 	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
+
+	// Hidden
+	c.CmdClause.Flag("metadata-enable", "Feature flag to trial the Wasm binary metadata annotations").Hidden().Action(c.metadataEnable.Set).BoolVar(&c.metadataEnable.Value)
+	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
 
 	return &c
 }
@@ -163,13 +171,13 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return fmt.Errorf("failed to parse manifest '%s': %w", manifestPath, err)
 		}
-		c.av.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
+		c.viceroyVersioner.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
 		if c.Globals.Verbose() {
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
 		}
 	}
 
-	bin, err := GetViceroy(spinner, out, c.av, c.Globals, manifestPath, c.viceroyBinPath, c.forceCheckViceroyLatest)
+	bin, err := GetViceroy(spinner, out, c.viceroyVersioner, c.Globals, manifestPath, c.viceroyBinPath, c.forceCheckViceroyLatest)
 	if err != nil {
 		return err
 	}
@@ -252,6 +260,15 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	if c.timeout.WasSet {
 		c.build.Flags.Timeout = c.timeout.Value
 	}
+	if c.metadataEnable.WasSet {
+		c.build.MetadataEnable = c.metadataEnable.Value
+	}
+	if c.metadataFilterEnvVars.WasSet {
+		c.build.MetadataFilterEnvVars = c.metadataFilterEnvVars.Value
+	}
+	if c.metadataShow.WasSet {
+		c.build.MetadataShow = c.metadataShow.Value
+	}
 
 	err := c.build.Exec(in, out)
 	if err != nil {
@@ -293,7 +310,7 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 func GetViceroy(
 	spinner text.Spinner,
 	out io.Writer,
-	av github.AssetVersioner,
+	viceroyVersioner github.AssetVersioner,
 	g *global.Data,
 	manifestPath, viceroyBinPath string,
 	forceCheckViceroyLatest bool,
@@ -317,7 +334,7 @@ func GetViceroy(
 		return filepath.Abs(path)
 	}
 
-	bin = filepath.Join(InstallDir, av.BinaryName())
+	bin = filepath.Join(github.InstallDir, viceroyVersioner.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
@@ -351,7 +368,7 @@ func GetViceroy(
 	// If the user hasn't explicitly set a Viceroy version, then we'll use
 	// whatever the latest version is.
 	versionToInstall := "latest"
-	if v := av.RequestedVersion(); v != "" {
+	if v := viceroyVersioner.RequestedVersion(); v != "" {
 		versionToInstall = v
 
 		if _, err := semver.Parse(versionToInstall); err != nil {
@@ -362,13 +379,13 @@ func GetViceroy(
 		}
 	}
 
-	err = installViceroy(installedVersion, versionToInstall, manifestPath, forceCheckViceroyLatest, spinner, av, bin, g)
+	err = installViceroy(installedVersion, versionToInstall, manifestPath, forceCheckViceroyLatest, spinner, viceroyVersioner, bin, g)
 	if err != nil {
 		g.ErrLog.Add(err)
 		return bin, err
 	}
 
-	err = setBinPerms(bin)
+	err = github.SetBinPerms(bin)
 	if err != nil {
 		g.ErrLog.Add(err)
 		return bin, err
@@ -385,22 +402,6 @@ func checkViceroyEnvVar(value string) bool {
 	}
 	return false
 }
-
-// InstallDir represents the directory where the Viceroy binary should be
-// installed.
-//
-// NOTE: This is a package level variable as it makes testing the behaviour of
-// the package easier because the test code can replace the value when running
-// the test suite.
-var InstallDir = func() string {
-	if dir, err := os.UserConfigDir(); err == nil {
-		return filepath.Join(dir, "fastly")
-	}
-	if dir, err := os.UserHomeDir(); err == nil {
-		return filepath.Join(dir, ".fastly")
-	}
-	panic("unable to deduce user config dir or user home dir")
-}()
 
 // installViceroy downloads the binary from GitHub.
 //
@@ -545,20 +546,6 @@ func installViceroy(
 
 	spinner.StopMessage(msg)
 	return spinner.Stop()
-}
-
-// setBinPerms ensures 0777 perms are set on the Viceroy binary.
-func setBinPerms(bin string) error {
-	// G302 (CWE-276): Expect file permissions to be 0600 or less
-	// gosec flagged this:
-	// Disabling as the file was not executable without it and we need all users
-	// to be able to execute the binary.
-	/* #nosec */
-	err := os.Chmod(bin, 0o777)
-	if err != nil {
-		return fmt.Errorf("error setting executable permissions on Viceroy binary: %w", err)
-	}
-	return nil
 }
 
 // localOpts represents the inputs for `local()`.

@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
+	"github.com/fastly/cli/pkg/runtime"
 )
 
 var argsPattern = regexp.MustCompile("`.+`")
@@ -62,13 +63,21 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 	md.File.SetOutput(stdout)
 	_ = md.File.Read(manifest.Filename)
 
+	configPath := "/dev/null"
+	if runtime.Windows {
+		configPath = "NUL"
+	}
+
 	return app.RunOpts{
-		ConfigPath: "/dev/null",
-		Args:       args,
 		APIClient:  mock.APIClient(mock.API{}),
+		Args:       args,
+		ConfigFile: config.File{},
+		ConfigPath: configPath,
 		Env:        config.Environment{},
 		ErrLog:     errors.Log,
-		ConfigFile: config.File{},
+		ExecuteWasmTools: func(bin string, args []string) error {
+			return nil
+		},
 		HTTPClient: &http.Client{Timeout: time.Second * 5},
 		Manifest:   &md,
 		Stdout:     stdout,

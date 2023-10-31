@@ -152,7 +152,7 @@ jobs:
         shell: bash
         env:
           # NOTE: The following lets us focus the test run while debugging.
-          # TEST_ARGS: "-run TestDeploy ./pkg/commands/compute/..."
+          # TEST_ARGS: "-run TestBuild ./pkg/commands/compute/..."
           TEST_COMPUTE_INIT: true
           TEST_COMPUTE_BUILD: true
           TEST_COMPUTE_DEPLOY: true

@@ -145,6 +145,13 @@ func TestPrefixes(t *testing.T) {
 			want:   "ERROR: Test string 123.\n",
 		},
 		{
+			name:   "Important",
+			f:      text.Important,
+			format: "Test string %d.",
+			args:   []any{123},
+			want:   "IMPORTANT: Test string 123.\n",
+		},
+		{
 			name:   "Info",
 			f:      text.Info,
 			format: "Test string %d.",
