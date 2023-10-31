@@ -94,7 +94,10 @@ type verifyClient whoami.VerifyResponse
 
 func (c verifyClient) Do(*http.Request) (*http.Response, error) {
 	rec := httptest.NewRecorder()
-	json.NewEncoder(rec).Encode(whoami.VerifyResponse(c))
+	err := json.NewEncoder(rec).Encode(whoami.VerifyResponse(c))
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode response into json: %w", err)
+	}
 	return rec.Result(), nil
 }
 

@@ -162,7 +162,7 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		t      *fastly.Token
 	)
 	err = spinner.Process("Validating token", func(_ *text.SpinnerWrapper) error {
-		client, err = c.clientFactory(token, endpoint)
+		client, err = c.clientFactory(token, endpoint, c.Globals.Flags.Debug)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Endpoint": endpoint,
