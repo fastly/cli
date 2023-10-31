@@ -264,7 +264,7 @@ func determineProfile(manifestValue, flagValue string, profiles config.Profiles)
 // collects data related to a Wasm binary.
 func commandCollectsData(command string) bool {
 	switch command {
-	case "compute build", "compute publish", "compute serve":
+	case "compute build", "compute hashsum", "compute hash-files", "compute publish", "compute serve":
 		return true
 	}
 	return false
