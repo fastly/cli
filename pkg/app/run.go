@@ -116,7 +116,8 @@ func Run(opts RunOpts) error {
 		return nil
 	}
 
-	// FIXME: Remove this notice after the CLI version 10.7.0
+	// FIXME: Tweak messaging before for 10.7.0
+	// To learn more about what data is being collected, why, and how to disable it: https://developer.fastly.com/reference/cli/
 	metadataDisable, _ := strconv.ParseBool(g.Env.WasmMetadataDisable)
 	if slices.Contains(opts.Args, "--metadata-enable") && !metadataDisable && !g.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
 		text.Important(g.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about our data & privacy policies visit https://www.fastly.com/trust. Join the conversation https://bit.ly/wasm-metadata")

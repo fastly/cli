@@ -383,6 +383,7 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	if c.Globals.Config.WasmMetadata.PackageInfo == "enable" {
 		dc.PackageInfo = DataCollectionPackageInfo{
 			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
+			Packages:   language.Dependencies(),
 		}
 	}
 
@@ -469,10 +470,6 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	}
 
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
-
-	for k, v := range language.Dependencies() {
-		args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
-	}
 
 	return c.Globals.ExecuteWasmTools(wasmtools, args)
 }
@@ -996,7 +993,12 @@ type DataCollectionMachineInfo struct {
 
 // DataCollectionPackageInfo represents package data annotated onto the Wasm binary.
 type DataCollectionPackageInfo struct {
+	// ClonedFrom indicates if the Starter Kit used was cloned from a specific
+	// repository (e.g. using the `compute init` --from flag).
 	ClonedFrom string `json:"cloned_from,omitempty"`
+	// Packages is a map where the key is the name of the package and the value is
+	// the package version.
+	Packages map[string]string `json:"packages,omitempty"`
 }
 
 // DataCollectionScriptInfo represents script data annotated onto the Wasm binary.
