@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/logging/sftp"
 	"github.com/fastly/cli/pkg/config"
@@ -12,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateSFTPInput(t *testing.T) {
@@ -206,7 +207,7 @@ func createCommandRequired() *sftp.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &sftp.CreateCommand{
 		Base: cmd.Base{
@@ -246,7 +247,7 @@ func createCommandAll() *sftp.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &sftp.CreateCommand{
 		Base: cmd.Base{

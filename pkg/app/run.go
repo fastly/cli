@@ -26,8 +26,11 @@ import (
 
 // FastlyAPIClient is a ClientFactory that returns a real Fastly API client
 // using the provided token and endpoint.
-func FastlyAPIClient(token, endpoint string) (api.Interface, error) {
+func FastlyAPIClient(token, endpoint string, debugMode bool) (api.Interface, error) {
 	client, err := fastly.NewClientForEndpoint(token, endpoint)
+	if debugMode {
+		client.DebugMode = true
+	}
 	return client, err
 }
 
@@ -82,6 +85,8 @@ func Run(opts RunOpts) error {
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.Token)
 	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&g.Flags.AcceptDefaults)
 	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&g.Flags.AutoYes)
+	// IMPORTANT: `--debug` is a built-in Kingpin flag so we can't use that.
+	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&g.Flags.Debug)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&g.Flags.Endpoint)
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&g.Flags.NonInteractive)
 	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&g.Flags.Profile)
@@ -157,7 +162,7 @@ func Run(opts RunOpts) error {
 
 	// NOTE: We return error immediately so there's no issue assigning to global.
 	// nosemgrep
-	g.APIClient, err = opts.APIClient(token, endpoint)
+	g.APIClient, err = opts.APIClient(token, endpoint, g.Flags.Debug)
 	if err != nil {
 		g.ErrLog.Add(err)
 		return fmt.Errorf("error constructing Fastly API client: %w", err)
@@ -203,7 +208,7 @@ type RunOpts struct {
 // the Run helper with it: in the real CLI, we can use NewClient from the Fastly
 // API client library via RealClient; in tests, we can provide a mock API
 // interface via MockClient.
-type APIClientFactory func(token, endpoint string) (api.Interface, error)
+type APIClientFactory func(token, endpoint string, debugMode bool) (api.Interface, error)
 
 // Versioners represents all supported versioner types.
 type Versioners struct {

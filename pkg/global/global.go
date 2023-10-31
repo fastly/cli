@@ -122,6 +122,7 @@ func (d *Data) Endpoint() (string, lookup.Source) {
 type Flags struct {
 	AcceptDefaults bool
 	AutoYes        bool
+	Debug          bool
 	Endpoint       string
 	NonInteractive bool
 	Profile        string

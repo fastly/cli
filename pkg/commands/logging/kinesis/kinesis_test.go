@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/logging/kinesis"
 	"github.com/fastly/cli/pkg/config"
@@ -12,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateKinesisInput(t *testing.T) {
@@ -203,7 +204,7 @@ func createCommandRequired() *kinesis.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{
 		Base: cmd.Base{
@@ -244,7 +245,7 @@ func createCommandRequiredIAMRole() *kinesis.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{
 		Base: cmd.Base{
@@ -284,7 +285,7 @@ func createCommandAll() *kinesis.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{
 		Base: cmd.Base{

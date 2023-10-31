@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/logging/kafka"
 	"github.com/fastly/cli/pkg/config"
@@ -12,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateKafkaInput(t *testing.T) {
@@ -260,7 +261,7 @@ func createCommandRequired() *kafka.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &kafka.CreateCommand{
 		Base: cmd.Base{
@@ -299,7 +300,7 @@ func createCommandAll() *kafka.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &kafka.CreateCommand{
 		Base: cmd.Base{
@@ -349,7 +350,7 @@ func createCommandSASL(authMethod, user, password string) *kafka.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &kafka.CreateCommand{
 		Base: cmd.Base{
