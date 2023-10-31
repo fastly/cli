@@ -115,8 +115,7 @@ func Run(opts RunOpts) error {
 	}
 
 	if !g.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
-		// FIXME: We need the actual URL to point users to.
-		text.Important(g.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about what data is being collected, why, and how to disable it: https://www.fastly.com/")
+		text.Important(g.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about what data is being collected, why, and how to disable it: https://bit.ly/wasm-metadata")
 		text.Break(g.Output)
 		g.Config.CLI.MetadataNoticeDisplayed = true
 		err := g.Config.Write(g.ConfigPath)

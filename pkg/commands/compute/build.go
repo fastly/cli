@@ -332,19 +332,6 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	runtime.ReadMemStats(&ms)
 
 	dc := DataCollection{
-		BuildInfo: DataCollectionBuildInfo{
-			MemoryHeapAlloc: ms.HeapAlloc,
-		},
-		MachineInfo: DataCollectionMachineInfo{
-			Arch:      runtime.GOARCH,
-			CPUs:      runtime.NumCPU(),
-			Compiler:  runtime.Compiler,
-			GoVersion: runtime.Version(),
-			OS:        runtime.GOOS,
-		},
-		PackageInfo: DataCollectionPackageInfo{
-			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
-		},
 		ScriptInfo: DataCollectionScriptInfo{
 			DefaultBuildUsed: language.DefaultBuildScript(),
 			BuildScript:      c.Globals.Manifest.File.Scripts.Build,
@@ -352,6 +339,26 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 			PostInitScript:   c.Globals.Manifest.File.Scripts.PostInit,
 			PostBuildScript:  c.Globals.Manifest.File.Scripts.PostBuild,
 		},
+	}
+
+	if c.Globals.Config.WasmMetadata.BuildInfo == "enable" {
+		dc.BuildInfo = DataCollectionBuildInfo{
+			MemoryHeapAlloc: ms.HeapAlloc,
+		}
+	}
+	if c.Globals.Config.WasmMetadata.MachineInfo == "enable" {
+		dc.MachineInfo = DataCollectionMachineInfo{
+			Arch:      runtime.GOARCH,
+			CPUs:      runtime.NumCPU(),
+			Compiler:  runtime.Compiler,
+			GoVersion: runtime.Version(),
+			OS:        runtime.GOOS,
+		}
+	}
+	if c.Globals.Config.WasmMetadata.PackageInfo == "enable" {
+		dc.PackageInfo = DataCollectionPackageInfo{
+			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
+		}
 	}
 
 	// NOTE: There's an open issue (2023.10.13) with ResultsChan().
@@ -942,38 +949,38 @@ func GetNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, er
 
 // DataCollection represents data annotated onto the Wasm binary.
 type DataCollection struct {
-	BuildInfo   DataCollectionBuildInfo   `json:"build_info"`
-	MachineInfo DataCollectionMachineInfo `json:"machine_info"`
-	PackageInfo DataCollectionPackageInfo `json:"package_info"`
-	ScriptInfo  DataCollectionScriptInfo  `json:"script_info"`
+	BuildInfo   DataCollectionBuildInfo   `json:"build_info,omitempty"`
+	MachineInfo DataCollectionMachineInfo `json:"machine_info,omitempty"`
+	PackageInfo DataCollectionPackageInfo `json:"package_info,omitempty"`
+	ScriptInfo  DataCollectionScriptInfo  `json:"script_info,omitempty"`
 }
 
 // DataCollectionBuildInfo represents build data annotated onto the Wasm binary.
 type DataCollectionBuildInfo struct {
-	MemoryHeapAlloc uint64 `json:"mem_heap_alloc"`
+	MemoryHeapAlloc uint64 `json:"mem_heap_alloc,omitempty"`
 }
 
 // DataCollectionMachineInfo represents machine data annotated onto the Wasm binary.
 type DataCollectionMachineInfo struct {
-	Arch      string `json:"arch"`
-	CPUs      int    `json:"cpus"`
-	Compiler  string `json:"compiler"`
-	GoVersion string `json:"go_version"`
-	OS        string `json:"os"`
+	Arch      string `json:"arch,omitempty"`
+	CPUs      int    `json:"cpus,omitempty"`
+	Compiler  string `json:"compiler,omitempty"`
+	GoVersion string `json:"go_version,omitempty"`
+	OS        string `json:"os,omitempty"`
 }
 
 // DataCollectionPackageInfo represents package data annotated onto the Wasm binary.
 type DataCollectionPackageInfo struct {
-	ClonedFrom string `json:"cloned_from"`
+	ClonedFrom string `json:"cloned_from,omitempty"`
 }
 
 // DataCollectionScriptInfo represents script data annotated onto the Wasm binary.
 type DataCollectionScriptInfo struct {
-	DefaultBuildUsed bool     `json:"default_build_used"`
-	BuildScript      string   `json:"build_script"`
-	EnvVars          []string `json:"env_vars"`
-	PostInitScript   string   `json:"post_init_script"`
-	PostBuildScript  string   `json:"post_build_script"`
+	DefaultBuildUsed bool     `json:"default_build_used,omitempty"`
+	BuildScript      string   `json:"build_script,omitempty"`
+	EnvVars          []string `json:"env_vars,omitempty"`
+	PostInitScript   string   `json:"post_init_script,omitempty"`
+	PostBuildScript  string   `json:"post_build_script,omitempty"`
 }
 
 // Result represents an identified secret.
