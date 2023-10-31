@@ -85,8 +85,11 @@ func main() {
 
 	// The `main` function is a shim for calling `app.Run()`.
 	err = app.Run(app.RunOpts{
-		APIClient: func(token, endpoint string) (api.Interface, error) {
+		APIClient: func(token, endpoint string, debugMode bool) (api.Interface, error) {
 			client, err := fastly.NewClientForEndpoint(token, endpoint)
+			if debugMode {
+				client.DebugMode = true
+			}
 			return client, err
 		},
 		Args:             args,
