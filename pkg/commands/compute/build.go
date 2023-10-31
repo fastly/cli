@@ -222,7 +222,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// Also make sure hidden flags (across all composite commands) aren't hidden.
 	metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
 	if c.MetadataEnable && !metadataDisable {
-		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language, out); err != nil {
+		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
 			return err
 		}
 	} else {
@@ -327,7 +327,7 @@ func (c *BuildCommand) AnnotateWasmBinaryShort(wasmtools string, args []string) 
 }
 
 // AnnotateWasmBinaryLong annotates the Wasm binary will all available data.
-func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, language *Language, out io.Writer) error {
+func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, language *Language) error {
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
 
