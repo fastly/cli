@@ -148,6 +148,7 @@ var UsageTemplateFuncs = template.FuncMap{
 var globalFlags = map[string]bool{
 	"accept-defaults": true,
 	"auto-yes":        true,
+	"debug-mode":      true,
 	"help":            true,
 	"non-interactive": true,
 	"profile":         true,
