@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## [v10.6.0](https://github.com/fastly/cli/releases/tag/v10.6.0) (2023-10-31)
+
+**Bug fixes:**
+
+- fix(backend): support disabling `ssl-check-cert` [#1055](https://github.com/fastly/cli/pull/1055)
+
+**Enhancements:**
+
+- feat(compute): add metadata subcommand [#1013](https://github.com/fastly/cli/pull/1013)
+- feat(telemetry): add wasm-tools wasm binary annotations [#1016](https://github.com/fastly/cli/pull/1016)
+- feat: add `--consistency` flag to `kv-store-entry list` command [#1058](https://github.com/fastly/cli/pull/1058)
+- feat: add `--debug-mode` [#1056](https://github.com/fastly/cli/pull/1056)
+- ci: replace setup-tinygo fork with original [#1057](https://github.com/fastly/cli/pull/1057)
+
+**Dependencies:**
+
+- build(deps): bump github.com/docker/docker [#1060](https://github.com/fastly/cli/pull/1060)
+- build(deps): bump google.golang.org/grpc from 1.56.2 to 1.56.3 [#1061](https://github.com/fastly/cli/pull/1061)
+- build(deps): bump all go.mod dependencies [#1062](https://github.com/fastly/cli/pull/1062)
+
 ## [v10.5.1](https://github.com/fastly/cli/releases/tag/v10.5.1) (2023-10-25)
 
 **Bug fixes:**
