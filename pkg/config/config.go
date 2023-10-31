@@ -62,8 +62,29 @@ type Fastly struct {
 	APIEndpoint string `toml:"api_endpoint"`
 }
 
+// WasmMetadata represents what metadata will be collected.
+type WasmMetadata struct {
+	// BuildInfo represents information regarding the time taken for builds and
+	// compilation processes, helping us identify bottlenecks and optimize
+	// performance (enable/disable).
+	BuildInfo string `toml:"build_info"`
+	// MachineInfo represents general, non-identifying system specifications (CPU,
+	// RAM, operating system) to better understand the hardware landscape our CLI
+	// operates in (enable/disable).
+	MachineInfo string `toml:"machine_info"`
+	// PackageInfo represents packages and libraries utilized by your source code,
+	// enabling us to prioritize support for the most commonly used components
+	// (enable/disable).
+	PackageInfo string `toml:"package_info"`
+}
+
 // CLI represents CLI specific configuration.
 type CLI struct {
+	// MetadataNoticeDisplayed indicates if the user has been notified of the
+	// metadata behaviours being enabled by default and how they can opt-out.
+	MetadataNoticeDisplayed bool `toml:"metadata_notice_displayed"`
+	// Version indicates the CLI configuration version.
+	// It is updated each time a change is made to the config structure.
 	Version string `toml:"version"`
 }
 
@@ -149,14 +170,24 @@ func ensureConfigDirExists(path string) error {
 
 // File represents our application toml configuration.
 type File struct {
-	CLI           CLI                 `toml:"cli"`
-	ConfigVersion int                 `toml:"config_version"`
-	Fastly        Fastly              `toml:"fastly"`
-	Language      Language            `toml:"language"`
-	Profiles      Profiles            `toml:"profile"`
-	StarterKits   StarterKitLanguages `toml:"starter-kits"`
-	Viceroy       Versioner           `toml:"viceroy"`
-	WasmTools     Versioner           `toml:"wasm-tools"`
+	// CLI represents CLI specific configuration.
+	CLI CLI `toml:"cli"`
+	// ConfigVersion is the version of the config.
+	ConfigVersion int `toml:"config_version"`
+	// Fastly represents fastly specific configuration.
+	Fastly Fastly `toml:"fastly"`
+	// Language represents C@E language specific configuration.
+	Language Language `toml:"language"`
+	// Profiles represents multiple profile accounts.
+	Profiles Profiles `toml:"profile"`
+	// StarterKitLanguages represents language specific starter kits.
+	StarterKits StarterKitLanguages `toml:"starter-kits"`
+	// Viceroy represents viceroy specific configuration.
+	Viceroy Versioner `toml:"viceroy"`
+	// WasmMetadata represents what metadata will be collected.
+	WasmMetadata WasmMetadata `toml:"wasm-metadata"`
+	// WasmTools represents wasm-tools specific configuration.
+	WasmTools Versioner `toml:"wasm-tools"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.

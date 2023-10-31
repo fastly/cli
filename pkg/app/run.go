@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/fastly/kingpin"
@@ -96,7 +99,7 @@ func Run(opts RunOpts) error {
 	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&g.Flags.Verbose)
 
 	commands := defineCommands(app, &g, *opts.Manifest, opts)
-	command, name, err := processCommandInput(opts, app, &g, commands)
+	command, commandName, err := processCommandInput(opts, app, &g, commands)
 	if err != nil {
 		return err
 	}
@@ -104,13 +107,27 @@ func Run(opts RunOpts) error {
 	//
 	// - cmd.ArgsIsHelpJSON() == true
 	// - shell autocompletion flag provided
-	switch name {
+	switch commandName {
 	case "help--format=json":
 		fallthrough
 	case "help--formatjson":
 		fallthrough
 	case "shell-autocomplete":
 		return nil
+	}
+
+	// FIXME: Tweak messaging before for 10.7.0
+	// To learn more about what data is being collected, why, and how to disable it: https://developer.fastly.com/reference/cli/
+	metadataDisable, _ := strconv.ParseBool(g.Env.WasmMetadataDisable)
+	if slices.Contains(opts.Args, "--metadata-enable") && !metadataDisable && !g.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
+		text.Important(g.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about our data & privacy policies visit https://www.fastly.com/trust. Join the conversation https://bit.ly/wasm-metadata")
+		text.Break(g.Output)
+		g.Config.CLI.MetadataNoticeDisplayed = true
+		err := g.Config.Write(g.ConfigPath)
+		if err != nil {
+			return fmt.Errorf("failed to persist change to metadata notice: %w", err)
+		}
+		time.Sleep(5 * time.Second) // this message is only displayed once so give the user a chance to see it before it possibly scrolls off screen
 	}
 
 	if g.Flags.Quiet {
@@ -136,7 +153,7 @@ func Run(opts RunOpts) error {
 	// If we are using the token from config file, check the file's permissions
 	// to assert if they are not too open or have been altered outside of the
 	// application and warn if so.
-	segs := strings.Split(name, " ")
+	segs := strings.Split(commandName, " ")
 	if source == lookup.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
@@ -177,7 +194,7 @@ func Run(opts RunOpts) error {
 		return fmt.Errorf("error constructing Fastly realtime stats client: %w", err)
 	}
 
-	if opts.Versioners.CLI != nil && name != "update" && !version.IsPreRelease(revision.AppVersion) {
+	if opts.Versioners.CLI != nil && commandName != "update" && !version.IsPreRelease(revision.AppVersion) {
 		f := update.CheckAsync(
 			revision.AppVersion,
 			opts.Versioners.CLI,
@@ -245,4 +262,14 @@ func determineProfile(manifestValue, flagValue string, profiles config.Profiles)
 	}
 	name, _ := profile.Default(profiles)
 	return name
+}
+
+// commandCollectsData determines if the command to be executed is one that
+// collects data related to a Wasm binary.
+func commandCollectsData(command string) bool {
+	switch command {
+	case "compute build", "compute hashsum", "compute hash-files", "compute publish", "compute serve":
+		return true
+	}
+	return false
 }

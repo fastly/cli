@@ -116,6 +116,7 @@ func defineCommands(
 	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, g, computeBuild)
 	computeHashsum := compute.NewHashsumCommand(computeCmdRoot.CmdClause, g, computeBuild)
 	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, g, m)
+	computeMetadata := compute.NewMetadataCommand(computeCmdRoot.CmdClause, g)
 	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, g, m)
 	computePublish := compute.NewPublishCommand(computeCmdRoot.CmdClause, g, computeBuild, computeDeploy)
 	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, g, computeBuild, opts.Versioners.Viceroy)
@@ -481,6 +482,7 @@ func defineCommands(
 		computeHashFiles,
 		computeHashsum,
 		computeInit,
+		computeMetadata,
 		computePack,
 		computePublish,
 		computeServe,

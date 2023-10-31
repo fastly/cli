@@ -3,6 +3,11 @@ config_version = 4
 [fastly]
 api_endpoint = "https://api.fastly.com"
 
+[wasm-metadata]
+build_info = "enable"
+machine_info = "disable" # users have to opt-in for this (everything else they'll have to opt-out)
+package_info = "enable"
+
 [language]
 [language.go]
 tinygo_constraint = ">= 0.28.1-0"          # NOTE -0 indicates to the CLI's semver package that we accept pre-releases (TinyGo users commonly use pre-releases).

@@ -220,9 +220,34 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// FIXME: For feature launch replace enable flag with disable equivalent.
 	// e.g. define --metadata-disable and check for that first with env var.
 	// Also make sure hidden flags (across all composite commands) aren't hidden.
+	// Also update the run.go app to remove the message which displays a warning.
+	// Also one final release un-hide the metadata command and add metadata.json examples
+	// e.g.
+	/*
+	   "metadata": {
+	     "examples": [
+	       {
+	         "cmd": "fastly compute metadata --enable",
+	         "title": "Enable all metadata collection information"
+	       },
+	       {
+	         "cmd": "fastly compute metadata --disable",
+	         "title": "Disable all metadata collection information"
+	       },
+	       {
+	         "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
+	         "title": "Enable specific metadata collection information"
+	       },
+	       {
+	         "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
+	         "title": "Disable specific metadata collection information"
+	       }
+	     ]
+	   },
+	*/
 	metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
 	if c.MetadataEnable && !metadataDisable {
-		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language, out); err != nil {
+		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
 			return err
 		}
 	} else {
@@ -327,24 +352,11 @@ func (c *BuildCommand) AnnotateWasmBinaryShort(wasmtools string, args []string) 
 }
 
 // AnnotateWasmBinaryLong annotates the Wasm binary will all available data.
-func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, language *Language, out io.Writer) error {
+func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, language *Language) error {
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
 
 	dc := DataCollection{
-		BuildInfo: DataCollectionBuildInfo{
-			MemoryHeapAlloc: ms.HeapAlloc,
-		},
-		MachineInfo: DataCollectionMachineInfo{
-			Arch:      runtime.GOARCH,
-			CPUs:      runtime.NumCPU(),
-			Compiler:  runtime.Compiler,
-			GoVersion: runtime.Version(),
-			OS:        runtime.GOOS,
-		},
-		PackageInfo: DataCollectionPackageInfo{
-			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
-		},
 		ScriptInfo: DataCollectionScriptInfo{
 			DefaultBuildUsed: language.DefaultBuildScript(),
 			BuildScript:      c.Globals.Manifest.File.Scripts.Build,
@@ -352,6 +364,27 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 			PostInitScript:   c.Globals.Manifest.File.Scripts.PostInit,
 			PostBuildScript:  c.Globals.Manifest.File.Scripts.PostBuild,
 		},
+	}
+
+	if c.Globals.Config.WasmMetadata.BuildInfo == "enable" {
+		dc.BuildInfo = DataCollectionBuildInfo{
+			MemoryHeapAlloc: ms.HeapAlloc,
+		}
+	}
+	if c.Globals.Config.WasmMetadata.MachineInfo == "enable" {
+		dc.MachineInfo = DataCollectionMachineInfo{
+			Arch:      runtime.GOARCH,
+			CPUs:      runtime.NumCPU(),
+			Compiler:  runtime.Compiler,
+			GoVersion: runtime.Version(),
+			OS:        runtime.GOOS,
+		}
+	}
+	if c.Globals.Config.WasmMetadata.PackageInfo == "enable" {
+		dc.PackageInfo = DataCollectionPackageInfo{
+			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
+			Packages:   language.Dependencies(),
+		}
 	}
 
 	// NOTE: There's an open issue (2023.10.13) with ResultsChan().
@@ -437,10 +470,6 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	}
 
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
-
-	for k, v := range language.Dependencies() {
-		args = append(args, fmt.Sprintf("--sdk=%s=%s", k, v))
-	}
 
 	return c.Globals.ExecuteWasmTools(wasmtools, args)
 }
@@ -942,38 +971,43 @@ func GetNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, er
 
 // DataCollection represents data annotated onto the Wasm binary.
 type DataCollection struct {
-	BuildInfo   DataCollectionBuildInfo   `json:"build_info"`
-	MachineInfo DataCollectionMachineInfo `json:"machine_info"`
-	PackageInfo DataCollectionPackageInfo `json:"package_info"`
-	ScriptInfo  DataCollectionScriptInfo  `json:"script_info"`
+	BuildInfo   DataCollectionBuildInfo   `json:"build_info,omitempty"`
+	MachineInfo DataCollectionMachineInfo `json:"machine_info,omitempty"`
+	PackageInfo DataCollectionPackageInfo `json:"package_info,omitempty"`
+	ScriptInfo  DataCollectionScriptInfo  `json:"script_info,omitempty"`
 }
 
 // DataCollectionBuildInfo represents build data annotated onto the Wasm binary.
 type DataCollectionBuildInfo struct {
-	MemoryHeapAlloc uint64 `json:"mem_heap_alloc"`
+	MemoryHeapAlloc uint64 `json:"mem_heap_alloc,omitempty"`
 }
 
 // DataCollectionMachineInfo represents machine data annotated onto the Wasm binary.
 type DataCollectionMachineInfo struct {
-	Arch      string `json:"arch"`
-	CPUs      int    `json:"cpus"`
-	Compiler  string `json:"compiler"`
-	GoVersion string `json:"go_version"`
-	OS        string `json:"os"`
+	Arch      string `json:"arch,omitempty"`
+	CPUs      int    `json:"cpus,omitempty"`
+	Compiler  string `json:"compiler,omitempty"`
+	GoVersion string `json:"go_version,omitempty"`
+	OS        string `json:"os,omitempty"`
 }
 
 // DataCollectionPackageInfo represents package data annotated onto the Wasm binary.
 type DataCollectionPackageInfo struct {
-	ClonedFrom string `json:"cloned_from"`
+	// ClonedFrom indicates if the Starter Kit used was cloned from a specific
+	// repository (e.g. using the `compute init` --from flag).
+	ClonedFrom string `json:"cloned_from,omitempty"`
+	// Packages is a map where the key is the name of the package and the value is
+	// the package version.
+	Packages map[string]string `json:"packages,omitempty"`
 }
 
 // DataCollectionScriptInfo represents script data annotated onto the Wasm binary.
 type DataCollectionScriptInfo struct {
-	DefaultBuildUsed bool     `json:"default_build_used"`
-	BuildScript      string   `json:"build_script"`
-	EnvVars          []string `json:"env_vars"`
-	PostInitScript   string   `json:"post_init_script"`
-	PostBuildScript  string   `json:"post_build_script"`
+	DefaultBuildUsed bool     `json:"default_build_used,omitempty"`
+	BuildScript      string   `json:"build_script,omitempty"`
+	EnvVars          []string `json:"env_vars,omitempty"`
+	PostInitScript   string   `json:"post_init_script,omitempty"`
+	PostBuildScript  string   `json:"post_build_script,omitempty"`
 }
 
 // Result represents an identified secret.
