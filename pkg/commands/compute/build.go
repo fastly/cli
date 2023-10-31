@@ -609,7 +609,7 @@ func GetWasmTools(spinner text.Spinner, out io.Writer, wasmtoolsVersioner github
 	}
 
 	if installedVersion != "" {
-		err = updateWasmtools(binPath, spinner, out, wasmtoolsVersioner, g.Verbose(), installedVersion, g.Config.WasmTools, g.Config, g.ConfigPath)
+		err = updateWasmtools(binPath, spinner, out, wasmtoolsVersioner, g.Verbose(), installedVersion, g.Config, g.ConfigPath)
 		if err != nil {
 			g.ErrLog.Add(err)
 			return binPath, err
@@ -648,12 +648,17 @@ func updateWasmtools(
 	wasmtoolsVersioner github.AssetVersioner,
 	verbose bool,
 	installedVersion string,
-	wasmtoolsConfig config.Versioner,
 	cfg config.File,
 	cfgPath string,
 ) error {
-	stale := wasmtoolsConfig.LastChecked != "" && wasmtoolsConfig.LatestVersion != "" && check.Stale(wasmtoolsConfig.LastChecked, wasmtoolsConfig.TTL)
-	if !stale {
+	// NOTE: We shouldn't see LastChecked with no value if wasm-tools installed.
+	if cfg.WasmTools.LastChecked == "" {
+		cfg.WasmTools.LastChecked = time.Now().Format(time.RFC3339)
+		if err := cfg.Write(cfgPath); err != nil {
+			return err
+		}
+	}
+	if !check.Stale(cfg.WasmTools.LastChecked, cfg.WasmTools.TTL) {
 		if verbose {
 			text.Info(out, "\nwasm-tools is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired.\n\n")
 		}
@@ -676,12 +681,8 @@ func updateWasmtools(
 		return err
 	}
 
-	wasmtoolsConfig.LatestVersion = latestVersion
-	wasmtoolsConfig.LastChecked = time.Now().Format(time.RFC3339)
-
-	// Before attempting to write the config data back to disk we need to
-	// ensure we reassign the modified struct which is a copy (not reference).
-	cfg.WasmTools = wasmtoolsConfig
+	cfg.WasmTools.LatestVersion = latestVersion
+	cfg.WasmTools.LastChecked = time.Now().Format(time.RFC3339)
 
 	err = cfg.Write(cfgPath)
 	if err != nil {
