@@ -220,7 +220,31 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// FIXME: For feature launch replace enable flag with disable equivalent.
 	// e.g. define --metadata-disable and check for that first with env var.
 	// Also make sure hidden flags (across all composite commands) aren't hidden.
-	// Also update the run.go app package which also displays a warning.
+	// Also update the run.go app to remove the message which displays a warning.
+	// Also one final release un-hide the metadata command and add metadata.json examples
+	// e.g.
+	/*
+	   "metadata": {
+	     "examples": [
+	       {
+	         "cmd": "fastly compute metadata --enable",
+	         "title": "Enable all metadata collection information"
+	       },
+	       {
+	         "cmd": "fastly compute metadata --disable",
+	         "title": "Disable all metadata collection information"
+	       },
+	       {
+	         "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
+	         "title": "Enable specific metadata collection information"
+	       },
+	       {
+	         "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
+	         "title": "Disable specific metadata collection information"
+	       }
+	     ]
+	   },
+	*/
 	metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
 	if c.MetadataEnable && !metadataDisable {
 		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
