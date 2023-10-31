@@ -18,8 +18,15 @@ type ListCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	manifest manifest.Data
-	Input    fastly.ListKVStoreKeysInput
+	consistency string
+	manifest    manifest.Data
+	Input       fastly.ListKVStoreKeysInput
+}
+
+// ConsistencyOptions is a list of allowed consistency values.
+var ConsistencyOptions = []string{
+	"eventual",
+	"strong",
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -37,6 +44,7 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
 
 	// Optional.
+	c.CmdClause.Flag("consistency", "Determines accuracy of results. i.e. 'eventual' uses caching to improve performance").Default("strong").HintOptions(ConsistencyOptions...).EnumVar(&c.consistency, ConsistencyOptions...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
@@ -68,6 +76,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 		spinner.Message(msg + "... (this can take a few minutes depending on the number of entries)")
+	}
+
+	switch c.consistency {
+	case "eventual":
+		c.Input.Consistency = fastly.ConsistencyEventual
+	case "strong":
+		c.Input.Consistency = fastly.ConsistencyStrong
 	}
 
 	for {
