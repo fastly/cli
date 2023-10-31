@@ -29,7 +29,7 @@ type MetadataCommand struct {
 func NewMetadataCommand(parent cmd.Registerer, g *global.Data) *MetadataCommand {
 	var c MetadataCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("metadata", "Control what metadata is collected")
+	c.CmdClause = parent.Command("metadata", "Control what metadata is collected").Hidden()
 	c.CmdClause.Flag("disable", "Disable all metadata").BoolVar(&c.disable)
 	c.CmdClause.Flag("disable-build", "Disable metadata for information regarding the time taken for builds and compilation processes").BoolVar(&c.disableBuild)
 	c.CmdClause.Flag("disable-machine", "Disable metadata for general, non-identifying system specifications (CPU, RAM, operating system)").BoolVar(&c.disableMachine)
