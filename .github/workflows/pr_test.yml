@@ -100,7 +100,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
           # IMPORTANT: Disable caching to prevent cache restore errors later.
           cache: false
-      - uses: Integralist/setup-tinygo@v1.0.0
+      - uses: acifani/setup-tinygo@v2
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: Retrieve Go Paths
