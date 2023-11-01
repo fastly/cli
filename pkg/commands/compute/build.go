@@ -247,7 +247,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	*/
 	metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
 	if c.MetadataEnable && !metadataDisable {
-		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
+		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language, out); err != nil {
 			return err
 		}
 	} else {
@@ -352,7 +352,7 @@ func (c *BuildCommand) AnnotateWasmBinaryShort(wasmtools string, args []string) 
 }
 
 // AnnotateWasmBinaryLong annotates the Wasm binary will all available data.
-func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, language *Language) error {
+func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, language *Language, out io.Writer) error {
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
 
@@ -450,6 +450,9 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		for _, f := range filters {
 			k := strings.Split(v, "=")[0]
 			if strings.HasPrefix(k, f) {
+				if c.Globals.Flags.Debug {
+					text.Warning(out, "We've identified and REDACTED the following secret from `env_vars` in your fastly.toml config: %s\n\n", v)
+				}
 				dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
 			}
 		}
@@ -466,6 +469,9 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 
 	// Use TruffleHog last to hopefully catch any secret 'values'.
 	for _, r := range printer.Results {
+		if c.Globals.Flags.Debug {
+			text.Warning(out, "TruffleHog identified and REDACTED the following secret: %s (verified: %t)\n\n", r.Secret, r.Verified)
+		}
 		data = bytes.ReplaceAll(data, []byte(r.Secret), []byte("REDACTED"))
 	}
 

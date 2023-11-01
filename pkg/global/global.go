@@ -122,13 +122,22 @@ func (d *Data) Endpoint() (string, lookup.Source) {
 // explicit flags. Consumers should bind their flag values to these fields
 // directly.
 type Flags struct {
+	// AcceptDefaults accepts defaults for all interactive prompts except Yes/No.
 	AcceptDefaults bool
-	AutoYes        bool
-	Debug          bool
-	Endpoint       string
+	// AutoYes answers "yes" to all Yes/No interactive prompts.
+	AutoYes bool
+	// Debug enables debug mode and will print additional output.
+	Debug bool
+	// Endpoint is the Fastly API endpoint to use.
+	Endpoint string
+	// NonInteractive will avoid all interactive prompts.
 	NonInteractive bool
-	Profile        string
-	Quiet          bool
-	Token          string
-	Verbose        bool
+	// Profile switches the account profile for a single command invocation.
+	Profile string
+	// Quiet stops all output except direct command output or interactive prompts.
+	Quiet bool
+	// Token to use for Fastly API requests.
+	Token string
+	// Verbose enables verbose mode and will additional output.
+	Verbose bool
 }
