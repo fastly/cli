@@ -126,6 +126,13 @@ func (f *File) Read(path string) (err error) {
 // ParseEnvFile reads the environment file `env_file` and appends all KEY=VALUE
 // pairs to the existing `f.Scripts.EnvVars`.
 func (f *File) ParseEnvFile() error {
+	// IMPORTANT: Avoid persisting potentially secret values to disk.
+	// We do this by keeping a copy of EnvVars before they're appended to.
+	// Inside of File.Write() we'll reassign EnvVars the original values.
+	originalEnvVars := make([]string, len(f.Scripts.EnvVars))
+	copy(originalEnvVars, f.Scripts.EnvVars)
+	f.Scripts.originalEnvVars = originalEnvVars
+
 	path, err := filepath.Abs(f.Scripts.EnvFile)
 	if err != nil {
 		return fmt.Errorf("failed to generate absolute path for '%s': %w", f.Scripts.EnvFile, err)
@@ -179,30 +186,38 @@ func (f *File) SetQuiet(v bool) {
 
 // Write persists the manifest content to disk.
 func (f *File) Write(path string) error {
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as in most cases this is provided by a static constant embedded
-	// from the 'manifest' package, and in other cases we want the user to be
-	// able to provide a custom path to their fastly.toml manifest.
-	// #nosec
-	fp, err := os.Create(path)
+	fp, err := os.Create(path) // #nosec G304 (CWE-22)
 	if err != nil {
 		return err
 	}
-
 	if err := appendSpecRef(fp); err != nil {
 		return err
 	}
 
+	// IMPORTANT: Avoid persisting potentially secret values to disk.
+	// We do this by keeping a copy of EnvVars before they're appended to.
+	// We now reassign EnvVars the original values (pre-EnvFile modification).
+	// But we also need to account for the in-memory representation.
+	//
+	// i.e. we call File.Write() at different times but still need EnvVars data.
+	//
+	// So once we've persisted the correct data back to disk, we can then revert
+	// the in-memory data for EnvVars to include the contents from EnvFile, just
+	// in case the CLI process is still running and needs to do things with
+	// environment variables.
+	currentEnvVars := make([]string, len(f.Scripts.EnvVars))
+	copy(currentEnvVars, f.Scripts.EnvVars)
+	f.Scripts.EnvVars = f.Scripts.originalEnvVars
+	defer func() {
+		f.Scripts.EnvVars = currentEnvVars
+	}()
+
 	if err := toml.NewEncoder(fp).Encode(f); err != nil {
 		return err
 	}
-
 	if err := fp.Sync(); err != nil {
 		return err
 	}
-
 	return fp.Close()
 }
 
@@ -233,4 +248,8 @@ type Scripts struct {
 	PostBuild string `toml:"post_build,omitempty"`
 	// PostInit is executed after the init step.
 	PostInit string `toml:"post_init,omitempty"`
+
+	// Private field used to revert modifications to EnvVars from EnvFile.
+	// See File.ParseEnvFile() and File.Write() methods for details.
+	originalEnvVars []string
 }
