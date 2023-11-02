@@ -130,7 +130,7 @@ func (f *File) ParseEnvFile() error {
 	if err != nil {
 		return fmt.Errorf("failed to generate absolute path for '%s': %w", f.Scripts.EnvFile, err)
 	}
-	r, err := os.Open(path)
+	r, err := os.Open(path) // #nosec G304 (CWE-22)
 	if err != nil {
 		return fmt.Errorf("failed to open path '%s': %w", path, err)
 	}
