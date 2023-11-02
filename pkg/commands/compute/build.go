@@ -2,7 +2,6 @@ package compute
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -15,15 +14,10 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
-	"github.com/trufflesecurity/trufflehog/v3/pkg/context"
-	"github.com/trufflesecurity/trufflehog/v3/pkg/detectors"
-	"github.com/trufflesecurity/trufflehog/v3/pkg/engine"
-	"github.com/trufflesecurity/trufflehog/v3/pkg/sources"
 	"golang.org/x/text/cases"
 	textlang "golang.org/x/text/language"
 
@@ -387,33 +381,6 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		}
 	}
 
-	// NOTE: There's an open issue (2023.10.13) with ResultsChan().
-	// https://github.com/trufflesecurity/trufflehog/issues/1881
-	// As a workaround: I've implemented a custom printer to track results.
-	//
-	// IMPORTANT: This is a 'best effort' approach.
-	// We'll evaluate during the trial period and consider other approaches.
-	printer := new(SecretPrinter)
-	ctx := context.Background()
-	e, err := engine.Start(
-		ctx,
-		engine.WithConcurrency(uint8(runtime.NumCPU())), // prevent log output
-		engine.WithPrinter(printer),
-	)
-	if err != nil {
-		return err
-	}
-	cfg := sources.FilesystemConfig{
-		Paths: []string{manifest.Filename},
-	}
-	if err = e.ScanFileSystem(ctx, cfg); err != nil {
-		return err
-	}
-	err = e.Finish(ctx)
-	if err != nil {
-		return err
-	}
-
 	// Miscellaneous env vars.
 	// Most other variables should be caught by `filterPattern` below.
 	filters := []string{
@@ -463,11 +430,6 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	// Opt on the side of caution and filter anything that matches this pattern.
 	filterPattern := regexp.MustCompile(`(?i)_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=\s?[^\s"]+`)
 	data = filterPattern.ReplaceAll(data, []byte("_REDACTED"))
-
-	// Use TruffleHog last to hopefully catch any secret 'values'.
-	for _, r := range printer.Results {
-		data = bytes.ReplaceAll(data, []byte(r.Secret), []byte("REDACTED"))
-	}
 
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
 
@@ -1008,27 +970,4 @@ type DataCollectionScriptInfo struct {
 	EnvVars          []string `json:"env_vars,omitempty"`
 	PostInitScript   string   `json:"post_init_script,omitempty"`
 	PostBuildScript  string   `json:"post_build_script,omitempty"`
-}
-
-// Result represents an identified secret.
-type Result struct {
-	Secret   string
-	Verified bool
-}
-
-// SecretPrinter tracks the results returned by trufflehog.
-type SecretPrinter struct {
-	mu      sync.Mutex
-	Results []Result
-}
-
-// Print implements the trufflehog Printer interface.
-func (p *SecretPrinter) Print(_ context.Context, r *detectors.ResultWithMetadata) error {
-	p.mu.Lock()
-	p.Results = append(p.Results, Result{
-		Secret:   string(r.Raw),
-		Verified: r.Verified,
-	})
-	p.mu.Unlock()
-	return nil
 }
