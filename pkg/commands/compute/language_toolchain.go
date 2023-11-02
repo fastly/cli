@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -68,6 +67,8 @@ type BuildToolchain struct {
 	internalPostBuildCallback func() error
 	// manifestFilename is the name of the manifest file.
 	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// out is the users terminal stdout stream
@@ -97,24 +98,11 @@ func (bt BuildToolchain) Build() error {
 		if len(bt.env) > 0 {
 			envVars := make([]string, len(bt.env))
 			copy(envVars, bt.env)
-			for i, v := range envVars {
-				for _, f := range filterEnvVarSecrets {
-					k := strings.Split(v, "=")[0]
-					if strings.HasPrefix(k, f) {
-						envVars[i] = k + "=REDACTED"
-					}
-				}
-			}
+			ExtendEnvVarSecretsFilter(bt.metadataFilterEnvVars)
+			FilterEnvVarSecretsFromSlice(envVars)
 
 			s := strings.Join(envVars, " ")
-			re := regexp.MustCompile(filterSecretsPattern)
-			for _, matches := range re.FindAllStringSubmatch(s, -1) {
-				if len(matches) == 2 {
-					o := matches[0]
-					n := strings.ReplaceAll(matches[0], matches[1], "REDACTED")
-					s = strings.ReplaceAll(s, o, n)
-				}
-			}
+			s = FilterEnvVarSecretsFromString(s)
 			text.Description(bt.out, "Build environment variables set", s)
 		}
 	}

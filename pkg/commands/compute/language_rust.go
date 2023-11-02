@@ -48,26 +48,27 @@ func NewRust(
 	globals *global.Data,
 	flags Flags,
 	in io.Reader,
-	manifestFilename string,
+	metadataFilterEnvVars, manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Rust {
 	return &Rust{
 		Shell: Shell{},
 
-		autoYes:          globals.Flags.AutoYes,
-		build:            fastlyManifest.Scripts.Build,
-		config:           globals.Config.Language.Rust,
-		env:              fastlyManifest.Scripts.EnvVars,
-		errlog:           globals.ErrLog,
-		input:            in,
-		manifestFilename: manifestFilename,
-		nonInteractive:   globals.Flags.NonInteractive,
-		output:           out,
-		postBuild:        fastlyManifest.Scripts.PostBuild,
-		spinner:          spinner,
-		timeout:          flags.Timeout,
-		verbose:          globals.Verbose(),
+		autoYes:               globals.Flags.AutoYes,
+		build:                 fastlyManifest.Scripts.Build,
+		config:                globals.Config.Language.Rust,
+		env:                   fastlyManifest.Scripts.EnvVars,
+		errlog:                globals.ErrLog,
+		input:                 in,
+		manifestFilename:      manifestFilename,
+		metadataFilterEnvVars: metadataFilterEnvVars,
+		nonInteractive:        globals.Flags.NonInteractive,
+		output:                out,
+		postBuild:             fastlyManifest.Scripts.PostBuild,
+		spinner:               spinner,
+		timeout:               flags.Timeout,
+		verbose:               globals.Verbose(),
 	}
 }
 
@@ -91,6 +92,8 @@ type Rust struct {
 	input io.Reader
 	// manifestFilename is the name of the manifest file.
 	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -169,6 +172,7 @@ func (r *Rust) Build() error {
 		in:                        r.input,
 		internalPostBuildCallback: r.ProcessLocation,
 		manifestFilename:          r.manifestFilename,
+		metadataFilterEnvVars:     r.metadataFilterEnvVars,
 		nonInteractive:            r.nonInteractive,
 		out:                       r.output,
 		postBuild:                 r.postBuild,
