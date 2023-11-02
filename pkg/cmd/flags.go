@@ -117,8 +117,11 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 	vs, err := client.ListVersions(&fastly.ListVersionsInput{
 		ServiceID: sid,
 	})
-	if err != nil || len(vs) == 0 {
+	if err != nil {
 		return nil, fmt.Errorf("error listing service versions: %w", err)
+	}
+	if len(vs) == 0 {
+		return nil, errors.New("error listing service versions: no versions available")
 	}
 
 	// Sort versions into descending order.
