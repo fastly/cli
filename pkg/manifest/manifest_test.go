@@ -293,7 +293,15 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 		t.Fatal("expected [local_server] block to exist in fastly.toml but is missing")
 	}
 
-	got, want := lt.(*toml.Tree).String(), ot.(*toml.Tree).String()
+	localTree, ok := lt.(*toml.Tree)
+	if !ok {
+		t.Fatal("failed to convert 'local' interface{} to toml.Tree")
+	}
+	originalTree, ok := ot.(*toml.Tree)
+	if !ok {
+		t.Fatal("failed to convert 'original' interface{} to toml.Tree")
+	}
+	want, got := localTree.String(), originalTree.String()
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Fatalf("testing section between original and updated fastly.toml do not match (-want +got):\n%s", diff)
 	}

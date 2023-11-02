@@ -1,9 +1,11 @@
 package manifest
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	toml "github.com/pelletier/go-toml"
