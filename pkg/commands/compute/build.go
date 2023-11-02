@@ -44,7 +44,7 @@ const CustomPostScriptMessage = "This project has a custom post_%s script define
 // filterSecretsPattern attempts to capture a secret assigned in an environment
 // variable where the key follows a common pattern.
 // https://regex101.com/r/4GnH3r/1
-const filterSecretsPattern = `(?i)\b[^\s_]+_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=(?:\s+)?"?([^\s"]+)`
+const filterSecretsPattern = `(?i)\b[^\s_]+_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=(?:\s+)?"?([^\s"]+)` // #nosec G101 (CWE-798)
 
 // filterEnvVarSecrets identify environment variables containing secrets.
 var filterEnvVarSecrets = []string{

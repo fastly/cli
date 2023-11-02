@@ -93,7 +93,7 @@ func (bt BuildToolchain) Build() error {
 		// IMPORTANT: We filter secrets the best we can before printing env vars.
 		// We use two separate processes to do this.
 		// First is filtering based on known environment variables.
-		// Second is filtering based on a generate regex pattern.
+		// Second is filtering based on a generalised regex pattern.
 		if len(bt.env) > 0 {
 			envVars := make([]string, len(bt.env))
 			copy(envVars, bt.env)
