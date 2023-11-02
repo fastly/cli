@@ -2,6 +2,7 @@ package compute
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -428,8 +429,17 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	}
 
 	// Opt on the side of caution and filter anything that matches this pattern.
-	filterPattern := regexp.MustCompile(`(?i)_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=\s?[^\s"]+`)
-	data = filterPattern.ReplaceAll(data, []byte("_REDACTED"))
+	// https://regex101.com/r/4GnH3r/1
+	// https://go.dev/play/p/GYXMNc7Froz
+	filterPattern := `(?i)\b[^\s_]+_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=(?:\s+)?"?([^\s"]+)`
+	re := regexp.MustCompile(filterPattern)
+	for _, matches := range re.FindAllSubmatch(data, -1) {
+		if len(matches) == 2 {
+			o := matches[0]
+			n := bytes.ReplaceAll(matches[0], matches[1], []byte("REDACTED"))
+			data = bytes.ReplaceAll(data, o, n)
+		}
+	}
 
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
 
