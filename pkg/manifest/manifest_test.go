@@ -301,7 +301,7 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 	if !ok {
 		t.Fatal("failed to convert 'original' interface{} to toml.Tree")
 	}
-	want, got := localTree.String(), originalTree.String()
+	want, got := originalTree.String(), localTree.String()
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Fatalf("testing section between original and updated fastly.toml do not match (-want +got):\n%s", diff)
 	}
