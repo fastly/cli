@@ -95,6 +95,12 @@ func (f *File) Read(path string) (err error) {
 		return err
 	}
 
+	if f.Scripts.EnvFile != "" {
+		if err := f.ParseEnvFile(); err != nil {
+			return err
+		}
+	}
+
 	if f.ManifestVersion == 0 {
 		f.ManifestVersion = ManifestLatestVersion
 
@@ -114,6 +120,32 @@ func (f *File) Read(path string) (err error) {
 	}
 
 	f.exists = true
+	return nil
+}
+
+// ParseEnvFile reads the environment file `env_file` and appends all KEY=VALUE
+// pairs to the existing `f.Scripts.EnvVars`.
+func (f *File) ParseEnvFile() error {
+	path, err := filepath.Abs(f.Scripts.EnvFile)
+	if err != nil {
+		return fmt.Errorf("failed to generate absolute path for '%s': %w", f.Scripts.EnvFile, err)
+	}
+	r, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("failed to open path '%s': %w", path, err)
+	}
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		parts := strings.Split(scanner.Text(), "=")
+		if len(parts) != 2 {
+			return fmt.Errorf("failed to scan env_file '%s': invalid KEY=VALUE format: %#v", path, parts)
+		}
+		parts[1] = strings.Trim(parts[1], `"'`)
+		f.Scripts.EnvVars = append(f.Scripts.EnvVars, strings.Join(parts, "="))
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to scan env_file '%s': %w", path, err)
+	}
 	return nil
 }
 
@@ -191,6 +223,10 @@ func appendSpecRef(w io.Writer) error {
 type Scripts struct {
 	// Build is a custom build script.
 	Build string `toml:"build,omitempty"`
+	// EnvFile is a path to a file containing build related environment variables.
+	// Each line should contain a KEY=VALUE.
+	// Reading the contents of this file will populate the `EnvVars` field.
+	EnvFile string `toml:"env_file,omitempty"`
 	// EnvVars contains build related environment variables.
 	EnvVars []string `toml:"env_vars,omitempty"`
 	// PostBuild is executed after the build step.
