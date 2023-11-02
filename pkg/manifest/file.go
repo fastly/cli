@@ -68,7 +68,7 @@ func (f *File) Read(path string) (err error) {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// Disabling as we need to load the fastly.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-	/* #nosec */
+	// #nosec
 	tree, err := toml.LoadFile(path)
 	if err != nil {
 		// IMPORTANT: Only `fastly compute` references the fastly.toml file.
@@ -151,7 +151,7 @@ func (f *File) Write(path string) error {
 	// Disabling as in most cases this is provided by a static constant embedded
 	// from the 'manifest' package, and in other cases we want the user to be
 	// able to provide a custom path to their fastly.toml manifest.
-	/* #nosec */
+	// #nosec
 	fp, err := os.Create(path)
 	if err != nil {
 		return err
