@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -88,8 +89,33 @@ func (bt BuildToolchain) Build() error {
 
 	if bt.verbose {
 		text.Description(bt.out, "Build script to execute", fmt.Sprintf("%s %s", cmd, strings.Join(args, " ")))
+
+		// IMPORTANT: We filter secrets the best we can before printing env vars.
+		// We use two separate processes to do this.
+		// First is filtering based on known environment variables.
+		// Second is filtering based on a generate regex pattern.
 		if len(bt.env) > 0 {
-			text.Description(bt.out, "Build environment variables set", strings.Join(bt.env, " "))
+			envVars := make([]string, len(bt.env))
+			copy(envVars, bt.env)
+			for i, v := range envVars {
+				for _, f := range filterEnvVarSecrets {
+					k := strings.Split(v, "=")[0]
+					if strings.HasPrefix(k, f) {
+						envVars[i] = k + "=REDACTED"
+					}
+				}
+			}
+
+			s := strings.Join(envVars, " ")
+			re := regexp.MustCompile(filterSecretsPattern)
+			for _, matches := range re.FindAllStringSubmatch(s, -1) {
+				if len(matches) == 2 {
+					o := matches[0]
+					n := strings.ReplaceAll(matches[0], matches[1], "REDACTED")
+					s = strings.ReplaceAll(s, o, n)
+				}
+			}
+			text.Description(bt.out, "Build environment variables set", s)
 		}
 	}
 

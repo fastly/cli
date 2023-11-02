@@ -41,6 +41,22 @@ const IgnoreFilePath = ".fastlyignore"
 // either a post_init or post_build script defined.
 const CustomPostScriptMessage = "This project has a custom post_%s script defined in the %s manifest"
 
+// filterSecretsPattern attempts to capture a secret assigned in an environment
+// variable where the key follows a common pattern.
+// https://regex101.com/r/4GnH3r/1
+const filterSecretsPattern = `(?i)\b[^\s_]+_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=(?:\s+)?"?([^\s"]+)`
+
+// filterEnvVarSecrets identify environment variables containing secrets.
+var filterEnvVarSecrets = []string{
+	"AZURE_CLIENT_ID",
+	"CI_JOB_JWT",
+	"CI_JOB_JWT_V2",
+	"FACEBOOK_APP_ID",
+	"MSI_ENDPOINT",
+	"OKTA_AUTHN_GROUPID",
+	"OKTA_OAUTH2_CLIENTID",
+}
+
 // ErrWasmtoolsNotFound represents an error finding the binary installed.
 var ErrWasmtoolsNotFound = fsterr.RemediationError{
 	Inner:       fmt.Errorf("wasm-tools not found"),
@@ -382,18 +398,6 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		}
 	}
 
-	// Miscellaneous env vars.
-	// Most other variables should be caught by `filterPattern` below.
-	filters := []string{
-		"AZURE_CLIENT_ID",
-		"CI_JOB_JWT",
-		"CI_JOB_JWT_V2",
-		"FACEBOOK_APP_ID",
-		"MSI_ENDPOINT",
-		"OKTA_AUTHN_GROUPID",
-		"OKTA_OAUTH2_CLIENTID",
-	}
-
 	// Allow customer to specify their own env variables to be filtered.
 	customFilters := strings.Split(c.MetadataFilterEnvVars, ",")
 	for _, v := range customFilters {
@@ -401,21 +405,21 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 			continue
 		}
 		var found bool
-		for _, f := range filters {
+		for _, f := range filterEnvVarSecrets {
 			if f == v {
 				found = true
 				break
 			}
 		}
 		if !found {
-			filters = append(filters, v)
+			filterEnvVarSecrets = append(filterEnvVarSecrets, v)
 		}
 	}
 
 	// Filter environment variables using combination of user provided filters and
 	// the CLI hard-coded filters.
 	for i, v := range dc.ScriptInfo.EnvVars {
-		for _, f := range filters {
+		for _, f := range filterEnvVarSecrets {
 			k := strings.Split(v, "=")[0]
 			if strings.HasPrefix(k, f) {
 				dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
@@ -429,10 +433,8 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	}
 
 	// Opt on the side of caution and filter anything that matches this pattern.
-	// https://regex101.com/r/4GnH3r/1
 	// https://go.dev/play/p/GYXMNc7Froz
-	filterPattern := `(?i)\b[^\s_]+_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=(?:\s+)?"?([^\s"]+)`
-	re := regexp.MustCompile(filterPattern)
+	re := regexp.MustCompile(filterSecretsPattern)
 	for _, matches := range re.FindAllSubmatch(data, -1) {
 		if len(matches) == 2 {
 			o := matches[0]
