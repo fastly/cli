@@ -42,22 +42,23 @@ func NewAssemblyScript(
 	globals *global.Data,
 	flags Flags,
 	in io.Reader,
-	manifestFilename string,
+	metadataFilterEnvVars, manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *AssemblyScript {
 	return &AssemblyScript{
 		Shell: Shell{},
 
-		build:            fastlyManifest.Scripts.Build,
-		errlog:           globals.ErrLog,
-		input:            in,
-		manifestFilename: manifestFilename,
-		output:           out,
-		postBuild:        fastlyManifest.Scripts.PostBuild,
-		spinner:          spinner,
-		timeout:          flags.Timeout,
-		verbose:          globals.Verbose(),
+		build:                 fastlyManifest.Scripts.Build,
+		errlog:                globals.ErrLog,
+		input:                 in,
+		manifestFilename:      manifestFilename,
+		metadataFilterEnvVars: metadataFilterEnvVars,
+		output:                out,
+		postBuild:             fastlyManifest.Scripts.PostBuild,
+		spinner:               spinner,
+		timeout:               flags.Timeout,
+		verbose:               globals.Verbose(),
 	}
 }
 
@@ -77,6 +78,8 @@ type AssemblyScript struct {
 	input io.Reader
 	// manifestFilename is the name of the manifest file.
 	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -146,18 +149,19 @@ func (a *AssemblyScript) Build() error {
 	}
 
 	bt := BuildToolchain{
-		autoYes:          a.autoYes,
-		buildFn:          a.Shell.Build,
-		buildScript:      a.build,
-		errlog:           a.errlog,
-		in:               a.input,
-		manifestFilename: a.manifestFilename,
-		nonInteractive:   a.nonInteractive,
-		out:              a.output,
-		postBuild:        a.postBuild,
-		spinner:          a.spinner,
-		timeout:          a.timeout,
-		verbose:          a.verbose,
+		autoYes:               a.autoYes,
+		buildFn:               a.Shell.Build,
+		buildScript:           a.build,
+		errlog:                a.errlog,
+		in:                    a.input,
+		manifestFilename:      a.manifestFilename,
+		metadataFilterEnvVars: a.metadataFilterEnvVars,
+		nonInteractive:        a.nonInteractive,
+		out:                   a.output,
+		postBuild:             a.postBuild,
+		spinner:               a.spinner,
+		timeout:               a.timeout,
+		verbose:               a.verbose,
 	}
 
 	return bt.Build()

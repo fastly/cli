@@ -67,6 +67,8 @@ type BuildToolchain struct {
 	internalPostBuildCallback func() error
 	// manifestFilename is the name of the manifest file.
 	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// out is the users terminal stdout stream
@@ -88,8 +90,20 @@ func (bt BuildToolchain) Build() error {
 
 	if bt.verbose {
 		text.Description(bt.out, "Build script to execute", fmt.Sprintf("%s %s", cmd, strings.Join(args, " ")))
+
+		// IMPORTANT: We filter secrets the best we can before printing env vars.
+		// We use two separate processes to do this.
+		// First is filtering based on known environment variables.
+		// Second is filtering based on a generalised regex pattern.
 		if len(bt.env) > 0 {
-			text.Description(bt.out, "Build environment variables set", strings.Join(bt.env, " "))
+			envVars := make([]string, len(bt.env))
+			copy(envVars, bt.env)
+			ExtendEnvVarSecretsFilter(bt.metadataFilterEnvVars)
+			FilterEnvVarSecretsFromSlice(envVars)
+
+			s := strings.Join(envVars, " ")
+			s = FilterEnvVarSecretsFromString(s)
+			text.Description(bt.out, "Build environment variables set", s)
 		}
 	}
 

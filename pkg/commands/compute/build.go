@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -381,55 +380,18 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		}
 	}
 
-	// Miscellaneous env vars.
-	// Most other variables should be caught by `filterPattern` below.
-	filters := []string{
-		"AZURE_CLIENT_ID",
-		"CI_JOB_JWT",
-		"CI_JOB_JWT_V2",
-		"FACEBOOK_APP_ID",
-		"MSI_ENDPOINT",
-		"OKTA_AUTHN_GROUPID",
-		"OKTA_OAUTH2_CLIENTID",
-	}
-
 	// Allow customer to specify their own env variables to be filtered.
-	customFilters := strings.Split(c.MetadataFilterEnvVars, ",")
-	for _, v := range customFilters {
-		if v == "" {
-			continue
-		}
-		var found bool
-		for _, f := range filters {
-			if f == v {
-				found = true
-				break
-			}
-		}
-		if !found {
-			filters = append(filters, v)
-		}
-	}
+	ExtendEnvVarSecretsFilter(c.MetadataFilterEnvVars)
 
 	// Filter environment variables using combination of user provided filters and
 	// the CLI hard-coded filters.
-	for i, v := range dc.ScriptInfo.EnvVars {
-		for _, f := range filters {
-			k := strings.Split(v, "=")[0]
-			if strings.HasPrefix(k, f) {
-				dc.ScriptInfo.EnvVars[i] = k + "=REDACTED"
-			}
-		}
-	}
+	FilterEnvVarSecretsFromSlice(dc.ScriptInfo.EnvVars)
 
 	data, err := json.Marshal(dc)
 	if err != nil {
 		return err
 	}
-
-	// Opt on the side of caution and filter anything that matches this pattern.
-	filterPattern := regexp.MustCompile(`(?i)_(?:API|CLIENTSECRET|CREDENTIALS|KEY|PASSWORD|SECRET|TOKEN)(?:[^=]+)?=\s?[^\s"]+`)
-	data = filterPattern.ReplaceAll(data, []byte("_REDACTED"))
+	data = FilterEnvVarSecretsFromBytes(data)
 
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
 
@@ -710,6 +672,8 @@ func identifyToolchain(c *BuildCommand) (string, error) {
 }
 
 // language returns a pointer to a supported language.
+//
+// TODO: Fix the mess that is New<language>()'s argument list.
 func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader, out io.Writer, spinner text.Spinner) (*Language, error) {
 	var language *Language
 	switch toolchain {
@@ -722,6 +686,7 @@ func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader,
 				c.Globals,
 				c.Flags,
 				in,
+				c.MetadataFilterEnvVars,
 				manifestFilename,
 				out,
 				spinner,
@@ -736,6 +701,7 @@ func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader,
 				c.Globals,
 				c.Flags,
 				in,
+				c.MetadataFilterEnvVars,
 				manifestFilename,
 				out,
 				spinner,
@@ -750,6 +716,7 @@ func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader,
 				c.Globals,
 				c.Flags,
 				in,
+				c.MetadataFilterEnvVars,
 				manifestFilename,
 				out,
 				spinner,
@@ -764,6 +731,7 @@ func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader,
 				c.Globals,
 				c.Flags,
 				in,
+				c.MetadataFilterEnvVars,
 				manifestFilename,
 				out,
 				spinner,
@@ -777,6 +745,7 @@ func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader,
 				c.Globals,
 				c.Flags,
 				in,
+				c.MetadataFilterEnvVars,
 				manifestFilename,
 				out,
 				spinner,

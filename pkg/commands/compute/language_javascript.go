@@ -43,25 +43,26 @@ func NewJavaScript(
 	globals *global.Data,
 	flags Flags,
 	in io.Reader,
-	manifestFilename string,
+	metadataFilterEnvVars, manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *JavaScript {
 	return &JavaScript{
 		Shell: Shell{},
 
-		autoYes:          globals.Flags.AutoYes,
-		build:            fastlyManifest.Scripts.Build,
-		env:              fastlyManifest.Scripts.EnvVars,
-		errlog:           globals.ErrLog,
-		input:            in,
-		manifestFilename: manifestFilename,
-		nonInteractive:   globals.Flags.NonInteractive,
-		output:           out,
-		postBuild:        fastlyManifest.Scripts.PostBuild,
-		spinner:          spinner,
-		timeout:          flags.Timeout,
-		verbose:          globals.Verbose(),
+		autoYes:               globals.Flags.AutoYes,
+		build:                 fastlyManifest.Scripts.Build,
+		env:                   fastlyManifest.Scripts.EnvVars,
+		errlog:                globals.ErrLog,
+		input:                 in,
+		manifestFilename:      manifestFilename,
+		metadataFilterEnvVars: metadataFilterEnvVars,
+		nonInteractive:        globals.Flags.NonInteractive,
+		output:                out,
+		postBuild:             fastlyManifest.Scripts.PostBuild,
+		spinner:               spinner,
+		timeout:               flags.Timeout,
+		verbose:               globals.Verbose(),
 	}
 }
 
@@ -83,6 +84,8 @@ type JavaScript struct {
 	input io.Reader
 	// manifestFilename is the name of the manifest file.
 	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -157,19 +160,20 @@ func (j *JavaScript) Build() error {
 	}
 
 	bt := BuildToolchain{
-		autoYes:          j.autoYes,
-		buildFn:          j.Shell.Build,
-		buildScript:      j.build,
-		env:              j.env,
-		errlog:           j.errlog,
-		in:               j.input,
-		manifestFilename: j.manifestFilename,
-		nonInteractive:   j.nonInteractive,
-		out:              j.output,
-		postBuild:        j.postBuild,
-		spinner:          j.spinner,
-		timeout:          j.timeout,
-		verbose:          j.verbose,
+		autoYes:               j.autoYes,
+		buildFn:               j.Shell.Build,
+		buildScript:           j.build,
+		env:                   j.env,
+		errlog:                j.errlog,
+		in:                    j.input,
+		manifestFilename:      j.manifestFilename,
+		metadataFilterEnvVars: j.metadataFilterEnvVars,
+		nonInteractive:        j.nonInteractive,
+		out:                   j.output,
+		postBuild:             j.postBuild,
+		spinner:               j.spinner,
+		timeout:               j.timeout,
+		verbose:               j.verbose,
 	}
 
 	return bt.Build()

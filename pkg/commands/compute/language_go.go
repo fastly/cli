@@ -39,26 +39,27 @@ func NewGo(
 	globals *global.Data,
 	flags Flags,
 	in io.Reader,
-	manifestFilename string,
+	metadataFilterEnvVars, manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Go {
 	return &Go{
 		Shell: Shell{},
 
-		autoYes:          globals.Flags.AutoYes,
-		build:            fastlyManifest.Scripts.Build,
-		config:           globals.Config.Language.Go,
-		env:              fastlyManifest.Scripts.EnvVars,
-		errlog:           globals.ErrLog,
-		input:            in,
-		manifestFilename: manifestFilename,
-		nonInteractive:   globals.Flags.NonInteractive,
-		output:           out,
-		postBuild:        fastlyManifest.Scripts.PostBuild,
-		spinner:          spinner,
-		timeout:          flags.Timeout,
-		verbose:          globals.Verbose(),
+		autoYes:               globals.Flags.AutoYes,
+		build:                 fastlyManifest.Scripts.Build,
+		config:                globals.Config.Language.Go,
+		env:                   fastlyManifest.Scripts.EnvVars,
+		errlog:                globals.ErrLog,
+		input:                 in,
+		manifestFilename:      manifestFilename,
+		metadataFilterEnvVars: metadataFilterEnvVars,
+		nonInteractive:        globals.Flags.NonInteractive,
+		output:                out,
+		postBuild:             fastlyManifest.Scripts.PostBuild,
+		spinner:               spinner,
+		timeout:               flags.Timeout,
+		verbose:               globals.Verbose(),
 	}
 }
 
@@ -87,6 +88,8 @@ type Go struct {
 	input io.Reader
 	// manifestFilename is the name of the manifest file.
 	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -177,19 +180,20 @@ func (g *Go) Build() error {
 	}
 
 	bt := BuildToolchain{
-		autoYes:          g.autoYes,
-		buildFn:          g.Shell.Build,
-		buildScript:      g.build,
-		env:              g.env,
-		errlog:           g.errlog,
-		in:               g.input,
-		manifestFilename: g.manifestFilename,
-		nonInteractive:   g.nonInteractive,
-		out:              g.output,
-		postBuild:        g.postBuild,
-		spinner:          g.spinner,
-		timeout:          g.timeout,
-		verbose:          g.verbose,
+		autoYes:               g.autoYes,
+		buildFn:               g.Shell.Build,
+		buildScript:           g.build,
+		env:                   g.env,
+		errlog:                g.errlog,
+		in:                    g.input,
+		manifestFilename:      g.manifestFilename,
+		metadataFilterEnvVars: g.metadataFilterEnvVars,
+		nonInteractive:        g.nonInteractive,
+		out:                   g.output,
+		postBuild:             g.postBuild,
+		spinner:               g.spinner,
+		timeout:               g.timeout,
+		verbose:               g.verbose,
 	}
 
 	return bt.Build()
