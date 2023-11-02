@@ -168,7 +168,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	undoStack := undo.NewStack()
 	undoStack.Push(func() error {
-		if noExistingService {
+		if noExistingService && serviceID != "" {
 			return c.CleanupNewService(serviceID, manifestFilename, out)
 		}
 		return nil
