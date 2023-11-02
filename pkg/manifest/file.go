@@ -129,9 +129,9 @@ func (f *File) ParseEnvFile() error {
 	// IMPORTANT: Avoid persisting potentially secret values to disk.
 	// We do this by keeping a copy of EnvVars before they're appended to.
 	// Inside of File.Write() we'll reassign EnvVars the original values.
-	originalEnvVars := make([]string, len(f.Scripts.EnvVars))
-	copy(originalEnvVars, f.Scripts.EnvVars)
-	f.Scripts.originalEnvVars = originalEnvVars
+	manifestDefinedEnvVars := make([]string, len(f.Scripts.EnvVars))
+	copy(manifestDefinedEnvVars, f.Scripts.EnvVars)
+	f.Scripts.manifestDefinedEnvVars = manifestDefinedEnvVars
 
 	path, err := filepath.Abs(f.Scripts.EnvFile)
 	if err != nil {
@@ -196,20 +196,22 @@ func (f *File) Write(path string) error {
 
 	// IMPORTANT: Avoid persisting potentially secret values to disk.
 	// We do this by keeping a copy of EnvVars before they're appended to.
+	// i.e. f.Scripts.manifestDefinedEnvVars
 	// We now reassign EnvVars the original values (pre-EnvFile modification).
 	// But we also need to account for the in-memory representation.
 	//
 	// i.e. we call File.Write() at different times but still need EnvVars data.
 	//
 	// So once we've persisted the correct data back to disk, we can then revert
-	// the in-memory data for EnvVars to include the contents from EnvFile, just
-	// in case the CLI process is still running and needs to do things with
+	// the in-memory data for EnvVars to include the contents from EnvFile
+	// i.e. combinedEnvVars
+	// just in case the CLI process is still running and needs to do things with
 	// environment variables.
-	currentEnvVars := make([]string, len(f.Scripts.EnvVars))
-	copy(currentEnvVars, f.Scripts.EnvVars)
-	f.Scripts.EnvVars = f.Scripts.originalEnvVars
+	combinedEnvVars := make([]string, len(f.Scripts.EnvVars))
+	copy(combinedEnvVars, f.Scripts.EnvVars)
+	f.Scripts.EnvVars = f.Scripts.manifestDefinedEnvVars
 	defer func() {
-		f.Scripts.EnvVars = currentEnvVars
+		f.Scripts.EnvVars = combinedEnvVars
 	}()
 
 	if err := toml.NewEncoder(fp).Encode(f); err != nil {
@@ -251,5 +253,6 @@ type Scripts struct {
 
 	// Private field used to revert modifications to EnvVars from EnvFile.
 	// See File.ParseEnvFile() and File.Write() methods for details.
-	originalEnvVars []string
+	// This will contain the environment variables defined in the manifest file.
+	manifestDefinedEnvVars []string
 }
