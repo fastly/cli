@@ -1,9 +1,11 @@
 package manifest
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	toml "github.com/pelletier/go-toml"
@@ -68,7 +70,7 @@ func (f *File) Read(path string) (err error) {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// Disabling as we need to load the fastly.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-	/* #nosec */
+	// #nosec
 	tree, err := toml.LoadFile(path)
 	if err != nil {
 		// IMPORTANT: Only `fastly compute` references the fastly.toml file.
@@ -93,6 +95,12 @@ func (f *File) Read(path string) (err error) {
 		return err
 	}
 
+	if f.Scripts.EnvFile != "" {
+		if err := f.ParseEnvFile(); err != nil {
+			return err
+		}
+	}
+
 	if f.ManifestVersion == 0 {
 		f.ManifestVersion = ManifestLatestVersion
 
@@ -112,6 +120,39 @@ func (f *File) Read(path string) (err error) {
 	}
 
 	f.exists = true
+	return nil
+}
+
+// ParseEnvFile reads the environment file `env_file` and appends all KEY=VALUE
+// pairs to the existing `f.Scripts.EnvVars`.
+func (f *File) ParseEnvFile() error {
+	// IMPORTANT: Avoid persisting potentially secret values to disk.
+	// We do this by keeping a copy of EnvVars before they're appended to.
+	// Inside of File.Write() we'll reassign EnvVars the original values.
+	manifestDefinedEnvVars := make([]string, len(f.Scripts.EnvVars))
+	copy(manifestDefinedEnvVars, f.Scripts.EnvVars)
+	f.Scripts.manifestDefinedEnvVars = manifestDefinedEnvVars
+
+	path, err := filepath.Abs(f.Scripts.EnvFile)
+	if err != nil {
+		return fmt.Errorf("failed to generate absolute path for '%s': %w", f.Scripts.EnvFile, err)
+	}
+	r, err := os.Open(path) // #nosec G304 (CWE-22)
+	if err != nil {
+		return fmt.Errorf("failed to open path '%s': %w", path, err)
+	}
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		parts := strings.Split(scanner.Text(), "=")
+		if len(parts) != 2 {
+			return fmt.Errorf("failed to scan env_file '%s': invalid KEY=VALUE format: %#v", path, parts)
+		}
+		parts[1] = strings.Trim(parts[1], `"'`)
+		f.Scripts.EnvVars = append(f.Scripts.EnvVars, strings.Join(parts, "="))
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to scan env_file '%s': %w", path, err)
+	}
 	return nil
 }
 
@@ -145,30 +186,40 @@ func (f *File) SetQuiet(v bool) {
 
 // Write persists the manifest content to disk.
 func (f *File) Write(path string) error {
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as in most cases this is provided by a static constant embedded
-	// from the 'manifest' package, and in other cases we want the user to be
-	// able to provide a custom path to their fastly.toml manifest.
-	/* #nosec */
-	fp, err := os.Create(path)
+	fp, err := os.Create(path) // #nosec G304 (CWE-22)
 	if err != nil {
 		return err
 	}
-
 	if err := appendSpecRef(fp); err != nil {
 		return err
 	}
 
+	// IMPORTANT: Avoid persisting potentially secret values to disk.
+	// We do this by keeping a copy of EnvVars before they're appended to.
+	// i.e. f.Scripts.manifestDefinedEnvVars
+	// We now reassign EnvVars the original values (pre-EnvFile modification).
+	// But we also need to account for the in-memory representation.
+	//
+	// i.e. we call File.Write() at different times but still need EnvVars data.
+	//
+	// So once we've persisted the correct data back to disk, we can then revert
+	// the in-memory data for EnvVars to include the contents from EnvFile
+	// i.e. combinedEnvVars
+	// just in case the CLI process is still running and needs to do things with
+	// environment variables.
+	combinedEnvVars := make([]string, len(f.Scripts.EnvVars))
+	copy(combinedEnvVars, f.Scripts.EnvVars)
+	f.Scripts.EnvVars = f.Scripts.manifestDefinedEnvVars
+	defer func() {
+		f.Scripts.EnvVars = combinedEnvVars
+	}()
+
 	if err := toml.NewEncoder(fp).Encode(f); err != nil {
 		return err
 	}
-
 	if err := fp.Sync(); err != nil {
 		return err
 	}
-
 	return fp.Close()
 }
 
@@ -189,10 +240,19 @@ func appendSpecRef(w io.Writer) error {
 type Scripts struct {
 	// Build is a custom build script.
 	Build string `toml:"build,omitempty"`
+	// EnvFile is a path to a file containing build related environment variables.
+	// Each line should contain a KEY=VALUE.
+	// Reading the contents of this file will populate the `EnvVars` field.
+	EnvFile string `toml:"env_file,omitempty"`
 	// EnvVars contains build related environment variables.
 	EnvVars []string `toml:"env_vars,omitempty"`
 	// PostBuild is executed after the build step.
 	PostBuild string `toml:"post_build,omitempty"`
 	// PostInit is executed after the init step.
 	PostInit string `toml:"post_init,omitempty"`
+
+	// Private field used to revert modifications to EnvVars from EnvFile.
+	// See File.ParseEnvFile() and File.Write() methods for details.
+	// This will contain the environment variables defined in the manifest file.
+	manifestDefinedEnvVars []string
 }

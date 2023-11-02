@@ -1240,7 +1240,7 @@ func monitorSignals(signalCh chan os.Signal, noExistingService bool, out io.Writ
 	<-signalCh
 	signal.Stop(signalCh)
 	spinner.StopFailMessage("Signal received to interrupt/terminate the Fastly CLI process")
-	spinner.StopFail()
+	_ = spinner.StopFail()
 	text.Important(out, "\n\nThe Fastly CLI process will be terminated after any clean-up tasks have been processed")
 	if noExistingService {
 		undoStack.Unwind(out)
