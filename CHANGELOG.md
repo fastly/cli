@@ -25,10 +25,16 @@
 **Bug fixes:**
 
 - fix(compute/deploy): ignore package comparison error [#1053](https://github.com/fastly/cli/pull/1053)
+- remove: trufflehog [#1064](https://github.com/fastly/cli/pull/1064)
+- fix(cmd/flags): handle zero length check separately [#1065](https://github.com/fastly/cli/pull/1065)
+- fix(compute/deploy): only cleanup service if there is an ID [#1066](https://github.com/fastly/cli/pull/1066)
 
 **Enhancements:**
 
 - refactor(compute/deploy): add setup message for existing service users [#1052](https://github.com/fastly/cli/pull/1052)
+- feat(manifest): support env_file [#1067](https://github.com/fastly/cli/pull/1067)
+- fix(compute/build): improve redaction logic [#1068](https://github.com/fastly/cli/pull/1068)
+- feat(compute/secrets): redact common org secrets [#1069](https://github.com/fastly/cli/pull/1069)
 
 **Dependencies:**
 
