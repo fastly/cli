@@ -430,8 +430,11 @@ func (m Metadata) URL() string {
 	}
 
 	arch := runtime.GOARCH
-	if arch == "arm64" {
+	switch arch {
+	case "arm64":
 		arch = "aarch64"
+	case "amd64":
+		arch = "x86_64"
 	}
 
 	for _, a := range m.Assets {
