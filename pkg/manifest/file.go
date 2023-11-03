@@ -207,12 +207,14 @@ func (f *File) Write(path string) error {
 	// i.e. combinedEnvVars
 	// just in case the CLI process is still running and needs to do things with
 	// environment variables.
-	combinedEnvVars := make([]string, len(f.Scripts.EnvVars))
-	copy(combinedEnvVars, f.Scripts.EnvVars)
-	f.Scripts.EnvVars = f.Scripts.manifestDefinedEnvVars
-	defer func() {
-		f.Scripts.EnvVars = combinedEnvVars
-	}()
+	if f.Scripts.EnvFile != "" {
+		combinedEnvVars := make([]string, len(f.Scripts.EnvVars))
+		copy(combinedEnvVars, f.Scripts.EnvVars)
+		f.Scripts.EnvVars = f.Scripts.manifestDefinedEnvVars
+		defer func() {
+			f.Scripts.EnvVars = combinedEnvVars
+		}()
+	}
 
 	if err := toml.NewEncoder(fp).Encode(f); err != nil {
 		return err
