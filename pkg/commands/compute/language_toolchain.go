@@ -89,21 +89,17 @@ func (bt BuildToolchain) Build() error {
 	cmd, args := bt.buildFn(bt.buildScript)
 
 	if bt.verbose {
-		text.Description(bt.out, "Build script to execute", fmt.Sprintf("%s %s", cmd, strings.Join(args, " ")))
+		buildScript := fmt.Sprintf("%s %s", cmd, strings.Join(args, " "))
+		text.Description(bt.out, "Build script to execute", FilterSecretsFromString(buildScript))
 
 		// IMPORTANT: We filter secrets the best we can before printing env vars.
 		// We use two separate processes to do this.
 		// First is filtering based on known environment variables.
 		// Second is filtering based on a generalised regex pattern.
 		if len(bt.env) > 0 {
-			envVars := make([]string, len(bt.env))
-			copy(envVars, bt.env)
-			ExtendEnvVarSecretsFilter(bt.metadataFilterEnvVars)
-			FilterEnvVarSecretsFromSlice(envVars)
-
-			s := strings.Join(envVars, " ")
-			s = FilterEnvVarSecretsFromString(s)
-			text.Description(bt.out, "Build environment variables set", s)
+			ExtendStaticSecretEnvVars(bt.metadataFilterEnvVars)
+			s := strings.Join(bt.env, " ")
+			text.Description(bt.out, "Build environment variables set", FilterSecretsFromString(s))
 		}
 	}
 

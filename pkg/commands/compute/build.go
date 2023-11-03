@@ -349,13 +349,16 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
 
+	// Allow customer to specify their own env variables to be filtered.
+	ExtendStaticSecretEnvVars(c.MetadataFilterEnvVars)
+
 	dc := DataCollection{
 		ScriptInfo: DataCollectionScriptInfo{
 			DefaultBuildUsed: language.DefaultBuildScript(),
-			BuildScript:      c.Globals.Manifest.File.Scripts.Build,
-			EnvVars:          c.Globals.Manifest.File.Scripts.EnvVars,
-			PostInitScript:   c.Globals.Manifest.File.Scripts.PostInit,
-			PostBuildScript:  c.Globals.Manifest.File.Scripts.PostBuild,
+			BuildScript:      FilterSecretsFromString(c.Globals.Manifest.File.Scripts.Build),
+			EnvVars:          FilterSecretsFromSlice(c.Globals.Manifest.File.Scripts.EnvVars),
+			PostInitScript:   FilterSecretsFromString(c.Globals.Manifest.File.Scripts.PostInit),
+			PostBuildScript:  FilterSecretsFromString(c.Globals.Manifest.File.Scripts.PostBuild),
 		},
 	}
 
@@ -380,18 +383,10 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		}
 	}
 
-	// Allow customer to specify their own env variables to be filtered.
-	ExtendEnvVarSecretsFilter(c.MetadataFilterEnvVars)
-
-	// Filter environment variables using combination of user provided filters and
-	// the CLI hard-coded filters.
-	FilterEnvVarSecretsFromSlice(dc.ScriptInfo.EnvVars)
-
 	data, err := json.Marshal(dc)
 	if err != nil {
 		return err
 	}
-	data = FilterEnvVarSecretsFromBytes(data)
 
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
 
