@@ -1,6 +1,13 @@
 # CHANGELOG
 
-## [v10.6.0](https://github.com/fastly/cli/releases/tag/v10.6.0) (2023-10-31)
+## [v10.6.1](https://github.com/fastly/cli/releases/tag/v10.6.1) (2023-11-03)
+
+**Bug fixes:**
+
+- fix(manifest): only reset EnvVars if EnvFile set [#1073](https://github.com/fastly/cli/pull/1073)
+- fix(github): check architecture when fetching wasm-tools [#1074](https://github.com/fastly/cli/pull/1074)
+
+## [v10.6.0](https://github.com/fastly/cli/releases/tag/v10.6.0) (2023-11-03)
 
 **Bug fixes:**
 
