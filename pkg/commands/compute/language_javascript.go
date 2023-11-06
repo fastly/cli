@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -34,35 +32,33 @@ const JsDefaultBuildCommand = "npm exec js-compute-runtime ./src/index.js ./bin/
 // fastly.toml will require a successful check for the webpack dependency.
 const JsDefaultBuildCommandForWebpack = "npm exec webpack && npm exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
 
-// JsSourceDirectory represents the source code directory.                                               │                                                           │
+// JsSourceDirectory represents the source code directory.
 const JsSourceDirectory = "src"
 
 // NewJavaScript constructs a new JavaScript toolchain.
 func NewJavaScript(
-	fastlyManifest *manifest.File,
-	globals *global.Data,
-	flags Flags,
+	c *BuildCommand,
 	in io.Reader,
-	metadataFilterEnvVars, manifestFilename string,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *JavaScript {
 	return &JavaScript{
 		Shell: Shell{},
 
-		autoYes:               globals.Flags.AutoYes,
-		build:                 fastlyManifest.Scripts.Build,
-		env:                   fastlyManifest.Scripts.EnvVars,
-		errlog:                globals.ErrLog,
+		autoYes:               c.Globals.Flags.AutoYes,
+		build:                 c.Globals.Manifest.File.Scripts.Build,
+		env:                   c.Globals.Manifest.File.Scripts.EnvVars,
+		errlog:                c.Globals.ErrLog,
 		input:                 in,
 		manifestFilename:      manifestFilename,
-		metadataFilterEnvVars: metadataFilterEnvVars,
-		nonInteractive:        globals.Flags.NonInteractive,
+		metadataFilterEnvVars: c.MetadataFilterEnvVars,
+		nonInteractive:        c.Globals.Flags.NonInteractive,
 		output:                out,
-		postBuild:             fastlyManifest.Scripts.PostBuild,
+		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
 		spinner:               spinner,
-		timeout:               flags.Timeout,
-		verbose:               globals.Verbose(),
+		timeout:               c.Flags.Timeout,
+		verbose:               c.Globals.Verbose(),
 	}
 }
 

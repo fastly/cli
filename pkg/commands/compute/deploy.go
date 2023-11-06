@@ -107,7 +107,9 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
-	defer os.Chdir(wd)
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
 	c.manifestPath = filepath.Join(wd, manifestFilename)
 
 	projectDir, err := ChangeProjectDirectory(c.Dir)
@@ -331,7 +333,7 @@ func displayDeployOutput(out io.Writer, manageServiceBaseURL, serviceID, service
 }
 
 // validStatusCodeRange checks the status is a valid status code.
-// e.g. >= 100 and <= 999
+// e.g. >= 100 and <= 999.
 func validStatusCodeRange(status int) bool {
 	if status >= 100 && status <= 999 {
 		return true
@@ -564,7 +566,7 @@ func (c *DeployCommand) NewService(manifestFilename string, fnActivateTrial Acti
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceID` and `serviceVersion` variables.
-	serviceID, serviceVersion, err = createService(c.Globals.Flags, serviceName, c.Globals.APIClient, fnActivateTrial, spinner, c.Globals.ErrLog, out)
+	serviceID, serviceVersion, err = createService(c.Globals, serviceName, fnActivateTrial, spinner, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service name": serviceName,
@@ -598,14 +600,16 @@ func (c *DeployCommand) NewService(manifestFilename string, fnActivateTrial Acti
 // NOTE: If the creation of the service fails because the user has not
 // activated a free trial, then we'll trigger the trial for their account.
 func createService(
-	f global.Flags,
+	g *global.Data,
 	serviceName string,
-	apiClient api.Interface,
 	fnActivateTrial Activator,
 	spinner text.Spinner,
-	errLog fsterr.LogInterface,
 	out io.Writer,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
+	f := g.Flags
+	apiClient := g.APIClient
+	errLog := g.ErrLog
+
 	if !f.AcceptDefaults && !f.NonInteractive {
 		text.Break(out)
 	}
@@ -662,7 +666,7 @@ func createService(
 				return "", nil, err
 			}
 
-			return createService(f, serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
+			return createService(g, serviceName, fnActivateTrial, spinner, out)
 		}
 
 		spinner.StopFailMessage(msg)

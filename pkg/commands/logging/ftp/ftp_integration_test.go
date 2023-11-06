@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestFTPCreate(t *testing.T) {
@@ -271,7 +272,7 @@ func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	}, nil
 }
 
-func createFTPError(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
+func createFTPError(_ *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
@@ -318,7 +319,7 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	}, nil
 }
 
-func listFTPsError(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
+func listFTPsError(_ *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	return nil, errTest
 }
 
@@ -395,7 +396,7 @@ func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 	}, nil
 }
 
-func getFTPError(i *fastly.GetFTPInput) (*fastly.FTP, error) {
+func getFTPError(_ *fastly.GetFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
@@ -441,15 +442,15 @@ func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	}, nil
 }
 
-func updateFTPError(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
+func updateFTPError(_ *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
-func deleteFTPOK(i *fastly.DeleteFTPInput) error {
+func deleteFTPOK(_ *fastly.DeleteFTPInput) error {
 	return nil
 }
 
-func deleteFTPError(i *fastly.DeleteFTPInput) error {
+func deleteFTPError(_ *fastly.DeleteFTPInput) error {
 	return errTest
 }
 

@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestSumologicCreate(t *testing.T) {
@@ -262,7 +263,7 @@ func createSumologicOK(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error
 	}, nil
 }
 
-func createSumologicError(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
+func createSumologicError(_ *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
@@ -293,7 +294,7 @@ func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error
 	}, nil
 }
 
-func listSumologicsError(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
+func listSumologicsError(_ *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
@@ -346,7 +347,7 @@ func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	}, nil
 }
 
-func getSumologicError(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
+func getSumologicError(_ *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
@@ -376,14 +377,14 @@ func updateSumologicOK(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error
 	}, nil
 }
 
-func updateSumologicError(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
+func updateSumologicError(_ *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
-func deleteSumologicOK(i *fastly.DeleteSumologicInput) error {
+func deleteSumologicOK(_ *fastly.DeleteSumologicInput) error {
 	return nil
 }
 
-func deleteSumologicError(i *fastly.DeleteSumologicInput) error {
+func deleteSumologicError(_ *fastly.DeleteSumologicInput) error {
 	return errTest
 }

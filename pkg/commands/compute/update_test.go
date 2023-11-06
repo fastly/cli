@@ -38,7 +38,9 @@ func TestUpdate(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{

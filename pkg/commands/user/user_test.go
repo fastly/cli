@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreate(t *testing.T) {
@@ -348,7 +349,7 @@ func getCurrentUser() (*fastly.User, error) {
 	}, nil
 }
 
-func listUsers(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
+func listUsers(_ *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
 	user, _ := getUser(&fastly.GetUserInput{ID: "123"})
 	userCurrent, _ := getCurrentUser()
 	vs := []*fastly.User{

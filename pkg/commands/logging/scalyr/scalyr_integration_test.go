@@ -6,11 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	fsterrs "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestScalyrCreate(t *testing.T) {
@@ -298,7 +299,7 @@ func createScalyrOK(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	return &s, nil
 }
 
-func createScalyrError(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
+func createScalyrError(_ *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
@@ -329,7 +330,7 @@ func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	}, nil
 }
 
-func listScalyrsError(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
+func listScalyrsError(_ *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
@@ -382,7 +383,7 @@ func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	}, nil
 }
 
-func getScalyrError(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
+func getScalyrError(_ *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
@@ -412,14 +413,14 @@ func updateScalyrOK(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	}, nil
 }
 
-func updateScalyrError(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
+func updateScalyrError(_ *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
-func deleteScalyrOK(i *fastly.DeleteScalyrInput) error {
+func deleteScalyrOK(_ *fastly.DeleteScalyrInput) error {
 	return nil
 }
 
-func deleteScalyrError(i *fastly.DeleteScalyrInput) error {
+func deleteScalyrError(_ *fastly.DeleteScalyrInput) error {
 	return errTest
 }

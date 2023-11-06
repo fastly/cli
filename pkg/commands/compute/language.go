@@ -103,7 +103,7 @@ type Shell struct{}
 // build = "yarn install && yarn build"
 //
 // Should be converted into a command such as (on unix):
-// sh -c "yarn install && yarn build"
+// sh -c "yarn install && yarn build".
 func (s Shell) Build(command string) (cmd string, args []string) {
 	cmd = "sh"
 	args = []string{"-c"}

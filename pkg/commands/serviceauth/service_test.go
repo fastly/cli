@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestServiceAuthCreate(t *testing.T) {
@@ -255,7 +256,7 @@ func createServiceAuthError(*fastly.CreateServiceAuthorizationInput) (*fastly.Se
 	return nil, errTest
 }
 
-func createServiceAuthOK(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func createServiceAuthOK(_ *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 	}, nil
@@ -265,7 +266,7 @@ func listServiceAuthError(*fastly.ListServiceAuthorizationsInput) (*fastly.Servi
 	return nil, errTest
 }
 
-func listServiceAuthOK(i *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
+func listServiceAuthOK(_ *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
 	return &fastly.ServiceAuthorizations{
 		Items: []*fastly.ServiceAuthorization{
 			{
@@ -286,7 +287,7 @@ func describeServiceAuthError(*fastly.GetServiceAuthorizationInput) (*fastly.Ser
 	return nil, errTest
 }
 
-func describeServiceAuthOK(i *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func describeServiceAuthOK(_ *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 		User: &fastly.SAUser{
@@ -303,7 +304,7 @@ func updateServiceAuthError(*fastly.UpdateServiceAuthorizationInput) (*fastly.Se
 	return nil, errTest
 }
 
-func updateServiceAuthOK(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func updateServiceAuthOK(_ *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 	}, nil
@@ -313,6 +314,6 @@ func deleteServiceAuthError(*fastly.DeleteServiceAuthorizationInput) error {
 	return errTest
 }
 
-func deleteServiceAuthOK(i *fastly.DeleteServiceAuthorizationInput) error {
+func deleteServiceAuthOK(_ *fastly.DeleteServiceAuthorizationInput) error {
 	return nil
 }

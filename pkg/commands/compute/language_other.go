@@ -4,38 +4,34 @@ import (
 	"io"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewOther constructs a new unsupported language instance.
 func NewOther(
-	fastlyManifest *manifest.File,
-	globals *global.Data,
-	flags Flags,
+	c *BuildCommand,
 	in io.Reader,
-	metadataFilterEnvVars, manifestFilename string,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Other {
 	return &Other{
 		Shell: Shell{},
 
-		autoYes:               globals.Flags.AutoYes,
-		build:                 fastlyManifest.Scripts.Build,
+		autoYes:               c.Globals.Flags.AutoYes,
+		build:                 c.Globals.Manifest.File.Scripts.Build,
 		defaultBuild:          false, // there is no default build for 'other'
-		env:                   fastlyManifest.Scripts.EnvVars,
-		errlog:                globals.ErrLog,
+		env:                   c.Globals.Manifest.File.Scripts.EnvVars,
+		errlog:                c.Globals.ErrLog,
 		input:                 in,
 		manifestFilename:      manifestFilename,
-		metadataFilterEnvVars: metadataFilterEnvVars,
-		nonInteractive:        globals.Flags.NonInteractive,
+		metadataFilterEnvVars: c.MetadataFilterEnvVars,
+		nonInteractive:        c.Globals.Flags.NonInteractive,
 		output:                out,
-		postBuild:             fastlyManifest.Scripts.PostBuild,
+		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
 		spinner:               spinner,
-		timeout:               flags.Timeout,
-		verbose:               globals.Verbose(),
+		timeout:               c.Flags.Timeout,
+		verbose:               c.Globals.Verbose(),
 	}
 }
 

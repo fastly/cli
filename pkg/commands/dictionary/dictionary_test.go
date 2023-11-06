@@ -334,16 +334,17 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 		ServiceVersion: i.ServiceVersion,
 		Name:           *i.Name,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      *i.WriteOnly == true,
+		WriteOnly:      bool(*i.WriteOnly),
 		ID:             "456",
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
-// getDictionaryInfoOK mocks the response from fastly.GetDictionaryInfo, which is not otherwise used
-// in the fastly-cli and will need to be updated here if that call changes.
-// This function requires i.ID to equal "456" to enforce the input to this call matches the
-// response to GetDictionaryInfo in describeDictionaryOK
+// getDictionaryInfoOK mocks the response from fastly.GetDictionaryInfo, which
+// is not otherwise used in the fastly-cli and will need to be updated here if
+// that call changes. This function requires i.ID to equal "456" to enforce the
+// input to this call matches the response to GetDictionaryInfo in
+// describeDictionaryOK.
 func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
 	if i.ID == "456" {
 		return &fastly.DictionaryInfo{
@@ -351,13 +352,13 @@ func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryIn
 			LastUpdated: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 			Digest:      "digest_hash",
 		}, nil
-	} else {
-		return nil, errFail
 	}
+	return nil, errFail
 }
 
-// listDictionaryItemsOK mocks the response from fastly.ListDictionaryItems which is primarily used
-// in the fastly-cli.dictionaryitem package and will need to be updated here if that call changes
+// listDictionaryItemsOK mocks the response from fastly.ListDictionaryItems
+// which is primarily used in the fastly-cli.dictionaryitem package and will
+// need to be updated here if that call changes.
 func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
 		{
@@ -441,12 +442,12 @@ func updateDictionaryWriteOnlyOK(i *fastly.UpdateDictionaryInput) (*fastly.Dicti
 
 func cbPtrIsTrue(cb *fastly.Compatibool) bool {
 	if cb != nil {
-		return *cb == true
+		return bool(*cb)
 	}
 	return false
 }
 
-func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+func updateDictionaryError(_ *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return nil, errTest
 }
 

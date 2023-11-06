@@ -268,7 +268,9 @@ func TestCreatePackageArchive(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	destination := "cli.tar.gz"
 
@@ -344,7 +346,9 @@ func TestGetIgnoredFiles(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	for _, testcase := range []struct {
 		name         string
@@ -378,7 +382,7 @@ func TestGetIgnoredFiles(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			if err := os.WriteFile(filepath.Join(rootdir, compute.IgnoreFilePath), []byte(testcase.fastlyignore), 0o777); err != nil {
+			if err := os.WriteFile(filepath.Join(rootdir, compute.IgnoreFilePath), []byte(testcase.fastlyignore), 0o600); err != nil {
 				t.Fatal(err)
 			}
 			output, err := compute.GetIgnoredFiles(compute.IgnoreFilePath)
@@ -413,7 +417,9 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	for _, testcase := range []struct {
 		name         string
@@ -428,14 +434,14 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 			wantFiles: []string{
 				"Cargo.lock",
 				"Cargo.toml",
-				filepath.Join("src/main.rs"),
+				filepath.Join("src", "main.rs"),
 			},
 		},
 		{
 			name: "one ignored file",
 			path: ".",
 			ignoredFiles: map[string]bool{
-				filepath.Join("src/main.rs"): true,
+				filepath.Join("src", "main.rs"): true,
 			},
 			wantFiles: []string{
 				"Cargo.lock",
@@ -450,7 +456,7 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 				"Cargo.lock": true,
 			},
 			wantFiles: []string{
-				filepath.Join("src/main.rs"),
+				filepath.Join("src", "main.rs"),
 			},
 		},
 	} {

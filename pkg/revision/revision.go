@@ -69,7 +69,7 @@ func init() {
 // `v` and also has a commit hash following the semantic version, and returns
 // just the semantic version.
 //
-// e.g. v1.0.0-xyz --> 1.0.0
+// e.g. `v1.0.0-xyz` --> `1.0.0`.
 func SemVer(av string) string {
 	av = strings.TrimPrefix(av, "v")
 	seg := strings.Split(av, "-")

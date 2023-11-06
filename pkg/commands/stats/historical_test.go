@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestHistorical(t *testing.T) {
@@ -81,7 +82,7 @@ Requests:                                        0
 var historicalJSONOK = `{"start_time":0}
 `
 
-func getStatsJSONOK(i *fastly.GetStatsInput, o any) error {
+func getStatsJSONOK(_ *fastly.GetStatsInput, o any) error {
 	msg := []byte(`
 {
   "status": "success",
@@ -98,6 +99,6 @@ func getStatsJSONOK(i *fastly.GetStatsInput, o any) error {
 	return json.Unmarshal(msg, o)
 }
 
-func getStatsJSONError(i *fastly.GetStatsInput, o any) error {
+func getStatsJSONError(_ *fastly.GetStatsInput, o any) error {
 	return errTest
 }

@@ -368,26 +368,10 @@ func processCommandInput(
 	// here by calling Parse, again swapping the Writers. This also ensures the
 	// larger and more verbose help formatting is used.
 	if cmdName == "help" {
-		var buf bytes.Buffer
-		app.Writers(&buf, io.Discard)
-		_, _ = app.Parse(opts.Args)
-		app.Writers(opts.Stdout, io.Discard)
-
-		// The full-fat output of `fastly help` should have a hint at the bottom
-		// for more specific help. Unfortunately I don't know of a better way to
-		// distinguish `fastly help` from e.g. `fastly help pops` than this check.
-		if len(opts.Args) > 0 && opts.Args[len(opts.Args)-1] == "help" {
-			fmt.Fprintln(&buf, "\nFor help on a specific command, try e.g.")
-			fmt.Fprintln(&buf, "")
-			fmt.Fprintln(&buf, "\tfastly help profile")
-			fmt.Fprintln(&buf, "\tfastly profile --help")
-			fmt.Fprintln(&buf, "")
-		}
-
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err: fsterr.RemediationError{
-				Prefix: buf.String(),
+				Prefix: useFullHelpOutput(app, opts).String(),
 			},
 		}
 	}
@@ -402,6 +386,25 @@ func processCommandInput(
 	}
 
 	return command, cmdName, nil
+}
+
+func useFullHelpOutput(app *kingpin.Application, opts RunOpts) *bytes.Buffer {
+	var buf bytes.Buffer
+	app.Writers(&buf, io.Discard)
+	_, _ = app.Parse(opts.Args)
+	app.Writers(opts.Stdout, io.Discard)
+
+	// The full-fat output of `fastly help` should have a hint at the bottom
+	// for more specific help. Unfortunately I don't know of a better way to
+	// distinguish `fastly help` from e.g. `fastly help pops` than this check.
+	if len(opts.Args) > 0 && opts.Args[len(opts.Args)-1] == "help" {
+		fmt.Fprintln(&buf, "\nFor help on a specific command, try e.g.")
+		fmt.Fprintln(&buf, "")
+		fmt.Fprintln(&buf, "\tfastly help profile")
+		fmt.Fprintln(&buf, "\tfastly profile --help")
+		fmt.Fprintln(&buf, "")
+	}
+	return &buf
 }
 
 // metadata is combined into the usage output so the Developer Hub can display
@@ -553,7 +556,7 @@ func recurse(n int, segs []string, data commandsMetadata) commandsMetadata {
 	return nil
 }
 
-// resolveToString extracts a value from a map as a string
+// resolveToString extracts a value from a map as a string.
 func resolveToString(i any, key string) string {
 	m, ok := i.(map[string]any)
 	if ok {

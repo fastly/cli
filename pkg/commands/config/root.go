@@ -33,7 +33,9 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if c.reset {
-		c.Globals.Config.UseStatic(config.FilePath)
+		if err := c.Globals.Config.UseStatic(config.FilePath); err != nil {
+			return err
+		}
 	}
 
 	if c.location {

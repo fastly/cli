@@ -7,8 +7,6 @@ import (
 	"os"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -33,32 +31,30 @@ const AsDefaultBuildCommand = "npm exec -- asc assembly/index.ts --outFile bin/m
 // fastly.toml will require a successful check for the webpack dependency.
 const AsDefaultBuildCommandForWebpack = "npm exec webpack && npm exec -- asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
 
-// AsSourceDirectory represents the source code directory.                                               │                                                           │
+// AsSourceDirectory represents the source code directory.
 const AsSourceDirectory = "assembly"
 
 // NewAssemblyScript constructs a new AssemblyScript toolchain.
 func NewAssemblyScript(
-	fastlyManifest *manifest.File,
-	globals *global.Data,
-	flags Flags,
+	c *BuildCommand,
 	in io.Reader,
-	metadataFilterEnvVars, manifestFilename string,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *AssemblyScript {
 	return &AssemblyScript{
 		Shell: Shell{},
 
-		build:                 fastlyManifest.Scripts.Build,
-		errlog:                globals.ErrLog,
+		build:                 c.Globals.Manifest.File.Scripts.Build,
+		errlog:                c.Globals.ErrLog,
 		input:                 in,
 		manifestFilename:      manifestFilename,
-		metadataFilterEnvVars: metadataFilterEnvVars,
+		metadataFilterEnvVars: c.MetadataFilterEnvVars,
 		output:                out,
-		postBuild:             fastlyManifest.Scripts.PostBuild,
+		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
 		spinner:               spinner,
-		timeout:               flags.Timeout,
-		verbose:               globals.Verbose(),
+		timeout:               c.Flags.Timeout,
+		verbose:               c.Globals.Verbose(),
 	}
 }
 

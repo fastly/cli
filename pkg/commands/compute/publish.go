@@ -136,7 +136,9 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
-	defer os.Chdir(wd)
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
 
 	projectDir, err := ChangeProjectDirectory(c.dir.Value)
 	if err != nil {

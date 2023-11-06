@@ -208,7 +208,9 @@ func TestBuildRust(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -393,7 +395,9 @@ func TestBuildGo(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -570,7 +574,9 @@ func TestBuildJavaScript(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			// NOTE: We only want to run `npm install` for the success case.
 			if testcase.npmInstall {
@@ -759,7 +765,9 @@ func TestBuildAssemblyScript(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			// NOTE: We only want to run `npm install` for the success case.
 			if testcase.npmInstall {
@@ -960,7 +968,9 @@ func TestBuildOther(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			// Make a backup of the bin/main.wasm as it will get modified by the
 			// post_build script and that will cause it to fail validation.
@@ -974,14 +984,14 @@ func TestBuildOther(t *testing.T) {
 				t.Fatal(err)
 			}
 			defer func() {
-				err := os.WriteFile(mainwasmBinPath, mainWasmBackup, 0o777)
+				err := os.WriteFile(mainwasmBinPath, mainWasmBackup, 0o600)
 				if err != nil {
 					t.Fatal(err)
 				}
 			}()
 
 			if testcase.fastlyManifest != "" {
-				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o777); err != nil {
+				if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(testcase.fastlyManifest), 0o600); err != nil {
 					t.Fatal(err)
 				}
 			}

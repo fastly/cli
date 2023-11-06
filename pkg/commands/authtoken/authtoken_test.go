@@ -363,7 +363,7 @@ func listTokens() ([]*fastly.Token, error) {
 	return vs, nil
 }
 
-func listCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
+func listCustomerTokens(_ *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
 	return listTokens()
 }
 

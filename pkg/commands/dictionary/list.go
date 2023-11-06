@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-// ListCommand calls the Fastly API to list dictionaries
+// ListCommand calls the Fastly API to list dictionaries.
 type ListCommand struct {
 	cmd.Base
 	cmd.JSONOutput
@@ -23,7 +24,7 @@ type ListCommand struct {
 	serviceVersion cmd.OptionalServiceVersion
 }
 
-// NewListCommand returns a usable command registered under the parent
+// NewListCommand returns a usable command registered under the parent.
 func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
 	c := ListCommand{
 		Base: cmd.Base{

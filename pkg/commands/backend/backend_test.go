@@ -352,7 +352,7 @@ func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	}, nil
 }
 
-func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendError(_ *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
@@ -389,7 +389,7 @@ func listBackendsOK(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	}, nil
 }
 
-func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+func listBackendsError(_ *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return nil, errTest
 }
 
@@ -544,7 +544,7 @@ func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
 	}, nil
 }
 
-func getBackendError(i *fastly.GetBackendInput) (*fastly.Backend, error) {
+func getBackendError(_ *fastly.GetBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
@@ -585,14 +585,14 @@ func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	}, nil
 }
 
-func updateBackendError(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
+func updateBackendError(_ *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
-func deleteBackendOK(i *fastly.DeleteBackendInput) error {
+func deleteBackendOK(_ *fastly.DeleteBackendInput) error {
 	return nil
 }
 
-func deleteBackendError(i *fastly.DeleteBackendInput) error {
+func deleteBackendError(_ *fastly.DeleteBackendInput) error {
 	return errTest
 }

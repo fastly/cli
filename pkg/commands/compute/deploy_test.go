@@ -82,7 +82,9 @@ func TestDeploy(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	originalPackageSizeLimit := compute.MaxPackageSize
 	args := testutil.Args
@@ -2134,7 +2136,7 @@ func TestDeploy(t *testing.T) {
 			if testcase.manifest != "" {
 				manifestContent = testcase.manifest
 			}
-			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0o777); err != nil {
+			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0o600); err != nil {
 				t.Fatal(err)
 			}
 

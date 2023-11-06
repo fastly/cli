@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestGCSCreate(t *testing.T) {
@@ -270,7 +271,7 @@ func createGCSOK(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	}, nil
 }
 
-func createGCSError(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
+func createGCSError(_ *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
@@ -317,7 +318,7 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 	}, nil
 }
 
-func listGCSsError(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
+func listGCSsError(_ *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 	return nil, errTest
 }
 
@@ -394,7 +395,7 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 	}, nil
 }
 
-func getGCSError(i *fastly.GetGCSInput) (*fastly.GCS, error) {
+func getGCSError(_ *fastly.GetGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
@@ -439,14 +440,14 @@ func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 	}, nil
 }
 
-func updateGCSError(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
+func updateGCSError(_ *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
-func deleteGCSOK(i *fastly.DeleteGCSInput) error {
+func deleteGCSOK(_ *fastly.DeleteGCSInput) error {
 	return nil
 }
 
-func deleteGCSError(i *fastly.DeleteGCSInput) error {
+func deleteGCSError(_ *fastly.DeleteGCSInput) error {
 	return errTest
 }

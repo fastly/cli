@@ -45,7 +45,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 
 	defer func(errLog fsterr.LogInterface) {
-		os.RemoveAll("pkg/package")
+		_ = os.RemoveAll("pkg/package")
 		if err != nil {
 			errLog.Add(err)
 		}

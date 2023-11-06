@@ -10,11 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // Scenario is an extension of the base TestScenario.
@@ -62,7 +63,9 @@ func TestCreate(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
 	args := testutil.Args
@@ -215,7 +218,9 @@ func TestDelete(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
 	args := testutil.Args
@@ -311,7 +316,9 @@ func TestList(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
 	args := testutil.Args
@@ -511,7 +518,9 @@ func TestSwitch(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
 	args := testutil.Args
@@ -612,7 +621,9 @@ func TestToken(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
 	args := testutil.Args
@@ -755,7 +766,9 @@ func TestUpdate(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
 	args := testutil.Args

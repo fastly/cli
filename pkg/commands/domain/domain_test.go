@@ -7,11 +7,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestDomainCreate(t *testing.T) {
@@ -342,7 +343,7 @@ func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	}, nil
 }
 
-func createDomainError(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
+func createDomainError(_ *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
@@ -363,7 +364,7 @@ func listDomainsOK(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	}, nil
 }
 
-func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsError(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, errTest
 }
 
@@ -397,7 +398,7 @@ func getDomainOK(i *fastly.GetDomainInput) (*fastly.Domain, error) {
 	}, nil
 }
 
-func getDomainError(i *fastly.GetDomainInput) (*fastly.Domain, error) {
+func getDomainError(_ *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
@@ -416,15 +417,15 @@ func updateDomainOK(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	}, nil
 }
 
-func updateDomainError(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
+func updateDomainError(_ *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
-func deleteDomainOK(i *fastly.DeleteDomainInput) error {
+func deleteDomainOK(_ *fastly.DeleteDomainInput) error {
 	return nil
 }
 
-func deleteDomainError(i *fastly.DeleteDomainInput) error {
+func deleteDomainError(_ *fastly.DeleteDomainInput) error {
 	return errTest
 }
 

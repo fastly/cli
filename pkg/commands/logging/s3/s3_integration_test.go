@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestS3Create(t *testing.T) {
@@ -330,7 +331,7 @@ func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
 	}, nil
 }
 
-func createS3Error(i *fastly.CreateS3Input) (*fastly.S3, error) {
+func createS3Error(_ *fastly.CreateS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
@@ -385,7 +386,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	}, nil
 }
 
-func listS3sError(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
+func listS3sError(_ *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	return nil, errTest
 }
 
@@ -473,7 +474,7 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 	}, nil
 }
 
-func getS3Error(i *fastly.GetS3Input) (*fastly.S3, error) {
+func getS3Error(_ *fastly.GetS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
@@ -526,15 +527,15 @@ func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 	}, nil
 }
 
-func updateS3Error(i *fastly.UpdateS3Input) (*fastly.S3, error) {
+func updateS3Error(_ *fastly.UpdateS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
-func deleteS3OK(i *fastly.DeleteS3Input) error {
+func deleteS3OK(_ *fastly.DeleteS3Input) error {
 	return nil
 }
 
-func deleteS3Error(i *fastly.DeleteS3Input) error {
+func deleteS3Error(_ *fastly.DeleteS3Input) error {
 	return errTest
 }
 

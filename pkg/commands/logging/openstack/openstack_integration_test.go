@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestOpenstackCreate(t *testing.T) {
@@ -275,7 +276,7 @@ func createOpenstackOK(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error
 	return &s, nil
 }
 
-func createOpenstackError(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
+func createOpenstackError(_ *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
@@ -324,7 +325,7 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 	}, nil
 }
 
-func listOpenstacksError(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
+func listOpenstacksError(_ *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
 	return nil, errTest
 }
 
@@ -404,7 +405,7 @@ func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	}, nil
 }
 
-func getOpenstackError(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
+func getOpenstackError(_ *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
@@ -451,15 +452,15 @@ func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error
 	}, nil
 }
 
-func updateOpenstackError(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
+func updateOpenstackError(_ *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
-func deleteOpenstackOK(i *fastly.DeleteOpenstackInput) error {
+func deleteOpenstackOK(_ *fastly.DeleteOpenstackInput) error {
 	return nil
 }
 
-func deleteOpenstackError(i *fastly.DeleteOpenstackInput) error {
+func deleteOpenstackError(_ *fastly.DeleteOpenstackInput) error {
 	return errTest
 }
 

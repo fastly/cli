@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestConditionCreate(t *testing.T) {
@@ -277,12 +278,12 @@ Version: 1
 var errTest = errors.New("fixture error")
 
 func createConditionOK(i *fastly.CreateConditionInput) (*fastly.Condition, error) {
-	var priority int = 10
+	priority := 10
 	if i.Priority != nil {
 		priority = *i.Priority
 	}
 
-	var conditionType string = "REQUEST"
+	conditionType := "REQUEST"
 	if i.Type != nil {
 		conditionType = *i.Type
 	}
@@ -297,30 +298,30 @@ func createConditionOK(i *fastly.CreateConditionInput) (*fastly.Condition, error
 	}, nil
 }
 
-func createConditionError(i *fastly.CreateConditionInput) (*fastly.Condition, error) {
+func createConditionError(_ *fastly.CreateConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
-func deleteConditionOK(i *fastly.DeleteConditionInput) error {
+func deleteConditionOK(_ *fastly.DeleteConditionInput) error {
 	return nil
 }
 
-func deleteConditionError(i *fastly.DeleteConditionInput) error {
+func deleteConditionError(_ *fastly.DeleteConditionInput) error {
 	return errTest
 }
 
 func updateConditionOK(i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
-	var priority int = 10
+	priority := 10
 	if i.Priority != nil {
 		priority = *i.Priority
 	}
 
-	var conditionType string = "REQUEST"
+	conditionType := "REQUEST"
 	if i.Type != nil {
 		conditionType = *i.Type
 	}
 
-	var statement string = "false"
+	statement := "false"
 	if i.Statement != nil {
 		statement = *i.Type
 	}
@@ -335,14 +336,14 @@ func updateConditionOK(i *fastly.UpdateConditionInput) (*fastly.Condition, error
 	}, nil
 }
 
-func updateConditionError(i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
+func updateConditionError(_ *fastly.UpdateConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
 func getConditionOK(i *fastly.GetConditionInput) (*fastly.Condition, error) {
-	var priority int = 10
-	var conditionType string = "CACHE"
-	var statement string = "false"
+	priority := 10
+	conditionType := "CACHE"
+	statement := "false"
 
 	return &fastly.Condition{
 		ServiceID:      i.ServiceID,
@@ -354,7 +355,7 @@ func getConditionOK(i *fastly.GetConditionInput) (*fastly.Condition, error) {
 	}, nil
 }
 
-func getConditionError(i *fastly.GetConditionInput) (*fastly.Condition, error) {
+func getConditionError(_ *fastly.GetConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
@@ -379,6 +380,6 @@ func listConditionsOK(i *fastly.ListConditionsInput) ([]*fastly.Condition, error
 	}, nil
 }
 
-func listConditionsError(i *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
+func listConditionsError(_ *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
 	return nil, errTest
 }

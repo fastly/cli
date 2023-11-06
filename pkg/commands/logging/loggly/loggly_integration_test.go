@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestLogglyCreate(t *testing.T) {
@@ -267,7 +268,7 @@ func createLogglyOK(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 	return &s, nil
 }
 
-func createLogglyError(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
+func createLogglyError(_ *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 	return nil, errTest
 }
 
@@ -296,7 +297,7 @@ func listLogglysOK(i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
 	}, nil
 }
 
-func listLogglysError(i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
+func listLogglysError(_ *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
 	return nil, errTest
 }
 
@@ -346,7 +347,7 @@ func getLogglyOK(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	}, nil
 }
 
-func getLogglyError(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
+func getLogglyError(_ *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	return nil, errTest
 }
 
@@ -373,14 +374,14 @@ func updateLogglyOK(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
 	}, nil
 }
 
-func updateLogglyError(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
+func updateLogglyError(_ *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
 	return nil, errTest
 }
 
-func deleteLogglyOK(i *fastly.DeleteLogglyInput) error {
+func deleteLogglyOK(_ *fastly.DeleteLogglyInput) error {
 	return nil
 }
 
-func deleteLogglyError(i *fastly.DeleteLogglyInput) error {
+func deleteLogglyError(_ *fastly.DeleteLogglyInput) error {
 	return errTest
 }

@@ -442,7 +442,7 @@ func updateDictionaryItemOK(i *fastly.UpdateDictionaryItemInput) (*fastly.Dictio
 	}, nil
 }
 
-func deleteDictionaryItemOK(i *fastly.DeleteDictionaryItemInput) error {
+func deleteDictionaryItemOK(_ *fastly.DeleteDictionaryItemInput) error {
 	return nil
 }
 
@@ -471,11 +471,11 @@ var dictionaryItemBatchModifyInputOK = `
 	]
 }`
 
-func batchModifyDictionaryItemsOK(i *fastly.BatchModifyDictionaryItemsInput) error {
+func batchModifyDictionaryItemsOK(_ *fastly.BatchModifyDictionaryItemsInput) error {
 	return nil
 }
 
-func batchModifyDictionaryItemsError(i *fastly.BatchModifyDictionaryItemsInput) error {
+func batchModifyDictionaryItemsError(_ *fastly.BatchModifyDictionaryItemsInput) error {
 	return errTest
 }
 

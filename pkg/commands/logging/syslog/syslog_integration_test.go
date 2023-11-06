@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestSyslogCreate(t *testing.T) {
@@ -262,7 +263,7 @@ func createSyslogOK(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	}, nil
 }
 
-func createSyslogError(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
+func createSyslogError(_ *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
@@ -311,7 +312,7 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 	}, nil
 }
 
-func listSyslogsError(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
+func listSyslogsError(_ *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 	return nil, errTest
 }
 
@@ -391,7 +392,7 @@ func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	}, nil
 }
 
-func getSyslogError(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
+func getSyslogError(_ *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
@@ -439,14 +440,14 @@ func updateSyslogOK(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	}, nil
 }
 
-func updateSyslogError(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
+func updateSyslogError(_ *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
-func deleteSyslogOK(i *fastly.DeleteSyslogInput) error {
+func deleteSyslogOK(_ *fastly.DeleteSyslogInput) error {
 	return nil
 }
 
-func deleteSyslogError(i *fastly.DeleteSyslogInput) error {
+func deleteSyslogError(_ *fastly.DeleteSyslogInput) error {
 	return errTest
 }

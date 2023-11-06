@@ -60,14 +60,14 @@ import (
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/stats"
-	tlsConfig "github.com/fastly/cli/pkg/commands/tls/config"
-	tlsCustom "github.com/fastly/cli/pkg/commands/tls/custom"
-	tlsCustomActivation "github.com/fastly/cli/pkg/commands/tls/custom/activation"
-	tlsCustomCertificate "github.com/fastly/cli/pkg/commands/tls/custom/certificate"
-	tlsCustomDomain "github.com/fastly/cli/pkg/commands/tls/custom/domain"
-	tlsCustomPrivateKey "github.com/fastly/cli/pkg/commands/tls/custom/privatekey"
-	tlsPlatform "github.com/fastly/cli/pkg/commands/tls/platform"
-	tlsSubscription "github.com/fastly/cli/pkg/commands/tls/subscription"
+	tlsconfig "github.com/fastly/cli/pkg/commands/tls/config"
+	tlscustom "github.com/fastly/cli/pkg/commands/tls/custom"
+	tlscustomactivation "github.com/fastly/cli/pkg/commands/tls/custom/activation"
+	tlscustomcertificate "github.com/fastly/cli/pkg/commands/tls/custom/certificate"
+	tlscustomdomain "github.com/fastly/cli/pkg/commands/tls/custom/domain"
+	tlscustomprivatekey "github.com/fastly/cli/pkg/commands/tls/custom/privatekey"
+	tlsplatform "github.com/fastly/cli/pkg/commands/tls/platform"
+	tlssubscription "github.com/fastly/cli/pkg/commands/tls/subscription"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/commands/vcl"
@@ -386,42 +386,42 @@ func defineCommands(
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, g, m)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, g, m)
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, g)
-	tlsConfigCmdRoot := tlsConfig.NewRootCommand(app, g)
-	tlsConfigDescribe := tlsConfig.NewDescribeCommand(tlsConfigCmdRoot.CmdClause, g, m)
-	tlsConfigList := tlsConfig.NewListCommand(tlsConfigCmdRoot.CmdClause, g, m)
-	tlsConfigUpdate := tlsConfig.NewUpdateCommand(tlsConfigCmdRoot.CmdClause, g, m)
-	tlsCustomCmdRoot := tlsCustom.NewRootCommand(app, g)
-	tlsCustomActivationCmdRoot := tlsCustomActivation.NewRootCommand(tlsCustomCmdRoot.CmdClause, g)
-	tlsCustomActivationCreate := tlsCustomActivation.NewCreateCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
-	tlsCustomActivationDelete := tlsCustomActivation.NewDeleteCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
-	tlsCustomActivationDescribe := tlsCustomActivation.NewDescribeCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
-	tlsCustomActivationList := tlsCustomActivation.NewListCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
-	tlsCustomActivationUpdate := tlsCustomActivation.NewUpdateCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
-	tlsCustomCertificateCmdRoot := tlsCustomCertificate.NewRootCommand(tlsCustomCmdRoot.CmdClause, g)
-	tlsCustomCertificateCreate := tlsCustomCertificate.NewCreateCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
-	tlsCustomCertificateDelete := tlsCustomCertificate.NewDeleteCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
-	tlsCustomCertificateDescribe := tlsCustomCertificate.NewDescribeCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
-	tlsCustomCertificateList := tlsCustomCertificate.NewListCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
-	tlsCustomCertificateUpdate := tlsCustomCertificate.NewUpdateCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
-	tlsCustomDomainCmdRoot := tlsCustomDomain.NewRootCommand(tlsCustomCmdRoot.CmdClause, g)
-	tlsCustomDomainList := tlsCustomDomain.NewListCommand(tlsCustomDomainCmdRoot.CmdClause, g, m)
-	tlsCustomPrivateKeyCmdRoot := tlsCustomPrivateKey.NewRootCommand(tlsCustomCmdRoot.CmdClause, g)
-	tlsCustomPrivateKeyCreate := tlsCustomPrivateKey.NewCreateCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, g, m)
-	tlsCustomPrivateKeyDelete := tlsCustomPrivateKey.NewDeleteCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, g, m)
-	tlsCustomPrivateKeyDescribe := tlsCustomPrivateKey.NewDescribeCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, g, m)
-	tlsCustomPrivateKeyList := tlsCustomPrivateKey.NewListCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, g, m)
-	tlsPlatformCmdRoot := tlsPlatform.NewRootCommand(app, g)
-	tlsPlatformCreate := tlsPlatform.NewCreateCommand(tlsPlatformCmdRoot.CmdClause, g, m)
-	tlsPlatformDelete := tlsPlatform.NewDeleteCommand(tlsPlatformCmdRoot.CmdClause, g, m)
-	tlsPlatformDescribe := tlsPlatform.NewDescribeCommand(tlsPlatformCmdRoot.CmdClause, g, m)
-	tlsPlatformList := tlsPlatform.NewListCommand(tlsPlatformCmdRoot.CmdClause, g, m)
-	tlsPlatformUpdate := tlsPlatform.NewUpdateCommand(tlsPlatformCmdRoot.CmdClause, g, m)
-	tlsSubscriptionCmdRoot := tlsSubscription.NewRootCommand(app, g)
-	tlsSubscriptionCreate := tlsSubscription.NewCreateCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
-	tlsSubscriptionDelete := tlsSubscription.NewDeleteCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
-	tlsSubscriptionDescribe := tlsSubscription.NewDescribeCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
-	tlsSubscriptionList := tlsSubscription.NewListCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
-	tlsSubscriptionUpdate := tlsSubscription.NewUpdateCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
+	tlsConfigCmdRoot := tlsconfig.NewRootCommand(app, g)
+	tlsConfigDescribe := tlsconfig.NewDescribeCommand(tlsConfigCmdRoot.CmdClause, g, m)
+	tlsConfigList := tlsconfig.NewListCommand(tlsConfigCmdRoot.CmdClause, g, m)
+	tlsConfigUpdate := tlsconfig.NewUpdateCommand(tlsConfigCmdRoot.CmdClause, g, m)
+	tlsCustomCmdRoot := tlscustom.NewRootCommand(app, g)
+	tlsCustomActivationCmdRoot := tlscustomactivation.NewRootCommand(tlsCustomCmdRoot.CmdClause, g)
+	tlsCustomActivationCreate := tlscustomactivation.NewCreateCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
+	tlsCustomActivationDelete := tlscustomactivation.NewDeleteCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
+	tlsCustomActivationDescribe := tlscustomactivation.NewDescribeCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
+	tlsCustomActivationList := tlscustomactivation.NewListCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
+	tlsCustomActivationUpdate := tlscustomactivation.NewUpdateCommand(tlsCustomActivationCmdRoot.CmdClause, g, m)
+	tlsCustomCertificateCmdRoot := tlscustomcertificate.NewRootCommand(tlsCustomCmdRoot.CmdClause, g)
+	tlsCustomCertificateCreate := tlscustomcertificate.NewCreateCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
+	tlsCustomCertificateDelete := tlscustomcertificate.NewDeleteCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
+	tlsCustomCertificateDescribe := tlscustomcertificate.NewDescribeCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
+	tlsCustomCertificateList := tlscustomcertificate.NewListCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
+	tlsCustomCertificateUpdate := tlscustomcertificate.NewUpdateCommand(tlsCustomCertificateCmdRoot.CmdClause, g, m)
+	tlsCustomDomainCmdRoot := tlscustomdomain.NewRootCommand(tlsCustomCmdRoot.CmdClause, g)
+	tlsCustomDomainList := tlscustomdomain.NewListCommand(tlsCustomDomainCmdRoot.CmdClause, g, m)
+	tlsCustomPrivateKeyCmdRoot := tlscustomprivatekey.NewRootCommand(tlsCustomCmdRoot.CmdClause, g)
+	tlsCustomPrivateKeyCreate := tlscustomprivatekey.NewCreateCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, g, m)
+	tlsCustomPrivateKeyDelete := tlscustomprivatekey.NewDeleteCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, g, m)
+	tlsCustomPrivateKeyDescribe := tlscustomprivatekey.NewDescribeCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, g, m)
+	tlsCustomPrivateKeyList := tlscustomprivatekey.NewListCommand(tlsCustomPrivateKeyCmdRoot.CmdClause, g, m)
+	tlsPlatformCmdRoot := tlsplatform.NewRootCommand(app, g)
+	tlsPlatformCreate := tlsplatform.NewCreateCommand(tlsPlatformCmdRoot.CmdClause, g, m)
+	tlsPlatformDelete := tlsplatform.NewDeleteCommand(tlsPlatformCmdRoot.CmdClause, g, m)
+	tlsPlatformDescribe := tlsplatform.NewDescribeCommand(tlsPlatformCmdRoot.CmdClause, g, m)
+	tlsPlatformList := tlsplatform.NewListCommand(tlsPlatformCmdRoot.CmdClause, g, m)
+	tlsPlatformUpdate := tlsplatform.NewUpdateCommand(tlsPlatformCmdRoot.CmdClause, g, m)
+	tlsSubscriptionCmdRoot := tlssubscription.NewRootCommand(app, g)
+	tlsSubscriptionCreate := tlssubscription.NewCreateCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
+	tlsSubscriptionDelete := tlssubscription.NewDeleteCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
+	tlsSubscriptionDescribe := tlssubscription.NewDescribeCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
+	tlsSubscriptionList := tlssubscription.NewListCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
+	tlsSubscriptionUpdate := tlssubscription.NewUpdateCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
 	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.Versioners.CLI, g)
 	userCmdRoot := user.NewRootCommand(app, g)
 	userCreate := user.NewCreateCommand(userCmdRoot.CmdClause, g, m)

@@ -88,7 +88,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -114,7 +114,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	r, err := c.Globals.APIClient.CreateCondition(&input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})

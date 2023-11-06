@@ -139,7 +139,7 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 	case "": // no --version flag provided
 		v, err = GetActiveVersion(vs)
 		if err != nil {
-			return vs[0], nil // if no active version, return latest version
+			return vs[0], nil //lint:ignore nilerr if no active version, return latest version
 		}
 	default:
 		v, err = GetSpecifiedVersion(vs, sv.Value)

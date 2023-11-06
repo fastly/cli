@@ -189,12 +189,8 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 
 	filteredFiles := make([]fs.DirEntry, 0)
 	for _, file := range allFiles {
-		hidden, err := isHiddenFile(file.Name())
-		if err != nil {
-			return err
-		}
 		// Skip directories/symlinks OR any hidden files unless the user allows them.
-		if !file.Type().IsRegular() || (file.Type().IsRegular() && hidden && !c.dirAllowHidden) {
+		if !file.Type().IsRegular() || (file.Type().IsRegular() && isHiddenFile(file.Name()) && !c.dirAllowHidden) {
 			continue
 		}
 		filteredFiles = append(filteredFiles, file)

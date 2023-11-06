@@ -79,7 +79,7 @@ func TestManifest(t *testing.T) {
 		}
 
 		defer func(path string, b []byte) {
-			err := os.WriteFile(path, b, 0o644)
+			err := os.WriteFile(path, b, 0o600)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -152,7 +152,7 @@ func TestManifestPrepend(t *testing.T) {
 		}
 
 		defer func(path string, b []byte) {
-			err := os.WriteFile(path, b, 0o644)
+			err := os.WriteFile(path, b, 0o600)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -178,7 +178,9 @@ func TestManifestPrepend(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
 	var f manifest.File
@@ -243,7 +245,7 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 	}
 
 	defer func(fpath string, b []byte) {
-		err := os.WriteFile(fpath, b, 0o644)
+		err := os.WriteFile(fpath, b, 0o600)
 		if err != nil {
 			t.Fatal(err)
 		}
