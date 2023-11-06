@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestHTTPSCreate(t *testing.T) {
@@ -279,7 +280,7 @@ func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func createHTTPSError(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
+func createHTTPSError(_ *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
@@ -332,7 +333,7 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	}, nil
 }
 
-func listHTTPSsError(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
+func listHTTPSsError(_ *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
@@ -418,7 +419,7 @@ func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func getHTTPSError(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
+func getHTTPSError(_ *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
@@ -470,14 +471,14 @@ func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func updateHTTPSError(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
+func updateHTTPSError(_ *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
-func deleteHTTPSOK(i *fastly.DeleteHTTPSInput) error {
+func deleteHTTPSOK(_ *fastly.DeleteHTTPSInput) error {
 	return nil
 }
 
-func deleteHTTPSError(i *fastly.DeleteHTTPSInput) error {
+func deleteHTTPSError(_ *fastly.DeleteHTTPSInput) error {
 	return errTest
 }

@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestHealthCheckCreate(t *testing.T) {
@@ -278,7 +279,7 @@ func createHealthCheckOK(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck,
 	}, nil
 }
 
-func createHealthCheckError(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
+func createHealthCheckError(_ *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
@@ -305,7 +306,7 @@ func listHealthChecksOK(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck,
 	}, nil
 }
 
-func listHealthChecksError(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
+func listHealthChecksError(_ *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
@@ -362,7 +363,7 @@ func getHealthCheckOK(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error
 	}, nil
 }
 
-func getHealthCheckError(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
+func getHealthCheckError(_ *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
@@ -391,14 +392,14 @@ func updateHealthCheckOK(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck,
 	}, nil
 }
 
-func updateHealthCheckError(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
+func updateHealthCheckError(_ *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
-func deleteHealthCheckOK(i *fastly.DeleteHealthCheckInput) error {
+func deleteHealthCheckOK(_ *fastly.DeleteHealthCheckInput) error {
 	return nil
 }
 
-func deleteHealthCheckError(i *fastly.DeleteHealthCheckInput) error {
+func deleteHealthCheckError(_ *fastly.DeleteHealthCheckInput) error {
 	return errTest
 }

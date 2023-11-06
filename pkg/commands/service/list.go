@@ -74,7 +74,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 			activeVersion := fmt.Sprint(service.ActiveVersion)
 			for _, v := range service.Versions {
-				if int(v.Number) == service.ActiveVersion && !v.Active {
+				if v.Number == service.ActiveVersion && !v.Active {
 					activeVersion = "n/a"
 				}
 			}

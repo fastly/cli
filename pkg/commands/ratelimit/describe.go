@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -48,12 +49,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	input, err := c.constructInput()
-	if err != nil {
-		return err
-	}
-
-	o, err := c.Globals.APIClient.GetERL(input)
+	o, err := c.Globals.APIClient.GetERL(c.constructInput())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -68,12 +64,10 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *DescribeCommand) constructInput() (*fastly.GetERLInput, error) {
+func (c *DescribeCommand) constructInput() *fastly.GetERLInput {
 	var input fastly.GetERLInput
-
 	input.ERLID = c.id
-
-	return &input, nil
+	return &input
 }
 
 // print displays the information returned from the API.

@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestPapertrailCreate(t *testing.T) {
@@ -262,7 +263,7 @@ func createPapertrailOK(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, er
 	}, nil
 }
 
-func createPapertrailError(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
+func createPapertrailError(_ *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
 	return nil, errTest
 }
 
@@ -293,7 +294,7 @@ func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, er
 	}, nil
 }
 
-func listPapertrailsError(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
+func listPapertrailsError(_ *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
 	return nil, errTest
 }
 
@@ -346,7 +347,7 @@ func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	}, nil
 }
 
-func getPapertrailError(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
+func getPapertrailError(_ *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	return nil, errTest
 }
 
@@ -376,14 +377,14 @@ func updatePapertrailOK(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, er
 	}, nil
 }
 
-func updatePapertrailError(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
+func updatePapertrailError(_ *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
 	return nil, errTest
 }
 
-func deletePapertrailOK(i *fastly.DeletePapertrailInput) error {
+func deletePapertrailOK(_ *fastly.DeletePapertrailInput) error {
 	return nil
 }
 
-func deletePapertrailError(i *fastly.DeletePapertrailInput) error {
+func deletePapertrailError(_ *fastly.DeletePapertrailInput) error {
 	return errTest
 }

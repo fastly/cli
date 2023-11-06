@@ -17,12 +17,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/tomnomnom/linkheader"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
-	"github.com/tomnomnom/linkheader"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -175,7 +176,7 @@ func (c *RootCommand) tail(out io.Writer) {
 
 			// Reuse the connection for the retry, or cleanup in the
 			// case of Exit.
-			io.Copy(io.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			err := resp.Body.Close()
 			if err != nil {
 				c.Globals.ErrLog.Add(err)
@@ -268,12 +269,12 @@ func (c *RootCommand) adjustTimes() {
 	if c.cfg.from != 0 {
 		// Adjust from based on search padding, we want to
 		// look back further.
-		c.cfg.from = c.cfg.from - int64(c.cfg.searchPadding.Seconds())
+		c.cfg.from -= int64(c.cfg.searchPadding.Seconds())
 	}
 
 	if c.cfg.to != 0 {
 		// Adjust to based on search padding, we want look forward more.
-		c.cfg.to = c.cfg.to + int64(c.cfg.searchPadding.Seconds())
+		c.cfg.to += int64(c.cfg.searchPadding.Seconds())
 	}
 }
 
@@ -285,7 +286,7 @@ func (c *RootCommand) enableManagedLogging(out io.Writer) error {
 		return err
 	}
 
-	text.Info(out, "Managed logging enabled on service %s", c.Input.ServiceID)
+	text.Info(out, "Managed logging enabled on service %s\n\n", c.Input.ServiceID)
 	return nil
 }
 
@@ -345,15 +346,14 @@ func (c *RootCommand) outputLoop(out io.Writer) {
 						return reqLogs.logs[i].SequenceNum < reqLogs.logs[j].SequenceNum
 					})
 
-				// Check to see if we already have a timer
-				// running or if the current high sequence is
-				// higher than the one with the timer.
-				// The timer will always be running on the head
-				// of the slice.
-				recv := reqLogs.receives
-
+				// Check to see if we already have a timer running or if the current
+				// high sequence is higher than the one with the timer.
+				// The timer will always be running on the head of the slice.
 				// In either case append to the receives slice.
+				recv := reqLogs.receives
 				if len(recv) == 0 || recv[0].highSeq < highSeq {
+					// NOTE: gocritic will warn about appendAssign but we ignore it.
+					// Because if we try to address it the code fails to work at runtime.
 					reqLogs.receives = append(recv, receive{
 						when:    time.Now(),
 						highSeq: highSeq,
@@ -550,7 +550,7 @@ func makeNewPath(out io.Writer, path string, window int64, batchID string) strin
 	return basePath.String()
 }
 
-// splitByReqID splits slices of logs based on RequestID,
+// splitByReqID splits slices of logs based on RequestID.
 func splitByReqID(in []Log) map[string][]Log {
 	out := make(map[string][]Log)
 	for _, l := range in {

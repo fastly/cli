@@ -42,8 +42,7 @@ var viceroyError = fsterr.RemediationError{
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
 	cmd.Base
-	build            *BuildCommand
-	viceroyVersioner github.AssetVersioner
+	build *BuildCommand
 
 	// Build fields
 	dir                   cmd.OptionalString
@@ -55,18 +54,21 @@ type ServeCommand struct {
 	packageName           cmd.OptionalString
 	timeout               cmd.OptionalInt
 
-	// Serve fields
-	addr                    string
-	debug                   bool
-	env                     cmd.OptionalString
-	file                    string
-	forceCheckViceroyLatest bool
-	profileGuest            bool
-	profileGuestDir         cmd.OptionalString
-	skipBuild               bool
-	viceroyBinPath          string
-	watch                   bool
-	watchDir                cmd.OptionalString
+	// Serve public fields (public for testing purposes)
+	ForceCheckViceroyLatest bool
+	ViceroyBinPath          string
+	ViceroyVersioner        github.AssetVersioner
+
+	// Serve private fields
+	addr            string
+	debug           bool
+	env             cmd.OptionalString
+	file            string
+	profileGuest    bool
+	profileGuestDir cmd.OptionalString
+	skipBuild       bool
+	watch           bool
+	watchDir        cmd.OptionalString
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -74,7 +76,7 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	var c ServeCommand
 
 	c.build = build
-	c.viceroyVersioner = viceroyVersioner
+	c.ViceroyVersioner = viceroyVersioner
 
 	c.Globals = g
 	c.CmdClause = parent.Command("serve", "Build and run a Compute package locally")
@@ -92,8 +94,8 @@ func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand,
 	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
-	c.CmdClause.Flag("viceroy-check", "Force the CLI to check for a newer version of the Viceroy binary").BoolVar(&c.forceCheckViceroyLatest)
-	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.viceroyBinPath)
+	c.CmdClause.Flag("viceroy-check", "Force the CLI to check for a newer version of the Viceroy binary").BoolVar(&c.ForceCheckViceroyLatest)
+	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.ViceroyBinPath)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
 	c.CmdClause.Flag("watch-dir", "The directory to watch files from (can be relative or absolute). Defaults to current directory.").Action(c.watchDir.Set).StringVar(&c.watchDir.Value)
 
@@ -136,7 +138,9 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
-	defer os.Chdir(wd)
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
 	manifestPath := filepath.Join(wd, manifestFilename)
 
 	projectDir, err := ChangeProjectDirectory(c.dir.Value)
@@ -171,13 +175,13 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return fmt.Errorf("failed to parse manifest '%s': %w", manifestPath, err)
 		}
-		c.viceroyVersioner.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
+		c.ViceroyVersioner.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
 		if c.Globals.Verbose() {
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
 		}
 	}
 
-	bin, err := GetViceroy(spinner, out, c.viceroyVersioner, c.Globals, manifestPath, c.viceroyBinPath, c.forceCheckViceroyLatest)
+	bin, err := c.GetViceroy(spinner, out, manifestPath)
 	if err != nil {
 		return err
 	}
@@ -307,19 +311,12 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 //
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
-func GetViceroy(
-	spinner text.Spinner,
-	out io.Writer,
-	viceroyVersioner github.AssetVersioner,
-	g *global.Data,
-	manifestPath, viceroyBinPath string,
-	forceCheckViceroyLatest bool,
-) (bin string, err error) {
-	if viceroyBinPath != "" {
-		if g.Verbose() {
-			text.Info(out, "Using user provided install of Viceroy via --viceroy-path flag: %s\n\n", viceroyBinPath)
+func (c *ServeCommand) GetViceroy(spinner text.Spinner, out io.Writer, manifestPath string) (bin string, err error) {
+	if c.ViceroyBinPath != "" {
+		if c.Globals.Verbose() {
+			text.Info(out, "Using user provided install of Viceroy via --viceroy-path flag: %s\n\n", c.ViceroyBinPath)
 		}
-		return filepath.Abs(viceroyBinPath)
+		return filepath.Abs(c.ViceroyBinPath)
 	}
 
 	// Allows a user to use a version of Viceroy that is installed in the $PATH.
@@ -328,13 +325,13 @@ func GetViceroy(
 		if err != nil {
 			return "", fmt.Errorf("failed to lookup viceroy binary in user $PATH (user has set $FASTLY_VICEROY_USE_PATH): %w", err)
 		}
-		if g.Verbose() {
+		if c.Globals.Verbose() {
 			text.Info(out, "Using user provided install of Viceroy via $PATH lookup: %s\n\n", path)
 		}
 		return filepath.Abs(path)
 	}
 
-	bin = filepath.Join(github.InstallDir, viceroyVersioner.BinaryName())
+	bin = filepath.Join(github.InstallDir, c.ViceroyVersioner.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
 	// exec.LookPath("viceroy") because PATH is unreliable across OS platforms,
@@ -348,13 +345,13 @@ func GetViceroy(
 	// Disabling as the variables come from trusted sources.
 	/* #nosec */
 	// nosemgrep
-	c := exec.Command(bin, "--version")
+	command := exec.Command(bin, "--version")
 
 	var installedVersion string
 
-	stdoutStderr, err := c.CombinedOutput()
+	stdoutStderr, err := command.CombinedOutput()
 	if err != nil {
-		g.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 	} else {
 		// Check the version output has the expected format: `viceroy 0.1.0`
 		installedVersion = strings.TrimSpace(string(stdoutStderr))
@@ -368,7 +365,7 @@ func GetViceroy(
 	// If the user hasn't explicitly set a Viceroy version, then we'll use
 	// whatever the latest version is.
 	versionToInstall := "latest"
-	if v := viceroyVersioner.RequestedVersion(); v != "" {
+	if v := c.ViceroyVersioner.RequestedVersion(); v != "" {
 		versionToInstall = v
 
 		if _, err := semver.Parse(versionToInstall); err != nil {
@@ -379,15 +376,15 @@ func GetViceroy(
 		}
 	}
 
-	err = installViceroy(installedVersion, versionToInstall, manifestPath, forceCheckViceroyLatest, spinner, viceroyVersioner, bin, g)
+	err = c.InstallViceroy(installedVersion, versionToInstall, manifestPath, bin, spinner)
 	if err != nil {
-		g.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return bin, err
 	}
 
 	err = github.SetBinPerms(bin)
 	if err != nil {
-		g.ErrLog.Add(err)
+		c.Globals.ErrLog.Add(err)
 		return bin, err
 	}
 	return bin, nil
@@ -403,20 +400,16 @@ func checkViceroyEnvVar(value string) bool {
 	return false
 }
 
-// installViceroy downloads the binary from GitHub.
+// InstallViceroy downloads the binary from GitHub.
 //
 // The logic flow is as follows:
 //
 // 1. Check if version to install is "latest"
 // 2. If so, check the latest release matches the installed version.
 // 3. If not latest, check the installed version matches the expected version.
-func installViceroy(
-	installedVersion, versionToInstall, manifestPath string,
-	forceCheckViceroyLatest bool,
+func (c *ServeCommand) InstallViceroy(
+	installedVersion, versionToInstall, manifestPath, bin string,
 	spinner text.Spinner,
-	av github.AssetVersioner,
-	bin string,
-	g *global.Data,
 ) error {
 	var (
 		err         error
@@ -425,8 +418,8 @@ func installViceroy(
 
 	switch {
 	case installedVersion == "": // Viceroy not installed
-		if g.Verbose() {
-			text.Info(g.Output, "Viceroy is not already installed, so we will install the %s version.\n\n", versionToInstall)
+		if c.Globals.Verbose() {
+			text.Info(c.Globals.Output, "Viceroy is not already installed, so we will install the %s version.\n\n", versionToInstall)
 		}
 		err = spinner.Start()
 		if err != nil {
@@ -436,19 +429,19 @@ func installViceroy(
 		spinner.Message(msg + "...")
 
 		if versionToInstall == "latest" {
-			tmpBin, err = av.DownloadLatest()
+			tmpBin, err = c.ViceroyVersioner.DownloadLatest()
 		} else {
-			tmpBin, err = av.DownloadVersion(versionToInstall)
+			tmpBin, err = c.ViceroyVersioner.DownloadVersion(versionToInstall)
 		}
 	case versionToInstall != "latest":
 		if installedVersion == versionToInstall {
-			if g.Verbose() {
-				text.Info(g.Output, "Viceroy is already installed, and the installed version matches the required version (%s) in the %s file.\n\n", versionToInstall, manifestPath)
+			if c.Globals.Verbose() {
+				text.Info(c.Globals.Output, "Viceroy is already installed, and the installed version matches the required version (%s) in the %s file.\n\n", versionToInstall, manifestPath)
 			}
 			return nil
 		}
-		if g.Verbose() {
-			text.Info(g.Output, "Viceroy is already installed, but the installed version (%s) doesn't match the required version (%s) specified in the %s file.\n\n", installedVersion, versionToInstall, manifestPath)
+		if c.Globals.Verbose() {
+			text.Info(c.Globals.Output, "Viceroy is already installed, but the installed version (%s) doesn't match the required version (%s) specified in the %s file.\n\n", installedVersion, versionToInstall, manifestPath)
 		}
 
 		err = spinner.Start()
@@ -458,15 +451,15 @@ func installViceroy(
 		msg = fmt.Sprintf("Fetching Viceroy release: %s", versionToInstall)
 		spinner.Message(msg + "...")
 
-		tmpBin, err = av.DownloadVersion(versionToInstall)
+		tmpBin, err = c.ViceroyVersioner.DownloadVersion(versionToInstall)
 	case versionToInstall == "latest":
 		// Viceroy is already installed, so we check if the installed version matches the latest.
 		// But we'll skip that check if the TTL for the Viceroy LastChecked hasn't expired.
 
-		stale := check.Stale(g.Config.Viceroy.LastChecked, g.Config.Viceroy.TTL)
-		if !stale && !forceCheckViceroyLatest {
-			if g.Verbose() {
-				text.Info(g.Output, "Viceroy is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired. To force a refresh, re-run the command with the `--viceroy-check` flag.\n\n")
+		stale := check.Stale(c.Globals.Config.Viceroy.LastChecked, c.Globals.Config.Viceroy.TTL)
+		if !stale && !c.ForceCheckViceroyLatest {
+			if c.Globals.Verbose() {
+				text.Info(c.Globals.Output, "Viceroy is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired. To force a refresh, re-run the command with the `--viceroy-check` flag.\n\n")
 			}
 			return nil
 		}
@@ -475,7 +468,7 @@ func installViceroy(
 		var latestVersion string
 
 		err = spinner.Process("Checking latest Viceroy release", func(_ *text.SpinnerWrapper) error {
-			latestVersion, err = av.LatestVersion()
+			latestVersion, err = c.ViceroyVersioner.LatestVersion()
 			if err != nil {
 				return fsterr.RemediationError{
 					Inner:       fmt.Errorf("error fetching latest version: %w", err),
@@ -488,21 +481,21 @@ func installViceroy(
 			return err
 		}
 
-		viceroyConfig := g.Config.Viceroy
+		viceroyConfig := c.Globals.Config.Viceroy
 		viceroyConfig.LatestVersion = latestVersion
 		viceroyConfig.LastChecked = time.Now().Format(time.RFC3339)
 
 		// Before attempting to write the config data back to disk we need to
 		// ensure we reassign the modified struct which is a copy (not reference).
-		g.Config.Viceroy = viceroyConfig
+		c.Globals.Config.Viceroy = viceroyConfig
 
-		err = g.Config.Write(g.ConfigPath)
+		err = c.Globals.Config.Write(c.Globals.ConfigPath)
 		if err != nil {
 			return err
 		}
 
-		if g.Verbose() {
-			text.Info(g.Output, "\nThe CLI config (`fastly config`) has been updated with the latest Viceroy version: %s\n\n", latestVersion)
+		if c.Globals.Verbose() {
+			text.Info(c.Globals.Output, "\nThe CLI config (`fastly config`) has been updated with the latest Viceroy version: %s\n\n", latestVersion)
 		}
 
 		if installedVersion != "" && installedVersion == latestVersion {
@@ -516,7 +509,7 @@ func installViceroy(
 		msg = fmt.Sprintf("Fetching Viceroy release: %s", versionToInstall)
 		spinner.Message(msg + "...")
 
-		tmpBin, err = av.DownloadLatest()
+		tmpBin, err = c.ViceroyVersioner.DownloadLatest()
 	}
 
 	// NOTE: The above `switch` needs to shadow the function-level `err` variable.

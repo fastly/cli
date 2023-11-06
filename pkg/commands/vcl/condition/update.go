@@ -117,7 +117,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	r, err := c.Globals.APIClient.UpdateCondition(&c.input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": serviceVersion.Number,
 		})

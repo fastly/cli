@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestDatadogCreate(t *testing.T) {
@@ -267,7 +268,7 @@ func createDatadogOK(i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 	return &s, nil
 }
 
-func createDatadogError(i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
+func createDatadogError(_ *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 	return nil, errTest
 }
 
@@ -298,7 +299,7 @@ func listDatadogsOK(i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 	}, nil
 }
 
-func listDatadogsError(i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
+func listDatadogsError(_ *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 	return nil, errTest
 }
 
@@ -351,7 +352,7 @@ func getDatadogOK(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	}, nil
 }
 
-func getDatadogError(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
+func getDatadogError(_ *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	return nil, errTest
 }
 
@@ -380,14 +381,14 @@ func updateDatadogOK(i *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
 	}, nil
 }
 
-func updateDatadogError(i *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
+func updateDatadogError(_ *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
 	return nil, errTest
 }
 
-func deleteDatadogOK(i *fastly.DeleteDatadogInput) error {
+func deleteDatadogOK(_ *fastly.DeleteDatadogInput) error {
 	return nil
 }
 
-func deleteDatadogError(i *fastly.DeleteDatadogInput) error {
+func deleteDatadogError(_ *fastly.DeleteDatadogInput) error {
 	return errTest
 }

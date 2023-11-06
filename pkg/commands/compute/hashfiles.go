@@ -91,7 +91,9 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return fmt.Errorf("failed to get current working directory: %w", err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 		manifestPath := filepath.Join(wd, manifestFilename)
 
 		projectDir, err := ChangeProjectDirectory(c.dir.Value)
@@ -184,7 +186,11 @@ func getFilesHash(pkgPath string) (string, error) {
 		// filename.
 		//
 		// This is safe to do - we already verified it in packageFiles().
-		entry := f.Header.(*tar.Header).Name
+		header, ok := f.Header.(*tar.Header)
+		if !ok {
+			return errors.New("failed to convert file type into *tar.Header")
+		}
+		entry := header.Name
 		contents[entry] = &bytes.Buffer{}
 		if _, err := io.Copy(contents[entry], f); err != nil {
 			return fmt.Errorf("error reading %s: %w", entry, err)

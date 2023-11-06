@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestVersionClone(t *testing.T) {
@@ -355,7 +356,7 @@ func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	}, nil
 }
 
-func updateVersionError(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
+func updateVersionError(_ *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
@@ -370,7 +371,7 @@ func activateVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) 
 	}, nil
 }
 
-func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+func activateVersionError(_ *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
@@ -385,7 +386,7 @@ func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, err
 	}, nil
 }
 
-func deactivateVersionError(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
+func deactivateVersionError(_ *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
@@ -401,6 +402,6 @@ func lockVersionOK(i *fastly.LockVersionInput) (*fastly.Version, error) {
 	}, nil
 }
 
-func lockVersionError(i *fastly.LockVersionInput) (*fastly.Version, error) {
+func lockVersionError(_ *fastly.LockVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }

@@ -183,10 +183,11 @@ func (bt BuildToolchain) Build() error {
 
 	if bt.postBuild != "" {
 		if !bt.autoYes && !bt.nonInteractive {
-			if bt.manifestFilename == "" {
-				bt.manifestFilename = manifest.Filename
+			manifestFilename := bt.manifestFilename
+			if manifestFilename == "" {
+				manifestFilename = manifest.Filename
 			}
-			msg := fmt.Sprintf(CustomPostScriptMessage, "build", bt.manifestFilename)
+			msg := fmt.Sprintf(CustomPostScriptMessage, "build", manifestFilename)
 			err := bt.promptForPostBuildContinue(msg, bt.postBuild, bt.out, bt.in)
 			if err != nil {
 				return err

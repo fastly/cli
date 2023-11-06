@@ -32,7 +32,7 @@ func (e APIError) Error() string {
 	return e.Err.Error()
 }
 
-// NewError returns an APIError
+// NewError returns an APIError.
 func NewError(err error, statusCode int) APIError {
 	return APIError{
 		Err:        err,

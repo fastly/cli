@@ -82,7 +82,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	text.Break(out)
-	cont, notEmpty, err := verifyDirectory(c.Globals.Flags, c.dir, out, in)
+	cont, notEmpty, err := c.VerifyDirectory(in, out)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -120,7 +120,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	dst, err := verifyDestination(c.dir, spinner)
+	dst, err := c.VerifyDestination(spinner)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory": c.dir,
@@ -144,7 +144,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		email = p.Email
 	}
 
-	name, desc, authors, err := promptOrReturn(c.Globals.Flags, c.manifest, c.dir, email, in, out)
+	name, desc, authors, err := c.PromptOrReturn(email, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Description": desc,
@@ -158,7 +158,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var language *Language
 
 	if c.language == "" && c.cloneFrom == "" && c.Globals.Manifest.File.Language == "" {
-		language, err = promptForLanguage(c.Globals.Flags, languages, in, out)
+		language, err = c.PromptForLanguage(languages, in, out)
 		if err != nil {
 			return err
 		}
@@ -185,7 +185,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// select a starter kit project.
 	triggerStarterKitPrompt := c.cloneFrom == "" && !mf.Exists() && language.Name != "other"
 	if triggerStarterKitPrompt {
-		from, branch, tag, err = promptForStarterKit(c.Globals.Flags, language.StarterKits, in, out)
+		from, branch, tag, err = c.PromptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"From":           c.cloneFrom,
@@ -208,7 +208,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// "other" because this means they intend on handling the compilation of code
 	// that isn't natively supported by the platform.
 	if c.cloneFrom != "" {
-		err = fetchPackageTemplate(c, branch, tag, file.Archives, spinner, out)
+		err = c.FetchPackageTemplate(branch, tag, file.Archives, spinner, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"From":      from,
@@ -227,7 +227,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	mf, err = updateManifest(mf, spinner, c.dir, name, desc, c.cloneFrom, authors, language)
+	mf, err = c.UpdateManifest(mf, spinner, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory":   c.dir,
@@ -237,7 +237,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err = initializeLanguage(spinner, language, languages, mf.Language, wd, c.dir)
+	language, err = c.InitializeLanguage(spinner, language, languages, mf.Language, wd)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error initializing package: %w", err)
@@ -338,10 +338,13 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	return nil
 }
 
-// verifyDirectory indicates if the user wants to continue with the execution
+// VerifyDirectory indicates if the user wants to continue with the execution
 // flow when presented with a prompt that suggests the current directory isn't
 // empty.
-func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader) (cont, notEmpty bool, err error) {
+func (c *InitCommand) VerifyDirectory(in io.Reader, out io.Writer) (cont, notEmpty bool, err error) {
+	flags := c.Globals.Flags
+	dir := c.dir
+
 	if dir == "" {
 		dir = "."
 	}
@@ -371,13 +374,13 @@ func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader
 	return true, false, nil
 }
 
-// verifyDestination checks the provided path exists and is a directory.
+// VerifyDestination checks the provided path exists and is a directory.
 //
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, spinner text.Spinner) (dst string, err error) {
-	dst, err = filepath.Abs(path)
+func (c *InitCommand) VerifyDestination(spinner text.Spinner) (dst string, err error) {
+	dst, err = filepath.Abs(c.dir)
 	if err != nil {
 		return "", err
 	}
@@ -434,24 +437,19 @@ func validateDirectoryPermissions(dst string) text.SpinnerProcess {
 	}
 }
 
-// promptOrReturn will prompt the user for information missing from the
+// PromptOrReturn will prompt the user for information missing from the
 // fastly.toml manifest file, otherwise if it already exists then the value is
 // returned as is.
-func promptOrReturn(
-	flags global.Flags,
-	m manifest.Data,
-	path, email string,
-	in io.Reader,
-	out io.Writer,
-) (name, description string, authors []string, err error) {
-	name, _ = m.Name()
-	description, _ = m.Description()
-	authors, _ = m.Authors()
+func (c *InitCommand) PromptOrReturn(email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
+	flags := c.Globals.Flags
+	name, _ = c.manifest.Name()
+	description, _ = c.manifest.Description()
+	authors, _ = c.manifest.Authors()
 
 	if name == "" && !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Break(out)
 	}
-	name, err = promptPackageName(flags, name, path, in, out)
+	name, err = c.PromptPackageName(flags, name, in, out)
 	if err != nil {
 		return "", description, authors, err
 	}
@@ -475,13 +473,13 @@ func promptOrReturn(
 	return name, description, authors, nil
 }
 
-// promptPackageName prompts the user for a package name unless already defined either
+// PromptPackageName prompts the user for a package name unless already defined either
 // via the corresponding CLI flag or the manifest file.
 //
 // It will use a default of the current directory path if no value provided by
 // the user via the prompt.
-func promptPackageName(flags global.Flags, name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
-	defaultName := filepath.Base(dirPath)
+func (c *InitCommand) PromptPackageName(flags global.Flags, name string, in io.Reader, out io.Writer) (string, error) {
+	defaultName := filepath.Base(c.dir)
 
 	if name == "" && (flags.AcceptDefaults || flags.NonInteractive) {
 		return defaultName, nil
@@ -489,12 +487,10 @@ func promptPackageName(flags global.Flags, name string, dirPath string, in io.Re
 
 	if name == "" {
 		var err error
-
 		name, err = text.Input(out, fmt.Sprintf("Name: [%s] ", defaultName), in)
 		if err != nil {
 			return "", fmt.Errorf("error reading input: %w", err)
 		}
-
 		if name == "" {
 			name = defaultName
 		}
@@ -558,12 +554,13 @@ func promptPackageAuthors(flags global.Flags, authors []string, manifestEmail st
 
 // promptForLanguage prompts the user for a package language unless already
 // defined either via the corresponding CLI flag or the manifest file.
-func promptForLanguage(flags global.Flags, languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
+func (c *InitCommand) PromptForLanguage(languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
 	var (
 		language *Language
 		option   string
 		err      error
 	)
+	flags := c.Globals.Flags
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Output(out, "\n%s", text.Bold("Language:"))
@@ -610,11 +607,12 @@ func validateLanguageOption(languages []*Language) func(string) error {
 	}
 }
 
-// promptForStarterKit prompts the user for a package starter kit.
+// PromptForStarterKit prompts the user for a package starter kit.
 //
-// It returns the path to the starter kit, and the corresponding branch/tag,
-func promptForStarterKit(flags global.Flags, kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
+// It returns the path to the starter kit, and the corresponding branch/tag.
+func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
 	var option string
+	flags := c.Globals.Flags
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Output(out, "\n%s", text.Bold("Starter kit:"))
@@ -665,16 +663,10 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 	}
 }
 
-// fetchPackageTemplate will determine if the package code should be fetched
+// FetchPackageTemplate will determine if the package code should be fetched
 // from GitHub using the git binary to clone the source or a HTTP request that
 // uses content-negotiation to determine the type of archive format used.
-func fetchPackageTemplate(
-	c *InitCommand,
-	branch, tag string,
-	archives []file.Archive,
-	spinner text.Spinner,
-	out io.Writer,
-) error {
+func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.Archive, spinner text.Spinner, out io.Writer) error {
 	err := spinner.Start()
 	if err != nil {
 		return err
@@ -704,7 +696,7 @@ func fetchPackageTemplate(
 		c.Globals.ErrLog.Add(err)
 
 		if gitRepositoryRegEx.MatchString(c.cloneFrom) {
-			if err := clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir); err != nil {
+			if err := c.ClonePackageFromEndpoint(branch, tag); err != nil {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
@@ -866,7 +858,7 @@ mimes:
 		return spinner.Stop()
 	}
 
-	if err := clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir); err != nil {
+	if err := c.ClonePackageFromEndpoint(branch, tag); err != nil {
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
@@ -881,12 +873,9 @@ mimes:
 
 // clonePackageFromEndpoint clones the given repo (from) into a temp directory,
 // then copies specific files to the destination directory (path).
-func clonePackageFromEndpoint(
-	from string,
-	branch string,
-	tag string,
-	dst string,
-) error {
+func (c *InitCommand) ClonePackageFromEndpoint(branch, tag string) error {
+	from := c.cloneFrom
+
 	_, err := exec.LookPath("git")
 	if err != nil {
 		return fsterr.RemediationError{
@@ -926,10 +915,10 @@ func clonePackageFromEndpoint(
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as there should be no vulnerability to cloning a remote repo.
 	/* #nosec */
-	c := exec.Command("git", args...)
+	command := exec.Command("git", args...)
 
 	// nosemgrep (invalid-usage-of-modified-variable)
-	stdoutStderr, err := c.CombinedOutput()
+	stdoutStderr, err := command.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
 	}
@@ -957,7 +946,7 @@ func clonePackageFromEndpoint(
 			return nil
 		}
 
-		dst := filepath.Join(dst, rel)
+		dst := filepath.Join(c.dir, rel)
 		if err := os.MkdirAll(filepath.Dir(dst), 0o750); err != nil {
 			return err
 		}
@@ -988,19 +977,13 @@ func tempDir(prefix string) (abspath string, err error) {
 	return abspath, nil
 }
 
-// updateManifest updates the manifest with data acquired from various sources.
+// UpdateManifest updates the manifest with data acquired from various sources.
 // e.g. prompting the user, existing manifest file.
 //
 // NOTE: The language argument might be nil (if the user passes --from flag).
-func updateManifest(
-	m manifest.File,
-	spinner text.Spinner,
-	path, name, desc, clonedFrom string,
-	authors []string,
-	language *Language,
-) (manifest.File, error) {
+func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name, desc string, authors []string, language *Language) (manifest.File, error) {
 	var returnEarly bool
-	mp := filepath.Join(path, manifest.Filename)
+	mp := filepath.Join(c.dir, manifest.Filename)
 
 	err := spinner.Process("Reading fastly.toml", func(_ *text.SpinnerWrapper) error {
 		if err := m.Read(mp); err != nil {
@@ -1013,7 +996,7 @@ func updateManifest(
 					m.Description = desc
 					m.Authors = authors
 					m.Language = language.Name
-					m.ClonedFrom = clonedFrom
+					m.ClonedFrom = c.cloneFrom
 					if err := m.Write(mp); err != nil {
 						return fmt.Errorf("error saving fastly.toml: %w", err)
 					}
@@ -1074,7 +1057,7 @@ func updateManifest(
 		}
 	}
 
-	m.ClonedFrom = clonedFrom
+	m.ClonedFrom = c.cloneFrom
 
 	err = spinner.Process("Saving manifest changes", func(_ *text.SpinnerWrapper) error {
 		if err := m.Write(mp); err != nil {
@@ -1088,11 +1071,11 @@ func updateManifest(
 	return m, nil
 }
 
-// initializeLanguage for newly cloned package.
-func initializeLanguage(spinner text.Spinner, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
+// InitializeLanguage for newly cloned package.
+func (c *InitCommand) InitializeLanguage(spinner text.Spinner, language *Language, languages []*Language, name, wd string) (*Language, error) {
 	err := spinner.Process("Initializing package", func(_ *text.SpinnerWrapper) error {
-		if wd != path {
-			err := os.Chdir(path)
+		if wd != c.dir {
+			err := os.Chdir(c.dir)
 			if err != nil {
 				return fmt.Errorf("error changing to your project directory: %w", err)
 			}

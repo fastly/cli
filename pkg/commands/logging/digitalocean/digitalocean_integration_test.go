@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestDigitalOceanCreate(t *testing.T) {
@@ -275,7 +276,7 @@ func createDigitalOceanOK(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOce
 	return &s, nil
 }
 
-func createDigitalOceanError(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func createDigitalOceanError(_ *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
@@ -322,7 +323,7 @@ func listDigitalOceansOK(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOce
 	}, nil
 }
 
-func listDigitalOceansError(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
+func listDigitalOceansError(_ *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
@@ -399,7 +400,7 @@ func getDigitalOceanOK(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, er
 	}, nil
 }
 
-func getDigitalOceanError(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func getDigitalOceanError(_ *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
@@ -445,15 +446,15 @@ func updateDigitalOceanOK(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOce
 	}, nil
 }
 
-func updateDigitalOceanError(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func updateDigitalOceanError(_ *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
-func deleteDigitalOceanOK(i *fastly.DeleteDigitalOceanInput) error {
+func deleteDigitalOceanOK(_ *fastly.DeleteDigitalOceanInput) error {
 	return nil
 }
 
-func deleteDigitalOceanError(i *fastly.DeleteDigitalOceanInput) error {
+func deleteDigitalOceanError(_ *fastly.DeleteDigitalOceanInput) error {
 	return errTest
 }
 

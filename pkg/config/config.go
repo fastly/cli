@@ -89,7 +89,7 @@ type CLI struct {
 }
 
 // Versioner represents GitHub assets configuration.
-// e.g. viceroy, wasm-tools etc
+// e.g. viceroy, wasm-tools etc.
 type Versioner struct {
 	// LastChecked is when the asset version was last checked.
 	LastChecked string `toml:"last_checked"`

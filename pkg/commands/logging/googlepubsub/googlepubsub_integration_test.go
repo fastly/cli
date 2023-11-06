@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestGooglePubSubCreate(t *testing.T) {
@@ -271,7 +272,7 @@ func createGooglePubSubOK(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	}, nil
 }
 
-func createGooglePubSubError(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
+func createGooglePubSubError(_ *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
@@ -308,7 +309,7 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	}, nil
 }
 
-func listGooglePubSubsError(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
+func listGooglePubSubsError(_ *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
@@ -370,7 +371,7 @@ func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	}, nil
 }
 
-func getGooglePubSubError(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
+func getGooglePubSubError(_ *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
@@ -405,14 +406,14 @@ func updateGooglePubSubOK(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	}, nil
 }
 
-func updateGooglePubSubError(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
+func updateGooglePubSubError(_ *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
-func deleteGooglePubSubOK(i *fastly.DeletePubsubInput) error {
+func deleteGooglePubSubOK(_ *fastly.DeletePubsubInput) error {
 	return nil
 }
 
-func deleteGooglePubSubError(i *fastly.DeletePubsubInput) error {
+func deleteGooglePubSubError(_ *fastly.DeletePubsubInput) error {
 	return errTest
 }

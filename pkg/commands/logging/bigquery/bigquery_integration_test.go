@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestBigQueryCreate(t *testing.T) {
@@ -262,7 +263,7 @@ func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	}, nil
 }
 
-func createBigQueryError(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
+func createBigQueryError(_ *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
@@ -301,7 +302,7 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 	}, nil
 }
 
-func listBigQueriesError(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
+func listBigQueriesError(_ *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
@@ -368,7 +369,7 @@ func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	}, nil
 }
 
-func getBigQueryError(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
+func getBigQueryError(_ *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
@@ -406,14 +407,14 @@ func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	}, nil
 }
 
-func updateBigQueryError(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
+func updateBigQueryError(_ *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
-func deleteBigQueryOK(i *fastly.DeleteBigQueryInput) error {
+func deleteBigQueryOK(_ *fastly.DeleteBigQueryInput) error {
 	return nil
 }
 
-func deleteBigQueryError(i *fastly.DeleteBigQueryInput) error {
+func deleteBigQueryError(_ *fastly.DeleteBigQueryInput) error {
 	return errTest
 }

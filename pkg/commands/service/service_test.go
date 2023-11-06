@@ -379,7 +379,9 @@ func TestServiceDelete(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			var stdout bytes.Buffer
 			runOpts := testutil.NewRunOpts(testcase.args, &stdout)
@@ -496,7 +498,7 @@ Service 3/3
 	Versions: 0
 `) + "\n\n"
 
-func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
+func getServiceOK(_ *fastly.GetServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ID:      "12345",
 		Name:    "Foo",
@@ -504,7 +506,7 @@ func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
 	}, nil
 }
 
-func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceOK(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
 		ID:         "123",
 		Name:       "Foo",
@@ -542,7 +544,7 @@ func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
 	}, nil
 }
 
-func describeServiceError(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceError(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return nil, errTest
 }
 
@@ -637,7 +639,7 @@ Versions: 2
 		Last edited (UTC): 2001-03-04 04:05
 `) + "\n"
 
-func searchServiceOK(i *fastly.SearchServiceInput) (*fastly.Service, error) {
+func searchServiceOK(_ *fastly.SearchServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ID:         "123",
 		Name:       "Foo",
@@ -735,7 +737,7 @@ Versions: 2
 		Last edited (UTC): 2001-03-04 04:05
 `) + "\n"
 
-func updateServiceOK(i *fastly.UpdateServiceInput) (*fastly.Service, error) {
+func updateServiceOK(_ *fastly.UpdateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ID: "12345",
 	}, nil

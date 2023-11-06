@@ -34,7 +34,7 @@ func TestCreateSecretCommand(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	secretFile := path.Join(tmpDir, "secret-file")
-	if err := os.WriteFile(secretFile, []byte(secretValue), 0x777); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretValue), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	doesNotExistFile := path.Join(tmpDir, "DOES-NOT-EXIST")

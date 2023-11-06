@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestBlobStorageCreate(t *testing.T) {
@@ -286,7 +287,7 @@ func createBlobStorageOK(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage,
 	return &s, nil
 }
 
-func createBlobStorageError(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
+func createBlobStorageError(_ *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
@@ -331,7 +332,7 @@ func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage,
 	}, nil
 }
 
-func listBlobStoragesError(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
+func listBlobStoragesError(_ *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
@@ -410,7 +411,7 @@ func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error
 	}, nil
 }
 
-func getBlobStorageError(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
+func getBlobStorageError(_ *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
@@ -456,15 +457,15 @@ func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage,
 	}, nil
 }
 
-func updateBlobStorageError(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
+func updateBlobStorageError(_ *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
-func deleteBlobStorageOK(i *fastly.DeleteBlobStorageInput) error {
+func deleteBlobStorageOK(_ *fastly.DeleteBlobStorageInput) error {
 	return nil
 }
 
-func deleteBlobStorageError(i *fastly.DeleteBlobStorageInput) error {
+func deleteBlobStorageError(_ *fastly.DeleteBlobStorageInput) error {
 	return errTest
 }
 

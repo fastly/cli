@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestHoneycombCreate(t *testing.T) {
@@ -267,7 +268,7 @@ func createHoneycombOK(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error
 	return &s, nil
 }
 
-func createHoneycombError(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
+func createHoneycombError(_ *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
@@ -298,7 +299,7 @@ func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error
 	}, nil
 }
 
-func listHoneycombsError(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
+func listHoneycombsError(_ *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
@@ -351,7 +352,7 @@ func getHoneycombOK(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	}, nil
 }
 
-func getHoneycombError(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
+func getHoneycombError(_ *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
@@ -381,14 +382,14 @@ func updateHoneycombOK(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error
 	}, nil
 }
 
-func updateHoneycombError(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
+func updateHoneycombError(_ *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
-func deleteHoneycombOK(i *fastly.DeleteHoneycombInput) error {
+func deleteHoneycombOK(_ *fastly.DeleteHoneycombInput) error {
 	return nil
 }
 
-func deleteHoneycombError(i *fastly.DeleteHoneycombInput) error {
+func deleteHoneycombError(_ *fastly.DeleteHoneycombInput) error {
 	return errTest
 }

@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestSFTPCreate(t *testing.T) {
@@ -276,7 +277,7 @@ func createSFTPOK(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	return &s, nil
 }
 
-func createSFTPError(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
+func createSFTPError(_ *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
@@ -327,7 +328,7 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	}, nil
 }
 
-func listSFTPsError(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
+func listSFTPsError(_ *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	return nil, errTest
 }
 
@@ -413,7 +414,7 @@ func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	}, nil
 }
 
-func getSFTPError(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
+func getSFTPError(_ *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
@@ -464,19 +465,19 @@ func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	}, nil
 }
 
-func updateSFTPError(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
+func updateSFTPError(_ *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
-func deleteSFTPOK(i *fastly.DeleteSFTPInput) error {
+func deleteSFTPOK(_ *fastly.DeleteSFTPInput) error {
 	return nil
 }
 
-func deleteSFTPError(i *fastly.DeleteSFTPInput) error {
+func deleteSFTPError(_ *fastly.DeleteSFTPInput) error {
 	return errTest
 }
 
-// knownHosts returns sample known hosts suitable for testing
+// knownHosts returns sample known hosts suitable for testing.
 func knownHosts() string {
 	return strings.TrimSpace(`
 example.com

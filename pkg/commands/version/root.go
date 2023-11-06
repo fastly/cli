@@ -61,7 +61,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // IsPreRelease determines if the given app version is a pre-release.
 //
-// NOTE: this is indicated by the presence of a hyphen, e.g. v1.0.0-rc.1
+// NOTE: this is indicated by the presence of a hyphen, e.g. `v1.0.0-rc.1`.
 func IsPreRelease(version string) bool {
 	return strings.Contains(version, "-")
 }

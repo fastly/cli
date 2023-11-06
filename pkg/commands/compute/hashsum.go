@@ -86,7 +86,9 @@ func (c *HashsumCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return fmt.Errorf("failed to get current working directory: %w", err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 		manifestPath := filepath.Join(wd, manifestFilename)
 
 		projectDir, err := ChangeProjectDirectory(c.dir.Value)
@@ -192,7 +194,7 @@ func getHashSum(pkg string) (string, error) {
 
 	h := sha512.New()
 	if _, err := io.Copy(h, f); err != nil {
-		f.Close()
+		_ = f.Close()
 		return "", err
 	}
 

@@ -173,6 +173,10 @@ func Run(opts RunOpts) error {
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
 		case lookup.SourceFile:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint (via config file): %s\n\n", endpoint)
+		case lookup.SourceFlag:
+			fmt.Fprintf(opts.Stdout, "Fastly API endpoint provided via --endpoint\n\n")
+		case lookup.SourceDefault, lookup.SourceUndefined:
+			fallthrough
 		default:
 			fmt.Fprintf(opts.Stdout, "Fastly API endpoint: %s\n\n", endpoint)
 		}
@@ -206,7 +210,7 @@ func Run(opts RunOpts) error {
 	return command.Exec(opts.Stdin, opts.Stdout)
 }
 
-// RunOpts represent arguments to Run()
+// RunOpts represent arguments to Run().
 type RunOpts struct {
 	APIClient        APIClientFactory
 	Args             []string
@@ -245,6 +249,8 @@ func displayTokenSource(source lookup.Source, out io.Writer, token, profileSourc
 		fmt.Fprintf(out, "Fastly API token provided via %s\n", token)
 	case lookup.SourceFile:
 		fmt.Fprintf(out, "Fastly API token provided via config file (profile: %s)\n", profileSource)
+	case lookup.SourceDefault, lookup.SourceUndefined:
+		fallthrough
 	default:
 		fmt.Fprintf(out, "Fastly API token not provided\n")
 	}

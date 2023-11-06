@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -62,7 +63,9 @@ func TestGetViceroy(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(wd)
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
 
 	github.InstallDir = installDir
 
@@ -86,20 +89,24 @@ func TestGetViceroy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	g := global.Data{
-		Config:     file,
-		ConfigPath: configPath,
-		ErrLog:     fsterr.MockLog{},
-	}
-
 	spinner, err := text.NewSpinner(&out)
 	if err != nil {
 		t.Fatal(err)
 	}
 	manifestPath := "fastly.toml"
-	viceroyBinPath := "" // --viceroy-path flag for overriding CLI handling the Viceroy checks/downloads.
-	viceroyCheck := false
-	_, err = compute.GetViceroy(spinner, &out, av, &g, manifestPath, viceroyBinPath, viceroyCheck)
+	serveCommand := &compute.ServeCommand{
+		Base: cmd.Base{
+			Globals: &global.Data{
+				Config:     file,
+				ConfigPath: configPath,
+				ErrLog:     fsterr.MockLog{},
+			},
+		},
+		ForceCheckViceroyLatest: false,
+		ViceroyBinPath:          "",
+		ViceroyVersioner:        av,
+	}
+	_, err = serveCommand.GetViceroy(spinner, &out, manifestPath)
 	if err != nil {
 		t.Fatal(err)
 	}

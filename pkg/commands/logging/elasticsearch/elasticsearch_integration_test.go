@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestElasticsearchCreate(t *testing.T) {
@@ -277,7 +278,7 @@ func createElasticsearchOK(i *fastly.CreateElasticsearchInput) (*fastly.Elastics
 	}, nil
 }
 
-func createElasticsearchError(i *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
+func createElasticsearchError(_ *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
@@ -326,7 +327,7 @@ func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticse
 	}, nil
 }
 
-func listElasticsearchsError(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
+func listElasticsearchsError(_ *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
@@ -402,7 +403,7 @@ func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch,
 	}, nil
 }
 
-func getElasticsearchError(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
+func getElasticsearchError(_ *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
@@ -448,14 +449,14 @@ func updateElasticsearchOK(i *fastly.UpdateElasticsearchInput) (*fastly.Elastics
 	}, nil
 }
 
-func updateElasticsearchError(i *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
+func updateElasticsearchError(_ *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
-func deleteElasticsearchOK(i *fastly.DeleteElasticsearchInput) error {
+func deleteElasticsearchOK(_ *fastly.DeleteElasticsearchInput) error {
 	return nil
 }
 
-func deleteElasticsearchError(i *fastly.DeleteElasticsearchInput) error {
+func deleteElasticsearchError(_ *fastly.DeleteElasticsearchInput) error {
 	return errTest
 }

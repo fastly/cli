@@ -1,5 +1,5 @@
 package kvstoreentry
 
-func isHiddenFile(filename string) (bool, error) {
-	return filename[0] == '.', nil
+func isHiddenFile(filename string) bool {
+	return filename[0] == '.'
 }

@@ -22,7 +22,6 @@ import (
 
 	"github.com/fastly/cli/pkg/check"
 	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/github"
@@ -112,7 +111,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
-	defer os.Chdir(wd)
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
 	manifestPath := filepath.Join(wd, manifestFilename)
 
 	projectDir, err := ChangeProjectDirectory(c.Flags.Dir)
@@ -557,7 +558,7 @@ func GetWasmTools(spinner text.Spinner, out io.Writer, wasmtoolsVersioner github
 	}
 
 	if installedVersion != "" {
-		err = updateWasmtools(binPath, spinner, out, wasmtoolsVersioner, g.Verbose(), installedVersion, g.Config, g.ConfigPath)
+		err = updateWasmtools(binPath, spinner, out, g, wasmtoolsVersioner, installedVersion)
 		if err != nil {
 			g.ErrLog.Add(err)
 			return binPath, err
@@ -593,12 +594,13 @@ func updateWasmtools(
 	binPath string,
 	spinner text.Spinner,
 	out io.Writer,
+	g *global.Data,
 	wasmtoolsVersioner github.AssetVersioner,
-	verbose bool,
 	installedVersion string,
-	cfg config.File,
-	cfgPath string,
 ) error {
+	cfg := g.Config
+	cfgPath := g.ConfigPath
+
 	// NOTE: We shouldn't see LastChecked with no value if wasm-tools installed.
 	if cfg.WasmTools.LastChecked == "" {
 		cfg.WasmTools.LastChecked = time.Now().Format(time.RFC3339)
@@ -607,7 +609,7 @@ func updateWasmtools(
 		}
 	}
 	if !check.Stale(cfg.WasmTools.LastChecked, cfg.WasmTools.TTL) {
-		if verbose {
+		if g.Verbose() {
 			text.Info(out, "\nwasm-tools is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired.\n\n")
 		}
 		return nil
@@ -636,7 +638,7 @@ func updateWasmtools(
 	if err != nil {
 		return err
 	}
-	if verbose {
+	if g.Verbose() {
 		text.Info(out, "\nThe CLI config (`fastly config`) has been updated with the latest wasm-tools version: %s\n\n", latestVersion)
 	}
 	if installedVersion == latestVersion {
@@ -676,75 +678,30 @@ func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader,
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
 			SourceDirectory: AsSourceDirectory,
-			Toolchain: NewAssemblyScript(
-				&c.Globals.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				c.MetadataFilterEnvVars,
-				manifestFilename,
-				out,
-				spinner,
-			),
+			Toolchain:       NewAssemblyScript(c, in, manifestFilename, out, spinner),
 		})
 	case "go":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "go",
 			SourceDirectory: GoSourceDirectory,
-			Toolchain: NewGo(
-				&c.Globals.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				c.MetadataFilterEnvVars,
-				manifestFilename,
-				out,
-				spinner,
-			),
+			Toolchain:       NewGo(c, in, manifestFilename, out, spinner),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: JsSourceDirectory,
-			Toolchain: NewJavaScript(
-				&c.Globals.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				c.MetadataFilterEnvVars,
-				manifestFilename,
-				out,
-				spinner,
-			),
+			Toolchain:       NewJavaScript(c, in, manifestFilename, out, spinner),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
-			Toolchain: NewRust(
-				&c.Globals.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				c.MetadataFilterEnvVars,
-				manifestFilename,
-				out,
-				spinner,
-			),
+			Toolchain:       NewRust(c, in, manifestFilename, out, spinner),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
-			Name: "other",
-			Toolchain: NewOther(
-				&c.Globals.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				c.MetadataFilterEnvVars,
-				manifestFilename,
-				out,
-				spinner,
-			),
+			Name:      "other",
+			Toolchain: NewOther(c, in, manifestFilename, out, spinner),
 		})
 	default:
 		return nil, fmt.Errorf("unsupported language %s", toolchain)

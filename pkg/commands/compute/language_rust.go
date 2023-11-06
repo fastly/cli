@@ -17,8 +17,6 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -39,36 +37,34 @@ const RustManifest = "Cargo.toml"
 // RustDefaultPackageName is the expected binary create/package name to be built.
 const RustDefaultPackageName = "fastly-compute-project"
 
-// RustSourceDirectory represents the source code directory.                                               │                                                           │
+// RustSourceDirectory represents the source code directory.
 const RustSourceDirectory = "src"
 
 // NewRust constructs a new Rust toolchain.
 func NewRust(
-	fastlyManifest *manifest.File,
-	globals *global.Data,
-	flags Flags,
+	c *BuildCommand,
 	in io.Reader,
-	metadataFilterEnvVars, manifestFilename string,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Rust {
 	return &Rust{
 		Shell: Shell{},
 
-		autoYes:               globals.Flags.AutoYes,
-		build:                 fastlyManifest.Scripts.Build,
-		config:                globals.Config.Language.Rust,
-		env:                   fastlyManifest.Scripts.EnvVars,
-		errlog:                globals.ErrLog,
+		autoYes:               c.Globals.Flags.AutoYes,
+		build:                 c.Globals.Manifest.File.Scripts.Build,
+		config:                c.Globals.Config.Language.Rust,
+		env:                   c.Globals.Manifest.File.Scripts.EnvVars,
+		errlog:                c.Globals.ErrLog,
 		input:                 in,
 		manifestFilename:      manifestFilename,
-		metadataFilterEnvVars: metadataFilterEnvVars,
-		nonInteractive:        globals.Flags.NonInteractive,
+		metadataFilterEnvVars: c.MetadataFilterEnvVars,
+		nonInteractive:        c.Globals.Flags.NonInteractive,
 		output:                out,
-		postBuild:             fastlyManifest.Scripts.PostBuild,
+		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
 		spinner:               spinner,
-		timeout:               flags.Timeout,
-		verbose:               globals.Verbose(),
+		timeout:               c.Flags.Timeout,
+		verbose:               c.Globals.Verbose(),
 	}
 }
 
@@ -254,16 +250,21 @@ func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 		// Specifically, when we support linking multiple Wasm binaries.
 		for _, m := range m.Workspace.Members {
 			var rtm RustToolchainManifest
-			// G304 (CWE-22): Potential file inclusion via variable.
-			// #nosec
-			data, err := os.ReadFile(filepath.Join(m, "rust-toolchain.toml"))
+			rustToolchainFile := "rust-toolchain.toml"
+			data, err := os.ReadFile(filepath.Join(m, rustToolchainFile)) // #nosec G304 (CWE-22)
 			if err != nil {
 				return err
 			}
-			toml.Unmarshal(data, &rtm)
+			err = toml.Unmarshal(data, &rtm)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal '%s' data: %w", rustToolchainFile, err)
+			}
 			if len(rtm.Toolchain.Targets) > 0 && rtm.Toolchain.Targets[0] == "wasm32-wasi" {
 				var cm CargoManifest
-				cm.Read(filepath.Join(m, "Cargo.toml"))
+				err := cm.Read(filepath.Join(m, "Cargo.toml"))
+				if err != nil {
+					return err
+				}
 				r.packageName = cm.Package.Name
 			}
 		}
@@ -389,7 +390,7 @@ func (m *CargoManifest) Read(path string) error {
 	return toml.Unmarshal(data, m)
 }
 
-// CargoWorkspace models the [workspace] config inside Cargo.toml
+// CargoWorkspace models the [workspace] config inside Cargo.toml.
 type CargoWorkspace struct {
 	Members []string `toml:"members" json:"members"`
 }

@@ -48,7 +48,9 @@ func TestValidate(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)

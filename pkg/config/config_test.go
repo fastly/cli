@@ -30,7 +30,7 @@ type testReadScenario struct {
 	wantError            string
 }
 
-// TestConfigRead validates all logic flows within config.File.Read()
+// TestConfigRead validates all logic flows within config.File.Read().
 func TestConfigRead(t *testing.T) {
 	scenarios := []testReadScenario{
 		{
@@ -107,7 +107,9 @@ func TestConfigRead(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			if testcase.userConfigFilename == "" {
 				if fi, err := os.Stat(configPath); err == nil {
@@ -192,7 +194,9 @@ func TestUseStatic(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	var out bytes.Buffer
 
@@ -292,7 +296,7 @@ func TestInvalidConfig(t *testing.T) {
 				Copy: []testutil.FileIO{
 					{
 						Src: filepath.Join("testdata", testcase.userConfig),
-						Dst: filepath.Join("config.toml"),
+						Dst: "config.toml",
 					},
 				},
 			})
@@ -305,7 +309,9 @@ func TestInvalidConfig(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			var f config.File
 			var stdout bytes.Buffer

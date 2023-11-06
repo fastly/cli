@@ -49,9 +49,8 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("error reading file path: %w", err)
 	}
 
-	manifestFilename := manifest.Filename
 	if c.env != "" {
-		manifestFilename = fmt.Sprintf("fastly.%s.toml", c.env)
+		manifestFilename := fmt.Sprintf("fastly.%s.toml", c.env)
 		if c.Globals.Verbose() {
 			text.Info(out, "Using the '%s' environment manifest (it will be packaged up as %s)\n\n", manifestFilename, manifest.Filename)
 		}

@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// MakeTempFile creates a tempfile with the given contents and returns its path
+// MakeTempFile creates a tempfile with the given contents and returns its path.
 func MakeTempFile(t *testing.T, contents string) string {
 	t.Helper()
 

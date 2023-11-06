@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestLogshuttleCreate(t *testing.T) {
@@ -267,7 +268,7 @@ func createLogshuttleOK(i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, er
 	return &s, nil
 }
 
-func createLogshuttleError(i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error) {
+func createLogshuttleError(_ *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error) {
 	return nil, errTest
 }
 
@@ -298,7 +299,7 @@ func listLogshuttlesOK(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, er
 	}, nil
 }
 
-func listLogshuttlesError(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error) {
+func listLogshuttlesError(_ *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error) {
 	return nil, errTest
 }
 
@@ -351,7 +352,7 @@ func getLogshuttleOK(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
 	}, nil
 }
 
-func getLogshuttleError(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
+func getLogshuttleError(_ *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
 	return nil, errTest
 }
 
@@ -381,14 +382,14 @@ func updateLogshuttleOK(i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, er
 	}, nil
 }
 
-func updateLogshuttleError(i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {
+func updateLogshuttleError(_ *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {
 	return nil, errTest
 }
 
-func deleteLogshuttleOK(i *fastly.DeleteLogshuttleInput) error {
+func deleteLogshuttleOK(_ *fastly.DeleteLogshuttleInput) error {
 	return nil
 }
 
-func deleteLogshuttleError(i *fastly.DeleteLogshuttleInput) error {
+func deleteLogshuttleError(_ *fastly.DeleteLogshuttleInput) error {
 	return errTest
 }

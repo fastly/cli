@@ -107,6 +107,10 @@ semgrep: ## Run semgrep
 staticcheck: ## Run static analysis
 	staticcheck ./{cmd,pkg}/...
 
+.PHONY: golangci
+golangci: ## Run golangci-lint
+	golangci-lint run --verbose
+
 # Run tests
 .PHONY: test
 test: config ## Run tests (with race detection)
