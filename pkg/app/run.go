@@ -548,7 +548,9 @@ func commandCollectsData(command string) bool {
 // commandRequiresToken determines if the command to be executed is one that
 // requires an API token.
 func commandRequiresToken(command string) bool {
-	if command == "compute init" {
+	switch command {
+	case "compute init", "compute metadata":
+		// NOTE: Most `compute` commands require a token except init/metadata.
 		return false
 	}
 	command = strings.Split(command, " ")[0]
