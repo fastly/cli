@@ -465,7 +465,6 @@ func (e *Environment) Read(state map[string]string) {
 	e.Account = state[env.Account]
 	e.DebugMode = state[env.DebugMode]
 	e.Endpoint = state[env.Endpoint]
-	e.Endpoint = state[env.Endpoint]
 	e.UseSSO = state[env.UseSSO]
 	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }
