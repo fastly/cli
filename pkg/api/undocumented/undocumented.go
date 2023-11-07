@@ -89,6 +89,12 @@ func Call(opts CallOptions) (data []byte, err error) {
 	}
 
 	res, err := opts.HTTPClient.Do(req)
+
+	if opts.Debug && res != nil {
+		dump, _ := httputil.DumpResponse(res, true)
+		fmt.Printf("undocumented.Call response dump:\n\n%#v\n\n", string(dump))
+	}
+
 	if err != nil {
 		if urlErr, ok := err.(*url.Error); ok && urlErr.Timeout() {
 			return data, fsterr.RemediationError{
@@ -99,11 +105,6 @@ func Call(opts CallOptions) (data []byte, err error) {
 		return data, NewError(err, 0)
 	}
 	defer res.Body.Close() // #nosec G307
-
-	if opts.Debug {
-		dump, _ := httputil.DumpResponse(res, true)
-		fmt.Printf("undocumented.Call response dump:\n\n%#v\n\n", string(dump))
-	}
 
 	data, err = io.ReadAll(res.Body)
 	if err != nil {
