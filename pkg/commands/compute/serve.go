@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"net"
 	"net/url"
 	"os"
@@ -613,6 +612,7 @@ func local(opts localOpts) error {
 	}
 	s.MonitorSignals()
 
+	failure := make(chan error)
 	restart := make(chan bool)
 	if opts.watch {
 		root := "."
@@ -625,14 +625,14 @@ func local(opts localOpts) error {
 		}
 
 		gi := ignoreFiles(opts.watchDir)
-		go watchFiles(root, gi, opts.verbose, s, opts.out, restart)
+		go watchFiles(root, gi, opts.verbose, s, opts.out, restart, failure)
 	}
 
-	// NOTE: Once we run the viceroy executable, then it can be stopped by one of
-	// two separate mechanisms:
+	// NOTE: The viceroy executable can be stopped by one of three mechanisms.
 	//
 	// 1. File modification
 	// 2. Explicit signal (SIGINT, SIGTERM etc).
+	// 3. Irrecoverable error (i.e. error watching files).
 	//
 	// In the case of a signal (e.g. user presses Ctrl-c) the listener logic
 	// inside of (*fstexec.Streaming).MonitorSignals() will call
@@ -648,6 +648,25 @@ func local(opts localOpts) error {
 	// we do finally come to stop the `serve` command (e.g. user presses Ctrl-c).
 	// How big an issue this is depends on how many file modifications a user
 	// makes, because having lots of signal listeners could exhaust resources.
+	//
+	// When there is an error setting up the watching of files, if we error we
+	// need to signal the error using a channel as watching files happens
+	// asynchronously in a goroutine. We also need to be able to signal the
+	// viceroy process to be killed, and we do that using `s.Signal(os.Kill)` from
+	// within the relevant error handling blocks in `watchFiles`, where upon the
+	// below `select` statement will pull the error message from the `failure`
+	// channel and return it to the user. If we fail to kill the Viceroy process
+	// then we still want to pull an error from the `failure` channel and so we
+	// have a separate `select` statement to check for any initial errors prior to
+	// the Viceroy executable starting and an error occurring in `watchFiles`.
+	select {
+	case channelErr := <-failure:
+		s.SignalCh <- syscall.SIGTERM
+		return channelErr
+	case <-time.After(1 * time.Second):
+		// no-op: allow logic to flow to starting up Viceroy executable.
+	}
+
 	if err := s.Exec(); err != nil {
 		if !strings.Contains(err.Error(), "signal: ") {
 			opts.errLog.Add(err)
@@ -658,6 +677,9 @@ func local(opts localOpts) error {
 		}
 		if strings.Contains(e, "killed") {
 			select {
+			case channelErr := <-failure:
+				s.SignalCh <- syscall.SIGTERM
+				return channelErr
 			case <-restart:
 				s.SignalCh <- syscall.SIGTERM
 				return fsterr.ErrViceroyRestart
@@ -673,10 +695,16 @@ func local(opts localOpts) error {
 
 // watchFiles watches the language source directory and restarts the viceroy
 // executable when changes are detected.
-func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool) {
+func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Streaming, out io.Writer, restart chan<- bool, failure chan<- error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		signalErr := s.Signal(os.Kill)
+		if signalErr != nil {
+			failure <- fmt.Errorf("failed to stop Viceroy executable while trying to create a fsnotify.Watcher: %w: %w", signalErr, err)
+			return
+		}
+		failure <- fmt.Errorf("failed to create a fsnotify.Watcher: %w", err)
+		return
 	}
 	defer watcher.Close()
 
@@ -727,7 +755,8 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 		// and is a low risk concern.
 		err := s.Signal(os.Kill)
 		if err != nil {
-			log.Fatal(err)
+			failure <- fmt.Errorf("failed to stop Viceroy executable while trying to restart the process: %w", err)
+			return
 		}
 
 		restart <- true
@@ -775,7 +804,13 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 		return nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		signalErr := s.Signal(os.Kill)
+		if signalErr != nil {
+			failure <- fmt.Errorf("failed to stop Viceroy executable while trying to walk directory tree for watching files: %w: %w", signalErr, err)
+			return
+		}
+		failure <- fmt.Errorf("failed to walk directory tree for watching files: %w", err)
+		return
 	}
 
 	if verbose {
