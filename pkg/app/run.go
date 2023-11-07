@@ -469,20 +469,18 @@ func checkConfigPermissions(quietMode bool, commandName string, tokenSource look
 	}
 }
 
-func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, verboseMode bool, out io.Writer) {
-	if verboseMode {
-		switch endpointSource {
-		case lookup.SourceFlag:
-			fmt.Fprintf(out, "Fastly API endpoint (via --endpoint): %s\n\n", endpoint)
-		case lookup.SourceEnvironment:
-			fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
-		case lookup.SourceFile:
-			fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n\n", endpoint)
-		case lookup.SourceDefault, lookup.SourceUndefined:
-			fallthrough
-		default:
-			fmt.Fprintf(out, "Fastly API endpoint: %s\n\n", endpoint)
-		}
+func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, out io.Writer) {
+	switch endpointSource {
+	case lookup.SourceFlag:
+		fmt.Fprintf(out, "Fastly API endpoint (via --endpoint): %s\n\n", endpoint)
+	case lookup.SourceEnvironment:
+		fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
+	case lookup.SourceFile:
+		fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n\n", endpoint)
+	case lookup.SourceDefault, lookup.SourceUndefined:
+		fallthrough
+	default:
+		fmt.Fprintf(out, "Fastly API endpoint: %s\n\n", endpoint)
 	}
 }
 
