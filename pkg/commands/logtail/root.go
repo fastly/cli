@@ -112,9 +112,9 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	go c.tail(out, failure)
 
 	select {
-	case channelErr := <-failure:
+	case asyncErr := <-failure:
 		close(c.dieCh)
-		return channelErr
+		return asyncErr
 	case <-c.doneCh:
 		return nil
 	case <-sigs:
