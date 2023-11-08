@@ -127,7 +127,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 // Tail starts the virtual tail process. Tail fetches data from the eventbuffer
 // API. It hands off the requested logs to the outputloop for the actual
 // printing.
-func (c *RootCommand) tail(out io.Writer, failure chan error) {
+func (c *RootCommand) tail(out io.Writer, failure chan<- error) {
 	// Start this with --from and --to if set.
 	curWindow := c.cfg.from
 	toWindow := c.cfg.to
@@ -530,7 +530,7 @@ func (l *Log) String() string {
 
 // makeNewPath generates a new request path based on current
 // path, window, and batchID.
-func makeNewPath(path string, window int64, batchID string, failure chan error) string {
+func makeNewPath(path string, window int64, batchID string, failure chan<- error) string {
 	basePath, err := url.Parse(path)
 	if err != nil {
 		// No reasonable way to carry on from an error at this point
