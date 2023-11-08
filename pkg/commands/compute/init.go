@@ -552,7 +552,7 @@ func promptPackageAuthors(flags global.Flags, authors []string, manifestEmail st
 	return authors, nil
 }
 
-// promptForLanguage prompts the user for a package language unless already
+// PromptForLanguage prompts the user for a package language unless already
 // defined either via the corresponding CLI flag or the manifest file.
 func (c *InitCommand) PromptForLanguage(languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
 	var (
@@ -871,7 +871,7 @@ mimes:
 	return spinner.Stop()
 }
 
-// clonePackageFromEndpoint clones the given repo (from) into a temp directory,
+// ClonePackageFromEndpoint clones the given repo (from) into a temp directory,
 // then copies specific files to the destination directory (path).
 func (c *InitCommand) ClonePackageFromEndpoint(branch, tag string) error {
 	from := c.cloneFrom
