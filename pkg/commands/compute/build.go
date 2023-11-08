@@ -157,10 +157,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	wasmtools, err := GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
-	if err != nil {
-		return err
-	}
+	wasmtools, wasmtoolsErr := GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
 
 	var pkgName string
 	err = spinner.Process("Identifying package name", func(_ *text.SpinnerWrapper) error {
@@ -203,56 +200,66 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	metadataProcessedBy := fmt.Sprintf(
-		"--processed-by=fastly=%s (%s)",
-		revision.AppVersion, cases.Title(textlang.English).String(language.Name),
-	)
-	metadataArgs := []string{
-		"metadata", "add", "bin/main.wasm", metadataProcessedBy,
-	}
+	// IMPORTANT: We ignore errors downloading wasm-tools.
+	// This is because we don't want to block a user from building their project.
+	// Annotating the compiled binary with metadata isn't that important.
+	if wasmtoolsErr == nil {
+		metadataProcessedBy := fmt.Sprintf(
+			"--processed-by=fastly=%s (%s)",
+			revision.AppVersion, cases.Title(textlang.English).String(language.Name),
+		)
+		metadataArgs := []string{
+			"metadata", "add", "bin/main.wasm", metadataProcessedBy,
+		}
 
-	// FIXME: For feature launch replace enable flag with disable equivalent.
-	// e.g. define --metadata-disable and check for that first with env var.
-	// Also make sure hidden flags (across all composite commands) aren't hidden.
-	// Also update the run.go app to remove the message which displays a warning.
-	// Also one final release un-hide the metadata command and add metadata.json examples
-	// e.g.
-	/*
-	   "metadata": {
-	     "examples": [
-	       {
-	         "cmd": "fastly compute metadata --enable",
-	         "title": "Enable all metadata collection information"
-	       },
-	       {
-	         "cmd": "fastly compute metadata --disable",
-	         "title": "Disable all metadata collection information"
-	       },
-	       {
-	         "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
-	         "title": "Enable specific metadata collection information"
-	       },
-	       {
-	         "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
-	         "title": "Disable specific metadata collection information"
-	       }
-	     ]
-	   },
-	*/
-	metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
-	if c.MetadataEnable && !metadataDisable {
-		if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
-			return err
+		// FIXME: For feature launch replace enable flag with disable equivalent.
+		// e.g. define --metadata-disable and check for that first with env var.
+		// Also make sure hidden flags (across all composite commands) aren't hidden.
+		// Also update the run.go app to remove the message which displays a warning.
+		// Also one final release un-hide the metadata command and add metadata.json examples
+		// e.g.
+		/*
+		   "metadata": {
+		     "examples": [
+		       {
+		         "cmd": "fastly compute metadata --enable",
+		         "title": "Enable all metadata collection information"
+		       },
+		       {
+		         "cmd": "fastly compute metadata --disable",
+		         "title": "Disable all metadata collection information"
+		       },
+		       {
+		         "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
+		         "title": "Enable specific metadata collection information"
+		       },
+		       {
+		         "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
+		         "title": "Disable specific metadata collection information"
+		       }
+		     ]
+		   },
+		*/
+		metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
+		if c.MetadataEnable && !metadataDisable {
+			if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
+				return err
+			}
+		} else {
+			if err := c.AnnotateWasmBinaryShort(wasmtools, metadataArgs); err != nil {
+				return err
+			}
+		}
+		if c.MetadataShow {
+			if err := c.ShowMetadata(wasmtools, out); err != nil {
+				return err
+			}
 		}
 	} else {
-		if err := c.AnnotateWasmBinaryShort(wasmtools, metadataArgs); err != nil {
-			return err
+		if !c.Globals.Verbose() {
+			text.Break(out)
 		}
-	}
-	if c.MetadataShow {
-		if err := c.ShowMetadata(wasmtools, out); err != nil {
-			return err
-		}
+		text.Info(out, "There was an error downloading the wasm-tools (used for binary annotations) but we don't let that block you building your project. For reference here is the error (in case you want to let us know about it): %s\n\n", wasmtoolsErr.Error())
 	}
 
 	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
