@@ -660,9 +660,9 @@ func local(opts localOpts) error {
 	// have a separate `select` statement to check for any initial errors prior to
 	// the Viceroy executable starting and an error occurring in `watchFiles`.
 	select {
-	case channelErr := <-failure:
+	case asyncErr := <-failure:
 		s.SignalCh <- syscall.SIGTERM
-		return channelErr
+		return asyncErr
 	case <-time.After(1 * time.Second):
 		// no-op: allow logic to flow to starting up Viceroy executable.
 	}
@@ -677,9 +677,9 @@ func local(opts localOpts) error {
 		}
 		if strings.Contains(e, "killed") {
 			select {
-			case channelErr := <-failure:
+			case asyncErr := <-failure:
 				s.SignalCh <- syscall.SIGTERM
-				return channelErr
+				return asyncErr
 			case <-restart:
 				s.SignalCh <- syscall.SIGTERM
 				return fsterr.ErrViceroyRestart
