@@ -101,17 +101,23 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	failure := make(chan error)
 	sigs := make(chan os.Signal, 2)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
 	// Start the output loop.
-	go c.outputLoop(out)
+	go c.outputLoop(out, failure)
 
 	// Start tailing the logs.
-	go c.tail(out)
+	go c.tail(out, failure)
 
-	<-sigs
-	close(c.dieCh)
+	select {
+	case channelErr := <-failure:
+		close(c.dieCh)
+		return channelErr
+	case <-sigs:
+		close(c.dieCh)
+	}
 
 	return nil
 }
@@ -119,13 +125,13 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 // Tail starts the virtual tail process. Tail fetches data from the eventbuffer
 // API. It hands off the requested logs to the outputloop for the actual
 // printing.
-func (c *RootCommand) tail(out io.Writer) {
+func (c *RootCommand) tail(out io.Writer, failure chan error) {
 	// Start this with --from and --to if set.
 	curWindow := c.cfg.from
 	toWindow := c.cfg.to
 
 	// Start the loop with an initial address to query.
-	path := makeNewPath(out, c.cfg.path, curWindow, "")
+	path := makeNewPath(c.cfg.path, curWindow, "", failure)
 
 	// lastBatchID keeps the last successfully read Batch.ID in case we need
 	// re-request on failure.
@@ -145,16 +151,16 @@ func (c *RootCommand) tail(out io.Writer) {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"GET": path,
 			})
-			text.Error(out, "unable to create new request: %v", err)
-			os.Exit(1)
+			failure <- fmt.Errorf("unable to create new request: %w", err)
+			return
 		}
 		req.Header.Add("Fastly-Key", c.token)
 
 		resp, err := c.doReq(req)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
-			text.Error(out, "unable to execute request: %v", err)
-			os.Exit(1)
+			failure <- fmt.Errorf("unable to execute request: %w", err)
+			return
 		}
 
 		// Check that our request was successful. If the server is
@@ -164,8 +170,8 @@ func (c *RootCommand) tail(out io.Writer) {
 			// not valid, give them an error stating this and exit.
 			if resp.StatusCode == http.StatusNotFound &&
 				c.cfg.from != 0 {
-				text.Error(out, "specified 'from' time %d not found, either too far in the past or future", c.cfg.from)
-				os.Exit(1)
+				failure <- fmt.Errorf("specified 'from' time %d not found, either too far in the past or future", c.cfg.from)
+				return
 			}
 
 			// In an effort to clean up the output, do not print on
@@ -190,8 +196,8 @@ func (c *RootCommand) tail(out io.Writer) {
 			}
 
 			// Failing at this point is unrecoverable.
-			text.Error(out, "unrecoverable error, response code: %d", resp.StatusCode)
-			os.Exit(1)
+			failure <- fmt.Errorf("unrecoverable error, response code: %d", resp.StatusCode)
+			return
 		}
 
 		// Read and parse response, send batches to the output loop.
@@ -213,7 +219,7 @@ func (c *RootCommand) tail(out io.Writer) {
 				// We can't parse the response, attempt to
 				// re-request from the last window & batch.
 				text.Warning(out, "unable to parse response body: %v", err)
-				path = makeNewPath(out, path, curWindow, lastBatchID)
+				path = makeNewPath(path, curWindow, lastBatchID, failure)
 				continue
 			}
 
@@ -242,7 +248,7 @@ func (c *RootCommand) tail(out io.Writer) {
 
 			// Something happened in the scanner, re-request the
 			// current batchID.
-			path = makeNewPath(out, path, curWindow, lastBatchID)
+			path = makeNewPath(path, curWindow, lastBatchID, failure)
 			continue
 		}
 
@@ -259,7 +265,7 @@ func (c *RootCommand) tail(out io.Writer) {
 		// We do NOT want to specify a batchID, as this
 		// request was successful.
 		lastBatchID = ""
-		path = makeNewPath(out, path, curWindow, lastBatchID)
+		path = makeNewPath(path, curWindow, lastBatchID, failure)
 	}
 }
 
@@ -291,7 +297,7 @@ func (c *RootCommand) enableManagedLogging(out io.Writer) error {
 }
 
 // outputLoop processes the logs out of band from the request/response loop.
-func (c *RootCommand) outputLoop(out io.Writer) {
+func (c *RootCommand) outputLoop(out io.Writer, failure chan error) {
 	type (
 		bufferedLog struct {
 			reqID string
@@ -525,13 +531,13 @@ func (l *Log) String() string {
 
 // makeNewPath generates a new request path based on current
 // path, window, and batchID.
-func makeNewPath(out io.Writer, path string, window int64, batchID string) string {
+func makeNewPath(path string, window int64, batchID string, failure chan error) string {
 	basePath, err := url.Parse(path)
 	if err != nil {
 		// No reasonable way to carry on from an error at this point
 		// and it should never happen, so error & exit.
-		text.Error(out, "error generating request URL: %v", err)
-		os.Exit(1)
+		failure <- fmt.Errorf("error generating request URL: %w", err)
+		return ""
 	}
 
 	// Unset anything in the query parameters that might already exist.
