@@ -106,7 +106,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
 	// Start the output loop.
-	go c.outputLoop(out, failure)
+	go c.outputLoop(out)
 
 	// Start tailing the logs.
 	go c.tail(out, failure)
@@ -115,6 +115,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	case channelErr := <-failure:
 		close(c.dieCh)
 		return channelErr
+	case <-c.doneCh:
+		return nil
 	case <-sigs:
 		close(c.dieCh)
 	}
@@ -297,7 +299,7 @@ func (c *RootCommand) enableManagedLogging(out io.Writer) error {
 }
 
 // outputLoop processes the logs out of band from the request/response loop.
-func (c *RootCommand) outputLoop(out io.Writer, failure chan error) {
+func (c *RootCommand) outputLoop(out io.Writer) {
 	type (
 		bufferedLog struct {
 			reqID string
@@ -424,9 +426,6 @@ func (c *RootCommand) outputLoop(out io.Writer, failure chan error) {
 			// Set the new log and receive info back to the
 			// logmap for this RequestID.
 			logmap[reqID] = reqLogs
-
-		case <-c.doneCh:
-			os.Exit(0)
 		}
 	}
 }
