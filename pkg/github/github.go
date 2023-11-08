@@ -331,9 +331,13 @@ func createArchive(assetBase, tmpDir string, data io.ReadCloser) (path string, e
 func extractBinary(archive, binaryName, dst, assetBase string, nested bool) (bin string, err error) {
 	extractPath := binaryName
 	if nested {
+		extension := ".tar.gz"
+		if fstruntime.Windows {
+			extension = ".zip"
+		}
 		// e.g. extract the nested directory "wasm-tools-1.0.42-aarch64-macos"
 		// which itself contains the `wasm-tools` binary
-		extractPath = strings.TrimSuffix(assetBase, ".tar.gz")
+		extractPath = strings.TrimSuffix(assetBase, extension)
 	}
 	if err := archiver.Extract(archive, extractPath, dst); err != nil {
 		return "", fmt.Errorf("failed to extract binary: %w", err)
@@ -437,9 +441,17 @@ func (m Metadata) URL() string {
 		arch = "x86_64"
 	}
 
+	extension := "tar.gz"
+	if fstruntime.Windows {
+		extension = "zip"
+	}
+
 	for _, a := range m.Assets {
 		version := m.Version()
-		pattern := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s-%s/%s-%s-%s-%s.tar.gz", m.org, m.repo, m.binary, version, m.binary, version, arch, platform)
+		// NOTE: We use `m.repo` for wasm-tools instead of `m.binary`.
+		// This is because we append `.exe` to `m.binary` on Windows.
+		// Instead of filtering the extension we just use `m.repo` instead.
+		pattern := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s-%s/%s-%s-%s-%s.%s", m.org, m.repo, m.repo, version, m.repo, version, arch, platform, extension)
 		if matched, _ := regexp.MatchString(pattern, a.BrowserDownloadURL); matched {
 			return a.BrowserDownloadURL
 		}
