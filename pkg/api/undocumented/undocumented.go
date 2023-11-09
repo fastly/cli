@@ -74,7 +74,6 @@ func Call(opts CallOptions) (data []byte, err error) {
 
 	if opts.Token != "" {
 		req.Header.Set("Fastly-Key", opts.Token)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", opts.Token))
 	}
 	req.Header.Set("User-Agent", useragent.Name)
 	for _, header := range opts.HTTPHeaders {
