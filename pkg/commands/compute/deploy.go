@@ -206,7 +206,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 		if c.Globals.Manifest.File.Setup.Defined() && !c.Globals.Flags.Quiet {
-			text.Info(out, "\nProcessing of the %s [setup] configuration happens only for a new service. Once a service is created, any further changes to the service or its resources must be made manually.", manifestFilename)
+			text.Info(out, "\nProcessing of the %s [setup] configuration happens only for a new service. Once a service is created, any further changes to the service or its resources must be made manually.\n\n", manifestFilename)
 		}
 	}
 
