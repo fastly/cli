@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## [v10.6.2](https://github.com/fastly/cli/releases/tag/v10.6.2) (2023-11-09)
+
+**Bug fixes:**
+
+* fix(github): corrections for Windows users downloading wasm-tools [#1083](https://github.com/fastly/cli/pull/1083)
+* fix(compute/build): don't block user if wasm-tool fails [#1084](https://github.com/fastly/cli/pull/1084)
+
+**Enhancements:**
+
+* refactor: apply linting fixes [#1080](https://github.com/fastly/cli/pull/1080)
+* refactor(compute/serve): replace log.Fatal usage with channel [#1081](https://github.com/fastly/cli/pull/1081)
+* refactor(logtail): replace log.Fatal usage with channel [#1081](https://github.com/fastly/cli/pull/1082)
+
+**Dependencies:**
+
+* build(deps): bump golang.org/x/mod from 0.13.0 to 0.14.0 [#1079](https://github.com/fastly/cli/pull/1079)
+* build(deps): bump golang.org/x/text from 0.13.0 to 0.14.0 [#1078](https://github.com/fastly/cli/pull/1078)
+* build(deps): bump github.com/fatih/color from 1.15.0 to 1.16.0 [#1077](https://github.com/fastly/cli/pull/1077)
+
 ## [v10.6.1](https://github.com/fastly/cli/releases/tag/v10.6.1) (2023-11-03)
 
 **Bug fixes:**
