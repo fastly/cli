@@ -379,7 +379,7 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 		return defaultActivator, serviceID, err
 	}
 
-	endpoint, _ := c.Globals.Endpoint()
+	endpoint, _ := c.Globals.APIEndpoint()
 	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient, c.Globals.Env.DebugMode)
 
 	return fnActivateTrial, serviceID, err

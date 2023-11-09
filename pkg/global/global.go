@@ -113,8 +113,8 @@ func (d *Data) Verbose() bool {
 	return d.Flags.Verbose
 }
 
-// Endpoint yields the API endpoint.
-func (d *Data) Endpoint() (string, lookup.Source) {
+// APIEndpoint yields the API endpoint.
+func (d *Data) APIEndpoint() (string, lookup.Source) {
 	if d.Flags.Endpoint != "" {
 		return d.Flags.Endpoint, lookup.SourceFlag
 	}

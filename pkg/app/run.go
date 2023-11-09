@@ -91,9 +91,9 @@ func Run(opts RunOpts) error {
 		opts.Manifest.File.SetQuiet(true)
 	}
 
-	endpoint, endpointSource := g.Endpoint()
+	apiEndpoint, endpointSource := g.APIEndpoint()
 	if g.Verbose() {
-		displayAPIEndpoint(endpoint, endpointSource, opts.Stdout)
+		displayAPIEndpoint(apiEndpoint, endpointSource, opts.Stdout)
 	}
 
 	token, err := processToken(commands, commandName, opts.Manifest, &g, opts.Stdin, opts.Stdout)
@@ -101,7 +101,7 @@ func Run(opts RunOpts) error {
 		return fmt.Errorf("failed to process token: %w", err)
 	}
 
-	g.APIClient, g.RTSClient, err = configureClients(token, endpoint, opts.APIClient, g.Flags.Debug)
+	g.APIClient, g.RTSClient, err = configureClients(token, apiEndpoint, opts.APIClient, g.Flags.Debug)
 	if err != nil {
 		g.ErrLog.Add(err)
 		return fmt.Errorf("error constructing client: %w", err)
@@ -301,7 +301,7 @@ func checkProfileToken(
 				text.Info(out, "Your access token has now expired. We will attempt to refresh it")
 			}
 			accountEndpoint, _ := g.Account()
-			apiEndpoint, _ := g.Endpoint()
+			apiEndpoint, _ := g.APIEndpoint()
 
 			updatedJWT, err := auth.RefreshAccessToken(accountEndpoint, profileData.RefreshToken)
 			if err != nil {
@@ -484,8 +484,8 @@ func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, out io.Wr
 	}
 }
 
-func configureClients(token, endpoint string, acf APIClientFactory, debugMode bool) (apiClient api.Interface, rtsClient api.RealtimeStatsInterface, err error) {
-	apiClient, err = acf(token, endpoint, debugMode)
+func configureClients(token, apiEndpoint string, acf APIClientFactory, debugMode bool) (apiClient api.Interface, rtsClient api.RealtimeStatsInterface, err error) {
+	apiClient, err = acf(token, apiEndpoint, debugMode)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error constructing Fastly API client: %w", err)
 	}
@@ -512,7 +512,7 @@ func checkForUpdates(av github.AssetVersioner, commandName string, quietMode boo
 // the Run helper with it: in the real CLI, we can use NewClient from the Fastly
 // API client library via RealClient; in tests, we can provide a mock API
 // interface via MockClient.
-type APIClientFactory func(token, endpoint string, debugMode bool) (api.Interface, error)
+type APIClientFactory func(token, apiEndpoint string, debugMode bool) (api.Interface, error)
 
 // Versioners represents all supported versioner types.
 type Versioners struct {

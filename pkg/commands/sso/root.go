@@ -71,7 +71,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	accountEndpoint, _ := c.Globals.Account()
-	apiEndpoint, _ := c.Globals.Endpoint()
+	apiEndpoint, _ := c.Globals.APIEndpoint()
 	verifier, err := auth.GenVerifier()
 	if err != nil {
 		return fsterr.RemediationError{

@@ -81,7 +81,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 
 	c.Input.Kind = fastly.ManagedLoggingInstanceOutput
-	endpoint, _ := c.Globals.Endpoint()
+	endpoint, _ := c.Globals.APIEndpoint()
 	c.cfg.path = fmt.Sprintf("%s/service/%s/log_stream/managed/instance_output", endpoint, c.Input.ServiceID)
 
 	c.dieCh = make(chan struct{})

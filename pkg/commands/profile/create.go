@@ -112,7 +112,7 @@ func (c *CreateCommand) staticTokenFlow(makeDefault bool, in io.Reader, out io.W
 	}
 	text.Break(out)
 
-	endpoint, _ := c.Globals.Endpoint()
+	endpoint, _ := c.Globals.APIEndpoint()
 
 	spinner, err := text.NewSpinner(out)
 	if err != nil {

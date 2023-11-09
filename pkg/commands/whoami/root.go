@@ -32,7 +32,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	debugMode, _ := strconv.ParseBool(c.Globals.Env.DebugMode)
 	token, _ := c.Globals.Token()
-	apiEndpoint, _ := c.Globals.Endpoint()
+	apiEndpoint, _ := c.Globals.APIEndpoint()
 	data, err := undocumented.Call(undocumented.CallOptions{
 		APIEndpoint: apiEndpoint,
 		HTTPClient:  c.Globals.HTTPClient,
