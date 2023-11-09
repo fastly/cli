@@ -373,8 +373,7 @@ func shouldSkipSSO(profileName string, pd *config.Profile, out io.Writer, g *glo
 			return false // don't skip OAuth
 		}
 		if !g.Flags.Quiet {
-			text.Important(out, "The Fastly API token used by the current '%s' profile is not a Fastly SSO (Single Sign-On) generated token. SSO-based tokens offer more security and convenience. To update your token, set `FASTLY_USE_SSO=1` before invoking the Fastly CLI. This will ensure the current profile is switched to using an SSO generated API token. Once the token has been switched over you no longer need to set `FASTLY_USE_SSO` for this profile (--token and FASTLY_API_TOKEN can still be used as overrides).", profileName)
-			text.Break(out)
+			text.Important(out, "The Fastly API token used by the current '%s' profile is not a Fastly SSO (Single Sign-On) generated token. SSO-based tokens offer more security and convenience. To update your token, set `FASTLY_USE_SSO=1` before invoking the Fastly CLI. This will ensure the current profile is switched to using an SSO generated API token. Once the token has been switched over you no longer need to set `FASTLY_USE_SSO` for this profile (--token and FASTLY_API_TOKEN can still be used as overrides).\n\n", profileName)
 		}
 		return true // skip OAuth
 	}
@@ -472,15 +471,15 @@ func checkConfigPermissions(quietMode bool, commandName string, tokenSource look
 func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, out io.Writer) {
 	switch endpointSource {
 	case lookup.SourceFlag:
-		fmt.Fprintf(out, "Fastly API endpoint (via --endpoint): %s\n", endpoint)
+		fmt.Fprintf(out, "Fastly API endpoint (via --endpoint): %s\n\n", endpoint)
 	case lookup.SourceEnvironment:
-		fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
+		fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n\n", env.Endpoint, endpoint)
 	case lookup.SourceFile:
-		fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n", endpoint)
+		fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n\n", endpoint)
 	case lookup.SourceDefault, lookup.SourceUndefined:
 		fallthrough
 	default:
-		fmt.Fprintf(out, "Fastly API endpoint: %s\n", endpoint)
+		fmt.Fprintf(out, "Fastly API endpoint: %s\n\n", endpoint)
 	}
 }
 
