@@ -19,6 +19,9 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 )
 
+// Well-Known configuration endpoint.
+// https://accounts.fastly.com/realms/fastly/.well-known/openid-configuration
+
 // Remediation is a generic remediation message for an error authorizing.
 const Remediation = "Please re-run the command. If the problem persists, please file an issue: https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md"
 
