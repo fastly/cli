@@ -89,13 +89,13 @@ func main() {
 	// We do this here so that we can mock the values in our test suite.
 	result := make(chan auth.AuthorizationResult)
 	router := http.NewServeMux()
-	s := &auth.Server{
+	authServer := &auth.Server{
 		DebugMode:  e.DebugMode,
 		HTTPClient: httpClient,
 		Result:     result,
 		Router:     router,
 	}
-	router.HandleFunc("/callback", s.HandleCallback())
+	router.HandleFunc("/callback", authServer.HandleCallback())
 
 	// The `main` function is a shim for calling `app.Run()`.
 	err = app.Run(app.RunOpts{
@@ -107,7 +107,7 @@ func main() {
 			return client, err
 		},
 		Args:             args,
-		AuthServer:       s,
+		AuthServer:       authServer,
 		ConfigFile:       cfg,
 		ConfigPath:       config.FilePath,
 		Env:              e,
