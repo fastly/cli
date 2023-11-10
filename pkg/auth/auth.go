@@ -146,7 +146,7 @@ func (s *Server) HandleCallback() http.HandlerFunc {
 // ValidateAndRetrieveAPIToken verifies the signature and the claims and
 // exchanges the access token for an API token.
 //
-// NOTE: This function exists as it's called by this package + app.Run()
+// NOTE: This function exists as it's called by this package + app.Run().
 func ValidateAndRetrieveAPIToken(accountEndpoint, apiEndpoint, accessToken, debugMode string, httpClient api.HTTPClient) (string, *APIToken, error) {
 	claims, err := VerifyJWTSignature(accountEndpoint, accessToken)
 	if err != nil {
@@ -185,7 +185,11 @@ func ValidateAndRetrieveAPIToken(accountEndpoint, apiEndpoint, accessToken, debu
 		return "", nil, fmt.Errorf("failed to exchange access token for an API token: %w", err)
 	}
 
-	return email.(string), at, nil
+	e, ok := email.(string)
+	if !ok {
+		return "", nil, fmt.Errorf("failed to type assert 'email' (%#v) to a string", email)
+	}
+	return e, at, nil
 }
 
 // APIToken is returned from the /login-enhanced endpoint.
