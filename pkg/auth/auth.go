@@ -19,10 +19,6 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 )
 
-// WellKnown is OpenID Connect's metadata discovery mechanism.
-// https://swagger.io/docs/specification/authentication/openid-connect-discovery/
-const WellKnown = "https://accounts.fastly.com/realms/fastly/.well-known/openid-configuration"
-
 // Remediation is a generic remediation message for an error authorizing.
 const Remediation = "Please re-run the command. If the problem persists, please file an issue: https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md"
 
@@ -31,6 +27,20 @@ const ClientID = "fastly-cli"
 
 // RedirectURL is the endpoint the auth provider will pass an authorization code to.
 const RedirectURL = "http://localhost:8080/callback"
+
+// OIDCMetadata is OpenID Connect's metadata discovery mechanism.
+// https://swagger.io/docs/specification/authentication/openid-connect-discovery/
+const OIDCMetadata = "https://accounts.fastly.com/realms/fastly/.well-known/openid-configuration"
+
+// WellKnownEndpoints represents the OpenID Connect metadata.
+type WellKnownEndpoints struct {
+	// Auth is the authorization_endpoint.
+	Auth string `json:"authorization_endpoint"`
+	// Certs is the jwks_uri.
+	Certs string `json:"jwks_uri"`
+	// Token is the token_endpoint.
+	Token string `json:"token_endpoint"`
+}
 
 // Starter defines the behaviour for the authentication server.
 type Starter interface {
@@ -56,14 +66,14 @@ type Server struct {
 	DebugMode string
 	// HTTPClient is a HTTP client used to call the API to exchange the access token for a session token.
 	HTTPClient api.HTTPClient
-	// OpenIDConfig is the .well-known metadata.
-	OpenIDConfig []byte
 	// Result is a channel that reports the result of authorization.
 	Result chan AuthorizationResult
 	// Router is an HTTP request multiplexer.
 	Router *http.ServeMux
 	// Verifier represents an OAuth PKCE code verifier that uses the S256 challenge method.
 	Verifier *oidc.S256Verifier
+	// WellKnownEndpoints is the .well-known metadata.
+	WellKnownEndpoints WellKnownEndpoints
 }
 
 // GetResult returns the result channel.

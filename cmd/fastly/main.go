@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -88,7 +89,7 @@ func main() {
 
 	// Configure authentication inputs.
 	// We do this here so that we can mock the values in our test suite.
-	req, err := http.NewRequest(http.MethodGet, auth.WellKnown, nil)
+	req, err := http.NewRequest(http.MethodGet, auth.OIDCMetadata, nil)
 	if err != nil {
 		err = fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
 		handleErr(err, out)
@@ -107,14 +108,21 @@ func main() {
 		os.Exit(1)
 	}
 	_ = resp.Body.Close()
+	var wellknown auth.WellKnownEndpoints
+	err = json.Unmarshal(openIDConfig, &wellknown)
+	if err != nil {
+		err = fmt.Errorf("failed to unmarshal OpenID Connect .well-known metadata: %w", err)
+		handleErr(err, out)
+		os.Exit(1)
+	}
 	result := make(chan auth.AuthorizationResult)
 	router := http.NewServeMux()
 	authServer := &auth.Server{
-		DebugMode:    e.DebugMode,
-		HTTPClient:   httpClient,
-		OpenIDConfig: openIDConfig,
-		Result:       result,
-		Router:       router,
+		DebugMode:          e.DebugMode,
+		HTTPClient:         httpClient,
+		Result:             result,
+		Router:             router,
+		WellKnownEndpoints: wellknown,
 	}
 	router.HandleFunc("/callback", authServer.HandleCallback())
 
