@@ -19,8 +19,9 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 )
 
-// Well-Known configuration endpoint.
-// https://accounts.fastly.com/realms/fastly/.well-known/openid-configuration
+// WellKnown is OpenID Connect's metadata discovery mechanism.
+// https://swagger.io/docs/specification/authentication/openid-connect-discovery/
+const WellKnown = "https://accounts.fastly.com/realms/fastly/.well-known/openid-configuration"
 
 // Remediation is a generic remediation message for an error authorizing.
 const Remediation = "Please re-run the command. If the problem persists, please file an issue: https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md"
@@ -55,6 +56,8 @@ type Server struct {
 	DebugMode string
 	// HTTPClient is a HTTP client used to call the API to exchange the access token for a session token.
 	HTTPClient api.HTTPClient
+	// OpenIDConfig is the .well-known metadata.
+	OpenIDConfig []byte
 	// Result is a channel that reports the result of authorization.
 	Result chan AuthorizationResult
 	// Router is an HTTP request multiplexer.

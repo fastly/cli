@@ -3,6 +3,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -87,13 +88,33 @@ func main() {
 
 	// Configure authentication inputs.
 	// We do this here so that we can mock the values in our test suite.
+	req, err := http.NewRequest(http.MethodGet, auth.WellKnown, nil)
+	if err != nil {
+		err = fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
+		handleErr(err, out)
+		os.Exit(1)
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		err = fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
+		handleErr(err, out)
+		os.Exit(1)
+	}
+	openIDConfig, err := io.ReadAll(resp.Body)
+	if err != nil {
+		err = fmt.Errorf("failed to read OpenID Connect .well-known metadata: %w", err)
+		handleErr(err, out)
+		os.Exit(1)
+	}
+	_ = resp.Body.Close()
 	result := make(chan auth.AuthorizationResult)
 	router := http.NewServeMux()
 	authServer := &auth.Server{
-		DebugMode:  e.DebugMode,
-		HTTPClient: httpClient,
-		Result:     result,
-		Router:     router,
+		DebugMode:    e.DebugMode,
+		HTTPClient:   httpClient,
+		OpenIDConfig: openIDConfig,
+		Result:       result,
+		Router:       router,
 	}
 	router.HandleFunc("/callback", authServer.HandleCallback())
 
@@ -153,14 +174,18 @@ func main() {
 		fsterr.Deduce(logErr).Print(color.Error)
 	}
 	if err != nil {
-		text.Break(out)
-		fsterr.Deduce(err).Print(color.Error)
-		exitError := fsterr.SkipExitError{}
-		if errors.As(err, &exitError) {
-			if exitError.Skip {
-				return // skip returning an error for 'help' output
-			}
-		}
+		handleErr(err, out)
 		os.Exit(1)
+	}
+}
+
+func handleErr(err error, out io.Writer) {
+	text.Break(out)
+	fsterr.Deduce(err).Print(color.Error)
+	exitError := fsterr.SkipExitError{}
+	if errors.As(err, &exitError) {
+		if exitError.Skip {
+			return // skip returning an error for 'help' output
+		}
 	}
 }
