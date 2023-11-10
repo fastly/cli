@@ -10,11 +10,11 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 )
 
-// DefaultEndpoint is the default Fastly API endpoint.
-const DefaultEndpoint = "https://api.fastly.com"
+// DefaultAPIEndpoint is the default Fastly API endpoint.
+const DefaultAPIEndpoint = "https://api.fastly.com"
 
-// DefaultAccount is the default Fastly Accounts endpoint.
-const DefaultAccount = "https://accounts.fastly.com"
+// DefaultAccountEndpoint is the default Fastly Accounts endpoint.
+const DefaultAccountEndpoint = "https://accounts.fastly.com"
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
@@ -123,11 +123,11 @@ func (d *Data) APIEndpoint() (string, lookup.Source) {
 		return d.Env.Endpoint, lookup.SourceEnvironment
 	}
 
-	if d.Config.Fastly.APIEndpoint != DefaultEndpoint && d.Config.Fastly.APIEndpoint != "" {
+	if d.Config.Fastly.APIEndpoint != DefaultAPIEndpoint && d.Config.Fastly.APIEndpoint != "" {
 		return d.Config.Fastly.APIEndpoint, lookup.SourceFile
 	}
 
-	return DefaultEndpoint, lookup.SourceDefault // this method should not fail
+	return DefaultAPIEndpoint, lookup.SourceDefault // this method should not fail
 }
 
 // Account yields the Accounts endpoint.
@@ -140,11 +140,11 @@ func (d *Data) Account() (string, lookup.Source) {
 		return d.Env.Account, lookup.SourceEnvironment
 	}
 
-	if d.Config.Fastly.AccountEndpoint != DefaultAccount && d.Config.Fastly.AccountEndpoint != "" {
+	if d.Config.Fastly.AccountEndpoint != DefaultAccountEndpoint && d.Config.Fastly.AccountEndpoint != "" {
 		return d.Config.Fastly.AccountEndpoint, lookup.SourceFile
 	}
 
-	return DefaultAccount, lookup.SourceDefault // this method should not fail
+	return DefaultAccountEndpoint, lookup.SourceDefault // this method should not fail
 }
 
 // Flags represents all of the configuration parameters that can be set with
