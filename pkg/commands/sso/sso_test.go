@@ -139,7 +139,8 @@ func TestSSO(t *testing.T) {
 			TestScenario: testutil.TestScenario{
 				Args: args("whoami"),
 				WantOutputs: []string{
-					"is not a Fastly SSO (Single Sign-On) generated token",
+					// FIXME: Put back messaging once SSO is GA.
+					// "is not a Fastly SSO (Single Sign-On) generated token",
 					"Alice Programmer <alice@example.com>",
 				},
 			},

@@ -118,9 +118,10 @@ func (c *UpdateCommand) identifyProfile() (string, *config.Profile, error) {
 }
 
 func (c *UpdateCommand) updateToken(profileName string, p *config.Profile, in io.Reader, out io.Writer) error {
-	if !c.sso && !isSSOToken(p) {
-		text.Info(out, "When updating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To update this profile to use an SSO-based token, pass the `--sso` flag: `fastly profile update --sso`.\n\n")
-	}
+	// FIXME: Put back messaging once SSO is GA.
+	// if !c.sso && !isSSOToken(p) {
+	// 	text.Info(out, "When updating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To update this profile to use an SSO-based token, pass the `--sso` flag: `fastly profile update --sso`.\n\n")
+	// }
 
 	if c.sso || isSSOToken(p) {
 		// IMPORTANT: We need to set profile fields for `sso` command.

@@ -53,11 +53,11 @@ _fastly_bash_autocomplete() {
 complete -F _fastly_bash_autocomplete fastly
 `,
 		},
+		// FIXME: Put back `sso` GA.
 		{
 			Name: "shell evaluate completion options",
 			Args: args("--completion-bash"),
 			WantOutput: `help
-sso
 acl
 acl-entry
 auth-token
