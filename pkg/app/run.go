@@ -300,7 +300,7 @@ func checkProfileToken(
 			if g.Flags.Verbose {
 				text.Info(out, "Your access token has now expired. We will attempt to refresh it")
 			}
-			accountEndpoint, _ := g.Account()
+			accountEndpoint, _ := g.AccountEndpoint()
 			apiEndpoint, _ := g.APIEndpoint()
 
 			updatedJWT, err := auth.RefreshAccessToken(accountEndpoint, profileData.RefreshToken)

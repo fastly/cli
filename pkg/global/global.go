@@ -130,8 +130,8 @@ func (d *Data) APIEndpoint() (string, lookup.Source) {
 	return DefaultAPIEndpoint, lookup.SourceDefault // this method should not fail
 }
 
-// Account yields the Accounts endpoint.
-func (d *Data) Account() (string, lookup.Source) {
+// AccountEndpoint yields the Accounts endpoint.
+func (d *Data) AccountEndpoint() (string, lookup.Source) {
 	if d.Flags.Account != "" {
 		return d.Flags.Account, lookup.SourceFlag
 	}
