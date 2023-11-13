@@ -35,6 +35,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// Run kick starts the CLI application.
 func Run(args []string, stdin io.Reader) error {
 	opts, err := Init(args, stdin)
 	if err != nil {
@@ -382,8 +383,9 @@ func processToken(commands []cmd.Command, commandName string, m *manifest.Data, 
 	if g.Verbose() {
 		displayToken(tokenSource, m.File.Profile, *g, out)
 	}
-
-	checkConfigPermissions(g.Flags.Quiet, commandName, tokenSource, out)
+	if !g.Flags.Quiet {
+		checkConfigPermissions(commandName, tokenSource, out)
+	}
 
 	return token, nil
 }
@@ -612,16 +614,14 @@ func displayToken(tokenSource lookup.Source, profileName string, g global.Data, 
 // If we are using the token from config file, check the file's permissions
 // to assert if they are not too open or have been altered outside of the
 // application and warn if so.
-func checkConfigPermissions(quietMode bool, commandName string, tokenSource lookup.Source, out io.Writer) {
+func checkConfigPermissions(commandName string, tokenSource lookup.Source, out io.Writer) {
 	segs := strings.Split(commandName, " ")
 	if tokenSource == lookup.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
-				if !quietMode {
-					text.Warning(out, "Unprotected configuration file.\n\n")
-					text.Output(out, "Permissions for '%s' are too open\n\n", config.FilePath)
-					text.Output(out, "It is recommended that your configuration file is NOT accessible by others.\n\n")
-				}
+				text.Warning(out, "Unprotected configuration file.\n\n")
+				text.Output(out, "Permissions for '%s' are too open\n\n", config.FilePath)
+				text.Output(out, "It is recommended that your configuration file is NOT accessible by others.\n\n")
 			}
 		}
 	}
