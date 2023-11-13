@@ -11,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -24,12 +23,11 @@ const deleteKeysConcurrencyLimit int = 100
 const batchLimit int = 100
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("delete", "Delete a config store item")
@@ -61,7 +59,6 @@ type DeleteCommand struct {
 	concurrency cmd.OptionalInt
 	deleteAll   bool
 	input       fastly.DeleteConfigStoreItemInput
-	manifest    manifest.Data
 }
 
 // Exec invokes the application logic for the command.

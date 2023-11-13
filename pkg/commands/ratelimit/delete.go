@@ -7,16 +7,14 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, globals *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, globals *global.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.CmdClause = parent.Command("delete", "Delete a rate limiter by its ID").Alias("remove")
 	c.Globals = globals
-	c.manifest = m
 
 	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the rate limiter").Required().StringVar(&c.id)
@@ -28,8 +26,7 @@ func NewDeleteCommand(parent cmd.Registerer, globals *global.Data, m manifest.Da
 type DeleteCommand struct {
 	cmd.Base
 
-	id       string
-	manifest manifest.Data
+	id string
 }
 
 // Exec invokes the application logic for the command.

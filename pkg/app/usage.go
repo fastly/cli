@@ -208,10 +208,8 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 // processing the incoming command request from the user, as well as handling
 // the various places where help output can be displayed.
 func processCommandInput(
-	args []string,
-	out io.Writer,
+	data *global.Data,
 	app *kingpin.Application,
-	g *global.Data,
 	commands []cmd.Command,
 ) (command cmd.Command, cmdName string, err error) {
 	// As the `help` command model gets privately added as a side-effect of
@@ -219,18 +217,18 @@ func processCommandInput(
 	// Therefore, we have to manually parse the args slice here to check for the
 	// existence of `help --format json`, if present we print usage JSON and
 	// exit early.
-	if cmd.ArgsIsHelpJSON(args) {
+	if cmd.ArgsIsHelpJSON(data.Args) {
 		j, err := UsageJSON(app)
 		if err != nil {
-			g.ErrLog.Add(err)
+			data.ErrLog.Add(err)
 			return command, cmdName, err
 		}
-		fmt.Fprintf(out, "%s", j)
-		return command, strings.Join(args, ""), nil
+		fmt.Fprintf(data.Output, "%s", j)
+		return command, strings.Join(data.Args, ""), nil
 	}
 
 	// Use partial application to generate help output function.
-	help := displayHelp(g.ErrLog, args, app, out, io.Discard)
+	help := displayHelp(data.ErrLog, data.Args, app, data.Output, io.Discard)
 
 	// Handle parse errors and display contextual usage if possible. Due to bugs
 	// and an obsession for lots of output side-effects in the kingpin.Parse
@@ -251,14 +249,14 @@ func processCommandInput(
 	// But it's useful to have it implemented so it's ready to roll when we do.
 	var vars map[string]any
 
-	if cmd.IsVerboseAndQuiet(args) {
+	if cmd.IsVerboseAndQuiet(data.Args) {
 		return command, cmdName, fsterr.RemediationError{
 			Inner:       errors.New("--verbose and --quiet flag provided"),
 			Remediation: "Either remove both --verbose and --quiet flags, or one of them.",
 		}
 	}
 
-	if cmd.IsHelpFlagOnly(args) && len(args) == 1 {
+	if cmd.IsHelpFlagOnly(data.Args) && len(data.Args) == 1 {
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),
@@ -285,17 +283,17 @@ func processCommandInput(
 	//
 	// ctx.SelectedCommand will be nil if only a flag like --verbose or -v is
 	// provided but with no actual command set so we check with IsGlobalFlagsOnly.
-	noargs := len(args) == 0
-	globalFlagsOnly := cmd.IsGlobalFlagsOnly(args)
-	ctx, err := app.ParseContext(args)
-	if err != nil && !cmd.IsCompletion(args) || noargs || globalFlagsOnly {
+	noargs := len(data.Args) == 0
+	globalFlagsOnly := cmd.IsGlobalFlagsOnly(data.Args)
+	ctx, err := app.ParseContext(data.Args)
+	if err != nil && !cmd.IsCompletion(data.Args) || noargs || globalFlagsOnly {
 		if noargs || globalFlagsOnly {
 			err = fmt.Errorf("command not specified")
 		}
 		return command, cmdName, help(vars, err)
 	}
 
-	if len(args) == 1 && args[0] == "--" {
+	if len(data.Args) == 1 && data.Args[0] == "--" {
 		return command, cmdName, fsterr.RemediationError{
 			Inner:       errors.New("-- is invalid input when not followed by a positional argument"),
 			Remediation: "If looking for help output try: `fastly help` for full command list or `fastly --help` for command summary.",
@@ -311,14 +309,14 @@ func processCommandInput(
 	// completion flag, as that depends on kingpin.Parse() being called, and so
 	// the `ctx` is otherwise empty.
 	var found bool
-	if !noargs && !globalFlagsOnly && !cmd.IsHelpOnly(args) && !cmd.IsHelpFlagOnly(args) && !cmd.IsCompletion(args) && !cmd.IsCompletionScript(args) {
+	if !noargs && !globalFlagsOnly && !cmd.IsHelpOnly(data.Args) && !cmd.IsHelpFlagOnly(data.Args) && !cmd.IsCompletion(data.Args) && !cmd.IsCompletionScript(data.Args) {
 		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
 		if !found {
 			return command, cmdName, help(vars, err)
 		}
 	}
 
-	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(args) {
+	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(data.Args) {
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),
@@ -345,21 +343,21 @@ func processCommandInput(
 	// caller passes --completion-bash because adding a command to the arguments
 	// list in that scenario would cause Kingpin logic to fail (as it expects the
 	// flag to be used on its own).
-	if cmd.IsCompletionScript(args) {
-		args = append(args, "shellcomplete")
+	if cmd.IsCompletionScript(data.Args) {
+		data.Args = append(data.Args, "shellcomplete")
 	}
 
-	cmdName, err = app.Parse(args)
+	cmdName, err = app.Parse(data.Args)
 	if err != nil {
 		return command, "", help(vars, err)
 	}
 
 	// Restore output writers
-	app.Writers(out, io.Discard)
+	app.Writers(data.Output, io.Discard)
 
 	// Kingpin generates shell completion as a side-effect of kingpin.Parse() so
 	// we allow it to call os.Exit, only if a completion flag is present.
-	if cmd.IsCompletion(args) || cmd.IsCompletionScript(args) {
+	if cmd.IsCompletion(data.Args) || cmd.IsCompletionScript(data.Args) {
 		app.Terminate(os.Exit)
 		return command, "shell-autocomplete", nil
 	}
@@ -372,14 +370,14 @@ func processCommandInput(
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err: fsterr.RemediationError{
-				Prefix: useFullHelpOutput(app, args, out).String(),
+				Prefix: useFullHelpOutput(app, data.Args, data.Output).String(),
 			},
 		}
 	}
 
 	// Catch scenario where user wants to view help with the following format:
 	// fastly --help <command>
-	if cmd.IsHelpFlagOnly(args) {
+	if cmd.IsHelpFlagOnly(data.Args) {
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),

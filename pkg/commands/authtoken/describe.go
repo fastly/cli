@@ -10,16 +10,14 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand {
 	c := DescribeCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Get the current API token").Alias("get")
 
@@ -31,8 +29,6 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 type DescribeCommand struct {
 	cmd.Base
 	cmd.JSONOutput
-
-	manifest manifest.Data
 }
 
 // Exec invokes the application logic for the command.

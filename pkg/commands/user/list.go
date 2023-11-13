@@ -9,16 +9,14 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List all users from a specified customer id")
 	c.Globals = g
-	c.manifest = m
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagCustomerIDName,
 		Description: cmd.FlagCustomerIDDesc,
@@ -35,7 +33,6 @@ type ListCommand struct {
 	cmd.JSONOutput
 
 	customerID cmd.OptionalCustomerID
-	manifest   manifest.Data
 }
 
 // Exec invokes the application logic for the command.

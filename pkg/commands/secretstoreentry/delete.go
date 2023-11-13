@@ -8,17 +8,15 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("delete", "Delete a secret")
@@ -38,8 +36,7 @@ type DeleteCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	Input    fastly.DeleteSecretInput
-	manifest manifest.Data
+	Input fastly.DeleteSecretInput
 }
 
 // Exec invokes the application logic for the command.

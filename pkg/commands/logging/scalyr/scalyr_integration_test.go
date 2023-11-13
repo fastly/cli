@@ -11,6 +11,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	fsterrs "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -54,8 +55,8 @@ func TestScalyrCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -127,8 +128,8 @@ func TestScalyrList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -172,8 +173,8 @@ func TestScalyrDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -219,8 +220,8 @@ func TestScalyrUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -266,8 +267,8 @@ func TestScalyrDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}

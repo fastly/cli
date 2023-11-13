@@ -14,11 +14,13 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/fastly/kingpin"
 	"github.com/fatih/color"
+	"github.com/hashicorp/cap/oidc"
 	"github.com/skratchdot/open-golang/open"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/commands"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
@@ -37,17 +39,17 @@ import (
 
 // Run kick starts the CLI application.
 func Run(args []string, stdin io.Reader) error {
-	opts, err := Init(args, stdin)
+	data, err := Init(args, stdin)
 	if err != nil {
 		return fmt.Errorf("failed to initialise application: %w", err)
 	}
-	return Exec(opts)
+	return Exec(data)
 }
 
 // Init constructs all the required objects and data for Exec().
 //
 // NOTE: We define as a package level variable so we can mock output for tests.
-var Init = func(args []string, stdin io.Reader) (RunOpts, error) {
+var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	// Parse the arguments provided by the user via the command-line interface.
 	args = args[1:]
 
@@ -91,7 +93,7 @@ var Init = func(args []string, stdin io.Reader) (RunOpts, error) {
 	cfg.SetAutoYes(autoYes)
 	cfg.SetNonInteractive(nonInteractive)
 	if err := cfg.Read(config.FilePath, in, out, fsterr.Log, verboseOutput); err != nil {
-		return RunOpts{}, err
+		return nil, err
 	}
 
 	// Extract user's project configuration from the fastly.toml manifest.
@@ -107,29 +109,37 @@ var Init = func(args []string, stdin io.Reader) (RunOpts, error) {
 	// We do this here so that we can mock the values in our test suite.
 	req, err := http.NewRequest(http.MethodGet, auth.OIDCMetadata, nil)
 	if err != nil {
-		return RunOpts{}, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
+		return nil, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
 	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return RunOpts{}, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
+		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
 	}
 	openIDConfig, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return RunOpts{}, fmt.Errorf("failed to read OpenID Connect .well-known metadata: %w", err)
+		return nil, fmt.Errorf("failed to read OpenID Connect .well-known metadata: %w", err)
 	}
 	_ = resp.Body.Close()
 	var wellknown auth.WellKnownEndpoints
 	err = json.Unmarshal(openIDConfig, &wellknown)
 	if err != nil {
-		return RunOpts{}, fmt.Errorf("failed to unmarshal OpenID Connect .well-known metadata: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal OpenID Connect .well-known metadata: %w", err)
 	}
 	result := make(chan auth.AuthorizationResult)
 	router := http.NewServeMux()
+	verifier, err := oidc.NewCodeVerifier()
+	if err != nil {
+		return nil, fsterr.RemediationError{
+			Inner:       fmt.Errorf("failed to generate a code verifier for SSO authentication server: %w", err),
+			Remediation: auth.Remediation,
+		}
+	}
 	authServer := &auth.Server{
 		DebugMode:          e.DebugMode,
 		HTTPClient:         httpClient,
 		Result:             result,
 		Router:             router,
+		Verifier:           verifier,
 		WellKnownEndpoints: wellknown,
 	}
 	router.HandleFunc("/callback", authServer.HandleCallback())
@@ -142,7 +152,7 @@ var Init = func(args []string, stdin io.Reader) (RunOpts, error) {
 		return client, err
 	}
 
-	versioners := Versioners{
+	versioners := global.Versioners{
 		CLI: github.New(github.Opts{
 			HTTPClient: httpClient,
 			Org:        "fastly",
@@ -166,11 +176,11 @@ var Init = func(args []string, stdin io.Reader) (RunOpts, error) {
 		}),
 	}
 
-	return RunOpts{
+	return &global.Data{
 		APIClientFactory: factory,
 		Args:             args,
 		AuthServer:       authServer,
-		ConfigFile:       cfg,
+		Config:           cfg,
 		ConfigPath:       config.FilePath,
 		Env:              e,
 		ErrLog:           fsterr.Log,
@@ -178,9 +188,9 @@ var Init = func(args []string, stdin io.Reader) (RunOpts, error) {
 		HTTPClient:       httpClient,
 		Manifest:         &md,
 		Opener:           open.Run,
-		Stdin:            in,
-		Stdout:           out,
+		Output:           out,
 		Versioners:       versioners,
+		Input:            in,
 	}, nil
 }
 
@@ -194,23 +204,10 @@ var Init = func(args []string, stdin io.Reader) (RunOpts, error) {
 // The Exec helper should NOT output any error-related information to the out
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
-func Exec(opts RunOpts) error {
-	// The g will hold generally-applicable configuration parameters
-	// from a variety of sources, and is provided to each concrete command.
-	g := global.Data{
-		Config:           opts.ConfigFile,
-		ConfigPath:       opts.ConfigPath,
-		Env:              opts.Env,
-		ErrLog:           opts.ErrLog,
-		ExecuteWasmTools: opts.ExecuteWasmTools,
-		HTTPClient:       opts.HTTPClient,
-		Manifest:         *opts.Manifest,
-		Output:           opts.Stdout,
-	}
-
-	app := configureKingpin(opts.Stdout, &g)
-	commands := defineCommands(app, &g, *opts.Manifest, opts.Opener, opts.AuthServer, opts.Versioners, opts.APIClientFactory)
-	command, commandName, err := processCommandInput(opts.Args, opts.Stdout, app, &g, commands)
+func Exec(data *global.Data) error {
+	app := configureKingpin(data)
+	commands := commands.Define(app, data)
+	command, commandName, err := processCommandInput(data, app, commands)
 	if err != nil {
 		return err
 	}
@@ -230,87 +227,52 @@ func Exec(opts RunOpts) error {
 
 	// FIXME: Tweak messaging before for 10.7.0
 	// To learn more about what data is being collected, why, and how to disable it: https://developer.fastly.com/reference/cli/
-	metadataDisable, _ := strconv.ParseBool(g.Env.WasmMetadataDisable)
-	if slices.Contains(opts.Args, "--metadata-enable") && !metadataDisable && !g.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
-		text.Important(g.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about our data & privacy policies visit https://www.fastly.com/trust. Join the conversation https://bit.ly/wasm-metadata")
-		text.Break(g.Output)
-		g.Config.CLI.MetadataNoticeDisplayed = true
-		err := g.Config.Write(g.ConfigPath)
+	metadataDisable, _ := strconv.ParseBool(data.Env.WasmMetadataDisable)
+	if slices.Contains(data.Args, "--metadata-enable") && !metadataDisable && !data.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
+		text.Important(data.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about our data & privacy policies visit https://www.fastly.com/trust. Join the conversation https://bit.ly/wasm-metadata")
+		text.Break(data.Output)
+		data.Config.CLI.MetadataNoticeDisplayed = true
+		err := data.Config.Write(data.ConfigPath)
 		if err != nil {
 			return fmt.Errorf("failed to persist change to metadata notice: %w", err)
 		}
 		time.Sleep(5 * time.Second) // this message is only displayed once so give the user a chance to see it before it possibly scrolls off screen
 	}
 
-	if g.Flags.Quiet {
-		opts.Manifest.File.SetQuiet(true)
+	if data.Flags.Quiet {
+		data.Manifest.File.SetQuiet(true)
 	}
 
-	apiEndpoint, endpointSource := g.APIEndpoint()
-	if g.Verbose() {
-		displayAPIEndpoint(apiEndpoint, endpointSource, opts.Stdout)
+	apiEndpoint, endpointSource := data.APIEndpoint()
+	if data.Verbose() {
+		displayAPIEndpoint(apiEndpoint, endpointSource, data.Output)
 	}
 
-	token, err := processToken(commands, commandName, opts.Manifest, &g, opts.Stdin, opts.Stdout)
+	token, err := processToken(commands, commandName, data)
 	if err != nil {
 		return fmt.Errorf("failed to process token: %w", err)
 	}
 
-	g.APIClient, g.RTSClient, err = configureClients(token, apiEndpoint, opts.APIClientFactory, g.Flags.Debug)
+	data.APIClient, data.RTSClient, err = configureClients(token, apiEndpoint, data.APIClientFactory, data.Flags.Debug)
 	if err != nil {
-		g.ErrLog.Add(err)
+		data.ErrLog.Add(err)
 		return fmt.Errorf("error constructing client: %w", err)
 	}
 
-	f := checkForUpdates(opts.Versioners.CLI, commandName, g.Flags.Quiet)
-	defer f(opts.Stdout)
+	f := checkForUpdates(data.Versioners.CLI, commandName, data.Flags.Quiet)
+	defer f(data.Output)
 
-	return command.Exec(opts.Stdin, opts.Stdout)
+	return command.Exec(data.Input, data.Output)
 }
 
-// RunOpts represent arguments we can mock at runtime.
-type RunOpts struct {
-	// APIClientFactory is a factory function for creating an api.Interface type.
-	APIClientFactory APIClientFactory
-	// Args are the command line arguments provided by the user.
-	Args []string
-	// AuthServer is an instance of the authentication server type.
-	// Used for interacting with Fastly's SSO/OAuth authentication provider.
-	AuthServer auth.Starter
-	// ConfigFile is an instance of the CLI application config.
-	ConfigFile config.File
-	// ConfigPath is the location of the CLI application config.
-	ConfigPath string
-	// Env is an instance of the supported environment variables.
-	Env config.Environment
-	// ErrLog is an instance of a error log recorder.
-	ErrLog fsterr.LogInterface
-	// ExecuteWasmTools is a function that calls wasm-tools executable.
-	// Designed to be used for mocking in the CLI test suite.
-	ExecuteWasmTools func(bin string, args []string) error
-	// HTTPClient is a standard HTTP client.
-	HTTPClient api.HTTPClient
-	// Manifest is the fastly.toml manifest file.
-	Manifest *manifest.Data
-	// Opener is a function that can open a browser window.
-	Opener func(string) error
-	// Stdin is the standard input destination.
-	Stdin io.Reader
-	// Stdout is the standard output destination.
-	Stdout io.Writer
-	// Versioners contains multiple software versioning checkers.
-	// e.g. Check for latest CLI or Viceroy version.
-	Versioners Versioners
-}
-
-func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
+func configureKingpin(data *global.Data) *kingpin.Application {
 	// Set up the main application root, including global flags, and then each
 	// of the subcommands. Note that we deliberately don't use some of the more
 	// advanced features of the kingpin.Application flags, like env var
 	// bindings, because we need to do things like track where a config
 	// parameter came from.
 	app := kingpin.New("fastly", "A tool to interact with the Fastly API")
-	app.Writers(out, io.Discard) // don't let kingpin write error output
+	app.Writers(data.Output, io.Discard) // don't let kingpin write error output
 	app.UsageContext(&kingpin.UsageContext{
 		Template: VerboseUsageTemplate,
 		Funcs:    UsageTemplateFuncs,
@@ -330,17 +292,17 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 	// Kingpin will otherwise trigger a runtime panic 🎉
 	// Interestingly, short flags can be reused but only across subcommands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.APIToken)
-	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&g.Flags.AcceptDefaults)
-	app.Flag("account", "Fastly Accounts endpoint").Hidden().StringVar(&g.Flags.Account)
-	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&g.Flags.AutoYes)
+	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&data.Flags.AcceptDefaults)
+	app.Flag("account", "Fastly Accounts endpoint").Hidden().StringVar(&data.Flags.Account)
+	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&data.Flags.AutoYes)
 	// IMPORTANT: `--debug` is a built-in Kingpin flag so we can't use that.
-	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&g.Flags.Debug)
-	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&g.Flags.Endpoint)
-	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&g.Flags.NonInteractive)
-	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&g.Flags.Profile)
-	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&g.Flags.Quiet)
-	app.Flag("token", tokenHelp).HintAction(env.Vars).Short('t').StringVar(&g.Flags.Token)
-	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&g.Flags.Verbose)
+	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&data.Flags.Debug)
+	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&data.Flags.Endpoint)
+	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&data.Flags.NonInteractive)
+	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&data.Flags.Profile)
+	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&data.Flags.Quiet)
+	app.Flag("token", tokenHelp).HintAction(env.Vars).Short('t').StringVar(&data.Flags.Token)
+	app.Flag("verbose", "Verbose logging").Short('v').BoolVar(&data.Flags.Verbose)
 
 	return app
 }
@@ -360,13 +322,13 @@ func configureKingpin(out io.Writer, g *global.Data) *kingpin.Application {
 //
 // Finally, we check if there is a profile override in place (e.g. set via the
 // --profile flag or using the `profile` field in the fastly.toml manifest).
-func processToken(commands []cmd.Command, commandName string, m *manifest.Data, g *global.Data, in io.Reader, out io.Writer) (token string, err error) {
+func processToken(commands []cmd.Command, commandName string, data *global.Data) (token string, err error) {
 	warningMessage := "No API token could be found"
 	var tokenSource lookup.Source
-	token, tokenSource = g.Token()
+	token, tokenSource = data.Token()
 
 	// Check if token is from fastly.toml [profile] and refresh if expired.
-	tokenSource, warningMessage, err = checkProfileToken(tokenSource, commandName, warningMessage, out, g)
+	tokenSource, warningMessage, err = checkProfileToken(tokenSource, commandName, warningMessage, data)
 	if err != nil {
 		return token, fmt.Errorf("failed to check profile token: %w", err)
 	}
@@ -374,17 +336,17 @@ func processToken(commands []cmd.Command, commandName string, m *manifest.Data, 
 	// If there's no token available, and we need one for the invoked command,
 	// then we'll trigger the SSO authentication flow.
 	if tokenSource == lookup.SourceUndefined && commandRequiresToken(commandName) {
-		token, tokenSource, err = ssoAuthentication(tokenSource, token, warningMessage, commands, in, out, g)
+		token, tokenSource, err = ssoAuthentication(tokenSource, token, warningMessage, commands, data)
 		if err != nil {
 			return token, fmt.Errorf("failed to check profile token: %w", err)
 		}
 	}
 
-	if g.Verbose() {
-		displayToken(tokenSource, m.File.Profile, *g, out)
+	if data.Verbose() {
+		displayToken(tokenSource, data)
 	}
-	if !g.Flags.Quiet {
-		checkConfigPermissions(commandName, tokenSource, out)
+	if !data.Flags.Quiet {
+		checkConfigPermissions(commandName, tokenSource, data.Output)
 	}
 
 	return token, nil
@@ -397,8 +359,7 @@ func processToken(commands []cmd.Command, commandName string, m *manifest.Data, 
 func checkProfileToken(
 	tokenSource lookup.Source,
 	commandName, warningMessage string,
-	out io.Writer,
-	g *global.Data,
+	data *global.Data,
 ) (lookup.Source, string, error) {
 	if tokenSource == lookup.SourceFile && commandRequiresToken(commandName) {
 		var (
@@ -407,14 +368,14 @@ func checkProfileToken(
 			name, profileName string
 		)
 		switch {
-		case g.Flags.Profile != "": // --profile
-			profileName = g.Flags.Profile
-		case g.Manifest.File.Profile != "": // `profile` field in fastly.toml
-			profileName = g.Manifest.File.Profile
+		case data.Flags.Profile != "": // --profile
+			profileName = data.Flags.Profile
+		case data.Manifest.File.Profile != "": // `profile` field in fastly.toml
+			profileName = data.Manifest.File.Profile
 		default:
 			profileName = "default"
 		}
-		for name, profileData = range g.Config.Profiles {
+		for name, profileData = range data.Config.Profiles {
 			if (profileName == "default" && profileData.Default) || name == profileName {
 				// Once we find the default profile we can update the variable to be the
 				// associated profile name so later on we can use that information to
@@ -431,7 +392,7 @@ func checkProfileToken(
 		}
 
 		// Allow user to opt-in to SSO/OAuth so they can replace their long-lived token.
-		if shouldSkipSSO(profileName, profileData, out, g) {
+		if shouldSkipSSO(profileName, profileData, data) {
 			return tokenSource, warningMessage, nil
 		}
 
@@ -453,18 +414,18 @@ func checkProfileToken(
 				return tokenSource, warningMessage, nil
 			}
 
-			if g.Flags.Verbose {
-				text.Info(out, "Your access token has now expired. We will attempt to refresh it")
+			if data.Flags.Verbose {
+				text.Info(data.Output, "Your access token has now expired. We will attempt to refresh it")
 			}
-			accountEndpoint, _ := g.AccountEndpoint()
-			apiEndpoint, _ := g.APIEndpoint()
+			accountEndpoint, _ := data.AccountEndpoint()
+			apiEndpoint, _ := data.APIEndpoint()
 
 			updatedJWT, err := auth.RefreshAccessToken(accountEndpoint, profileData.RefreshToken)
 			if err != nil {
 				return tokenSource, warningMessage, fmt.Errorf("failed to refresh access token: %w", err)
 			}
 
-			email, at, err := auth.ValidateAndRetrieveAPIToken(accountEndpoint, apiEndpoint, updatedJWT.AccessToken, g.Env.DebugMode, g.HTTPClient)
+			email, at, err := auth.ValidateAndRetrieveAPIToken(accountEndpoint, apiEndpoint, updatedJWT.AccessToken, data.Env.DebugMode, data.HTTPClient)
 			if err != nil {
 				return tokenSource, warningMessage, fmt.Errorf("failed to validate JWT and retrieve API token: %w", err)
 			}
@@ -475,7 +436,7 @@ func checkProfileToken(
 			// So after we get the refreshed access token, we check to see if the
 			// refresh token that was returned by the API call has also changed when
 			// compared to the refresh token stored in the CLI config file.
-			current := profile.Get(profileName, g.Config.Profiles)
+			current := profile.Get(profileName, data.Config.Profiles)
 			if current == nil {
 				return tokenSource, warningMessage, fmt.Errorf("failed to locate '%s' profile", profileName)
 			}
@@ -484,16 +445,16 @@ func checkProfileToken(
 			refreshTokenCreated := current.RefreshTokenCreated
 			refreshTokenTTL := current.RefreshTokenTTL
 			if current.RefreshToken != updatedJWT.RefreshToken {
-				if g.Flags.Verbose {
-					text.Info(out, "Your refresh token was also updated")
-					text.Break(out)
+				if data.Flags.Verbose {
+					text.Info(data.Output, "Your refresh token was also updated")
+					text.Break(data.Output)
 				}
 				refreshToken = updatedJWT.RefreshToken
 				refreshTokenCreated = now
 				refreshTokenTTL = updatedJWT.RefreshExpiresIn
 			}
 
-			ps, ok := profile.Edit(profileName, g.Config.Profiles, func(p *config.Profile) {
+			ps, ok := profile.Edit(profileName, data.Config.Profiles, func(p *config.Profile) {
 				p.AccessToken = updatedJWT.AccessToken
 				p.AccessTokenCreated = now
 				p.AccessTokenTTL = updatedJWT.ExpiresIn
@@ -509,9 +470,9 @@ func checkProfileToken(
 					Remediation: "Run `fastly sso` to retry.",
 				}
 			}
-			g.Config.Profiles = ps
-			if err := g.Config.Write(g.ConfigPath); err != nil {
-				g.ErrLog.Add(err)
+			data.Config.Profiles = ps
+			if err := data.Config.Write(data.ConfigPath); err != nil {
+				data.ErrLog.Add(err)
 				return tokenSource, warningMessage, fmt.Errorf("error saving config file: %w", err)
 			}
 		}
@@ -523,18 +484,18 @@ func checkProfileToken(
 // shouldSkipSSO identifies if a config is a pre-v5 config and, if it is,
 // informs the user how they can use the SSO flow. It checks if the SSO
 // environment variable has been set and enables the SSO flow if so.
-func shouldSkipSSO(profileName string, pd *config.Profile, out io.Writer, g *global.Data) bool {
+func shouldSkipSSO(profileName string, pd *config.Profile, data *global.Data) bool {
 	if noSSOToken(pd) {
-		return g.Env.UseSSO != "1"
+		return data.Env.UseSSO != "1"
 		// FIXME: Put back messaging once SSO is GA.
-		// if g.Env.UseSSO == "1" {
+		// if data.Env.UseSSO == "1" {
 		// 	return false // don't skip SSO
 		// }
-		// if !g.Flags.Quiet {
-		// 	if g.Flags.Verbose {
-		// 		text.Break(out)
+		// if !data.Flags.Quiet {
+		// 	if data.Flags.Verbose {
+		// 		text.Break(data.Output)
 		// 	}
-		// 	text.Important(out, "The Fastly API token used by the current '%s' profile is not a Fastly SSO (Single Sign-On) generated token. SSO-based tokens offer more security and convenience. To update your token, set `FASTLY_USE_SSO=1` before invoking the Fastly CLI. This will ensure the current profile is switched to using an SSO generated API token. Once the token has been switched over you no longer need to set `FASTLY_USE_SSO` for this profile (--token and FASTLY_API_TOKEN can still be used as overrides).\n\n", profileName)
+		// 	text.Important(data.Output, "The Fastly API token used by the current '%s' profile is not a Fastly SSO (Single Sign-On) generated token. SSO-based tokens offer more security and convenience. To update your token, set `FASTLY_USE_SSO=1` before invoking the Fastly CLI. This will ensure the current profile is switched to using an SSO generated API token. Once the token has been switched over you no longer need to set `FASTLY_USE_SSO` for this profile (--token and FASTLY_API_TOKEN can still be used as overrides).\n\n", profileName)
 		// }
 		// return true // skip SSO
 	}
@@ -556,18 +517,16 @@ func ssoAuthentication(
 	tokenSource lookup.Source,
 	token, warningMessage string,
 	commands []cmd.Command,
-	in io.Reader,
-	out io.Writer,
-	g *global.Data,
+	data *global.Data,
 ) (string, lookup.Source, error) {
 	for _, command := range commands {
 		commandName := strings.Split(command.Name(), " ")[0]
 		if commandName == "sso" {
-			if !g.Flags.AutoYes && !g.Flags.NonInteractive {
-				text.Important(out, "%s. We need to open your browser to authenticate you.", warningMessage)
-				text.Break(out)
-				cont, err := text.AskYesNo(out, text.BoldYellow("Do you want to continue? [y/N]: "), in)
-				text.Break(out)
+			if !data.Flags.AutoYes && !data.Flags.NonInteractive {
+				text.Important(data.Output, "%s. We need to open your browser to authenticate you.", warningMessage)
+				text.Break(data.Output)
+				cont, err := text.AskYesNo(data.Output, text.BoldYellow("Do you want to continue? [y/N]: "), data.Input)
+				text.Break(data.Output)
 				if err != nil {
 					return token, tokenSource, err
 				}
@@ -576,38 +535,38 @@ func ssoAuthentication(
 				}
 			}
 
-			g.SkipAuthPrompt = true // skip the same prompt in `sso` command flow
-			err := command.Exec(in, out)
+			data.SkipAuthPrompt = true // skip the same prompt in `sso` command flow
+			err := command.Exec(data.Input, data.Output)
 			if err != nil {
 				return token, tokenSource, fmt.Errorf("failed to authenticate: %w", err)
 			}
-			text.Break(out)
+			text.Break(data.Output)
 			break
 		}
 	}
 
 	// Recheck for token (should be persisted to profile data).
-	token, tokenSource = g.Token()
+	token, tokenSource = data.Token()
 	if tokenSource == lookup.SourceUndefined {
 		return token, tokenSource, fsterr.ErrNoToken
 	}
 	return token, tokenSource, nil
 }
 
-func displayToken(tokenSource lookup.Source, profileName string, g global.Data, out io.Writer) {
-	profileSource := determineProfile(profileName, g.Flags.Profile, g.Config.Profiles)
+func displayToken(tokenSource lookup.Source, data *global.Data) {
+	profileSource := determineProfile(data.Manifest.File.Profile, data.Flags.Profile, data.Config.Profiles)
 
 	switch tokenSource {
 	case lookup.SourceFlag:
-		fmt.Fprintf(out, "Fastly API token provided via --token\n\n")
+		fmt.Fprintf(data.Output, "Fastly API token provided via --token\n\n")
 	case lookup.SourceEnvironment:
-		fmt.Fprintf(out, "Fastly API token provided via %s\n\n", env.APIToken)
+		fmt.Fprintf(data.Output, "Fastly API token provided via %s\n\n", env.APIToken)
 	case lookup.SourceFile:
-		fmt.Fprintf(out, "Fastly API token provided via config file (profile: %s)\n\n", profileSource)
+		fmt.Fprintf(data.Output, "Fastly API token provided via config file (profile: %s)\n\n", profileSource)
 	case lookup.SourceUndefined, lookup.SourceDefault:
 		fallthrough
 	default:
-		fmt.Fprintf(out, "Fastly API token not provided\n\n")
+		fmt.Fprintf(data.Output, "Fastly API token not provided\n\n")
 	}
 }
 
@@ -642,7 +601,7 @@ func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, out io.Wr
 	}
 }
 
-func configureClients(token, apiEndpoint string, acf APIClientFactory, debugMode bool) (apiClient api.Interface, rtsClient api.RealtimeStatsInterface, err error) {
+func configureClients(token, apiEndpoint string, acf global.APIClientFactory, debugMode bool) (apiClient api.Interface, rtsClient api.RealtimeStatsInterface, err error) {
 	apiClient, err = acf(token, apiEndpoint, debugMode)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error constructing Fastly API client: %w", err)
@@ -663,20 +622,6 @@ func checkForUpdates(av github.AssetVersioner, commandName string, quietMode boo
 	return func(_ io.Writer) {
 		// no-op
 	}
-}
-
-// APIClientFactory creates a Fastly API client (modeled as an api.Interface)
-// from a user-provided API token. It exists as a type in order to parameterize
-// the Run helper with it: in the real CLI, we can use NewClient from the Fastly
-// API client library via RealClient; in tests, we can provide a mock API
-// interface via MockClient.
-type APIClientFactory func(token, apiEndpoint string, debugMode bool) (api.Interface, error)
-
-// Versioners represents all supported versioner types.
-type Versioners struct {
-	CLI       github.AssetVersioner
-	Viceroy   github.AssetVersioner
-	WasmTools github.AssetVersioner
 }
 
 // determineProfile determines if the provided token was acquired via the

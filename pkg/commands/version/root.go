@@ -11,6 +11,7 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
 )
@@ -27,13 +28,15 @@ func init() {
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	viceroyVersioner github.AssetVersioner
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, viceroyVersioner github.AssetVersioner) *RootCommand {
-	var c RootCommand
-	c.viceroyVersioner = viceroyVersioner
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+	c := RootCommand{
+		Base: cmd.Base{
+			Globals: g,
+		},
+	}
 	c.CmdClause = parent.Command("version", "Display version information for the Fastly CLI")
 	return &c
 }
@@ -43,7 +46,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", revision.AppVersion, revision.GitCommit)
 	fmt.Fprintf(out, "Built with %s\n", revision.GoVersion)
 
-	viceroy := filepath.Join(github.InstallDir, c.viceroyVersioner.BinaryName())
+	viceroy := filepath.Join(github.InstallDir, c.Globals.Versioners.Viceroy.BinaryName())
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as we lookup the binary in a trusted location. For this to be a

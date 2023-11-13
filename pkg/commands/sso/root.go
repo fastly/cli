@@ -19,9 +19,7 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	authServer  auth.Starter
-	openBrowser func(string) error
-	profile     string
+	profile string
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
 
@@ -38,10 +36,8 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data, opener func(string) error, authServer auth.Starter) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.authServer = authServer
-	c.openBrowser = opener
 	c.Globals = g
 	// FIXME: Unhide this command once SSO authentication goes GA.
 	c.CmdClause = parent.Command("sso", "Single Sign-On authentication").Hidden()
@@ -73,20 +69,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	accountEndpoint, _ := c.Globals.AccountEndpoint()
 	apiEndpoint, _ := c.Globals.APIEndpoint()
-	verifier, err := auth.GenVerifier()
-	if err != nil {
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("failed to generate a code verifier: %w", err),
-			Remediation: auth.Remediation,
-		}
-	}
-	c.authServer.SetAccountEndpoint(accountEndpoint)
-	c.authServer.SetAPIEndpoint(apiEndpoint)
-	c.authServer.SetVerifier(verifier)
+	c.Globals.AuthServer.SetAccountEndpoint(accountEndpoint)
+	c.Globals.AuthServer.SetAPIEndpoint(apiEndpoint)
 
 	var serverErr error
 	go func() {
-		err := c.authServer.Start()
+		err := c.Globals.AuthServer.Start()
 		if err != nil {
 			serverErr = err
 		}
@@ -97,7 +85,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Info(out, "Starting a local server to handle the authentication flow.")
 
-	authorizationURL, err := auth.GenURL(accountEndpoint, apiEndpoint, verifier)
+	authorizationURL, err := c.Globals.AuthServer.AuthURL()
 	if err != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to generate an authorization URL: %w", err),
@@ -108,12 +96,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	text.Break(out)
 	text.Description(out, "We're opening the following URL in your default web browser so you may authenticate with Fastly", authorizationURL)
 
-	err = c.openBrowser(authorizationURL)
+	err = c.Globals.Opener(authorizationURL)
 	if err != nil {
 		return fmt.Errorf("failed to open your default browser: %w", err)
 	}
 
-	ar := <-c.authServer.GetResult()
+	ar := <-c.Globals.AuthServer.GetResult()
 	if ar.Err != nil || ar.SessionToken == "" {
 		err := ar.Err
 		if ar.Err == nil {

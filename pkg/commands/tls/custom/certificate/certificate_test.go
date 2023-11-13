@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -57,8 +58,8 @@ func TestCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}
@@ -103,8 +104,8 @@ func TestDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}
@@ -160,8 +161,8 @@ func TestDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}
@@ -214,8 +215,8 @@ func TestList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}
@@ -280,8 +281,8 @@ func TestUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}

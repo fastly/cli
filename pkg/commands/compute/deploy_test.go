@@ -17,6 +17,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -2153,7 +2154,7 @@ func TestDeploy(t *testing.T) {
 			}
 
 			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts := testutil.MockGlobalData(testcase.args, &stdout)
 			opts.APIClientFactory = mock.APIClient(testcase.api)
 
 			if testcase.httpClientRes != nil || testcase.httpClientErr != nil {
@@ -2172,7 +2173,7 @@ func TestDeploy(t *testing.T) {
 				// To handle multiple prompt input from the user we need to do some
 				// coordination around io pipes to mimic the required user behaviour.
 				stdin, prompt := io.Pipe()
-				opts.Stdin = stdin
+				opts.Input = stdin
 
 				// Wait for user input and write it to the prompt
 				inputc := make(chan string)
@@ -2187,7 +2188,7 @@ func TestDeploy(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+					app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 						return opts, nil
 					}
 					err = app.Run(testcase.args, nil)
@@ -2215,8 +2216,8 @@ func TestDeploy(t *testing.T) {
 				if len(testcase.stdin) > 0 {
 					stdin = testcase.stdin[0]
 				}
-				opts.Stdin = strings.NewReader(stdin)
-				app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.Input = strings.NewReader(stdin)
+				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 					return opts, nil
 				}
 				err = app.Run(testcase.args, nil)

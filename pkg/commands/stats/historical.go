@@ -9,7 +9,6 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 )
 
 const statusSuccess = "success"
@@ -17,7 +16,6 @@ const statusSuccess = "success"
 // HistoricalCommand exposes the Historical Stats API.
 type HistoricalCommand struct {
 	cmd.Base
-	manifest manifest.Data
 
 	Input       fastly.GetStatsInput
 	formatFlag  string
@@ -25,16 +23,15 @@ type HistoricalCommand struct {
 }
 
 // NewHistoricalCommand is the "stats historical" subcommand.
-func NewHistoricalCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *HistoricalCommand {
+func NewHistoricalCommand(parent cmd.Registerer, g *global.Data) *HistoricalCommand {
 	var c HistoricalCommand
 	c.Globals = g
-	c.manifest = m
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -56,7 +53,7 @@ func NewHistoricalCommand(parent cmd.Registerer, g *global.Data, m manifest.Data
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}

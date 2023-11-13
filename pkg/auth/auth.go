@@ -42,16 +42,17 @@ type WellKnownEndpoints struct {
 	Token string `json:"token_endpoint"`
 }
 
-// Starter defines the behaviour for the authentication server.
-type Starter interface {
+// Runner defines the behaviour for the authentication server.
+type Runner interface {
+	// AuthURL returns a fully qualified authorization_endpoint.
+	// i.e. path + audience + scope + code_challenge etc.
+	AuthURL() (string, error)
 	// GetResult returns the results channel
 	GetResult() chan AuthorizationResult
 	// SetAccountEndpoint sets the account endpoint.
 	SetAccountEndpoint(endpoint string)
 	// SetEndpoint sets the API endpoint.
 	SetAPIEndpoint(endpoint string)
-	// SetVerifier sets the code verifier.
-	SetVerifier(verifier *oidc.S256Verifier)
 	// Start starts a local server for handling authentication processing.
 	Start() error
 }
@@ -74,6 +75,25 @@ type Server struct {
 	Verifier *oidc.S256Verifier
 	// WellKnownEndpoints is the .well-known metadata.
 	WellKnownEndpoints WellKnownEndpoints
+}
+
+// AuthURL returns a fully qualified authorization_endpoint.
+// i.e. path + audience + scope + code_challenge etc.
+func (s Server) AuthURL() (string, error) {
+	challenge, err := oidc.CreateCodeChallenge(s.Verifier)
+	if err != nil {
+		return "", err
+	}
+
+	authorizationURL := fmt.Sprintf(
+		"%s?audience=%s"+
+			"&scope=openid"+
+			"&response_type=code&client_id=%s"+
+			"&code_challenge=%s"+
+			"&code_challenge_method=S256&redirect_uri=%s",
+		s.WellKnownEndpoints.Auth, s.APIEndpoint, ClientID, challenge, RedirectURL)
+
+	return authorizationURL, nil
 }
 
 // GetResult returns the result channel.
@@ -231,29 +251,6 @@ type AuthorizationResult struct {
 	Jwt JWT
 	// SessionToken is a temporary API token.
 	SessionToken string
-}
-
-// GenVerifier creates a code verifier.
-func GenVerifier() (*oidc.S256Verifier, error) {
-	return oidc.NewCodeVerifier()
-}
-
-// GenURL constructs the required authorization_endpoint path.
-func GenURL(accountEndpoint, apiEndpoint string, verifier *oidc.S256Verifier) (string, error) {
-	challenge, err := oidc.CreateCodeChallenge(verifier)
-	if err != nil {
-		return "", err
-	}
-
-	authorizationURL := fmt.Sprintf(
-		"%s/realms/fastly/protocol/openid-connect/auth?audience=%s"+
-			"&scope=openid"+
-			"&response_type=code&client_id=%s"+
-			"&code_challenge=%s"+
-			"&code_challenge_method=S256&redirect_uri=%s",
-		accountEndpoint, apiEndpoint, ClientID, challenge, RedirectURL)
-
-	return authorizationURL, nil
 }
 
 // GetJWT constructs and calls the token_endpoint path, returning a JWT

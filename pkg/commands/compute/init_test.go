@@ -11,6 +11,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -359,14 +360,14 @@ func TestInit(t *testing.T) {
 			}()
 
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
-				opts.ConfigFile = testcase.configFile
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.Config = testcase.configFile
 
 				// we need to define stdin as the init process prompts the user multiple
 				// times, but we don't need to provide any values as all our prompts will
 				// fallback to default values if the input is unrecognised.
-				opts.Stdin = strings.NewReader(testcase.stdin)
+				opts.Input = strings.NewReader(testcase.stdin)
 				return opts, nil
 			}
 			err = app.Run(testcase.args, nil)

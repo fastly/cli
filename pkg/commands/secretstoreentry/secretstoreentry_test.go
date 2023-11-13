@@ -21,6 +21,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -229,11 +230,11 @@ func TestCreateSecretCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 			if testcase.stdin != "" {
 				var stdin bytes.Buffer
 				stdin.WriteString(testcase.stdin)
-				opts.Stdin = &stdin
+				opts.Input = &stdin
 			}
 
 			f := testcase.api.CreateSecretFn
@@ -248,7 +249,7 @@ func TestCreateSecretCommand(t *testing.T) {
 			// hardcoded value.
 			t.Setenv("FASTLY_USE_API_SIGNING_KEY", "1")
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -330,7 +331,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.DeleteSecretFn
 			var apiInvoked bool
@@ -339,7 +340,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -437,7 +438,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.GetSecretFn
 			var apiInvoked bool
@@ -446,7 +447,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -525,7 +526,7 @@ func TestListSecretsCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.ListSecretsFn
 			var apiInvoked bool
@@ -534,7 +535,7 @@ func TestListSecretsCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}

@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -217,12 +218,12 @@ func TestBuildRust(t *testing.T) {
 			}()
 
 			var stdout threadsafe.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				if testcase.applicationConfig != nil {
-					opts.ConfigFile = *testcase.applicationConfig
+					opts.Config = *testcase.applicationConfig
 				}
-				opts.Versioners = app.Versioners{
+				opts.Versioners = global.Versioners{
 					WasmTools: mock.AssetVersioner{
 						AssetVersion:    "1.2.3",
 						BinaryFilename:  wasmtoolsBinName,
@@ -410,12 +411,12 @@ func TestBuildGo(t *testing.T) {
 			}()
 
 			var stdout threadsafe.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				if testcase.applicationConfig != nil {
-					opts.ConfigFile = *testcase.applicationConfig
+					opts.Config = *testcase.applicationConfig
 				}
-				opts.Versioners = app.Versioners{
+				opts.Versioners = global.Versioners{
 					WasmTools: mock.AssetVersioner{
 						AssetVersion:    "1.2.3",
 						BinaryFilename:  wasmtoolsBinName,
@@ -460,7 +461,7 @@ func TestBuildJavaScript(t *testing.T) {
 		wantRemediationError string
 		wantOutput           []string
 		npmInstall           bool
-		versioners           *app.Versioners
+		versioners           *global.Versioners
 	}{
 		{
 			name:                 "no fastly.toml manifest",
@@ -608,9 +609,9 @@ func TestBuildJavaScript(t *testing.T) {
 			}
 
 			var stdout threadsafe.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
-				opts.Versioners = app.Versioners{
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.Versioners = global.Versioners{
 					WasmTools: mock.AssetVersioner{
 						AssetVersion:    "1.2.3",
 						BinaryFilename:  wasmtoolsBinName,
@@ -803,9 +804,9 @@ func TestBuildAssemblyScript(t *testing.T) {
 			}
 
 			var stdout threadsafe.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
-				opts.Versioners = app.Versioners{
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.Versioners = global.Versioners{
 					WasmTools: mock.AssetVersioner{
 						AssetVersion:    "1.2.3",
 						BinaryFilename:  wasmtoolsBinName,
@@ -1015,10 +1016,10 @@ func TestBuildOther(t *testing.T) {
 			}
 
 			var stdout threadsafe.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
-				opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
-				opts.Versioners = app.Versioners{
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.Input = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
+				opts.Versioners = global.Versioners{
 					WasmTools: mock.AssetVersioner{
 						AssetVersion:    "1.2.3",
 						BinaryFilename:  wasmtoolsBinName,

@@ -71,13 +71,11 @@ type ServeCommand struct {
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, viceroyVersioner github.AssetVersioner) *ServeCommand {
+func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand) *ServeCommand {
 	var c ServeCommand
-
 	c.build = build
-	c.ViceroyVersioner = viceroyVersioner
-
 	c.Globals = g
+	c.ViceroyVersioner = g.Versioners.Viceroy
 	c.CmdClause = parent.Command("serve", "Build and run a Compute package locally")
 
 	c.CmdClause.Flag("addr", "The IPv4 address and port to listen on").Default("127.0.0.1:7676").StringVar(&c.addr)

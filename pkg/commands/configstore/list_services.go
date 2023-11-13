@@ -3,21 +3,20 @@ package configstore
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewListServicesCommand returns a usable command registered under the parent.
-func NewListServicesCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListServicesCommand {
+func NewListServicesCommand(parent cmd.Registerer, g *global.Data) *ListServicesCommand {
 	c := ListServicesCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("list-services", "List config store's services")
@@ -35,9 +34,7 @@ func NewListServicesCommand(parent cmd.Registerer, g *global.Data, m manifest.Da
 type ListServicesCommand struct {
 	cmd.Base
 	cmd.JSONOutput
-
-	input    fastly.ListConfigStoreServicesInput
-	manifest manifest.Data
+	input fastly.ListConfigStoreServicesInput
 }
 
 // Exec invokes the application logic for the command.

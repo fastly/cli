@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
@@ -81,8 +82,8 @@ func TestCreateEntryCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}
@@ -199,8 +200,8 @@ SUCCESS: Deleted all keys from Config Store '%s'
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout threadsafe.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}
@@ -277,8 +278,8 @@ func TestDescribeEntryCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}
@@ -343,8 +344,8 @@ func TestListEntriesCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}
@@ -417,8 +418,8 @@ func TestUpdateEntryCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)
 				return opts, nil
 			}

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -54,8 +55,8 @@ func TestValidate(t *testing.T) {
 			}()
 
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				return testutil.NewRunOpts(testcase.Args, &stdout), nil
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(testcase.Args, &stdout), nil
 			}
 			err = app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)

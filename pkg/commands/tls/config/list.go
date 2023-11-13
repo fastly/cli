@@ -5,20 +5,19 @@ import (
 	"io"
 	"strings"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List all TLS configurations")
 	c.Globals = g
-	c.manifest = m
 
 	// Optional.
 	c.CmdClause.Flag("filter-bulk", "Optionally filter by the bulk attribute").Action(c.filterBulk.Set).BoolVar(&c.filterBulk.Value)
@@ -37,7 +36,6 @@ type ListCommand struct {
 
 	filterBulk cmd.OptionalBool
 	include    string
-	manifest   manifest.Data
 	pageNumber int
 	pageSize   int
 }

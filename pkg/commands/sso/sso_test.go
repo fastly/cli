@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -226,14 +227,14 @@ func TestSSO(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts := testutil.MockGlobalData(testcase.Args, &stdout)
 			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			if testcase.HTTPClient != nil {
 				opts.HTTPClient = testcase.HTTPClient
 			}
 			if testcase.ConfigFile != nil {
-				opts.ConfigFile = *testcase.ConfigFile
+				opts.Config = *testcase.ConfigFile
 			}
 			if testcase.Opener != nil {
 				opts.Opener = testcase.Opener
@@ -254,7 +255,7 @@ func TestSSO(t *testing.T) {
 				// To handle multiple prompt input from the user we need to do some
 				// coordination around io pipes to mimic the required user behaviour.
 				stdin, prompt := io.Pipe()
-				opts.Stdin = stdin
+				opts.Input = stdin
 
 				// Wait for user input and write it to the prompt
 				inputc := make(chan string)
@@ -269,7 +270,7 @@ func TestSSO(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+					app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 						return opts, nil
 					}
 					err = app.Run(testcase.Args, nil)
@@ -296,8 +297,8 @@ func TestSSO(t *testing.T) {
 				if len(testcase.Stdin) > 0 {
 					stdin = testcase.Stdin[0]
 				}
-				opts.Stdin = strings.NewReader(stdin)
-				app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.Input = strings.NewReader(stdin)
+				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 					return opts, nil
 				}
 				err = app.Run(testcase.Args, nil)
@@ -308,7 +309,7 @@ func TestSSO(t *testing.T) {
 				if len(testcase.Args) > 1 {
 					profileName = testcase.Args[1] // use the `profile` command argument
 				}
-				userProfile := opts.ConfigFile.Profiles[profileName]
+				userProfile := opts.Config.Profiles[profileName]
 				if userProfile.Token != testcase.ExpectedConfigProfile.Token {
 					t.Errorf("want token: %s, got token: %s", testcase.ExpectedConfigProfile.Token, userProfile.Token)
 				}

@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -19,12 +18,11 @@ import (
 var Scopes = []string{"global", "purge_select", "purge_all", "global:read"}
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Create an API token").Alias("add")
 
@@ -55,7 +53,6 @@ type CreateCommand struct {
 	cmd.Base
 
 	expires  time.Time
-	manifest manifest.Data
 	name     string
 	password string
 	scope    []string

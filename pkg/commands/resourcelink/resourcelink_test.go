@@ -12,6 +12,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/resourcelink"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -147,7 +148,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.CreateResourceFn
 			var apiInvoked bool
@@ -156,7 +157,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -252,7 +253,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.DeleteResourceFn
 			var apiInvoked bool
@@ -261,7 +262,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -349,7 +350,7 @@ Last edited (UTC): 2023-10-15 12:18`,
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.GetResourceFn
 			var apiInvoked bool
@@ -358,7 +359,7 @@ Last edited (UTC): 2023-10-15 12:18`,
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -464,7 +465,7 @@ Resource Link 3/3
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.ListResourcesFn
 			var apiInvoked bool
@@ -473,7 +474,7 @@ Resource Link 3/3
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -602,7 +603,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.UpdateResourceFn
 			var apiInvoked bool
@@ -611,7 +612,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}

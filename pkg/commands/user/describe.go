@@ -9,15 +9,13 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Get a specific user of the Fastly API and web interface").Alias("get")
 	c.Globals = g
-	c.manifest = m
 	c.CmdClause.Flag("current", "Get the logged in user").BoolVar(&c.current)
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -29,9 +27,8 @@ type DescribeCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	current  bool
-	id       string
-	manifest manifest.Data
+	current bool
+	id      string
 }
 
 // Exec invokes the application logic for the command.

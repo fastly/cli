@@ -7,12 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/cap/oidc"
-
-	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/runtime"
@@ -58,9 +56,15 @@ func Args(args string) []string {
 
 // MockAuthServer is used to no-op the authentication server.
 type MockAuthServer struct {
-	auth.Starter
+	auth.Runner
 
 	Result chan auth.AuthorizationResult
+}
+
+// AuthURL returns a fully qualified authorization_endpoint.
+// i.e. path + audience + scope + code_challenge etc.
+func (s MockAuthServer) AuthURL() (string, error) {
+	return "", nil // no-op
 }
 
 // GetResult returns the results channel
@@ -78,20 +82,17 @@ func (s MockAuthServer) SetAPIEndpoint(_ string) {
 	// no-op
 }
 
-// SetVerifier sets the code verifier.
-func (s MockAuthServer) SetVerifier(_ *oidc.S256Verifier) {
-	// no-op
-}
-
 // Start starts a local server for handling authentication processing.
 func (s MockAuthServer) Start() error {
 	return nil // no-op
 }
 
-// NewRunOpts returns a struct that can be used to populate a call to app.Run()
+// MockGlobalData returns a struct that can be used to populate a call to app.Exec()
 // while the majority of fields will be pre-populated and only those fields
 // commonly changed for testing purposes will need to be provided.
-func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
+//
+// TODO: Move this and other mocks into mocks package.
+func MockGlobalData(args []string, stdout io.Writer) *global.Data {
 	var md manifest.Data
 	md.File.Args = args
 	md.File.SetErrLog(errors.Log)
@@ -103,11 +104,11 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 		configPath = "NUL"
 	}
 
-	return app.RunOpts{
+	return &global.Data{
 		Args:             args,
 		APIClientFactory: mock.APIClient(mock.API{}),
 		AuthServer:       &MockAuthServer{},
-		ConfigFile: config.File{
+		Config: config.File{
 			Profiles: TokenProfile(),
 		},
 		ConfigPath: configPath,
@@ -121,7 +122,7 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 		Opener: func(input string) error {
 			return nil // no-op
 		},
-		Stdout: stdout,
+		Output: stdout,
 	}
 }
 

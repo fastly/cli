@@ -147,7 +147,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 			// Otherwise, we'll attempt to read the manifest from within the given
 			// package archive.
-			if err := readManifestFromPackageArchive(&c.Globals.Manifest, c.PackagePath, manifestFilename); err != nil {
+			if err := readManifestFromPackageArchive(c.Globals.Manifest, c.PackagePath, manifestFilename); err != nil {
 				return err
 			}
 			if c.Globals.Verbose() {
@@ -358,7 +358,7 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
 	// This is because later in the Exec() flow we might create a 'new' service.
-	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err == nil && c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}

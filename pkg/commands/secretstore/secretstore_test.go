@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -79,7 +80,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.CreateSecretStoreFn
 			var apiInvoked bool
@@ -88,7 +89,7 @@ func TestCreateStoreCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -164,7 +165,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.DeleteSecretStoreFn
 			var apiInvoked bool
@@ -173,7 +174,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -254,7 +255,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.GetSecretStoreFn
 			var apiInvoked bool
@@ -263,7 +264,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -346,7 +347,7 @@ func TestListStoresCommand(t *testing.T) {
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
 			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
-			opts := testutil.NewRunOpts(args, &stdout)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.ListSecretStoresFn
 			var apiInvoked bool
@@ -355,7 +356,7 @@ func TestListStoresCommand(t *testing.T) {
 				return f(i)
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}

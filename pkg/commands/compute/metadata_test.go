@@ -12,6 +12,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -124,7 +125,7 @@ func TestMetadata(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
+			opts := testutil.MockGlobalData(testcase.Args, &stdout)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -141,14 +142,14 @@ func TestMetadata(t *testing.T) {
 			// The read of the config file only happens in the main() function, so for
 			// the sake of the test environment we need to construct an in-memory
 			// representation of the config file we want to be using.
-			opts.ConfigFile = config.File{
+			opts.Config = config.File{
 				ConfigVersion: staticConfig.ConfigVersion,
 				CLI: config.CLI{
 					Version: revision.SemVer(revision.AppVersion),
 				},
 			}
 
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				return opts, nil
 			}
 			err = app.Run(testcase.Args, nil)
@@ -163,19 +164,19 @@ func TestMetadata(t *testing.T) {
 
 			in := strings.NewReader("")
 			verboseMode := false
-			err = opts.ConfigFile.Read(configPath, in, opts.Stdout, opts.ErrLog, verboseMode)
+			err = opts.Config.Read(configPath, in, opts.Output, opts.ErrLog, verboseMode)
 			if err != nil {
 				t.Error(err)
 			}
 
-			if opts.ConfigFile.WasmMetadata.BuildInfo != testcase.ExpectedConfig.BuildInfo {
-				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.BuildInfo, opts.ConfigFile.WasmMetadata.BuildInfo)
+			if opts.Config.WasmMetadata.BuildInfo != testcase.ExpectedConfig.BuildInfo {
+				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.BuildInfo, opts.Config.WasmMetadata.BuildInfo)
 			}
-			if opts.ConfigFile.WasmMetadata.MachineInfo != testcase.ExpectedConfig.MachineInfo {
-				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.MachineInfo, opts.ConfigFile.WasmMetadata.MachineInfo)
+			if opts.Config.WasmMetadata.MachineInfo != testcase.ExpectedConfig.MachineInfo {
+				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.MachineInfo, opts.Config.WasmMetadata.MachineInfo)
 			}
-			if opts.ConfigFile.WasmMetadata.PackageInfo != testcase.ExpectedConfig.PackageInfo {
-				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.PackageInfo, opts.ConfigFile.WasmMetadata.PackageInfo)
+			if opts.Config.WasmMetadata.PackageInfo != testcase.ExpectedConfig.PackageInfo {
+				t.Errorf("want: %s, got: %s", testcase.ExpectedConfig.PackageInfo, opts.Config.WasmMetadata.PackageInfo)
 			}
 		})
 	}

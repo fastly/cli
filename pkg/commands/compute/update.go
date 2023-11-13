@@ -18,7 +18,6 @@ import (
 // UpdateCommand calls the Fastly API to update packages.
 type UpdateCommand struct {
 	cmd.Base
-	manifest       manifest.Data
 	path           string
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
@@ -26,18 +25,17 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("update", "Update a package on a Fastly Compute service version")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -65,7 +63,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -81,7 +79,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 
 	packagePath := c.path
 	if packagePath == "" {
-		projectName, source := c.manifest.Name()
+		projectName, source := c.Globals.Manifest.Name()
 		if source == manifest.SourceUndefined {
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("failed to read project name: %w", fsterr.ErrReadingManifest),

@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -45,8 +46,8 @@ func TestSyslogCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -118,8 +119,8 @@ func TestSyslogList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -163,8 +164,8 @@ func TestSyslogDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -210,8 +211,8 @@ func TestSyslogUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -257,8 +258,8 @@ func TestSyslogDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -290,7 +291,7 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 			ServiceVersion:    i.ServiceVersion,
 			Name:              "logs",
 			Address:           "127.0.0.1",
-			Hostname:          "",
+			Hostname:          "127.0.0.1",
 			Port:              514,
 			UseTLS:            false,
 			IPV4:              "127.0.0.1",
@@ -313,7 +314,7 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 			Hostname:          "example.com",
 			Port:              789,
 			UseTLS:            true,
-			IPV4:              "",
+			IPV4:              "127.0.0.1",
 			TLSCACert:         "-----BEGIN CERTIFICATE-----baz",
 			TLSHostname:       "example.com",
 			TLSClientCert:     "-----BEGIN CERTIFICATE-----qux",
@@ -350,7 +351,7 @@ Version: 1
 		Version: 1
 		Name: logs
 		Address: 127.0.0.1
-		Hostname: 
+		Hostname: 127.0.0.1
 		Port: 514
 		Use TLS: false
 		IPV4: 127.0.0.1
@@ -372,7 +373,7 @@ Version: 1
 		Hostname: example.com
 		Port: 789
 		Use TLS: true
-		IPV4: 
+		IPV4: 127.0.0.1
 		TLS CA certificate: -----BEGIN CERTIFICATE-----baz
 		TLS hostname: example.com
 		TLS client certificate: -----BEGIN CERTIFICATE-----qux

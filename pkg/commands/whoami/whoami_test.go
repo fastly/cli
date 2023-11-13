@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -73,14 +74,14 @@ func TestWhoami(t *testing.T) {
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
+			opts := testutil.MockGlobalData(testcase.args, &stdout)
 			opts.Env = testcase.env
 			opts.HTTPClient = testcase.client
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				return opts, nil
 			}
 			err := app.Run(testcase.args, nil)
-			opts.ConfigFile = config.File{}
+			opts.Config = config.File{}
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)

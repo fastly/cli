@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -45,8 +46,8 @@ func TestKafkaCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -118,8 +119,8 @@ func TestKafkaList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -163,8 +164,8 @@ func TestKafkaDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -219,8 +220,8 @@ func TestKafkaUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -266,8 +267,8 @@ func TestKafkaDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
-				opts := testutil.NewRunOpts(testcase.args, &stdout)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
@@ -331,9 +332,9 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			FormatVersion:     2,
 			ParseLogKeyvals:   false,
 			RequestMaxBytes:   0,
-			AuthMethod:        "",
-			User:              "",
-			Password:          "",
+			AuthMethod:        "plain",
+			User:              "user",
+			Password:          "password",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -354,9 +355,9 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			FormatVersion:     2,
 			ParseLogKeyvals:   false,
 			RequestMaxBytes:   0,
-			AuthMethod:        "",
-			User:              "",
-			Password:          "",
+			AuthMethod:        "plain",
+			User:              "user",
+			Password:          "password",
 		},
 	}, nil
 }
@@ -397,9 +398,9 @@ Version: 1
 		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
-		SASL authentication method: 
-		SASL authentication username: 
-		SASL authentication password: 
+		SASL authentication method: plain
+		SASL authentication username: user
+		SASL authentication password: password
 	Kafka 2/2
 		Service ID: 123
 		Version: 1
@@ -419,10 +420,10 @@ Version: 1
 		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
-		SASL authentication method: 
-		SASL authentication username: 
-		SASL authentication password: 
-`) + " \n\n"
+		SASL authentication method: plain
+		SASL authentication username: user
+		SASL authentication password: password
+  `) + "\n\n"
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{

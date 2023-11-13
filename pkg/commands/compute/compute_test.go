@@ -10,8 +10,8 @@ import (
 	"github.com/mholt/archiver/v3"
 
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -20,10 +20,11 @@ import (
 // `compute build` and `compute deploy` commands from which publish is composed.
 func TestFlagDivergencePublish(t *testing.T) {
 	var g global.Data
+	g.Manifest = &manifest.Data{}
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &g)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g, nil)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g)
 	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g)
 	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd)
 
@@ -68,16 +69,11 @@ func TestFlagDivergencePublish(t *testing.T) {
 // `compute build` command as `compute serve` delegates to build.
 func TestFlagDivergenceServe(t *testing.T) {
 	var cfg global.Data
-	versioner := github.New(github.Opts{
-		Org:    "fastly",
-		Repo:   "viceroy",
-		Binary: "viceroy",
-	})
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
-	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd, versioner)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
 	serveFlags := getFlags(scmd.CmdClause)
@@ -135,7 +131,7 @@ func TestFlagDivergenceHashSum(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
 	hcmd := compute.NewHashsumCommand(rcmd.CmdClause, &cfg, bcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
@@ -186,7 +182,7 @@ func TestFlagDivergenceHashFiles(t *testing.T) {
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, nil)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
 	hcmd := compute.NewHashFilesCommand(rcmd.CmdClause, &cfg, bcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)

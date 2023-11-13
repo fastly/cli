@@ -28,13 +28,12 @@ type UpdateCommand struct {
 	authCmd *sso.RootCommand
 
 	automationToken bool
-	clientFactory   APIClientFactory
 	profile         string
 	sso             bool
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data, authCmd *sso.RootCommand) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data, authCmd *sso.RootCommand) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = g
 	c.authCmd = authCmd
@@ -42,7 +41,6 @@ func NewUpdateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data
 	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
 	c.CmdClause.Flag("sso", "Update profile to use an SSO-based token").Hidden().BoolVar(&c.sso)
-	c.clientFactory = cf
 	return &c
 }
 
@@ -176,7 +174,7 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		t      *fastly.Token
 	)
 	err = spinner.Process("Validating token", func(_ *text.SpinnerWrapper) error {
-		client, err = c.clientFactory(token, endpoint, c.Globals.Flags.Debug)
+		client, err = c.Globals.APIClientFactory(token, endpoint, c.Globals.Flags.Debug)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Endpoint": endpoint,

@@ -3,33 +3,31 @@ package serviceversion
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // LockCommand calls the Fastly API to lock a service version.
 type LockCommand struct {
 	cmd.Base
-	manifest       manifest.Data
 	Input          fastly.LockVersionInput
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewLockCommand returns a usable command registered under the parent.
-func NewLockCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *LockCommand {
+func NewLockCommand(parent cmd.Registerer, g *global.Data) *LockCommand {
 	var c LockCommand
 	c.Globals = g
-	c.manifest = m
 	c.CmdClause = parent.Command("lock", "Lock a Fastly service version")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -52,7 +50,7 @@ func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
