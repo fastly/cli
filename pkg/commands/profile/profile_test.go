@@ -114,7 +114,7 @@ func TestCreate(t *testing.T) {
 			)
 
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -146,7 +146,10 @@ func TestCreate(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+						return opts, nil
+					}
+					err = app.Run(testcase.Args, nil)
 					done <- true
 				}()
 
@@ -171,7 +174,10 @@ func TestCreate(t *testing.T) {
 					stdin = testcase.Stdin[0]
 				}
 				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+					return opts, nil
+				}
+				err = app.Run(testcase.Args, nil)
 			}
 
 			t.Log(stdout.String())
@@ -259,7 +265,7 @@ func TestDelete(t *testing.T) {
 			)
 
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -270,7 +276,10 @@ func TestDelete(t *testing.T) {
 			// an in-memory representation of the config file we want to be using.
 			opts.ConfigFile = testcase.ConfigFile
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 
@@ -473,7 +482,7 @@ func TestList(t *testing.T) {
 			)
 
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -484,7 +493,10 @@ func TestList(t *testing.T) {
 			// an in-memory representation of the config file we want to be using.
 			opts.ConfigFile = testcase.ConfigFile
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 
@@ -576,7 +588,7 @@ func TestSwitch(t *testing.T) {
 			)
 
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -587,7 +599,10 @@ func TestSwitch(t *testing.T) {
 			// an in-memory representation of the config file we want to be using.
 			opts.ConfigFile = testcase.ConfigFile
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 
@@ -721,7 +736,7 @@ func TestToken(t *testing.T) {
 			)
 
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -732,7 +747,10 @@ func TestToken(t *testing.T) {
 			// an in-memory representation of the config file we want to be using.
 			opts.ConfigFile = testcase.ConfigFile
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 
@@ -833,7 +851,7 @@ func TestUpdate(t *testing.T) {
 			)
 
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -863,7 +881,10 @@ func TestUpdate(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+						return opts, nil
+					}
+					err = app.Run(testcase.Args, nil)
 					done <- true
 				}()
 
@@ -888,7 +909,10 @@ func TestUpdate(t *testing.T) {
 					stdin = testcase.Stdin[0]
 				}
 				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+					return opts, nil
+				}
+				err = app.Run(testcase.Args, nil)
 			}
 
 			t.Log(stdout.String())

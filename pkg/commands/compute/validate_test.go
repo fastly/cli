@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -53,8 +54,10 @@ func TestValidate(t *testing.T) {
 			}()
 
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return testutil.NewRunOpts(testcase.Args, &stdout), nil
+			}
+			err = app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

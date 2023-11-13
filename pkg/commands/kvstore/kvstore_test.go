@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"testing"
 	"time"
 
@@ -75,12 +76,12 @@ func TestCreateStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -138,12 +139,12 @@ func TestDeleteStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -216,12 +217,12 @@ func TestDescribeStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -286,12 +287,12 @@ func TestListStoresCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})

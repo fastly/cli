@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/fastly/kingpin"
 
+	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
@@ -85,7 +86,10 @@ func defineCommands(
 	app *kingpin.Application,
 	g *global.Data,
 	m manifest.Data,
-	opts RunOpts,
+	opener func(string) error,
+	authServer auth.Starter,
+	versioners Versioners,
+	factory APIClientFactory,
 ) []cmd.Command {
 	shellcompleteCmdRoot := shellcomplete.NewRootCommand(app, g)
 
@@ -95,7 +99,7 @@ func defineCommands(
 	// messes up the order of the commands in the `--help` output. So to make the
 	// placement of the `sso` subcommand not look too odd we place it at the
 	// beginning of the list of commands.
-	ssoCmdRoot := sso.NewRootCommand(app, g, opts.Opener, opts.AuthServer)
+	ssoCmdRoot := sso.NewRootCommand(app, g, opener, authServer)
 
 	aclCmdRoot := acl.NewRootCommand(app, g)
 	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, g, m)
@@ -121,7 +125,7 @@ func defineCommands(
 	backendList := backend.NewListCommand(backendCmdRoot.CmdClause, g, m)
 	backendUpdate := backend.NewUpdateCommand(backendCmdRoot.CmdClause, g, m)
 	computeCmdRoot := compute.NewRootCommand(app, g)
-	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, g, opts.Versioners.WasmTools)
+	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, g, versioners.WasmTools)
 	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, g)
 	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, g, computeBuild)
 	computeHashsum := compute.NewHashsumCommand(computeCmdRoot.CmdClause, g, computeBuild)
@@ -129,7 +133,7 @@ func defineCommands(
 	computeMetadata := compute.NewMetadataCommand(computeCmdRoot.CmdClause, g)
 	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, g, m)
 	computePublish := compute.NewPublishCommand(computeCmdRoot.CmdClause, g, computeBuild, computeDeploy)
-	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, g, computeBuild, opts.Versioners.Viceroy)
+	computeServe := compute.NewServeCommand(computeCmdRoot.CmdClause, g, computeBuild, versioners.Viceroy)
 	computeUpdate := compute.NewUpdateCommand(computeCmdRoot.CmdClause, g, m)
 	computeValidate := compute.NewValidateCommand(computeCmdRoot.CmdClause, g)
 	configCmdRoot := config.NewRootCommand(app, g)
@@ -343,12 +347,12 @@ func defineCommands(
 	popCmdRoot := pop.NewRootCommand(app, g)
 	productsCmdRoot := products.NewRootCommand(app, g, m)
 	profileCmdRoot := profile.NewRootCommand(app, g)
-	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g, ssoCmdRoot)
+	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(factory), g, ssoCmdRoot)
 	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, g)
 	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, g)
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, g)
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, g)
-	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(opts.APIClient), g, ssoCmdRoot)
+	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, profile.APIClientFactory(factory), g, ssoCmdRoot)
 	purgeCmdRoot := purge.NewRootCommand(app, g, m)
 	rateLimitCmdRoot := ratelimit.NewRootCommand(app, g)
 	rateLimitCreate := ratelimit.NewCreateCommand(rateLimitCmdRoot.CmdClause, g, m)
@@ -432,7 +436,7 @@ func defineCommands(
 	tlsSubscriptionDescribe := tlssubscription.NewDescribeCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
 	tlsSubscriptionList := tlssubscription.NewListCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
 	tlsSubscriptionUpdate := tlssubscription.NewUpdateCommand(tlsSubscriptionCmdRoot.CmdClause, g, m)
-	updateRoot := update.NewRootCommand(app, opts.ConfigPath, opts.Versioners.CLI, g)
+	updateRoot := update.NewRootCommand(app, g.ConfigPath, versioners.CLI, g)
 	userCmdRoot := user.NewRootCommand(app, g)
 	userCreate := user.NewCreateCommand(userCmdRoot.CmdClause, g, m)
 	userDelete := user.NewDeleteCommand(userCmdRoot.CmdClause, g, m)
@@ -458,7 +462,7 @@ func defineCommands(
 	vclSnippetDescribe := snippet.NewDescribeCommand(vclSnippetCmdRoot.CmdClause, g, m)
 	vclSnippetList := snippet.NewListCommand(vclSnippetCmdRoot.CmdClause, g, m)
 	vclSnippetUpdate := snippet.NewUpdateCommand(vclSnippetCmdRoot.CmdClause, g, m)
-	versionCmdRoot := version.NewRootCommand(app, opts.Versioners.Viceroy)
+	versionCmdRoot := version.NewRootCommand(app, versioners.Viceroy)
 	whoamiCmdRoot := whoami.NewRootCommand(app, g)
 
 	return []cmd.Command{

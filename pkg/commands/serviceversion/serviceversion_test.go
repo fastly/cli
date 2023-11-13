@@ -2,6 +2,7 @@ package serviceversion_test
 
 import (
 	"bytes"
+	"io"
 	"strings"
 	"testing"
 
@@ -49,9 +50,12 @@ func TestVersionClone(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -101,9 +105,12 @@ func TestVersionList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -149,9 +156,12 @@ func TestVersionUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -201,9 +211,12 @@ func TestVersionActivate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -251,9 +264,12 @@ func TestVersionDeactivate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -293,9 +309,12 @@ func TestVersionLock(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})

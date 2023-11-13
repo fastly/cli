@@ -1,8 +1,10 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"slices"
 	"strconv"
@@ -11,10 +13,13 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/fastly/kingpin"
+	"github.com/fatih/color"
+	"github.com/skratchdot/open-golang/open"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
@@ -26,20 +31,169 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/revision"
+	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// Run constructs the application including all of the subcommands, parses the
+func Run(args []string, stdin io.Reader) error {
+	opts, err := Init(args, stdin)
+	if err != nil {
+		return fmt.Errorf("failed to initialise application: %w", err)
+	}
+	return Exec(opts)
+}
+
+// Init constructs all the required objects and data for Exec().
+//
+// NOTE: We define as a package level variable so we can mock output for tests.
+var Init = func(args []string, stdin io.Reader) (RunOpts, error) {
+	// Parse the arguments provided by the user via the command-line interface.
+	args = args[1:]
+
+	// Define a HTTP client that will be used for making arbitrary HTTP requests.
+	httpClient := &http.Client{Timeout: time.Minute * 2}
+
+	// Define the standard input/output streams.
+	var (
+		in  io.Reader = stdin
+		out io.Writer = sync.NewWriter(color.Output)
+	)
+
+	// Read relevant configuration options from the user's environment.
+	var e config.Environment
+	e.Read(env.Parse(os.Environ()))
+
+	// Identify verbose flag early (before Kingpin parser has executed) so we can
+	// print additional output related to the CLI configuration.
+	var verboseOutput bool
+	for _, seg := range args {
+		if seg == "-v" || seg == "--verbose" {
+			verboseOutput = true
+		}
+	}
+
+	// Identify auto-yes/non-interactive flag early (before Kingpin parser has
+	// executed) so we can handle the interactive prompts appropriately with
+	// regards to processing the CLI configuration.
+	var autoYes, nonInteractive bool
+	for _, seg := range args {
+		if seg == "-y" || seg == "--auto-yes" {
+			autoYes = true
+		}
+		if seg == "-i" || seg == "--non-interactive" {
+			nonInteractive = true
+		}
+	}
+
+	// Extract a subset of configuration options from the local app directory.
+	var cfg config.File
+	cfg.SetAutoYes(autoYes)
+	cfg.SetNonInteractive(nonInteractive)
+	if err := cfg.Read(config.FilePath, in, out, fsterr.Log, verboseOutput); err != nil {
+		return RunOpts{}, err
+	}
+
+	// Extract user's project configuration from the fastly.toml manifest.
+	var md manifest.Data
+	md.File.Args = args
+	md.File.SetErrLog(fsterr.Log)
+	md.File.SetOutput(out)
+
+	// NOTE: We skip handling the error because not all commands relate to Compute.
+	_ = md.File.Read(manifest.Filename)
+
+	// Configure authentication inputs.
+	// We do this here so that we can mock the values in our test suite.
+	req, err := http.NewRequest(http.MethodGet, auth.OIDCMetadata, nil)
+	if err != nil {
+		return RunOpts{}, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return RunOpts{}, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
+	}
+	openIDConfig, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return RunOpts{}, fmt.Errorf("failed to read OpenID Connect .well-known metadata: %w", err)
+	}
+	_ = resp.Body.Close()
+	var wellknown auth.WellKnownEndpoints
+	err = json.Unmarshal(openIDConfig, &wellknown)
+	if err != nil {
+		return RunOpts{}, fmt.Errorf("failed to unmarshal OpenID Connect .well-known metadata: %w", err)
+	}
+	result := make(chan auth.AuthorizationResult)
+	router := http.NewServeMux()
+	authServer := &auth.Server{
+		DebugMode:          e.DebugMode,
+		HTTPClient:         httpClient,
+		Result:             result,
+		Router:             router,
+		WellKnownEndpoints: wellknown,
+	}
+	router.HandleFunc("/callback", authServer.HandleCallback())
+
+	factory := func(token, endpoint string, debugMode bool) (api.Interface, error) {
+		client, err := fastly.NewClientForEndpoint(token, endpoint)
+		if debugMode {
+			client.DebugMode = true
+		}
+		return client, err
+	}
+
+	versioners := Versioners{
+		CLI: github.New(github.Opts{
+			HTTPClient: httpClient,
+			Org:        "fastly",
+			Repo:       "cli",
+			Binary:     "fastly",
+		}),
+		Viceroy: github.New(github.Opts{
+			HTTPClient: httpClient,
+			Org:        "fastly",
+			Repo:       "viceroy",
+			Binary:     "viceroy",
+			Version:    md.File.LocalServer.ViceroyVersion,
+		}),
+		WasmTools: github.New(github.Opts{
+			HTTPClient: httpClient,
+			Org:        "bytecodealliance",
+			Repo:       "wasm-tools",
+			Binary:     "wasm-tools",
+			External:   true,
+			Nested:     true,
+		}),
+	}
+
+	return RunOpts{
+		APIClientFactory: factory,
+		Args:             args,
+		AuthServer:       authServer,
+		ConfigFile:       cfg,
+		ConfigPath:       config.FilePath,
+		Env:              e,
+		ErrLog:           fsterr.Log,
+		ExecuteWasmTools: compute.ExecuteWasmTools,
+		HTTPClient:       httpClient,
+		Manifest:         &md,
+		Opener:           open.Run,
+		Stdin:            in,
+		Stdout:           out,
+		Versioners:       versioners,
+	}, nil
+}
+
+// Exec constructs the application including all of the subcommands, parses the
 // args, invokes the client factory with the token to create a Fastly API
 // client, and executes the chosen command, using the provided io.Reader and
 // io.Writer for input and output, respectively. In the real CLI, func main is
 // just a simple shim to this function; it exists to make end-to-end testing of
 // commands easier/possible.
 //
-// The Run helper should NOT output any error-related information to the out
+// The Exec helper should NOT output any error-related information to the out
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
-func Run(opts RunOpts) error {
+func Exec(opts RunOpts) error {
 	// The g will hold generally-applicable configuration parameters
 	// from a variety of sources, and is provided to each concrete command.
 	g := global.Data{
@@ -54,8 +208,8 @@ func Run(opts RunOpts) error {
 	}
 
 	app := configureKingpin(opts.Stdout, &g)
-	commands := defineCommands(app, &g, *opts.Manifest, opts)
-	command, commandName, err := processCommandInput(opts, app, &g, commands)
+	commands := defineCommands(app, &g, *opts.Manifest, opts.Opener, opts.AuthServer, opts.Versioners, opts.APIClientFactory)
+	command, commandName, err := processCommandInput(opts.Args, opts.Stdout, app, &g, commands)
 	if err != nil {
 		return err
 	}
@@ -101,7 +255,7 @@ func Run(opts RunOpts) error {
 		return fmt.Errorf("failed to process token: %w", err)
 	}
 
-	g.APIClient, g.RTSClient, err = configureClients(token, apiEndpoint, opts.APIClient, g.Flags.Debug)
+	g.APIClient, g.RTSClient, err = configureClients(token, apiEndpoint, opts.APIClientFactory, g.Flags.Debug)
 	if err != nil {
 		g.ErrLog.Add(err)
 		return fmt.Errorf("error constructing client: %w", err)
@@ -113,10 +267,10 @@ func Run(opts RunOpts) error {
 	return command.Exec(opts.Stdin, opts.Stdout)
 }
 
-// RunOpts represent arguments to Run().
+// RunOpts represent arguments we can mock at runtime.
 type RunOpts struct {
-	// APIClient is a factory function for creating an api.Interface type.
-	APIClient APIClientFactory
+	// APIClientFactory is a factory function for creating an api.Interface type.
+	APIClientFactory APIClientFactory
 	// Args are the command line arguments provided by the user.
 	Args []string
 	// AuthServer is an instance of the authentication server type.

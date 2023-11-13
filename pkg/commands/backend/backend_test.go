@@ -3,6 +3,7 @@ package backend_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
@@ -130,9 +131,12 @@ func TestBackendCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -211,9 +215,12 @@ func TestBackendList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			if testcase.WantError == "" {
 				testutil.AssertString(t, testcase.WantOutput, stdout.String())
@@ -250,9 +257,12 @@ func TestBackendDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -291,9 +301,12 @@ func TestBackendUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -330,9 +343,12 @@ func TestBackendDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

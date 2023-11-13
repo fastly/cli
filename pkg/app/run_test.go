@@ -122,9 +122,10 @@ whoami
 				outC <- buf.String()
 			}()
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return testutil.NewRunOpts(testcase.Args, &stdout), nil
+			}
+			err := app.Run(testcase.Args, nil)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}

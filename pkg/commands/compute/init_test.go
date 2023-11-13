@@ -3,6 +3,7 @@ package compute_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -358,15 +359,17 @@ func TestInit(t *testing.T) {
 			}()
 
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.ConfigFile = testcase.configFile
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.ConfigFile = testcase.configFile
 
-			// we need to define stdin as the init process prompts the user multiple
-			// times, but we don't need to provide any values as all our prompts will
-			// fallback to default values if the input is unrecognised.
-			opts.Stdin = strings.NewReader(testcase.stdin)
-
-			err = app.Run(opts)
+				// we need to define stdin as the init process prompts the user multiple
+				// times, but we don't need to provide any values as all our prompts will
+				// fallback to default values if the input is unrecognised.
+				opts.Stdin = strings.NewReader(testcase.stdin)
+				return opts, nil
+			}
+			err = app.Run(testcase.args, nil)
 
 			t.Log(stdout.String())
 

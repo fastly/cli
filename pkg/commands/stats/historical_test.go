@@ -3,6 +3,7 @@ package stats_test
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"strings"
 	"testing"
 
@@ -41,9 +42,12 @@ func TestHistorical(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})

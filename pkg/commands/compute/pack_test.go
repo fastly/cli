@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -81,8 +82,10 @@ func TestPack(t *testing.T) {
 			}()
 
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return testutil.NewRunOpts(testcase.args, &stdout), nil
+			}
+			err = app.Run(testcase.args, nil)
 
 			t.Log(stdout.String())
 

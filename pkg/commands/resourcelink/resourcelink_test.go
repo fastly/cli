@@ -3,15 +3,17 @@ package resourcelink_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/resourcelink"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateServiceResourceCommand(t *testing.T) {
@@ -144,7 +146,8 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.CreateResourceFn
 			var apiInvoked bool
@@ -153,9 +156,11 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.TrimSpace(stdout.String()))
@@ -246,7 +251,8 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.DeleteResourceFn
 			var apiInvoked bool
@@ -255,9 +261,11 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.TrimSpace(stdout.String()))
@@ -340,7 +348,8 @@ Last edited (UTC): 2023-10-15 12:18`,
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.GetResourceFn
 			var apiInvoked bool
@@ -349,9 +358,11 @@ Last edited (UTC): 2023-10-15 12:18`,
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.TrimSpace(stdout.String()))
@@ -452,7 +463,8 @@ Resource Link 3/3
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.ListResourcesFn
 			var apiInvoked bool
@@ -461,9 +473,11 @@ Resource Link 3/3
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.ReplaceAll(strings.TrimSpace(stdout.String()), "\t", "  "))
@@ -587,7 +601,8 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.UpdateResourceFn
 			var apiInvoked bool
@@ -596,9 +611,11 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.TrimSpace(stdout.String()))

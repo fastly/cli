@@ -3,6 +3,7 @@ package dictionaryentry_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -47,9 +48,12 @@ func TestDictionaryItemDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -172,9 +176,12 @@ func TestDictionaryItemsList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -209,9 +216,12 @@ func TestDictionaryItemCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -285,9 +295,12 @@ func TestDictionaryItemUpdate(t *testing.T) {
 			}
 
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -322,9 +335,12 @@ func TestDictionaryItemDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})

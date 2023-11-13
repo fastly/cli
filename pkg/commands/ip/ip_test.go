@@ -2,6 +2,7 @@ package ip_test
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -23,9 +24,12 @@ func TestAllIPs(t *testing.T) {
 				}, nil
 		},
 	}
-	opts := testutil.NewRunOpts(args, &stdout)
-	opts.APIClient = mock.APIClient(api)
-	err := app.Run(opts)
+	app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+		opts := testutil.NewRunOpts(args, &stdout)
+		opts.APIClientFactory = mock.APIClient(api)
+		return opts, nil
+	}
+	err := app.Run(args, nil)
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, "\nIPv4\n\t00.123.45.6/78\n\nIPv6\n\t0a12:3b45::/67\n", stdout.String())
 }

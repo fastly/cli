@@ -2,6 +2,7 @@ package pop_test
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -32,9 +33,12 @@ func TestAllDatacenters(t *testing.T) {
 			}, nil
 		},
 	}
-	opts := testutil.NewRunOpts(args, &stdout)
-	opts.APIClient = mock.APIClient(api)
-	err := app.Run(opts)
+	app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+		opts := testutil.NewRunOpts(args, &stdout)
+		opts.APIClientFactory = mock.APIClient(api)
+		return opts, nil
+	}
+	err := app.Run(args, nil)
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, "\nNAME    CODE  GROUP  SHIELD  COORDINATES\nFoobar  FBR   Bar    Baz     {Latitude:1 Longtitude:2 X:3 Y:4}\n", stdout.String())
 }

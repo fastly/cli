@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -147,7 +148,10 @@ func TestMetadata(t *testing.T) {
 				},
 			}
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 

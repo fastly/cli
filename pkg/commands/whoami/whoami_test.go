@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -75,7 +76,10 @@ func TestWhoami(t *testing.T) {
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
 			opts.Env = testcase.env
 			opts.HTTPClient = testcase.client
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			opts.ConfigFile = config.File{}
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)

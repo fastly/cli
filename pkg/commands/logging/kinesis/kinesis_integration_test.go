@@ -3,6 +3,7 @@ package kinesis_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
@@ -86,9 +87,12 @@ func TestKinesisCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -156,9 +160,12 @@ func TestKinesisList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -198,9 +205,12 @@ func TestKinesisDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -242,9 +252,12 @@ func TestKinesisUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -286,9 +299,12 @@ func TestKinesisDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -305,7 +321,7 @@ func createKinesisOK(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	}, nil
 }
 
-func createKinesisError(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
+func createKinesisError(_ *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
@@ -340,7 +356,7 @@ func listKinesesOK(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	}, nil
 }
 
-func listKinesesError(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
+func listKinesesError(_ *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
@@ -399,7 +415,7 @@ func getKinesisOK(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	}, nil
 }
 
-func getKinesisError(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
+func getKinesisError(_ *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
@@ -433,14 +449,14 @@ func updateKinesisOK(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 	}, nil
 }
 
-func updateKinesisError(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
+func updateKinesisError(_ *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
-func deleteKinesisOK(i *fastly.DeleteKinesisInput) error {
+func deleteKinesisOK(_ *fastly.DeleteKinesisInput) error {
 	return nil
 }
 
-func deleteKinesisError(i *fastly.DeleteKinesisInput) error {
+func deleteKinesisError(_ *fastly.DeleteKinesisInput) error {
 	return errTest
 }

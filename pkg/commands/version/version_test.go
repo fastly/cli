@@ -3,6 +3,7 @@ package version_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -74,7 +75,10 @@ func TestVersion(t *testing.T) {
 			Binary: "viceroy",
 		}),
 	}
-	err = app.Run(opts)
+	app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+		return opts, nil
+	}
+	err = app.Run(args, nil)
 
 	t.Log(stdout.String())
 

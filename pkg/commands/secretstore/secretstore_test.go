@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"testing"
 	"time"
 
@@ -77,7 +78,8 @@ func TestCreateStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstore.RootNameStore+" "+testcase.args), &stdout)
+			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.CreateSecretStoreFn
 			var apiInvoked bool
@@ -86,9 +88,11 @@ func TestCreateStoreCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -159,7 +163,8 @@ func TestDeleteStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstore.RootNameStore+" "+testcase.args), &stdout)
+			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.DeleteSecretStoreFn
 			var apiInvoked bool
@@ -168,9 +173,11 @@ func TestDeleteStoreCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -246,7 +253,8 @@ func TestDescribeStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstore.RootNameStore+" "+testcase.args), &stdout)
+			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.GetSecretStoreFn
 			var apiInvoked bool
@@ -255,9 +263,11 @@ func TestDescribeStoreCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -335,7 +345,8 @@ func TestListStoresCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstore.RootNameStore+" "+testcase.args), &stdout)
+			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.ListSecretStoresFn
 			var apiInvoked bool
@@ -344,9 +355,11 @@ func TestListStoresCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)

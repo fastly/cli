@@ -104,9 +104,9 @@ func NewRunOpts(args []string, stdout io.Writer) app.RunOpts {
 	}
 
 	return app.RunOpts{
-		Args:       args,
-		APIClient:  mock.APIClient(mock.API{}),
-		AuthServer: &MockAuthServer{},
+		Args:             args,
+		APIClientFactory: mock.APIClient(mock.API{}),
+		AuthServer:       &MockAuthServer{},
 		ConfigFile: config.File{
 			Profiles: TokenProfile(),
 		},

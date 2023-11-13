@@ -2,6 +2,7 @@ package acl_test
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -87,9 +88,12 @@ func TestACLCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -163,9 +167,12 @@ func TestACLDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -225,9 +232,12 @@ func TestACLDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -291,9 +301,12 @@ func TestACLList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -381,9 +394,12 @@ func TestACLUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

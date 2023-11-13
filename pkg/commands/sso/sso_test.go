@@ -227,16 +227,17 @@ func TestSSO(t *testing.T) {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
 			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			if testcase.HTTPClient != nil {
 				opts.HTTPClient = testcase.HTTPClient
 			}
-
 			if testcase.ConfigFile != nil {
 				opts.ConfigFile = *testcase.ConfigFile
 			}
-
+			if testcase.Opener != nil {
+				opts.Opener = testcase.Opener
+			}
 			if testcase.AuthResult != nil {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
@@ -245,10 +246,6 @@ func TestSSO(t *testing.T) {
 				go func() {
 					result <- *testcase.AuthResult
 				}()
-			}
-
-			if testcase.Opener != nil {
-				opts.Opener = testcase.Opener
 			}
 
 			var err error
@@ -272,7 +269,10 @@ func TestSSO(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+						return opts, nil
+					}
+					err = app.Run(testcase.Args, nil)
 					done <- true
 				}()
 
@@ -297,7 +297,10 @@ func TestSSO(t *testing.T) {
 					stdin = testcase.Stdin[0]
 				}
 				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+					return opts, nil
+				}
+				err = app.Run(testcase.Args, nil)
 			}
 
 			if testcase.ExpectedConfigProfile != nil {

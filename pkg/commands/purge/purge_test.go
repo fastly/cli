@@ -2,6 +2,7 @@ package purge_test
 
 import (
 	"bytes"
+	"io"
 	"reflect"
 	"testing"
 
@@ -53,9 +54,12 @@ func TestPurgeAll(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -104,9 +108,12 @@ func TestPurgeKeys(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 			assertKeys(testcase.WantError, testcase.Args, keys, t)
@@ -181,9 +188,12 @@ func TestPurgeKey(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
@@ -236,9 +246,12 @@ func TestPurgeURL(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

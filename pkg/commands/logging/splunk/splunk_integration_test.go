@@ -3,6 +3,7 @@ package splunk_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
@@ -44,9 +45,12 @@ func TestSplunkCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -114,9 +118,12 @@ func TestSplunkList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -156,9 +163,12 @@ func TestSplunkDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -200,9 +210,12 @@ func TestSplunkUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -244,9 +257,12 @@ func TestSplunkDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -263,7 +279,7 @@ func createSplunkOK(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	}, nil
 }
 
-func createSplunkError(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
+func createSplunkError(_ *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
@@ -302,7 +318,7 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	}, nil
 }
 
-func listSplunksError(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
+func listSplunksError(_ *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	return nil, errTest
 }
 
@@ -367,7 +383,7 @@ func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	}, nil
 }
 
-func getSplunkError(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
+func getSplunkError(_ *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
@@ -405,14 +421,14 @@ func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	}, nil
 }
 
-func updateSplunkError(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
+func updateSplunkError(_ *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
-func deleteSplunkOK(i *fastly.DeleteSplunkInput) error {
+func deleteSplunkOK(_ *fastly.DeleteSplunkInput) error {
 	return nil
 }
 
-func deleteSplunkError(i *fastly.DeleteSplunkInput) error {
+func deleteSplunkError(_ *fastly.DeleteSplunkInput) error {
 	return errTest
 }

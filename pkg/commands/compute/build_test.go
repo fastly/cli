@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -216,22 +217,23 @@ func TestBuildRust(t *testing.T) {
 			}()
 
 			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-
-			if testcase.applicationConfig != nil {
-				opts.ConfigFile = *testcase.applicationConfig
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				if testcase.applicationConfig != nil {
+					opts.ConfigFile = *testcase.applicationConfig
+				}
+				opts.Versioners = app.Versioners{
+					WasmTools: mock.AssetVersioner{
+						AssetVersion:    "1.2.3",
+						BinaryFilename:  wasmtoolsBinName,
+						DownloadOK:      true,
+						DownloadedFile:  latestDownloaded,
+						InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+					},
+				}
+				return opts, nil
 			}
-			opts.Versioners = app.Versioners{
-				WasmTools: mock.AssetVersioner{
-					AssetVersion:    "1.2.3",
-					BinaryFilename:  wasmtoolsBinName,
-					DownloadOK:      true,
-					DownloadedFile:  latestDownloaded,
-					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
-				},
-			}
-
-			err = app.Run(opts)
+			err = app.Run(testcase.args, nil)
 
 			t.Log(stdout.String())
 
@@ -408,22 +410,23 @@ func TestBuildGo(t *testing.T) {
 			}()
 
 			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-
-			if testcase.applicationConfig != nil {
-				opts.ConfigFile = *testcase.applicationConfig
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				if testcase.applicationConfig != nil {
+					opts.ConfigFile = *testcase.applicationConfig
+				}
+				opts.Versioners = app.Versioners{
+					WasmTools: mock.AssetVersioner{
+						AssetVersion:    "1.2.3",
+						BinaryFilename:  wasmtoolsBinName,
+						DownloadOK:      true,
+						DownloadedFile:  latestDownloaded,
+						InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+					},
+				}
+				return opts, nil
 			}
-			opts.Versioners = app.Versioners{
-				WasmTools: mock.AssetVersioner{
-					AssetVersion:    "1.2.3",
-					BinaryFilename:  wasmtoolsBinName,
-					DownloadOK:      true,
-					DownloadedFile:  latestDownloaded,
-					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
-				},
-			}
-
-			err = app.Run(opts)
+			err = app.Run(testcase.args, nil)
 
 			t.Log(stdout.String())
 
@@ -605,18 +608,20 @@ func TestBuildJavaScript(t *testing.T) {
 			}
 
 			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.Versioners = app.Versioners{
-				WasmTools: mock.AssetVersioner{
-					AssetVersion:    "1.2.3",
-					BinaryFilename:  wasmtoolsBinName,
-					DownloadOK:      true,
-					DownloadedFile:  latestDownloaded,
-					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
-				},
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.Versioners = app.Versioners{
+					WasmTools: mock.AssetVersioner{
+						AssetVersion:    "1.2.3",
+						BinaryFilename:  wasmtoolsBinName,
+						DownloadOK:      true,
+						DownloadedFile:  latestDownloaded,
+						InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+					},
+				}
+				return opts, nil
 			}
-
-			err = app.Run(opts)
+			err = app.Run(testcase.args, nil)
 
 			t.Log(stdout.String())
 
@@ -798,18 +803,20 @@ func TestBuildAssemblyScript(t *testing.T) {
 			}
 
 			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.Versioners = app.Versioners{
-				WasmTools: mock.AssetVersioner{
-					AssetVersion:    "1.2.3",
-					BinaryFilename:  wasmtoolsBinName,
-					DownloadOK:      true,
-					DownloadedFile:  latestDownloaded,
-					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
-				},
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.Versioners = app.Versioners{
+					WasmTools: mock.AssetVersioner{
+						AssetVersion:    "1.2.3",
+						BinaryFilename:  wasmtoolsBinName,
+						DownloadOK:      true,
+						DownloadedFile:  latestDownloaded,
+						InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+					},
+				}
+				return opts, nil
 			}
-
-			err = app.Run(opts)
+			err = app.Run(testcase.args, nil)
 
 			t.Log(stdout.String())
 
@@ -1008,19 +1015,21 @@ func TestBuildOther(t *testing.T) {
 			}
 
 			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
-			opts.Versioners = app.Versioners{
-				WasmTools: mock.AssetVersioner{
-					AssetVersion:    "1.2.3",
-					BinaryFilename:  wasmtoolsBinName,
-					DownloadOK:      true,
-					DownloadedFile:  latestDownloaded,
-					InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
-				},
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts := testutil.NewRunOpts(testcase.args, &stdout)
+				opts.Stdin = strings.NewReader(testcase.stdin) // NOTE: build only has one prompt when dealing with a custom build
+				opts.Versioners = app.Versioners{
+					WasmTools: mock.AssetVersioner{
+						AssetVersion:    "1.2.3",
+						BinaryFilename:  wasmtoolsBinName,
+						DownloadOK:      true,
+						DownloadedFile:  latestDownloaded,
+						InstallFilePath: wasmtoolsBinPath, // avoid overwriting developer's actual wasm-tools install
+					},
+				}
+				return opts, nil
 			}
-
-			err = app.Run(opts)
+			err = app.Run(testcase.args, nil)
 
 			t.Log(stdout.String())
 

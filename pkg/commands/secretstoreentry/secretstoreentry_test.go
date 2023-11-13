@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -227,7 +228,8 @@ func TestCreateSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 			if testcase.stdin != "" {
 				var stdin bytes.Buffer
 				stdin.WriteString(testcase.stdin)
@@ -241,14 +243,16 @@ func TestCreateSecretCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
 			// Tests generate their own signing keys, which won't match
 			// the hardcoded value.  Disable the check against the
 			// hardcoded value.
 			t.Setenv("FASTLY_USE_API_SIGNING_KEY", "1")
 
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -325,7 +329,8 @@ func TestDeleteSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.DeleteSecretFn
 			var apiInvoked bool
@@ -334,9 +339,11 @@ func TestDeleteSecretCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -429,7 +436,8 @@ func TestDescribeSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.GetSecretFn
 			var apiInvoked bool
@@ -438,9 +446,11 @@ func TestDescribeSecretCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -514,7 +524,8 @@ func TestListSecretsCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
+			opts := testutil.NewRunOpts(args, &stdout)
 
 			f := testcase.api.ListSecretsFn
 			var apiInvoked bool
@@ -523,9 +534,11 @@ func TestListSecretsCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())

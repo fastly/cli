@@ -2154,7 +2154,7 @@ func TestDeploy(t *testing.T) {
 
 			var stdout threadsafe.Buffer
 			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
+			opts.APIClientFactory = mock.APIClient(testcase.api)
 
 			if testcase.httpClientRes != nil || testcase.httpClientErr != nil {
 				opts.HTTPClient = mock.HTMLClient(testcase.httpClientRes, testcase.httpClientErr)
@@ -2187,7 +2187,10 @@ func TestDeploy(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+						return opts, nil
+					}
+					err = app.Run(testcase.args, nil)
 					done <- true
 				}()
 
@@ -2213,7 +2216,10 @@ func TestDeploy(t *testing.T) {
 					stdin = testcase.stdin[0]
 				}
 				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				app.Init = func(_ []string, _ io.Reader) (app.RunOpts, error) {
+					return opts, nil
+				}
+				err = app.Run(testcase.args, nil)
 			}
 
 			t.Log(stdout.String())
