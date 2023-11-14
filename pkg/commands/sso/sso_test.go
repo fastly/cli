@@ -162,7 +162,7 @@ func TestSSO(t *testing.T) {
 		// 7. Success processing `whoami` command.
 		// We set an SSO token that has expired.
 		// This allows us to validate the output message about expiration.
-		// We don't respond "Y" to prompt to reauthenticate.
+		// We don't respond "Y" to the prompt for reauthentication.
 		// But we've mocked the request to succeed still so it doesn't matter.
 		{
 			TestScenario: testutil.TestScenario{
@@ -173,7 +173,7 @@ func TestSSO(t *testing.T) {
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"user": &config.Profile{
-						AccessTokenCreated: time.Now().Add(-(time.Duration(300) * time.Second)).Unix(), // 5 mins ago
+						AccessTokenCreated: time.Now().Add(-(time.Duration(600) * time.Second)).Unix(), // 10 mins ago
 						Default:            true,
 						Email:              "test@example.com",
 						Token:              "mock-token",

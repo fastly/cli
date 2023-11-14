@@ -39,7 +39,7 @@ type RootCommand struct {
 func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	// FIXME: Unhide this command once SSO authentication goes GA.
+	// FIXME: Unhide this command once SSO is GA.
 	c.CmdClause = parent.Command("sso", "Single Sign-On authentication").Hidden()
 	c.CmdClause.Arg("profile", "Profile to authenticate (i.e. create/update a token for)").Short('p').StringVar(&c.profile)
 	return &c
