@@ -140,15 +140,17 @@ var UsageTemplateFuncs = template.FuncMap{
 	},
 }
 
-// WARNING: kingpin has no way of decorating flags as being "global" therefore
-// if you add/remove a global flag you will also need to update the app.Flag()
-// bindings in pkg/app/run.go.
+// IMPORTANT: Kingpin doesn't support global flags.
+// We hack a solution in ./run.go (`configureKingpin` function).
 //
 // NOTE: This map is used to help populate the CLI 'usage' template renderer.
 var globalFlags = map[string]bool{
 	"accept-defaults": true,
+	"account":         true,
 	"auto-yes":        true,
 	"debug-mode":      true,
+	"enable-sso":      true,
+	"endpoint":        true,
 	"help":            true,
 	"non-interactive": true,
 	"profile":         true,

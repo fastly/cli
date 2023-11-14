@@ -253,13 +253,19 @@ func IsVerboseAndQuiet(args []string) bool {
 //
 // args: [--verbose -v --endpoint ... --token ... -t ... --endpoint ...] 10
 // total: 10
+//
+// IMPORTANT: Kingpin doesn't support global flags.
+// We hack a solution in ../app/run.go (`configureKingpin` function).
 func IsGlobalFlagsOnly(args []string) bool {
 	// Global flags are defined in ../app/run.go
 	globals := map[string]int{
 		"--accept-defaults": 0,
 		"-d":                0,
+		"--account":         1,
 		"--auto-yes":        0,
 		"-y":                0,
+		"--debug-mode":      0,
+		"--enable-sso":      0,
 		"--endpoint":        1,
 		"--help":            0,
 		"--non-interactive": 0,

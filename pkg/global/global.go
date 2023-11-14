@@ -177,15 +177,30 @@ func (d *Data) AccountEndpoint() (string, lookup.Source) {
 // Flags represents all of the configuration parameters that can be set with
 // explicit flags. Consumers should bind their flag values to these fields
 // directly.
+//
+// IMPORTANT: Kingpin doesn't support global flags.
+// We hack a solution in ../app/run.go (`configureKingpin` function).
 type Flags struct {
+	// AcceptDefaults auto-resolves prompts with a default defined.
 	AcceptDefaults bool
-	Account        string
-	AutoYes        bool
-	Debug          bool
-	Endpoint       string
+	// Account is the authentication host address.
+	Account string
+	// AutoYes auto-resolves Yes/No prompts by answering "Yes".
+	AutoYes bool
+	// Debug enables the CLI's debug mode.
+	Debug bool
+	// Endpoint is the Fastly API address.
+	Endpoint string
+	// NonInteractive auto-resolves all prompts.
 	NonInteractive bool
-	Profile        string
-	Quiet          bool
-	Token          string
-	Verbose        bool
+	// Profile indicates the profile to use (consequently the 'token' used).
+	Profile string
+	// Quiet silences all output except direct command output.
+	Quiet bool
+	// SSO enables to SSO authentication tokens for the current profile.
+	SSO bool
+	// Token is an override for a profile (when passed SSO is disabled).
+	Token string
+	// Verbose prints additional output.
+	Verbose bool
 }

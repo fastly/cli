@@ -291,10 +291,10 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// error states and output control flow.
 	app.Terminate(nil)
 
-	// WARNING: kingpin has no way of decorating flags as being "global"
-	// therefore if you add/remove a global flag you will also need to update
-	// the globalFlags map in pkg/app/usage.go which is used for usage rendering.
-	// You should also update `IsGlobalFlagsOnly` in ../cmd/cmd.go
+	// IMPORTANT: Kingpin doesn't support global flags.
+	// Any flags defined below must also be added to two other places:
+	// 1. ./usage.go (`globalFlags` map).
+	// 2. ../cmd/cmd.go (`IsGlobalFlagsOnly` function).
 	//
 	// NOTE: Global flags (long and short) MUST be unique.
 	// A subcommand can't define a flag that is already global.
@@ -304,8 +304,10 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&data.Flags.AcceptDefaults)
 	app.Flag("account", "Fastly Accounts endpoint").Hidden().StringVar(&data.Flags.Account)
 	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&data.Flags.AutoYes)
-	// IMPORTANT: `--debug` is a built-in Kingpin flag so we can't use that.
+	// IMPORTANT: `--debug` is a built-in Kingpin flag so we must use `debug-mode`.
 	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&data.Flags.Debug)
+	// IMPORTANT: `--sso` causes a Kingpin runtime panic 🤦 so we use `enable-sso`.
+	app.Flag("enable-sso", "Enable Single-Sign On (SSO) for current profile execution (see also: 'fastly sso')").Hidden().BoolVar(&data.Flags.SSO)
 	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&data.Flags.Endpoint)
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&data.Flags.NonInteractive)
 	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&data.Flags.Profile)
@@ -490,19 +492,19 @@ func checkProfileToken(
 
 // shouldSkipSSO identifies if a config is a pre-v5 config and, if it is,
 // informs the user how they can use the SSO flow. It checks if the SSO
-// environment variable has been set and enables the SSO flow if so.
+// environment variable (or flag) has been set and enables the SSO flow if so.
 func shouldSkipSSO(profileName string, pd *config.Profile, data *global.Data) bool {
 	if noSSOToken(pd) {
-		return data.Env.UseSSO != "1"
+		return data.Env.UseSSO != "1" && !data.Flags.SSO
 		// FIXME: Put back messaging once SSO is GA.
-		// if data.Env.UseSSO == "1" {
+		// if data.Env.UseSSO == "1" || data.Flags.SSO {
 		// 	return false // don't skip SSO
 		// }
 		// if !data.Flags.Quiet {
 		// 	if data.Flags.Verbose {
 		// 		text.Break(data.Output)
 		// 	}
-		// 	text.Important(data.Output, "The Fastly API token used by the current '%s' profile is not a Fastly SSO (Single Sign-On) generated token. SSO-based tokens offer more security and convenience. To update your token, set `FASTLY_USE_SSO=1` before invoking the Fastly CLI. This will ensure the current profile is switched to using an SSO generated API token. Once the token has been switched over you no longer need to set `FASTLY_USE_SSO` for this profile (--token and FASTLY_API_TOKEN can still be used as overrides).\n\n", profileName)
+		// 	text.Important(data.Output, "The Fastly API token used by the current '%s' profile is not a Fastly SSO (Single Sign-On) generated token. SSO-based tokens offer more security and convenience. To update your token, either set `FASTLY_USE_SSO=1` or pass `--enable-sso` before invoking the Fastly CLI. This will ensure the current profile is switched to using an SSO generated API token. Once the token has been switched over you no longer need to set `FASTLY_USE_SSO` for this profile (--token and FASTLY_API_TOKEN can still be used as overrides).\n\n", profileName)
 		// }
 		// return true // skip SSO
 	}
