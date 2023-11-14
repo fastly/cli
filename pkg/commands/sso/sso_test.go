@@ -163,14 +163,12 @@ func TestSSO(t *testing.T) {
 		// We set an SSO token that has expired.
 		// This allows us to validate the output message about expiration.
 		// We don't respond "Y" to prompt to reauthenticate.
-		// But we've mocked the request to succeeds still so it doesn't matter.
+		// But we've mocked the request to succeed still so it doesn't matter.
 		{
 			TestScenario: testutil.TestScenario{
-				Args: args("whoami"),
-				WantOutputs: []string{
-					"Your access token has expired and so has your refresh token.",
-					"Alice Programmer <alice@example.com>",
-				},
+				Args:           args("whoami"),
+				WantOutput:     "Your access token has expired and so has your refresh token.",
+				DontWantOutput: "Alice Programmer <alice@example.com>",
 			},
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
@@ -325,6 +323,10 @@ func TestSSO(t *testing.T) {
 				}
 			} else {
 				testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+			}
+
+			for _, s := range testcase.DontWantOutputs {
+				testutil.AssertStringDoesntContain(t, stdout.String(), s)
 			}
 		})
 	}
