@@ -72,11 +72,6 @@ func (s MockAuthServer) GetResult() chan auth.AuthorizationResult {
 	return s.Result
 }
 
-// SetAccountEndpoint sets the account endpoint.
-func (s MockAuthServer) SetAccountEndpoint(_ string) {
-	// no-op
-}
-
 // SetAPIEndpoint sets the API endpoint.
 func (s MockAuthServer) SetAPIEndpoint(_ string) {
 	// no-op
