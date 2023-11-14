@@ -63,7 +63,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 			return err
 		}
 		if !cont {
-			return fmt.Errorf("user cancelled execution")
+			return fsterr.SkipExitError{
+				Skip: true,
+				Err:  fsterr.ErrDontContinue,
+			}
 		}
 	}
 

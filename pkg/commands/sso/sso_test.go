@@ -35,7 +35,7 @@ func TestSSO(t *testing.T) {
 		{
 			TestScenario: testutil.TestScenario{
 				Args:      args("sso"),
-				WantError: "user cancelled execution",
+				WantError: "will not continue",
 			},
 			Stdin: []string{
 				"N", // when prompted to open a web browser to start authentication

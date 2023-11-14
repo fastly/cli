@@ -426,7 +426,7 @@ func checkProfileToken(
 			}
 
 			if data.Flags.Verbose {
-				text.Info(data.Output, "Your access token has now expired. We will attempt to refresh it")
+				text.Info(data.Output, "\n\nYour access token has now expired. We will attempt to refresh it")
 			}
 
 			updatedJWT, err := data.AuthServer.RefreshAccessToken(profileData.RefreshToken)
