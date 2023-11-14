@@ -15,6 +15,9 @@ var ErrSignalKilled = fmt.Errorf("a SIGTERM was received")
 // file modification noticed while running `compute serve --watch`.
 var ErrViceroyRestart = fmt.Errorf("a RESTART was initiated")
 
+// ErrDontContinue means the user said "NO" when prompted whether to continue.
+var ErrDontContinue = fmt.Errorf("will not continue")
+
 // ErrIncompatibleServeFlags means no --skip-build can't be used with --watch
 // because it defeats the purpose of --watch which is designed to restart
 // Viceroy whenever changes are detected (those changes would not be seen if we

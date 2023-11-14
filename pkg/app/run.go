@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -255,6 +256,9 @@ func Exec(data *global.Data) error {
 
 	token, err := processToken(cmds, commandName, data)
 	if err != nil {
+		if errors.Is(err, fsterr.ErrDontContinue) {
+			return nil // we shouldn't exit 1 if user chooses to stop
+		}
 		return fmt.Errorf("failed to process token: %w", err)
 	}
 
@@ -537,7 +541,7 @@ func ssoAuthentication(
 					return token, tokenSource, err
 				}
 				if !cont {
-					return token, tokenSource, nil
+					return token, tokenSource, fsterr.ErrDontContinue
 				}
 			}
 
