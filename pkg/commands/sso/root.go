@@ -67,11 +67,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
-	accountEndpoint, _ := c.Globals.AccountEndpoint()
-	apiEndpoint, _ := c.Globals.APIEndpoint()
-	c.Globals.AuthServer.SetAccountEndpoint(accountEndpoint)
-	c.Globals.AuthServer.SetAPIEndpoint(apiEndpoint)
-
 	var serverErr error
 	go func() {
 		err := c.Globals.AuthServer.Start()

@@ -206,8 +206,8 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 // and returned to the caller. This includes usage text.
 func Exec(data *global.Data) error {
 	app := configureKingpin(data)
-	commands := commands.Define(app, data)
-	command, commandName, err := processCommandInput(data, app, commands)
+	cmds := commands.Define(app, data)
+	command, commandName, err := processCommandInput(data, app, cmds)
 	if err != nil {
 		return err
 	}
@@ -248,7 +248,12 @@ func Exec(data *global.Data) error {
 		displayAPIEndpoint(apiEndpoint, endpointSource, data.Output)
 	}
 
-	token, err := processToken(commands, commandName, data)
+	// NOTE: We need the AuthServer setter method due to assignment data races.
+	// i.e. app.Init() doesn't have access to Kingpin flag values yet.
+	// The flags are only parsed/assigned via configureKingpin().
+	data.AuthServer.SetAPIEndpoint(apiEndpoint)
+
+	token, err := processToken(cmds, commandName, data)
 	if err != nil {
 		return fmt.Errorf("failed to process token: %w", err)
 	}
@@ -322,7 +327,7 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 //
 // Finally, we check if there is a profile override in place (e.g. set via the
 // --profile flag or using the `profile` field in the fastly.toml manifest).
-func processToken(commands []cmd.Command, commandName string, data *global.Data) (token string, err error) {
+func processToken(cmds []cmd.Command, commandName string, data *global.Data) (token string, err error) {
 	warningMessage := "No API token could be found"
 	var tokenSource lookup.Source
 	token, tokenSource = data.Token()
@@ -336,7 +341,7 @@ func processToken(commands []cmd.Command, commandName string, data *global.Data)
 	// If there's no token available, and we need one for the invoked command,
 	// then we'll trigger the SSO authentication flow.
 	if tokenSource == lookup.SourceUndefined && commandRequiresToken(commandName) {
-		token, tokenSource, err = ssoAuthentication(tokenSource, token, warningMessage, commands, data)
+		token, tokenSource, err = ssoAuthentication(tokenSource, token, warningMessage, cmds, data)
 		if err != nil {
 			return token, fmt.Errorf("failed to check profile token: %w", err)
 		}
@@ -417,15 +422,13 @@ func checkProfileToken(
 			if data.Flags.Verbose {
 				text.Info(data.Output, "Your access token has now expired. We will attempt to refresh it")
 			}
-			accountEndpoint, _ := data.AccountEndpoint()
-			apiEndpoint, _ := data.APIEndpoint()
 
-			updatedJWT, err := auth.RefreshAccessToken(accountEndpoint, profileData.RefreshToken)
+			updatedJWT, err := data.AuthServer.RefreshAccessToken(profileData.RefreshToken)
 			if err != nil {
 				return tokenSource, warningMessage, fmt.Errorf("failed to refresh access token: %w", err)
 			}
 
-			email, at, err := auth.ValidateAndRetrieveAPIToken(accountEndpoint, apiEndpoint, updatedJWT.AccessToken, data.Env.DebugMode, data.HTTPClient)
+			email, at, err := data.AuthServer.ValidateAndRetrieveAPIToken(updatedJWT.AccessToken)
 			if err != nil {
 				return tokenSource, warningMessage, fmt.Errorf("failed to validate JWT and retrieve API token: %w", err)
 			}
@@ -516,13 +519,16 @@ func forceReAuth() lookup.Source {
 func ssoAuthentication(
 	tokenSource lookup.Source,
 	token, warningMessage string,
-	commands []cmd.Command,
+	cmds []cmd.Command,
 	data *global.Data,
 ) (string, lookup.Source, error) {
-	for _, command := range commands {
+	for _, command := range cmds {
 		commandName := strings.Split(command.Name(), " ")[0]
 		if commandName == "sso" {
 			if !data.Flags.AutoYes && !data.Flags.NonInteractive {
+				if data.Verbose() {
+					text.Break(data.Output)
+				}
 				text.Important(data.Output, "%s. We need to open your browser to authenticate you.", warningMessage)
 				text.Break(data.Output)
 				cont, err := text.AskYesNo(data.Output, text.BoldYellow("Do you want to continue? [y/N]: "), data.Input)
