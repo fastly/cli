@@ -23,7 +23,7 @@ require (
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
 	golang.org/x/sys v0.14.0 // indirect
-	golang.org/x/term v0.13.0
+	golang.org/x/term v0.14.0
 )
 
 require (
