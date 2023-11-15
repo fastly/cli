@@ -107,7 +107,7 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	_ = md.File.Read(manifest.Filename)
 
 	// Configure authentication inputs.
-	metadataEndpoint := fmt.Sprintf(auth.OIDCMetadata, accountEndpoint(args, e))
+	metadataEndpoint := fmt.Sprintf(auth.OIDCMetadata, accountEndpoint(args, e, cfg))
 	req, err := http.NewRequest(http.MethodGet, metadataEndpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
@@ -195,17 +195,23 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	}, nil
 }
 
-// accountEndpoint parses the account endpoint from either the environment or
-// the input arguments otherwise returns the default.
-func accountEndpoint(args []string, e config.Environment) string {
-	if e.AccountEndpoint != "" {
-		return e.AccountEndpoint
-	}
+// accountEndpoint parses the account endpoint from multiple locations.
+func accountEndpoint(args []string, e config.Environment, cfg config.File) string {
+	// Check for flag override.
 	for i, a := range args {
 		if a == "--account" && i+1 < len(args) {
 			return args[i+1]
 		}
 	}
+	// Check for environment override.
+	if e.AccountEndpoint != "" {
+		return e.AccountEndpoint
+	}
+	// Check for internal config override.
+	if cfg.Fastly.AccountEndpoint != global.DefaultAccountEndpoint && cfg.Fastly.AccountEndpoint != "" {
+		return cfg.Fastly.AccountEndpoint
+	}
+	// Otherwise return the default account endpoint.
 	return global.DefaultAccountEndpoint
 }
 
