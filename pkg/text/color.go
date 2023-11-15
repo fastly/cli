@@ -1,6 +1,8 @@
 package text
 
-import "github.com/fatih/color"
+import (
+	"github.com/fatih/color"
+)
 
 // Bold is a Sprint-class function that makes the arguments bold.
 var Bold = color.New(color.Bold).SprintFunc()
@@ -20,8 +22,12 @@ var BoldGreen = color.New(color.Bold, color.FgGreen).SprintFunc()
 // Reset is a Sprint-class function that resets the color for the arguments.
 var Reset = color.New(color.Reset).SprintFunc()
 
-// Prompt is a Sprint-class function that makes the arguments bold and grey.
-var Prompt = color.New(color.Bold, color.FgHiBlack).SprintFunc()
+// Prompt is a Sprint-class function that makes the arguments bold and uses the
+// default colour for the terminal.
+//
+// IMPORTANT: Be careful modifying with Black or White as this can break themes.
+// e.g. Black with Solarized Dark makes the text invisible!
+var Prompt = color.New(color.Bold).SprintFunc()
 
 // ColorFn is a function returned from a color.SprintFunc() call.
 type ColorFn func(a ...any) string

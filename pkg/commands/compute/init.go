@@ -86,6 +86,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 	if !cont {
+		text.Break(out)
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("project directory not empty"),
 			Remediation: fsterr.ExistingDirRemediation,
