@@ -8,17 +8,15 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("create", "Create a new secret store")
@@ -37,8 +35,7 @@ type CreateCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	Input    fastly.CreateSecretStoreInput
-	manifest manifest.Data
+	Input fastly.CreateSecretStoreInput
 }
 
 // Exec invokes the application logic for the command.

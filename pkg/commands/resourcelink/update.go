@@ -3,12 +3,12 @@ package resourcelink
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a dictionary.
@@ -18,18 +18,16 @@ type UpdateCommand struct {
 
 	autoClone      cmd.OptionalAutoClone
 	input          fastly.UpdateResourceInput
-	manifest       manifest.Data
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 		input: fastly.UpdateResourceInput{
 			// Kingpin requires the following to be initialized.
 			Name: new(string),
@@ -63,7 +61,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 		Name:        cmd.FlagServiceIDName,
 		Short:       's',
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceName,
@@ -91,7 +89,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -99,7 +97,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      c.manifest.Flag.ServiceID,
+			"Service ID":      c.Globals.Manifest.Flag.ServiceID,
 			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err

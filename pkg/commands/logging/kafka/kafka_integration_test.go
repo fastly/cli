@@ -3,13 +3,16 @@ package kafka_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestKafkaCreate(t *testing.T) {
@@ -43,9 +46,12 @@ func TestKafkaCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -113,9 +119,12 @@ func TestKafkaList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -155,9 +164,12 @@ func TestKafkaDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -208,9 +220,12 @@ func TestKafkaUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -252,9 +267,12 @@ func TestKafkaDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -314,9 +332,9 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			FormatVersion:     2,
 			ParseLogKeyvals:   false,
 			RequestMaxBytes:   0,
-			AuthMethod:        "",
-			User:              "",
-			Password:          "",
+			AuthMethod:        "plain",
+			User:              "user",
+			Password:          "password",
 		},
 		{
 			ServiceID:         i.ServiceID,
@@ -337,9 +355,9 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			FormatVersion:     2,
 			ParseLogKeyvals:   false,
 			RequestMaxBytes:   0,
-			AuthMethod:        "",
-			User:              "",
-			Password:          "",
+			AuthMethod:        "plain",
+			User:              "user",
+			Password:          "password",
 		},
 	}, nil
 }
@@ -355,8 +373,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listKafkasVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -380,9 +398,9 @@ Version: 1
 		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
-		SASL authentication method: 
-		SASL authentication username: 
-		SASL authentication password: 
+		SASL authentication method: plain
+		SASL authentication username: user
+		SASL authentication password: password
 	Kafka 2/2
 		Service ID: 123
 		Version: 1
@@ -402,10 +420,10 @@ Version: 1
 		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
-		SASL authentication method: 
-		SASL authentication username: 
-		SASL authentication password:
-`) + " \n\n"
+		SASL authentication method: plain
+		SASL authentication username: user
+		SASL authentication password: password
+  `) + "\n\n"
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{

@@ -3,12 +3,12 @@ package service
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // SearchCommand calls the Fastly API to describe a service.
@@ -16,17 +16,15 @@ type SearchCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	Input    fastly.SearchServiceInput
-	manifest manifest.Data
+	Input fastly.SearchServiceInput
 }
 
 // NewSearchCommand returns a usable command registered under the parent.
-func NewSearchCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *SearchCommand {
+func NewSearchCommand(parent cmd.Registerer, g *global.Data) *SearchCommand {
 	c := SearchCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("search", "Search for a Fastly service by name")
 

@@ -3,12 +3,12 @@ package resourcelink
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete service resource links.
@@ -18,18 +18,16 @@ type DeleteCommand struct {
 
 	autoClone      cmd.OptionalAutoClone
 	input          fastly.DeleteResourceInput
-	manifest       manifest.Data
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("delete", "Delete a resource link for a Fastly service version").Alias("remove")
 
@@ -52,7 +50,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 		Name:        cmd.FlagServiceIDName,
 		Short:       's',
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceName,
@@ -80,7 +78,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -88,7 +86,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      c.manifest.Flag.ServiceID,
+			"Service ID":      c.Globals.Manifest.Flag.ServiceID,
 			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err

@@ -57,7 +57,6 @@ type Flags struct {
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
 	cmd.Base
-	wasmtoolsVersioner github.AssetVersioner
 
 	// NOTE: Composite commands require these build flags to be public.
 	// e.g. serve, publish, hashsum, hash-files
@@ -69,11 +68,9 @@ type BuildCommand struct {
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent cmd.Registerer, g *global.Data, wasmtoolsVersioner github.AssetVersioner) *BuildCommand {
+func NewBuildCommand(parent cmd.Registerer, g *global.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = g
-	c.wasmtoolsVersioner = wasmtoolsVersioner
-
 	c.CmdClause = parent.Command("build", "Build a Compute package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
@@ -157,7 +154,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	wasmtools, wasmtoolsErr := GetWasmTools(spinner, out, c.wasmtoolsVersioner, c.Globals)
+	wasmtools, wasmtoolsErr := GetWasmTools(spinner, out, c.Globals.Versioners.WasmTools, c.Globals)
 
 	var pkgName string
 	err = spinner.Process("Identifying package name", func(_ *text.SpinnerWrapper) error {

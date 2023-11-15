@@ -13,6 +13,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -23,44 +24,76 @@ import (
 // CreateCommand represents a Kingpin command.
 type CreateCommand struct {
 	cmd.Base
+	authCmd *sso.RootCommand
 
 	automationToken bool
-	clientFactory   APIClientFactory
 	profile         string
+	sso             bool
 }
 
 // NewCreateCommand returns a new command registered in the parent.
-func NewCreateCommand(parent cmd.Registerer, cf APIClientFactory, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, g *global.Data, authCmd *sso.RootCommand) *CreateCommand {
 	var c CreateCommand
 	c.Globals = g
+	c.authCmd = authCmd
 	c.CmdClause = parent.Command("create", "Create user profile")
-	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default("user").Short('p').StringVar(&c.profile)
+	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default(profile.DefaultName).Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
-	c.clientFactory = cf
+	c.CmdClause.Flag("sso", "Create an SSO-based token").Hidden().BoolVar(&c.sso)
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	if profile.Exist(c.profile, c.Globals.Config.Profiles) {
-		return fmt.Errorf("profile '%s' already exists", c.profile)
+	if c.sso && c.automationToken {
+		return fsterr.ErrInvalidProfileSSOCombo
 	}
+
+	if profile.Exist(c.profile, c.Globals.Config.Profiles) {
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("profile '%s' already exists", c.profile),
+			Remediation: "Re-run the command and pass a different value for the 'profile' argument.",
+		}
+	}
+
+	// FIXME: Put back messaging once SSO is GA.
+	// if !c.sso {
+	// 	text.Info(out, "When creating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To create an SSO-based token, pass the `--sso` flag: `fastly profile create --sso`.")
+	// 	text.Break(out)
+	// }
 
 	// The Default status of a new profile should always be true unless there is
 	// an existing profile already set to be the default. In the latter scenario
 	// we should prompt the user to see if the new profile they're creating needs
 	// to become the new default.
-	def := true
-	if profileName, _ := profile.Default(c.Globals.Config.Profiles); profileName != "" {
-		def, err = c.promptForDefault(in, out)
+	makeDefault := true
+	if _, p := profile.Default(c.Globals.Config.Profiles); p != nil && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+		makeDefault, err = c.promptForDefault(in, out)
 		if err != nil {
 			return err
 		}
 	}
 
-	if err := c.tokenFlow(def, in, out); err != nil {
-		return err
+	if c.sso {
+		// IMPORTANT: We need to set profile fields for `sso` command.
+		//
+		// This is so the `sso` command will use this information to create
+		// a new 'non-default' profile.
+		c.authCmd.InvokedFromProfileCreate = true
+		c.authCmd.ProfileCreateName = c.profile
+		c.authCmd.ProfileDefault = makeDefault
+
+		err = c.authCmd.Exec(in, out)
+		if err != nil {
+			return fmt.Errorf("failed to authenticate: %w", err)
+		}
+		text.Break(out)
+	} else {
+		if err := c.staticTokenFlow(makeDefault, in, out); err != nil {
+			return err
+		}
 	}
+
 	if err := c.persistCfg(); err != nil {
 		return err
 	}
@@ -70,15 +103,15 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	return nil
 }
 
-// tokenFlow initialises the token flow.
-func (c *CreateCommand) tokenFlow(def bool, in io.Reader, out io.Writer) error {
+// staticTokenFlow initialises the token flow for a non-OAuth token.
+func (c *CreateCommand) staticTokenFlow(makeDefault bool, in io.Reader, out io.Writer) error {
 	token, err := promptForToken(in, out, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	text.Break(out)
 
-	endpoint, _ := c.Globals.Endpoint()
+	endpoint, _ := c.Globals.APIEndpoint()
 
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
@@ -96,7 +129,7 @@ func (c *CreateCommand) tokenFlow(def bool, in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	return c.updateInMemCfg(email, token, endpoint, def, spinner)
+	return c.updateInMemCfg(email, token, endpoint, makeDefault, spinner)
 }
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
@@ -129,7 +162,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		t      *fastly.Token
 	)
 	err = spinner.Process("Validating token", func(_ *text.SpinnerWrapper) error {
-		client, err = c.clientFactory(token, endpoint, c.Globals.Flags.Debug)
+		client, err = c.Globals.APIClientFactory(token, endpoint, c.Globals.Flags.Debug)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Endpoint": endpoint,
@@ -174,7 +207,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 }
 
 // updateInMemCfg persists the updated configuration data in-memory.
-func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, def bool, spinner text.Spinner) error {
+func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, makeDefault bool, spinner text.Spinner) error {
 	return spinner.Process("Persisting configuration", func(_ *text.SpinnerWrapper) error {
 		c.Globals.Config.Fastly.APIEndpoint = endpoint
 
@@ -182,7 +215,7 @@ func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, def bool, 
 			c.Globals.Config.Profiles = make(config.Profiles)
 		}
 		c.Globals.Config.Profiles[c.profile] = &config.Profile{
-			Default: def,
+			Default: makeDefault,
 			Email:   email,
 			Token:   token,
 		}
@@ -190,7 +223,7 @@ func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, def bool, 
 		// If the user wants the newly created profile to be their new default, then
 		// we'll call SetDefault for its side effect of resetting all other profiles
 		// to have their Default field set to false.
-		if def {
+		if makeDefault {
 			if p, ok := profile.SetDefault(c.profile, c.Globals.Config.Profiles); ok {
 				c.Globals.Config.Profiles = p
 			}

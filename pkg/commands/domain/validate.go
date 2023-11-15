@@ -4,20 +4,18 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ValidateCommand {
+func NewValidateCommand(parent cmd.Registerer, g *global.Data) *ValidateCommand {
 	var c ValidateCommand
 	c.CmdClause = parent.Command("validate", "Checks the status of a specific domain's DNS record for a Service Version")
 	c.Globals = g
-	c.manifest = m
 
 	// Required.
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -33,7 +31,7 @@ func NewValidateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -51,7 +49,6 @@ type ValidateCommand struct {
 	cmd.Base
 
 	all            bool
-	manifest       manifest.Data
 	name           cmd.OptionalString
 	serviceName    cmd.OptionalServiceNameID
 	serviceVersion cmd.OptionalServiceVersion
@@ -59,15 +56,10 @@ type ValidateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,

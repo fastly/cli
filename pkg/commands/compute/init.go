@@ -43,7 +43,6 @@ type InitCommand struct {
 	dir       string
 	cloneFrom string
 	language  string
-	manifest  manifest.Data
 	tag       string
 }
 
@@ -51,13 +50,12 @@ type InitCommand struct {
 var Languages = []string{"rust", "javascript", "go", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *InitCommand {
+func NewInitCommand(parent cmd.Registerer, g *global.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = g
-	c.manifest = m
 
 	c.CmdClause = parent.Command("init", "Initialize a new Compute package locally")
-	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
+	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&g.Manifest.File.Authors)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
 	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.cloneFrom)
@@ -106,7 +104,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error determining current directory: %w", err)
 	}
 
-	mf := c.manifest.File
+	mf := c.Globals.Manifest.File
 	if c.Globals.Flags.Quiet {
 		mf.SetQuiet(true)
 	}
@@ -139,8 +137,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	// Assign the default profile email if available.
 	email := ""
-	profileName, p := profile.Default(c.Globals.Config.Profiles)
-	if profileName != "" {
+	if _, p := profile.Default(c.Globals.Config.Profiles); p != nil {
 		email = p.Email
 	}
 
@@ -442,9 +439,9 @@ func validateDirectoryPermissions(dst string) text.SpinnerProcess {
 // returned as is.
 func (c *InitCommand) PromptOrReturn(email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
 	flags := c.Globals.Flags
-	name, _ = c.manifest.Name()
-	description, _ = c.manifest.Description()
-	authors, _ = c.manifest.Authors()
+	name, _ = c.Globals.Manifest.Name()
+	description, _ = c.Globals.Manifest.Description()
+	authors, _ = c.Globals.Manifest.Authors()
 
 	if name == "" && !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Break(out)

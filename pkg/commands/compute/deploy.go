@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -146,7 +147,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 			// Otherwise, we'll attempt to read the manifest from within the given
 			// package archive.
-			if err := readManifestFromPackageArchive(&c.Globals.Manifest, c.PackagePath, manifestFilename); err != nil {
+			if err := readManifestFromPackageArchive(c.Globals.Manifest, c.PackagePath, manifestFilename); err != nil {
 				return err
 			}
 			if c.Globals.Verbose() {
@@ -357,7 +358,7 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
 	// This is because later in the Exec() flow we might create a 'new' service.
-	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err == nil && c.Globals.Verbose() {
 		cmd.DisplayServiceID(serviceID, flag, source, out)
 	}
@@ -378,8 +379,8 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 		return defaultActivator, serviceID, err
 	}
 
-	endpoint, _ := c.Globals.Endpoint()
-	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
+	endpoint, _ := c.Globals.APIEndpoint()
+	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient, c.Globals.Env.DebugMode)
 
 	return fnActivateTrial, serviceID, err
 }
@@ -495,7 +496,8 @@ func packageSize(path string) (size int64, err error) {
 type Activator func(customerID string) error
 
 // preconfigureActivateTrial activates a free trial on the customer account.
-func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) Activator {
+func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient, debugMode string) Activator {
+	debug, _ := strconv.ParseBool(debugMode)
 	return func(customerID string) error {
 		_, err := undocumented.Call(undocumented.CallOptions{
 			APIEndpoint: endpoint,
@@ -503,6 +505,7 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 			Method:      http.MethodPost,
 			Path:        fmt.Sprintf(undocumented.EdgeComputeTrial, customerID),
 			Token:       token,
+			Debug:       debug,
 		})
 		if err != nil {
 			apiErr, ok := err.(undocumented.APIError)

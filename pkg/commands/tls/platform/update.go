@@ -3,23 +3,20 @@ package platform
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(
-	parent cmd.Registerer, g *global.Data, m manifest.Data,
-) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.CmdClause = parent.Command(
 		"update", "Replace a certificate with a newly reissued certificate",
 	)
 	c.Globals = g
-	c.manifest = m
 
 	// Required.
 
@@ -52,7 +49,6 @@ type UpdateCommand struct {
 	certBlob          string
 	id                string
 	intermediatesBlob string
-	manifest          manifest.Data
 }
 
 // Exec invokes the application logic for the command.

@@ -5,14 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/fastly/kingpin"
+
+	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // Scopes is a list of purging scope options.
@@ -20,12 +18,11 @@ import (
 var Scopes = []string{"global", "purge_select", "purge_all", "global:read"}
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Create an API token").Alias("add")
 
@@ -56,7 +53,6 @@ type CreateCommand struct {
 	cmd.Base
 
 	expires  time.Time
-	manifest manifest.Data
 	name     string
 	password string
 	scope    []string
@@ -65,11 +61,6 @@ type CreateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	input := c.constructInput()
 
 	r, err := c.Globals.APIClient.CreateToken(input)

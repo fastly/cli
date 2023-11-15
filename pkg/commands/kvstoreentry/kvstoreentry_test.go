@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/kvstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
@@ -128,14 +129,15 @@ func TestCreateCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			if testcase.Stdin != nil {
-				opts.Stdin = testcase.Stdin
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				if testcase.Stdin != nil {
+					opts.Input = testcase.Stdin
+				}
+				return opts, nil
 			}
-
-			err := app.Run(opts)
+			err := app.Run(testcase.Args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 
@@ -250,14 +252,13 @@ SUCCESS: Deleted all keys from KV Store '%s'
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			t.Log(stdout.String())
-
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -309,12 +310,12 @@ func TestDescribeCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -367,12 +368,12 @@ func TestListCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

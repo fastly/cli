@@ -3,27 +3,25 @@ package serviceauth
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete service authorizations.
 type DeleteCommand struct {
 	cmd.Base
-	manifest manifest.Data
-	Input    fastly.DeleteServiceAuthorizationInput
+	Input fastly.DeleteServiceAuthorizationInput
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("delete", "Delete service authorization").Alias("remove")
 

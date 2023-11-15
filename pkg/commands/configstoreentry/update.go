@@ -8,17 +8,15 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("update", "Update a config store item")
@@ -63,10 +61,8 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 type UpdateCommand struct {
 	cmd.Base
 	cmd.JSONOutput
-
-	input    fastly.UpdateConfigStoreItemInput
-	stdin    bool
-	manifest manifest.Data
+	input fastly.UpdateConfigStoreItemInput
+	stdin bool
 }
 
 // Exec invokes the application logic for the command.

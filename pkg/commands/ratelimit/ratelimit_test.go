@@ -2,11 +2,13 @@ package ratelimit_test
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -22,7 +24,7 @@ func TestCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("rate-limit create --name example --service-id 123 --token abc --version 3"),
+			Args:      args("rate-limit create --name example --service-id 123 --version 3"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -36,7 +38,7 @@ func TestCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:       args("rate-limit create --name example --service-id 123 --token abc --version 3"),
+			Args:       args("rate-limit create --name example --service-id 123 --version 3"),
 			WantOutput: "Created rate limiter 'example' (123)",
 		},
 	}
@@ -45,9 +47,12 @@ func TestCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -64,7 +69,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("rate-limit delete --id 123 --token abc"),
+			Args:      args("rate-limit delete --id 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -74,7 +79,7 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("rate-limit delete --id 123 --token abc"),
+			Args:       args("rate-limit delete --id 123"),
 			WantOutput: "SUCCESS: Deleted rate limiter '123'\n",
 		},
 	}
@@ -83,9 +88,12 @@ func TestDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -102,7 +110,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("rate-limit describe --id 123 --token abc"),
+			Args:      args("rate-limit describe --id 123"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -119,7 +127,7 @@ func TestDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("rate-limit describe --id 123 --token abc"),
+			Args:       args("rate-limit describe --id 123"),
 			WantOutput: "\nAction: response\nClient Key: []\nFeature Revision: 0\nHTTP Methods: []\nID: 123\nLogger Type: \nName: example\nPenalty Box Duration: 20\nResponse: <nil>\nResponse Object Name: \nRPS Limit: 10\nService ID: \nURI Dictionary Name: \nVersion: 0\nWindowSize: 60\n",
 		},
 	}
@@ -128,9 +136,12 @@ func TestDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -148,7 +159,7 @@ func TestList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("rate-limit list --service-id 123 --token abc --version 3"),
+			Args:      args("rate-limit list --service-id 123 --version 3"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -168,7 +179,7 @@ func TestList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:       args("rate-limit list --service-id 123 --token abc --version 3"),
+			Args:       args("rate-limit list --service-id 123 --version 3"),
 			WantOutput: "ID   NAME     ACTION    RPS LIMIT  WINDOW SIZE  PENALTY BOX DURATION\n123  example  response  10         60           20\n",
 		},
 	}
@@ -177,9 +188,12 @@ func TestList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -196,7 +210,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("rate-limit update --id 123 --name example --token abc"),
+			Args:      args("rate-limit update --id 123 --name example"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -209,7 +223,7 @@ func TestUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("rate-limit update --id 123 --name example --token abc"),
+			Args:       args("rate-limit update --id 123 --name example"),
 			WantOutput: "Updated rate limiter 'example' (123)",
 		},
 	}
@@ -218,9 +232,12 @@ func TestUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

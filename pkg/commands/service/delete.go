@@ -4,30 +4,29 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete services.
 type DeleteCommand struct {
 	cmd.Base
-	manifest    manifest.Data
 	Input       fastly.DeleteServiceInput
 	force       bool
 	serviceName cmd.OptionalServiceNameID
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("delete", "Delete a Fastly service").Alias("remove")
 
@@ -36,7 +35,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -50,7 +49,7 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -99,12 +98,12 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Ensure that VCL service users are unaffected by checking if the Service ID
 	// was acquired via the fastly.toml manifest.
 	if source == manifest.SourceFile {
-		if err := c.manifest.File.Read(manifest.Filename); err != nil {
+		if err := c.Globals.Manifest.File.Read(manifest.Filename); err != nil {
 			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error reading fastly.toml: %w", err)
 		}
-		c.manifest.File.ServiceID = ""
-		if err := c.manifest.File.Write(manifest.Filename); err != nil {
+		c.Globals.Manifest.File.ServiceID = ""
+		if err := c.Globals.Manifest.File.Write(manifest.Filename); err != nil {
 			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error updating fastly.toml: %w", err)
 		}

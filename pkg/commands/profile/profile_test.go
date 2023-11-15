@@ -14,6 +14,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -113,8 +114,8 @@ func TestCreate(t *testing.T) {
 				stdout bytes.Buffer
 			)
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts := testutil.MockGlobalData(testcase.Args, &stdout)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -123,7 +124,7 @@ func TestCreate(t *testing.T) {
 			// The read of the config file only really happens in the main()
 			// function, so for the sake of the test environment we need to construct
 			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
+			opts.Config = testcase.ConfigFile
 
 			// TODO: abstract the logic for handling interactive stdin prompts.
 			// This same if/else block is fundamentally duplicated across test files.
@@ -131,7 +132,7 @@ func TestCreate(t *testing.T) {
 				// To handle multiple prompt input from the user we need to do some
 				// coordination around io pipes to mimic the required user behaviour.
 				stdin, prompt := io.Pipe()
-				opts.Stdin = stdin
+				opts.Input = stdin
 
 				// Wait for user input and write it to the prompt
 				inputc := make(chan string)
@@ -146,7 +147,10 @@ func TestCreate(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+						return opts, nil
+					}
+					err = app.Run(testcase.Args, nil)
 					done <- true
 				}()
 
@@ -170,8 +174,11 @@ func TestCreate(t *testing.T) {
 				if len(testcase.Stdin) > 0 {
 					stdin = testcase.Stdin[0]
 				}
-				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				opts.Input = strings.NewReader(stdin)
+				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+					return opts, nil
+				}
+				err = app.Run(testcase.Args, nil)
 			}
 
 			t.Log(stdout.String())
@@ -258,8 +265,8 @@ func TestDelete(t *testing.T) {
 				stdout bytes.Buffer
 			)
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts := testutil.MockGlobalData(testcase.Args, &stdout)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -268,9 +275,12 @@ func TestDelete(t *testing.T) {
 			// The read of the config file only really happens in the main()
 			// function, so for the sake of the test environment we need to construct
 			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
+			opts.Config = testcase.ConfigFile
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 
@@ -424,13 +434,25 @@ func TestList(t *testing.T) {
 				Args: args("profile list --json"),
 				WantOutput: `{
   "bar": {
+    "access_token": "",
+    "access_token_created": 0,
+    "access_token_ttl": 0,
     "default": false,
     "email": "bar@example.com",
+    "refresh_token": "",
+    "refresh_token_created": 0,
+    "refresh_token_ttl": 0,
     "token": "456"
   },
   "foo": {
+    "access_token": "",
+    "access_token_created": 0,
+    "access_token_ttl": 0,
     "default": false,
     "email": "foo@example.com",
+    "refresh_token": "",
+    "refresh_token_created": 0,
+    "refresh_token_ttl": 0,
     "token": "123"
   }
 }`,
@@ -460,8 +482,8 @@ func TestList(t *testing.T) {
 				stdout bytes.Buffer
 			)
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts := testutil.MockGlobalData(testcase.Args, &stdout)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -470,9 +492,12 @@ func TestList(t *testing.T) {
 			// The read of the config file only really happens in the main()
 			// function, so for the sake of the test environment we need to construct
 			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
+			opts.Config = testcase.ConfigFile
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 
@@ -563,8 +588,8 @@ func TestSwitch(t *testing.T) {
 				stdout bytes.Buffer
 			)
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts := testutil.MockGlobalData(testcase.Args, &stdout)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -573,9 +598,12 @@ func TestSwitch(t *testing.T) {
 			// The read of the config file only really happens in the main()
 			// function, so for the sake of the test environment we need to construct
 			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
+			opts.Config = testcase.ConfigFile
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 
@@ -708,8 +736,8 @@ func TestToken(t *testing.T) {
 				stdout bytes.Buffer
 			)
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts := testutil.MockGlobalData(testcase.Args, &stdout)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -718,9 +746,12 @@ func TestToken(t *testing.T) {
 			// The read of the config file only really happens in the main()
 			// function, so for the sake of the test environment we need to construct
 			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
+			opts.Config = testcase.ConfigFile
 
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 
 			t.Log(stdout.String())
 
@@ -805,6 +836,7 @@ func TestUpdate(t *testing.T) {
 				},
 			},
 			Stdin: []string{
+				"",  // we skip SSO prompt
 				"",  // we skip updating the token
 				"y", // we set the profile to be the default
 			},
@@ -819,8 +851,8 @@ func TestUpdate(t *testing.T) {
 				stdout bytes.Buffer
 			)
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
+			opts := testutil.MockGlobalData(testcase.Args, &stdout)
+			opts.APIClientFactory = mock.APIClient(testcase.API)
 
 			// We override the config path so that we don't accidentally write over
 			// our own configuration file.
@@ -829,13 +861,13 @@ func TestUpdate(t *testing.T) {
 			// The read of the config file only really happens in the main()
 			// function, so for the sake of the test environment we need to construct
 			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
+			opts.Config = testcase.ConfigFile
 
 			if len(testcase.Stdin) > 1 {
 				// To handle multiple prompt input from the user we need to do some
 				// coordination around io pipes to mimic the required user behaviour.
 				stdin, prompt := io.Pipe()
-				opts.Stdin = stdin
+				opts.Input = stdin
 
 				// Wait for user input and write it to the prompt
 				inputc := make(chan string)
@@ -850,7 +882,10 @@ func TestUpdate(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+						return opts, nil
+					}
+					err = app.Run(testcase.Args, nil)
 					done <- true
 				}()
 
@@ -874,8 +909,11 @@ func TestUpdate(t *testing.T) {
 				if len(testcase.Stdin) > 0 {
 					stdin = testcase.Stdin[0]
 				}
-				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				opts.Input = strings.NewReader(stdin)
+				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+					return opts, nil
+				}
+				err = app.Run(testcase.Args, nil)
 			}
 
 			t.Log(stdout.String())

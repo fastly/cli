@@ -5,34 +5,32 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // RealtimeCommand exposes the Realtime Metrics API.
 type RealtimeCommand struct {
 	cmd.Base
-	manifest manifest.Data
 
 	formatFlag  string
 	serviceName cmd.OptionalServiceNameID
 }
 
 // NewRealtimeCommand is the "stats realtime" subcommand.
-func NewRealtimeCommand(parent cmd.Registerer, g *global.Data, data manifest.Data) *RealtimeCommand {
+func NewRealtimeCommand(parent cmd.Registerer, g *global.Data) *RealtimeCommand {
 	var c RealtimeCommand
 	c.Globals = g
-	c.manifest = data
 
 	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -49,7 +47,7 @@ func NewRealtimeCommand(parent cmd.Registerer, g *global.Data, data manifest.Dat
 
 // Exec implements the command interface.
 func (c *RealtimeCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}

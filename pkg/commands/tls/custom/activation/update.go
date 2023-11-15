@@ -3,19 +3,18 @@ package activation
 import (
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.CmdClause = parent.Command("update", "Update the certificate used to terminate TLS traffic for the domain associated with this TLS activation")
 	c.Globals = g
-	c.manifest = m
 
 	// Required.
 	c.CmdClause.Flag("cert-id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.certID)
@@ -27,9 +26,8 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 type UpdateCommand struct {
 	cmd.Base
 
-	certID   string
-	id       string
-	manifest manifest.Data
+	certID string
+	id     string
 }
 
 // Exec invokes the application logic for the command.

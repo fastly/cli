@@ -10,6 +10,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -53,6 +54,7 @@ _fastly_bash_autocomplete() {
 complete -F _fastly_bash_autocomplete fastly
 `,
 		},
+		// FIXME: Put back `sso` GA.
 		{
 			Name: "shell evaluate completion options",
 			Args: args("--completion-bash"),
@@ -121,9 +123,10 @@ whoami
 				outC <- buf.String()
 			}()
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(testcase.Args, &stdout), nil
+			}
+			err := app.Run(testcase.Args, nil)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}

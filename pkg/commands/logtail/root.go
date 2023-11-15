@@ -22,7 +22,6 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -37,21 +36,19 @@ type RootCommand struct {
 	dieCh       chan struct{} // channel to end output/printing
 	doneCh      chan struct{} // channel to signal we've reached the end of the run
 	hClient     *http.Client  // TODO: this will go away when GET is in go-fastly
-	manifest    manifest.Data
 	serviceName cmd.OptionalServiceNameID
 	token       string // TODO: this will go away when GET is in go-fastly
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.manifest = m
 	c.CmdClause = parent.Command("log-tail", "Tail Compute logs")
 	c.RegisterFlag(cmd.StringFlagOpts{
 		Name:        cmd.FlagServiceIDName,
 		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
 	c.RegisterFlag(cmd.StringFlagOpts{
@@ -70,7 +67,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Roo
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
@@ -81,7 +78,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 
 	c.Input.Kind = fastly.ManagedLoggingInstanceOutput
-	endpoint, _ := c.Globals.Endpoint()
+	endpoint, _ := c.Globals.APIEndpoint()
 	c.cfg.path = fmt.Sprintf("%s/service/%s/log_stream/managed/instance_output", endpoint, c.Input.ServiceID)
 
 	c.dieCh = make(chan struct{})

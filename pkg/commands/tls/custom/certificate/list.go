@@ -4,22 +4,21 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const emptyString = ""
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List all TLS certificates")
 	c.Globals = g
-	c.manifest = m
 
 	// Optional.
 	c.CmdClause.Flag("filter-not-after", "Limit the returned certificates to those that expire prior to the specified date in UTC").StringVar(&c.filterNotAfter)
@@ -41,7 +40,6 @@ type ListCommand struct {
 	filterNotAfter    string
 	filterTLSDomainID string
 	include           string
-	manifest          manifest.Data
 	pageNumber        int
 	pageSize          int
 	sort              string

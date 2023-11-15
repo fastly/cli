@@ -8,17 +8,15 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("list", "List secret stores")
@@ -37,8 +35,7 @@ type ListCommand struct {
 	cmd.JSONOutput
 
 	// NOTE: API returns 10 items even when --limit is set to smaller.
-	Input    fastly.ListSecretStoresInput
-	manifest manifest.Data
+	Input fastly.ListSecretStoresInput
 }
 
 // Exec invokes the application logic for the command.
@@ -71,7 +68,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 			if o.Meta.NextCursor != "" {
 				text.Break(out)
-				printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
+				printNext, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
 				if err != nil {
 					return err
 				}

@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/app"
-	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -45,9 +46,12 @@ func TestDomainCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -110,9 +114,12 @@ func TestDomainList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -147,9 +154,12 @@ func TestDomainDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertString(t, testcase.WantOutput, stdout.String())
 		})
@@ -195,9 +205,12 @@ func TestDomainUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -234,9 +247,12 @@ func TestDomainDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -252,13 +268,8 @@ func TestDomainValidate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("domain validate --version 3"),
-			WantError: fsterr.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("domain validate --token 123 --version 3"),
+			Args:      args("domain validate --version 3"),
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -266,7 +277,7 @@ func TestDomainValidate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("domain validate --service-id 123 --token 123 --version 3"),
+			Args:      args("domain validate --service-id 123 --version 3"),
 			WantError: "error parsing arguments: must provide --name flag",
 		},
 		{
@@ -277,7 +288,7 @@ func TestDomainValidate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("domain validate --name foo.example.com --service-id 123 --token 123 --version 3"),
+			Args:      args("domain validate --name foo.example.com --service-id 123 --version 3"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -288,7 +299,7 @@ func TestDomainValidate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("domain validate --all --service-id 123 --token 123 --version 3"),
+			Args:      args("domain validate --all --service-id 123 --version 3"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -297,7 +308,7 @@ func TestDomainValidate(t *testing.T) {
 				ListVersionsFn:   testutil.ListVersions,
 				ValidateDomainFn: validateDomain,
 			},
-			Args:       args("domain validate --name foo.example.com --service-id 123 --token 123 --version 3"),
+			Args:       args("domain validate --name foo.example.com --service-id 123 --version 3"),
 			WantOutput: validateAPISuccess(3),
 		},
 		{
@@ -306,7 +317,7 @@ func TestDomainValidate(t *testing.T) {
 				ListVersionsFn:       testutil.ListVersions,
 				ValidateAllDomainsFn: validateAllDomains,
 			},
-			Args:       args("domain validate --all --service-id 123 --token 123 --version 3"),
+			Args:       args("domain validate --all --service-id 123 --version 3"),
 			WantOutput: validateAllAPISuccess(),
 		},
 		{
@@ -315,7 +326,7 @@ func TestDomainValidate(t *testing.T) {
 				ListVersionsFn:   testutil.ListVersions,
 				ValidateDomainFn: validateDomain,
 			},
-			Args:       args("domain validate --name foo.example.com --service-id 123 --token 123 --version 1"),
+			Args:       args("domain validate --name foo.example.com --service-id 123 --version 1"),
 			WantOutput: validateAPISuccess(1),
 		},
 	}
@@ -324,9 +335,12 @@ func TestDomainValidate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})
@@ -375,8 +389,8 @@ SERVICE  VERSION  NAME             COMMENT
 `) + "\n"
 
 var listDomainsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 

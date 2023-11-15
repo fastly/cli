@@ -15,6 +15,9 @@ var ErrSignalKilled = fmt.Errorf("a SIGTERM was received")
 // file modification noticed while running `compute serve --watch`.
 var ErrViceroyRestart = fmt.Errorf("a RESTART was initiated")
 
+// ErrDontContinue means the user said "NO" when prompted whether to continue.
+var ErrDontContinue = fmt.Errorf("will not continue")
+
 // ErrIncompatibleServeFlags means no --skip-build can't be used with --watch
 // because it defeats the purpose of --watch which is designed to restart
 // Viceroy whenever changes are detected (those changes would not be seen if we
@@ -153,6 +156,13 @@ var ErrInvalidKVCombo = RemediationError{
 var ErrInvalidStdinFileDirCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination"),
 	Remediation: "Use only one of --stdin, --file or --dir.",
+}
+
+// ErrInvalidProfileSSOCombo means the user specified both --sso and
+// --automation-token and only one should be set.
+var ErrInvalidProfileSSOCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid command, both --sso and --automation-token provided"),
+	Remediation: "Provide at only one of: --sso or --automation-token, not both.",
 }
 
 // ErrInvalidEnableDisableFlagCombo means the user provided both a --enable

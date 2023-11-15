@@ -3,21 +3,18 @@ package user
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v8/fastly"
+
+	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	var c CreateCommand
 	c.CmdClause = parent.Command("create", "Create a user of the Fastly API and web interface").Alias("add")
 	c.Globals = g
-	c.manifest = m
 
 	// Required.
 	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").Action(c.login.Set).StringVar(&c.login.Value)
@@ -32,7 +29,6 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
 	cmd.Base
-	manifest manifest.Data
 
 	login cmd.OptionalString
 	name  cmd.OptionalString
@@ -41,11 +37,6 @@ type CreateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	input := c.constructInput()
 
 	r, err := c.Globals.APIClient.CreateUser(input)

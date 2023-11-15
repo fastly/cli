@@ -59,7 +59,8 @@ type LegacyUser struct {
 
 // Fastly represents fastly specific configuration.
 type Fastly struct {
-	APIEndpoint string `toml:"api_endpoint"`
+	APIEndpoint     string `toml:"api_endpoint"`
+	AccountEndpoint string `toml:"account_endpoint"`
 }
 
 // WasmMetadata represents what metadata will be collected.
@@ -139,9 +140,24 @@ type Profiles map[string]*Profile
 
 // Profile represents a specific profile account.
 type Profile struct {
-	Default bool   `toml:"default" json:"default"`
-	Email   string `toml:"email" json:"email"`
-	Token   string `toml:"token" json:"token"`
+	// AccessToken is used to acquire an API token.
+	AccessToken string `toml:"access_token" json:"access_token"`
+	// AccessTokenCreated indicates when the access token was created.
+	AccessTokenCreated int64 `toml:"access_token_created" json:"access_token_created"`
+	// AccessTokenTTL indicates when the access token needs to be replaced.
+	AccessTokenTTL int `toml:"access_token_ttl" json:"access_token_ttl"`
+	// Default indicates if the profile is the default profile to use.
+	Default bool `toml:"default" json:"default"`
+	// Email is the email address associated with the token.
+	Email string `toml:"email" json:"email"`
+	// RefreshToken is used to acquire a new access token when it expires.
+	RefreshToken string `toml:"refresh_token" json:"refresh_token"`
+	// RefreshTokenCreated indicates when the refresh token was created.
+	RefreshTokenCreated int64 `toml:"refresh_token_created" json:"refresh_token_created"`
+	// RefreshTokenTTL indicates when the refresh token needs to be replaced.
+	RefreshTokenTTL int `toml:"refresh_token_ttl" json:"refresh_token_ttl"`
+	// Token is a temporary token used to interact with the Fastly API.
+	Token string `toml:"token" json:"token"`
 }
 
 // StarterKitLanguages represents language specific starter kits.
@@ -211,11 +227,13 @@ type File struct {
 }
 
 // SetAutoYes sets the associated flag value.
+// This controls how the interactive prompts are handled.
 func (f *File) SetAutoYes(v bool) {
 	f.autoYes = v
 }
 
 // SetNonInteractive sets the associated flag value.
+// This controls how the interactive prompts are handled.
 func (f *File) SetNonInteractive(v bool) {
 	f.nonInteractive = v
 }
@@ -424,10 +442,17 @@ func (f *File) Write(path string) error {
 // Environment represents all of the configuration parameters that can come
 // from environment variables.
 type Environment struct {
-	// Token is the env var we look in for the Fastly API token.
-	Token string
-	// Endpoint is the env var we look in for the API endpoint.
-	Endpoint string
+	// AccountEndpoint is the env var we look in for the Accounts endpoint.
+	AccountEndpoint string
+	// APIEndpoint is the API endpoint to call.
+	APIEndpoint string
+	// APIToken is the env var we look in for the Fastly API token.
+	APIToken string
+	// DebugMode indicates to the CLI it can display debug information.
+	DebugMode string
+	// UseSSO indicates if user wants to use SSO/OAuth token flow.
+	// 1: enabled, 0: disabled.
+	UseSSO string
 	// WasmMetadataDisable is the env var we look in to disable all data
 	// collection related to a Wasm binary.
 	// Set to "true" to disable all forms of data collection.
@@ -436,8 +461,11 @@ type Environment struct {
 
 // Read populates the fields from the provided environment.
 func (e *Environment) Read(state map[string]string) {
-	e.Token = state[env.Token]
-	e.Endpoint = state[env.Endpoint]
+	e.AccountEndpoint = state[env.AccountEndpoint]
+	e.APIEndpoint = state[env.APIEndpoint]
+	e.APIToken = state[env.APIToken]
+	e.DebugMode = state[env.DebugMode]
+	e.UseSSO = state[env.UseSSO]
 	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }
 

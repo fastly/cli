@@ -52,3 +52,21 @@ TEST_COMPUTE_INIT=1 TEST_COMPUTE_BUILD=1 TEST_COMPUTE_DEPLOY=1 TEST_COMMAND=gote
 ```
 
 > **NOTE**: `TEST_COMMAND` is optional and allows the use of https://github.com/rakyll/gotest to improve test output.
+
+### Debugging
+
+To debug failing tests you can use [Delve](<>).
+
+Essentially, `cd` into a package directory (where the `_test.go` file is you want to run) and then execute...
+
+```
+TEST_COMPUTE_BUILD=1 dlv test -- -test.v -test.run TestNameGoesHere
+```
+
+Once that is done, you can set breakpoints. For example:
+
+```
+break ../../app/run.go:152
+```
+
+> **NOTE:** The path is relative to the package directory you're running the test file.

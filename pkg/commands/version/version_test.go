@@ -3,6 +3,7 @@ package version_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -66,15 +68,18 @@ func TestVersion(t *testing.T) {
 
 	var stdout bytes.Buffer
 	args := testutil.Args("version")
-	opts := testutil.NewRunOpts(args, &stdout)
-	opts.Versioners = app.Versioners{
+	opts := testutil.MockGlobalData(args, &stdout)
+	opts.Versioners = global.Versioners{
 		Viceroy: github.New(github.Opts{
 			Org:    "fastly",
 			Repo:   "viceroy",
 			Binary: "viceroy",
 		}),
 	}
-	err = app.Run(opts)
+	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+		return opts, nil
+	}
+	err = app.Run(args, nil)
 
 	t.Log(stdout.String())
 

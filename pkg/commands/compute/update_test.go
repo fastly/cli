@@ -3,11 +3,13 @@ package compute_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -46,7 +48,7 @@ func TestUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "package API error",
-			Args: args("compute update -s 123 --version 1 --package pkg/package.tar.gz -t 123 --autoclone"),
+			Args: args("compute update -s 123 --version 1 --package pkg/package.tar.gz --autoclone"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -59,7 +61,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "success",
-			Args: args("compute update -s 123 --version 2 --package pkg/package.tar.gz -t 123 --autoclone"),
+			Args: args("compute update -s 123 --version 2 --package pkg/package.tar.gz --autoclone"),
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -75,9 +77,12 @@ func TestUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.Args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.API)
+				return opts, nil
+			}
+			err = app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			for _, s := range testcase.WantOutputs {
 				testutil.AssertStringContains(t, stdout.String(), s)

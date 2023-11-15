@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
@@ -20,17 +19,13 @@ import (
 // It should be installed under the primary root command.
 type RootCommand struct {
 	cmd.Base
-	av             github.AssetVersioner
-	configFilePath string
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, av github.AssetVersioner, g *global.Data) *RootCommand {
+func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")
-	c.av = av
-	c.configFilePath = configFilePath
 	return &c
 }
 
@@ -47,7 +42,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	)
 
 	err = spinner.Process("Updating versioning information", func(_ *text.SpinnerWrapper) error {
-		current, latest, shouldUpdate = Check(revision.AppVersion, c.av)
+		current, latest, shouldUpdate = Check(revision.AppVersion, c.Globals.Versioners.CLI)
 		return nil
 	})
 	if err != nil {
@@ -66,7 +61,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	var downloadedBin string
 	err = spinner.Process("Fetching latest release", func(_ *text.SpinnerWrapper) error {
-		downloadedBin, err = c.av.DownloadLatest()
+		downloadedBin, err = c.Globals.Versioners.CLI.DownloadLatest()
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Current CLI version": current,

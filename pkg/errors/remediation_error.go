@@ -57,7 +57,7 @@ var AuthRemediation = fmt.Sprintf(strings.Join([]string{
 	"Check that you're supplying a valid token, either via --token,",
 	"through the environment variable %s, or through the config file via `fastly profile`.",
 	"Verify that the token is still valid via `fastly whoami`.",
-}, " "), env.Token)
+}, " "), env.APIToken)
 
 // NetworkRemediation suggests, somewhat unhelpfully, to try again later.
 var NetworkRemediation = strings.Join([]string{

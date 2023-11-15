@@ -3,9 +3,11 @@
 package undocumented
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"strings"
 	"time"
@@ -50,6 +52,7 @@ type HTTPHeader struct {
 type CallOptions struct {
 	APIEndpoint string
 	Body        io.Reader
+	Debug       bool
 	HTTPClient  api.HTTPClient
 	HTTPHeaders []HTTPHeader
 	Method      string
@@ -58,6 +61,8 @@ type CallOptions struct {
 }
 
 // Call calls the given API endpoint and returns its response data.
+//
+// WARNING: Loads entire response body into memory.
 func Call(opts CallOptions) (data []byte, err error) {
 	host := strings.TrimSuffix(opts.APIEndpoint, "/")
 	endpoint := fmt.Sprintf("%s%s", host, opts.Path)
@@ -67,13 +72,28 @@ func Call(opts CallOptions) (data []byte, err error) {
 		return data, NewError(err, 0)
 	}
 
-	req.Header.Set("Fastly-Key", opts.Token)
+	if opts.Token != "" {
+		req.Header.Set("Fastly-Key", opts.Token)
+	}
 	req.Header.Set("User-Agent", useragent.Name)
 	for _, header := range opts.HTTPHeaders {
 		req.Header.Set(header.Key, header.Value)
 	}
 
+	if opts.Debug {
+		rc := req.Clone(context.Background())
+		rc.Header.Set("Fastly-Key", "REDACTED")
+		dump, _ := httputil.DumpRequest(rc, true)
+		fmt.Printf("undocumented.Call request dump:\n\n%#v\n\n", string(dump))
+	}
+
 	res, err := opts.HTTPClient.Do(req)
+
+	if opts.Debug && res != nil {
+		dump, _ := httputil.DumpResponse(res, true)
+		fmt.Printf("undocumented.Call response dump:\n\n%#v\n\n", string(dump))
+	}
+
 	if err != nil {
 		if urlErr, ok := err.(*url.Error); ok && urlErr.Timeout() {
 			return data, fsterr.RemediationError{

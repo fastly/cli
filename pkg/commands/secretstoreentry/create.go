@@ -14,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -43,12 +42,11 @@ func mustDecode(s string) []byte {
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
 		Base: cmd.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("create", "Create a new secret within specified store")
@@ -83,7 +81,6 @@ type CreateCommand struct {
 	cmd.JSONOutput
 
 	Input         fastly.CreateSecretInput
-	manifest      manifest.Data
 	recreate      bool
 	recreateAllow bool
 	secretFile    string

@@ -4,21 +4,20 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 var include = []string{"tls_authorizations", "tls_authorizations.globalsign_email_challenge"}
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Show a TLS subscription").Alias("get")
 	c.Globals = g
-	c.manifest = m
 
 	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS subscription").Required().StringVar(&c.id)
@@ -35,9 +34,8 @@ type DescribeCommand struct {
 	cmd.Base
 	cmd.JSONOutput
 
-	id       string
-	include  string
-	manifest manifest.Data
+	id      string
+	include string
 }
 
 // Exec invokes the application logic for the command.

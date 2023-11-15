@@ -2,11 +2,13 @@ package compute_test
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -53,8 +55,10 @@ func TestValidate(t *testing.T) {
 			}()
 
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			err = app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(testcase.Args, &stdout), nil
+			}
+			err = app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
 		})

@@ -52,7 +52,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	name, p := profile.Default(c.Globals.Config.Profiles)
-	if name == "" {
+	if p == nil {
 		text.Warning(out, profile.NoDefaults)
 	} else {
 		text.Info(out, "Default profile highlighted in red.\n\n")
