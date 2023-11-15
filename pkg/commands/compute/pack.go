@@ -42,7 +42,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	filename := sanitize.BaseName(c.manifest.File.Name)
+	filename := sanitize.BaseName(c.Globals.Manifest.File.Name)
 	if filename == "" {
 		filename = "package"
 	}
