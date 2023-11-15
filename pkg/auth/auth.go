@@ -30,7 +30,7 @@ const RedirectURL = "http://localhost:8080/callback"
 
 // OIDCMetadata is OpenID Connect's metadata discovery mechanism.
 // https://swagger.io/docs/specification/authentication/openid-connect-discovery/
-const OIDCMetadata = "https://accounts.fastly.com/realms/fastly/.well-known/openid-configuration"
+const OIDCMetadata = "%s/realms/fastly/.well-known/openid-configuration"
 
 // WellKnownEndpoints represents the OpenID Connect metadata.
 type WellKnownEndpoints struct {

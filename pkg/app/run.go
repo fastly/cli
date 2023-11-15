@@ -107,7 +107,8 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	_ = md.File.Read(manifest.Filename)
 
 	// Configure authentication inputs.
-	req, err := http.NewRequest(http.MethodGet, auth.OIDCMetadata, nil)
+	metadataEndpoint := fmt.Sprintf(auth.OIDCMetadata, accountEndpoint(args, e))
+	req, err := http.NewRequest(http.MethodGet, metadataEndpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
 	}
@@ -192,6 +193,20 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 		Versioners:       versioners,
 		Input:            in,
 	}, nil
+}
+
+// accountEndpoint parses the account endpoint from either the environment or
+// the input arguments otherwise returns the default.
+func accountEndpoint(args []string, e config.Environment) string {
+	if e.AccountEndpoint != "" {
+		return e.AccountEndpoint
+	}
+	for i, a := range args {
+		if a == "--account" && i+1 < len(args) {
+			return args[i+1]
+		}
+	}
+	return global.DefaultAccountEndpoint
 }
 
 // Exec constructs the application including all of the subcommands, parses the
