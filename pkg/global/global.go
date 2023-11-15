@@ -142,12 +142,12 @@ func (d *Data) Verbose() bool {
 
 // APIEndpoint yields the API endpoint.
 func (d *Data) APIEndpoint() (string, lookup.Source) {
-	if d.Flags.Endpoint != "" {
-		return d.Flags.Endpoint, lookup.SourceFlag
+	if d.Flags.APIEndpoint != "" {
+		return d.Flags.APIEndpoint, lookup.SourceFlag
 	}
 
-	if d.Env.Endpoint != "" {
-		return d.Env.Endpoint, lookup.SourceEnvironment
+	if d.Env.APIEndpoint != "" {
+		return d.Env.APIEndpoint, lookup.SourceEnvironment
 	}
 
 	if d.Config.Fastly.APIEndpoint != DefaultAPIEndpoint && d.Config.Fastly.APIEndpoint != "" {
@@ -159,12 +159,12 @@ func (d *Data) APIEndpoint() (string, lookup.Source) {
 
 // AccountEndpoint yields the Accounts endpoint.
 func (d *Data) AccountEndpoint() (string, lookup.Source) {
-	if d.Flags.Account != "" {
-		return d.Flags.Account, lookup.SourceFlag
+	if d.Flags.AccountEndpoint != "" {
+		return d.Flags.AccountEndpoint, lookup.SourceFlag
 	}
 
-	if d.Env.Account != "" {
-		return d.Env.Account, lookup.SourceEnvironment
+	if d.Env.AccountEndpoint != "" {
+		return d.Env.AccountEndpoint, lookup.SourceEnvironment
 	}
 
 	if d.Config.Fastly.AccountEndpoint != DefaultAccountEndpoint && d.Config.Fastly.AccountEndpoint != "" {
@@ -183,14 +183,14 @@ func (d *Data) AccountEndpoint() (string, lookup.Source) {
 type Flags struct {
 	// AcceptDefaults auto-resolves prompts with a default defined.
 	AcceptDefaults bool
-	// Account is the authentication host address.
-	Account string
+	// AccountEndpoint is the authentication host address.
+	AccountEndpoint string
+	// APIEndpoint is the Fastly API address.
+	APIEndpoint string
 	// AutoYes auto-resolves Yes/No prompts by answering "Yes".
 	AutoYes bool
 	// Debug enables the CLI's debug mode.
 	Debug bool
-	// Endpoint is the Fastly API address.
-	Endpoint string
 	// NonInteractive auto-resolves all prompts.
 	NonInteractive bool
 	// Profile indicates the profile to use (consequently the 'token' used).

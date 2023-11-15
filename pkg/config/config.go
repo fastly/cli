@@ -442,14 +442,14 @@ func (f *File) Write(path string) error {
 // Environment represents all of the configuration parameters that can come
 // from environment variables.
 type Environment struct {
-	// Account is the env var we look in for the Accounts endpoint.
-	Account string
+	// AccountEndpoint is the env var we look in for the Accounts endpoint.
+	AccountEndpoint string
+	// APIEndpoint is the API endpoint to call.
+	APIEndpoint string
 	// APIToken is the env var we look in for the Fastly API token.
 	APIToken string
 	// DebugMode indicates to the CLI it can display debug information.
 	DebugMode string
-	// Endpoint is the API endpoint to call.
-	Endpoint string
 	// UseSSO indicates if user wants to use SSO/OAuth token flow.
 	// 1: enabled, 0: disabled.
 	UseSSO string
@@ -461,10 +461,10 @@ type Environment struct {
 
 // Read populates the fields from the provided environment.
 func (e *Environment) Read(state map[string]string) {
+	e.AccountEndpoint = state[env.AccountEndpoint]
+	e.APIEndpoint = state[env.APIEndpoint]
 	e.APIToken = state[env.APIToken]
-	e.Account = state[env.Account]
 	e.DebugMode = state[env.DebugMode]
-	e.Endpoint = state[env.Endpoint]
 	e.UseSSO = state[env.UseSSO]
 	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }

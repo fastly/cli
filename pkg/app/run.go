@@ -107,7 +107,6 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	_ = md.File.Read(manifest.Filename)
 
 	// Configure authentication inputs.
-	// We do this here so that we can mock the values in our test suite.
 	req, err := http.NewRequest(http.MethodGet, auth.OIDCMetadata, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
@@ -311,13 +310,13 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// Interestingly, short flags can be reused but only across subcommands.
 	tokenHelp := fmt.Sprintf("Fastly API token (or via %s)", env.APIToken)
 	app.Flag("accept-defaults", "Accept default options for all interactive prompts apart from Yes/No confirmations").Short('d').BoolVar(&data.Flags.AcceptDefaults)
-	app.Flag("account", "Fastly Accounts endpoint").Hidden().StringVar(&data.Flags.Account)
+	app.Flag("account", "Fastly Accounts endpoint").Hidden().StringVar(&data.Flags.AccountEndpoint)
+	app.Flag("api", "Fastly API endpoint").Hidden().StringVar(&data.Flags.APIEndpoint)
 	app.Flag("auto-yes", "Answer yes automatically to all Yes/No confirmations. This may suppress security warnings").Short('y').BoolVar(&data.Flags.AutoYes)
 	// IMPORTANT: `--debug` is a built-in Kingpin flag so we must use `debug-mode`.
 	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&data.Flags.Debug)
 	// IMPORTANT: `--sso` causes a Kingpin runtime panic 🤦 so we use `enable-sso`.
 	app.Flag("enable-sso", "Enable Single-Sign On (SSO) for current profile execution (see also: 'fastly sso')").Hidden().BoolVar(&data.Flags.SSO)
-	app.Flag("endpoint", "Fastly API endpoint").Hidden().StringVar(&data.Flags.Endpoint)
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&data.Flags.NonInteractive)
 	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&data.Flags.Profile)
 	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&data.Flags.Quiet)
@@ -602,9 +601,9 @@ func checkConfigPermissions(commandName string, tokenSource lookup.Source, out i
 func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, out io.Writer) {
 	switch endpointSource {
 	case lookup.SourceFlag:
-		fmt.Fprintf(out, "Fastly API endpoint (via --endpoint): %s\n", endpoint)
+		fmt.Fprintf(out, "Fastly API endpoint (via --api): %s\n", endpoint)
 	case lookup.SourceEnvironment:
-		fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n", env.Endpoint, endpoint)
+		fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n", env.APIEndpoint, endpoint)
 	case lookup.SourceFile:
 		fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n", endpoint)
 	case lookup.SourceDefault, lookup.SourceUndefined:
