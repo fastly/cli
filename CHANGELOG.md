@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v10.6.4](https://github.com/fastly/cli/releases/tag/v10.6.4) (2023-11-15)
+
+**Bug fixes:**
+
+- fix(errors): ensure help output is displayed [#1092](https://github.com/fastly/cli/pull/1092)
+
 ## [v10.6.3](https://github.com/fastly/cli/releases/tag/v10.6.3) (2023-11-15)
 
 The Fastly CLI internal configuration file has `config_version` bumped to version `5`. We've added a new account endpoint field (used as an override for Single-Sign On testing).
