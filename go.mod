@@ -28,7 +28,7 @@ require (
 
 require (
 	github.com/fastly/go-fastly/v8 v8.6.4
-	github.com/hashicorp/cap v0.3.4
+	github.com/hashicorp/cap v0.4.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.14.0
