@@ -93,6 +93,9 @@ revive: ## Run linter (using revive)
 gosec: ## Run security vulnerability checker
 	gosec -quiet -exclude=G104 ./{cmd,pkg}/...
 
+nilaway: ## Run nilaway
+	@nilaway ./...
+
 # Run semgrep checker.
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
 .PHONY: semgrep
