@@ -62,7 +62,7 @@ type BuildCommand struct {
 	// e.g. serve, publish, hashsum, hash-files
 	// This is so they can set values appropriately before calling Build.Exec().
 	Flags                 Flags
-	MetadataEnable        bool
+	MetadataDisable       bool
 	MetadataFilterEnvVars string
 	MetadataShow          bool
 }
@@ -79,13 +79,11 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data) *BuildCommand {
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Flags.Env)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
+	c.CmdClause.Flag("metadata-disable", "Disable Wasm binary metadata annotations").BoolVar(&c.MetadataDisable)
+	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").StringVar(&c.MetadataFilterEnvVars)
 	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").BoolVar(&c.MetadataShow)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
-
-	// Hidden
-	c.CmdClause.Flag("metadata-enable", "Feature flag to trial the Wasm binary metadata annotations").Hidden().BoolVar(&c.MetadataEnable)
-	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Hidden().StringVar(&c.MetadataFilterEnvVars)
 
 	return &c
 }
@@ -209,36 +207,8 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			"metadata", "add", "bin/main.wasm", metadataProcessedBy,
 		}
 
-		// FIXME: For feature launch replace enable flag with disable equivalent.
-		// e.g. define --metadata-disable and check for that first with env var.
-		// Also make sure hidden flags (across all composite commands) aren't hidden.
-		// Also update the run.go app to remove the message which displays a warning.
-		// Also one final release un-hide the metadata command and add metadata.json examples
-		// e.g.
-		/*
-		   "metadata": {
-		     "examples": [
-		       {
-		         "cmd": "fastly compute metadata --enable",
-		         "title": "Enable all metadata collection information"
-		       },
-		       {
-		         "cmd": "fastly compute metadata --disable",
-		         "title": "Disable all metadata collection information"
-		       },
-		       {
-		         "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
-		         "title": "Enable specific metadata collection information"
-		       },
-		       {
-		         "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
-		         "title": "Disable specific metadata collection information"
-		       }
-		     ]
-		   },
-		*/
 		metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
-		if c.MetadataEnable && !metadataDisable {
+		if !c.MetadataDisable && !metadataDisable {
 			if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
 				return err
 			}
@@ -336,11 +306,6 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	out = originalOut
 	text.Success(out, "\nBuilt package (%s)", dest)
-
-	// FIXME: Remove this notice in the CLI version 10.7.0
-	if !c.Globals.Flags.Quiet {
-		text.Important(out, "\nIn the next release (10.7.0), the Fastly CLI will collect data related to Wasm builds. If you have questions, comments or feedback, join the discussion at https://bit.ly/wasm-metadata")
-	}
 	return nil
 }
 
