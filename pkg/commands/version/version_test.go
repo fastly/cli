@@ -9,8 +9,10 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
@@ -66,6 +68,11 @@ func TestVersion(t *testing.T) {
 		_ = os.Chdir(pwd)
 	}()
 
+	// Mock the time output to be zero value
+	version.Now = func() (t time.Time) {
+		return t
+	}
+
 	var stdout bytes.Buffer
 	args := testutil.Args("version")
 	opts := testutil.MockGlobalData(args, &stdout)
@@ -83,10 +90,11 @@ func TestVersion(t *testing.T) {
 
 	t.Log(stdout.String())
 
+	var mockTime time.Time
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, strings.Join([]string{
 		"Fastly CLI version v0.0.0-unknown (unknown)",
-		fmt.Sprintf("Built with go version %s unknown/unknown", runtime.Version()),
+		fmt.Sprintf("Built with go version %s unknown/unknown (%s)", runtime.Version(), mockTime.Format("2006-01-02")),
 		"Viceroy version: viceroy 0.0.0",
 		"",
 	}, "\n"), stdout.String())
