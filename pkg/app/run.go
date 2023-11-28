@@ -106,44 +106,10 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	// NOTE: We skip handling the error because not all commands relate to Compute.
 	_ = md.File.Read(manifest.Filename)
 
-	// Configure authentication inputs.
-	metadataEndpoint := fmt.Sprintf(auth.OIDCMetadata, accountEndpoint(args, e, cfg))
-	req, err := http.NewRequest(http.MethodGet, metadataEndpoint, nil)
+	authServer, err := configureAuth(args, cfg, httpClient, e)
 	if err != nil {
-		return nil, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
+		return nil, fmt.Errorf("failed to configure authentication processes: %w", err)
 	}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
-	}
-	openIDConfig, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read OpenID Connect .well-known metadata: %w", err)
-	}
-	_ = resp.Body.Close()
-	var wellknown auth.WellKnownEndpoints
-	err = json.Unmarshal(openIDConfig, &wellknown)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal OpenID Connect .well-known metadata: %w", err)
-	}
-	result := make(chan auth.AuthorizationResult)
-	router := http.NewServeMux()
-	verifier, err := oidc.NewCodeVerifier()
-	if err != nil {
-		return nil, fsterr.RemediationError{
-			Inner:       fmt.Errorf("failed to generate a code verifier for SSO authentication server: %w", err),
-			Remediation: auth.Remediation,
-		}
-	}
-	authServer := &auth.Server{
-		DebugMode:          e.DebugMode,
-		HTTPClient:         httpClient,
-		Result:             result,
-		Router:             router,
-		Verifier:           verifier,
-		WellKnownEndpoints: wellknown,
-	}
-	router.HandleFunc("/callback", authServer.HandleCallback())
 
 	factory := func(token, endpoint string, debugMode bool) (api.Interface, error) {
 		client, err := fastly.NewClientForEndpoint(token, endpoint)
@@ -695,4 +661,57 @@ func commandRequiresToken(command string) bool {
 		return false
 	}
 	return true
+}
+
+// configureAuth processes authentication tasks.
+//
+// 1. Acquire .well-known configuration data.
+// 2. Instantiate authentication server.
+// 3. Start up request multiplexer.
+func configureAuth(args []string, f config.File, c *http.Client, e config.Environment) (*auth.Server, error) {
+	metadataEndpoint := fmt.Sprintf(auth.OIDCMetadata, accountEndpoint(args, e, f))
+	req, err := http.NewRequest(http.MethodGet, metadataEndpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
+	}
+
+	openIDConfig, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read OpenID Connect .well-known metadata: %w", err)
+	}
+	_ = resp.Body.Close()
+
+	var wellknown auth.WellKnownEndpoints
+	err = json.Unmarshal(openIDConfig, &wellknown)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal OpenID Connect .well-known metadata: %w", err)
+	}
+
+	result := make(chan auth.AuthorizationResult)
+	router := http.NewServeMux()
+	verifier, err := oidc.NewCodeVerifier()
+	if err != nil {
+		return nil, fsterr.RemediationError{
+			Inner:       fmt.Errorf("failed to generate a code verifier for SSO authentication server: %w", err),
+			Remediation: auth.Remediation,
+		}
+	}
+
+	authServer := &auth.Server{
+		DebugMode:          e.DebugMode,
+		HTTPClient:         c,
+		Result:             result,
+		Router:             router,
+		Verifier:           verifier,
+		WellKnownEndpoints: wellknown,
+	}
+
+	router.HandleFunc("/callback", authServer.HandleCallback())
+
+	return authServer, nil
 }
