@@ -106,11 +106,6 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	// NOTE: We skip handling the error because not all commands relate to Compute.
 	_ = md.File.Read(manifest.Filename)
 
-	authServer, err := configureAuth(args, cfg, httpClient, e)
-	if err != nil {
-		return nil, fmt.Errorf("failed to configure authentication processes: %w", err)
-	}
-
 	factory := func(token, endpoint string, debugMode bool) (api.Interface, error) {
 		client, err := fastly.NewClientForEndpoint(token, endpoint)
 		if debugMode {
@@ -146,7 +141,6 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	return &global.Data{
 		APIClientFactory: factory,
 		Args:             args,
-		AuthServer:       authServer,
 		Config:           cfg,
 		ConfigPath:       config.FilePath,
 		Env:              e,
@@ -215,12 +209,17 @@ func Exec(data *global.Data) error {
 		displayAPIEndpoint(apiEndpoint, endpointSource, data.Output)
 	}
 
-	// NOTE: We need the AuthServer setter method due to assignment data races.
-	// i.e. app.Init() doesn't have access to Kingpin flag values yet.
-	// The flags are only parsed/assigned via configureKingpin().
-	data.AuthServer.SetAPIEndpoint(apiEndpoint)
-
 	if commandRequiresToken(commandName) {
+		// NOTE: Checking for nil allows our test suite to mock the server.
+		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
+		if data.AuthServer == nil {
+			authServer, err := configureAuth(apiEndpoint, data.Args, data.Config, data.HTTPClient, data.Env)
+			if err != nil {
+				return fmt.Errorf("failed to configure authentication processes: %w", err)
+			}
+			data.AuthServer = authServer
+		}
+
 		token, tokenSource, err := processToken(cmds, data)
 		if err != nil {
 			if errors.Is(err, fsterr.ErrDontContinue) {
@@ -636,7 +635,7 @@ func commandRequiresToken(command string) bool {
 	}
 	command = strings.Split(command, " ")[0]
 	switch command {
-	case "config", "profile", "sso", "update", "version":
+	case "config", "profile", "update", "version":
 		return false
 	}
 	return true
@@ -647,7 +646,7 @@ func commandRequiresToken(command string) bool {
 // 1. Acquire .well-known configuration data.
 // 2. Instantiate authentication server.
 // 3. Start up request multiplexer.
-func configureAuth(args []string, f config.File, c *http.Client, e config.Environment) (*auth.Server, error) {
+func configureAuth(apiEndpoint string, args []string, f config.File, c api.HTTPClient, e config.Environment) (*auth.Server, error) {
 	metadataEndpoint := fmt.Sprintf(auth.OIDCMetadata, accountEndpoint(args, e, f))
 	req, err := http.NewRequest(http.MethodGet, metadataEndpoint, nil)
 	if err != nil {
@@ -682,6 +681,7 @@ func configureAuth(args []string, f config.File, c *http.Client, e config.Enviro
 	}
 
 	authServer := &auth.Server{
+		APIEndpoint:        apiEndpoint,
 		DebugMode:          e.DebugMode,
 		HTTPClient:         c,
 		Result:             result,
