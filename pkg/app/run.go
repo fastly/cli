@@ -161,26 +161,6 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	}, nil
 }
 
-// accountEndpoint parses the account endpoint from multiple locations.
-func accountEndpoint(args []string, e config.Environment, cfg config.File) string {
-	// Check for flag override.
-	for i, a := range args {
-		if a == "--account" && i+1 < len(args) {
-			return args[i+1]
-		}
-	}
-	// Check for environment override.
-	if e.AccountEndpoint != "" {
-		return e.AccountEndpoint
-	}
-	// Check for internal config override.
-	if cfg.Fastly.AccountEndpoint != global.DefaultAccountEndpoint && cfg.Fastly.AccountEndpoint != "" {
-		return cfg.Fastly.AccountEndpoint
-	}
-	// Otherwise return the default account endpoint.
-	return global.DefaultAccountEndpoint
-}
-
 // Exec constructs the application including all of the subcommands, parses the
 // args, invokes the client factory with the token to create a Fastly API
 // client, and executes the chosen command, using the provided io.Reader and
@@ -714,4 +694,24 @@ func configureAuth(args []string, f config.File, c *http.Client, e config.Enviro
 	router.HandleFunc("/callback", authServer.HandleCallback())
 
 	return authServer, nil
+}
+
+// accountEndpoint parses the account endpoint from multiple locations.
+func accountEndpoint(args []string, e config.Environment, cfg config.File) string {
+	// Check for flag override.
+	for i, a := range args {
+		if a == "--account" && i+1 < len(args) {
+			return args[i+1]
+		}
+	}
+	// Check for environment override.
+	if e.AccountEndpoint != "" {
+		return e.AccountEndpoint
+	}
+	// Check for internal config override.
+	if cfg.Fastly.AccountEndpoint != global.DefaultAccountEndpoint && cfg.Fastly.AccountEndpoint != "" {
+		return cfg.Fastly.AccountEndpoint
+	}
+	// Otherwise return the default account endpoint.
+	return global.DefaultAccountEndpoint
 }
