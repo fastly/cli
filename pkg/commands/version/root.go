@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -44,7 +45,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", revision.AppVersion, revision.GitCommit)
-	fmt.Fprintf(out, "Built with %s\n", revision.GoVersion)
+	fmt.Fprintf(out, "Built with %s (%s)\n", revision.GoVersion, Now().Format("2006-01-02"))
 
 	viceroy := filepath.Join(github.InstallDir, c.Globals.Versioners.Viceroy.BinaryName())
 	// gosec flagged this:
@@ -68,3 +69,6 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 func IsPreRelease(version string) bool {
 	return strings.Contains(version, "-")
 }
+
+// Now is exposed so that we may mock it from our test file.
+var Now = time.Now

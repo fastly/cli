@@ -106,45 +106,6 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	// NOTE: We skip handling the error because not all commands relate to Compute.
 	_ = md.File.Read(manifest.Filename)
 
-	// Configure authentication inputs.
-	metadataEndpoint := fmt.Sprintf(auth.OIDCMetadata, accountEndpoint(args, e, cfg))
-	req, err := http.NewRequest(http.MethodGet, metadataEndpoint, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
-	}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
-	}
-	openIDConfig, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read OpenID Connect .well-known metadata: %w", err)
-	}
-	_ = resp.Body.Close()
-	var wellknown auth.WellKnownEndpoints
-	err = json.Unmarshal(openIDConfig, &wellknown)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal OpenID Connect .well-known metadata: %w", err)
-	}
-	result := make(chan auth.AuthorizationResult)
-	router := http.NewServeMux()
-	verifier, err := oidc.NewCodeVerifier()
-	if err != nil {
-		return nil, fsterr.RemediationError{
-			Inner:       fmt.Errorf("failed to generate a code verifier for SSO authentication server: %w", err),
-			Remediation: auth.Remediation,
-		}
-	}
-	authServer := &auth.Server{
-		DebugMode:          e.DebugMode,
-		HTTPClient:         httpClient,
-		Result:             result,
-		Router:             router,
-		Verifier:           verifier,
-		WellKnownEndpoints: wellknown,
-	}
-	router.HandleFunc("/callback", authServer.HandleCallback())
-
 	factory := func(token, endpoint string, debugMode bool) (api.Interface, error) {
 		client, err := fastly.NewClientForEndpoint(token, endpoint)
 		if debugMode {
@@ -180,7 +141,6 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 	return &global.Data{
 		APIClientFactory: factory,
 		Args:             args,
-		AuthServer:       authServer,
 		Config:           cfg,
 		ConfigPath:       config.FilePath,
 		Env:              e,
@@ -193,26 +153,6 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 		Versioners:       versioners,
 		Input:            in,
 	}, nil
-}
-
-// accountEndpoint parses the account endpoint from multiple locations.
-func accountEndpoint(args []string, e config.Environment, cfg config.File) string {
-	// Check for flag override.
-	for i, a := range args {
-		if a == "--account" && i+1 < len(args) {
-			return args[i+1]
-		}
-	}
-	// Check for environment override.
-	if e.AccountEndpoint != "" {
-		return e.AccountEndpoint
-	}
-	// Check for internal config override.
-	if cfg.Fastly.AccountEndpoint != global.DefaultAccountEndpoint && cfg.Fastly.AccountEndpoint != "" {
-		return cfg.Fastly.AccountEndpoint
-	}
-	// Otherwise return the default account endpoint.
-	return global.DefaultAccountEndpoint
 }
 
 // Exec constructs the application including all of the subcommands, parses the
@@ -269,12 +209,17 @@ func Exec(data *global.Data) error {
 		displayAPIEndpoint(apiEndpoint, endpointSource, data.Output)
 	}
 
-	// NOTE: We need the AuthServer setter method due to assignment data races.
-	// i.e. app.Init() doesn't have access to Kingpin flag values yet.
-	// The flags are only parsed/assigned via configureKingpin().
-	data.AuthServer.SetAPIEndpoint(apiEndpoint)
-
 	if commandRequiresToken(commandName) {
+		// NOTE: Checking for nil allows our test suite to mock the server.
+		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
+		if data.AuthServer == nil {
+			authServer, err := configureAuth(apiEndpoint, data.Args, data.Config, data.HTTPClient, data.Env)
+			if err != nil {
+				return fmt.Errorf("failed to configure authentication processes: %w", err)
+			}
+			data.AuthServer = authServer
+		}
+
 		token, tokenSource, err := processToken(cmds, data)
 		if err != nil {
 			if errors.Is(err, fsterr.ErrDontContinue) {
@@ -685,14 +630,87 @@ func commandCollectsData(command string) bool {
 // requires an API token.
 func commandRequiresToken(command string) bool {
 	switch command {
-	case "compute init", "compute metadata":
-		// NOTE: Most `compute` commands require a token except init/metadata.
+	case "compute init", "compute metadata", "compute serve":
 		return false
 	}
 	command = strings.Split(command, " ")[0]
 	switch command {
-	case "config", "profile", "sso", "update", "version":
+	case "config", "profile", "update", "version":
 		return false
 	}
 	return true
+}
+
+// configureAuth processes authentication tasks.
+//
+// 1. Acquire .well-known configuration data.
+// 2. Instantiate authentication server.
+// 3. Start up request multiplexer.
+func configureAuth(apiEndpoint string, args []string, f config.File, c api.HTTPClient, e config.Environment) (*auth.Server, error) {
+	metadataEndpoint := fmt.Sprintf(auth.OIDCMetadata, accountEndpoint(args, e, f))
+	req, err := http.NewRequest(http.MethodGet, metadataEndpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct request object for OpenID Connect .well-known metadata: %w", err)
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
+	}
+
+	openIDConfig, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read OpenID Connect .well-known metadata: %w", err)
+	}
+	_ = resp.Body.Close()
+
+	var wellknown auth.WellKnownEndpoints
+	err = json.Unmarshal(openIDConfig, &wellknown)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal OpenID Connect .well-known metadata: %w", err)
+	}
+
+	result := make(chan auth.AuthorizationResult)
+	router := http.NewServeMux()
+	verifier, err := oidc.NewCodeVerifier()
+	if err != nil {
+		return nil, fsterr.RemediationError{
+			Inner:       fmt.Errorf("failed to generate a code verifier for SSO authentication server: %w", err),
+			Remediation: auth.Remediation,
+		}
+	}
+
+	authServer := &auth.Server{
+		APIEndpoint:        apiEndpoint,
+		DebugMode:          e.DebugMode,
+		HTTPClient:         c,
+		Result:             result,
+		Router:             router,
+		Verifier:           verifier,
+		WellKnownEndpoints: wellknown,
+	}
+
+	router.HandleFunc("/callback", authServer.HandleCallback())
+
+	return authServer, nil
+}
+
+// accountEndpoint parses the account endpoint from multiple locations.
+func accountEndpoint(args []string, e config.Environment, cfg config.File) string {
+	// Check for flag override.
+	for i, a := range args {
+		if a == "--account" && i+1 < len(args) {
+			return args[i+1]
+		}
+	}
+	// Check for environment override.
+	if e.AccountEndpoint != "" {
+		return e.AccountEndpoint
+	}
+	// Check for internal config override.
+	if cfg.Fastly.AccountEndpoint != global.DefaultAccountEndpoint && cfg.Fastly.AccountEndpoint != "" {
+		return cfg.Fastly.AccountEndpoint
+	}
+	// Otherwise return the default account endpoint.
+	return global.DefaultAccountEndpoint
 }

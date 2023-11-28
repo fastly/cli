@@ -52,8 +52,6 @@ type Runner interface {
 	// RefreshAccessToken constructs and calls the token_endpoint with the
 	// refresh token so we can refresh and return the access token.
 	RefreshAccessToken(refreshToken string) (JWT, error)
-	// SetEndpoint sets the API endpoint.
-	SetAPIEndpoint(endpoint string)
 	// Start starts a local server for handling authentication processing.
 	Start() error
 	// ValidateAndRetrieveAPIToken verifies the signature and the claims and
@@ -145,11 +143,6 @@ func (s Server) GetJWT(authorizationCode string) (JWT, error) {
 	}
 
 	return j, nil
-}
-
-// SetAPIEndpoint sets the API endpoint.
-func (s *Server) SetAPIEndpoint(endpoint string) {
-	s.APIEndpoint = endpoint
 }
 
 // SetVerifier sets the code verifier endpoint.
