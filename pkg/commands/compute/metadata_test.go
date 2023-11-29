@@ -71,7 +71,7 @@ func TestMetadata(t *testing.T) {
 		{
 			TestScenario: testutil.TestScenario{
 				Args:       args("compute metadata --enable"),
-				WantOutput: "SUCCESS: configuration updated (see: `fastly config`)",
+				WantOutput: "SUCCESS: configuration updated",
 			},
 			ExpectedConfig: config.WasmMetadata{
 				BuildInfo:   "enable",
@@ -82,7 +82,7 @@ func TestMetadata(t *testing.T) {
 		{
 			TestScenario: testutil.TestScenario{
 				Args:       args("compute metadata --disable"),
-				WantOutput: "SUCCESS: configuration updated (see: `fastly config`)",
+				WantOutput: "SUCCESS: configuration updated",
 			},
 			ExpectedConfig: config.WasmMetadata{
 				BuildInfo:   "disable",
@@ -95,7 +95,7 @@ func TestMetadata(t *testing.T) {
 				Args: args("compute metadata --enable --disable-build"),
 				WantOutputs: []string{
 					"INFO: We will enable all metadata except for the specified `--disable-*` flags",
-					"SUCCESS: configuration updated (see: `fastly config`)",
+					"SUCCESS: configuration updated",
 				},
 			},
 			ExpectedConfig: config.WasmMetadata{
@@ -109,7 +109,7 @@ func TestMetadata(t *testing.T) {
 				Args: args("compute metadata --disable --enable-machine"),
 				WantOutputs: []string{
 					"INFO: We will disable all metadata except for the specified `--enable-*` flags",
-					"SUCCESS: configuration updated (see: `fastly config`)",
+					"SUCCESS: configuration updated",
 				},
 			},
 			ExpectedConfig: config.WasmMetadata{

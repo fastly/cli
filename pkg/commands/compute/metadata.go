@@ -46,44 +46,57 @@ func (c *MetadataCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.disable && c.enable {
 		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
+	var modified bool
 	if c.disable {
 		c.Globals.Config.WasmMetadata = toggleAll("disable")
+		modified = true
 	}
 	if c.enable {
 		c.Globals.Config.WasmMetadata = toggleAll("enable")
-	}
-	if c.disable && (c.enableBuild || c.enableMachine || c.enablePackage) {
-		text.Info(out, "We will disable all metadata except for the specified `--enable-*` flags")
-		text.Break(out)
-	}
-	if c.enable && (c.disableBuild || c.disableMachine || c.disablePackage) {
-		text.Info(out, "We will enable all metadata except for the specified `--disable-*` flags")
-		text.Break(out)
+		modified = true
 	}
 	if c.enableBuild {
 		c.Globals.Config.WasmMetadata.BuildInfo = "enable"
+		modified = true
 	}
 	if c.enableMachine {
 		c.Globals.Config.WasmMetadata.MachineInfo = "enable"
+		modified = true
 	}
 	if c.enablePackage {
 		c.Globals.Config.WasmMetadata.PackageInfo = "enable"
+		modified = true
 	}
 	if c.disableBuild {
 		c.Globals.Config.WasmMetadata.BuildInfo = "disable"
+		modified = true
 	}
 	if c.disableMachine {
 		c.Globals.Config.WasmMetadata.MachineInfo = "disable"
+		modified = true
 	}
 	if c.disablePackage {
 		c.Globals.Config.WasmMetadata.PackageInfo = "disable"
+		modified = true
 	}
-	err := c.Globals.Config.Write(c.Globals.ConfigPath)
-	if err != nil {
-		return fmt.Errorf("failed to persist metadata choices to disk: %w", err)
+
+	if modified {
+		if c.disable && (c.enableBuild || c.enableMachine || c.enablePackage) {
+			text.Info(out, "We will disable all metadata except for the specified `--enable-*` flags")
+			text.Break(out)
+		}
+		if c.enable && (c.disableBuild || c.disableMachine || c.disablePackage) {
+			text.Info(out, "We will enable all metadata except for the specified `--disable-*` flags")
+			text.Break(out)
+		}
+		err := c.Globals.Config.Write(c.Globals.ConfigPath)
+		if err != nil {
+			return fmt.Errorf("failed to persist metadata choices to disk: %w", err)
+		}
+		text.Success(out, "configuration updated")
+		text.Break(out)
 	}
-	text.Success(out, "configuration updated (see: `fastly config`)")
-	text.Break(out)
+
 	text.Output(out, "Build Information: %s", c.Globals.Config.WasmMetadata.BuildInfo)
 	text.Output(out, "Machine Information: %s", c.Globals.Config.WasmMetadata.MachineInfo)
 	text.Output(out, "Package Information: %s", c.Globals.Config.WasmMetadata.PackageInfo)
