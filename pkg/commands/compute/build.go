@@ -322,22 +322,21 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	// Allow customer to specify their own env variables to be filtered.
 	ExtendStaticSecretEnvVars(c.MetadataFilterEnvVars)
 
-	dc := DataCollection{
-		ScriptInfo: DataCollectionScriptInfo{
-			DefaultBuildUsed: language.DefaultBuildScript(),
-			BuildScript:      FilterSecretsFromString(c.Globals.Manifest.File.Scripts.Build),
-			EnvVars:          FilterSecretsFromSlice(c.Globals.Manifest.File.Scripts.EnvVars),
-			PostInitScript:   FilterSecretsFromString(c.Globals.Manifest.File.Scripts.PostInit),
-			PostBuildScript:  FilterSecretsFromString(c.Globals.Manifest.File.Scripts.PostBuild),
-		},
+	dc := DataCollection{}
+
+	metadata := c.Globals.Config.WasmMetadata
+
+	// Only record basic data if user has disabled all other metadata collection.
+	if metadata.BuildInfo == "disable" && metadata.MachineInfo == "disable" && metadata.PackageInfo == "disable" && metadata.ScriptInfo == "disable" {
+		return c.AnnotateWasmBinaryShort(wasmtools, args)
 	}
 
-	if c.Globals.Config.WasmMetadata.BuildInfo == "enable" {
+	if metadata.BuildInfo == "enable" {
 		dc.BuildInfo = DataCollectionBuildInfo{
 			MemoryHeapAlloc: ms.HeapAlloc,
 		}
 	}
-	if c.Globals.Config.WasmMetadata.MachineInfo == "enable" {
+	if metadata.MachineInfo == "enable" {
 		dc.MachineInfo = DataCollectionMachineInfo{
 			Arch:      runtime.GOARCH,
 			CPUs:      runtime.NumCPU(),
@@ -346,10 +345,19 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 			OS:        runtime.GOOS,
 		}
 	}
-	if c.Globals.Config.WasmMetadata.PackageInfo == "enable" {
+	if metadata.PackageInfo == "enable" {
 		dc.PackageInfo = DataCollectionPackageInfo{
 			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
 			Packages:   language.Dependencies(),
+		}
+	}
+	if metadata.ScriptInfo == "enable" {
+		dc.ScriptInfo = DataCollectionScriptInfo{
+			DefaultBuildUsed: language.DefaultBuildScript(),
+			BuildScript:      FilterSecretsFromString(c.Globals.Manifest.File.Scripts.Build),
+			EnvVars:          FilterSecretsFromSlice(c.Globals.Manifest.File.Scripts.EnvVars),
+			PostInitScript:   FilterSecretsFromString(c.Globals.Manifest.File.Scripts.PostInit),
+			PostBuildScript:  FilterSecretsFromString(c.Globals.Manifest.File.Scripts.PostBuild),
 		}
 	}
 
