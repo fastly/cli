@@ -1,4 +1,4 @@
-config_version = 5
+config_version = 6
 
 [fastly]
 account_endpoint = "https://accounts.fastly.com"
@@ -8,6 +8,7 @@ api_endpoint = "https://api.fastly.com"
 build_info = "enable"
 machine_info = "disable" # users have to opt-in for this (everything else they'll have to opt-out)
 package_info = "enable"
+script_info = "enable"
 
 [language]
 [language.go]

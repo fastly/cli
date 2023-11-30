@@ -1220,6 +1220,26 @@
       }
     }
   },
+  "metadata": {
+    "examples": [
+      {
+        "cmd": "fastly compute metadata --enable",
+        "title": "Enable all metadata collection information"
+      },
+      {
+        "cmd": "fastly compute metadata --disable",
+        "title": "Disable all metadata collection information"
+      },
+      {
+        "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
+        "title": "Enable specific metadata collection information"
+      },
+      {
+        "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
+        "title": "Disable specific metadata collection information"
+      }
+    ]
+  },
   "pops": {
     "apis": [
       "https://developer.fastly.com/reference/api/utils/pops/#list-pops"

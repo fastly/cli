@@ -186,11 +186,9 @@ func Exec(data *global.Data) error {
 		return nil
 	}
 
-	// FIXME: Tweak messaging before for 10.7.0
-	// To learn more about what data is being collected, why, and how to disable it: https://developer.fastly.com/reference/cli/
 	metadataDisable, _ := strconv.ParseBool(data.Env.WasmMetadataDisable)
-	if slices.Contains(data.Args, "--metadata-enable") && !metadataDisable && !data.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
-		text.Important(data.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about our data & privacy policies visit https://www.fastly.com/trust. Join the conversation https://bit.ly/wasm-metadata")
+	if !slices.Contains(data.Args, "--metadata-disable") && !metadataDisable && !data.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
+		text.Important(data.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about what data is being collected, why, and how to disable it: https://developer.fastly.com/reference/cli/")
 		text.Break(data.Output)
 		data.Config.CLI.MetadataNoticeDisplayed = true
 		err := data.Config.Write(data.ConfigPath)

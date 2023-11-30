@@ -77,6 +77,8 @@ type WasmMetadata struct {
 	// enabling us to prioritize support for the most commonly used components
 	// (enable/disable).
 	PackageInfo string `toml:"package_info"`
+	// ScriptInfo represents the [scripts] section from the fastly.toml manifest.
+	ScriptInfo string `toml:"script_info"`
 }
 
 // CLI represents CLI specific configuration.
