@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## [v10.7.0](https://github.com/fastly/cli/releases/tag/v10.7.0) (2023-11-30)
+
+The Fastly CLI internal configuration file has `config_version` bumped to version `6`. We've added a new `[wasm-metadata.script_info]` field so that users can omit script info (which comes from the fastly.toml) from the metadata annotated onto their compiled Wasm binaries.
+
+When upgrading to this version of the CLI, and running a command for the first time, the config file should automatically update, but this can also be manually triggered by executing:
+
+```shell
+fastly config --reset
+```
+
+**Bug fixes:**
+
+- fix: move auth setup so it doesn't run for non-token based commands [#1099](https://github.com/fastly/cli/pull/1099)
+
+**Enhancements:**
+
+- remove(profile/update): APIClientFactory [#1094](https://github.com/fastly/cli/pull/1094)
+- feat: switch on metadata collection [#1097](https://github.com/fastly/cli/pull/1097)
+
 ## [v10.6.4](https://github.com/fastly/cli/releases/tag/v10.6.4) (2023-11-15)
 
 **Bug fixes:**
