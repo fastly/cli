@@ -10,23 +10,18 @@ last_checked = "2021-06-18T15:13:34+01:00"
 version = "0.0.1"
 
 [language]
-  [language.rust]
-  # we're missing the 'toolchain_constraint' property
-  wasm_wasi_target = "wasm32-wasi"
+[language.rust]
+# we're missing the 'toolchain_constraint' property
+wasm_wasi_target = "wasm32-wasi"
 
 [starter-kits]
-[[starter-kits.assemblyscript]]
-  name = "Default"
-  path = "https://github.com/fastly/compute-starter-kit-assemblyscript-default"
-  tag = "v0.2.1"
 [[starter-kits.rust]]
-  name = "Default"
-  path = "https://github.com/fastly/compute-starter-kit-rust-default.git"
-  branch = "0.7"
+name = "Default"
+path = "https://github.com/fastly/compute-starter-kit-rust-default.git"
+branch = "0.7"
 [[starter-kits.rust]]
-  name = "Beacon"
-  path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination.git"
+name = "Beacon"
+path = "https://github.com/fastly/compute-starter-kit-rust-beacon-termination.git"
 [[starter-kits.rust]]
-  name = "Static"
-  path = "https://github.com/fastly/compute-starter-kit-rust-static-content.git"
-
+name = "Static"
+path = "https://github.com/fastly/compute-starter-kit-rust-static-content.git"
