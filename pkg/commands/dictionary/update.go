@@ -121,7 +121,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	text.Success(out, "Updated dictionary %s (service %s version %d)", fastly.ToValue(d.Name), fastly.ToValue(d.ServiceID), fastly.ToValue(d.ServiceVersion))
 	if c.Globals.Verbose() {
-		text.Output(out, "\nVersion: %d\n", d.ServiceVersion)
+		text.Output(out, "\nVersion: %d\n", fastly.ToValue(d.ServiceVersion))
 		text.PrintDictionary(out, "", d)
 	}
 	return nil

@@ -340,28 +340,17 @@ Versions: 3
 		Number: 1
 		Service ID: 123
 		Active: true
-		Locked: false
-		Deployed: false
-		Staging: false
-		Testing: false
 		Last edited (UTC): 2000-01-01 01:00
 	Version 2/3
 		Number: 2
 		Service ID: 123
 		Active: false
 		Locked: true
-		Deployed: false
-		Staging: false
-		Testing: false
 		Last edited (UTC): 2000-01-02 01:00
 	Version 3/3
 		Number: 3
 		Service ID: 123
 		Active: false
-		Locked: false
-		Deployed: false
-		Staging: false
-		Testing: false
 		Last edited (UTC): 2000-01-03 01:00
 `) + "\n\n"
 

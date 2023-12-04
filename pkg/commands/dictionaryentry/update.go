@@ -87,7 +87,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated dictionary item (service %s)\n\n", d.ServiceID)
+	text.Success(out, "Updated dictionary item (service %s)\n\n", fastly.ToValue(d.ServiceID))
 	text.PrintDictionaryItem(out, "", d)
 	return nil
 }

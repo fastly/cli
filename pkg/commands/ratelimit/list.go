@@ -140,7 +140,14 @@ func (c *ListCommand) printSummary(out io.Writer, o []*fastly.ERL) {
 	t := text.NewTable(out)
 	t.AddHeader("ID", "NAME", "ACTION", "RPS LIMIT", "WINDOW SIZE", "PENALTY BOX DURATION")
 	for _, u := range o {
-		t.AddLine(u.ID, u.Name, u.Action, u.RpsLimit, u.WindowSize, u.PenaltyBoxDuration)
+		t.AddLine(
+			fastly.ToValue(u.ID),
+			fastly.ToValue(u.Name),
+			fastly.ToValue(u.Action),
+			fastly.ToValue(u.RpsLimit),
+			fastly.ToValue(u.WindowSize),
+			fastly.ToValue(u.PenaltyBoxDuration),
+		)
 	}
 	t.Print()
 }

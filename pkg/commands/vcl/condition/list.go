@@ -97,7 +97,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME", "STATEMENT", "TYPE", "PRIORITY")
 		for _, r := range o {
-			tw.AddLine(r.ServiceID,
+			tw.AddLine(
+				fastly.ToValue(r.ServiceID),
 				fastly.ToValue(r.ServiceVersion),
 				fastly.ToValue(r.Name),
 				fastly.ToValue(r.Statement),

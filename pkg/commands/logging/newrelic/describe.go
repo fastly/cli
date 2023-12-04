@@ -132,7 +132,7 @@ func (c *DescribeCommand) print(out io.Writer, nr *fastly.NewRelic) error {
 	}
 
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = nr.ServiceID
+		lines["Service ID"] = fastly.ToValue(nr.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

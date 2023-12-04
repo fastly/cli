@@ -1063,11 +1063,7 @@ func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name
 		}
 		return nil
 	})
-	// nosemgrep: Users.integralist.Code.go.semgrep-go.err-nil-check (false positive)
-	if err != nil {
-		return m, err
-	}
-	return m, nil
+	return m, err
 }
 
 // InitializeLanguage for newly cloned package.

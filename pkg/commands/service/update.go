@@ -81,6 +81,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated service %s", s.ID)
+	text.Success(out, "Updated service %s", fastly.ToValue(s.ID))
 	return nil
 }

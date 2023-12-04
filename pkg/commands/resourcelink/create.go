@@ -122,7 +122,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out,
-		"Created service resource link %q (%s) on service %s version %s",
+		"Created service resource link %q (%s) on service %s version %d",
 		fastly.ToValue(o.Name),
 		fastly.ToValue(o.ID),
 		fastly.ToValue(o.ServiceID),

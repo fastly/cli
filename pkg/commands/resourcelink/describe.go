@@ -103,7 +103,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if !c.Globals.Verbose() {
 		text.Output(out, "Service ID: %s", fastly.ToValue(o.ServiceID))
 	}
-	text.Output(out, "Service Version: %s", fastly.ToValue(o.ServiceVersion))
+	text.Output(out, "Service Version: %d", fastly.ToValue(o.ServiceVersion))
 	text.PrintResource(out, "", o)
 
 	return nil

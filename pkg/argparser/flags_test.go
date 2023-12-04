@@ -308,7 +308,7 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 			}
 
 			if !c.expectEditable {
-				want := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", c.version.Number, v.Number)
+				want := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", fastly.ToValue(c.version.Number), fastly.ToValue(v.Number))
 				have := strings.Trim(strings.ReplaceAll(buf.String(), "\n", " "), " ")
 				if !strings.Contains(have, want) {
 					t.Errorf("wanted %s, have %s", want, have)

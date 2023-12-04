@@ -82,17 +82,17 @@ func (c *ListCommand) constructInput() *fastly.ListCustomerUsersInput {
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, us []*fastly.User) {
 	for _, u := range us {
-		fmt.Fprintf(out, "\nID: %s\n", u.ID)
-		fmt.Fprintf(out, "Login: %s\n", u.Login)
-		fmt.Fprintf(out, "Name: %s\n", u.Name)
-		fmt.Fprintf(out, "Role: %s\n", u.Role)
-		fmt.Fprintf(out, "Customer ID: %s\n", u.CustomerID)
-		fmt.Fprintf(out, "Email Hash: %s\n", u.EmailHash)
-		fmt.Fprintf(out, "Limit Services: %t\n", u.LimitServices)
-		fmt.Fprintf(out, "Locked: %t\n", u.Locked)
-		fmt.Fprintf(out, "Require New Password: %t\n", u.RequireNewPassword)
-		fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", u.TwoFactorAuthEnabled)
-		fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", u.TwoFactorSetupRequired)
+		fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(u.ID))
+		fmt.Fprintf(out, "Login: %s\n", fastly.ToValue(u.Login))
+		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(u.Name))
+		fmt.Fprintf(out, "Role: %s\n", fastly.ToValue(u.Role))
+		fmt.Fprintf(out, "Customer ID: %s\n", fastly.ToValue(u.CustomerID))
+		fmt.Fprintf(out, "Email Hash: %s\n", fastly.ToValue(u.EmailHash))
+		fmt.Fprintf(out, "Limit Services: %t\n", fastly.ToValue(u.LimitServices))
+		fmt.Fprintf(out, "Locked: %t\n", fastly.ToValue(u.Locked))
+		fmt.Fprintf(out, "Require New Password: %t\n", fastly.ToValue(u.RequireNewPassword))
+		fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", fastly.ToValue(u.TwoFactorAuthEnabled))
+		fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", fastly.ToValue(u.TwoFactorSetupRequired))
 
 		if u.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", u.CreatedAt)
@@ -112,7 +112,13 @@ func (c *ListCommand) printSummary(out io.Writer, us []*fastly.User) error {
 	t := text.NewTable(out)
 	t.AddHeader("LOGIN", "NAME", "ROLE", "LOCKED", "ID")
 	for _, u := range us {
-		t.AddLine(u.Login, u.Name, u.Role, u.Locked, u.ID)
+		t.AddLine(
+			fastly.ToValue(u.Login),
+			fastly.ToValue(u.Name),
+			fastly.ToValue(u.Role),
+			fastly.ToValue(u.Locked),
+			fastly.ToValue(u.ID),
+		)
 	}
 	t.Print()
 	return nil

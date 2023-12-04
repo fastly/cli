@@ -223,7 +223,7 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 	// if user didn't provide --autoclone flag
 	if !ac.Value && (fastly.ToValue(v.Active) || fastly.ToValue(v.Locked)) {
 		return nil, fsterr.RemediationError{
-			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
+			Inner:       fmt.Errorf("service version %d is not editable", fastly.ToValue(v.Number)),
 			Remediation: fsterr.AutoCloneRemediation,
 		}
 	}
@@ -237,7 +237,7 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 		}
 		if verbose {
 			msg := "Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.\n\n"
-			format := fmt.Sprintf(msg, v.Number, version.Number)
+			format := fmt.Sprintf(msg, fastly.ToValue(v.Number), fastly.ToValue(version.Number))
 			text.Info(out, format)
 		}
 		return version, nil

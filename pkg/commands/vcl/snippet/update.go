@@ -114,7 +114,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			})
 			return err
 		}
-		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", v.ID, v.ServiceID)
+		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", fastly.ToValue(v.ID), fastly.ToValue(v.ServiceID))
 		return nil
 	}
 

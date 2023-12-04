@@ -218,14 +218,12 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API error (via GetNext() call)",
 			API: mock.API{
-				// NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-				// 	return &mockACLPaginator{returnErr: true}
-				// },
 				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](mock.MockHTTPClient{
+					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
 						Errors: []error{
 							testutil.Err,
 						},
+						Responses: []*http.Response{nil},
 					}, fastly.ListOpts{}, "/example")
 				},
 			},
@@ -235,73 +233,82 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API success",
 			API: mock.API{
-				// NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-				//   return &mockACLPaginator{numOfPages: i.PerPage, maxPages: 2}
-				// },
 				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](mock.MockHTTPClient{
+					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
+						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
 								Body: io.NopCloser(strings.NewReader(`[
                   {
-                    "id": "6yxNzlOpW1V7JfSwvLGtOc",
-                    "service_id": "SU1Z0isxPaozGVKXdv0eY",
-                    "acl_id": "2cFflPOskFLhmnZJEfUake",
-                    "ip": "192.168.0.1",
+                    "id": "456",
+                    "service_id": "123",
+                    "acl_id": "xyz",
+                    "ip": "127.0.0.1",
                     "negated": 0,
-                    "subnet": 16,
+                    "subnet": 0,
                     "comment": "",
                     "created_at": "2020-04-21T18:14:32+00:00",
                     "updated_at": "2020-04-21T18:14:32+00:00",
                     "deleted_at": null
-                    }
-                  ]`)),
+                  },
+                  {
+                    "id": "789",
+                    "service_id": "123",
+                    "acl_id": "xyz",
+                    "ip": "127.0.0.2",
+                    "negated": 1,
+                    "subnet": 0,
+                    "comment": "",
+                    "created_at": "2020-04-21T18:14:32+00:00",
+                    "updated_at": "2020-04-21T18:14:32+00:00",
+                    "deleted_at": null
+                  }
+                ]`)),
 							},
 						},
 					}, fastly.ListOpts{}, "/example")
 				},
 			},
-			Args:       args("acl-entry list --acl-id 123 --per-page 1 --service-id 123"),
+			Args:       args("acl-entry list --acl-id 123 --service-id 123"),
 			WantOutput: listACLEntriesOutput,
-		},
-		// In the following test, we set --page 1 and as there's only one record
-		// displayed per page we expect only the first record to be displayed.
-		{
-			Name: "validate all results displayed even when page is set",
-			API: mock.API{
-				// NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-				// 	return &mockACLPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
-				// },
-				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](mock.MockHTTPClient{}, fastly.ListOpts{}, "/example")
-				},
-			},
-			Args:       args("acl-entry list --acl-id 123 --page 1 --per-page 1 --service-id 123"),
-			WantOutput: listACLEntriesOutputPageOne,
-		},
-		// In the following test, we set --page 2 and as there's only one record
-		// displayed per page we expect only the second record to be displayed.
-		{
-			Name: "validate only page two of the results are displayed",
-			API: mock.API{
-				// NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-				// 	return &mockACLPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
-				// },
-				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](mock.MockHTTPClient{}, fastly.ListOpts{}, "/example")
-				},
-			},
-			Args:       args("acl-entry list --acl-id 123 --page 2 --per-page 1 --service-id 123"),
-			WantOutput: listACLEntriesOutputPageTwo,
 		},
 		{
 			Name: "validate --verbose flag",
 			API: mock.API{
-				// NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-				// 	return &mockACLPaginator{numOfPages: i.PerPage, maxPages: 2}
-				// },
 				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](mock.MockHTTPClient{}, fastly.ListOpts{}, "/example")
+					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[
+                  {
+                    "id": "456",
+                    "service_id": "123",
+                    "acl_id": "123",
+                    "ip": "127.0.0.1",
+                    "negated": 0,
+                    "subnet": 0,
+                    "comment": "foo",
+                    "created_at": "2021-06-15T23:00:00Z",
+                    "updated_at": "2021-06-15T23:00:00Z",
+                    "deleted_at": "2021-06-15T23:00:00Z"
+                  },
+                  {
+                    "id": "789",
+                    "service_id": "123",
+                    "acl_id": "123",
+                    "ip": "127.0.0.2",
+                    "negated": 1,
+                    "subnet": 0,
+                    "comment": "bar",
+                    "created_at": "2021-06-15T23:00:00Z",
+                    "updated_at": "2021-06-15T23:00:00Z",
+                    "deleted_at": "2021-06-15T23:00:00Z"
+                  }
+                ]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
 			Args:       args("acl-entry list --acl-id 123 --per-page 1 --service-id 123 --verbose"),
@@ -327,14 +334,6 @@ func TestACLEntryList(t *testing.T) {
 
 var listACLEntriesOutput = `SERVICE ID  ID   IP         SUBNET  NEGATED
 123         456  127.0.0.1  0       false
-123         789  127.0.0.2  0       true
-`
-
-var listACLEntriesOutputPageOne = `SERVICE ID  ID   IP         SUBNET  NEGATED
-123         456  127.0.0.1  0       false
-`
-
-var listACLEntriesOutputPageTwo = `SERVICE ID  ID   IP         SUBNET  NEGATED
 123         789  127.0.0.2  0       true
 `
 

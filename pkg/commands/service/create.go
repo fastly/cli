@@ -59,6 +59,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created service %s", s.ID)
+	text.Success(out, "Created service %s", fastly.ToValue(s.ID))
 	return nil
 }

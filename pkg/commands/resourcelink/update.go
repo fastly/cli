@@ -121,7 +121,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out,
-		"Updated service resource link %s on service %s version %s",
+		"Updated service resource link %s on service %s version %d",
 		fastly.ToValue(o.ID),
 		fastly.ToValue(o.ServiceID),
 		fastly.ToValue(o.ServiceVersion),

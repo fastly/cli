@@ -182,7 +182,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		return "", err
 	}
 	if c.automationToken {
-		return fmt.Sprintf("Automation Token (%s)", t.ID), nil
+		return fmt.Sprintf("Automation Token (%s)", fastly.ToValue(t.ID)), nil
 	}
 
 	var user *fastly.User

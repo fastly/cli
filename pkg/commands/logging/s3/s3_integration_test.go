@@ -361,7 +361,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			BucketName:                   fastly.ToPointer("my-logs"),
 			AccessKey:                    fastly.ToPointer("1234"),
 			SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
-			IAMRole:                      fastly.ToPointer(""),
+			IAMRole:                      fastly.ToPointer("xyz"),
 			Domain:                       fastly.ToPointer("https://s3.us-east-1.amazonaws.com"),
 			Path:                         fastly.ToPointer("logs/"),
 			Period:                       fastly.ToPointer(3600),
@@ -427,6 +427,7 @@ Version: 1
 		Bucket: my-logs
 		Access key: 1234
 		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
+		IAM role: xyz
 		Path: logs/
 		Period: 3600
 		GZip level: 0

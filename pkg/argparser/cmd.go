@@ -136,7 +136,7 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 		}
 	} else if !opts.AllowActiveLocked && (fastly.ToValue(v.Active) || fastly.ToValue(v.Locked)) {
 		err = fsterr.RemediationError{
-			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
+			Inner:       fmt.Errorf("service version %d is not editable", fastly.ToValue(v.Number)),
 			Remediation: fsterr.AutoCloneRemediation,
 		}
 		return serviceID, v, err

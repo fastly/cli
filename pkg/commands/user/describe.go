@@ -88,17 +88,17 @@ func (c *DescribeCommand) constructInput() (*fastly.GetUserInput, error) {
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, r *fastly.User) {
-	fmt.Fprintf(out, "\nID: %s\n", r.ID)
-	fmt.Fprintf(out, "Login: %s\n", r.Login)
-	fmt.Fprintf(out, "Name: %s\n", r.Name)
-	fmt.Fprintf(out, "Role: %s\n", r.Role)
-	fmt.Fprintf(out, "Customer ID: %s\n", r.CustomerID)
-	fmt.Fprintf(out, "Email Hash: %s\n", r.EmailHash)
-	fmt.Fprintf(out, "Limit Services: %t\n", r.LimitServices)
-	fmt.Fprintf(out, "Locked: %t\n", r.Locked)
-	fmt.Fprintf(out, "Require New Password: %t\n", r.RequireNewPassword)
-	fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", r.TwoFactorAuthEnabled)
-	fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", r.TwoFactorSetupRequired)
+	fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.ID))
+	fmt.Fprintf(out, "Login: %s\n", fastly.ToValue(r.Login))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
+	fmt.Fprintf(out, "Role: %s\n", fastly.ToValue(r.Role))
+	fmt.Fprintf(out, "Customer ID: %s\n", fastly.ToValue(r.CustomerID))
+	fmt.Fprintf(out, "Email Hash: %s\n", fastly.ToValue(r.EmailHash))
+	fmt.Fprintf(out, "Limit Services: %t\n", fastly.ToValue(r.LimitServices))
+	fmt.Fprintf(out, "Locked: %t\n", fastly.ToValue(r.Locked))
+	fmt.Fprintf(out, "Require New Password: %t\n", fastly.ToValue(r.RequireNewPassword))
+	fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", fastly.ToValue(r.TwoFactorAuthEnabled))
+	fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", fastly.ToValue(r.TwoFactorSetupRequired))
 
 	if r.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)

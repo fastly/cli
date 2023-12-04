@@ -40,6 +40,8 @@ require (
 	golang.org/x/mod v0.14.0
 )
 
+replace github.com/fastly/go-fastly/v8 v8.6.4 => ../go-fastly/
+
 require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
