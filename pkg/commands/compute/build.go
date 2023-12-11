@@ -157,6 +157,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var pkgName string
 	err = spinner.Process("Identifying package name", func(_ *text.SpinnerWrapper) error {
 		pkgName, err = c.PackageName(manifestFilename)
+		// nosemgrep: Users.integralist.Code.go.semgrep-go.err-nil-check (false positive)
 		if err != nil {
 			return err
 		}
@@ -169,6 +170,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var toolchain string
 	err = spinner.Process("Identifying toolchain", func(_ *text.SpinnerWrapper) error {
 		toolchain, err = identifyToolchain(c)
+		// nosemgrep: Users.integralist.Code.go.semgrep-go.err-nil-check (false positive)
 		if err != nil {
 			return err
 		}

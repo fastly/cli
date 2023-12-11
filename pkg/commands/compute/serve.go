@@ -269,12 +269,7 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 		c.build.MetadataShow = c.metadataShow.Value
 	}
 
-	err := c.build.Exec(in, out)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.build.Exec(in, out)
 }
 
 // setBackendsWithDefaultOverrideHostIfMissing sets an override_host for any
