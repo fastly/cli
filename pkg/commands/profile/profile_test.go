@@ -28,7 +28,7 @@ type Scenario struct {
 	Stdin      []string
 }
 
-func TestCreate(t *testing.T) {
+func TestProfileCreate(t *testing.T) {
 	var (
 		configPath string
 		data       []byte
@@ -189,7 +189,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestProfileDelete(t *testing.T) {
 	var (
 		configPath string
 		data       []byte
@@ -290,7 +290,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestProfileList(t *testing.T) {
 	var (
 		configPath string
 		data       []byte
@@ -507,7 +507,7 @@ func TestList(t *testing.T) {
 	}
 }
 
-func TestSwitch(t *testing.T) {
+func TestProfileSwitch(t *testing.T) {
 	var (
 		configPath string
 		data       []byte
@@ -613,7 +613,7 @@ func TestSwitch(t *testing.T) {
 	}
 }
 
-func TestToken(t *testing.T) {
+func TestProfileToken(t *testing.T) {
 	var (
 		configPath string
 		data       []byte
@@ -761,7 +761,7 @@ func TestToken(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestProfileUpdate(t *testing.T) {
 	var (
 		configPath string
 		data       []byte
