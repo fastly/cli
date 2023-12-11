@@ -14,6 +14,7 @@ type API struct {
 	AllIPsFn         func() (v4, v6 fastly.IPAddrs, err error)
 
 	CreateServiceFn     func(*fastly.CreateServiceInput) (*fastly.Service, error)
+	GetServicesFn       func(*fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service]
 	ListServicesFn      func(*fastly.ListServicesInput) ([]*fastly.Service, error)
 	GetServiceFn        func(*fastly.GetServiceInput) (*fastly.Service, error)
 	GetServiceDetailsFn func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error)
@@ -59,6 +60,7 @@ type API struct {
 	ListDictionariesFn func(*fastly.ListDictionariesInput) ([]*fastly.Dictionary, error)
 	UpdateDictionaryFn func(*fastly.UpdateDictionaryInput) (*fastly.Dictionary, error)
 
+	GetDictionaryItemsFn         func(*fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem]
 	ListDictionaryItemsFn        func(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
 	GetDictionaryItemFn          func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
 	CreateDictionaryItemFn       func(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
@@ -251,6 +253,7 @@ type API struct {
 	CreateACLEntryFn        func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error)
 	DeleteACLEntryFn        func(i *fastly.DeleteACLEntryInput) error
 	GetACLEntryFn           func(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error)
+	GetACLEntriesFn         func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry]
 	ListACLEntriesFn        func(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error)
 	UpdateACLEntryFn        func(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error)
 	BatchModifyACLEntriesFn func(i *fastly.BatchModifyACLEntriesInput) error
@@ -281,12 +284,9 @@ type API struct {
 	DeleteTokenSelfFn    func() error
 	GetTokenSelfFn       func() (*fastly.Token, error)
 	ListCustomerTokensFn func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
-	ListTokensFn         func() ([]*fastly.Token, error)
+	ListTokensFn         func(i *fastly.ListTokensInput) ([]*fastly.Token, error)
 
-	NewListACLEntriesPaginatorFn      func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
-	NewListDictionaryItemsPaginatorFn func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
-	NewListServicesPaginatorFn        func(i *fastly.ListServicesInput) fastly.PaginatorServices
-	NewListKVStoreKeysPaginatorFn     func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries
+	NewListKVStoreKeysPaginatorFn func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries
 
 	GetCustomTLSConfigurationFn    func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
 	ListCustomTLSConfigurationsFn  func(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
@@ -332,7 +332,7 @@ type API struct {
 	DeleteConfigStoreFn       func(i *fastly.DeleteConfigStoreInput) error
 	GetConfigStoreFn          func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error)
 	GetConfigStoreMetadataFn  func(i *fastly.GetConfigStoreMetadataInput) (*fastly.ConfigStoreMetadata, error)
-	ListConfigStoresFn        func() ([]*fastly.ConfigStore, error)
+	ListConfigStoresFn        func(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error)
 	ListConfigStoreServicesFn func(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error)
 	UpdateConfigStoreFn       func(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error)
 
@@ -399,6 +399,11 @@ func (m API) AllIPs() (fastly.IPAddrs, fastly.IPAddrs, error) {
 // CreateService implements Interface.
 func (m API) CreateService(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return m.CreateServiceFn(i)
+}
+
+// GetServices implements Interface.
+func (m API) GetServices(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+	return m.GetServicesFn(i)
 }
 
 // ListServices implements Interface.
@@ -589,6 +594,11 @@ func (m API) ListDictionaries(i *fastly.ListDictionariesInput) ([]*fastly.Dictio
 // UpdateDictionary implements Interface.
 func (m API) UpdateDictionary(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return m.UpdateDictionaryFn(i)
+}
+
+// GetDictionaryItems implements Interface.
+func (m API) GetDictionaryItems(i *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
+	return m.GetDictionaryItemsFn(i)
 }
 
 // ListDictionaryItems implements Interface.
@@ -1386,6 +1396,11 @@ func (m API) GetACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 	return m.GetACLEntryFn(i)
 }
 
+// GetACLEntries implements Interface.
+func (m API) GetACLEntries(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+	return m.GetACLEntriesFn(i)
+}
+
 // ListACLEntries implements Interface.
 func (m API) ListACLEntries(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error) {
 	return m.ListACLEntriesFn(i)
@@ -1517,23 +1532,8 @@ func (m API) ListCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.To
 }
 
 // ListTokens implements Interface.
-func (m API) ListTokens() ([]*fastly.Token, error) {
-	return m.ListTokensFn()
-}
-
-// NewListACLEntriesPaginator implements Interface.
-func (m API) NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-	return m.NewListACLEntriesPaginatorFn(i)
-}
-
-// NewListDictionaryItemsPaginator implements Interface.
-func (m API) NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-	return m.NewListDictionaryItemsPaginatorFn(i)
-}
-
-// NewListServicesPaginator implements Interface.
-func (m API) NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices {
-	return m.NewListServicesPaginatorFn(i)
+func (m API) ListTokens(i *fastly.ListTokensInput) ([]*fastly.Token, error) {
+	return m.ListTokensFn(i)
 }
 
 // NewListKVStoreKeysPaginator implements Interface.
@@ -1727,8 +1727,8 @@ func (m API) GetConfigStoreMetadata(i *fastly.GetConfigStoreMetadataInput) (*fas
 }
 
 // ListConfigStores implements Interface.
-func (m API) ListConfigStores() ([]*fastly.ConfigStore, error) {
-	return m.ListConfigStoresFn()
+func (m API) ListConfigStores(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
+	return m.ListConfigStoresFn(i)
 }
 
 // ListConfigStoreServices implements Interface.

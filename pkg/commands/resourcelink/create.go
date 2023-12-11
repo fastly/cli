@@ -105,7 +105,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.input.ServiceID = serviceID
-	c.input.ServiceVersion = serviceVersion.Number
+	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.CreateResource(&c.input)
 	if err != nil {
@@ -121,6 +121,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created service resource link %q (%s) on service %s version %s", o.Name, o.ID, o.ServiceID, o.ServiceVersion)
+	text.Success(out,
+		"Created service resource link %q (%s) on service %s version %s",
+		fastly.ToValue(o.Name),
+		fastly.ToValue(o.ID),
+		fastly.ToValue(o.ServiceID),
+		fastly.ToValue(o.ServiceVersion),
+	)
 	return nil
 }

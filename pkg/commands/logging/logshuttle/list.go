@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListLogshuttles(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, logshuttle := range o {
-			tw.AddLine(logshuttle.ServiceID, logshuttle.ServiceVersion, logshuttle.Name)
+			tw.AddLine(
+				fastly.ToValue(logshuttle.ServiceID),
+				fastly.ToValue(logshuttle.ServiceVersion),
+				fastly.ToValue(logshuttle.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,15 +109,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, logshuttle := range o {
 		fmt.Fprintf(out, "\tLogshuttle %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", logshuttle.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", logshuttle.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", logshuttle.Name)
-		fmt.Fprintf(out, "\t\tURL: %s\n", logshuttle.URL)
-		fmt.Fprintf(out, "\t\tToken: %s\n", logshuttle.Token)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", logshuttle.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", logshuttle.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", logshuttle.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", logshuttle.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(logshuttle.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(logshuttle.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(logshuttle.Name))
+		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(logshuttle.URL))
+		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(logshuttle.Token))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(logshuttle.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(logshuttle.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(logshuttle.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(logshuttle.Placement))
 	}
 	fmt.Fprintln(out)
 

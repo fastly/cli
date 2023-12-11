@@ -103,52 +103,41 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.input.ServiceID = serviceID
-	c.input.ServiceVersion = serviceVersion.Number
+	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	if c.NewName.WasSet {
 		c.input.NewName = &c.NewName.Value
 	}
-
 	if c.Comment.WasSet {
 		c.input.Comment = &c.Comment.Value
 	}
-
 	if c.Method.WasSet {
 		c.input.Method = &c.Method.Value
 	}
-
 	if c.Host.WasSet {
 		c.input.Host = &c.Host.Value
 	}
-
 	if c.Path.WasSet {
 		c.input.Path = &c.Path.Value
 	}
-
 	if c.HTTPVersion.WasSet {
 		c.input.HTTPVersion = &c.HTTPVersion.Value
 	}
-
 	if c.Timeout.WasSet {
 		c.input.Timeout = &c.Timeout.Value
 	}
-
 	if c.CheckInterval.WasSet {
 		c.input.CheckInterval = &c.CheckInterval.Value
 	}
-
 	if c.ExpectedResponse.WasSet {
 		c.input.ExpectedResponse = &c.ExpectedResponse.Value
 	}
-
 	if c.Window.WasSet {
 		c.input.Window = &c.Window.Value
 	}
-
 	if c.Threshold.WasSet {
 		c.input.Threshold = &c.Threshold.Value
 	}
-
 	if c.Initial.WasSet {
 		c.input.Initial = &c.Initial.Value
 	}
@@ -157,11 +146,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Updated healthcheck %s (service %s version %d)", h.Name, h.ServiceID, h.ServiceVersion)
+	text.Success(out,
+		"Updated healthcheck %s (service %s version %d)",
+		fastly.ToValue(h.Name),
+		fastly.ToValue(h.ServiceID),
+		fastly.ToValue(h.ServiceVersion),
+	)
 	return nil
 }

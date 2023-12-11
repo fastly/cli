@@ -115,7 +115,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.UseTLS.WasSet {
-		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+		input.UseTLS = fastly.ToPointer(fastly.Compatibool(c.UseTLS.Value))
 	}
 
 	if c.TLSCACert.WasSet {
@@ -180,7 +180,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -192,6 +192,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Syslog logging endpoint %s (service %s version %d)", syslog.Name, syslog.ServiceID, syslog.ServiceVersion)
+	text.Success(out,
+		"Updated Syslog logging endpoint %s (service %s version %d)",
+		fastly.ToValue(syslog.Name),
+		fastly.ToValue(syslog.ServiceID),
+		fastly.ToValue(syslog.ServiceVersion),
+	)
 	return nil
 }

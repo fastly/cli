@@ -146,7 +146,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -158,6 +158,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Google Cloud Pub/Sub logging endpoint %s (service %s version %d)", googlepubsub.Name, googlepubsub.ServiceID, googlepubsub.ServiceVersion)
+	text.Success(out,
+		"Updated Google Cloud Pub/Sub logging endpoint %s (service %s version %d)",
+		fastly.ToValue(googlepubsub.Name),
+		fastly.ToValue(googlepubsub.ServiceID),
+		fastly.ToValue(googlepubsub.ServiceVersion),
+	)
 	return nil
 }

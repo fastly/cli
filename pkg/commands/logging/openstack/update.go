@@ -193,7 +193,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -205,6 +205,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated OpenStack logging endpoint %s (service %s version %d)", openstack.Name, openstack.ServiceID, openstack.ServiceVersion)
+	text.Success(out,
+		"Updated OpenStack logging endpoint %s (service %s version %d)",
+		fastly.ToValue(openstack.Name),
+		fastly.ToValue(openstack.ServiceID),
+		fastly.ToValue(openstack.ServiceVersion),
+	)
 	return nil
 }

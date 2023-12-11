@@ -29,8 +29,8 @@ func TestCreateSumologicInput(t *testing.T) {
 			want: &fastly.CreateSumologicInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				URL:            fastly.String("example.com"),
+				Name:           fastly.ToPointer("log"),
+				URL:            fastly.ToPointer("example.com"),
 			},
 		},
 		{
@@ -39,13 +39,13 @@ func TestCreateSumologicInput(t *testing.T) {
 			want: &fastly.CreateSumologicInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				URL:               fastly.String("example.com"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
-				MessageType:       fastly.String("classic"),
+				Name:              fastly.ToPointer("log"),
+				URL:               fastly.ToPointer("example.com"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
+				MessageType:       fastly.ToPointer("classic"),
 			},
 		},
 		{
@@ -79,7 +79,7 @@ func TestCreateSumologicInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -121,13 +121,13 @@ func TestUpdateSumologicInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				URL:               fastly.String("new2"),
-				Format:            fastly.String("new3"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new4"),
-				Placement:         fastly.String("new5"),
-				MessageType:       fastly.String("new6"),
+				NewName:           fastly.ToPointer("new1"),
+				URL:               fastly.ToPointer("new2"),
+				Format:            fastly.ToPointer("new3"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.ToPointer("new5"),
+				MessageType:       fastly.ToPointer("new6"),
 			},
 		},
 		{
@@ -165,7 +165,7 @@ func TestUpdateSumologicInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

@@ -17,7 +17,7 @@ type ListCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	input       fastly.ListDictionaryItemsInput
+	input       fastly.GetDictionaryItemsInput
 	serviceName argparser.OptionalServiceNameID
 }
 
@@ -36,8 +36,8 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	// Optional.
 	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.input.Direction, argparser.PaginationDirection...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.Page)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PerPage)
+	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(c.input.Page)
+	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(c.input.PerPage)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -50,7 +50,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
-	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.input.Sort)
+	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(c.input.Sort)
 	return &c
 }
 
@@ -69,7 +69,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.input.ServiceID = serviceID
-	paginator := c.Globals.APIClient.NewListDictionaryItemsPaginator(&c.input)
+	paginator := c.Globals.APIClient.GetDictionaryItems(&c.input)
 
 	var o []*fastly.DictionaryItem
 	for paginator.HasNext() {

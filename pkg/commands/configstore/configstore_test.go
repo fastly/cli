@@ -272,7 +272,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			Args: testutil.Args(configstore.RootName + " list"),
 			API: mock.API{
-				ListConfigStoresFn: func() ([]*fastly.ConfigStore, error) {
+				ListConfigStoresFn: func(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return nil, nil
 				},
 			},
@@ -281,7 +281,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			Args: testutil.Args(configstore.RootName + " list"),
 			API: mock.API{
-				ListConfigStoresFn: func() ([]*fastly.ConfigStore, error) {
+				ListConfigStoresFn: func(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return nil, errors.New("unknown error")
 				},
 			},
@@ -290,7 +290,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			Args: testutil.Args(configstore.RootName + " list"),
 			API: mock.API{
-				ListConfigStoresFn: func() ([]*fastly.ConfigStore, error) {
+				ListConfigStoresFn: func(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return stores, nil
 				},
 			},
@@ -299,7 +299,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			Args: testutil.Args(configstore.RootName + " list --json"),
 			API: mock.API{
-				ListConfigStoresFn: func() ([]*fastly.ConfigStore, error) {
+				ListConfigStoresFn: func(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return stores, nil
 				},
 			},
@@ -330,8 +330,8 @@ func TestListStoreServicesCommand(t *testing.T) {
 	)
 
 	services := []*fastly.Service{
-		{ID: "abc1", Name: "test1", Type: "wasm"},
-		{ID: "abc2", Name: "test2", Type: "vcl"},
+		{ID: fastly.ToPointer("abc1"), Name: fastly.ToPointer("test1"), Type: fastly.ToPointer("wasm")},
+		{ID: fastly.ToPointer("abc2"), Name: fastly.ToPointer("test2"), Type: fastly.ToPointer("vcl")},
 	}
 
 	scenarios := []testutil.TestScenario{

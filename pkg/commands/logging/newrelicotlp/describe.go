@@ -80,13 +80,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	o, err := c.Globals.APIClient.GetNewRelicOTLP(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -112,15 +112,15 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, nr *fastly.NewRelicOTLP) error {
 	lines := text.Lines{
-		"Format Version":     nr.FormatVersion,
-		"Format":             nr.Format,
-		"Name":               nr.Name,
-		"Placement":          nr.Placement,
-		"Region":             nr.Region,
-		"Response Condition": nr.ResponseCondition,
-		"Service Version":    nr.ServiceVersion,
-		"Token":              nr.Token,
-		"URL":                nr.URL,
+		"Format Version":     fastly.ToValue(nr.FormatVersion),
+		"Format":             fastly.ToValue(nr.Format),
+		"Name":               fastly.ToValue(nr.Name),
+		"Placement":          fastly.ToValue(nr.Placement),
+		"Region":             fastly.ToValue(nr.Region),
+		"Response Condition": fastly.ToValue(nr.ResponseCondition),
+		"Service Version":    fastly.ToValue(nr.ServiceVersion),
+		"Token":              fastly.ToValue(nr.Token),
+		"URL":                fastly.ToValue(nr.URL),
 	}
 	if nr.CreatedAt != nil {
 		lines["Created at"] = nr.CreatedAt
@@ -133,7 +133,7 @@ func (c *DescribeCommand) print(out io.Writer, nr *fastly.NewRelicOTLP) error {
 	}
 
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = nr.ServiceID
+		lines["Service ID"] = fastly.ToValue(nr.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

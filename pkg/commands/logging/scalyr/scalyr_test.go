@@ -29,8 +29,8 @@ func TestCreateScalyrInput(t *testing.T) {
 			want: &fastly.CreateScalyrInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Token:          fastly.String("tkn"),
+				Name:           fastly.ToPointer("log"),
+				Token:          fastly.ToPointer("tkn"),
 			},
 		},
 		{
@@ -39,13 +39,13 @@ func TestCreateScalyrInput(t *testing.T) {
 			want: &fastly.CreateScalyrInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				Token:             fastly.String("tkn"),
-				Region:            fastly.String("US"),
-				FormatVersion:     fastly.Int(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				Name:              fastly.ToPointer("log"),
+				Token:             fastly.ToPointer("tkn"),
+				Region:            fastly.ToPointer("US"),
+				FormatVersion:     fastly.ToPointer(2),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -79,7 +79,7 @@ func TestCreateScalyrInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -121,13 +121,13 @@ func TestUpdateScalyrInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				Token:             fastly.String("new2"),
-				FormatVersion:     fastly.Int(3),
-				Format:            fastly.String("new3"),
-				ResponseCondition: fastly.String("new4"),
-				Placement:         fastly.String("new5"),
-				Region:            fastly.String("new6"),
+				NewName:           fastly.ToPointer("new1"),
+				Token:             fastly.ToPointer("new2"),
+				FormatVersion:     fastly.ToPointer(3),
+				Format:            fastly.ToPointer("new3"),
+				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.ToPointer("new5"),
+				Region:            fastly.ToPointer("new6"),
 			},
 		},
 		{
@@ -165,7 +165,7 @@ func TestUpdateScalyrInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

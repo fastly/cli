@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListFTPs(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, ftp := range o {
-			tw.AddLine(ftp.ServiceID, ftp.ServiceVersion, ftp.Name)
+			tw.AddLine(
+				fastly.ToValue(ftp.ServiceID),
+				fastly.ToValue(ftp.ServiceVersion),
+				fastly.ToValue(ftp.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,23 +109,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, ftp := range o {
 		fmt.Fprintf(out, "\tFTP %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", ftp.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", ftp.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", ftp.Name)
-		fmt.Fprintf(out, "\t\tAddress: %s\n", ftp.Address)
-		fmt.Fprintf(out, "\t\tPort: %d\n", ftp.Port)
-		fmt.Fprintf(out, "\t\tUsername: %s\n", ftp.Username)
-		fmt.Fprintf(out, "\t\tPassword: %s\n", ftp.Password)
-		fmt.Fprintf(out, "\t\tPublic key: %s\n", ftp.PublicKey)
-		fmt.Fprintf(out, "\t\tPath: %s\n", ftp.Path)
-		fmt.Fprintf(out, "\t\tPeriod: %d\n", ftp.Period)
-		fmt.Fprintf(out, "\t\tGZip level: %d\n", ftp.GzipLevel)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", ftp.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", ftp.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", ftp.ResponseCondition)
-		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", ftp.TimestampFormat)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", ftp.Placement)
-		fmt.Fprintf(out, "\t\tCompression codec: %s\n", ftp.CompressionCodec)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(ftp.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(ftp.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(ftp.Name))
+		fmt.Fprintf(out, "\t\tAddress: %s\n", fastly.ToValue(ftp.Address))
+		fmt.Fprintf(out, "\t\tPort: %d\n", fastly.ToValue(ftp.Port))
+		fmt.Fprintf(out, "\t\tUsername: %s\n", fastly.ToValue(ftp.Username))
+		fmt.Fprintf(out, "\t\tPassword: %s\n", fastly.ToValue(ftp.Password))
+		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(ftp.PublicKey))
+		fmt.Fprintf(out, "\t\tPath: %s\n", fastly.ToValue(ftp.Path))
+		fmt.Fprintf(out, "\t\tPeriod: %d\n", fastly.ToValue(ftp.Period))
+		fmt.Fprintf(out, "\t\tGZip level: %d\n", fastly.ToValue(ftp.GzipLevel))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(ftp.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(ftp.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(ftp.ResponseCondition))
+		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(ftp.TimestampFormat))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(ftp.Placement))
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(ftp.CompressionCodec))
 	}
 	fmt.Fprintln(out)
 

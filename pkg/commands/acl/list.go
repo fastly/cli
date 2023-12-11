@@ -79,13 +79,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	o, err := c.Globals.APIClient.ListACLs(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -95,7 +95,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, serviceVersion.Number, o)
+		c.printVerbose(out, fastly.ToValue(serviceVersion.Number), o)
 	} else {
 		err = c.printSummary(out, o)
 		if err != nil {
@@ -121,8 +121,8 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, as []*fast
 	fmt.Fprintf(out, "Service Version: %d\n\n", serviceVersion)
 
 	for _, a := range as {
-		fmt.Fprintf(out, "Name: %s\n", a.Name)
-		fmt.Fprintf(out, "ID: %s\n\n", a.ID)
+		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(a.Name))
+		fmt.Fprintf(out, "ID: %s\n\n", fastly.ToValue(a.ID))
 
 		if a.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", a.CreatedAt)
@@ -144,7 +144,12 @@ func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACL) error {
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "VERSION", "NAME", "ID")
 	for _, a := range as {
-		t.AddLine(a.ServiceID, a.ServiceVersion, a.Name, a.ID)
+		t.AddLine(
+			fastly.ToValue(a.ServiceID),
+			fastly.ToValue(a.ServiceVersion),
+			fastly.ToValue(a.Name),
+			fastly.ToValue(a.ID),
+		)
 	}
 	t.Print()
 	return nil

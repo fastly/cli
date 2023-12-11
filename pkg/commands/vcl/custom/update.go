@@ -84,11 +84,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -97,15 +97,26 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
 	if input.NewName != nil && *input.NewName != "" {
-		text.Success(out, "Updated custom VCL '%s' (previously: '%s', service: %s, version: %d)", v.Name, input.Name, v.ServiceID, v.ServiceVersion)
+		text.Success(out,
+			"Updated custom VCL '%s' (previously: '%s', service: %s, version: %d)",
+			fastly.ToValue(v.Name),
+			input.Name,
+			fastly.ToValue(v.ServiceID),
+			fastly.ToValue(v.ServiceVersion),
+		)
 	} else {
-		text.Success(out, "Updated custom VCL '%s' (service: %s, version: %d)", v.Name, v.ServiceID, v.ServiceVersion)
+		text.Success(out,
+			"Updated custom VCL '%s' (service: %s, version: %d)",
+			fastly.ToValue(v.Name),
+			fastly.ToValue(v.ServiceID),
+			fastly.ToValue(v.ServiceVersion),
+		)
 	}
 	return nil
 }
@@ -125,7 +136,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		input.NewName = &c.newName.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
 	}
 
 	return &input, nil

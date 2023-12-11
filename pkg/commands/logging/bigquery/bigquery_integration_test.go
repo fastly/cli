@@ -274,9 +274,9 @@ var errTest = errors.New("fixture error")
 
 func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
@@ -287,34 +287,34 @@ func createBigQueryError(_ *fastly.CreateBigQueryInput) (*fastly.BigQuery, error
 func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
 	return []*fastly.BigQuery{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			ProjectID:         "my-project",
-			Dataset:           "raw-logs",
-			Table:             "logs",
-			User:              "service-account@domain.com",
-			AccountName:       "none",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Template:          "%Y%m%d",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			ProjectID:         fastly.ToPointer("my-project"),
+			Dataset:           fastly.ToPointer("raw-logs"),
+			Table:             fastly.ToPointer("logs"),
+			User:              fastly.ToPointer("service-account@domain.com"),
+			AccountName:       fastly.ToPointer("none"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			Template:          fastly.ToPointer("%Y%m%d"),
+			Placement:         fastly.ToPointer("none"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			ProjectID:         "my-project",
-			Dataset:           "analytics",
-			Table:             "logs",
-			User:              "service-account@domain.com",
-			AccountName:       "none",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Template:          "%Y%m%d",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			ProjectID:         fastly.ToPointer("my-project"),
+			Dataset:           fastly.ToPointer("analytics"),
+			Table:             fastly.ToPointer("logs"),
+			User:              fastly.ToPointer("service-account@domain.com"),
+			AccountName:       fastly.ToPointer("none"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			Template:          fastly.ToPointer("%Y%m%d"),
+			Placement:         fastly.ToPointer("none"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		},
 	}, nil
 }
@@ -370,19 +370,19 @@ Version: 1
 
 func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		ProjectID:         "my-project",
-		Dataset:           "raw-logs",
-		Table:             "logs",
-		User:              "service-account@domain.com",
-		AccountName:       "none",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Template:          "%Y%m%d",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		ProjectID:         fastly.ToPointer("my-project"),
+		Dataset:           fastly.ToPointer("raw-logs"),
+		Table:             fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("service-account@domain.com"),
+		AccountName:       fastly.ToPointer("none"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Template:          fastly.ToPointer("%Y%m%d"),
+		Placement:         fastly.ToPointer("none"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 	}, nil
 }
 
@@ -409,18 +409,18 @@ Version: 1
 
 func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ProjectID:         "my-project",
-		Dataset:           "raw-logs",
-		Table:             "logs",
-		User:              "service-account@domain.com",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Template:          "%Y%m%d",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ProjectID:         fastly.ToPointer("my-project"),
+		Dataset:           fastly.ToPointer("raw-logs"),
+		Table:             fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("service-account@domain.com"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Template:          fastly.ToPointer("%Y%m%d"),
+		Placement:         fastly.ToPointer("none"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 	}, nil
 }
 

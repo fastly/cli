@@ -223,8 +223,8 @@ func (s *SecretStores) Create() error {
 			_, err = s.APIClient.CreateResource(&fastly.CreateResourceInput{
 				ServiceID:      s.ServiceID,
 				ServiceVersion: s.ServiceVersion,
-				Name:           fastly.String(store.Name),
-				ResourceID:     fastly.String(store.ID),
+				Name:           fastly.ToPointer(store.Name),
+				ResourceID:     fastly.ToPointer(store.ID),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating resource link between the service %q and the Secret Store %q: %w", s.ServiceID, store.Name, err)

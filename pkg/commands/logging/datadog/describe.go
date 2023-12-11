@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetDatadog(&c.Input)
 	if err != nil {
@@ -93,17 +93,17 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Format version":     o.FormatVersion,
-		"Format":             o.Format,
-		"Name":               o.Name,
-		"Placement":          o.Placement,
-		"Region":             o.Region,
-		"Response condition": o.ResponseCondition,
-		"Token":              o.Token,
-		"Version":            o.ServiceVersion,
+		"Format version":     fastly.ToValue(o.FormatVersion),
+		"Format":             fastly.ToValue(o.Format),
+		"Name":               fastly.ToValue(o.Name),
+		"Placement":          fastly.ToValue(o.Placement),
+		"Region":             fastly.ToValue(o.Region),
+		"Response condition": fastly.ToValue(o.ResponseCondition),
+		"Token":              fastly.ToValue(o.Token),
+		"Version":            fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

@@ -29,9 +29,9 @@ func TestCreateLogshuttleInput(t *testing.T) {
 			want: &fastly.CreateLogshuttleInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Token:          fastly.String("tkn"),
-				URL:            fastly.String("example.com"),
+				Name:           fastly.ToPointer("log"),
+				Token:          fastly.ToPointer("tkn"),
+				URL:            fastly.ToPointer("example.com"),
 			},
 		},
 		{
@@ -40,13 +40,13 @@ func TestCreateLogshuttleInput(t *testing.T) {
 			want: &fastly.CreateLogshuttleInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				URL:               fastly.String("example.com"),
-				Token:             fastly.String("tkn"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				Name:              fastly.ToPointer("log"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				URL:               fastly.ToPointer("example.com"),
+				Token:             fastly.ToPointer("tkn"),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -80,7 +80,7 @@ func TestCreateLogshuttleInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -122,13 +122,13 @@ func TestUpdateLogshuttleInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				Format:            fastly.String("new2"),
-				FormatVersion:     fastly.Int(3),
-				Token:             fastly.String("new3"),
-				URL:               fastly.String("new4"),
-				ResponseCondition: fastly.String("new5"),
-				Placement:         fastly.String("new6"),
+				NewName:           fastly.ToPointer("new1"),
+				Format:            fastly.ToPointer("new2"),
+				FormatVersion:     fastly.ToPointer(3),
+				Token:             fastly.ToPointer("new3"),
+				URL:               fastly.ToPointer("new4"),
+				ResponseCondition: fastly.ToPointer("new5"),
+				Placement:         fastly.ToPointer("new6"),
 			},
 		},
 		{
@@ -166,7 +166,7 @@ func TestUpdateLogshuttleInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

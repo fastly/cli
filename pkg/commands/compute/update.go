@@ -103,16 +103,18 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		}
 	}()
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	err = spinner.Process("Uploading package", func(_ *text.SpinnerWrapper) error {
 		_, err = c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
 			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion.Number,
-			PackagePath:    packagePath,
+			ServiceVersion: serviceVersionNumber,
+			PackagePath:    fastly.ToPointer(packagePath),
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("error uploading package: %w", err),
@@ -125,6 +127,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	text.Success(out, "\nUpdated package (service %s, version %v)", serviceID, serviceVersion.Number)
+	text.Success(out, "\nUpdated package (service %s, version %v)", serviceID, serviceVersionNumber)
 	return nil
 }

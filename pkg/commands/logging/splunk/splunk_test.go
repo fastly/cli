@@ -29,8 +29,8 @@ func TestCreateSplunkInput(t *testing.T) {
 			want: &fastly.CreateSplunkInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				URL:            fastly.String("example.com"),
+				Name:           fastly.ToPointer("log"),
+				URL:            fastly.ToPointer("example.com"),
 			},
 		},
 		{
@@ -39,17 +39,17 @@ func TestCreateSplunkInput(t *testing.T) {
 			want: &fastly.CreateSplunkInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				URL:               fastly.String("example.com"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
-				Token:             fastly.String("tkn"),
-				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
-				TLSHostname:       fastly.String("example.com"),
-				TLSClientCert:     fastly.String("-----BEGIN CERTIFICATE-----bar"),
-				TLSClientKey:      fastly.String("-----BEGIN PRIVATE KEY-----bar"),
+				Name:              fastly.ToPointer("log"),
+				URL:               fastly.ToPointer("example.com"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
+				Token:             fastly.ToPointer("tkn"),
+				TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+				TLSHostname:       fastly.ToPointer("example.com"),
+				TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+				TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
 			},
 		},
 		{
@@ -83,7 +83,7 @@ func TestCreateSplunkInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -125,17 +125,17 @@ func TestUpdateSplunkInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				URL:               fastly.String("new2"),
-				Format:            fastly.String("new3"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new4"),
-				Placement:         fastly.String("new5"),
-				Token:             fastly.String("new6"),
-				TLSCACert:         fastly.String("new7"),
-				TLSHostname:       fastly.String("new8"),
-				TLSClientCert:     fastly.String("new9"),
-				TLSClientKey:      fastly.String("new10"),
+				NewName:           fastly.ToPointer("new1"),
+				URL:               fastly.ToPointer("new2"),
+				Format:            fastly.ToPointer("new3"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.ToPointer("new5"),
+				Token:             fastly.ToPointer("new6"),
+				TLSCACert:         fastly.ToPointer("new7"),
+				TLSHostname:       fastly.ToPointer("new8"),
+				TLSClientCert:     fastly.ToPointer("new9"),
+				TLSClientKey:      fastly.ToPointer("new10"),
 			},
 		},
 		{
@@ -173,7 +173,7 @@ func TestUpdateSplunkInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

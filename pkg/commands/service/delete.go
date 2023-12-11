@@ -70,15 +70,15 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		if s.ActiveVersion.Number != 0 {
+		if s.ActiveVersion != nil && fastly.ToValue(s.ActiveVersion.Number) != 0 {
 			_, err := c.Globals.APIClient.DeactivateVersion(&fastly.DeactivateVersionInput{
 				ServiceID:      serviceID,
-				ServiceVersion: s.ActiveVersion.Number,
+				ServiceVersion: fastly.ToValue(s.ActiveVersion.Number),
 			})
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]any{
 					"Service ID":      serviceID,
-					"Service Version": s.ActiveVersion.Number,
+					"Service Version": fastly.ToValue(s.ActiveVersion.Number),
 				})
 				return err
 			}

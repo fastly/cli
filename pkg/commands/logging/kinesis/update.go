@@ -155,7 +155,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -167,6 +167,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Kinesis logging endpoint %s (service %s version %d)", kinesis.Name, kinesis.ServiceID, kinesis.ServiceVersion)
+	text.Success(out,
+		"Updated Kinesis logging endpoint %s (service %s version %d)",
+		fastly.ToValue(kinesis.Name),
+		fastly.ToValue(kinesis.ServiceID),
+		fastly.ToValue(kinesis.ServiceVersion),
+	)
 	return nil
 }

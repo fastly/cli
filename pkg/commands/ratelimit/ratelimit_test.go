@@ -32,8 +32,8 @@ func TestRateLimitCreate(t *testing.T) {
 			API: mock.API{
 				CreateERLFn: func(i *fastly.CreateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						Name: *i.Name,
-						ID:   "123",
+						Name: i.Name,
+						ID:   fastly.ToPointer("123"),
 					}, nil
 				},
 				ListVersionsFn: testutil.ListVersions,
@@ -118,12 +118,12 @@ func TestRateLimitDescribe(t *testing.T) {
 			API: mock.API{
 				GetERLFn: func(i *fastly.GetERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						ID:                 "123",
-						Name:               "example",
-						Action:             fastly.ERLActionResponse,
-						RpsLimit:           10,
-						WindowSize:         fastly.ERLSize60,
-						PenaltyBoxDuration: 20,
+						ID:                 fastly.ToPointer("123"),
+						Name:               fastly.ToPointer("example"),
+						Action:             fastly.ToPointer(fastly.ERLActionResponse),
+						RpsLimit:           fastly.ToPointer(10),
+						WindowSize:         fastly.ToPointer(fastly.ERLSize60),
+						PenaltyBoxDuration: fastly.ToPointer(20),
 					}, nil
 				},
 			},
@@ -168,12 +168,12 @@ func TestRateLimitList(t *testing.T) {
 				ListERLsFn: func(i *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 					return []*fastly.ERL{
 						{
-							ID:                 "123",
-							Name:               "example",
-							Action:             fastly.ERLActionResponse,
-							RpsLimit:           10,
-							WindowSize:         fastly.ERLSize60,
-							PenaltyBoxDuration: 20,
+							ID:                 fastly.ToPointer("123"),
+							Name:               fastly.ToPointer("example"),
+							Action:             fastly.ToPointer(fastly.ERLActionResponse),
+							RpsLimit:           fastly.ToPointer(10),
+							WindowSize:         fastly.ToPointer(fastly.ERLSize60),
+							PenaltyBoxDuration: fastly.ToPointer(20),
 						},
 					}, nil
 				},
@@ -218,8 +218,8 @@ func TesRateLimittUpdate(t *testing.T) {
 			API: mock.API{
 				UpdateERLFn: func(i *fastly.UpdateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						Name: *i.Name,
-						ID:   "123",
+						Name: i.Name,
+						ID:   fastly.ToPointer("123"),
 					}, nil
 				},
 			},

@@ -81,13 +81,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetHealthCheck(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -97,9 +97,9 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", o.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(o.ServiceID))
 	}
-	fmt.Fprintf(out, "Version: %d\n", o.ServiceVersion)
+	fmt.Fprintf(out, "Version: %d\n", fastly.ToValue(o.ServiceVersion))
 	text.PrintHealthCheck(out, "", o)
 
 	return nil

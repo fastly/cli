@@ -84,7 +84,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.input.ServiceID = serviceID
-	c.input.ServiceVersion = serviceVersion.Number
+	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetResource(&c.input)
 	if err != nil {
@@ -101,9 +101,9 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if !c.Globals.Verbose() {
-		text.Output(out, "Service ID: %s", o.ServiceID)
+		text.Output(out, "Service ID: %s", fastly.ToValue(o.ServiceID))
 	}
-	text.Output(out, "Service Version: %s", o.ServiceVersion)
+	text.Output(out, "Service Version: %s", fastly.ToValue(o.ServiceVersion))
 	text.PrintResource(out, "", o)
 
 	return nil

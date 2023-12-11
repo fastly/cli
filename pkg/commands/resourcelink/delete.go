@@ -93,7 +93,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.input.ServiceID = serviceID
-	c.input.ServiceVersion = serviceVersion.Number
+	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	err = c.Globals.APIClient.DeleteResource(&c.input)
 	if err != nil {

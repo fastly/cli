@@ -80,13 +80,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	o, err := c.Globals.APIClient.GetACL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -112,11 +112,11 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, a *fastly.ACL) error {
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", a.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(a.ServiceID))
 	}
-	fmt.Fprintf(out, "Service Version: %d\n\n", a.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", a.Name)
-	fmt.Fprintf(out, "ID: %s\n\n", a.ID)
+	fmt.Fprintf(out, "Service Version: %d\n\n", fastly.ToValue(a.ServiceVersion))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(a.Name))
+	fmt.Fprintf(out, "ID: %s\n\n", fastly.ToValue(a.ID))
 	if a.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", a.CreatedAt)
 	}

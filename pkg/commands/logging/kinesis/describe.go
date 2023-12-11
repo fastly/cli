@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetKinesis(&c.Input)
 	if err != nil {
@@ -93,25 +93,25 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Format version":     o.FormatVersion,
-		"Format":             o.Format,
-		"Name":               o.Name,
-		"Placement":          o.Placement,
-		"Region":             o.Region,
-		"Response condition": o.ResponseCondition,
-		"Stream name":        o.StreamName,
-		"Version":            o.ServiceVersion,
+		"Format version":     fastly.ToValue(o.FormatVersion),
+		"Format":             fastly.ToValue(o.Format),
+		"Name":               fastly.ToValue(o.Name),
+		"Placement":          fastly.ToValue(o.Placement),
+		"Region":             fastly.ToValue(o.Region),
+		"Response condition": fastly.ToValue(o.ResponseCondition),
+		"Stream name":        fastly.ToValue(o.StreamName),
+		"Version":            fastly.ToValue(o.ServiceVersion),
 	}
 
-	if o.AccessKey != "" || o.SecretKey != "" {
-		lines["Access key"] = o.AccessKey
-		lines["Secret key"] = o.SecretKey
+	if o.AccessKey != nil || o.SecretKey != nil {
+		lines["Access key"] = fastly.ToValue(o.AccessKey)
+		lines["Secret key"] = fastly.ToValue(o.SecretKey)
 	}
-	if o.IAMRole != "" {
-		lines["IAM role"] = o.IAMRole
+	if o.IAMRole != nil {
+		lines["IAM role"] = fastly.ToValue(o.IAMRole)
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

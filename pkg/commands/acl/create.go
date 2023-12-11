@@ -81,7 +81,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	a, err := c.Globals.APIClient.CreateACL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -91,7 +91,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created ACL '%s' (id: %s, service: %s, version: %d)", a.Name, a.ID, a.ServiceID, a.ServiceVersion)
+	text.Success(out, "Created ACL '%s' (id: %s, service: %s, version: %d)", fastly.ToValue(a.Name), fastly.ToValue(a.ID), fastly.ToValue(a.ServiceID), fastly.ToValue(a.ServiceVersion))
 	return nil
 }
 

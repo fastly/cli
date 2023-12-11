@@ -44,21 +44,21 @@ func TestVCLCustomCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Main == nil {
 						b := false
 						i.Main = &b
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.VCL{
-						Content:        *i.Content,
-						Main:           *i.Main,
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Content:        i.Content,
+						Main:           i.Main,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -74,21 +74,21 @@ func TestVCLCustomCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Main == nil {
 						b := false
 						i.Main = &b
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.VCL{
-						Content:        *i.Content,
-						Main:           *i.Main,
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Content:        i.Content,
+						Main:           i.Main,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -104,21 +104,21 @@ func TestVCLCustomCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Main == nil {
 						b := false
 						i.Main = &b
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.VCL{
-						Content:        *i.Content,
-						Main:           *i.Main,
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Content:        i.Content,
+						Main:           i.Main,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -133,21 +133,21 @@ func TestVCLCustomCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Main == nil {
 						b := false
 						i.Main = &b
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.VCL{
-						Content:        *i.Content,
-						Main:           *i.Main,
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Content:        i.Content,
+						Main:           i.Main,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -429,11 +429,11 @@ func TestVCLCustomUpdate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return &fastly.VCL{
-						Content:        "# untouched",
-						Main:           true,
-						Name:           *i.NewName,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Content:        fastly.ToPointer("# untouched"),
+						Main:           fastly.ToPointer(true),
+						Name:           i.NewName,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -449,11 +449,11 @@ func TestVCLCustomUpdate(t *testing.T) {
 					content = *i.Content
 
 					return &fastly.VCL{
-						Content:        *i.Content,
-						Main:           true,
-						Name:           i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Content:        i.Content,
+						Main:           fastly.ToPointer(true),
+						Name:           fastly.ToPointer(i.Name),
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -470,11 +470,11 @@ func TestVCLCustomUpdate(t *testing.T) {
 					content = *i.Content
 
 					return &fastly.VCL{
-						Content:        *i.Content,
-						Main:           true,
-						Name:           i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Content:        i.Content,
+						Main:           fastly.ToPointer(true),
+						Name:           fastly.ToPointer(i.Name),
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -504,11 +504,11 @@ func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
 	t := testutil.Date
 
 	return &fastly.VCL{
-		Content:        "# some vcl content",
-		Main:           true,
-		Name:           i.Name,
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		Content:        fastly.ToPointer("# some vcl content"),
+		Main:           fastly.ToPointer(true),
+		Name:           fastly.ToPointer(i.Name),
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 		CreatedAt: &t,
 		DeletedAt: &t,
@@ -520,22 +520,22 @@ func listVCLs(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
 	t := testutil.Date
 	vs := []*fastly.VCL{
 		{
-			Content:        "# some vcl content",
-			Main:           true,
-			Name:           "foo",
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
+			Content:        fastly.ToPointer("# some vcl content"),
+			Main:           fastly.ToPointer(true),
+			Name:           fastly.ToPointer("foo"),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 			CreatedAt: &t,
 			DeletedAt: &t,
 			UpdatedAt: &t,
 		},
 		{
-			Content:        "# some vcl content",
-			Main:           false,
-			Name:           "bar",
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
+			Content:        fastly.ToPointer("# some vcl content"),
+			Main:           fastly.ToPointer(false),
+			Name:           fastly.ToPointer("bar"),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 			CreatedAt: &t,
 			DeletedAt: &t,

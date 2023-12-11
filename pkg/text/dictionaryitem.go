@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/cli/pkg/time"
 )
 
 // PrintDictionaryItem pretty prints a fastly.DictionaryInfo structure in verbose
@@ -15,9 +16,9 @@ import (
 func PrintDictionaryItem(out io.Writer, prefix string, d *fastly.DictionaryItem) {
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "Dictionary ID: %s\n", d.DictionaryID)
-	fmt.Fprintf(out, "Item Key: %s\n", d.ItemKey)
-	fmt.Fprintf(out, "Item Value: %s\n", d.ItemValue)
+	fmt.Fprintf(out, "Dictionary ID: %s\n", fastly.ToValue(d.DictionaryID))
+	fmt.Fprintf(out, "Item Key: %s\n", fastly.ToValue(d.ItemKey))
+	fmt.Fprintf(out, "Item Value: %s\n", fastly.ToValue(d.ItemValue))
 	if d.CreatedAt != nil {
 		fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(time.Format))
 	}
@@ -32,6 +33,6 @@ func PrintDictionaryItem(out io.Writer, prefix string, d *fastly.DictionaryItem)
 // PrintDictionaryItemKV pretty prints only the key/value pairs from a dictionary item.
 func PrintDictionaryItemKV(out io.Writer, prefix string, d *fastly.DictionaryItem) {
 	out = textio.NewPrefixWriter(out, prefix)
-	fmt.Fprintf(out, "Item Key: %s\n", d.ItemKey)
-	fmt.Fprintf(out, "Item Value: %s\n", d.ItemValue)
+	fmt.Fprintf(out, "Item Key: %s\n", fastly.ToValue(d.ItemKey))
+	fmt.Fprintf(out, "Item Value: %s\n", fastly.ToValue(d.ItemValue))
 }

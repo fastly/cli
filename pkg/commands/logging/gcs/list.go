@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListGCSs(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, gcs := range o {
-			tw.AddLine(gcs.ServiceID, gcs.ServiceVersion, gcs.Name)
+			tw.AddLine(
+				fastly.ToValue(gcs.ServiceID),
+				fastly.ToValue(gcs.ServiceVersion),
+				fastly.ToValue(gcs.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,23 +109,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, gcs := range o {
 		fmt.Fprintf(out, "\tGCS %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", gcs.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", gcs.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", gcs.Name)
-		fmt.Fprintf(out, "\t\tBucket: %s\n", gcs.Bucket)
-		fmt.Fprintf(out, "\t\tUser: %s\n", gcs.User)
-		fmt.Fprintf(out, "\t\tAccount name: %s\n", gcs.AccountName)
-		fmt.Fprintf(out, "\t\tSecret key: %s\n", gcs.SecretKey)
-		fmt.Fprintf(out, "\t\tPath: %s\n", gcs.Path)
-		fmt.Fprintf(out, "\t\tPeriod: %d\n", gcs.Period)
-		fmt.Fprintf(out, "\t\tGZip level: %d\n", gcs.GzipLevel)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", gcs.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", gcs.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", gcs.ResponseCondition)
-		fmt.Fprintf(out, "\t\tMessage type: %s\n", gcs.MessageType)
-		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", gcs.TimestampFormat)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", gcs.Placement)
-		fmt.Fprintf(out, "\t\tCompression codec: %s\n", gcs.CompressionCodec)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(gcs.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(gcs.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(gcs.Name))
+		fmt.Fprintf(out, "\t\tBucket: %s\n", fastly.ToValue(gcs.Bucket))
+		fmt.Fprintf(out, "\t\tUser: %s\n", fastly.ToValue(gcs.User))
+		fmt.Fprintf(out, "\t\tAccount name: %s\n", fastly.ToValue(gcs.AccountName))
+		fmt.Fprintf(out, "\t\tSecret key: %s\n", fastly.ToValue(gcs.SecretKey))
+		fmt.Fprintf(out, "\t\tPath: %s\n", fastly.ToValue(gcs.Path))
+		fmt.Fprintf(out, "\t\tPeriod: %d\n", fastly.ToValue(gcs.Period))
+		fmt.Fprintf(out, "\t\tGZip level: %d\n", fastly.ToValue(gcs.GzipLevel))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(gcs.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(gcs.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(gcs.ResponseCondition))
+		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(gcs.MessageType))
+		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(gcs.TimestampFormat))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(gcs.Placement))
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(gcs.CompressionCodec))
 	}
 	fmt.Fprintln(out)
 

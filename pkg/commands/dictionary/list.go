@@ -77,15 +77,16 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		})
 		return err
 	}
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = serviceVersionNumber
 
 	o, err := c.Globals.APIClient.ListDictionaries(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}

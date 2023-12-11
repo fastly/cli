@@ -203,7 +203,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -215,6 +215,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated HTTPS logging endpoint %s (service %s version %d)", https.Name, https.ServiceID, https.ServiceVersion)
+	text.Success(out,
+		"Updated HTTPS logging endpoint %s (service %s version %d)",
+		fastly.ToValue(https.Name),
+		fastly.ToValue(https.ServiceID),
+		fastly.ToValue(https.ServiceVersion),
+	)
 	return nil
 }

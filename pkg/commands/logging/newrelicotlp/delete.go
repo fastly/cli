@@ -79,18 +79,18 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	err = c.Globals.APIClient.DeleteNewRelicOTLP(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted New Relic OTLP logging endpoint '%s' (service: %s, version: %d)", c.name, serviceID, serviceVersion.Number)
+	text.Success(out, "Deleted New Relic OTLP logging endpoint '%s' (service: %s, version: %d)", c.name, serviceID, fastly.ToValue(serviceVersion.Number))
 	return nil
 }
 

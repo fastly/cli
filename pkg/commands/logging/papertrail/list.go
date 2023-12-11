@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListPapertrails(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, papertrail := range o {
-			tw.AddLine(papertrail.ServiceID, papertrail.ServiceVersion, papertrail.Name)
+			tw.AddLine(
+				fastly.ToValue(papertrail.ServiceID),
+				fastly.ToValue(papertrail.ServiceVersion),
+				fastly.ToValue(papertrail.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,15 +109,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, papertrail := range o {
 		fmt.Fprintf(out, "\tPapertrail %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", papertrail.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", papertrail.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", papertrail.Name)
-		fmt.Fprintf(out, "\t\tAddress: %s\n", papertrail.Address)
-		fmt.Fprintf(out, "\t\tPort: %d\n", papertrail.Port)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", papertrail.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", papertrail.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", papertrail.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", papertrail.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(papertrail.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(papertrail.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(papertrail.Name))
+		fmt.Fprintf(out, "\t\tAddress: %s\n", fastly.ToValue(papertrail.Address))
+		fmt.Fprintf(out, "\t\tPort: %d\n", fastly.ToValue(papertrail.Port))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(papertrail.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(papertrail.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(papertrail.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(papertrail.Placement))
 	}
 	fmt.Fprintln(out)
 

@@ -274,9 +274,9 @@ var errTest = errors.New("fixture error")
 
 func createSplunkOK(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
@@ -287,34 +287,34 @@ func createSplunkError(_ *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	return []*fastly.Splunk{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			URL:               "example.com",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-			Token:             "tkn",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			URL:               fastly.ToPointer("example.com"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
+			Token:             fastly.ToPointer("tkn"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			URL:               "127.0.0.1",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-			Token:             "tkn1",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----qux",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----qux",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			URL:               fastly.ToPointer("127.0.0.1"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
+			Token:             fastly.ToPointer("tkn1"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----qux"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----qux"),
 		},
 	}, nil
 }
@@ -368,19 +368,19 @@ Version: 1
 
 func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		URL:               "example.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-		Token:             "tkn",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		URL:               fastly.ToPointer("example.com"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
+		Token:             fastly.ToPointer("tkn"),
 	}, nil
 }
 
@@ -406,19 +406,19 @@ Version: 1
 
 func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		URL:               "example.com",
-		Token:             "tkn",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		URL:               fastly.ToPointer("example.com"),
+		Token:             fastly.ToPointer("tkn"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

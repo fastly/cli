@@ -137,7 +137,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.UseTLS.WasSet {
-		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+		input.UseTLS = fastly.ToPointer(fastly.Compatibool(c.UseTLS.Value))
 	}
 
 	if c.TLSCACert.WasSet {
@@ -173,7 +173,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.ParseLogKeyvals.WasSet {
-		input.ParseLogKeyvals = fastly.CBool(c.ParseLogKeyvals.Value)
+		input.ParseLogKeyvals = fastly.ToPointer(fastly.Compatibool(c.ParseLogKeyvals.Value))
 	}
 
 	if c.RequestMaxBytes.WasSet {
@@ -214,7 +214,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -226,6 +226,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Kafka logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
+	text.Success(out,
+		"Created Kafka logging endpoint %s (service %s version %d)",
+		fastly.ToValue(d.Name),
+		fastly.ToValue(d.ServiceID),
+		fastly.ToValue(d.ServiceVersion),
+	)
 	return nil
 }

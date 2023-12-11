@@ -80,13 +80,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListDomains(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -99,7 +99,12 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME", "COMMENT")
 		for _, domain := range o {
-			tw.AddLine(domain.ServiceID, domain.ServiceVersion, domain.Name, domain.Comment)
+			tw.AddLine(
+				fastly.ToValue(domain.ServiceID),
+				fastly.ToValue(domain.ServiceVersion),
+				fastly.ToValue(domain.Name),
+				fastly.ToValue(domain.Comment),
+			)
 		}
 		tw.Print()
 		return nil
@@ -108,8 +113,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, domain := range o {
 		fmt.Fprintf(out, "\tDomain %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tName: %s\n", domain.Name)
-		fmt.Fprintf(out, "\t\tComment: %v\n", domain.Comment)
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(domain.Name))
+		fmt.Fprintf(out, "\t\tComment: %v\n", fastly.ToValue(domain.Comment))
 	}
 	fmt.Fprintln(out)
 

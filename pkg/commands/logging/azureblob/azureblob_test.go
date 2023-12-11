@@ -29,10 +29,10 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			want: &fastly.CreateBlobStorageInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("logs"),
-				AccountName:    fastly.String("account"),
-				Container:      fastly.String("container"),
-				SASToken:       fastly.String("token"),
+				Name:           fastly.ToPointer("logs"),
+				AccountName:    fastly.ToPointer("account"),
+				Container:      fastly.ToPointer("container"),
+				SASToken:       fastly.ToPointer("token"),
 			},
 		},
 		{
@@ -41,20 +41,20 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			want: &fastly.CreateBlobStorageInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("logs"),
-				Container:         fastly.String("container"),
-				AccountName:       fastly.String("account"),
-				SASToken:          fastly.String("token"),
-				Path:              fastly.String("/log"),
-				Period:            fastly.Int(3600),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				MessageType:       fastly.String("classic"),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.String("none"),
-				PublicKey:         fastly.String(pgpPublicKey()),
-				CompressionCodec:  fastly.String("zstd"),
+				Name:              fastly.ToPointer("logs"),
+				Container:         fastly.ToPointer("container"),
+				AccountName:       fastly.ToPointer("account"),
+				SASToken:          fastly.ToPointer("token"),
+				Path:              fastly.ToPointer("/log"),
+				Period:            fastly.ToPointer(3600),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				MessageType:       fastly.ToPointer("classic"),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+				Placement:         fastly.ToPointer("none"),
+				PublicKey:         fastly.ToPointer(pgpPublicKey()),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -88,7 +88,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -116,21 +116,21 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "logs",
-				NewName:           fastly.String("new1"),
-				Container:         fastly.String("new2"),
-				AccountName:       fastly.String("new3"),
-				SASToken:          fastly.String("new4"),
-				Path:              fastly.String("new5"),
-				Period:            fastly.Int(3601),
-				GzipLevel:         fastly.Int(0),
-				Format:            fastly.String("new6"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new7"),
-				MessageType:       fastly.String("new8"),
-				TimestampFormat:   fastly.String("new9"),
-				Placement:         fastly.String("new10"),
-				PublicKey:         fastly.String("new11"),
-				CompressionCodec:  fastly.String("new12"),
+				NewName:           fastly.ToPointer("new1"),
+				Container:         fastly.ToPointer("new2"),
+				AccountName:       fastly.ToPointer("new3"),
+				SASToken:          fastly.ToPointer("new4"),
+				Path:              fastly.ToPointer("new5"),
+				Period:            fastly.ToPointer(3601),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new6"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new7"),
+				MessageType:       fastly.ToPointer("new8"),
+				TimestampFormat:   fastly.ToPointer("new9"),
+				Placement:         fastly.ToPointer("new10"),
+				PublicKey:         fastly.ToPointer("new11"),
+				CompressionCodec:  fastly.ToPointer("new12"),
 			},
 		},
 		{
@@ -182,7 +182,7 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

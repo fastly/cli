@@ -3,6 +3,8 @@ package mock
 import (
 	"net/http"
 
+	"github.com/fastly/go-fastly/v8/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 )
 
@@ -14,24 +16,32 @@ func APIClient(a API) func(string, string, bool) (api.Interface, error) {
 	}
 }
 
-type mockHTTPClient struct {
-	// index keeps track of which response/error to return
-	index int
-	res   []*http.Response
-	err   []error
+// MockHTTPClient is used to mock fastly.Client requests.
+type MockHTTPClient struct {
+	// Index keeps track of which Responses/Errors index to return.
+	Index int
+	// Responses tracks different responses to return.
+	Responses []*http.Response
+	// Errors tracks different errors to return.
+	Errors []error
 }
 
-func (c mockHTTPClient) Do(_ *http.Request) (*http.Response, error) {
-	c.index++
-	return c.res[c.index], c.err[c.index]
+func (c MockHTTPClient) Get(p string, ro *fastly.RequestOptions) (*http.Response, error) {
+	c.Index++
+	return c.Responses[c.Index], c.Errors[c.Index]
+}
+
+func (c MockHTTPClient) Do(_ *http.Request) (*http.Response, error) {
+	c.Index++
+	return c.Responses[c.Index], c.Errors[c.Index]
 }
 
 // HTMLClient returns a mock HTTP Client that returns a stubbed response or
 // error.
 func HTMLClient(res []*http.Response, err []error) api.HTTPClient {
-	return mockHTTPClient{
-		index: -1,
-		res:   res,
-		err:   err,
+	return MockHTTPClient{
+		Index:     -1,
+		Responses: res,
+		Errors:    err,
 	}
 }

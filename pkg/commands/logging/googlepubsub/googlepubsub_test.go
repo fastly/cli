@@ -29,11 +29,11 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			want: &fastly.CreatePubsubInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				User:           fastly.String("user@example.com"),
-				SecretKey:      fastly.String("secret"),
-				ProjectID:      fastly.String("project"),
-				Topic:          fastly.String("topic"),
+				Name:           fastly.ToPointer("log"),
+				User:           fastly.ToPointer("user@example.com"),
+				SecretKey:      fastly.ToPointer("secret"),
+				ProjectID:      fastly.ToPointer("project"),
+				Topic:          fastly.ToPointer("topic"),
 			},
 		},
 		{
@@ -42,15 +42,15 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			want: &fastly.CreatePubsubInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("logs"),
-				Topic:             fastly.String("topic"),
-				User:              fastly.String("user@example.com"),
-				SecretKey:         fastly.String("secret"),
-				ProjectID:         fastly.String("project"),
-				FormatVersion:     fastly.Int(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				Name:              fastly.ToPointer("logs"),
+				Topic:             fastly.ToPointer("topic"),
+				User:              fastly.ToPointer("user@example.com"),
+				SecretKey:         fastly.ToPointer("secret"),
+				ProjectID:         fastly.ToPointer("project"),
+				FormatVersion:     fastly.ToPointer(2),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -84,7 +84,7 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -112,15 +112,15 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				User:              fastly.String("new2"),
-				SecretKey:         fastly.String("new3"),
-				ProjectID:         fastly.String("new4"),
-				Topic:             fastly.String("new5"),
-				Placement:         fastly.String("new6"),
-				Format:            fastly.String("new7"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new8"),
+				NewName:           fastly.ToPointer("new1"),
+				User:              fastly.ToPointer("new2"),
+				SecretKey:         fastly.ToPointer("new3"),
+				ProjectID:         fastly.ToPointer("new4"),
+				Topic:             fastly.ToPointer("new5"),
+				Placement:         fastly.ToPointer("new6"),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
 			},
 		},
 		{
@@ -172,7 +172,7 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

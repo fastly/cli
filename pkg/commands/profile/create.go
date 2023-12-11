@@ -188,7 +188,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	var user *fastly.User
 	err = spinner.Process("Getting user data", func(_ *text.SpinnerWrapper) error {
 		user, err = client.GetUser(&fastly.GetUserInput{
-			ID: t.UserID,
+			ID: fastly.ToValue(t.UserID),
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -204,7 +204,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	if err != nil {
 		return "", err
 	}
-	return user.Login, nil
+	return fastly.ToValue(user.Login), nil
 }
 
 // updateInMemCfg persists the updated configuration data in-memory.

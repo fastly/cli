@@ -83,31 +83,33 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	input := fastly.CreateDictionaryInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: serviceVersionNumber,
 	}
 	if c.name.WasSet {
 		input.Name = &c.name.Value
 	}
 	if c.writeOnly.WasSet {
-		input.WriteOnly = fastly.CBool(c.writeOnly.Value)
+		input.WriteOnly = fastly.ToPointer(fastly.Compatibool(c.writeOnly.Value))
 	}
 
 	d, err := c.Globals.APIClient.CreateDictionary(&input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
 
 	var writeOnlyOutput string
-	if d.WriteOnly {
+	if fastly.ToValue(d.WriteOnly) {
 		writeOnlyOutput = "as write-only "
 	}
 
-	text.Success(out, "Created dictionary %s %s(id %s, service %s, version %d)", d.Name, writeOnlyOutput, d.ID, d.ServiceID, d.ServiceVersion)
+	text.Success(out, "Created dictionary %s %s(id %s, service %s, version %d)", fastly.ToValue(d.Name), writeOnlyOutput, fastly.ToValue(d.ID), fastly.ToValue(d.ServiceID), fastly.ToValue(d.ServiceVersion))
 	return nil
 }

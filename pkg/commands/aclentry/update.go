@@ -103,7 +103,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated ACL entry '%s' (ip: %s, service: %s)", a.ID, a.IP, a.ServiceID)
+	text.Success(out, "Updated ACL entry '%s' (ip: %s, service: %s)", fastly.ToValue(a.ID), fastly.ToValue(a.IP), fastly.ToValue(a.ServiceID))
 	return nil
 }
 
@@ -158,7 +158,7 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 		input.IP = &c.ip.Value
 	}
 	if c.negated.WasSet {
-		input.Negated = fastly.CBool(c.negated.Value)
+		input.Negated = fastly.ToPointer(fastly.Compatibool(c.negated.Value))
 	}
 	if c.subnet.WasSet {
 		input.Subnet = &c.subnet.Value

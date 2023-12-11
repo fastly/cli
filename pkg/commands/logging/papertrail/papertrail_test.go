@@ -29,8 +29,8 @@ func TestCreatePapertrailInput(t *testing.T) {
 			want: &fastly.CreatePapertrailInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Address:        fastly.String("example.com"),
+				Name:           fastly.ToPointer("log"),
+				Address:        fastly.ToPointer("example.com"),
 			},
 		},
 		{
@@ -39,13 +39,13 @@ func TestCreatePapertrailInput(t *testing.T) {
 			want: &fastly.CreatePapertrailInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				Address:           fastly.String("example.com"),
-				Port:              fastly.Int(22),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				Name:              fastly.ToPointer("log"),
+				Address:           fastly.ToPointer("example.com"),
+				Port:              fastly.ToPointer(22),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -79,7 +79,7 @@ func TestCreatePapertrailInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -121,13 +121,13 @@ func TestUpdatePapertrailInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				Address:           fastly.String("new2"),
-				Port:              fastly.Int(23),
-				Format:            fastly.String("new3"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new4"),
-				Placement:         fastly.String("new5"),
+				NewName:           fastly.ToPointer("new1"),
+				Address:           fastly.ToPointer("new2"),
+				Port:              fastly.ToPointer(23),
+				Format:            fastly.ToPointer("new3"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.ToPointer("new5"),
 			},
 		},
 		{
@@ -165,7 +165,7 @@ func TestUpdatePapertrailInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

@@ -274,12 +274,12 @@ var errTest = errors.New("fixture error")
 
 func createHoneycombOK(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
 	s := fastly.Honeycomb{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
-	if *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -292,26 +292,26 @@ func createHoneycombError(_ *fastly.CreateHoneycombInput) (*fastly.Honeycomb, er
 func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
 	return []*fastly.Honeycomb{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			Dataset:           "log",
-			Token:             "tkn",
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			Dataset:           fastly.ToPointer("log"),
+			Token:             fastly.ToPointer("tkn"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Dataset:           "log",
-			Token:             "tkn",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Dataset:           fastly.ToPointer("log"),
+			Token:             fastly.ToPointer("tkn"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -357,15 +357,15 @@ Version: 1
 
 func getHoneycombOK(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	return &fastly.Honeycomb{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Dataset:           "log",
-		Token:             "tkn",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Dataset:           fastly.ToPointer("log"),
+		Token:             fastly.ToPointer("tkn"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -387,15 +387,15 @@ Version: 1
 
 func updateHoneycombOK(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
 	return &fastly.Honeycomb{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Dataset:           "log",
-		Token:             "tkn",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Dataset:           fastly.ToPointer("log"),
+		Token:             fastly.ToPointer("tkn"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

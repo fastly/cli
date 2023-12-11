@@ -84,7 +84,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	input := fastly.CreateDomainInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 	if c.name.WasSet {
 		input.Name = &c.name.Value
@@ -96,11 +96,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Created domain %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
+	text.Success(out, "Created domain %s (service %s version %d)", fastly.ToValue(d.Name), fastly.ToValue(d.ServiceID), fastly.ToValue(d.ServiceVersion))
 	return nil
 }

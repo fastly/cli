@@ -80,13 +80,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListHealthChecks(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -99,7 +99,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME", "METHOD", "HOST", "PATH")
 		for _, hc := range o {
-			tw.AddLine(hc.ServiceID, hc.ServiceVersion, hc.Name, hc.Method, hc.Host, hc.Path)
+			tw.AddLine(
+				fastly.ToValue(hc.ServiceID),
+				fastly.ToValue(hc.ServiceVersion),
+				fastly.ToValue(hc.Name),
+				fastly.ToValue(hc.Method),
+				fastly.ToValue(hc.Host),
+				fastly.ToValue(hc.Path),
+			)
 		}
 		tw.Print()
 		return nil

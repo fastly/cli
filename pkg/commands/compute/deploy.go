@@ -198,7 +198,8 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return nil // user declined service creation prompt
 		}
 	} else {
-		// nosemgrep: trailofbits.go.invalid-usage-of-modified-variable.invalid-usage-of-modified-variable (we only reference variable in specific error scenario)
+		// ErrPackageUnchanged is returned AFTER identifying the service version.
+		// nosemgrep: trailofbits.go.invalid-usage-of-modified-variable.invalid-usage-of-modified-variable
 		serviceVersion, err = c.ExistingServiceVersion(serviceID, out)
 		if err != nil {
 			if errors.Is(err, ErrPackageUnchanged) {
@@ -224,29 +225,30 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		PackageDomain:  c.Domain,
 		RetryLimit:     5,
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 		Stdin:          in,
 		Stdout:         out,
 		Verbose:        c.Globals.Verbose(),
 	}
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 	if err = sr.domains.Validate(); err != nil {
-		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion.Number)
+		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersionNumber)
 		return fmt.Errorf("error configuring service domains: %w", err)
 	}
 	if noExistingService {
 		c.ConstructNewServiceResources(
-			&sr, serviceID, serviceVersion.Number, in, out,
+			&sr, serviceID, serviceVersionNumber, in, out,
 		)
 	}
 
 	if sr.domains.Missing() {
 		if err := sr.domains.Configure(); err != nil {
-			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion.Number)
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersionNumber)
 			return fmt.Errorf("error configuring service domains: %w", err)
 		}
 	}
 	if noExistingService {
-		if err = c.ConfigureServiceResources(sr, serviceID, serviceVersion.Number); err != nil {
+		if err = c.ConfigureServiceResources(sr, serviceID, serviceVersionNumber); err != nil {
 			return err
 		}
 	}
@@ -265,12 +267,12 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 	if noExistingService {
-		if err = c.CreateServiceResources(sr, spinner, serviceID, serviceVersion.Number); err != nil {
+		if err = c.CreateServiceResources(sr, spinner, serviceID, serviceVersionNumber); err != nil {
 			return err
 		}
 	}
 
-	err = c.UploadPackage(spinner, serviceID, serviceVersion.Number)
+	err = c.UploadPackage(spinner, serviceID, serviceVersionNumber)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Package path":    c.PackagePath,
@@ -280,11 +282,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if err = c.ProcessService(serviceID, serviceVersion.Number, spinner); err != nil {
+	if err = c.ProcessService(serviceID, serviceVersionNumber, spinner); err != nil {
 		return err
 	}
 
-	serviceURL, err := c.GetServiceURL(serviceID, serviceVersion.Number)
+	serviceURL, err := c.GetServiceURL(serviceID, serviceVersionNumber)
 	if err != nil {
 		return err
 	}
@@ -296,7 +298,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if !noExistingService {
 		text.Break(out)
 	}
-	displayDeployOutput(out, manageServiceBaseURL, serviceID, serviceURL, serviceVersion.Number)
+	displayDeployOutput(out, manageServiceBaseURL, serviceID, serviceURL, serviceVersionNumber)
 	return nil
 }
 
@@ -627,7 +629,7 @@ func createService(
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
 		Name: &serviceName,
-		Type: fastly.String("wasm"),
+		Type: fastly.ToPointer("wasm"),
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), trialNotActivated) {
@@ -645,7 +647,8 @@ func createService(
 				}
 			}
 
-			err = fnActivateTrial(user.CustomerID)
+			customerID := fastly.ToValue(user.CustomerID)
+			err = fnActivateTrial(customerID)
 			if err != nil {
 				err = fmt.Errorf("error creating service: you do not have the Compute free trial enabled on your Fastly account")
 				spinner.StopFailMessage(msg)
@@ -661,7 +664,7 @@ func createService(
 
 			errLog.AddWithContext(err, map[string]any{
 				"Service Name": serviceName,
-				"Customer ID":  user.CustomerID,
+				"Customer ID":  customerID,
 			})
 
 			spinner.StopFailMessage(msg)
@@ -690,7 +693,7 @@ func createService(
 	if err != nil {
 		return "", nil, err
 	}
-	return service.ID, &fastly.Version{Number: 1}, nil
+	return fastly.ToValue(service.ID), &fastly.Version{Number: fastly.ToPointer(1)}, nil
 }
 
 // CleanupNewService is executed if a new service flow has errors.
@@ -766,7 +769,7 @@ func (c *DeployCommand) CompareLocalRemotePackage(serviceID string, version int)
 	// the CLI and then reference the Service ID in their fastly.toml manifest.
 	// In that scenario the service might just be an empty service and so trying
 	// to get the package from the service with 404.
-	if err == nil && filesHash == p.Metadata.FilesHash {
+	if err == nil && filesHash == fastly.ToValue(p.Metadata.FilesHash) {
 		return ErrPackageUnchanged
 	}
 	return nil
@@ -778,7 +781,7 @@ func (c *DeployCommand) UploadPackage(spinner text.Spinner, serviceID string, ve
 		_, err := c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
 			ServiceID:      serviceID,
 			ServiceVersion: version,
-			PackagePath:    c.PackagePath,
+			PackagePath:    fastly.ToPointer(c.PackagePath),
 		})
 		if err != nil {
 			return fmt.Errorf("error uploading package: %w", err)
@@ -1035,7 +1038,7 @@ func (c *DeployCommand) GetServiceURL(serviceID string, serviceVersion int) (str
 	if err != nil {
 		return "", err
 	}
-	name := latestDomains[0].Name
+	name := fastly.ToValue(latestDomains[0].Name)
 	if segs := strings.Split(name, "*."); len(segs) > 1 {
 		name = segs[1]
 	}
@@ -1188,34 +1191,37 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 		return nil, err
 	}
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	// Validate that we're dealing with a Compute 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
 	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return serviceVersion, err
 	}
-	if serviceDetails.Type != "wasm" {
-		c.Globals.ErrLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceDetails.Type), map[string]any{
+	serviceType := fastly.ToValue(serviceDetails.Type)
+	if serviceType != "wasm" {
+		c.Globals.ErrLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceType), map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
-			"Service Type":    serviceDetails.Type,
+			"Service Version": serviceVersionNumber,
+			"Service Type":    serviceType,
 		})
 		return serviceVersion, fsterr.RemediationError{
-			Inner:       fmt.Errorf("invalid service type: %s", serviceDetails.Type),
+			Inner:       fmt.Errorf("invalid service type: %s", serviceType),
 			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
 		}
 	}
 
-	err = c.CompareLocalRemotePackage(serviceID, serviceVersion.Number)
+	err = c.CompareLocalRemotePackage(serviceID, serviceVersionNumber)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Package path":    c.PackagePath,
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
+			"Service Version": serviceVersionNumber,
 		})
 		return serviceVersion, err
 	}
@@ -1224,18 +1230,18 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 	// the compute deploy command is a composite of behaviours, and so as we
 	// already automatically activate a version we should autoclone without
 	// requiring the user to explicitly provide an --autoclone flag.
-	if serviceVersion.Active || serviceVersion.Locked {
+	if fastly.ToValue(serviceVersion.Active) || fastly.ToValue(serviceVersion.Locked) {
 		clonedVersion, err := c.Globals.APIClient.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion.Number,
+			ServiceVersion: serviceVersionNumber,
 		})
 		if err != nil {
-			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion.Number)
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersionNumber)
 			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
 		}
 		if c.Globals.Verbose() {
 			msg := "Service version %d is not editable, so it was automatically cloned. Now operating on version %d.\n\n"
-			format := fmt.Sprintf(msg, serviceVersion.Number, clonedVersion.Number)
+			format := fmt.Sprintf(msg, serviceVersionNumber, fastly.ToValue(clonedVersion.Number))
 			text.Output(out, format)
 		}
 		serviceVersion = clonedVersion

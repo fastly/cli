@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListDigitalOceans(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, digitalocean := range o {
-			tw.AddLine(digitalocean.ServiceID, digitalocean.ServiceVersion, digitalocean.Name)
+			tw.AddLine(
+				fastly.ToValue(digitalocean.ServiceID),
+				fastly.ToValue(digitalocean.ServiceVersion),
+				fastly.ToValue(digitalocean.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,23 +109,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, digitalocean := range o {
 		fmt.Fprintf(out, "\tDigitalOcean %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", digitalocean.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", digitalocean.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", digitalocean.Name)
-		fmt.Fprintf(out, "\t\tBucket: %s\n", digitalocean.BucketName)
-		fmt.Fprintf(out, "\t\tDomain: %s\n", digitalocean.Domain)
-		fmt.Fprintf(out, "\t\tAccess key: %s\n", digitalocean.AccessKey)
-		fmt.Fprintf(out, "\t\tSecret key: %s\n", digitalocean.SecretKey)
-		fmt.Fprintf(out, "\t\tPath: %s\n", digitalocean.Path)
-		fmt.Fprintf(out, "\t\tPeriod: %d\n", digitalocean.Period)
-		fmt.Fprintf(out, "\t\tGZip level: %d\n", digitalocean.GzipLevel)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", digitalocean.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", digitalocean.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", digitalocean.ResponseCondition)
-		fmt.Fprintf(out, "\t\tMessage type: %s\n", digitalocean.MessageType)
-		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", digitalocean.TimestampFormat)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", digitalocean.Placement)
-		fmt.Fprintf(out, "\t\tPublic key: %s\n", digitalocean.PublicKey)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(digitalocean.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(digitalocean.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(digitalocean.Name))
+		fmt.Fprintf(out, "\t\tBucket: %s\n", fastly.ToValue(digitalocean.BucketName))
+		fmt.Fprintf(out, "\t\tDomain: %s\n", fastly.ToValue(digitalocean.Domain))
+		fmt.Fprintf(out, "\t\tAccess key: %s\n", fastly.ToValue(digitalocean.AccessKey))
+		fmt.Fprintf(out, "\t\tSecret key: %s\n", fastly.ToValue(digitalocean.SecretKey))
+		fmt.Fprintf(out, "\t\tPath: %s\n", fastly.ToValue(digitalocean.Path))
+		fmt.Fprintf(out, "\t\tPeriod: %d\n", fastly.ToValue(digitalocean.Period))
+		fmt.Fprintf(out, "\t\tGZip level: %d\n", fastly.ToValue(digitalocean.GzipLevel))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(digitalocean.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(digitalocean.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(digitalocean.ResponseCondition))
+		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(digitalocean.MessageType))
+		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(digitalocean.TimestampFormat))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(digitalocean.Placement))
+		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(digitalocean.PublicKey))
 	}
 	fmt.Fprintln(out)
 

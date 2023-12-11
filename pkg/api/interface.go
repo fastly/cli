@@ -22,6 +22,7 @@ type Interface interface {
 	AllDatacenters() (datacenters []fastly.Datacenter, err error)
 
 	CreateService(*fastly.CreateServiceInput) (*fastly.Service, error)
+	GetServices(*fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service]
 	ListServices(*fastly.ListServicesInput) ([]*fastly.Service, error)
 	GetService(*fastly.GetServiceInput) (*fastly.Service, error)
 	GetServiceDetails(*fastly.GetServiceInput) (*fastly.ServiceDetail, error)
@@ -67,6 +68,7 @@ type Interface interface {
 	ListDictionaries(*fastly.ListDictionariesInput) ([]*fastly.Dictionary, error)
 	UpdateDictionary(*fastly.UpdateDictionaryInput) (*fastly.Dictionary, error)
 
+	GetDictionaryItems(*fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem]
 	ListDictionaryItems(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
 	GetDictionaryItem(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
 	CreateDictionaryItem(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
@@ -259,6 +261,7 @@ type Interface interface {
 	CreateACLEntry(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error)
 	DeleteACLEntry(i *fastly.DeleteACLEntryInput) error
 	GetACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error)
+	GetACLEntries(*fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry]
 	ListACLEntries(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error)
 	UpdateACLEntry(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error)
 	BatchModifyACLEntries(i *fastly.BatchModifyACLEntriesInput) error
@@ -289,11 +292,8 @@ type Interface interface {
 	DeleteTokenSelf() error
 	GetTokenSelf() (*fastly.Token, error)
 	ListCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
-	ListTokens() ([]*fastly.Token, error)
+	ListTokens(i *fastly.ListTokensInput) ([]*fastly.Token, error)
 
-	NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
-	NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
-	NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices
 	NewListKVStoreKeysPaginator(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries
 
 	GetCustomTLSConfiguration(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
@@ -340,7 +340,7 @@ type Interface interface {
 	DeleteConfigStore(i *fastly.DeleteConfigStoreInput) error
 	GetConfigStore(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error)
 	GetConfigStoreMetadata(i *fastly.GetConfigStoreMetadataInput) (*fastly.ConfigStoreMetadata, error)
-	ListConfigStores() ([]*fastly.ConfigStore, error)
+	ListConfigStores(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error)
 	ListConfigStoreServices(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error)
 	UpdateConfigStore(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error)
 

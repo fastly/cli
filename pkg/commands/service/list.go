@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
@@ -18,7 +19,7 @@ type ListCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	input fastly.ListServicesInput
+	input fastly.GetServicesInput
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -33,9 +34,9 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	// Optional.
 	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.input.Direction, argparser.PaginationDirection...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.Page)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PerPage)
-	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.input.Sort)
+	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(c.input.Page)
+	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(c.input.PerPage)
+	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(c.input.Sort)
 	return &c
 }
 
@@ -45,7 +46,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	paginator := c.Globals.APIClient.NewListServicesPaginator(&c.input)
+	paginator := c.Globals.APIClient.GetServices(&c.input)
 
 	var o []*fastly.Service
 	for paginator.HasNext() {
@@ -72,14 +73,19 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 				updatedAt = service.UpdatedAt.UTC().Format(time.Format)
 			}
 
-			activeVersion := fmt.Sprint(service.ActiveVersion)
+			activeVersion := strconv.Itoa(fastly.ToValue(service.ActiveVersion))
 			for _, v := range service.Versions {
-				if v.Number == service.ActiveVersion && !v.Active {
+				if fastly.ToValue(v.Number) == fastly.ToValue(service.ActiveVersion) && !fastly.ToValue(v.Active) {
 					activeVersion = "n/a"
 				}
 			}
 
-			tw.AddLine(service.Name, service.ID, service.Type, activeVersion, updatedAt)
+			tw.AddLine(service.Name,
+				fastly.ToValue(service.ID),
+				fastly.ToValue(service.Type),
+				activeVersion,
+				updatedAt,
+			)
 		}
 		tw.Print()
 		return nil

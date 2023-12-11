@@ -52,12 +52,12 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, r *fastly.Token) error {
-	fmt.Fprintf(out, "\nID: %s\n", r.ID)
-	fmt.Fprintf(out, "Name: %s\n", r.Name)
-	fmt.Fprintf(out, "User ID: %s\n", r.UserID)
+	fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.ID))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
+	fmt.Fprintf(out, "User ID: %s\n", fastly.ToValue(r.UserID))
 	fmt.Fprintf(out, "Services: %s\n", strings.Join(r.Services, ", "))
-	fmt.Fprintf(out, "Scope: %s\n", r.Scope)
-	fmt.Fprintf(out, "IP: %s\n\n", r.IP)
+	fmt.Fprintf(out, "Scope: %s\n", fastly.ToValue(r.Scope))
+	fmt.Fprintf(out, "IP: %s\n\n", fastly.ToValue(r.IP))
 
 	if r.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)

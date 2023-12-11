@@ -274,12 +274,12 @@ var errTest = errors.New("fixture error")
 
 func createLogglyOK(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 	s := fastly.Loggly{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
-	if *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -292,24 +292,24 @@ func createLogglyError(_ *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 func listLogglysOK(i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
 	return []*fastly.Loggly{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Token:             "abc",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Token:             fastly.ToPointer("abc"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Token:             "abc",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Token:             fastly.ToPointer("abc"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -353,14 +353,14 @@ Version: 1
 
 func getLogglyOK(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	return &fastly.Loggly{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Token:             "abc",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Token:             fastly.ToPointer("abc"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -381,13 +381,13 @@ Version: 1
 
 func updateLogglyOK(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
 	return &fastly.Loggly{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Token:             "abc",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Token:             fastly.ToPointer("abc"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 	}, nil
 }
 

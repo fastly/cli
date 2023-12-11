@@ -70,7 +70,7 @@ func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	ver, err := c.Globals.APIClient.ActivateVersion(&c.Input)
 	if err != nil {
@@ -81,6 +81,6 @@ func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Activated service %s version %d", ver.ServiceID, c.Input.ServiceVersion)
+	text.Success(out, "Activated service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
 	return nil
 }

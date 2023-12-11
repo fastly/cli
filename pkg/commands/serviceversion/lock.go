@@ -65,17 +65,17 @@ func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	ver, err := c.Globals.APIClient.LockVersion(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Locked service %s version %d", ver.ServiceID, c.Input.ServiceVersion)
+	text.Success(out, "Locked service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
 	return nil
 }

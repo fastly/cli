@@ -86,8 +86,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	c.input.ServiceID = serviceID
-	c.input.ServiceVersion = serviceVersion.Number
+	c.input.ServiceVersion = serviceVersionNumber
 
 	if !c.newname.WasSet && !c.writeOnly.WasSet {
 		return fsterr.RemediationError{Inner: fmt.Errorf("error parsing arguments: required flag --new-name or --write-only not provided"), Remediation: "To fix this error, provide at least one of the aforementioned flags"}
@@ -101,23 +103,23 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
-		c.input.WriteOnly = fastly.CBool(writeOnly)
+		c.input.WriteOnly = fastly.ToPointer(fastly.Compatibool(writeOnly))
 	}
 
 	d, err := c.Globals.APIClient.UpdateDictionary(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
 
-	text.Success(out, "Updated dictionary %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
+	text.Success(out, "Updated dictionary %s (service %s version %d)", fastly.ToValue(d.Name), fastly.ToValue(d.ServiceID), fastly.ToValue(d.ServiceVersion))
 	if c.Globals.Verbose() {
 		text.Output(out, "\nVersion: %d\n", d.ServiceVersion)
 		text.PrintDictionary(out, "", d)

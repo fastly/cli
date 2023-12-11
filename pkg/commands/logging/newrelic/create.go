@@ -95,18 +95,23 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	l, err := c.Globals.APIClient.CreateNewRelic(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Created New Relic logging endpoint '%s' (service: %s, version: %d)", l.Name, l.ServiceID, l.ServiceVersion)
+	text.Success(out,
+		"Created New Relic logging endpoint '%s' (service: %s, version: %d)",
+		fastly.ToValue(l.Name),
+		fastly.ToValue(l.ServiceID),
+		fastly.ToValue(l.ServiceVersion),
+	)
 	return nil
 }
 

@@ -73,14 +73,16 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	if c.all {
-		input := c.constructInputAll(serviceID, serviceVersion.Number)
+		input := c.constructInputAll(serviceID, serviceVersionNumber)
 
 		r, err := c.Globals.APIClient.ValidateAllDomains(input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
@@ -89,7 +91,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.constructInput(serviceID, serviceVersionNumber)
 	if err != nil {
 		return err
 	}
@@ -98,7 +100,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 			"Domain Name":     c.name,
 		})
 		return err
@@ -128,13 +130,13 @@ func (c *ValidateCommand) constructInput(serviceID string, serviceVersion int) (
 
 // print displays the information returned from the API.
 func (c *ValidateCommand) print(out io.Writer, r *fastly.DomainValidationResult) {
-	fmt.Fprintf(out, "\nService ID: %s\n", r.Metadata.ServiceID)
-	fmt.Fprintf(out, "Service Version: %d\n\n", r.Metadata.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", r.Metadata.Name)
-	fmt.Fprintf(out, "Valid: %t\n", r.Valid)
+	fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(r.Metadata.ServiceID))
+	fmt.Fprintf(out, "Service Version: %d\n\n", fastly.ToValue(r.Metadata.ServiceVersion))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Metadata.Name))
+	fmt.Fprintf(out, "Valid: %t\n", fastly.ToValue(r.Valid))
 
-	if r.CName != "" {
-		fmt.Fprintf(out, "CNAME: %s\n", r.CName)
+	if r.CName != nil {
+		fmt.Fprintf(out, "CNAME: %s\n", *r.CName)
 	}
 	if r.Metadata.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", r.Metadata.CreatedAt)
@@ -163,14 +165,14 @@ func (c *ValidateCommand) printAll(out io.Writer, rs []*fastly.DomainValidationR
 	for i, r := range rs {
 		// We only need to print the Service ID/Version once.
 		if i == 0 {
-			fmt.Fprintf(out, "\nService ID: %s\n", r.Metadata.ServiceID)
-			fmt.Fprintf(out, "Service Version: %d\n\n", r.Metadata.ServiceVersion)
+			fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(r.Metadata.ServiceID))
+			fmt.Fprintf(out, "Service Version: %d\n\n", fastly.ToValue(r.Metadata.ServiceVersion))
 		}
-		fmt.Fprintf(out, "Name: %s\n", r.Metadata.Name)
-		fmt.Fprintf(out, "Valid: %t\n", r.Valid)
+		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Metadata.Name))
+		fmt.Fprintf(out, "Valid: %t\n", fastly.ToValue(r.Valid))
 
-		if r.CName != "" {
-			fmt.Fprintf(out, "CNAME: %s\n", r.CName)
+		if r.CName != nil {
+			fmt.Fprintf(out, "CNAME: %s\n", *r.CName)
 		}
 		if r.Metadata.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", r.Metadata.CreatedAt)

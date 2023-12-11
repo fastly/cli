@@ -28,8 +28,8 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
-	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
-	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(&c.Input.ItemValue)
+	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(c.Input.ItemKey)
+	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(c.Input.ItemValue)
 
 	// Optional.
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -66,6 +66,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created dictionary item %s (service %s, dictionary %s)", c.Input.ItemKey, c.Input.ServiceID, c.Input.DictionaryID)
+	text.Success(out, "Created dictionary item %s (service %s, dictionary %s)", fastly.ToValue(c.Input.ItemKey), c.Input.ServiceID, c.Input.DictionaryID)
 	return nil
 }

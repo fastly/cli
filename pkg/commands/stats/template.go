@@ -43,8 +43,11 @@ func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 	}
 
 	hitRate := 0.0
-	if agg.Hits > 0 {
-		hitRate = float64(agg.Hits-agg.Miss-agg.Errors) / float64(agg.Hits)
+	aggHits := fastly.ToValue(agg.Hits)
+	aggMiss := fastly.ToValue(agg.Miss)
+	aggErrs := fastly.ToValue(agg.Errors)
+	if aggHits > 0 {
+		hitRate = float64(aggHits-aggMiss-aggErrs) / float64(aggHits)
 	}
 
 	// TODO: parse the JSON more strictly so this doesn't need to be dynamic.
@@ -58,23 +61,23 @@ func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 		"ServiceID":   fmt.Sprintf("%30s", service),
 		"StartTime":   fmt.Sprintf("%30s", startTime),
 		"HitRate":     fmt.Sprintf("%29.2f%%", hitRate*100),
-		"AvgHitTime":  fmt.Sprintf("%28.2f\u00b5s", agg.HitsTime*1000),
-		"AvgMissTime": fmt.Sprintf("%28.2f\u00b5s", agg.MissTime*1000),
+		"AvgHitTime":  fmt.Sprintf("%28.2f\u00b5s", fastly.ToValue(agg.HitsTime)*1000),
+		"AvgMissTime": fmt.Sprintf("%28.2f\u00b5s", fastly.ToValue(agg.MissTime)*1000),
 
-		"RequestBytes":        fmt.Sprintf("%30d", agg.RequestHeaderBytes+agg.RequestBodyBytes),
-		"RequestHeaderBytes":  fmt.Sprintf("%30d", agg.RequestHeaderBytes),
-		"RequestBodyBytes":    fmt.Sprintf("%30d", agg.RequestBodyBytes),
-		"ResponseBytes":       fmt.Sprintf("%30d", agg.ResponseHeaderBytes+agg.ResponseBodyBytes),
-		"ResponseHeaderBytes": fmt.Sprintf("%30d", agg.ResponseHeaderBytes),
-		"ResponseBodyBytes":   fmt.Sprintf("%30d", agg.ResponseBodyBytes),
+		"RequestBytes":        fmt.Sprintf("%30d", fastly.ToValue(agg.RequestHeaderBytes)+fastly.ToValue(agg.RequestBodyBytes)),
+		"RequestHeaderBytes":  fmt.Sprintf("%30d", fastly.ToValue(agg.RequestHeaderBytes)),
+		"RequestBodyBytes":    fmt.Sprintf("%30d", fastly.ToValue(agg.RequestBodyBytes)),
+		"ResponseBytes":       fmt.Sprintf("%30d", fastly.ToValue(agg.ResponseHeaderBytes)+fastly.ToValue(agg.ResponseBodyBytes)),
+		"ResponseHeaderBytes": fmt.Sprintf("%30d", fastly.ToValue(agg.ResponseHeaderBytes)),
+		"ResponseBodyBytes":   fmt.Sprintf("%30d", fastly.ToValue(agg.ResponseBodyBytes)),
 
-		"RequestCount": fmt.Sprintf("%30d", agg.Requests),
-		"Hits":         fmt.Sprintf("%30d", agg.Hits),
-		"Miss":         fmt.Sprintf("%30d", agg.Miss),
-		"Pass":         fmt.Sprintf("%30d", agg.Pass),
-		"Synth":        fmt.Sprintf("%30d", agg.Synth),
-		"Errors":       fmt.Sprintf("%30d", agg.Errors),
-		"Uncacheable":  fmt.Sprintf("%30d", agg.Uncachable),
+		"RequestCount": fmt.Sprintf("%30d", fastly.ToValue(agg.Requests)),
+		"Hits":         fmt.Sprintf("%30d", aggHits),
+		"Miss":         fmt.Sprintf("%30d", aggMiss),
+		"Pass":         fmt.Sprintf("%30d", fastly.ToValue(agg.Pass)),
+		"Synth":        fmt.Sprintf("%30d", fastly.ToValue(agg.Synth)),
+		"Errors":       fmt.Sprintf("%30d", aggErrs),
+		"Uncacheable":  fmt.Sprintf("%30d", fastly.ToValue(agg.Uncachable)),
 	}
 
 	return blockTemplate.Execute(out, values)

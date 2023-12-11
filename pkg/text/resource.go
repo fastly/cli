@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/cli/pkg/time"
 )
 
 // PrintResource pretty prints a fastly.Resource structure in verbose
@@ -18,12 +19,12 @@ func PrintResource(out io.Writer, prefix string, r *fastly.Resource) {
 	}
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "ID: %s\n", r.ID)
-	fmt.Fprintf(out, "Name: %s\n", r.Name)
-	fmt.Fprintf(out, "Service ID: %s\n", r.ServiceID)
-	fmt.Fprintf(out, "Service Version: %s\n", r.ServiceVersion)
-	fmt.Fprintf(out, "Resource ID: %s\n", r.ResourceID)
-	fmt.Fprintf(out, "Resource Type: %s\n", r.ResourceType)
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(r.ID))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
+	fmt.Fprintf(out, "Service ID: %s\n", fastly.ToValue(r.ServiceID))
+	fmt.Fprintf(out, "Service Version: %d\n", fastly.ToValue(r.ServiceVersion))
+	fmt.Fprintf(out, "Resource ID: %s\n", fastly.ToValue(r.ResourceID))
+	fmt.Fprintf(out, "Resource Type: %s\n", fastly.ToValue(r.ResourceType))
 
 	if r.CreatedAt != nil {
 		fmt.Fprintf(out, "Created (UTC): %s\n", r.CreatedAt.UTC().Format(time.Format))

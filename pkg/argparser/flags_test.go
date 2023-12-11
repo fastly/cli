@@ -76,7 +76,7 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 			}
 
 			want := c.wantVersion
-			have := v.Number
+			have := fastly.ToValue(v.Number)
 			if have != want {
 				t.Errorf("wanted %d, have %d", want, have)
 			}
@@ -90,22 +90,22 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 func listVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(1),
+			Active:    fastly.ToPointer(true),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 		},
 		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(2),
+			Active:    fastly.ToPointer(false),
+			Locked:    fastly.ToPointer(true),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
 		},
 		{
-			ServiceID: i.ServiceID,
-			Number:    3,
-			Active:    false,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(3),
+			Active:    fastly.ToPointer(false),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z"),
 		},
 	}, nil
@@ -121,33 +121,33 @@ func TestGetLatestActiveVersion(t *testing.T) {
 		{
 			name: "active",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: fastly.ToPointer(1), Active: fastly.ToPointer(false), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: fastly.ToPointer(2), Active: fastly.ToPointer(true), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
 			},
 			wantVersion: 2,
 		},
 		{
 			name: "draft",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: fastly.ToPointer(1), Active: fastly.ToPointer(true), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: fastly.ToPointer(2), Active: fastly.ToPointer(false), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
 			},
 			wantVersion: 1,
 		},
 		{
 			name: "locked",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: fastly.ToPointer(1), Active: fastly.ToPointer(true), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: fastly.ToPointer(2), Active: fastly.ToPointer(false), Locked: fastly.ToPointer(true), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
 			},
 			wantVersion: 1,
 		},
 		{
 			name: "no active",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
-				{Number: 3, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
+				{Number: fastly.ToPointer(1), Active: fastly.ToPointer(false), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: fastly.ToPointer(2), Active: fastly.ToPointer(false), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: fastly.ToPointer(3), Active: fastly.ToPointer(false), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z")},
 			},
 			wantError: "no active service version found",
 		},
@@ -156,7 +156,7 @@ func TestGetLatestActiveVersion(t *testing.T) {
 			// NOTE: this is a duplicate of the sorting algorithm in
 			// cmd/command.go to make the test as realistic as possible
 			sort.Slice(testcase.inputVersions, func(i, j int) bool {
-				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
+				return fastly.ToValue(testcase.inputVersions[i].Number) > fastly.ToValue(testcase.inputVersions[j].Number)
 			})
 
 			v, err := argparser.GetActiveVersion(testcase.inputVersions)
@@ -166,7 +166,7 @@ func TestGetLatestActiveVersion(t *testing.T) {
 				} else {
 					t.Errorf("unexpected error returned: %v", err)
 				}
-			} else if v.Number != testcase.wantVersion {
+			} else if fastly.ToValue(v.Number) != testcase.wantVersion {
 				t.Errorf("wanted version %d, got %d", testcase.wantVersion, v.Number)
 			}
 		})
@@ -183,17 +183,17 @@ func TestGetSpecifiedVersion(t *testing.T) {
 		{
 			name: "success",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
+				{Number: fastly.ToPointer(1), Active: fastly.ToPointer(false), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: fastly.ToPointer(2), Active: fastly.ToPointer(true), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z")},
 			},
 			wantVersion: 1,
 		},
 		{
 			name: "no version available",
 			inputVersions: []*fastly.Version{
-				{Number: 1, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
-				{Number: 2, Active: false, Locked: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-02-02T01:00:00Z")},
-				{Number: 3, Active: true, UpdatedAt: testutil.MustParseTimeRFC3339("2000-03-03T01:00:00Z")},
+				{Number: fastly.ToPointer(1), Active: fastly.ToPointer(false), Locked: fastly.ToPointer(true), UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z")},
+				{Number: fastly.ToPointer(2), Active: fastly.ToPointer(false), Locked: fastly.ToPointer(true), UpdatedAt: testutil.MustParseTimeRFC3339("2000-02-02T01:00:00Z")},
+				{Number: fastly.ToPointer(3), Active: fastly.ToPointer(true), UpdatedAt: testutil.MustParseTimeRFC3339("2000-03-03T01:00:00Z")},
 			},
 			wantVersion: 4,
 			wantError:   "specified service version not found: 4",
@@ -203,7 +203,7 @@ func TestGetSpecifiedVersion(t *testing.T) {
 			// NOTE: this is a duplicate of the sorting algorithm in
 			// cmd/command.go to make the test as realistic as possible
 			sort.Slice(testcase.inputVersions, func(i, j int) bool {
-				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
+				return fastly.ToValue(testcase.inputVersions[i].Number) > fastly.ToValue(testcase.inputVersions[j].Number)
 			})
 
 			v, err := argparser.GetSpecifiedVersion(testcase.inputVersions, strconv.Itoa(testcase.wantVersion))
@@ -213,7 +213,7 @@ func TestGetSpecifiedVersion(t *testing.T) {
 				} else {
 					t.Errorf("unexpected error returned: %v", err)
 				}
-			} else if v.Number != testcase.wantVersion {
+			} else if fastly.ToValue(v.Number) != testcase.wantVersion {
 				t.Errorf("wanted version %d, got %d", testcase.wantVersion, v.Number)
 			}
 		})
@@ -230,37 +230,37 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 	}{
 		"version is editable": {
 			version: &fastly.Version{
-				Number: 1,
+				Number: fastly.ToPointer(1),
 			},
 			wantVersion:    1,
 			expectEditable: true,
 		},
 		"version is locked": {
 			version: &fastly.Version{
-				Number: 1,
-				Locked: true,
+				Number: fastly.ToPointer(1),
+				Locked: fastly.ToPointer(true),
 			},
 			wantVersion: 2,
 		},
 		"version is active": {
 			version: &fastly.Version{
-				Number: 1,
-				Active: true,
+				Number: fastly.ToPointer(1),
+				Active: fastly.ToPointer(true),
 			},
 			wantVersion: 2,
 		},
 		"version is locked but flag omitted": {
 			version: &fastly.Version{
-				Number: 1,
-				Locked: true,
+				Number: fastly.ToPointer(1),
+				Locked: fastly.ToPointer(true),
 			},
 			flagOmitted: true,
 			errExpected: true,
 		},
 		"version is active but flag omitted": {
 			version: &fastly.Version{
-				Number: 1,
-				Active: true,
+				Number: fastly.ToPointer(1),
+				Active: fastly.ToPointer(true),
 			},
 			flagOmitted: true,
 			errExpected: true,
@@ -287,10 +287,10 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 
 			verboseMode := true
 			v, err := acv.Parse(c.version, "123", verboseMode, buf, mock.API{
-				CloneVersionFn: cloneVersionResult(c.version.Number + 1),
+				CloneVersionFn: cloneVersionResult(fastly.ToValue(c.version.Number) + 1),
 			})
 			if err != nil {
-				if c.errExpected && errMatches(c.version.Number, err) {
+				if c.errExpected && errMatches(fastly.ToValue(c.version.Number), err) {
 					return
 				}
 				t.Fatalf("unexpected error: %v", err)
@@ -302,7 +302,7 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 			}
 
 			want := c.wantVersion
-			have := v.Number
+			have := fastly.ToValue(v.Number)
 			if have != want {
 				t.Errorf("wanted %d, have %d", want, have)
 			}
@@ -322,8 +322,8 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 func cloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 		return &fastly.Version{
-			ServiceID: i.ServiceID,
-			Number:    version,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(version),
 		}, nil
 	}
 }

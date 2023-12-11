@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListLoggly(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, loggly := range o {
-			tw.AddLine(loggly.ServiceID, loggly.ServiceVersion, loggly.Name)
+			tw.AddLine(
+				fastly.ToValue(loggly.ServiceID),
+				fastly.ToValue(loggly.ServiceVersion),
+				fastly.ToValue(loggly.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,14 +109,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, loggly := range o {
 		fmt.Fprintf(out, "\tLoggly %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", loggly.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", loggly.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", loggly.Name)
-		fmt.Fprintf(out, "\t\tToken: %s\n", loggly.Token)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", loggly.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", loggly.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", loggly.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", loggly.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(loggly.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(loggly.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(loggly.Name))
+		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(loggly.Token))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(loggly.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(loggly.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(loggly.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(loggly.Placement))
 	}
 	fmt.Fprintln(out)
 

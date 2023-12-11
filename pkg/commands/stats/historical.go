@@ -41,10 +41,10 @@ func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *Historic
 		Dst:         &c.serviceName.Value,
 	})
 
-	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.Input.From)
-	c.CmdClause.Flag("to", "To time").StringVar(&c.Input.To)
-	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.Input.By, "minute", "hour", "day")
-	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.Input.Region)
+	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(c.Input.From)
+	c.CmdClause.Flag("to", "To time").StringVar(c.Input.To)
+	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(c.Input.By, "minute", "hour", "day")
+	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(c.Input.Region)
 
 	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
 
@@ -61,7 +61,7 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	c.Input.Service = serviceID
+	c.Input.Service = fastly.ToPointer(serviceID)
 
 	var envelope statsResponse
 	err = c.Globals.APIClient.GetStatsJSON(&c.Input, &envelope)

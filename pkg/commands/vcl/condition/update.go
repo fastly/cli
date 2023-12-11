@@ -89,7 +89,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.input.ServiceID = serviceID
-	c.input.ServiceVersion = serviceVersion.Number
+	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	// If no argument are provided, error with useful message.
 	if !c.newName.WasSet && !c.priority.WasSet && !c.statement.WasSet && !c.conditionType.WasSet {
@@ -116,11 +116,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Updated condition %s (service %s version %d)", r.Name, r.ServiceID, r.ServiceVersion)
+	text.Success(out,
+		"Updated condition %s (service %s version %d)",
+		fastly.ToValue(r.Name),
+		fastly.ToValue(r.ServiceID),
+		fastly.ToValue(r.ServiceVersion),
+	)
 	return nil
 }

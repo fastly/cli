@@ -29,11 +29,11 @@ func TestCreateKinesisInput(t *testing.T) {
 			want: &fastly.CreateKinesisInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				StreamName:     fastly.String("stream"),
-				Region:         fastly.String("us-east-1"),
-				AccessKey:      fastly.String("access"),
-				SecretKey:      fastly.String("secret"),
+				Name:           fastly.ToPointer("log"),
+				StreamName:     fastly.ToPointer("stream"),
+				Region:         fastly.ToPointer("us-east-1"),
+				AccessKey:      fastly.ToPointer("access"),
+				SecretKey:      fastly.ToPointer("secret"),
 			},
 		},
 		{
@@ -42,10 +42,10 @@ func TestCreateKinesisInput(t *testing.T) {
 			want: &fastly.CreateKinesisInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Region:         fastly.String("us-east-1"),
-				StreamName:     fastly.String("stream"),
-				IAMRole:        fastly.String("arn:aws:iam::123456789012:role/KinesisAccess"),
+				Name:           fastly.ToPointer("log"),
+				Region:         fastly.ToPointer("us-east-1"),
+				StreamName:     fastly.ToPointer("stream"),
+				IAMRole:        fastly.ToPointer("arn:aws:iam::123456789012:role/KinesisAccess"),
 			},
 		},
 		{
@@ -54,15 +54,15 @@ func TestCreateKinesisInput(t *testing.T) {
 			want: &fastly.CreateKinesisInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("logs"),
-				StreamName:        fastly.String("stream"),
-				Region:            fastly.String("us-east-1"),
-				AccessKey:         fastly.String("access"),
-				SecretKey:         fastly.String("secret"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				Name:              fastly.ToPointer("logs"),
+				StreamName:        fastly.ToPointer("stream"),
+				Region:            fastly.ToPointer("us-east-1"),
+				AccessKey:         fastly.ToPointer("access"),
+				SecretKey:         fastly.ToPointer("secret"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -96,7 +96,7 @@ func TestCreateKinesisInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -138,16 +138,16 @@ func TestUpdateKinesisInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				StreamName:        fastly.String("new2"),
-				AccessKey:         fastly.String("new3"),
-				SecretKey:         fastly.String("new4"),
-				IAMRole:           fastly.String(""),
-				Region:            fastly.String("new5"),
-				Format:            fastly.String("new7"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new9"),
-				Placement:         fastly.String("new11"),
+				NewName:           fastly.ToPointer("new1"),
+				StreamName:        fastly.ToPointer("new2"),
+				AccessKey:         fastly.ToPointer("new3"),
+				SecretKey:         fastly.ToPointer("new4"),
+				IAMRole:           fastly.ToPointer(""),
+				Region:            fastly.ToPointer("new5"),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new9"),
+				Placement:         fastly.ToPointer("new11"),
 			},
 		},
 		{
@@ -185,7 +185,7 @@ func TestUpdateKinesisInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

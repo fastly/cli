@@ -78,7 +78,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	if err := c.Globals.APIClient.DeleteGCS(&c.Input); err != nil {
 		c.Globals.ErrLog.Add(err)

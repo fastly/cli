@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListScalyrs(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, scalyr := range o {
-			tw.AddLine(scalyr.ServiceID, scalyr.ServiceVersion, scalyr.Name)
+			tw.AddLine(
+				fastly.ToValue(scalyr.ServiceID),
+				fastly.ToValue(scalyr.ServiceVersion),
+				fastly.ToValue(scalyr.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,15 +109,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, scalyr := range o {
 		fmt.Fprintf(out, "\tScalyr %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", scalyr.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", scalyr.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", scalyr.Name)
-		fmt.Fprintf(out, "\t\tToken: %s\n", scalyr.Token)
-		fmt.Fprintf(out, "\t\tRegion: %s\n", scalyr.Region)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", scalyr.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", scalyr.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", scalyr.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", scalyr.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(scalyr.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(scalyr.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(scalyr.Name))
+		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(scalyr.Token))
+		fmt.Fprintf(out, "\t\tRegion: %s\n", fastly.ToValue(scalyr.Region))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(scalyr.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(scalyr.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(scalyr.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(scalyr.Placement))
 	}
 	fmt.Fprintln(out)
 

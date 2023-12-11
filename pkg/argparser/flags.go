@@ -126,7 +126,7 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 
 	// Sort versions into descending order.
 	sort.Slice(vs, func(i, j int) bool {
-		return vs[i].Number > vs[j].Number
+		return fastly.ToValue(vs[i].Number) > fastly.ToValue(vs[j].Number)
 	})
 
 	var v *fastly.Version
@@ -159,7 +159,7 @@ type OptionalServiceNameID struct {
 
 // Parse returns a service ID based off the given service name.
 func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, err error) {
-	paginator := client.NewListServicesPaginator(&fastly.ListServicesInput{})
+	paginator := client.GetServices(&fastly.GetServicesInput{})
 	var services []*fastly.Service
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
@@ -169,8 +169,8 @@ func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, 
 		services = append(services, data...)
 	}
 	for _, s := range services {
-		if s.Name == sv.Value {
-			return s.ID, nil
+		if fastly.ToValue(s.Name) == sv.Value {
+			return fastly.ToValue(s.ID), nil
 		}
 	}
 	return serviceID, errors.New("error matching service name with available services")
@@ -221,16 +221,16 @@ type OptionalAutoClone struct {
 // cloned version if the input argument was either active or locked.
 func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, out io.Writer, client api.Interface) (*fastly.Version, error) {
 	// if user didn't provide --autoclone flag
-	if !ac.Value && (v.Active || v.Locked) {
+	if !ac.Value && (fastly.ToValue(v.Active) || fastly.ToValue(v.Locked)) {
 		return nil, fsterr.RemediationError{
 			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
 			Remediation: fsterr.AutoCloneRemediation,
 		}
 	}
-	if ac.Value && (v.Active || v.Locked) {
+	if ac.Value && (v.Active != nil && *v.Active || v.Locked != nil && *v.Locked) {
 		version, err := client.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      sid,
-			ServiceVersion: v.Number,
+			ServiceVersion: fastly.ToValue(v.Number),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("error cloning service version: %w", err)
@@ -250,7 +250,7 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 // GetActiveVersion returns the active service version.
 func GetActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	for _, v := range vs {
-		if v.Active {
+		if fastly.ToValue(v.Active) {
 			return v, nil
 		}
 	}
@@ -265,7 +265,7 @@ func GetSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version,
 	}
 
 	for _, v := range vs {
-		if v.Number == i {
+		if fastly.ToValue(v.Number) == i {
 			return v, nil
 		}
 	}

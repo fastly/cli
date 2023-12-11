@@ -188,13 +188,13 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		return "", err
 	}
 	if c.automationToken {
-		return fmt.Sprintf("Automation Token (%s)", t.ID), nil
+		return fmt.Sprintf("Automation Token (%s)", fastly.ToValue(t.ID)), nil
 	}
 
 	var user *fastly.User
 	err = spinner.Process("Getting user data", func(_ *text.SpinnerWrapper) error {
 		user, err = client.GetUser(&fastly.GetUserInput{
-			ID: t.UserID,
+			ID: fastly.ToValue(t.UserID),
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -210,7 +210,7 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	if err != nil {
 		return "", err
 	}
-	return user.Login, nil
+	return fastly.ToValue(user.Login), nil
 }
 
 func (c *UpdateCommand) staticTokenFlow(profileName string, p *config.Profile, in io.Reader, out io.Writer) error {

@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetSumologic(&c.Input)
 	if err != nil {
@@ -93,17 +93,17 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Format version":     o.FormatVersion,
-		"Format":             o.Format,
-		"Message type":       o.MessageType,
-		"Name":               o.Name,
-		"Placement":          o.Placement,
-		"Response condition": o.ResponseCondition,
-		"URL":                o.URL,
-		"Version":            o.ServiceVersion,
+		"Format version":     fastly.ToValue(o.FormatVersion),
+		"Format":             fastly.ToValue(o.Format),
+		"Message type":       fastly.ToValue(o.MessageType),
+		"Name":               fastly.ToValue(o.Name),
+		"Placement":          fastly.ToValue(o.Placement),
+		"Response condition": fastly.ToValue(o.ResponseCondition),
+		"URL":                fastly.ToValue(o.URL),
+		"Version":            fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

@@ -32,8 +32,8 @@ func TestUserCreate(t *testing.T) {
 			API: mock.API{
 				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {
 					return &fastly.User{
-						Name: *i.Name,
-						Role: "user",
+						Name: i.Name,
+						Role: fastly.ToPointer("user"),
 					}, nil
 				},
 			},
@@ -266,9 +266,9 @@ func TestUserUpdate(t *testing.T) {
 			API: mock.API{
 				UpdateUserFn: func(i *fastly.UpdateUserInput) (*fastly.User, error) {
 					return &fastly.User{
-						ID:   i.ID,
-						Name: *i.Name,
-						Role: *i.Role,
+						ID:   fastly.ToPointer(i.ID),
+						Name: i.Name,
+						Role: i.Role,
 					}, nil
 				},
 			},
@@ -307,17 +307,17 @@ func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
-		ID:                     i.ID,
-		Login:                  "foo@example.com",
-		Name:                   "foo",
-		Role:                   "user",
-		CustomerID:             "abc",
-		EmailHash:              "example-hash",
-		LimitServices:          true,
-		Locked:                 true,
-		RequireNewPassword:     true,
-		TwoFactorAuthEnabled:   true,
-		TwoFactorSetupRequired: true,
+		ID:                     fastly.ToPointer(i.ID),
+		Login:                  fastly.ToPointer("foo@example.com"),
+		Name:                   fastly.ToPointer("foo"),
+		Role:                   fastly.ToPointer("user"),
+		CustomerID:             fastly.ToPointer("abc"),
+		EmailHash:              fastly.ToPointer("example-hash"),
+		LimitServices:          fastly.ToPointer(true),
+		Locked:                 fastly.ToPointer(true),
+		RequireNewPassword:     fastly.ToPointer(true),
+		TwoFactorAuthEnabled:   fastly.ToPointer(true),
+		TwoFactorSetupRequired: fastly.ToPointer(true),
 		CreatedAt:              &t,
 		DeletedAt:              &t,
 		UpdatedAt:              &t,
@@ -328,17 +328,17 @@ func getCurrentUser() (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
-		ID:                     "current123",
-		Login:                  "bar@example.com",
-		Name:                   "bar",
-		Role:                   "superuser",
-		CustomerID:             "abc",
-		EmailHash:              "example-hash2",
-		LimitServices:          false,
-		Locked:                 false,
-		RequireNewPassword:     false,
-		TwoFactorAuthEnabled:   false,
-		TwoFactorSetupRequired: false,
+		ID:                     fastly.ToPointer("current123"),
+		Login:                  fastly.ToPointer("bar@example.com"),
+		Name:                   fastly.ToPointer("bar"),
+		Role:                   fastly.ToPointer("superuser"),
+		CustomerID:             fastly.ToPointer("abc"),
+		EmailHash:              fastly.ToPointer("example-hash2"),
+		LimitServices:          fastly.ToPointer(false),
+		Locked:                 fastly.ToPointer(false),
+		RequireNewPassword:     fastly.ToPointer(false),
+		TwoFactorAuthEnabled:   fastly.ToPointer(false),
+		TwoFactorSetupRequired: fastly.ToPointer(false),
 		CreatedAt:              &t,
 		DeletedAt:              &t,
 		UpdatedAt:              &t,

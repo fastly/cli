@@ -367,11 +367,11 @@ Versions: 3
 
 func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.ServiceVersion,
-		ServiceID: "123",
-		Active:    true,
-		Deployed:  true,
-		Comment:   "foo",
+		Number:    fastly.ToPointer(i.ServiceVersion),
+		ServiceID: fastly.ToPointer("123"),
+		Active:    fastly.ToPointer(true),
+		Deployed:  fastly.ToPointer(true),
+		Comment:   fastly.ToPointer("foo"),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil
 }
@@ -382,10 +382,10 @@ func updateVersionError(_ *fastly.UpdateVersionInput) (*fastly.Version, error) {
 
 func activateVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.ServiceVersion,
-		ServiceID: "123",
-		Active:    true,
-		Deployed:  true,
+		Number:    fastly.ToPointer(i.ServiceVersion),
+		ServiceID: fastly.ToPointer("123"),
+		Active:    fastly.ToPointer(true),
+		Deployed:  fastly.ToPointer(true),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil
@@ -397,10 +397,10 @@ func activateVersionError(_ *fastly.ActivateVersionInput) (*fastly.Version, erro
 
 func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.ServiceVersion,
-		ServiceID: "123",
-		Active:    false,
-		Deployed:  true,
+		Number:    fastly.ToPointer(i.ServiceVersion),
+		ServiceID: fastly.ToPointer("123"),
+		Active:    fastly.ToPointer(false),
+		Deployed:  fastly.ToPointer(true),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil
@@ -412,11 +412,11 @@ func deactivateVersionError(_ *fastly.DeactivateVersionInput) (*fastly.Version, 
 
 func lockVersionOK(i *fastly.LockVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
-		Number:    i.ServiceVersion,
-		ServiceID: "123",
-		Active:    false,
-		Deployed:  true,
-		Locked:    true,
+		Number:    fastly.ToPointer(i.ServiceVersion),
+		ServiceID: fastly.ToPointer("123"),
+		Active:    fastly.ToPointer(false),
+		Deployed:  fastly.ToPointer(true),
+		Locked:    fastly.ToPointer(true),
 		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 	}, nil

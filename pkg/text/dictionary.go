@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/time"
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/cli/pkg/time"
 )
 
 // PrintDictionary pretty prints a fastly.Dictionary structure in verbose
@@ -15,9 +16,9 @@ import (
 func PrintDictionary(out io.Writer, prefix string, d *fastly.Dictionary) {
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "ID: %s\n", d.ID)
-	fmt.Fprintf(out, "Name: %s\n", d.Name)
-	fmt.Fprintf(out, "Write Only: %t\n", d.WriteOnly)
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(d.ID))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(d.Name))
+	fmt.Fprintf(out, "Write Only: %t\n", fastly.ToValue(d.WriteOnly))
 	fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(time.Format))
 	fmt.Fprintf(out, "Last edited (UTC): %s\n", d.UpdatedAt.UTC().Format(time.Format))
 	if d.DeletedAt != nil {

@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetSplunk(&c.Input)
 	if err != nil {
@@ -93,21 +93,21 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Format version":         o.FormatVersion,
-		"Format":                 o.Format,
-		"Name":                   o.Name,
-		"Placement":              o.Placement,
-		"Response condition":     o.ResponseCondition,
-		"TLS CA certificate":     o.TLSCACert,
-		"TLS client certificate": o.TLSClientCert,
-		"TLS client key":         o.TLSClientKey,
-		"TLS hostname":           o.TLSHostname,
-		"Token":                  o.Token,
-		"URL":                    o.URL,
-		"Version":                o.ServiceVersion,
+		"Format version":         fastly.ToValue(o.FormatVersion),
+		"Format":                 fastly.ToValue(o.Format),
+		"Name":                   fastly.ToValue(o.Name),
+		"Placement":              fastly.ToValue(o.Placement),
+		"Response condition":     fastly.ToValue(o.ResponseCondition),
+		"TLS CA certificate":     fastly.ToValue(o.TLSCACert),
+		"TLS client certificate": fastly.ToValue(o.TLSClientCert),
+		"TLS client key":         fastly.ToValue(o.TLSClientKey),
+		"TLS hostname":           fastly.ToValue(o.TLSHostname),
+		"Token":                  fastly.ToValue(o.Token),
+		"URL":                    fastly.ToValue(o.URL),
+		"Version":                fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

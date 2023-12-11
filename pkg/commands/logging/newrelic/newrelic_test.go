@@ -46,9 +46,9 @@ func TestNewRelicCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateNewRelicFn: func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -62,9 +62,9 @@ func TestNewRelicCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateNewRelicFn: func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -344,9 +344,9 @@ func TestNewRelicUpdate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				UpdateNewRelicFn: func(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
-						Name:           *i.NewName,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Name:           i.NewName,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -360,9 +360,9 @@ func TestNewRelicUpdate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateNewRelicFn: func(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
-						Name:           *i.NewName,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Name:           i.NewName,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -391,10 +391,10 @@ func getNewRelic(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
 	t := testutil.Date
 
 	return &fastly.NewRelic{
-		Name:           i.Name,
-		Token:          "abc",
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		Name:           fastly.ToPointer(i.Name),
+		Token:          fastly.ToPointer("abc"),
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 		CreatedAt: &t,
 		DeletedAt: &t,
@@ -406,18 +406,18 @@ func listNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error) {
 	t := testutil.Date
 	vs := []*fastly.NewRelic{
 		{
-			Name:           "foo",
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
+			Name:           fastly.ToPointer("foo"),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 			CreatedAt: &t,
 			DeletedAt: &t,
 			UpdatedAt: &t,
 		},
 		{
-			Name:           "bar",
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
+			Name:           fastly.ToPointer("bar"),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 			CreatedAt: &t,
 			DeletedAt: &t,

@@ -143,7 +143,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -155,6 +155,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Google Cloud Pub/Sub logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
+	text.Success(out,
+		"Created Google Cloud Pub/Sub logging endpoint %s (service %s version %d)",
+		fastly.ToValue(d.Name),
+		fastly.ToValue(d.ServiceID),
+		fastly.ToValue(d.ServiceVersion),
+	)
 	return nil
 }

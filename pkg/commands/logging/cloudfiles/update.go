@@ -192,11 +192,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -205,11 +205,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Updated Cloudfiles logging endpoint %s (service %s version %d)", cloudfiles.Name, cloudfiles.ServiceID, cloudfiles.ServiceVersion)
+	text.Success(out,
+		"Updated Cloudfiles logging endpoint %s (service %s version %d)",
+		fastly.ToValue(cloudfiles.Name),
+		fastly.ToValue(cloudfiles.ServiceID),
+		fastly.ToValue(cloudfiles.ServiceVersion),
+	)
 	return nil
 }

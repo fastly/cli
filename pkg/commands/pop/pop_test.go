@@ -20,15 +20,15 @@ func TestAllDatacenters(t *testing.T) {
 		AllDatacentersFn: func() ([]fastly.Datacenter, error) {
 			return []fastly.Datacenter{
 				{
-					Name:   "Foobar",
-					Code:   "FBR",
-					Group:  "Bar",
-					Shield: "Baz",
-					Coordinates: fastly.Coordinates{
-						Latitude:   1,
-						Longtitude: 2,
-						X:          3,
-						Y:          4,
+					Name:   fastly.ToPointer("Foobar"),
+					Code:   fastly.ToPointer("FBR"),
+					Group:  fastly.ToPointer("Bar"),
+					Shield: fastly.ToPointer("Baz"),
+					Coordinates: &fastly.Coordinates{
+						Latitude:   fastly.ToPointer(float64(1)),
+						Longtitude: fastly.ToPointer(float64(2)),
+						X:          fastly.ToPointer(float64(3)),
+						Y:          fastly.ToPointer(float64(4)),
 					},
 				},
 			}, nil

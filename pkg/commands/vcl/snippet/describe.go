@@ -84,12 +84,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	if c.dynamic.WasSet {
-		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
+		input, err := c.constructDynamicInput(serviceID, serviceVersionNumber)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
@@ -98,7 +100,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
@@ -110,11 +112,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return c.printDynamic(out, o)
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.constructInput(serviceID, serviceVersionNumber)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
@@ -123,7 +125,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
@@ -166,9 +168,9 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) (
 
 // print displays the 'dynamic' information returned from the API.
 func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet) error {
-	fmt.Fprintf(out, "\nService ID: %s\n", ds.ServiceID)
-	fmt.Fprintf(out, "ID: %s\n", ds.ID)
-	fmt.Fprintf(out, "Content: \n%s\n", ds.Content)
+	fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(ds.ServiceID))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(ds.ID))
+	fmt.Fprintf(out, "Content: \n%s\n", fastly.ToValue(ds.Content))
 	if ds.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", ds.CreatedAt)
 	}
@@ -181,16 +183,15 @@ func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet)
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", s.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(s.ServiceID))
 	}
-	fmt.Fprintf(out, "Service Version: %d\n", s.ServiceVersion)
-
-	fmt.Fprintf(out, "\nName: %s\n", s.Name)
-	fmt.Fprintf(out, "ID: %s\n", s.ID)
-	fmt.Fprintf(out, "Priority: %d\n", s.Priority)
-	fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(s.Dynamic))
-	fmt.Fprintf(out, "Type: %s\n", s.Type)
-	fmt.Fprintf(out, "Content: \n%s\n", s.Content)
+	fmt.Fprintf(out, "Service Version: %d\n", fastly.ToValue(s.ServiceVersion))
+	fmt.Fprintf(out, "\nName: %s\n", fastly.ToValue(s.Name))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(s.ID))
+	fmt.Fprintf(out, "Priority: %d\n", fastly.ToValue(s.Priority))
+	fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(fastly.ToValue(s.Dynamic)))
+	fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(s.Type))
+	fmt.Fprintf(out, "Content: \n%s\n", fastly.ToValue(s.Content))
 	if s.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", s.CreatedAt)
 	}

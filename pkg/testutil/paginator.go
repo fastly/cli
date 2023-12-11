@@ -1,6 +1,8 @@
 package testutil
 
-import "github.com/fastly/go-fastly/v8/fastly"
+import (
+	"github.com/fastly/go-fastly/v8/fastly"
+)
 
 // ServicesPaginator mocks the behaviour of a paginator for services.
 type ServicesPaginator struct {
@@ -31,46 +33,46 @@ func (p *ServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
 		err = Err
 	}
 	pageOne := fastly.Service{
-		ID:            "123",
-		Name:          "Foo",
-		Type:          "wasm",
-		CustomerID:    "mycustomerid",
-		ActiveVersion: 2,
+		ID:            fastly.ToPointer("123"),
+		Name:          fastly.ToPointer("Foo"),
+		Type:          fastly.ToPointer("wasm"),
+		CustomerID:    fastly.ToPointer("mycustomerid"),
+		ActiveVersion: fastly.ToPointer(2),
 		UpdatedAt:     MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		Versions: []*fastly.Version{
 			{
-				Number:    1,
-				Comment:   "a",
-				ServiceID: "b",
+				Number:    fastly.ToPointer(1),
+				Comment:   fastly.ToPointer("a"),
+				ServiceID: fastly.ToPointer("b"),
 				CreatedAt: MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 				UpdatedAt: MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 				DeletedAt: MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 			},
 			{
-				Number:    2,
-				Comment:   "c",
-				ServiceID: "d",
-				Active:    true,
-				Deployed:  true,
+				Number:    fastly.ToPointer(2),
+				Comment:   fastly.ToPointer("c"),
+				ServiceID: fastly.ToPointer("d"),
+				Active:    fastly.ToPointer(true),
+				Deployed:  fastly.ToPointer(true),
 				CreatedAt: MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
 				UpdatedAt: MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
 			},
 		},
 	}
 	pageTwo := fastly.Service{
-		ID:            "456",
-		Name:          "Bar",
-		Type:          "wasm",
-		CustomerID:    "mycustomerid",
-		ActiveVersion: 1,
+		ID:            fastly.ToPointer("456"),
+		Name:          fastly.ToPointer("Bar"),
+		Type:          fastly.ToPointer("wasm"),
+		CustomerID:    fastly.ToPointer("mycustomerid"),
+		ActiveVersion: fastly.ToPointer(1),
 		UpdatedAt:     MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
 	}
 	pageThree := fastly.Service{
-		ID:            "789",
-		Name:          "Baz",
-		Type:          "vcl",
-		CustomerID:    "mycustomerid",
-		ActiveVersion: 1,
+		ID:            fastly.ToPointer("789"),
+		Name:          fastly.ToPointer("Baz"),
+		Type:          fastly.ToPointer("vcl"),
+		CustomerID:    fastly.ToPointer("mycustomerid"),
+		ActiveVersion: fastly.ToPointer(1),
 	}
 	if p.Count == 1 {
 		ss = append(ss, &pageOne)

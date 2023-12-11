@@ -50,7 +50,7 @@ type ConfigStoreItem struct {
 
 // Configure prompts the user for specific values related to the service resource.
 func (o *ConfigStores) Configure() error {
-	existingStores, err := o.APIClient.ListConfigStores()
+	existingStores, err := o.APIClient.ListConfigStores(&fastly.ListConfigStoresInput{})
 	if err != nil {
 		return err
 	}
@@ -206,8 +206,8 @@ func (o *ConfigStores) Create() error {
 			_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
 				ServiceID:      o.ServiceID,
 				ServiceVersion: o.ServiceVersion,
-				Name:           fastly.String(cs.Name),
-				ResourceID:     fastly.String(cs.ID),
+				Name:           fastly.ToPointer(cs.Name),
+				ResourceID:     fastly.ToPointer(cs.ID),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, configStore.Name, err)
