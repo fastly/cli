@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -13,16 +13,16 @@ import (
 
 // SearchCommand calls the Fastly API to describe a service.
 type SearchCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	Input fastly.SearchServiceInput
 }
 
 // NewSearchCommand returns a usable command registered under the parent.
-func NewSearchCommand(parent cmd.Registerer, g *global.Data) *SearchCommand {
+func NewSearchCommand(parent argparser.Registerer, g *global.Data) *SearchCommand {
 	c := SearchCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}

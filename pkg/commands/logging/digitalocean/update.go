@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -15,38 +15,38 @@ import (
 
 // UpdateCommand calls the Fastly API to update a DigitalOcean Spaces logging endpoint.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
 	EndpointName   string
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         cmd.OptionalAutoClone
-	NewName           cmd.OptionalString
-	BucketName        cmd.OptionalString
-	Domain            cmd.OptionalString
-	AccessKey         cmd.OptionalString
-	SecretKey         cmd.OptionalString
-	Path              cmd.OptionalString
-	Period            cmd.OptionalInt
-	GzipLevel         cmd.OptionalInt
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	ResponseCondition cmd.OptionalString
-	MessageType       cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
-	Placement         cmd.OptionalString
-	PublicKey         cmd.OptionalString
-	CompressionCodec  cmd.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	NewName           argparser.OptionalString
+	BucketName        argparser.OptionalString
+	Domain            argparser.OptionalString
+	AccessKey         argparser.OptionalString
+	SecretKey         argparser.OptionalString
+	Path              argparser.OptionalString
+	Period            argparser.OptionalInt
+	GzipLevel         argparser.OptionalInt
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	ResponseCondition argparser.OptionalString
+	MessageType       argparser.OptionalString
+	TimestampFormat   argparser.OptionalString
+	Placement         argparser.OptionalString
+	PublicKey         argparser.OptionalString
+	CompressionCodec  argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -54,16 +54,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the DigitalOcean Spaces logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.CmdClause.Flag("access-key", "Your DigitalOcean Spaces account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -81,16 +81,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your DigitalOcean Spaces account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
@@ -175,7 +175,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

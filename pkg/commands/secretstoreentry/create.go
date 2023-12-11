@@ -11,7 +11,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -42,9 +42,9 @@ func mustDecode(s string) []byte {
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -52,19 +52,19 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause = parent.Command("create", "Create a new secret within specified store")
 
 	// Required.
-	c.RegisterFlag(secretNameFlag(&c.Input.Name)) // --name
-	c.RegisterFlag(cmd.StoreIDFlag(&c.Input.ID))  // --store-id
+	c.RegisterFlag(secretNameFlag(&c.Input.Name))      // --name
+	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.ID)) // --store-id
 
 	// Optional.
 	c.RegisterFlag(secretFileFlag(&c.secretFile)) // --file
 	c.RegisterFlagBool(c.JSONFlag())              // --json
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
+	c.RegisterFlagBool(argparser.BoolFlagOpts{
 		Name:        "recreate",
 		Description: "Recreate secret by name (errors if secret doesn't already exist)",
 		Dst:         &c.recreate,
 		Required:    false,
 	})
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
+	c.RegisterFlagBool(argparser.BoolFlagOpts{
 		Name:        "recreate-allow",
 		Description: "Create or recreate secret by name",
 		Dst:         &c.recreateAllow,
@@ -77,8 +77,8 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	Input         fastly.CreateSecretInput
 	recreate      bool

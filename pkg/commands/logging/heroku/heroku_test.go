@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/heroku"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -61,7 +61,7 @@ func TestCreateHerokuInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -147,7 +147,7 @@ func TestUpdateHerokuInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -188,7 +188,7 @@ func createCommandRequired() *heroku.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &heroku.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -196,15 +196,15 @@ func createCommandRequired() *heroku.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Token:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
-		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Token:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "tkn"},
+		URL:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -227,7 +227,7 @@ func createCommandAll() *heroku.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &heroku.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -235,24 +235,24 @@ func createCommandAll() *heroku.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Token:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "tkn"},
-		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Token:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "tkn"},
+		URL:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -272,7 +272,7 @@ func updateCommandNoUpdates() *heroku.UpdateCommand {
 	}
 
 	return &heroku.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -281,12 +281,12 @@ func updateCommandNoUpdates() *heroku.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -305,7 +305,7 @@ func updateCommandAll() *heroku.UpdateCommand {
 	}
 
 	return &heroku.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -314,24 +314,24 @@ func updateCommandAll() *heroku.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		Token:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		Token:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 	}
 }
 

@@ -14,7 +14,7 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -30,18 +30,18 @@ var MaxPackageSize int64 = 100000000 // 100MB in bytes
 
 // HashFilesCommand produces a deployable artifact from files on the local disk.
 type HashFilesCommand struct {
-	cmd.Base
+	argparser.Base
 
 	// Build fields
-	dir                   cmd.OptionalString
-	env                   cmd.OptionalString
-	includeSrc            cmd.OptionalBool
-	lang                  cmd.OptionalString
-	metadataDisable       cmd.OptionalBool
-	metadataFilterEnvVars cmd.OptionalString
-	metadataShow          cmd.OptionalBool
-	packageName           cmd.OptionalString
-	timeout               cmd.OptionalInt
+	dir                   argparser.OptionalString
+	env                   argparser.OptionalString
+	includeSrc            argparser.OptionalBool
+	lang                  argparser.OptionalString
+	metadataDisable       argparser.OptionalBool
+	metadataFilterEnvVars argparser.OptionalString
+	metadataShow          argparser.OptionalBool
+	packageName           argparser.OptionalString
+	timeout               argparser.OptionalInt
 
 	buildCmd  *BuildCommand
 	Package   string
@@ -49,7 +49,7 @@ type HashFilesCommand struct {
 }
 
 // NewHashFilesCommand returns a usable command registered under the parent.
-func NewHashFilesCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand) *HashFilesCommand {
+func NewHashFilesCommand(parent argparser.Registerer, g *global.Data, build *BuildCommand) *HashFilesCommand {
 	var c HashFilesCommand
 	c.buildCmd = build
 	c.Globals = g

@@ -5,13 +5,13 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.CmdClause = parent.Command("delete", "Destroy a TLS subscription. A subscription cannot be destroyed if there are domains in the TLS enabled state").Alias("remove")
 	c.Globals = g
@@ -27,9 +27,9 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
-	cmd.Base
+	argparser.Base
 
-	force cmd.OptionalBool
+	force argparser.OptionalBool
 	id    string
 }
 

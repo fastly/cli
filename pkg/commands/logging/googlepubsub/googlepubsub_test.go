@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/googlepubsub"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -65,7 +65,7 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -153,7 +153,7 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -194,7 +194,7 @@ func createCommandRequired() *googlepubsub.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &googlepubsub.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -202,22 +202,22 @@ func createCommandRequired() *googlepubsub.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user@example.com"},
-		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
-		ProjectID:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "project"},
-		Topic:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "topic"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		User:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user@example.com"},
+		SecretKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "secret"},
+		ProjectID:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "project"},
+		Topic:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "topic"},
 	}
 }
 
@@ -235,7 +235,7 @@ func createCommandAll() *googlepubsub.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &googlepubsub.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -243,26 +243,26 @@ func createCommandAll() *googlepubsub.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user@example.com"},
-		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "project"},
-		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "topic"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user@example.com"},
+		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "project"},
+		Topic:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "topic"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "secret"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -282,7 +282,7 @@ func updateCommandNoUpdates() *googlepubsub.UpdateCommand {
 	}
 
 	return &googlepubsub.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -291,12 +291,12 @@ func updateCommandNoUpdates() *googlepubsub.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -315,7 +315,7 @@ func updateCommandAll() *googlepubsub.UpdateCommand {
 	}
 
 	return &googlepubsub.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -324,26 +324,26 @@ func updateCommandAll() *googlepubsub.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		Topic:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
 	}
 }
 

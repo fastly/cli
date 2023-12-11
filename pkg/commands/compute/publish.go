@@ -5,34 +5,34 @@ import (
 	"io"
 	"os"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // PublishCommand produces and deploys an artifact from files on the local disk.
 type PublishCommand struct {
-	cmd.Base
+	argparser.Base
 	build  *BuildCommand
 	deploy *DeployCommand
 
 	// Build fields
-	dir                   cmd.OptionalString
-	includeSrc            cmd.OptionalBool
-	lang                  cmd.OptionalString
-	metadataDisable       cmd.OptionalBool
-	metadataFilterEnvVars cmd.OptionalString
-	metadataShow          cmd.OptionalBool
-	packageName           cmd.OptionalString
-	timeout               cmd.OptionalInt
+	dir                   argparser.OptionalString
+	includeSrc            argparser.OptionalBool
+	lang                  argparser.OptionalString
+	metadataDisable       argparser.OptionalBool
+	metadataFilterEnvVars argparser.OptionalString
+	metadataShow          argparser.OptionalBool
+	packageName           argparser.OptionalString
+	timeout               argparser.OptionalInt
 
 	// Deploy fields
-	comment            cmd.OptionalString
-	domain             cmd.OptionalString
-	env                cmd.OptionalString
-	pkg                cmd.OptionalString
-	serviceName        cmd.OptionalServiceNameID
-	serviceVersion     cmd.OptionalServiceVersion
+	comment            argparser.OptionalString
+	domain             argparser.OptionalString
+	env                argparser.OptionalString
+	pkg                argparser.OptionalString
+	serviceName        argparser.OptionalServiceNameID
+	serviceVersion     argparser.OptionalServiceVersion
 	statusCheckCode    int
 	statusCheckOff     bool
 	statusCheckPath    string
@@ -40,7 +40,7 @@ type PublishCommand struct {
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
-func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand, deploy *DeployCommand) *PublishCommand {
+func NewPublishCommand(parent argparser.Registerer, g *global.Data, build *BuildCommand, deploy *DeployCommand) *PublishCommand {
 	var c PublishCommand
 	c.Globals = g
 	c.build = build
@@ -58,25 +58,25 @@ func NewPublishCommand(parent cmd.Registerer, g *global.Data, build *BuildComman
 	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').Action(c.pkg.Set).StringVar(&c.pkg.Value)
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &c.Globals.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check to the root path").IntVar(&c.statusCheckCode)
 	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.statusCheckOff)
 	c.CmdClause.Flag("status-check-path", "Specify the URL path for the service availability check").Default("/").StringVar(&c.statusCheckPath)
 	c.CmdClause.Flag("status-check-timeout", "Set a timeout (in seconds) for the service availability check").Default("120").IntVar(&c.statusCheckTimeout)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Action:      c.serviceVersion.Set,
 	})
@@ -156,10 +156,10 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.deploy.PackagePath = c.pkg.Value
 	}
 	if c.serviceName.WasSet {
-		c.deploy.ServiceName = c.serviceName // deploy's field is a cmd.OptionalServiceNameID
+		c.deploy.ServiceName = c.serviceName // deploy's field is a argparser.OptionalServiceNameID
 	}
 	if c.serviceVersion.WasSet {
-		c.deploy.ServiceVersion = c.serviceVersion // deploy's field is a cmd.OptionalServiceVersion
+		c.deploy.ServiceVersion = c.serviceVersion // deploy's field is a argparser.OptionalServiceVersion
 	}
 	if c.domain.WasSet {
 		c.deploy.Domain = c.domain.Value

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/google/go-cmp/cmp"
 )
@@ -102,7 +102,7 @@ func AssertRemediationErrorContains(t *testing.T, err error, target string) {
 // AssertPathContentFlag errors a test scenario if the given flag value hasn't
 // been parsed as expected.
 //
-// Example: Some flags will internally be passed to `cmd.Content` to acquire
+// Example: Some flags will internally be passed to `argparser.Content` to acquire
 // the value. If passed a file path, then we expect the testdata/<fixture> to
 // have been read, otherwise we expect the given flag value to have been used.
 func AssertPathContentFlag(flag string, wantError string, args []string, fixture string, content string, t *testing.T) {
@@ -111,7 +111,7 @@ func AssertPathContentFlag(flag string, wantError string, args []string, fixture
 			if a == fmt.Sprintf("--%s", flag) {
 				want := args[i+1]
 				if want == fmt.Sprintf("./testdata/%s", fixture) {
-					want = cmd.Content(want)
+					want = argparser.Content(want)
 				}
 				if content != want {
 					t.Errorf("wanted %s, have %s", want, content)

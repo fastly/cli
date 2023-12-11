@@ -1,4 +1,4 @@
-package cmd
+package argparser
 
 import (
 	"encoding/json"

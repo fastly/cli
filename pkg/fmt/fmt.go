@@ -16,7 +16,7 @@ func Success(format string, args ...any) string {
 }
 
 // JSON decodes then re-encodes back to JSON, with indentation matching
-// that of ../cmd/cmd.go's cmd.WriteJSON.
+// that of ../cmd/argparser.go's argparser.WriteJSON.
 func JSON(format string, args ...any) string {
 	var r json.RawMessage
 	if err := json.Unmarshal([]byte(fmt.Sprintf(format, args...)), &r); err != nil {

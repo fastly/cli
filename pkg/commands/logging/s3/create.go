@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -16,45 +16,45 @@ import (
 
 // CreateCommand calls the Fastly API to create an Amazon S3 logging endpoint.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// mutual exclusions
 	// AccessKey + SecretKey or IAMRole must be provided
-	AccessKey cmd.OptionalString
-	SecretKey cmd.OptionalString
-	IAMRole   cmd.OptionalString
+	AccessKey argparser.OptionalString
+	SecretKey argparser.OptionalString
+	IAMRole   argparser.OptionalString
 
 	// Optional.
-	AutoClone                    cmd.OptionalAutoClone
-	BucketName                   cmd.OptionalString
-	CompressionCodec             cmd.OptionalString
-	Domain                       cmd.OptionalString
-	EndpointName                 cmd.OptionalString // Can't shadow cmd.Base method Name().
-	FileMaxBytes                 cmd.OptionalInt
-	Format                       cmd.OptionalString
-	FormatVersion                cmd.OptionalInt
-	GzipLevel                    cmd.OptionalInt
-	MessageType                  cmd.OptionalString
-	Path                         cmd.OptionalString
-	Period                       cmd.OptionalInt
-	Placement                    cmd.OptionalString
-	PublicKey                    cmd.OptionalString
-	Redundancy                   cmd.OptionalString
-	ResponseCondition            cmd.OptionalString
-	ServerSideEncryption         cmd.OptionalString
-	ServerSideEncryptionKMSKeyID cmd.OptionalString
-	TimestampFormat              cmd.OptionalString
+	AutoClone                    argparser.OptionalAutoClone
+	BucketName                   argparser.OptionalString
+	CompressionCodec             argparser.OptionalString
+	Domain                       argparser.OptionalString
+	EndpointName                 argparser.OptionalString // Can't shadow argparser.Base method Name().
+	FileMaxBytes                 argparser.OptionalInt
+	Format                       argparser.OptionalString
+	FormatVersion                argparser.OptionalInt
+	GzipLevel                    argparser.OptionalInt
+	MessageType                  argparser.OptionalString
+	Path                         argparser.OptionalString
+	Period                       argparser.OptionalInt
+	Placement                    argparser.OptionalString
+	PublicKey                    argparser.OptionalString
+	Redundancy                   argparser.OptionalString
+	ResponseCondition            argparser.OptionalString
+	ServerSideEncryption         argparser.OptionalString
+	ServerSideEncryptionKMSKeyID argparser.OptionalString
+	TimestampFormat              argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -62,15 +62,15 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the S3 logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -93,16 +93,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
 	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
@@ -262,7 +262,7 @@ func ValidateRedundancy(val string) (redundancy fastly.S3Redundancy, err error) 
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

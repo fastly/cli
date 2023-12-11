@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -13,53 +13,53 @@ import (
 
 // UpdateCommand calls the Fastly API to update backends.
 type UpdateCommand struct {
-	cmd.Base
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
-	autoClone      cmd.OptionalAutoClone
+	argparser.Base
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
+	autoClone      argparser.OptionalAutoClone
 
 	name                string
-	Address             cmd.OptionalString
-	AutoLoadbalance     cmd.OptionalBool
-	BetweenBytesTimeout cmd.OptionalInt
-	Comment             cmd.OptionalString
-	ConnectTimeout      cmd.OptionalInt
-	FirstByteTimeout    cmd.OptionalInt
-	HealthCheck         cmd.OptionalString
-	Hostname            cmd.OptionalString
-	MaxConn             cmd.OptionalInt
-	MaxTLSVersion       cmd.OptionalString
-	MinTLSVersion       cmd.OptionalString
-	NewName             cmd.OptionalString
-	NoSSLCheckCert      cmd.OptionalBool
-	OverrideHost        cmd.OptionalString
-	Port                cmd.OptionalInt
-	RequestCondition    cmd.OptionalString
-	SSLCACert           cmd.OptionalString
-	SSLCertHostname     cmd.OptionalString
-	SSLCheckCert        cmd.OptionalBool
-	SSLCiphers          cmd.OptionalString
-	SSLClientCert       cmd.OptionalString
-	SSLClientKey        cmd.OptionalString
-	SSLSNIHostname      cmd.OptionalString
-	Shield              cmd.OptionalString
-	UseSSL              cmd.OptionalBool
-	Weight              cmd.OptionalInt
+	Address             argparser.OptionalString
+	AutoLoadbalance     argparser.OptionalBool
+	BetweenBytesTimeout argparser.OptionalInt
+	Comment             argparser.OptionalString
+	ConnectTimeout      argparser.OptionalInt
+	FirstByteTimeout    argparser.OptionalInt
+	HealthCheck         argparser.OptionalString
+	Hostname            argparser.OptionalString
+	MaxConn             argparser.OptionalInt
+	MaxTLSVersion       argparser.OptionalString
+	MinTLSVersion       argparser.OptionalString
+	NewName             argparser.OptionalString
+	NoSSLCheckCert      argparser.OptionalBool
+	OverrideHost        argparser.OptionalString
+	Port                argparser.OptionalInt
+	RequestCondition    argparser.OptionalString
+	SSLCACert           argparser.OptionalString
+	SSLCertHostname     argparser.OptionalString
+	SSLCheckCert        argparser.OptionalBool
+	SSLCiphers          argparser.OptionalString
+	SSLClientCert       argparser.OptionalString
+	SSLClientKey        argparser.OptionalString
+	SSLSNIHostname      argparser.OptionalString
+	Shield              argparser.OptionalString
+	UseSSL              argparser.OptionalBool
+	Weight              argparser.OptionalInt
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 	c.CmdClause = parent.Command("update", "Update a backend on a Fastly service version")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
@@ -67,7 +67,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 	// Optional.
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.Address.Set).StringVar(&c.Address.Value)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -85,16 +85,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.OverrideHost.Set).StringVar(&c.OverrideHost.Value)
 	c.CmdClause.Flag("port", "Port number of the address").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.CmdClause.Flag("request-condition", "condition, which if met, will select this backend during a request").Action(c.RequestCondition.Set).StringVar(&c.RequestCondition.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").Action(c.Shield.Set).StringVar(&c.Shield.Value)
@@ -112,7 +112,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

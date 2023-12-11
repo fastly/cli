@@ -293,7 +293,7 @@ func createCloudfilesOK(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, er
 	return &s, nil
 }
 
-func createCloudfilesError(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
+func createCloudfilesError(_ *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return nil, errTest
 }
 
@@ -340,7 +340,7 @@ func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, erro
 	}, nil
 }
 
-func listCloudfilesError(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
+func listCloudfilesError(_ *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
 	return nil, errTest
 }
 
@@ -417,7 +417,7 @@ func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 	}, nil
 }
 
-func getCloudfilesError(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
+func getCloudfilesError(_ *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return nil, errTest
 }
 
@@ -463,15 +463,15 @@ func updateCloudfilesOK(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, er
 	}, nil
 }
 
-func updateCloudfilesError(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
+func updateCloudfilesError(_ *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return nil, errTest
 }
 
-func deleteCloudfilesOK(i *fastly.DeleteCloudfilesInput) error {
+func deleteCloudfilesOK(_ *fastly.DeleteCloudfilesInput) error {
 	return nil
 }
 
-func deleteCloudfilesError(i *fastly.DeleteCloudfilesInput) error {
+func deleteCloudfilesError(_ *fastly.DeleteCloudfilesInput) error {
 	return errTest
 }
 

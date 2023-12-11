@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -14,54 +14,54 @@ import (
 
 // CreateCommand calls the Fastly API to create backends.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 
 	// Required.
-	serviceVersion cmd.OptionalServiceVersion
+	serviceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	address             cmd.OptionalString
-	autoClone           cmd.OptionalAutoClone
-	autoLoadBalance     cmd.OptionalBool
-	betweenBytesTimeout cmd.OptionalInt
-	comment             cmd.OptionalString
-	connectTimeout      cmd.OptionalInt
-	firstByteTimeout    cmd.OptionalInt
-	healthCheck         cmd.OptionalString
-	maxConn             cmd.OptionalInt
-	maxTLSVersion       cmd.OptionalString
-	minTLSVersion       cmd.OptionalString
-	name                cmd.OptionalString
-	noSSLCheckCert      cmd.OptionalBool
-	overrideHost        cmd.OptionalString
-	port                cmd.OptionalInt
-	requestCondition    cmd.OptionalString
-	serviceName         cmd.OptionalServiceNameID
-	shield              cmd.OptionalString
-	sslCACert           cmd.OptionalString
-	sslCertHostname     cmd.OptionalString
-	sslCheckCert        cmd.OptionalBool
-	sslCiphers          cmd.OptionalString
-	sslClientCert       cmd.OptionalString
-	sslClientKey        cmd.OptionalString
-	sslSNIHostname      cmd.OptionalString
-	useSSL              cmd.OptionalBool
-	weight              cmd.OptionalInt
+	address             argparser.OptionalString
+	autoClone           argparser.OptionalAutoClone
+	autoLoadBalance     argparser.OptionalBool
+	betweenBytesTimeout argparser.OptionalInt
+	comment             argparser.OptionalString
+	connectTimeout      argparser.OptionalInt
+	firstByteTimeout    argparser.OptionalInt
+	healthCheck         argparser.OptionalString
+	maxConn             argparser.OptionalInt
+	maxTLSVersion       argparser.OptionalString
+	minTLSVersion       argparser.OptionalString
+	name                argparser.OptionalString
+	noSSLCheckCert      argparser.OptionalBool
+	overrideHost        argparser.OptionalString
+	port                argparser.OptionalInt
+	requestCondition    argparser.OptionalString
+	serviceName         argparser.OptionalServiceNameID
+	shield              argparser.OptionalString
+	sslCACert           argparser.OptionalString
+	sslCertHostname     argparser.OptionalString
+	sslCheckCert        argparser.OptionalBool
+	sslCiphers          argparser.OptionalString
+	sslClientCert       argparser.OptionalString
+	sslClientKey        argparser.OptionalString
+	sslSNIHostname      argparser.OptionalString
+	useSSL              argparser.OptionalBool
+	weight              argparser.OptionalInt
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 	c.CmdClause = parent.Command("create", "Create a backend on a Fastly service version").Alias("add")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
@@ -69,7 +69,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	// Optional.
 
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.address.Set).StringVar(&c.address.Value)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -87,16 +87,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
 	c.CmdClause.Flag("port", "Port number of the address").Action(c.port.Set).IntVar(&c.port.Value)
 	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").Action(c.requestCondition.Set).StringVar(&c.requestCondition.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").Action(c.shield.Set).StringVar(&c.shield.Value)
@@ -115,7 +115,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

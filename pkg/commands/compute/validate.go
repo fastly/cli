@@ -10,7 +10,7 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -18,7 +18,7 @@ import (
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, g *global.Data) *ValidateCommand {
+func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCommand {
 	var c ValidateCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("validate", "Validate a Compute package")
@@ -72,7 +72,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // ValidateCommand validates a package archive.
 type ValidateCommand struct {
-	cmd.Base
+	argparser.Base
 	env  string
 	path string
 }

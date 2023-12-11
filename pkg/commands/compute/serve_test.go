@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -95,7 +95,7 @@ func TestGetViceroy(t *testing.T) {
 	}
 	manifestPath := "fastly.toml"
 	serveCommand := &compute.ServeCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &global.Data{
 				Config:     file,
 				ConfigPath: configPath,

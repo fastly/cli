@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/elasticsearch"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -70,7 +70,7 @@ func TestCreateElasticsearchInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -165,7 +165,7 @@ func TestUpdateElasticsearchInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -206,7 +206,7 @@ func createCommandRequired() *elasticsearch.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &elasticsearch.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &globals,
 		},
 		Manifest: manifest.Data{
@@ -214,20 +214,20 @@ func createCommandRequired() *elasticsearch.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Index:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Index:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		URL:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
 	}
 }
 
@@ -245,7 +245,7 @@ func createCommandAll() *elasticsearch.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &elasticsearch.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -253,33 +253,33 @@ func createCommandAll() *elasticsearch.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Index:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		Pipeline:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "my_pipeline_id"},
-		RequestMaxEntries: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		RequestMaxBytes:   cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "password"},
-		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
-		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
-		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Index:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		Pipeline:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "my_pipeline_id"},
+		RequestMaxEntries: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		RequestMaxBytes:   argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "password"},
+		TLSCACert:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
+		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
+		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
 	}
 }
 
@@ -299,7 +299,7 @@ func updateCommandNoUpdates() *elasticsearch.UpdateCommand {
 	}
 
 	return &elasticsearch.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -308,12 +308,12 @@ func updateCommandNoUpdates() *elasticsearch.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -332,7 +332,7 @@ func updateCommandAll() *elasticsearch.UpdateCommand {
 	}
 
 	return &elasticsearch.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -341,33 +341,33 @@ func updateCommandAll() *elasticsearch.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		Index:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		Pipeline:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		RequestMaxEntries: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		RequestMaxBytes:   cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
-		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
-		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		Index:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		Pipeline:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		RequestMaxEntries: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		RequestMaxBytes:   argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		TLSCACert:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
+		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
 	}
 }
 

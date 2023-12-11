@@ -2267,23 +2267,23 @@ func getCurrentUserError() (*fastly.User, error) {
 	return nil, testutil.Err
 }
 
-func deleteServiceOK(i *fastly.DeleteServiceInput) error {
+func deleteServiceOK(_ *fastly.DeleteServiceInput) error {
 	return nil
 }
 
-func createDomainError(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
+func createDomainError(_ *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return nil, testutil.Err
 }
 
-func deleteDomainOK(i *fastly.DeleteDomainInput) error {
+func deleteDomainOK(_ *fastly.DeleteDomainInput) error {
 	return nil
 }
 
-func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendError(_ *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return nil, testutil.Err
 }
 
-func deleteBackendOK(i *fastly.DeleteBackendInput) error {
+func deleteBackendOK(_ *fastly.DeleteBackendInput) error {
 	return nil
 }
 
@@ -2298,14 +2298,14 @@ func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	}, nil
 }
 
-func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+func activateVersionError(_ *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
-func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsError(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, testutil.Err
 }
 
-func listDomainsNone(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsNone(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{}, nil
 }

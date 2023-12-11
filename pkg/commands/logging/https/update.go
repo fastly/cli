@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -15,40 +15,40 @@ import (
 
 // UpdateCommand calls the Fastly API to update an HTTPS logging endpoint.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	EndpointName   string // Can't shadow argparser.Base method Name().
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         cmd.OptionalAutoClone
-	NewName           cmd.OptionalString
-	URL               cmd.OptionalString
-	RequestMaxEntries cmd.OptionalInt
-	RequestMaxBytes   cmd.OptionalInt
-	TLSCACert         cmd.OptionalString
-	TLSClientCert     cmd.OptionalString
-	TLSClientKey      cmd.OptionalString
-	TLSHostname       cmd.OptionalString
-	MessageType       cmd.OptionalString
-	ContentType       cmd.OptionalString
-	HeaderName        cmd.OptionalString
-	HeaderValue       cmd.OptionalString
-	Method            cmd.OptionalString
-	JSONFormat        cmd.OptionalString
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	Placement         cmd.OptionalString
-	ResponseCondition cmd.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	NewName           argparser.OptionalString
+	URL               argparser.OptionalString
+	RequestMaxEntries argparser.OptionalInt
+	RequestMaxBytes   argparser.OptionalInt
+	TLSCACert         argparser.OptionalString
+	TLSClientCert     argparser.OptionalString
+	TLSClientKey      argparser.OptionalString
+	TLSHostname       argparser.OptionalString
+	MessageType       argparser.OptionalString
+	ContentType       argparser.OptionalString
+	HeaderName        argparser.OptionalString
+	HeaderValue       argparser.OptionalString
+	Method            argparser.OptionalString
+	JSONFormat        argparser.OptionalString
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	Placement         argparser.OptionalString
+	ResponseCondition argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -56,15 +56,15 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the HTTPS logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -81,16 +81,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
 	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	common.TLSCACert(c.CmdClause, &c.TLSCACert)
@@ -186,7 +186,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

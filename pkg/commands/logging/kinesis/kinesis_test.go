@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/kinesis"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -77,7 +77,7 @@ func TestCreateKinesisInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -166,7 +166,7 @@ func TestUpdateKinesisInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -207,7 +207,7 @@ func createCommandRequired() *kinesis.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -215,22 +215,22 @@ func createCommandRequired() *kinesis.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Region:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "us-east-1"},
-		StreamName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "stream"},
-		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
-		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Region:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "us-east-1"},
+		StreamName:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "stream"},
+		AccessKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "access"},
+		SecretKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "secret"},
 	}
 }
 
@@ -248,7 +248,7 @@ func createCommandRequiredIAMRole() *kinesis.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -256,21 +256,21 @@ func createCommandRequiredIAMRole() *kinesis.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Region:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "us-east-1"},
-		StreamName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "stream"},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Region:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "us-east-1"},
+		StreamName:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "stream"},
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		IAMRole: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/KinesisAccess"},
+		IAMRole: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/KinesisAccess"},
 	}
 }
 
@@ -288,7 +288,7 @@ func createCommandAll() *kinesis.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -296,26 +296,26 @@ func createCommandAll() *kinesis.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		StreamName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "stream"},
-		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "us-east-1"},
-		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		StreamName:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "stream"},
+		Region:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "us-east-1"},
+		AccessKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "access"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "secret"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -335,7 +335,7 @@ func updateCommandNoUpdates() *kinesis.UpdateCommand {
 	}
 
 	return &kinesis.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -344,12 +344,12 @@ func updateCommandNoUpdates() *kinesis.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -368,7 +368,7 @@ func updateCommandAll() *kinesis.UpdateCommand {
 	}
 
 	return &kinesis.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -377,27 +377,27 @@ func updateCommandAll() *kinesis.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		StreamName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		IAMRole:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: ""},
-		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		StreamName:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		AccessKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		IAMRole:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""},
+		Region:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 	}
 }
 

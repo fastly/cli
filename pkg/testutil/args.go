@@ -67,7 +67,7 @@ func (s MockAuthServer) AuthURL() (string, error) {
 	return "", nil // no-op
 }
 
-// GetResult returns the results channel
+// GetResult returns the results channel.
 func (s MockAuthServer) GetResult() chan auth.AuthorizationResult {
 	return s.Result
 }

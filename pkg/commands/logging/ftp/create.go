@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -16,50 +16,50 @@ import (
 
 // CreateCommand calls the Fastly API to create an FTP logging endpoint.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	Address           cmd.OptionalString
-	AutoClone         cmd.OptionalAutoClone
-	CompressionCodec  cmd.OptionalString
-	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	GzipLevel         cmd.OptionalInt
-	Password          cmd.OptionalString
-	Path              cmd.OptionalString
-	Period            cmd.OptionalInt
-	Placement         cmd.OptionalString
-	Port              cmd.OptionalInt
-	ResponseCondition cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
-	Username          cmd.OptionalString
+	Address           argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	CompressionCodec  argparser.OptionalString
+	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	GzipLevel         argparser.OptionalInt
+	Password          argparser.OptionalString
+	Path              argparser.OptionalString
+	Period            argparser.OptionalInt
+	Placement         argparser.OptionalString
+	Port              argparser.OptionalInt
+	ResponseCondition argparser.OptionalString
+	TimestampFormat   argparser.OptionalString
+	Username          argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 	c.CmdClause = parent.Command("create", "Create an FTP logging endpoint on a Fastly service version").Alias("add")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -76,16 +76,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("user", "The username for the server (can be anonymous)").Action(c.Username.Set).StringVar(&c.Username.Value)
@@ -162,7 +162,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

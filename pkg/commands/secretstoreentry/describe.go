@@ -5,16 +5,16 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	c := DescribeCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -22,8 +22,8 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand 
 	c.CmdClause = parent.Command("describe", "Retrieve a single secret").Alias("get")
 
 	// Required.
-	c.RegisterFlag(secretNameFlag(&c.Input.Name)) // --name
-	c.RegisterFlag(cmd.StoreIDFlag(&c.Input.ID))  // --store-id
+	c.RegisterFlag(secretNameFlag(&c.Input.Name))      // --name
+	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.ID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -33,8 +33,8 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand 
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	Input fastly.GetSecretInput
 }

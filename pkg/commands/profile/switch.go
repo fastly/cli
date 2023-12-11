@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
@@ -13,13 +13,13 @@ import (
 
 // SwitchCommand represents a Kingpin command.
 type SwitchCommand struct {
-	cmd.Base
+	argparser.Base
 
 	profile string
 }
 
 // NewSwitchCommand returns a usable command registered under the parent.
-func NewSwitchCommand(parent cmd.Registerer, g *global.Data) *SwitchCommand {
+func NewSwitchCommand(parent argparser.Registerer, g *global.Data) *SwitchCommand {
 	var c SwitchCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("switch", "Switch user profile")

@@ -126,7 +126,7 @@ func (s *Streaming) Exec() error {
 
 	// Store off os.Process so it can be killed by signal listener.
 	//
-	// NOTE: cmd.Process is nil until exec.Start() returns successfully.
+	// NOTE: argparser.Process is nil until exec.Start() returns successfully.
 	s.Process = cmd.Process
 
 	if err := cmd.Wait(); err != nil {

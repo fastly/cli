@@ -147,8 +147,8 @@ func stripTrailingSpace(str string) string {
 
 	scan := bufio.NewScanner(strings.NewReader(str))
 	for scan.Scan() {
-		buf.WriteString(strings.TrimRight(scan.Text(), " \t\r\n"))
-		buf.WriteString("\n")
+		_, _ = buf.WriteString(strings.TrimRight(scan.Text(), " \t\r\n"))
+		_, _ = buf.WriteString("\n")
 	}
 	return buf.String()
 }

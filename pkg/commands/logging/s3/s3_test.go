@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/s3"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -86,7 +86,7 @@ func TestCreateS3Input(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -185,7 +185,7 @@ func TestUpdateS3Input(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -226,7 +226,7 @@ func createCommandRequired() *s3.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &s3.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -234,21 +234,21 @@ func createCommandRequired() *s3.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		BucketName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
-		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
-		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		BucketName:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bucket"},
+		AccessKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "access"},
+		SecretKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "secret"},
 	}
 }
 
@@ -266,7 +266,7 @@ func createCommandRequiredIAMRole() *s3.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &s3.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -274,20 +274,20 @@ func createCommandRequiredIAMRole() *s3.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		BucketName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
-		IAMRole:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/S3Access"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		BucketName:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bucket"},
+		IAMRole:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "arn:aws:iam::123456789012:role/S3Access"},
 	}
 }
 
@@ -305,7 +305,7 @@ func createCommandAll() *s3.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &s3.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -313,35 +313,35 @@ func createCommandAll() *s3.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:                 cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		BucketName:                   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
-		AccessKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "access"},
-		SecretKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "secret"},
-		Domain:                       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "domain"},
-		Path:                         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "path"},
-		Period:                       cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
-		Format:                       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:                cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		MessageType:                  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
-		ResponseCondition:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		TimestampFormat:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		Placement:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		PublicKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: pgpPublicKey()},
-		Redundancy:                   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: string(fastly.S3RedundancyStandard)},
-		ServerSideEncryption:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionAES)},
-		ServerSideEncryptionKMSKeyID: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "kmskey"},
-		CompressionCodec:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
+		EndpointName:                 argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		BucketName:                   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bucket"},
+		AccessKey:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "access"},
+		SecretKey:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "secret"},
+		Domain:                       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "domain"},
+		Path:                         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "path"},
+		Period:                       argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3600},
+		Format:                       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:                argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		MessageType:                  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
+		ResponseCondition:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		TimestampFormat:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		Placement:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		PublicKey:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: pgpPublicKey()},
+		Redundancy:                   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: string(fastly.S3RedundancyStandard)},
+		ServerSideEncryption:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionAES)},
+		ServerSideEncryptionKMSKeyID: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "kmskey"},
+		CompressionCodec:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -361,7 +361,7 @@ func updateCommandNoUpdates() *s3.UpdateCommand {
 	}
 
 	return &s3.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -370,12 +370,12 @@ func updateCommandNoUpdates() *s3.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -394,7 +394,7 @@ func updateCommandAll() *s3.UpdateCommand {
 	}
 
 	return &s3.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -403,37 +403,37 @@ func updateCommandAll() *s3.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:                      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		BucketName:                   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		AccessKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		SecretKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		IAMRole:                      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: ""},
-		Domain:                       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Path:                         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		Period:                       cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:                    cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 0},
-		Format:                       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:                cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		MessageType:                  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		ResponseCondition:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		TimestampFormat:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		Placement:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
-		Redundancy:                   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: string(fastly.S3RedundancyReduced)},
-		ServerSideEncryption:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionKMS)},
-		ServerSideEncryptionKMSKeyID: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
-		PublicKey:                    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
-		CompressionCodec:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
+		NewName:                      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		BucketName:                   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		AccessKey:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		SecretKey:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		IAMRole:                      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""},
+		Domain:                       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Path:                         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		Period:                       argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3601},
+		GzipLevel:                    argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 0},
+		Format:                       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:                argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		MessageType:                  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		ResponseCondition:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		TimestampFormat:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		Placement:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		Redundancy:                   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: string(fastly.S3RedundancyReduced)},
+		ServerSideEncryption:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionKMS)},
+		ServerSideEncryptionKMSKeyID: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
+		PublicKey:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
+		CompressionCodec:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
 	}
 }
 

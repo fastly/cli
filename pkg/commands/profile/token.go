@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
@@ -13,12 +13,12 @@ import (
 
 // TokenCommand represents a Kingpin command.
 type TokenCommand struct {
-	cmd.Base
+	argparser.Base
 	profile string
 }
 
 // NewTokenCommand returns a new command registered in the parent.
-func NewTokenCommand(parent cmd.Registerer, g *global.Data) *TokenCommand {
+func NewTokenCommand(parent argparser.Registerer, g *global.Data) *TokenCommand {
 	var c TokenCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("token", "Print API token (defaults to the 'active' profile)")

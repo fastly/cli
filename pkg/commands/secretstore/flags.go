@@ -1,11 +1,11 @@
 package secretstore
 
 import (
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 )
 
-func storeNameFlag(dst *string) cmd.StringFlagOpts {
-	return cmd.StringFlagOpts{
+func storeNameFlag(dst *string) argparser.StringFlagOpts {
+	return argparser.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
 		Description: "Store name",

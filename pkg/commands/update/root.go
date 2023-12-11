@@ -8,7 +8,7 @@ import (
 
 	"github.com/blang/semver"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
@@ -18,11 +18,11 @@ import (
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")

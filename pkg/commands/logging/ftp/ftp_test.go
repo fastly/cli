@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/ftp"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -68,7 +68,7 @@ func TestCreateFTPInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -162,7 +162,7 @@ func TestUpdateFTPInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -203,7 +203,7 @@ func createCommandRequired() *ftp.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &ftp.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -211,16 +211,16 @@ func createCommandRequired() *ftp.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Address:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		Username:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		Password:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "password"},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Address:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		Username:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		Password:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "password"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -243,7 +243,7 @@ func createCommandAll() *ftp.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &ftp.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -251,30 +251,30 @@ func createCommandAll() *ftp.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		Username:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "password"},
-		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 22},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/logs"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Address:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		Username:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "password"},
+		Port:              argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 22},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "/logs"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3600},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -294,7 +294,7 @@ func updateCommandNoUpdates() *ftp.UpdateCommand {
 	}
 
 	return &ftp.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -303,12 +303,12 @@ func updateCommandNoUpdates() *ftp.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -327,7 +327,7 @@ func updateCommandAll() *ftp.UpdateCommand {
 	}
 
 	return &ftp.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -336,32 +336,32 @@ func updateCommandAll() *ftp.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 23},
-		Username:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 0},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		Address:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		Port:              argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 23},
+		Username:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3601},
+		GzipLevel:         argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 0},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 	}
 }
 

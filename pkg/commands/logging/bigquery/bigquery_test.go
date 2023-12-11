@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/bigquery"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -68,7 +68,7 @@ func TestCreateBigQueryInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -158,7 +158,7 @@ func TestUpdateBigQueryInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -199,7 +199,7 @@ func createCommandRequired() *bigquery.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &bigquery.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -207,23 +207,23 @@ func createCommandRequired() *bigquery.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		ProjectID:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "123"},
-		Dataset:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "dataset"},
-		Table:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "table"},
-		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		ProjectID:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "123"},
+		Dataset:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "dataset"},
+		Table:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "table"},
+		User:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		SecretKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
 	}
 }
 
@@ -241,7 +241,7 @@ func createCommandAll() *bigquery.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &bigquery.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -249,28 +249,28 @@ func createCommandAll() *bigquery.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "123"},
-		Dataset:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "dataset"},
-		Table:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "table"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
-		Template:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "template"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "123"},
+		Dataset:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "dataset"},
+		Table:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "table"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
+		Template:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "template"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 	}
 }
 
@@ -290,7 +290,7 @@ func updateCommandNoUpdates() *bigquery.UpdateCommand {
 	}
 
 	return &bigquery.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -299,12 +299,12 @@ func updateCommandNoUpdates() *bigquery.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -323,7 +323,7 @@ func updateCommandAll() *bigquery.UpdateCommand {
 	}
 
 	return &bigquery.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -332,28 +332,28 @@ func updateCommandAll() *bigquery.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		Dataset:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		Table:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		Template:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		Dataset:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		Table:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		Template:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 	}
 }
 

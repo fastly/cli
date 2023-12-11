@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -19,7 +19,7 @@ import (
 
 // UpdateCommand represents a Kingpin command.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 	authCmd *sso.RootCommand
 
 	automationToken bool
@@ -28,7 +28,7 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, authCmd *sso.RootCommand) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data, authCmd *sso.RootCommand) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = g
 	c.authCmd = authCmd

@@ -17,7 +17,7 @@ import (
 
 	cp "github.com/otiai10/copy"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
@@ -37,7 +37,7 @@ var (
 
 // InitCommand initializes a Compute project package on the local machine.
 type InitCommand struct {
-	cmd.Base
+	argparser.Base
 
 	branch    string
 	dir       string
@@ -50,7 +50,7 @@ type InitCommand struct {
 var Languages = []string{"rust", "javascript", "go", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent cmd.Registerer, g *global.Data) *InitCommand {
+func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = g
 
@@ -1063,6 +1063,7 @@ func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name
 		}
 		return nil
 	})
+	// nosemgrep: Users.integralist.Code.go.semgrep-go.err-nil-check (false positive)
 	if err != nil {
 		return m, err
 	}

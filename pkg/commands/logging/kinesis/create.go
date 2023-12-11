@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -16,34 +16,34 @@ import (
 
 // CreateCommand calls the Fastly API to create an Amazon Kinesis logging endpoint.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// mutual exclusions
 	// AccessKey + SecretKey or IAMRole must be provided
-	AccessKey cmd.OptionalString
-	SecretKey cmd.OptionalString
-	IAMRole   cmd.OptionalString
+	AccessKey argparser.OptionalString
+	SecretKey argparser.OptionalString
+	IAMRole   argparser.OptionalString
 
 	// Optional.
-	AutoClone         cmd.OptionalAutoClone
-	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	Placement         cmd.OptionalString
-	Region            cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	StreamName        cmd.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	Placement         argparser.OptionalString
+	Region            argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	StreamName        argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -51,9 +51,9 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the Kinesis logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
@@ -64,7 +64,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -74,16 +74,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Action(c.StreamName.Set).StringVar(&c.StreamName.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 
@@ -157,7 +157,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

@@ -307,7 +307,7 @@ func createKafkaOK(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 	}, nil
 }
 
-func createKafkaError(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
+func createKafkaError(_ *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
@@ -362,7 +362,7 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 	}, nil
 }
 
-func listKafkasError(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
+func listKafkasError(_ *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 	return nil, errTest
 }
 
@@ -446,7 +446,7 @@ func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	}, nil
 }
 
-func getKafkaError(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
+func getKafkaError(_ *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
@@ -521,14 +521,14 @@ func updateKafkaSASL(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	}, nil
 }
 
-func updateKafkaError(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
+func updateKafkaError(_ *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
-func deleteKafkaOK(i *fastly.DeleteKafkaInput) error {
+func deleteKafkaOK(_ *fastly.DeleteKafkaInput) error {
 	return nil
 }
 
-func deleteKafkaError(i *fastly.DeleteKafkaInput) error {
+func deleteKafkaError(_ *fastly.DeleteKafkaInput) error {
 	return errTest
 }

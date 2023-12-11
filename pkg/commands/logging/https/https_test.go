@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/https"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -71,7 +71,7 @@ func TestCreateHTTPSInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -168,7 +168,7 @@ func TestUpdateHTTPSInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -209,7 +209,7 @@ func createCommandRequired() *https.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &https.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -217,19 +217,19 @@ func createCommandRequired() *https.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		URL:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		URL:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
 	}
 }
 
@@ -247,7 +247,7 @@ func createCommandAll() *https.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &https.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -255,35 +255,35 @@ func createCommandAll() *https.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		ContentType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "application/json"},
-		HeaderName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "name"},
-		HeaderValue:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "value"},
-		Method:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "GET"},
-		JSONFormat:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "1"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
-		RequestMaxEntries: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		RequestMaxBytes:   cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
-		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
-		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		ContentType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "application/json"},
+		HeaderName:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "name"},
+		HeaderValue:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "value"},
+		Method:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "GET"},
+		JSONFormat:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "1"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
+		RequestMaxEntries: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		RequestMaxBytes:   argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		TLSCACert:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
+		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
+		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
 	}
 }
 
@@ -303,7 +303,7 @@ func updateCommandNoUpdates() *https.UpdateCommand {
 	}
 
 	return &https.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -312,12 +312,12 @@ func updateCommandNoUpdates() *https.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -336,7 +336,7 @@ func updateCommandAll() *https.UpdateCommand {
 	}
 
 	return &https.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -345,35 +345,35 @@ func updateCommandAll() *https.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		URL:               cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		ContentType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		HeaderName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		HeaderValue:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		Method:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		JSONFormat:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		RequestMaxEntries: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		RequestMaxBytes:   cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
-		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
-		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
-		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new15"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		ContentType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		HeaderName:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		HeaderValue:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		Method:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		JSONFormat:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		RequestMaxEntries: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		RequestMaxBytes:   argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		TLSCACert:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
+		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
+		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new15"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 	}
 }
 

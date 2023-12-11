@@ -6,20 +6,20 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List all users from a specified customer id")
 	c.Globals = g
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagCustomerIDName,
-		Description: cmd.FlagCustomerIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagCustomerIDName,
+		Description: argparser.FlagCustomerIDDesc,
 		Dst:         &c.customerID.Value,
 		Action:      c.customerID.Set,
 	})
@@ -29,10 +29,10 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	customerID cmd.OptionalCustomerID
+	customerID argparser.OptionalCustomerID
 }
 
 // Exec invokes the application logic for the command.
