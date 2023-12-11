@@ -928,7 +928,7 @@ func getToken() (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
-		ID:         fastly.ToPointer("123"),
+		TokenID:    fastly.ToPointer("123"),
 		Name:       fastly.ToPointer("Foo"),
 		UserID:     fastly.ToPointer("456"),
 		Services:   []string{"a", "b"},
@@ -944,7 +944,7 @@ func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
-		ID:                     fastly.ToPointer(i.ID),
+		UserID:                 fastly.ToPointer(i.UserID),
 		Login:                  fastly.ToPointer("foo@example.com"),
 		Name:                   fastly.ToPointer("foo"),
 		Role:                   fastly.ToPointer("user"),

@@ -16,7 +16,7 @@ import (
 func PrintDictionary(out io.Writer, prefix string, d *fastly.Dictionary) {
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(d.ID))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(d.DictionaryID))
 	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(d.Name))
 	fmt.Fprintf(out, "Write Only: %t\n", fastly.ToValue(d.WriteOnly))
 	fmt.Fprintf(out, "Created (UTC): %s\n", d.CreatedAt.UTC().Format(time.Format))

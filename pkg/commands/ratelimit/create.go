@@ -166,7 +166,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created rate limiter '%s' (%s)", fastly.ToValue(o.Name), fastly.ToValue(o.ID))
+	text.Success(out, "Created rate limiter '%s' (%s)", fastly.ToValue(o.Name), fastly.ToValue(o.RateLimiterID))
 	return nil
 }
 

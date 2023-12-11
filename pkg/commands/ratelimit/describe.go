@@ -67,7 +67,7 @@ func (c *DescribeCommand) print(out io.Writer, o *fastly.ERL) {
 	fmt.Fprintf(out, "Client Key: %+v\n", o.ClientKey)
 	fmt.Fprintf(out, "Feature Revision: %+v\n", fastly.ToValue(o.FeatureRevision))
 	fmt.Fprintf(out, "HTTP Methods: %+v\n", o.HTTPMethods)
-	fmt.Fprintf(out, "ID: %+v\n", fastly.ToValue(o.ID))
+	fmt.Fprintf(out, "ID: %+v\n", fastly.ToValue(o.RateLimiterID))
 	fmt.Fprintf(out, "Logger Type: %+v\n", fastly.ToValue(o.LoggerType))
 	fmt.Fprintf(out, "Name: %+v\n", fastly.ToValue(o.Name))
 	fmt.Fprintf(out, "Penalty Box Duration: %+v\n", fastly.ToValue(o.PenaltyBoxDuration))

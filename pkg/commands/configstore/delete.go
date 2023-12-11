@@ -22,7 +22,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.CmdClause = parent.Command("delete", "Delete a config store")
 
 	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.ID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -54,13 +54,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.input.ID,
+			c.input.StoreID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted Config Store '%s'", c.input.ID)
+	text.Success(out, "Deleted Config Store '%s'", c.input.StoreID)
 	return nil
 }

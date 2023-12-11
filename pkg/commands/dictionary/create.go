@@ -110,6 +110,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		writeOnlyOutput = "as write-only "
 	}
 
-	text.Success(out, "Created dictionary %s %s(id %s, service %s, version %d)", fastly.ToValue(d.Name), writeOnlyOutput, fastly.ToValue(d.ID), fastly.ToValue(d.ServiceID), fastly.ToValue(d.ServiceVersion))
+	text.Success(out, "Created dictionary %s %s(id %s, service %s, version %d)", fastly.ToValue(d.Name), writeOnlyOutput, fastly.ToValue(d.DictionaryID), fastly.ToValue(d.ServiceID), fastly.ToValue(d.ServiceVersion))
 	return nil
 }

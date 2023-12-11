@@ -97,7 +97,7 @@ func (c *ListCommand) constructInput() *fastly.ListCustomerTokensInput {
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.Token) {
 	for _, r := range rs {
-		fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.ID))
+		fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.TokenID))
 		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
 		fmt.Fprintf(out, "User ID: %s\n", fastly.ToValue(r.UserID))
 		fmt.Fprintf(out, "Services: %s\n", strings.Join(r.Services, ", "))
@@ -119,18 +119,18 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.Token) {
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.Token) error {
-	t := text.NewTable(out)
-	t.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
-	for _, r := range rs {
-		t.AddLine(
-			fastly.ToValue(r.Name),
-			fastly.ToValue(r.ID),
-			fastly.ToValue(r.UserID),
-			fastly.ToValue(r.Scope),
-			strings.Join(r.Services, ", "),
+func (c *ListCommand) printSummary(out io.Writer, ts []*fastly.Token) error {
+	tbl := text.NewTable(out)
+	tbl.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
+	for _, t := range ts {
+		tbl.AddLine(
+			fastly.ToValue(t.Name),
+			fastly.ToValue(t.TokenID),
+			fastly.ToValue(t.UserID),
+			fastly.ToValue(t.Scope),
+			strings.Join(t.Services, ", "),
 		)
 	}
-	t.Print()
+	tbl.Print()
 	return nil
 }

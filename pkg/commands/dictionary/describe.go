@@ -92,7 +92,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		})
 		return err
 	}
-	dictionaryID := fastly.ToValue(dictionary.ID)
+	dictionaryID := fastly.ToValue(dictionary.DictionaryID)
 
 	var (
 		info  *fastly.DictionaryInfo
@@ -103,7 +103,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		infoInput := fastly.GetDictionaryInfoInput{
 			ServiceID:      c.Input.ServiceID,
 			ServiceVersion: c.Input.ServiceVersion,
-			ID:             dictionaryID,
+			DictionaryID:   dictionaryID,
 		}
 		info, err = c.Globals.APIClient.GetDictionaryInfo(&infoInput)
 		if err != nil {

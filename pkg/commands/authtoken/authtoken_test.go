@@ -39,7 +39,7 @@ func TestAuthTokenCreate(t *testing.T) {
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   &testutil.Date,
-						ID:          fastly.ToPointer("123"),
+						TokenID:     fastly.ToPointer("123"),
 						Name:        fastly.ToPointer("Example"),
 						Scope:       fastly.ToPointer(fastly.TokenScope("foobar")),
 						AccessToken: fastly.ToPointer("123abc"),
@@ -55,7 +55,7 @@ func TestAuthTokenCreate(t *testing.T) {
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   i.ExpiresAt,
-						ID:          fastly.ToPointer("123"),
+						TokenID:     fastly.ToPointer("123"),
 						Name:        i.Name,
 						Scope:       i.Scope,
 						AccessToken: fastly.ToPointer("123abc"),
@@ -322,7 +322,7 @@ func getToken() (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
-		ID:         fastly.ToPointer("123"),
+		TokenID:    fastly.ToPointer("123"),
 		Name:       fastly.ToPointer("Foo"),
 		UserID:     fastly.ToPointer("456"),
 		Services:   []string{"a", "b"},
@@ -340,7 +340,7 @@ func listTokens(_ *fastly.ListTokensInput) ([]*fastly.Token, error) {
 	vs := []*fastly.Token{
 		token,
 		{
-			ID:         fastly.ToPointer("456"),
+			TokenID:    fastly.ToPointer("456"),
 			Name:       fastly.ToPointer("Bar"),
 			UserID:     fastly.ToPointer("789"),
 			Services:   []string{"a", "b"},

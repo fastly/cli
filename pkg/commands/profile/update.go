@@ -188,13 +188,13 @@ func (c *UpdateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		return "", err
 	}
 	if c.automationToken {
-		return fmt.Sprintf("Automation Token (%s)", fastly.ToValue(t.ID)), nil
+		return fmt.Sprintf("Automation Token (%s)", fastly.ToValue(t.TokenID)), nil
 	}
 
 	var user *fastly.User
 	err = spinner.Process("Getting user data", func(_ *text.SpinnerWrapper) error {
 		user, err = client.GetUser(&fastly.GetUserInput{
-			ID: fastly.ToValue(t.UserID),
+			UserID: fastly.ToValue(t.UserID),
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{

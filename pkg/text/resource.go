@@ -19,7 +19,7 @@ func PrintResource(out io.Writer, prefix string, r *fastly.Resource) {
 	}
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(r.ID))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(r.LinkID))
 	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
 	fmt.Fprintf(out, "Service ID: %s\n", fastly.ToValue(r.ServiceID))
 	fmt.Fprintf(out, "Service Version: %d\n", fastly.ToValue(r.ServiceVersion))

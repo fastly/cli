@@ -170,7 +170,7 @@ func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, 
 	}
 	for _, s := range services {
 		if fastly.ToValue(s.Name) == sv.Value {
-			return fastly.ToValue(s.ID), nil
+			return fastly.ToValue(s.ServiceID), nil
 		}
 	}
 	return serviceID, errors.New("error matching service name with available services")

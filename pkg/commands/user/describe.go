@@ -81,14 +81,14 @@ func (c *DescribeCommand) constructInput() (*fastly.GetUserInput, error) {
 			Remediation: "Alternatively pass --current to validate the logged in user.",
 		}
 	}
-	input.ID = c.id
+	input.UserID = c.id
 
 	return &input, nil
 }
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, r *fastly.User) {
-	fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.ID))
+	fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.UserID))
 	fmt.Fprintf(out, "Login: %s\n", fastly.ToValue(r.Login))
 	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
 	fmt.Fprintf(out, "Role: %s\n", fastly.ToValue(r.Role))

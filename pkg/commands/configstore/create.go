@@ -59,6 +59,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Config Store '%s' (%s)", o.Name, o.ID)
+	text.Success(out, "Created Config Store '%s' (%s)", o.Name, o.StoreID)
 	return nil
 }

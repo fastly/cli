@@ -93,7 +93,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated rate limiter '%s' (%s)", fastly.ToValue(o.Name), fastly.ToValue(o.ID))
+	text.Success(out, "Updated rate limiter '%s' (%s)", fastly.ToValue(o.Name), fastly.ToValue(o.RateLimiterID))
 	return nil
 }
 

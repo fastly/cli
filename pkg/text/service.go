@@ -16,8 +16,8 @@ import (
 func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 	out = textio.NewPrefixWriter(out, prefix)
 
-	if s.ID != nil {
-		fmt.Fprintf(out, "ID: %s\n", *s.ID)
+	if s.ServiceID != nil {
+		fmt.Fprintf(out, "ID: %s\n", *s.ServiceID)
 	}
 	if s.Name != nil {
 		fmt.Fprintf(out, "Name: %s\n", *s.Name)

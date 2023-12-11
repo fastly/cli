@@ -83,8 +83,8 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	input := fastly.DeleteKVStoreKeyInput{
-		ID:  c.storeID,
-		Key: c.key.Value,
+		StoreID: c.storeID,
+		Key:     c.key.Value,
 	}
 
 	err := c.Globals.APIClient.DeleteKVStoreKey(&input)
@@ -113,7 +113,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 	p := c.Globals.APIClient.NewListKVStoreKeysPaginator(&fastly.ListKVStoreKeysInput{
-		ID: c.storeID,
+		StoreID: c.storeID,
 	})
 
 	var (
@@ -143,7 +143,7 @@ func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 			sort.Strings(keys)
 			for _, key := range keys {
 				text.Output(out, "Deleting key: %s", key)
-				err := c.Globals.APIClient.DeleteKVStoreKey(&fastly.DeleteKVStoreKeyInput{ID: c.storeID, Key: key})
+				err := c.Globals.APIClient.DeleteKVStoreKey(&fastly.DeleteKVStoreKeyInput{StoreID: c.storeID, Key: key})
 				if err != nil {
 					c.Globals.ErrLog.Add(fmt.Errorf("failed to delete key '%s': %s", key, err))
 					mu.Lock()

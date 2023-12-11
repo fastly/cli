@@ -60,7 +60,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             fastly.ToPointer("rand-id"),
+						LinkID:         fastly.ToPointer("rand-id"),
 						Name:           fastly.ToPointer("the-name"),
 						ResourceID:     fastly.ToPointer("abc"),
 						ServiceID:      fastly.ToPointer("123"),
@@ -92,7 +92,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             fastly.ToPointer("rand-id"),
+						LinkID:         fastly.ToPointer("rand-id"),
 						Name:           fastly.ToPointer("a-name"),
 						ResourceID:     fastly.ToPointer("abc"),
 						ServiceID:      fastly.ToPointer("123"),
@@ -128,7 +128,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             fastly.ToPointer("rand-id"),
+						LinkID:         fastly.ToPointer("rand-id"),
 						Name:           fastly.ToPointer("cloned"),
 						ResourceID:     fastly.ToPointer("abc"),
 						ServiceID:      fastly.ToPointer("123"),
@@ -204,7 +204,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				DeleteResourceFn: func(i *fastly.DeleteResourceInput) error {
-					if got, want := i.ID, "LINKID"; got != want {
+					if got, want := i.ResourceID, "LINKID"; got != want {
 						return fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
@@ -231,7 +231,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
 				},
 				DeleteResourceFn: func(i *fastly.DeleteResourceInput) error {
-					if got, want := i.ID, "LINKID"; got != want {
+					if got, want := i.ResourceID, "LINKID"; got != want {
 						return fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
@@ -309,7 +309,7 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				GetResourceFn: func(i *fastly.GetResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ID, "LINKID"; got != want {
+					if got, want := i.ResourceID, "LINKID"; got != want {
 						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
@@ -320,7 +320,7 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Unix(1697372322, 0)
 					return &fastly.Resource{
-						ID:             fastly.ToPointer("LINKID"),
+						LinkID:         fastly.ToPointer("LINKID"),
 						ResourceID:     fastly.ToPointer("abc"),
 						ResourceType:   fastly.ToPointer("secret-store"),
 						Name:           fastly.ToPointer("test-name"),
@@ -412,7 +412,7 @@ func TestListServiceResourceCommand(t *testing.T) {
 					resources := make([]*fastly.Resource, 3)
 					for i := range resources {
 						resources[i] = &fastly.Resource{
-							ID:             fastly.ToPointer(fmt.Sprintf("LINKID-%02d", i)),
+							LinkID:         fastly.ToPointer(fmt.Sprintf("LINKID-%02d", i)),
 							ResourceID:     fastly.ToPointer("abc"),
 							ResourceType:   fastly.ToPointer("secret-store"),
 							Name:           fastly.ToPointer("test-name"),
@@ -526,7 +526,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				UpdateResourceFn: func(i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ID, "LINK-ID"; got != want {
+					if got, want := i.ResourceID, "LINK-ID"; got != want {
 						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := *i.Name, "new-name"; got != want {
@@ -541,7 +541,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             fastly.ToPointer("LINK-ID"),
+						LinkID:         fastly.ToPointer("LINK-ID"),
 						ResourceID:     fastly.ToPointer("abc"),
 						ResourceType:   fastly.ToPointer("secret-store"),
 						Name:           fastly.ToPointer("new-name"),
@@ -567,7 +567,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
 				},
 				UpdateResourceFn: func(i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ID, "LINK-ID"; got != want {
+					if got, want := i.ResourceID, "LINK-ID"; got != want {
 						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := *i.Name, "new-name"; got != want {
@@ -582,7 +582,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             fastly.ToPointer("LINK-ID"),
+						LinkID:         fastly.ToPointer("LINK-ID"),
 						ResourceID:     fastly.ToPointer("abc"),
 						ResourceType:   fastly.ToPointer("secret-store"),
 						Name:           fastly.ToPointer("new-name"),

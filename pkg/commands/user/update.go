@@ -77,7 +77,7 @@ func (c *UpdateCommand) constructInput() (*fastly.UpdateUserInput, error) {
 	if c.id == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --id flag")
 	}
-	input.ID = c.id
+	input.UserID = c.id
 
 	if c.name == "" && c.role == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide either the --name or --role with the --id flag")

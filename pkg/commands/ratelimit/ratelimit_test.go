@@ -32,8 +32,8 @@ func TestRateLimitCreate(t *testing.T) {
 			API: mock.API{
 				CreateERLFn: func(i *fastly.CreateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						Name: i.Name,
-						ID:   fastly.ToPointer("123"),
+						Name:          i.Name,
+						RateLimiterID: fastly.ToPointer("123"),
 					}, nil
 				},
 				ListVersionsFn: testutil.ListVersions,
@@ -118,7 +118,7 @@ func TestRateLimitDescribe(t *testing.T) {
 			API: mock.API{
 				GetERLFn: func(i *fastly.GetERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						ID:                 fastly.ToPointer("123"),
+						RateLimiterID:      fastly.ToPointer("123"),
 						Name:               fastly.ToPointer("example"),
 						Action:             fastly.ToPointer(fastly.ERLActionResponse),
 						RpsLimit:           fastly.ToPointer(10),
@@ -168,7 +168,7 @@ func TestRateLimitList(t *testing.T) {
 				ListERLsFn: func(i *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 					return []*fastly.ERL{
 						{
-							ID:                 fastly.ToPointer("123"),
+							RateLimiterID:      fastly.ToPointer("123"),
 							Name:               fastly.ToPointer("example"),
 							Action:             fastly.ToPointer(fastly.ERLActionResponse),
 							RpsLimit:           fastly.ToPointer(10),
@@ -218,8 +218,8 @@ func TesRateLimittUpdate(t *testing.T) {
 			API: mock.API{
 				UpdateERLFn: func(i *fastly.UpdateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						Name: i.Name,
-						ID:   fastly.ToPointer("123"),
+						Name:          i.Name,
+						RateLimiterID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},

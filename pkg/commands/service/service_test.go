@@ -506,8 +506,8 @@ var errTest = errors.New("fixture error")
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:   fastly.ToPointer("12345"),
-		Name: i.Name,
+		ServiceID: fastly.ToPointer("12345"),
+		Name:      i.Name,
 	}, nil
 }
 
@@ -578,15 +578,15 @@ Service 3/3
 
 func getServiceOK(_ *fastly.GetServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:      fastly.ToPointer("12345"),
-		Name:    fastly.ToPointer("Foo"),
-		Comment: fastly.ToPointer("Bar"),
+		ServiceID: fastly.ToPointer("12345"),
+		Name:      fastly.ToPointer("Foo"),
+		Comment:   fastly.ToPointer("Bar"),
 	}, nil
 }
 
 func describeServiceOK(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
-		ID:         fastly.ToPointer("123"),
+		ServiceID:  fastly.ToPointer("123"),
 		Name:       fastly.ToPointer("Foo"),
 		Type:       fastly.ToPointer("wasm"),
 		Comment:    fastly.ToPointer("example"),
@@ -700,7 +700,7 @@ Versions: 2
 
 func searchServiceOK(_ *fastly.SearchServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:         fastly.ToPointer("123"),
+		ServiceID:  fastly.ToPointer("123"),
 		Name:       fastly.ToPointer("Foo"),
 		Type:       fastly.ToPointer("wasm"),
 		CustomerID: fastly.ToPointer("mycustomerid"),
@@ -780,7 +780,7 @@ Versions: 2
 
 func updateServiceOK(_ *fastly.UpdateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID: fastly.ToPointer("12345"),
+		ServiceID: fastly.ToPointer("12345"),
 	}, nil
 }
 

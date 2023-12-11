@@ -37,7 +37,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.input.DictionaryID)
 
 	// Optional.
-	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.input.Direction, argparser.PaginationDirection...)
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.direction, argparser.PaginationDirection...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)

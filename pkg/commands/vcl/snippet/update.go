@@ -114,7 +114,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			})
 			return err
 		}
-		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", fastly.ToValue(v.ID), fastly.ToValue(v.ServiceID))
+		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", fastly.ToValue(v.SnippetID), fastly.ToValue(v.ServiceID))
 		return nil
 	}
 
@@ -150,7 +150,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructDynamicInput(serviceID string, _ int) (*fastly.UpdateDynamicSnippetInput, error) {
 	var input fastly.UpdateDynamicSnippetInput
 
-	input.ID = c.snippetID
+	input.SnippetID = c.snippetID
 	input.ServiceID = serviceID
 
 	if c.newName.WasSet {

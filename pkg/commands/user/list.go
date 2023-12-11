@@ -82,7 +82,7 @@ func (c *ListCommand) constructInput() *fastly.ListCustomerUsersInput {
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, us []*fastly.User) {
 	for _, u := range us {
-		fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(u.ID))
+		fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(u.UserID))
 		fmt.Fprintf(out, "Login: %s\n", fastly.ToValue(u.Login))
 		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(u.Name))
 		fmt.Fprintf(out, "Role: %s\n", fastly.ToValue(u.Role))
@@ -117,7 +117,7 @@ func (c *ListCommand) printSummary(out io.Writer, us []*fastly.User) error {
 			fastly.ToValue(u.Name),
 			fastly.ToValue(u.Role),
 			fastly.ToValue(u.Locked),
-			fastly.ToValue(u.ID),
+			fastly.ToValue(u.UserID),
 		)
 	}
 	t.Print()

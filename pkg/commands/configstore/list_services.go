@@ -22,7 +22,7 @@ func NewListServicesCommand(parent argparser.Registerer, g *global.Data) *ListSe
 	c.CmdClause = parent.Command("list-services", "List config store's services")
 
 	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.ID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json

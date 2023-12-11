@@ -33,7 +33,7 @@ func (p *ServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
 		err = Err
 	}
 	pageOne := fastly.Service{
-		ID:            fastly.ToPointer("123"),
+		ServiceID:     fastly.ToPointer("123"),
 		Name:          fastly.ToPointer("Foo"),
 		Type:          fastly.ToPointer("wasm"),
 		CustomerID:    fastly.ToPointer("mycustomerid"),
@@ -60,7 +60,7 @@ func (p *ServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
 		},
 	}
 	pageTwo := fastly.Service{
-		ID:            fastly.ToPointer("456"),
+		ServiceID:     fastly.ToPointer("456"),
 		Name:          fastly.ToPointer("Bar"),
 		Type:          fastly.ToPointer("wasm"),
 		CustomerID:    fastly.ToPointer("mycustomerid"),
@@ -68,7 +68,7 @@ func (p *ServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
 		UpdatedAt:     MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
 	}
 	pageThree := fastly.Service{
-		ID:            fastly.ToPointer("789"),
+		ServiceID:     fastly.ToPointer("789"),
 		Name:          fastly.ToPointer("Baz"),
 		Type:          fastly.ToPointer("vcl"),
 		CustomerID:    fastly.ToPointer("mycustomerid"),

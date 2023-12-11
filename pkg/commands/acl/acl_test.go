@@ -56,7 +56,7 @@ func TestACLCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateACLFn: func(i *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
-						ID:             fastly.ToPointer("456"),
+						ACLID:          fastly.ToPointer("456"),
 						Name:           i.Name,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
 						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -73,7 +73,7 @@ func TestACLCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateACLFn: func(i *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
-						ID:             fastly.ToPointer("456"),
+						ACLID:          fastly.ToPointer("456"),
 						Name:           i.Name,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
 						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -362,7 +362,7 @@ func TestACLUpdate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				UpdateACLFn: func(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
-						ID:             fastly.ToPointer("456"),
+						ACLID:          fastly.ToPointer("456"),
 						Name:           i.NewName,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
 						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -379,7 +379,7 @@ func TestACLUpdate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateACLFn: func(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
-						ID:             fastly.ToPointer("456"),
+						ACLID:          fastly.ToPointer("456"),
 						Name:           i.NewName,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
 						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -411,7 +411,7 @@ func getACL(i *fastly.GetACLInput) (*fastly.ACL, error) {
 	t := testutil.Date
 
 	return &fastly.ACL{
-		ID:             fastly.ToPointer("456"),
+		ACLID:          fastly.ToPointer("456"),
 		Name:           fastly.ToPointer(i.Name),
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -426,7 +426,7 @@ func listACLs(i *fastly.ListACLsInput) ([]*fastly.ACL, error) {
 	t := testutil.Date
 	vs := []*fastly.ACL{
 		{
-			ID:             fastly.ToPointer("456"),
+			ACLID:          fastly.ToPointer("456"),
 			Name:           fastly.ToPointer("foo"),
 			ServiceID:      fastly.ToPointer(i.ServiceID),
 			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -436,7 +436,7 @@ func listACLs(i *fastly.ListACLsInput) ([]*fastly.ACL, error) {
 			UpdatedAt: &t,
 		},
 		{
-			ID:             fastly.ToPointer("789"),
+			ACLID:          fastly.ToPointer("789"),
 			Name:           fastly.ToPointer("bar"),
 			ServiceID:      fastly.ToPointer(i.ServiceID),
 			ServiceVersion: fastly.ToPointer(i.ServiceVersion),

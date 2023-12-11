@@ -108,7 +108,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		fastly.ToValue(v.ServiceID),
 		fastly.ToValue(v.ServiceVersion),
 		c.dynamic.WasSet,
-		fastly.ToValue(v.ID),
+		fastly.ToValue(v.SnippetID),
 		c.location.Value,
 		fastly.ToValue(v.Priority),
 	)

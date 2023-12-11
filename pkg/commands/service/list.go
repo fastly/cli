@@ -35,7 +35,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause = parent.Command("list", "List Fastly services")
 
 	// Optional.
-	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.input.Direction, argparser.PaginationDirection...)
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.direction, argparser.PaginationDirection...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
@@ -89,7 +89,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 			tw.AddLine(
 				fastly.ToValue(service.Name),
-				fastly.ToValue(service.ID),
+				fastly.ToValue(service.ServiceID),
 				fastly.ToValue(service.Type),
 				activeVersion,
 				updatedAt,

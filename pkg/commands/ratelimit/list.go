@@ -109,7 +109,7 @@ func (c *ListCommand) printVerbose(out io.Writer, o []*fastly.ERL) {
 		fmt.Fprintf(out, "Client Key: %+v\n", u.ClientKey)
 		fmt.Fprintf(out, "Feature Revision: %+v\n", fastly.ToValue(u.FeatureRevision))
 		fmt.Fprintf(out, "HTTP Methods: %+v\n", u.HTTPMethods)
-		fmt.Fprintf(out, "ID: %+v\n", fastly.ToValue(u.ID))
+		fmt.Fprintf(out, "ID: %+v\n", fastly.ToValue(u.RateLimiterID))
 		fmt.Fprintf(out, "Logger Type: %+v\n", fastly.ToValue(u.LoggerType))
 		fmt.Fprintf(out, "Name: %+v\n", fastly.ToValue(u.Name))
 		fmt.Fprintf(out, "Penalty Box Duration: %+v\n", fastly.ToValue(u.PenaltyBoxDuration))
@@ -141,7 +141,7 @@ func (c *ListCommand) printSummary(out io.Writer, o []*fastly.ERL) {
 	t.AddHeader("ID", "NAME", "ACTION", "RPS LIMIT", "WINDOW SIZE", "PENALTY BOX DURATION")
 	for _, u := range o {
 		t.AddLine(
-			fastly.ToValue(u.ID),
+			fastly.ToValue(u.RateLimiterID),
 			fastly.ToValue(u.Name),
 			fastly.ToValue(u.Action),
 			fastly.ToValue(u.RpsLimit),

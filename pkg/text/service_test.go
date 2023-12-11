@@ -21,7 +21,7 @@ func TestPrintService(t *testing.T) {
 			name:   "without prefix",
 			prefix: "",
 			service: &fastly.Service{
-				ID:            fastly.ToPointer("1"),
+				ServiceID:     fastly.ToPointer("1"),
 				Name:          fastly.ToPointer("2"),
 				Type:          fastly.ToPointer("3"),
 				CustomerID:    fastly.ToPointer("4"),
@@ -33,7 +33,7 @@ func TestPrintService(t *testing.T) {
 			name:   "with prefix",
 			prefix: "\t",
 			service: &fastly.Service{
-				ID:            fastly.ToPointer("1"),
+				ServiceID:     fastly.ToPointer("1"),
 				Name:          fastly.ToPointer("2"),
 				Type:          fastly.ToPointer("3"),
 				CustomerID:    fastly.ToPointer("4"),

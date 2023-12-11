@@ -90,7 +90,7 @@ func (o *KVStores) Configure() error {
 			if store.Name == name {
 				if o.AcceptDefaults || o.NonInteractive {
 					linkExistingStore = true
-					existingStoreID = store.ID
+					existingStoreID = store.StoreID
 				} else {
 					text.Warning(o.Stdout, "\nA KV Store called '%s' already exists\n\n", name)
 					prompt := text.Prompt("Use a different store name (or leave empty to use the existing store): ")
@@ -100,7 +100,7 @@ func (o *KVStores) Configure() error {
 					}
 					if value == "" {
 						linkExistingStore = true
-						existingStoreID = store.ID
+						existingStoreID = store.StoreID
 					} else {
 						name = value
 					}
@@ -215,7 +215,7 @@ func (o *KVStores) Create() error {
 		if kvStore.LinkExistingStore {
 			err = o.Spinner.Process(fmt.Sprintf("Retrieving existing KV Store '%s'", kvStore.Name), func(_ *text.SpinnerWrapper) error {
 				store, err = o.APIClient.GetKVStore(&fastly.GetKVStoreInput{
-					ID: kvStore.ExistingStoreID,
+					StoreID: kvStore.ExistingStoreID,
 				})
 				if err != nil {
 					return fmt.Errorf("failed to get existing store '%s': %w", kvStore.Name, err)
@@ -244,8 +244,8 @@ func (o *KVStores) Create() error {
 			for _, item := range kvStore.Items {
 				err = o.Spinner.Process(fmt.Sprintf("Creating KV Store key '%s'...", item.Key), func(_ *text.SpinnerWrapper) error {
 					input := &fastly.InsertKVStoreKeyInput{
-						ID:  store.ID,
-						Key: item.Key,
+						StoreID: store.StoreID,
+						Key:     item.Key,
 					}
 					if item.Body != nil {
 						input.Body = item.Body
@@ -270,7 +270,7 @@ func (o *KVStores) Create() error {
 				ServiceID:      o.ServiceID,
 				ServiceVersion: o.ServiceVersion,
 				Name:           fastly.ToPointer(store.Name),
-				ResourceID:     fastly.ToPointer(store.ID),
+				ResourceID:     fastly.ToPointer(store.StoreID),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating resource link between the service '%s' and the KV Store '%s': %w", o.ServiceID, store.Name, err)

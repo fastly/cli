@@ -12,8 +12,8 @@ import (
 
 func getServiceOK(_ *fastly.GetServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:   fastly.ToPointer("12345"),
-		Name: fastly.ToPointer("test"),
+		ServiceID: fastly.ToPointer("12345"),
+		Name:      fastly.ToPointer("test"),
 	}, nil
 }
 
@@ -65,8 +65,8 @@ func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.Dictio
 
 func createKVStoreOK(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 	return &fastly.KVStore{
-		ID:   "example-store",
-		Name: i.Name,
+		StoreID: "example-store",
+		Name:    i.Name,
 	}, nil
 }
 
@@ -108,12 +108,12 @@ func listKVStoresOk(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, 
 	return &fastly.ListKVStoresResponse{
 		Data: []fastly.KVStore{
 			{
-				ID:   "123",
-				Name: "store_one",
+				StoreID: "123",
+				Name:    "store_one",
 			},
 			{
-				ID:   "456",
-				Name: "store_two",
+				StoreID: "456",
+				Name:    "store_two",
 			},
 		},
 	}, nil
@@ -125,8 +125,8 @@ func listKVStoresEmpty(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresRespons
 
 func getKVStoreOk(_ *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 	return &fastly.KVStore{
-		ID:   "123",
-		Name: "store_one",
+		StoreID: "123",
+		Name:    "store_one",
 	}, nil
 }
 
@@ -134,12 +134,12 @@ func listSecretStoresOk(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, 
 	return &fastly.SecretStores{
 		Data: []fastly.SecretStore{
 			{
-				ID:   "123",
-				Name: "store_one",
+				StoreID: "123",
+				Name:    "store_one",
 			},
 			{
-				ID:   "456",
-				Name: "store_two",
+				StoreID: "456",
+				Name:    "store_two",
 			},
 		},
 	}, nil
@@ -151,15 +151,15 @@ func listSecretStoresEmpty(_ *fastly.ListSecretStoresInput) (*fastly.SecretStore
 
 func getSecretStoreOk(_ *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 	return &fastly.SecretStore{
-		ID:   "123",
-		Name: "store_one",
+		StoreID: "123",
+		Name:    "store_one",
 	}, nil
 }
 
 func createSecretStoreOk(_ *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 	return &fastly.SecretStore{
-		ID:   "123",
-		Name: "store_one",
+		StoreID: "123",
+		Name:    "store_one",
 	}, nil
 }
 
@@ -173,12 +173,12 @@ func createSecretOk(_ *fastly.CreateSecretInput) (*fastly.Secret, error) {
 func listConfigStoresOk(_ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 	return []*fastly.ConfigStore{
 		{
-			ID:   "123",
-			Name: "example",
+			StoreID: "123",
+			Name:    "example",
 		},
 		{
-			ID:   "456",
-			Name: "example_two",
+			StoreID: "456",
+			Name:    "example_two",
 		},
 	}, nil
 }
@@ -189,8 +189,8 @@ func listConfigStoresEmpty(_ *fastly.ListConfigStoresInput) ([]*fastly.ConfigSto
 
 func getConfigStoreOk(_ *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 	return &fastly.ConfigStore{
-		ID:   "123",
-		Name: "example",
+		StoreID: "123",
+		Name:    "example",
 	}, nil
 }
 

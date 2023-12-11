@@ -45,8 +45,8 @@ func TestCreateStoreCommand(t *testing.T) {
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
-						ID:   storeID,
-						Name: i.Name,
+						StoreID: storeID,
+						Name:    i.Name,
 					}, nil
 				},
 			},
@@ -57,7 +57,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
-						ID:        storeID,
+						StoreID:   storeID,
 						Name:      i.Name,
 						CreatedAt: &now,
 						UpdatedAt: &now,
@@ -65,7 +65,7 @@ func TestCreateStoreCommand(t *testing.T) {
 				},
 			},
 			WantOutput: fstfmt.EncodeJSON(&fastly.KVStore{
-				ID:        storeID,
+				StoreID:   storeID,
 				Name:      storeName,
 				CreatedAt: &now,
 				UpdatedAt: &now,
@@ -102,7 +102,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			Args: testutil.Args(kvstore.RootName + " delete --store-id DOES-NOT-EXIST"),
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
-					if i.ID != storeID {
+					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
 					return nil
@@ -114,7 +114,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s", kvstore.RootName, storeID)),
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
-					if i.ID != storeID {
+					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
 					return nil
@@ -126,7 +126,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --json", kvstore.RootName, storeID)),
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
-					if i.ID != storeID {
+					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
 					return nil
@@ -179,7 +179,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 			API: mock.API{
 				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
-						ID:        i.ID,
+						StoreID:   i.StoreID,
 						Name:      storeName,
 						CreatedAt: &now,
 						UpdatedAt: &now,
@@ -188,7 +188,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 			},
 			WantOutput: fmtStore(
 				&fastly.KVStore{
-					ID:        storeID,
+					StoreID:   storeID,
 					Name:      storeName,
 					CreatedAt: &now,
 					UpdatedAt: &now,
@@ -200,14 +200,14 @@ func TestDescribeStoreCommand(t *testing.T) {
 			API: mock.API{
 				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
-						ID:        i.ID,
+						StoreID:   i.StoreID,
 						Name:      storeName,
 						CreatedAt: &now,
 					}, nil
 				},
 			},
 			WantOutput: fstfmt.EncodeJSON(&fastly.KVStore{
-				ID:        storeID,
+				StoreID:   storeID,
 				Name:      storeName,
 				CreatedAt: &now,
 			}),
@@ -240,8 +240,8 @@ func TestListStoresCommand(t *testing.T) {
 
 	stores := &fastly.ListKVStoresResponse{
 		Data: []fastly.KVStore{
-			{ID: storeID, Name: storeName, CreatedAt: &now, UpdatedAt: &now},
-			{ID: storeID + "+1", Name: storeName + "+1", CreatedAt: &now, UpdatedAt: &now},
+			{StoreID: storeID, Name: storeName, CreatedAt: &now, UpdatedAt: &now},
+			{StoreID: storeID + "+1", Name: storeName + "+1", CreatedAt: &now, UpdatedAt: &now},
 		},
 	}
 

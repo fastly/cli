@@ -116,7 +116,7 @@ func (c *DescribeCommand) print(out io.Writer, a *fastly.ACL) error {
 	}
 	fmt.Fprintf(out, "Service Version: %d\n\n", fastly.ToValue(a.ServiceVersion))
 	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(a.Name))
-	fmt.Fprintf(out, "ID: %s\n\n", fastly.ToValue(a.ID))
+	fmt.Fprintf(out, "ID: %s\n\n", fastly.ToValue(a.ACLID))
 	if a.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", a.CreatedAt)
 	}

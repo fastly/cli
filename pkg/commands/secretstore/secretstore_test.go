@@ -51,8 +51,8 @@ func TestCreateStoreCommand(t *testing.T) {
 			api: mock.API{
 				CreateSecretStoreFn: func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 					return &fastly.SecretStore{
-						ID:   storeID,
-						Name: i.Name,
+						StoreID: storeID,
+						Name:    i.Name,
 					}, nil
 				},
 			},
@@ -64,14 +64,14 @@ func TestCreateStoreCommand(t *testing.T) {
 			api: mock.API{
 				CreateSecretStoreFn: func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 					return &fastly.SecretStore{
-						ID:        storeID,
+						StoreID:   storeID,
 						Name:      i.Name,
 						CreatedAt: now,
 					}, nil
 				},
 			},
 			wantAPIInvoked: true,
-			wantOutput:     fstfmt.JSON(`{"id": %q, "name": %q, "created_at": %q}`, storeID, storeName, now.Format(time.RFC3339Nano)),
+			wantOutput:     fstfmt.JSON(`{"created_at": %q, "name": %q, "id": %q}`, now.Format(time.RFC3339Nano), storeName, storeID),
 		},
 	}
 
@@ -123,7 +123,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			args: "delete --store-id DOES-NOT-EXIST",
 			api: mock.API{
 				DeleteSecretStoreFn: func(i *fastly.DeleteSecretStoreInput) error {
-					if i.ID != storeID {
+					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
 					return nil
@@ -136,7 +136,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			args: fmt.Sprintf("delete --store-id %s", storeID),
 			api: mock.API{
 				DeleteSecretStoreFn: func(i *fastly.DeleteSecretStoreInput) error {
-					if i.ID != storeID {
+					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
 					return nil
@@ -149,7 +149,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			args: fmt.Sprintf("delete --store-id %s --json", storeID),
 			api: mock.API{
 				DeleteSecretStoreFn: func(i *fastly.DeleteSecretStoreInput) error {
-					if i.ID != storeID {
+					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
 					return nil
@@ -221,15 +221,15 @@ func TestDescribeStoreCommand(t *testing.T) {
 			api: mock.API{
 				GetSecretStoreFn: func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 					return &fastly.SecretStore{
-						ID:   i.ID,
-						Name: storeName,
+						StoreID: i.StoreID,
+						Name:    storeName,
 					}, nil
 				},
 			},
 			wantAPIInvoked: true,
 			wantOutput: fmtStore(&fastly.SecretStore{
-				ID:   storeID,
-				Name: storeName,
+				StoreID: storeID,
+				Name:    storeName,
 			}),
 		},
 		{
@@ -237,15 +237,15 @@ func TestDescribeStoreCommand(t *testing.T) {
 			api: mock.API{
 				GetSecretStoreFn: func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 					return &fastly.SecretStore{
-						ID:   i.ID,
-						Name: storeName,
+						StoreID: i.StoreID,
+						Name:    storeName,
 					}, nil
 				},
 			},
 			wantAPIInvoked: true,
 			wantOutput: fstfmt.EncodeJSON(&fastly.SecretStore{
-				ID:   storeID,
-				Name: storeName,
+				StoreID: storeID,
+				Name:    storeName,
 			}),
 		},
 	}
@@ -290,7 +290,7 @@ func TestListStoresCommand(t *testing.T) {
 			Limit: 123,
 		},
 		Data: []fastly.SecretStore{
-			{ID: storeID, Name: storeName},
+			{StoreID: storeID, Name: storeName},
 		},
 	}
 

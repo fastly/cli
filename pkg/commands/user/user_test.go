@@ -266,9 +266,9 @@ func TestUserUpdate(t *testing.T) {
 			API: mock.API{
 				UpdateUserFn: func(i *fastly.UpdateUserInput) (*fastly.User, error) {
 					return &fastly.User{
-						ID:   fastly.ToPointer(i.ID),
-						Name: i.Name,
-						Role: i.Role,
+						UserID: fastly.ToPointer(i.UserID),
+						Name:   i.Name,
+						Role:   i.Role,
 					}, nil
 				},
 			},
@@ -307,7 +307,7 @@ func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
-		ID:                     fastly.ToPointer(i.ID),
+		UserID:                 fastly.ToPointer(i.UserID),
 		Login:                  fastly.ToPointer("foo@example.com"),
 		Name:                   fastly.ToPointer("foo"),
 		Role:                   fastly.ToPointer("user"),
@@ -328,7 +328,7 @@ func getCurrentUser() (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
-		ID:                     fastly.ToPointer("current123"),
+		UserID:                 fastly.ToPointer("current123"),
 		Login:                  fastly.ToPointer("bar@example.com"),
 		Name:                   fastly.ToPointer("bar"),
 		Role:                   fastly.ToPointer("superuser"),
@@ -346,7 +346,7 @@ func getCurrentUser() (*fastly.User, error) {
 }
 
 func listUsers(_ *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
-	user, _ := getUser(&fastly.GetUserInput{ID: "123"})
+	user, _ := getUser(&fastly.GetUserInput{UserID: "123"})
 	userCurrent, _ := getCurrentUser()
 	vs := []*fastly.User{
 		user,

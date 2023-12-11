@@ -133,7 +133,7 @@ func (c *ListCommand) constructInput(serviceID string) *fastly.GetACLEntriesInpu
 func (c *ListCommand) printVerbose(out io.Writer, as []*fastly.ACLEntry) {
 	for _, a := range as {
 		fmt.Fprintf(out, "ACL ID: %s\n", fastly.ToValue(a.ACLID))
-		fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(a.ID))
+		fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(a.EntryID))
 		fmt.Fprintf(out, "IP: %s\n", fastly.ToValue(a.IP))
 		fmt.Fprintf(out, "Subnet: %d\n", fastly.ToValue(a.Subnet))
 		fmt.Fprintf(out, "Negated: %t\n", fastly.ToValue(a.Negated))
@@ -165,7 +165,7 @@ func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) error {
 		}
 		t.AddLine(
 			fastly.ToValue(a.ServiceID),
-			fastly.ToValue(a.ID),
+			fastly.ToValue(a.EntryID),
 			fastly.ToValue(a.IP),
 			subnet,
 			fastly.ToValue(a.Negated),

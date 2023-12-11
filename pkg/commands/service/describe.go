@@ -69,7 +69,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	c.Input.ID = serviceID
+	c.Input.ServiceID = serviceID
 
 	o, err := c.Globals.APIClient.GetServiceDetails(&c.Input)
 	if err != nil {
@@ -87,7 +87,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 func (c *DescribeCommand) print(s *fastly.ServiceDetail, out io.Writer) error {
-	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(s.ID))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(s.ServiceID))
 	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(s.Name))
 	fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(s.Type))
 	fmt.Fprintf(out, "Comment: %s\n", fastly.ToValue(s.Comment))

@@ -31,7 +31,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause = parent.Command("create", "Insert a key-value pair").Alias("insert")
 
 	// Required.
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
 	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
@@ -97,14 +97,14 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 			ID  string `json:"id"`
 			Key string `json:"key"`
 		}{
-			c.Input.ID,
+			c.Input.StoreID,
 			c.Input.Key,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Created key '%s' in KV Store '%s'", c.Input.Key, c.Input.ID)
+	text.Success(out, "Created key '%s' in KV Store '%s'", c.Input.Key, c.Input.StoreID)
 	return nil
 }
 
@@ -279,7 +279,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 
 			opts := insertKeyOptions{
 				client: c.Globals.APIClient,
-				id:     c.Input.ID,
+				id:     c.Input.StoreID,
 				key:    filename,
 				file:   lr,
 			}
@@ -360,8 +360,8 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 	}
 
 	if err := c.Globals.APIClient.BatchModifyKVStoreKey(&fastly.BatchModifyKVStoreKeyInput{
-		ID:   c.Input.ID,
-		Body: in,
+		StoreID: c.Input.StoreID,
+		Body:    in,
 	}); err != nil {
 		c.Globals.ErrLog.Add(err)
 
@@ -407,9 +407,9 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 
 func insertKey(opts insertKeyOptions) error {
 	return opts.client.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
-		Body: opts.file,
-		ID:   opts.id,
-		Key:  opts.key,
+		Body:    opts.file,
+		StoreID: opts.id,
+		Key:     opts.key,
 	})
 }
 

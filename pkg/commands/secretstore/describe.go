@@ -22,7 +22,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	c.CmdClause = parent.Command("describe", "Retrieve a single secret store").Alias("get")
 
 	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json

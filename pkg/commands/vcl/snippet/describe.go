@@ -141,7 +141,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *DescribeCommand) constructDynamicInput(serviceID string, _ int) (*fastly.GetDynamicSnippetInput, error) {
 	var input fastly.GetDynamicSnippetInput
 
-	input.ID = c.snippetID
+	input.SnippetID = c.snippetID
 	input.ServiceID = serviceID
 
 	if c.snippetID == "" {
@@ -169,7 +169,7 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) (
 // print displays the 'dynamic' information returned from the API.
 func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet) error {
 	fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(ds.ServiceID))
-	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(ds.ID))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(ds.SnippetID))
 	fmt.Fprintf(out, "Content: \n%s\n", fastly.ToValue(ds.Content))
 	if ds.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", ds.CreatedAt)
@@ -187,7 +187,7 @@ func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
 	}
 	fmt.Fprintf(out, "Service Version: %d\n", fastly.ToValue(s.ServiceVersion))
 	fmt.Fprintf(out, "\nName: %s\n", fastly.ToValue(s.Name))
-	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(s.ID))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(s.SnippetID))
 	fmt.Fprintf(out, "Priority: %d\n", fastly.ToValue(s.Priority))
 	fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(fastly.ToValue(s.Dynamic)))
 	fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(s.Type))

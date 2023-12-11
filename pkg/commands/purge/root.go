@@ -198,7 +198,7 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 		})
 		return err
 	}
-	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.ID))
+	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
 	return nil
 }
 
@@ -214,7 +214,7 @@ func (c *RootCommand) purgeURL(out io.Writer) error {
 		})
 		return err
 	}
-	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.ID))
+	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
 	return nil
 }
 

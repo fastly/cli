@@ -91,7 +91,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created ACL '%s' (id: %s, service: %s, version: %d)", fastly.ToValue(a.Name), fastly.ToValue(a.ID), fastly.ToValue(a.ServiceID), fastly.ToValue(a.ServiceVersion))
+	text.Success(out, "Created ACL '%s' (id: %s, service: %s, version: %d)", fastly.ToValue(a.Name), fastly.ToValue(a.ACLID), fastly.ToValue(a.ServiceID), fastly.ToValue(a.ServiceVersion))
 	return nil
 }
 

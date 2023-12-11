@@ -123,7 +123,7 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, vs []*fast
 	for _, v := range vs {
 		fmt.Fprintf(out, "\n")
 		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(v.Name))
-		fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(v.ID))
+		fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(v.SnippetID))
 		fmt.Fprintf(out, "Priority: %d\n", fastly.ToValue(v.Priority))
 		fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(fastly.ToValue(v.Dynamic)))
 		fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(v.Type))
@@ -152,7 +152,7 @@ func (c *ListCommand) printSummary(out io.Writer, ss []*fastly.Snippet) error {
 			fastly.ToValue(s.ServiceVersion),
 			fastly.ToValue(s.Name),
 			argparser.IntToBool(fastly.ToValue(s.Dynamic)),
-			fastly.ToValue(s.ID),
+			fastly.ToValue(s.SnippetID),
 		)
 	}
 	t.Print()

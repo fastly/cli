@@ -39,7 +39,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "id",
 		Description: flagIDDescription,
-		Dst:         &c.input.ID,
+		Dst:         &c.input.ResourceID,
 		Required:    true,
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -109,7 +109,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.UpdateResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"ID":              c.input.ID,
+			"ID":              c.input.ResourceID,
 			"Service ID":      c.input.ServiceID,
 			"Service Version": c.input.ServiceVersion,
 		})
@@ -122,7 +122,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	text.Success(out,
 		"Updated service resource link %s on service %s version %d",
-		fastly.ToValue(o.ID),
+		fastly.ToValue(o.LinkID),
 		fastly.ToValue(o.ServiceID),
 		fastly.ToValue(o.ServiceVersion),
 	)

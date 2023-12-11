@@ -74,7 +74,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		expires = r.ExpiresAt.String()
 	}
 
-	text.Success(out, "Created token '%s' (name: %s, id: %s, scope: %s, expires: %s)", fastly.ToValue(r.AccessToken), fastly.ToValue(r.Name), fastly.ToValue(r.ID), fastly.ToValue(r.Scope), expires)
+	text.Success(out, "Created token '%s' (name: %s, id: %s, scope: %s, expires: %s)", fastly.ToValue(r.AccessToken), fastly.ToValue(r.Name), fastly.ToValue(r.TokenID), fastly.ToValue(r.Scope), expires)
 	return nil
 }
 

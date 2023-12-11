@@ -162,8 +162,8 @@ func TestPurgeKey(t *testing.T) {
 			API: mock.API{
 				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: fastly.ToPointer("ok"),
-						ID:     fastly.ToPointer("123"),
+						Status:  fastly.ToPointer("ok"),
+						PurgeID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},
@@ -175,8 +175,8 @@ func TestPurgeKey(t *testing.T) {
 			API: mock.API{
 				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: fastly.ToPointer("ok"),
-						ID:     fastly.ToPointer("123"),
+						Status:  fastly.ToPointer("ok"),
+						PurgeID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},
@@ -220,8 +220,8 @@ func TestPurgeURL(t *testing.T) {
 			API: mock.API{
 				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: fastly.ToPointer("ok"),
-						ID:     fastly.ToPointer("123"),
+						Status:  fastly.ToPointer("ok"),
+						PurgeID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},
@@ -233,8 +233,8 @@ func TestPurgeURL(t *testing.T) {
 			API: mock.API{
 				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: fastly.ToPointer("ok"),
-						ID:     fastly.ToPointer("123"),
+						Status:  fastly.ToPointer("ok"),
+						PurgeID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},

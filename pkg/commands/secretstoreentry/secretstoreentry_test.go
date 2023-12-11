@@ -289,7 +289,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("delete --store-id %s --name DOES-NOT-EXIST", storeID),
 			api: mock.API{
 				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
+					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
 					return nil
@@ -302,7 +302,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("delete --store-id %s --name %s", storeID, secretName),
 			api: mock.API{
 				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
+					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
 					return nil
@@ -315,7 +315,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("delete --store-id %s --name %s --json", storeID, secretName),
 			api: mock.API{
 				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
+					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
 					return nil
@@ -381,7 +381,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("get --store-id %s --name %s", "DOES-NOT-EXIST", storeName),
 			api: mock.API{
 				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
-					if i.ID != storeID || i.Name != storeName {
+					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
 					return &fastly.Secret{
@@ -397,7 +397,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("get --store-id %s --name %s", storeID, storeName),
 			api: mock.API{
 				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
-					if i.ID != storeID || i.Name != storeName {
+					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
 					return &fastly.Secret{
@@ -416,7 +416,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("get --store-id %s --name %s --json", storeID, storeName),
 			api: mock.API{
 				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
-					if i.ID != storeID || i.Name != storeName {
+					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
 					return &fastly.Secret{

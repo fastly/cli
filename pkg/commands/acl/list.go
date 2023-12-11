@@ -122,7 +122,7 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, as []*fast
 
 	for _, a := range as {
 		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(a.Name))
-		fmt.Fprintf(out, "ID: %s\n\n", fastly.ToValue(a.ID))
+		fmt.Fprintf(out, "ID: %s\n\n", fastly.ToValue(a.ACLID))
 
 		if a.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", a.CreatedAt)
@@ -148,7 +148,7 @@ func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACL) error {
 			fastly.ToValue(a.ServiceID),
 			fastly.ToValue(a.ServiceVersion),
 			fastly.ToValue(a.Name),
-			fastly.ToValue(a.ID),
+			fastly.ToValue(a.ACLID),
 		)
 	}
 	t.Print()

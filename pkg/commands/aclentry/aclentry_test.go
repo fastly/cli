@@ -49,7 +49,7 @@ func TestACLEntryCreate(t *testing.T) {
 				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return &fastly.ACLEntry{
 						ACLID:     fastly.ToPointer(i.ACLID),
-						ID:        fastly.ToPointer("456"),
+						EntryID:   fastly.ToPointer("456"),
 						IP:        i.IP,
 						ServiceID: fastly.ToPointer(i.ServiceID),
 					}, nil
@@ -64,7 +64,7 @@ func TestACLEntryCreate(t *testing.T) {
 				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return &fastly.ACLEntry{
 						ACLID:     fastly.ToPointer(i.ACLID),
-						ID:        fastly.ToPointer("456"),
+						EntryID:   fastly.ToPointer("456"),
 						IP:        i.IP,
 						ServiceID: fastly.ToPointer(i.ServiceID),
 						Negated:   fastly.ToPointer(bool(fastly.ToValue(i.Negated))),
@@ -461,7 +461,7 @@ func getACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 
 	return &fastly.ACLEntry{
 		ACLID:     fastly.ToPointer(i.ACLID),
-		ID:        fastly.ToPointer(i.ID),
+		EntryID:   fastly.ToPointer(i.EntryID),
 		IP:        fastly.ToPointer("127.0.0.1"),
 		ServiceID: fastly.ToPointer(i.ServiceID),
 

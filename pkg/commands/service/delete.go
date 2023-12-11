@@ -57,11 +57,11 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	c.Input.ID = serviceID
+	c.Input.ServiceID = serviceID
 
 	if c.force {
 		s, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
-			ID: serviceID,
+			ServiceID: serviceID,
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -109,6 +109,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	text.Success(out, "Deleted service ID %s", c.Input.ID)
+	text.Success(out, "Deleted service ID %s", c.Input.ServiceID)
 	return nil
 }

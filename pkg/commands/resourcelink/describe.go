@@ -34,7 +34,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "id",
 		Description: flagIDDescription,
-		Dst:         &c.input.ID,
+		Dst:         &c.input.ResourceID,
 		Required:    true,
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -89,7 +89,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	o, err := c.Globals.APIClient.GetResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"ID":              c.input.ID,
+			"ID":              c.input.ResourceID,
 			"Service ID":      c.input.ServiceID,
 			"Service Version": c.input.ServiceVersion,
 		})

@@ -324,7 +324,7 @@ func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, err
 		Name:           fastly.ToPointer(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		WriteOnly:      fastly.ToPointer(false),
-		ID:             fastly.ToPointer("456"),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
@@ -336,7 +336,7 @@ func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictiona
 		Name:           fastly.ToPointer(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		WriteOnly:      fastly.ToPointer(false),
-		ID:             fastly.ToPointer("456"),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		DeletedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:08Z"),
 	}, nil
@@ -352,7 +352,7 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 		Name:           i.Name,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
-		ID:             fastly.ToPointer("456"),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
@@ -363,7 +363,7 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 // input to this call matches the response to GetDictionaryInfo in
 // describeDictionaryOK.
 func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
-	if i.ID == "456" {
+	if i.DictionaryID == "456" {
 		return &fastly.DictionaryInfo{
 			ItemCount:   fastly.ToPointer(2),
 			LastUpdated: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
@@ -418,7 +418,7 @@ func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, 
 			Name:           fastly.ToPointer("dict-1"),
 			CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			WriteOnly:      fastly.ToPointer(false),
-			ID:             fastly.ToPointer("456"),
+			DictionaryID:   fastly.ToPointer("456"),
 			UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 		{
@@ -427,7 +427,7 @@ func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, 
 			Name:           fastly.ToPointer("dict-2"),
 			CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			WriteOnly:      fastly.ToPointer(false),
-			ID:             fastly.ToPointer("456"),
+			DictionaryID:   fastly.ToPointer("456"),
 			UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 	}, nil
@@ -440,7 +440,7 @@ func updateDictionaryNameOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary
 		Name:           i.NewName,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
-		ID:             fastly.ToPointer("456"),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
@@ -452,7 +452,7 @@ func updateDictionaryWriteOnlyOK(i *fastly.UpdateDictionaryInput) (*fastly.Dicti
 		Name:           fastly.ToPointer(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
-		ID:             fastly.ToPointer("456"),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }

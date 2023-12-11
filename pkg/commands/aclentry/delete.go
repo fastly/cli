@@ -68,7 +68,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted ACL entry '%s' (service: %s)", input.ID, serviceID)
+	text.Success(out, "Deleted ACL entry '%s' (service: %s)", input.EntryID, serviceID)
 	return nil
 }
 
@@ -77,7 +77,7 @@ func (c *DeleteCommand) constructInput(serviceID string) *fastly.DeleteACLEntryI
 	var input fastly.DeleteACLEntryInput
 
 	input.ACLID = c.aclID
-	input.ID = c.id
+	input.EntryID = c.id
 	input.ServiceID = serviceID
 
 	return &input

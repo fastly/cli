@@ -75,7 +75,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created ACL entry '%s' (ip: %s, negated: %t, service: %s)", fastly.ToValue(a.ID), fastly.ToValue(a.IP), fastly.ToValue(a.Negated), fastly.ToValue(a.ServiceID))
+	text.Success(out, "Created ACL entry '%s' (ip: %s, negated: %t, service: %s)", fastly.ToValue(a.EntryID), fastly.ToValue(a.IP), fastly.ToValue(a.Negated), fastly.ToValue(a.ServiceID))
 	return nil
 }
 

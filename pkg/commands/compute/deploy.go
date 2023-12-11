@@ -693,7 +693,7 @@ func createService(
 	if err != nil {
 		return "", nil, err
 	}
-	return fastly.ToValue(service.ID), &fastly.Version{Number: fastly.ToPointer(1)}, nil
+	return fastly.ToValue(service.ServiceID), &fastly.Version{Number: fastly.ToPointer(1)}, nil
 }
 
 // CleanupNewService is executed if a new service flow has errors.
@@ -702,7 +702,7 @@ func createService(
 func (c *DeployCommand) CleanupNewService(serviceID, manifestFilename string, out io.Writer) error {
 	text.Info(out, "\nCleaning up service\n\n")
 	err := c.Globals.APIClient.DeleteService(&fastly.DeleteServiceInput{
-		ID: serviceID,
+		ServiceID: serviceID,
 	})
 	if err != nil {
 		return err
@@ -1195,7 +1195,7 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 
 	// Validate that we're dealing with a Compute 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
-	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
+	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{ServiceID: serviceID})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

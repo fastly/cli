@@ -88,7 +88,7 @@ func (c *DescribeCommand) constructInput(serviceID string) *fastly.GetACLEntryIn
 	var input fastly.GetACLEntryInput
 
 	input.ACLID = c.aclID
-	input.ID = c.id
+	input.EntryID = c.id
 	input.ServiceID = serviceID
 
 	return &input
@@ -100,7 +100,7 @@ func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry) error {
 		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(a.ServiceID))
 	}
 	fmt.Fprintf(out, "ACL ID: %s\n", fastly.ToValue(a.ACLID))
-	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(a.ID))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(a.EntryID))
 	fmt.Fprintf(out, "IP: %s\n", fastly.ToValue(a.IP))
 	fmt.Fprintf(out, "Subnet: %d\n", fastly.ToValue(a.Subnet))
 	fmt.Fprintf(out, "Negated: %t\n", fastly.ToValue(a.Negated))

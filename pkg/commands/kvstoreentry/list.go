@@ -38,7 +38,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause = parent.Command("list", "List keys")
 
 	// Required.
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
 	c.CmdClause.Flag("consistency", "Determines accuracy of results. i.e. 'eventual' uses caching to improve performance").Default("strong").HintOptions(ConsistencyOptions...).EnumVar(&c.consistency, ConsistencyOptions...)

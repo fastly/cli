@@ -2241,9 +2241,9 @@ func TestDeploy(t *testing.T) {
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:   fastly.ToPointer("12345"),
-		Name: i.Name,
-		Type: i.Type,
+		ServiceID: fastly.ToPointer("12345"),
+		Name:      i.Name,
+		Type:      i.Type,
 	}, nil
 }
 
