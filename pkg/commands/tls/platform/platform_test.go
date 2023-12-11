@@ -21,7 +21,7 @@ const (
 	mockResponseID        = "123"
 )
 
-func TestCreate(t *testing.T) {
+func TestTLSPlatformCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -74,7 +74,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestTLSPlatformDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -120,7 +120,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestDescribe(t *testing.T) {
+func TestTLSPlatformDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -172,7 +172,7 @@ func TestDescribe(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestTLSPlatformList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -221,7 +221,7 @@ func TestList(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestTLSPlatformUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{

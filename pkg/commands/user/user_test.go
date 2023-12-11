@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-func TestCreate(t *testing.T) {
+func TestUserCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -58,7 +58,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestUserDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -104,7 +104,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestDescribe(t *testing.T) {
+func TestUserDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -166,7 +166,7 @@ func TestDescribe(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestUserList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -218,7 +218,7 @@ func TestList(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestUserUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{

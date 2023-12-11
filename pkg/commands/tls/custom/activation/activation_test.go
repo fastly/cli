@@ -22,7 +22,7 @@ const (
 	validateMissingIDFlag = "validate missing --id flag"
 )
 
-func TestCreate(t *testing.T) {
+func TestTLSCustomActivationCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -78,7 +78,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestTLSCustomActivationDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -124,7 +124,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestDescribe(t *testing.T) {
+func TestTLSCustomActivationDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -174,7 +174,7 @@ func TestDescribe(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestTLSCustomActivationList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -221,7 +221,7 @@ func TestList(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestTLSCustomActivationUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{

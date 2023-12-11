@@ -15,7 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-func TestCreate(t *testing.T) {
+func TestAuthTokenCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -83,7 +83,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestAuthTokenDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -179,7 +179,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestDescribe(t *testing.T) {
+func TestAuthTokenDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -218,7 +218,7 @@ func TestDescribe(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestAuthTokenList(t *testing.T) {
 	args := testutil.Args
 	type ts struct {
 		testutil.TestScenario

@@ -22,7 +22,7 @@ const (
 	validateMissingIDFlag = "validate missing --id flag"
 )
 
-func TestCreate(t *testing.T) {
+func TestTLSCustomCertCreate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -70,7 +70,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestTLSCustomCertDelete(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -116,7 +116,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestDescribe(t *testing.T) {
+func TestTLSCustomCertDescribe(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -173,7 +173,7 @@ func TestDescribe(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestTLSCustomCertList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
@@ -227,7 +227,7 @@ func TestList(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestTLSCustomCertUpdate(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
