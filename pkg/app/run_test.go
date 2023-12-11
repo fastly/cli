@@ -71,6 +71,7 @@ dictionary
 dictionary-entry
 domain
 healthcheck
+install
 ip-list
 kv-store
 kv-store-entry

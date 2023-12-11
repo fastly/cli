@@ -16,6 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/healthcheck"
+	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/commands/kvstore"
 	"github.com/fastly/cli/pkg/commands/kvstoreentry"
@@ -169,6 +170,7 @@ func Define(
 	healthcheckDescribe := healthcheck.NewDescribeCommand(healthcheckCmdRoot.CmdClause, data)
 	healthcheckList := healthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, data)
 	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, data)
+	installRoot := install.NewRootCommand(app, data)
 	ipCmdRoot := ip.NewRootCommand(app, data)
 	kvstoreCmdRoot := kvstore.NewRootCommand(app, data)
 	kvstoreCreate := kvstore.NewCreateCommand(kvstoreCmdRoot.CmdClause, data)
@@ -535,6 +537,7 @@ func Define(
 		healthcheckDescribe,
 		healthcheckList,
 		healthcheckUpdate,
+		installRoot,
 		ipCmdRoot,
 		kvstoreCreate,
 		kvstoreDelete,
