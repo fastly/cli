@@ -258,6 +258,7 @@ func IsVerboseAndQuiet(args []string) bool {
 // We hack a solution in ../app/run.go (`configureKingpin` function).
 func IsGlobalFlagsOnly(args []string) bool {
 	// Global flags are defined in ../app/run.go
+	// nosemgrep: trailofbits.go.iterate-over-empty-map.iterate-over-empty-map (false positive)
 	globals := map[string]int{
 		"--accept-defaults": 0,
 		"-d":                0,

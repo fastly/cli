@@ -198,6 +198,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return nil // user declined service creation prompt
 		}
 	} else {
+		// nosemgrep: trailofbits.go.invalid-usage-of-modified-variable.invalid-usage-of-modified-variable (we only reference variable in specific error scenario)
 		serviceVersion, err = c.ExistingServiceVersion(serviceID, out)
 		if err != nil {
 			if errors.Is(err, ErrPackageUnchanged) {
