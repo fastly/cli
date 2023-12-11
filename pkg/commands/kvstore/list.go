@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -13,14 +13,14 @@ import (
 
 // ListCommand calls the Fastly API to list the available kv stores.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -62,20 +62,18 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 				text.PrintKVStore(out, "", &o)
 			}
 			if cur, ok := o.Meta["next_cursor"]; ok && cur != "" && cur != cursor {
-				// Check if 'out' is interactive before prompting.
-				if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
+				if c.Globals.Flags.NonInteractive && c.Globals.Flags.AutoYes && !text.IsTTY(out) {
+					// If non-interactive or auto-yes, then load all data.
+					cursor = cur
+					continue
+				}
+				text.Break(out)
+				printNext, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
+				if err != nil {
+					return err
+				}
+				if printNext {
 					text.Break(out)
-					printNext, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
-					if err != nil {
-						return err
-					}
-					if printNext {
-						text.Break(out)
-						cursor = cur
-						continue
-					}
-				} else {
-					// Otherwise if non-interactive or auto-yes, then load all data.
 					cursor = cur
 					continue
 				}

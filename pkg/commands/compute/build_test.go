@@ -600,9 +600,9 @@ func TestBuildJavaScript(t *testing.T) {
 				// Disabling as we control this command.
 				// #nosec
 				// nosemgrep
-				cmd := exec.Command("npm", "install")
+				c := exec.Command("npm", "install")
 
-				err = cmd.Run()
+				err = c.Run()
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -793,11 +793,11 @@ func TestBuildAssemblyScript(t *testing.T) {
 				// Disabling as we control this command.
 				// #nosec
 				// nosemgrep
-				cmd := exec.Command("npm", "install")
-				cmd.Stdout = os.Stdout
-				cmd.Stderr = os.Stderr
+				c := exec.Command("npm", "install")
+				c.Stdout = os.Stdout
+				c.Stderr = os.Stderr
 
-				err = cmd.Run()
+				err = c.Run()
 				if err != nil {
 					t.Fatal(err)
 				}

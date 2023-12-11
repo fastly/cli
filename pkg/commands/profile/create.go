@@ -12,7 +12,7 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -23,7 +23,7 @@ import (
 
 // CreateCommand represents a Kingpin command.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	authCmd *sso.RootCommand
 
 	automationToken bool
@@ -32,7 +32,7 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a new command registered in the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, authCmd *sso.RootCommand) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data, authCmd *sso.RootCommand) *CreateCommand {
 	var c CreateCommand
 	c.Globals = g
 	c.authCmd = authCmd

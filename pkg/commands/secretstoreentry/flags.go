@@ -1,11 +1,11 @@
 package secretstoreentry
 
 import (
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 )
 
-func secretNameFlag(dst *string) cmd.StringFlagOpts {
-	return cmd.StringFlagOpts{
+func secretNameFlag(dst *string) argparser.StringFlagOpts {
+	return argparser.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
 		Description: "Secret name",
@@ -14,8 +14,8 @@ func secretNameFlag(dst *string) cmd.StringFlagOpts {
 	}
 }
 
-func secretFileFlag(dst *string) cmd.StringFlagOpts {
-	return cmd.StringFlagOpts{
+func secretFileFlag(dst *string) argparser.StringFlagOpts {
+	return argparser.StringFlagOpts{
 		Name:        "file",
 		Short:       'f',
 		Description: "Read secret value from file instead of prompt",
@@ -24,8 +24,8 @@ func secretFileFlag(dst *string) cmd.StringFlagOpts {
 	}
 }
 
-func secretStdinFlag(dst *bool) cmd.BoolFlagOpts {
-	return cmd.BoolFlagOpts{
+func secretStdinFlag(dst *bool) argparser.BoolFlagOpts {
+	return argparser.BoolFlagOpts{
 		Name:        "stdin",
 		Description: "Read secret value from STDIN instead of prompt",
 		Dst:         dst,

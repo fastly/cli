@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/fastly/kingpin"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/commands/authtoken"
@@ -85,7 +85,7 @@ import (
 func Define(
 	app *kingpin.Application,
 	data *global.Data,
-) []cmd.Command {
+) []argparser.Command {
 	shellcompleteCmdRoot := shellcomplete.NewRootCommand(app, data)
 
 	// NOTE: The order commands are created are the order they appear in 'help'.
@@ -461,7 +461,7 @@ func Define(
 	versionCmdRoot := version.NewRootCommand(app, data)
 	whoamiCmdRoot := whoami.NewRootCommand(app, data)
 
-	return []cmd.Command{
+	return []argparser.Command{
 		shellcompleteCmdRoot,
 		aclCmdRoot,
 		aclCreate,

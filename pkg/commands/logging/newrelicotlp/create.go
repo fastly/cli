@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -14,28 +14,28 @@ import (
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 
 	// Required.
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	autoClone         cmd.OptionalAutoClone
-	format            cmd.OptionalString
-	formatVersion     cmd.OptionalInt
-	key               cmd.OptionalString
-	name              cmd.OptionalString
-	placement         cmd.OptionalString
-	region            cmd.OptionalString
-	responseCondition cmd.OptionalString
-	url               cmd.OptionalString
+	autoClone         argparser.OptionalAutoClone
+	format            argparser.OptionalString
+	formatVersion     argparser.OptionalInt
+	key               argparser.OptionalString
+	name              argparser.OptionalString
+	placement         argparser.OptionalString
+	region            argparser.OptionalString
+	responseCondition argparser.OptionalString
+	url               argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -43,15 +43,15 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "The name for the real-time logging configuration").Action(c.name.Set).StringVar(&c.name.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -62,16 +62,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.CmdClause.Flag("url", "URL of the New Relic Trace Observer, if you are using New Relic Infinite Tracing").Action(c.url.Set).StringVar(&c.url.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
@@ -80,7 +80,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

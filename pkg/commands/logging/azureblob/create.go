@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -16,53 +16,53 @@ import (
 
 // CreateCommand calls the Fastly API to create an Azure Blob Storage logging endpoint.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	EndpointName      cmd.OptionalString
-	Container         cmd.OptionalString
-	AccountName       cmd.OptionalString
-	SASToken          cmd.OptionalString
-	AutoClone         cmd.OptionalAutoClone
-	Path              cmd.OptionalString
-	Period            cmd.OptionalInt
-	GzipLevel         cmd.OptionalInt
-	MessageType       cmd.OptionalString
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	ResponseCondition cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
-	Placement         cmd.OptionalString
-	PublicKey         cmd.OptionalString
-	FileMaxBytes      cmd.OptionalInt
-	CompressionCodec  cmd.OptionalString
+	EndpointName      argparser.OptionalString
+	Container         argparser.OptionalString
+	AccountName       argparser.OptionalString
+	SASToken          argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	Path              argparser.OptionalString
+	Period            argparser.OptionalInt
+	GzipLevel         argparser.OptionalInt
+	MessageType       argparser.OptionalString
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	ResponseCondition argparser.OptionalString
+	TimestampFormat   argparser.OptionalString
+	Placement         argparser.OptionalString
+	PublicKey         argparser.OptionalString
+	FileMaxBytes      argparser.OptionalInt
+	CompressionCodec  argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 	c.CmdClause = parent.Command("create", "Create an Azure Blob Storage logging endpoint on a Fastly service version").Alias("add")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.CmdClause.Flag("account-name", "The unique Azure Blob Storage namespace in which your data objects are stored").Action(c.AccountName.Set).StringVar(&c.AccountName.Value)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -80,16 +80,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("sas-token", "The Azure shared access signature providing write access to the blob service objects. Be sure to update your token before it expires or the logging functionality will not work").Action(c.SASToken.Set).StringVar(&c.SASToken.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
@@ -178,7 +178,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
+func getServiceOK(_ *fastly.GetServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ID:   "12345",
 		Name: "test",
@@ -70,11 +70,11 @@ func createKVStoreOK(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 	}, nil
 }
 
-func createKVStoreItemOK(i *fastly.InsertKVStoreKeyInput) error {
+func createKVStoreItemOK(_ *fastly.InsertKVStoreKeyInput) error {
 	return nil
 }
 
-func createResourceOK(i *fastly.CreateResourceInput) (*fastly.Resource, error) {
+func createResourceOK(_ *fastly.CreateResourceInput) (*fastly.Resource, error) {
 	return nil, nil
 }
 
@@ -86,7 +86,7 @@ func updatePackageOk(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
 	return &fastly.Package{ServiceID: i.ServiceID, ServiceVersion: i.ServiceVersion}, nil
 }
 
-func updatePackageError(i *fastly.UpdatePackageInput) (*fastly.Package, error) {
+func updatePackageError(_ *fastly.UpdatePackageInput) (*fastly.Package, error) {
 	return nil, testutil.Err
 }
 
@@ -98,13 +98,13 @@ func updateVersionOk(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{ServiceID: i.ServiceID, Number: i.ServiceVersion, Comment: *i.Comment}, nil
 }
 
-func listDomainsOk(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsOk(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
 		{Name: "https://directly-careful-coyote.edgecompute.app"},
 	}, nil
 }
 
-func listKVStoresOk(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+func listKVStoresOk(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 	return &fastly.ListKVStoresResponse{
 		Data: []fastly.KVStore{
 			{
@@ -119,18 +119,18 @@ func listKVStoresOk(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, 
 	}, nil
 }
 
-func listKVStoresEmpty(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+func listKVStoresEmpty(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 	return &fastly.ListKVStoresResponse{}, nil
 }
 
-func getKVStoreOk(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
+func getKVStoreOk(_ *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 	return &fastly.KVStore{
 		ID:   "123",
 		Name: "store_one",
 	}, nil
 }
 
-func listSecretStoresOk(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+func listSecretStoresOk(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 	return &fastly.SecretStores{
 		Data: []fastly.SecretStore{
 			{
@@ -145,25 +145,25 @@ func listSecretStoresOk(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, 
 	}, nil
 }
 
-func listSecretStoresEmpty(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+func listSecretStoresEmpty(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 	return &fastly.SecretStores{}, nil
 }
 
-func getSecretStoreOk(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+func getSecretStoreOk(_ *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 	return &fastly.SecretStore{
 		ID:   "123",
 		Name: "store_one",
 	}, nil
 }
 
-func createSecretStoreOk(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+func createSecretStoreOk(_ *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 	return &fastly.SecretStore{
 		ID:   "123",
 		Name: "store_one",
 	}, nil
 }
 
-func createSecretOk(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+func createSecretOk(_ *fastly.CreateSecretInput) (*fastly.Secret, error) {
 	return &fastly.Secret{
 		Digest: []byte("123"),
 		Name:   "foo",
@@ -187,14 +187,14 @@ func listConfigStoresEmpty() ([]*fastly.ConfigStore, error) {
 	return []*fastly.ConfigStore{}, nil
 }
 
-func getConfigStoreOk(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
+func getConfigStoreOk(_ *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 	return &fastly.ConfigStore{
 		ID:   "123",
 		Name: "example",
 	}, nil
 }
 
-func getServiceDetailsWasm(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func getServiceDetailsWasm(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
 		Type: "wasm",
 	}, nil

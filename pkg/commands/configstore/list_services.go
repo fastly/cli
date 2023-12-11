@@ -5,16 +5,16 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewListServicesCommand returns a usable command registered under the parent.
-func NewListServicesCommand(parent cmd.Registerer, g *global.Data) *ListServicesCommand {
+func NewListServicesCommand(parent argparser.Registerer, g *global.Data) *ListServicesCommand {
 	c := ListServicesCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -22,7 +22,7 @@ func NewListServicesCommand(parent cmd.Registerer, g *global.Data) *ListServices
 	c.CmdClause = parent.Command("list-services", "List config store's services")
 
 	// Required.
-	c.RegisterFlag(cmd.StoreIDFlag(&c.input.ID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.ID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -32,8 +32,8 @@ func NewListServicesCommand(parent cmd.Registerer, g *global.Data) *ListServices
 
 // ListServicesCommand calls the Fastly API to list appropriate resources.
 type ListServicesCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 	input fastly.ListConfigStoreServicesInput
 }
 

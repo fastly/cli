@@ -109,7 +109,7 @@ func (s Shell) Build(command string) (cmd string, args []string) {
 	args = []string{"-c"}
 
 	if runtime.GOOS == "windows" {
-		cmd = "cmd.exe"
+		cmd = "argparser.exe"
 		args = []string{"/C"}
 	}
 

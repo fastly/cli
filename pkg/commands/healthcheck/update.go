@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -13,30 +13,30 @@ import (
 
 // UpdateCommand calls the Fastly API to update healthchecks.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 	input          fastly.UpdateHealthCheckInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
-	autoClone      cmd.OptionalAutoClone
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
+	autoClone      argparser.OptionalAutoClone
 
-	NewName          cmd.OptionalString
-	Comment          cmd.OptionalString
-	Method           cmd.OptionalString
-	Host             cmd.OptionalString
-	Path             cmd.OptionalString
-	HTTPVersion      cmd.OptionalString
-	Timeout          cmd.OptionalInt
-	CheckInterval    cmd.OptionalInt
-	ExpectedResponse cmd.OptionalInt
-	Window           cmd.OptionalInt
-	Threshold        cmd.OptionalInt
-	Initial          cmd.OptionalInt
+	NewName          argparser.OptionalString
+	Comment          argparser.OptionalString
+	Method           argparser.OptionalString
+	Host             argparser.OptionalString
+	Path             argparser.OptionalString
+	HTTPVersion      argparser.OptionalString
+	Timeout          argparser.OptionalInt
+	CheckInterval    argparser.OptionalInt
+	ExpectedResponse argparser.OptionalInt
+	Window           argparser.OptionalInt
+	Threshold        argparser.OptionalInt
+	Initial          argparser.OptionalInt
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -44,15 +44,15 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Required().StringVar(&c.input.Name)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -65,16 +65,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	c.CmdClause.Flag("method", "Which HTTP method to use").Action(c.Method.Set).StringVar(&c.Method.Value)
 	c.CmdClause.Flag("new-name", "Healthcheck name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("path", "The path to check").Action(c.Path.Set).StringVar(&c.Path.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").Action(c.Threshold.Set).IntVar(&c.Threshold.Value)
@@ -85,7 +85,7 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

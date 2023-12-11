@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -14,17 +14,17 @@ import (
 
 // ListCommand calls the Fastly API to list dictionary items.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	input       fastly.ListDictionaryItemsInput
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -34,20 +34,20 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.input.DictionaryID)
 
 	// Optional.
-	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.input.Direction, argparser.PaginationDirection...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.Page)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PerPage)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.input.Sort)
@@ -60,12 +60,12 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.input.ServiceID = serviceID

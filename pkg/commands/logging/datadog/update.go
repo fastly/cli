@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -15,29 +15,29 @@ import (
 
 // UpdateCommand calls the Fastly API to update a Datadog logging endpoint.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	EndpointName   string // Can't shadow argparser.Base method Name().
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         cmd.OptionalAutoClone
-	NewName           cmd.OptionalString
-	Token             cmd.OptionalString
-	Region            cmd.OptionalString
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	ResponseCondition cmd.OptionalString
-	Placement         cmd.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	NewName           argparser.OptionalString
+	Token             argparser.OptionalString
+	Region            argparser.OptionalString
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	ResponseCondition argparser.OptionalString
+	Placement         argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -45,15 +45,15 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the Datadog logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -64,16 +64,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US, US3, US5, or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	return &c
@@ -120,7 +120,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

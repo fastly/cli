@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
@@ -12,13 +12,13 @@ import (
 
 // DeleteCommand represents a Kingpin command.
 type DeleteCommand struct {
-	cmd.Base
+	argparser.Base
 
 	profile string
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("delete", "Delete user profile")

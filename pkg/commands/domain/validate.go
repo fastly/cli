@@ -6,21 +6,21 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, g *global.Data) *ValidateCommand {
+func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCommand {
 	var c ValidateCommand
 	c.CmdClause = parent.Command("validate", "Checks the status of a specific domain's DNS record for a Service Version")
 	c.Globals = g
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
@@ -28,16 +28,16 @@ func NewValidateCommand(parent cmd.Registerer, g *global.Data) *ValidateCommand 
 	// Optional.
 	c.CmdClause.Flag("all", "Checks the status of all domains' DNS records for a Service Version").Short('a').BoolVar(&c.all)
 	c.CmdClause.Flag("name", "The name of the domain associated with this service").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
@@ -46,17 +46,17 @@ func NewValidateCommand(parent cmd.Registerer, g *global.Data) *ValidateCommand 
 
 // ValidateCommand calls the Fastly API to describe an appropriate resource.
 type ValidateCommand struct {
-	cmd.Base
+	argparser.Base
 
 	all            bool
-	name           cmd.OptionalString
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	name           argparser.OptionalString
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // Exec invokes the application logic for the command.
 func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -13,7 +13,7 @@ import (
 
 // MetadataCommand controls what metadata is collected for a Wasm binary.
 type MetadataCommand struct {
-	cmd.Base
+	argparser.Base
 
 	disable        bool
 	disableBuild   bool
@@ -28,7 +28,7 @@ type MetadataCommand struct {
 }
 
 // NewMetadataCommand returns a new command registered in the parent.
-func NewMetadataCommand(parent cmd.Registerer, g *global.Data) *MetadataCommand {
+func NewMetadataCommand(parent argparser.Registerer, g *global.Data) *MetadataCommand {
 	var c MetadataCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("metadata", "Control what metadata is collected")

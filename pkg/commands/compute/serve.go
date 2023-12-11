@@ -22,8 +22,8 @@ import (
 	"github.com/fsnotify/fsnotify"
 	ignore "github.com/sabhiram/go-gitignore"
 
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/check"
-	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
@@ -40,18 +40,18 @@ var viceroyError = fsterr.RemediationError{
 
 // ServeCommand produces and runs an artifact from files on the local disk.
 type ServeCommand struct {
-	cmd.Base
+	argparser.Base
 	build *BuildCommand
 
 	// Build fields
-	dir                   cmd.OptionalString
-	includeSrc            cmd.OptionalBool
-	lang                  cmd.OptionalString
-	metadataDisable       cmd.OptionalBool
-	metadataFilterEnvVars cmd.OptionalString
-	metadataShow          cmd.OptionalBool
-	packageName           cmd.OptionalString
-	timeout               cmd.OptionalInt
+	dir                   argparser.OptionalString
+	includeSrc            argparser.OptionalBool
+	lang                  argparser.OptionalString
+	metadataDisable       argparser.OptionalBool
+	metadataFilterEnvVars argparser.OptionalString
+	metadataShow          argparser.OptionalBool
+	packageName           argparser.OptionalString
+	timeout               argparser.OptionalInt
 
 	// Serve public fields (public for testing purposes)
 	ForceCheckViceroyLatest bool
@@ -61,17 +61,17 @@ type ServeCommand struct {
 	// Serve private fields
 	addr            string
 	debug           bool
-	env             cmd.OptionalString
+	env             argparser.OptionalString
 	file            string
 	profileGuest    bool
-	profileGuestDir cmd.OptionalString
+	profileGuestDir argparser.OptionalString
 	skipBuild       bool
 	watch           bool
-	watchDir        cmd.OptionalString
+	watchDir        argparser.OptionalString
 }
 
 // NewServeCommand returns a usable command registered under the parent.
-func NewServeCommand(parent cmd.Registerer, g *global.Data, build *BuildCommand) *ServeCommand {
+func NewServeCommand(parent argparser.Registerer, g *global.Data, build *BuildCommand) *ServeCommand {
 	var c ServeCommand
 	c.build = build
 	c.Globals = g
@@ -546,11 +546,11 @@ type localOpts struct {
 	manifestPath    string
 	out             io.Writer
 	profileGuest    bool
-	profileGuestDir cmd.OptionalString
+	profileGuestDir argparser.OptionalString
 	restarted       bool
 	verbose         bool
 	watch           bool
-	watchDir        cmd.OptionalString
+	watchDir        argparser.OptionalString
 }
 
 // local spawns a subprocess that runs the compiled binary.
@@ -636,7 +636,7 @@ func local(opts localOpts) error {
 	//
 	// In the case of a file modification the viceroy executable needs to first
 	// be killed (handled by the watchFiles() function) and then we can stop the
-	// signal listeners (handled below by sending a message to cmd.SignalCh).
+	// signal listeners (handled below by sending a message to argparser.SignalCh).
 	//
 	// If we don't tell the signal listening channel to close, then the restart
 	// of the viceroy executable will cause the user to end up with N number of
@@ -821,7 +821,7 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 // ignoreFiles returns the specific ignore rules being respected.
 //
 // NOTE: We also ignore the .git directory.
-func ignoreFiles(watchDir cmd.OptionalString) *ignore.GitIgnore {
+func ignoreFiles(watchDir argparser.OptionalString) *ignore.GitIgnore {
 	var patterns []string
 
 	root := ""

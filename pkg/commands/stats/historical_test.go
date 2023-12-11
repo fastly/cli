@@ -104,6 +104,6 @@ func getStatsJSONOK(_ *fastly.GetStatsInput, o any) error {
 	return json.Unmarshal(msg, o)
 }
 
-func getStatsJSONError(_ *fastly.GetStatsInput, o any) error {
+func getStatsJSONError(_ *fastly.GetStatsInput, _ any) error {
 	return errTest
 }

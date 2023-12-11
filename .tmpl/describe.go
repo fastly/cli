@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -12,7 +12,7 @@ import (
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, globals *config.Data, data manifest.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "<...>").Alias("get")
 	c.Globals = globals
@@ -20,25 +20,25 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 
 	// Required flags
 	// c.CmdClause.Flag("<...>", "<...>").Required().StringVar(&c.<...>)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional flags
 	// c.CmdClause.Flag("<...>", "<...>").Action(c.<...>.Set).StringVar(&c.<...>.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &c.manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
@@ -47,16 +47,16 @@ func NewDescribeCommand(parent cmd.Registerer, globals *config.Data, data manife
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
-	cmd.Base
+	argparser.Base
 
 	manifest manifest.Data
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,

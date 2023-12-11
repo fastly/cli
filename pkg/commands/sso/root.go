@@ -6,8 +6,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/auth"
-	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -18,7 +18,7 @@ import (
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 	profile string
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
@@ -36,7 +36,7 @@ type RootCommand struct {
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
 	// FIXME: Unhide this command once SSO is GA.

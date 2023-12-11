@@ -5,16 +5,16 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -22,14 +22,14 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	c.CmdClause = parent.Command("update", "Update a config store")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
 		Description: "New name for the config store",
 		Dst:         &c.input.Name,
 		Required:    true,
 	})
-	c.RegisterFlag(cmd.StoreIDFlag(&c.input.ID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.ID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -39,8 +39,8 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 	input fastly.UpdateConfigStoreInput
 }
 

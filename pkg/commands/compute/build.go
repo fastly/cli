@@ -20,8 +20,8 @@ import (
 	"golang.org/x/text/cases"
 	textlang "golang.org/x/text/language"
 
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/check"
-	"github.com/fastly/cli/pkg/cmd"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/github"
@@ -56,7 +56,7 @@ type Flags struct {
 
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
-	cmd.Base
+	argparser.Base
 
 	// NOTE: Composite commands require these build flags to be public.
 	// e.g. serve, publish, hashsum, hash-files
@@ -68,7 +68,7 @@ type BuildCommand struct {
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent cmd.Registerer, g *global.Data) *BuildCommand {
+func NewBuildCommand(parent argparser.Registerer, g *global.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("build", "Build a Compute package locally")

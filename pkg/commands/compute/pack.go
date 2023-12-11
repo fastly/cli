@@ -8,7 +8,7 @@ import (
 
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
@@ -18,12 +18,12 @@ import (
 
 // PackCommand takes a .wasm and builds the required tar/gzip package ready to be uploaded.
 type PackCommand struct {
-	cmd.Base
+	argparser.Base
 	wasmBinary string
 }
 
 // NewPackCommand returns a usable command registered under the parent.
-func NewPackCommand(parent cmd.Registerer, g *global.Data) *PackCommand {
+func NewPackCommand(parent argparser.Registerer, g *global.Data) *PackCommand {
 	var c PackCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("pack", "Package a pre-compiled Wasm binary for a Fastly Compute service")

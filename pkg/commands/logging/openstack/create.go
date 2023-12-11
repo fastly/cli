@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -16,37 +16,37 @@ import (
 
 // CreateCommand calls the Fastly API to create an OpenStack logging endpoint.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AccessKey         cmd.OptionalString
-	AutoClone         cmd.OptionalAutoClone
-	BucketName        cmd.OptionalString
-	CompressionCodec  cmd.OptionalString
-	EndpointName      cmd.OptionalString // Can't shadow cmd.Base method Name().
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	GzipLevel         cmd.OptionalInt
-	MessageType       cmd.OptionalString
-	Path              cmd.OptionalString
-	Period            cmd.OptionalInt
-	Placement         cmd.OptionalString
-	PublicKey         cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	TimestampFormat   cmd.OptionalString
-	URL               cmd.OptionalString
-	User              cmd.OptionalString
+	AccessKey         argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	BucketName        argparser.OptionalString
+	CompressionCodec  argparser.OptionalString
+	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	GzipLevel         argparser.OptionalInt
+	MessageType       argparser.OptionalString
+	Path              argparser.OptionalString
+	Period            argparser.OptionalInt
+	Placement         argparser.OptionalString
+	PublicKey         argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	TimestampFormat   argparser.OptionalString
+	URL               argparser.OptionalString
+	User              argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -54,16 +54,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the OpenStack logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.CmdClause.Flag("access-key", "Your OpenStack account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -79,16 +79,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("url", "Your OpenStack auth url").Action(c.URL.Set).StringVar(&c.URL.Value)
@@ -173,7 +173,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

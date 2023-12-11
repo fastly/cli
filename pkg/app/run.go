@@ -19,8 +19,8 @@ import (
 	"github.com/skratchdot/open-golang/open"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/auth"
-	"github.com/fastly/cli/pkg/cmd"
 	"github.com/fastly/cli/pkg/commands"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/update"
@@ -175,7 +175,7 @@ func Exec(data *global.Data) error {
 
 	// We short-circuit the execution for specific cases:
 	//
-	// - cmd.ArgsIsHelpJSON() == true
+	// - argparser.ArgsIsHelpJSON() == true
 	// - shell autocompletion flag provided
 	switch commandName {
 	case "help--format=json":
@@ -266,7 +266,7 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// IMPORTANT: Kingpin doesn't support global flags.
 	// Any flags defined below must also be added to two other places:
 	// 1. ./usage.go (`globalFlags` map).
-	// 2. ../cmd/cmd.go (`IsGlobalFlagsOnly` function).
+	// 2. ../cmd/argparser.go (`IsGlobalFlagsOnly` function).
 	//
 	// NOTE: Global flags (long and short) MUST be unique.
 	// A subcommand can't define a flag that is already global.
@@ -305,7 +305,7 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 //
 // Finally, we check if there is a profile override in place (e.g. set via the
 // --profile flag or using the `profile` field in the fastly.toml manifest).
-func processToken(cmds []cmd.Command, data *global.Data) (token string, tokenSource lookup.Source, err error) {
+func processToken(cmds []argparser.Command, data *global.Data) (token string, tokenSource lookup.Source, err error) {
 	token, tokenSource = data.Token()
 
 	// Check if token is from a profile.
@@ -466,7 +466,7 @@ func checkAndRefreshSSOToken(profileData *config.Profile, profileName string, da
 // shouldSkipSSO identifies if a config is a pre-v5 config and, if it is,
 // informs the user how they can use the SSO flow. It checks if the SSO
 // environment variable (or flag) has been set and enables the SSO flow if so.
-func shouldSkipSSO(profileName string, profileData *config.Profile, data *global.Data) bool {
+func shouldSkipSSO(_ string, profileData *config.Profile, data *global.Data) bool {
 	if longLivedToken(profileData) {
 		// Skip SSO if user hasn't indicated they want to migrate.
 		return data.Env.UseSSO != "1" && !data.Flags.SSO
@@ -491,7 +491,7 @@ func longLivedToken(pd *config.Profile) bool {
 }
 
 // ssoAuthentication executes the `sso` command to handle authentication.
-func ssoAuthentication(outputMessage string, cmds []cmd.Command, data *global.Data) (token string, tokenSource lookup.Source, err error) {
+func ssoAuthentication(outputMessage string, cmds []argparser.Command, data *global.Data) (token string, tokenSource lookup.Source, err error) {
 	for _, command := range cmds {
 		commandName := strings.Split(command.Name(), " ")[0]
 		if commandName == "sso" {

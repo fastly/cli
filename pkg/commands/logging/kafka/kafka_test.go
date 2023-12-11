@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/kafka"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -83,7 +83,7 @@ func TestCreateKafkaInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -223,7 +223,7 @@ func TestUpdateKafkaInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -264,7 +264,7 @@ func createCommandRequired() *kafka.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &kafka.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -272,20 +272,20 @@ func createCommandRequired() *kafka.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Topic:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Brokers:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Topic:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Brokers:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
 	}
 }
 
@@ -303,7 +303,7 @@ func createCommandAll() *kafka.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &kafka.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -311,31 +311,31 @@ func createCommandAll() *kafka.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Brokers:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
-		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		RequiredACKs:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-1"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zippy"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
-		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "example.com"},
-		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
-		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Topic:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Brokers:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
+		UseTLS:            argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: true},
+		RequiredACKs:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-1"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zippy"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		TLSCACert:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
+		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
+		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
+		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
 	}
 }
 
@@ -353,7 +353,7 @@ func createCommandSASL(authMethod, user, password string) *kafka.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &kafka.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -361,26 +361,26 @@ func createCommandSASL(authMethod, user, password string) *kafka.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Topic:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Brokers:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
-		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: authMethod},
-		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: user},
-		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: password},
+		EndpointName:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Topic:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Brokers:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
+		ParseLogKeyvals: argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: true},
+		AuthMethod:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: authMethod},
+		User:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: user},
+		Password:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: password},
 	}
 }
 
@@ -400,7 +400,7 @@ func updateCommandNoUpdates() *kafka.UpdateCommand {
 	}
 
 	return &kafka.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -409,12 +409,12 @@ func updateCommandNoUpdates() *kafka.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -433,7 +433,7 @@ func updateCommandAll() *kafka.UpdateCommand {
 	}
 
 	return &kafka.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -442,37 +442,37 @@ func updateCommandAll() *kafka.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		Topic:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		Brokers:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		UseTLS:            cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
-		RequiredACKs:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		TLSCACert:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		TLSClientCert:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		TLSClientKey:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
-		TLSHostname:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
-		ParseLogKeyvals:   cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
-		RequestMaxBytes:   cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 22222},
-		UseSASL:           cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		AuthMethod:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "plain"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
-		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		Topic:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		Brokers:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		UseTLS:            argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: false},
+		RequiredACKs:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		TLSCACert:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
+		ParseLogKeyvals:   argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: false},
+		RequestMaxBytes:   argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 22222},
+		UseSASL:           argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: true},
+		AuthMethod:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "plain"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
+		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
 	}
 }
 
@@ -486,7 +486,7 @@ func updateCommandSASL(authMethod, user, password string) *kafka.UpdateCommand {
 	}
 
 	return &kafka.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -495,25 +495,25 @@ func updateCommandSASL(authMethod, user, password string) *kafka.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		Topic:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Brokers:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
-		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: authMethod},
-		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: user},
-		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: password},
+		Topic:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Brokers:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
+		ParseLogKeyvals: argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: true},
+		AuthMethod:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: authMethod},
+		User:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: user},
+		Password:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: password},
 	}
 }
 
@@ -527,7 +527,7 @@ func updateCommandNoSASL() *kafka.UpdateCommand {
 	}
 
 	return &kafka.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -536,25 +536,25 @@ func updateCommandNoSASL() *kafka.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		Topic:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Brokers:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
-		ParseLogKeyvals: cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: true},
-		RequestMaxBytes: cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 11111},
-		UseSASL:         cmd.OptionalBool{Optional: cmd.Optional{WasSet: true}, Value: false},
-		AuthMethod:      cmd.OptionalString{Optional: cmd.Optional{WasSet: false}, Value: ""},
-		User:            cmd.OptionalString{Optional: cmd.Optional{WasSet: false}, Value: ""},
-		Password:        cmd.OptionalString{Optional: cmd.Optional{WasSet: false}, Value: ""},
+		Topic:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Brokers:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "127.0.0.1,127.0.0.2"},
+		ParseLogKeyvals: argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: true},
+		RequestMaxBytes: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 11111},
+		UseSASL:         argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: false},
+		AuthMethod:      argparser.OptionalString{Optional: argparser.Optional{WasSet: false}, Value: ""},
+		User:            argparser.OptionalString{Optional: argparser.Optional{WasSet: false}, Value: ""},
+		Password:        argparser.OptionalString{Optional: argparser.Optional{WasSet: false}, Value: ""},
 	}
 }
 

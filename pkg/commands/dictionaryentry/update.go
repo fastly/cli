@@ -8,25 +8,25 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // UpdateCommand calls the Fastly API to update a dictionary item.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 
 	Input       fastly.UpdateDictionaryItemInput
 	InputBatch  fastly.BatchModifyDictionaryItemsInput
-	file        cmd.OptionalString
-	serviceName cmd.OptionalServiceNameID
+	file        argparser.OptionalString
+	serviceName argparser.OptionalServiceNameID
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -38,16 +38,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 	// Optional.
 	c.CmdClause.Flag("file", "Batch update json file").Action(c.file.Set).StringVar(&c.file.Value)
 	c.CmdClause.Flag("key", "Dictionary item key").StringVar(&c.Input.ItemKey)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("value", "Dictionary item value").StringVar(&c.Input.ItemValue)
@@ -56,12 +56,12 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data) *UpdateCommand {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.Input.ServiceID = serviceID

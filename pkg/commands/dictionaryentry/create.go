@@ -5,22 +5,22 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand calls the Fastly API to create a dictionary item.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	Input       fastly.CreateDictionaryItemInput
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -32,16 +32,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(&c.Input.ItemValue)
 
 	// Optional.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -49,12 +49,12 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.Input.ServiceID = serviceID

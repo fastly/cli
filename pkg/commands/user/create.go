@@ -5,13 +5,13 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	var c CreateCommand
 	c.CmdClause = parent.Command("create", "Create a user of the Fastly API and web interface").Alias("add")
 	c.Globals = g
@@ -28,11 +28,11 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 
-	login cmd.OptionalString
-	name  cmd.OptionalString
-	role  cmd.OptionalString
+	login argparser.OptionalString
+	name  argparser.OptionalString
+	role  argparser.OptionalString
 }
 
 // Exec invokes the application logic for the command.

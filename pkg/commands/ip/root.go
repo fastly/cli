@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -12,11 +12,11 @@ import (
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("ip-list", "List Fastly's public IPs")

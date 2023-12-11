@@ -20,7 +20,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/compute/setup"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -40,18 +40,18 @@ var ErrPackageUnchanged = errors.New("package is unchanged")
 
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
-	cmd.Base
+	argparser.Base
 	manifestPath string
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
-	Comment            cmd.OptionalString
+	Comment            argparser.OptionalString
 	Dir                string
 	Domain             string
 	Env                string
 	PackagePath        string
-	ServiceName        cmd.OptionalServiceNameID
-	ServiceVersion     cmd.OptionalServiceVersion
+	ServiceName        argparser.OptionalServiceNameID
+	ServiceVersion     argparser.OptionalServiceVersion
 	StatusCheckCode    int
 	StatusCheckOff     bool
 	StatusCheckPath    string
@@ -59,30 +59,30 @@ type DeployCommand struct {
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
-func NewDeployCommand(parent cmd.Registerer, g *global.Data) *DeployCommand {
+func NewDeployCommand(parent argparser.Registerer, g *global.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute service")
 
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &c.Globals.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceVersion.Set,
-		Description: cmd.FlagVersionDesc,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
-		Name:        cmd.FlagVersionName,
+		Name:        argparser.FlagVersionName,
 	})
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
 	c.CmdClause.Flag("dir", "Project directory (default: current directory)").Short('C').StringVar(&c.Dir)
@@ -359,9 +359,9 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
 	// This is because later in the Exec() flow we might create a 'new' service.
-	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err == nil && c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	if c.PackagePath == "" {

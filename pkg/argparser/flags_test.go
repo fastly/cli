@@ -1,4 +1,4 @@
-package cmd_test
+package argparser_test
 
 import (
 	"bytes"
@@ -8,10 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v8/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestOptionalServiceVersionParse(t *testing.T) {
@@ -51,10 +52,10 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			sv := &cmd.OptionalServiceVersion{}
+			sv := &argparser.OptionalServiceVersion{}
 
 			if !c.flagOmitted {
-				sv.OptionalString = cmd.OptionalString{
+				sv.OptionalString = argparser.OptionalString{
 					Value: c.flagValue,
 				}
 			}
@@ -158,7 +159,7 @@ func TestGetLatestActiveVersion(t *testing.T) {
 				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
 			})
 
-			v, err := cmd.GetActiveVersion(testcase.inputVersions)
+			v, err := argparser.GetActiveVersion(testcase.inputVersions)
 			if err != nil {
 				if testcase.wantError != "" {
 					testutil.AssertString(t, testcase.wantError, err.Error())
@@ -205,7 +206,7 @@ func TestGetSpecifiedVersion(t *testing.T) {
 				return testcase.inputVersions[i].Number > testcase.inputVersions[j].Number
 			})
 
-			v, err := cmd.GetSpecifiedVersion(testcase.inputVersions, strconv.Itoa(testcase.wantVersion))
+			v, err := argparser.GetSpecifiedVersion(testcase.inputVersions, strconv.Itoa(testcase.wantVersion))
 			if err != nil {
 				if testcase.wantError != "" {
 					testutil.AssertString(t, testcase.wantError, err.Error())
@@ -269,16 +270,16 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			var (
-				acv *cmd.OptionalAutoClone
+				acv *argparser.OptionalAutoClone
 				bs  []byte
 			)
 			buf := bytes.NewBuffer(bs)
 
 			if c.flagOmitted {
-				acv = &cmd.OptionalAutoClone{}
+				acv = &argparser.OptionalAutoClone{}
 			} else {
-				acv = &cmd.OptionalAutoClone{
-					OptionalBool: cmd.OptionalBool{
+				acv = &argparser.OptionalAutoClone{
+					OptionalBool: argparser.OptionalBool{
 						Value: true,
 					},
 				}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -42,9 +42,9 @@ var rateLimitWindowSizeFlagOpts = func() (windowSizes []string) {
 }()
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -52,16 +52,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause = parent.Command("create", "Create a rate limiter for a particular service and version").Alias("add")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.CmdClause.Flag("action", "The action to take when a rate limiter violation is detected").HintOptions(rateLimitActionFlagOpts...).EnumVar(&c.action, rateLimitActionFlagOpts...)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -77,16 +77,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause.Flag("response-object-name", "Name of existing response object. Required if action is response_object").StringVar(&c.responseObjectName)
 	c.CmdClause.Flag("response-status", "HTTP response status code (e.g. 429)").IntVar(&c.responseStatus)
 	c.CmdClause.Flag("rps-limit", "Upper limit of requests per second allowed by the rate limiter").IntVar(&c.rpsLimit)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("uri-dict-name", "The name of an Edge Dictionary containing URIs as keys").StringVar(&c.uriDictName)
@@ -97,11 +97,11 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	action              string
-	autoClone           cmd.OptionalAutoClone
+	autoClone           argparser.OptionalAutoClone
 	clientKeys          string
 	featRevision        int
 	httpMethods         string
@@ -113,8 +113,8 @@ type CreateCommand struct {
 	responseObjectName  string
 	responseStatus      int
 	rpsLimit            int
-	serviceName         cmd.OptionalServiceNameID
-	serviceVersion      cmd.OptionalServiceVersion
+	serviceName         argparser.OptionalServiceNameID
+	serviceVersion      argparser.OptionalServiceVersion
 	uriDictName         string
 	windowSize          string
 }
@@ -132,7 +132,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

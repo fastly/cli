@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -15,24 +15,24 @@ import (
 var Locations = []string{"init", "recv", "hash", "hit", "miss", "pass", "fetch", "error", "deliver", "log", "none"}
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 	c.CmdClause = parent.Command("create", "Create a snippet for a particular service and version").Alias("add")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -41,16 +41,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause.Flag("name", "The name of the VCL snippet").Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).IntVar(&c.priority.Value)
 
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").Action(c.location.Set).HintOptions(Locations...).EnumVar(&c.location.Value, Locations...)
@@ -60,21 +60,21 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 
-	autoClone      cmd.OptionalAutoClone
-	content        cmd.OptionalString
-	dynamic        cmd.OptionalBool
-	location       cmd.OptionalString
-	name           cmd.OptionalString
-	priority       cmd.OptionalInt
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	autoClone      argparser.OptionalAutoClone
+	content        argparser.OptionalString
+	dynamic        argparser.OptionalBool
+	location       argparser.OptionalString
+	name           argparser.OptionalString
+	priority       argparser.OptionalInt
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
@@ -117,7 +117,7 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.Name = &c.name.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(cmd.Content(c.content.Value))
+		input.Content = fastly.String(argparser.Content(c.content.Value))
 	}
 	if c.location.WasSet {
 		sType := fastly.SnippetType(c.location.Value)

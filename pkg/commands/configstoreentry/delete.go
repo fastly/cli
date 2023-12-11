@@ -8,7 +8,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -23,9 +23,9 @@ const deleteKeysConcurrencyLimit int = 100
 const batchLimit int = 100
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -33,14 +33,14 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 	c.CmdClause = parent.Command("delete", "Delete a config store item")
 
 	// Required.
-	c.RegisterFlag(cmd.StoreIDFlag(&c.input.StoreID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
 
 	// Optional.
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.deleteAll)
 	c.CmdClause.Flag("batch-size", "Key batch processing size (ignored when set without the --all flag)").Short('b').Action(c.batchSize.Set).IntVar(&c.batchSize.Value)
 	c.CmdClause.Flag("concurrency", "Control thread pool size (ignored when set without the --all flag)").Short('c').Action(c.concurrency.Set).IntVar(&c.concurrency.Value)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "key",
 		Short:       'k',
 		Description: "Item name",
@@ -52,11 +52,11 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	batchSize   cmd.OptionalInt
-	concurrency cmd.OptionalInt
+	batchSize   argparser.OptionalInt
+	concurrency argparser.OptionalInt
 	deleteAll   bool
 	input       fastly.DeleteConfigStoreItemInput
 }

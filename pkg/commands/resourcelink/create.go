@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -13,19 +13,19 @@ import (
 
 // CreateCommand calls the Fastly API to create a resource link.
 type CreateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	autoClone      cmd.OptionalAutoClone
+	autoClone      argparser.OptionalAutoClone
 	input          fastly.CreateResourceInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 		input: fastly.CreateResourceInput{
@@ -37,41 +37,41 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	c.CmdClause = parent.Command("create", "Create a Fastly service resource link").Alias("link")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "resource-id",
 		Short:       'r',
 		Description: flagResourceIDDescription,
 		Dst:         c.input.ResourceID,
 		Required:    true,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// At least one of the following is required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
 		Short:       's',
-		Description: cmd.FlagServiceIDDesc,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceName,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceName,
 		Action:      c.serviceName.Set,
-		Description: cmd.FlagServiceDesc,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
 		Description: flagNameDescription,
@@ -87,7 +87,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

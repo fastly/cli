@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/time"
@@ -14,16 +14,16 @@ import (
 
 // DescribeCommand calls the Fastly API to describe a service authorization.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	Input fastly.GetServiceAuthorizationInput
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	c := DescribeCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}

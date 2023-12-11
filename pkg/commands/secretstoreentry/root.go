@@ -3,7 +3,7 @@ package secretstoreentry
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 )
 
@@ -11,9 +11,9 @@ import (
 const RootNameSecret = "secret-store-entry"
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	c := RootCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -26,7 +26,7 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 // RootCommand is the parent command for all 'secret' subcommands.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 	// no flags
 }
 

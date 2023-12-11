@@ -20,7 +20,7 @@ import (
 	"github.com/fastly/go-fastly/v8/fastly"
 	"github.com/tomnomnom/linkheader"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -28,7 +28,7 @@ import (
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 
 	Input       fastly.CreateManagedLoggingInput
 	batchCh     chan Batch // send batches to output loop
@@ -36,25 +36,25 @@ type RootCommand struct {
 	dieCh       chan struct{} // channel to end output/printing
 	doneCh      chan struct{} // channel to signal we've reached the end of the run
 	hClient     *http.Client  // TODO: this will go away when GET is in go-fastly
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 	token       string // TODO: this will go away when GET is in go-fastly
 }
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("log-tail", "Tail Compute logs")
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)
@@ -67,12 +67,12 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.Input.ServiceID = serviceID

@@ -3,16 +3,16 @@ package configstore
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -27,8 +27,8 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.

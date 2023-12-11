@@ -7,7 +7,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 )
 
@@ -15,29 +15,29 @@ const statusSuccess = "success"
 
 // HistoricalCommand exposes the Historical Stats API.
 type HistoricalCommand struct {
-	cmd.Base
+	argparser.Base
 
 	Input       fastly.GetStatsInput
 	formatFlag  string
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 }
 
 // NewHistoricalCommand is the "stats historical" subcommand.
-func NewHistoricalCommand(parent cmd.Registerer, g *global.Data) *HistoricalCommand {
+func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *HistoricalCommand {
 	var c HistoricalCommand
 	c.Globals = g
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
@@ -53,12 +53,12 @@ func NewHistoricalCommand(parent cmd.Registerer, g *global.Data) *HistoricalComm
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.Input.Service = serviceID

@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/gcs"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -68,7 +68,7 @@ func TestCreateGCSInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -161,7 +161,7 @@ func TestUpdateGCSInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -202,7 +202,7 @@ func createCommandRequired() *gcs.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &gcs.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -210,21 +210,21 @@ func createCommandRequired() *gcs.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Bucket:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
-		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Bucket:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bucket"},
+		User:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		SecretKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
 	}
 }
 
@@ -242,7 +242,7 @@ func createCommandAll() *gcs.CreateCommand {
 	})("token", "endpoint", false)
 
 	return &gcs.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -250,30 +250,30 @@ func createCommandAll() *gcs.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Bucket:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/logs"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Bucket:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bucket"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "/logs"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3600},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -293,7 +293,7 @@ func updateCommandNoUpdates() *gcs.UpdateCommand {
 	}
 
 	return &gcs.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -302,12 +302,12 @@ func updateCommandNoUpdates() *gcs.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -326,7 +326,7 @@ func updateCommandAll() *gcs.UpdateCommand {
 	}
 
 	return &gcs.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -335,31 +335,31 @@ func updateCommandAll() *gcs.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		Bucket:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 0},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		Bucket:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3601},
+		GzipLevel:         argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 0},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 	}
 }
 

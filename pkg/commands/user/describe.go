@@ -6,13 +6,13 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Get a specific user of the Fastly API and web interface").Alias("get")
 	c.Globals = g
@@ -24,8 +24,8 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand 
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	current bool
 	id      string

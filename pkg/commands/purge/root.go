@@ -10,7 +10,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -18,7 +18,7 @@ import (
 )
 
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.CmdClause = parent.Command("purge", "Invalidate objects in the Fastly cache")
 	c.Globals = g
@@ -27,16 +27,16 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 	c.CmdClause.Flag("all", "Purge everything from a service").BoolVar(&c.all)
 	c.CmdClause.Flag("file", "Purge a service of a newline delimited list of Surrogate Keys").StringVar(&c.file)
 	c.CmdClause.Flag("key", "Purge a service of objects tagged with a Surrogate Key").StringVar(&c.key)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("soft", "A 'soft' purge marks affected objects as stale rather than making them inaccessible").BoolVar(&c.soft)
@@ -48,24 +48,24 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 
 	all         bool
 	file        string
 	key         string
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 	soft        bool
 	url         string
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	// The URL purge API call doesn't require a Service ID.

@@ -1,4 +1,4 @@
-package cmd
+package argparser
 
 var (
 	// FlagCustomerIDName is the flag name.

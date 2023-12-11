@@ -6,24 +6,24 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	c := DescribeCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 	c.CmdClause = parent.Command("describe", "Get the uploaded VCL snippet for a particular service and version").Alias("get")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
@@ -32,16 +32,16 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand 
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("name", "The name of the VCL snippet").StringVar(&c.name)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").StringVar(&c.snippetID)
@@ -51,13 +51,13 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data) *DescribeCommand 
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	dynamic        cmd.OptionalBool
+	dynamic        argparser.OptionalBool
 	name           string
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 	snippetID      string
 }
 
@@ -67,7 +67,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
@@ -188,7 +188,7 @@ func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
 	fmt.Fprintf(out, "\nName: %s\n", s.Name)
 	fmt.Fprintf(out, "ID: %s\n", s.ID)
 	fmt.Fprintf(out, "Priority: %d\n", s.Priority)
-	fmt.Fprintf(out, "Dynamic: %t\n", cmd.IntToBool(s.Dynamic))
+	fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(s.Dynamic))
 	fmt.Fprintf(out, "Type: %s\n", s.Type)
 	fmt.Fprintf(out, "Content: \n%s\n", s.Content)
 	if s.CreatedAt != nil {

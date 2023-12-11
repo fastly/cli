@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -15,28 +15,28 @@ import (
 
 // CreateCommand calls the Fastly API to create a Scalyr logging endpoint.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	ServiceName    cmd.OptionalServiceNameID
-	EndpointName   cmd.OptionalString // Can't shadow cmd.Base method Name().
-	Token          cmd.OptionalString
-	ServiceVersion cmd.OptionalServiceVersion
+	ServiceName    argparser.OptionalServiceNameID
+	EndpointName   argparser.OptionalString // Can't shadow argparser.Base method Name().
+	Token          argparser.OptionalString
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         cmd.OptionalAutoClone
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	Placement         cmd.OptionalString
-	Region            cmd.OptionalString
-	ResponseCondition cmd.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	Placement         argparser.OptionalString
+	Region            argparser.OptionalString
+	ResponseCondition argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
@@ -44,16 +44,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the Scalyr logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.CmdClause.Flag("auth-token", "The token to use for authentication (https://www.scalyr.com/keys)").Action(c.Token.Set).StringVar(&c.Token.Value)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -62,16 +62,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data) *CreateCommand {
 	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	return &c
@@ -115,7 +115,7 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

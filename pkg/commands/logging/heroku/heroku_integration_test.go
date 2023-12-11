@@ -285,7 +285,7 @@ func createHerokuOK(i *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
 	return &s, nil
 }
 
-func createHerokuError(i *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
+func createHerokuError(_ *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
 	return nil, errTest
 }
 
@@ -316,7 +316,7 @@ func listHerokusOK(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 	}, nil
 }
 
-func listHerokusError(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
+func listHerokusError(_ *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 	return nil, errTest
 }
 
@@ -369,7 +369,7 @@ func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 	}, nil
 }
 
-func getHerokuError(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
+func getHerokuError(_ *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 	return nil, errTest
 }
 
@@ -399,14 +399,14 @@ func updateHerokuOK(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
 	}, nil
 }
 
-func updateHerokuError(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
+func updateHerokuError(_ *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
 	return nil, errTest
 }
 
-func deleteHerokuOK(i *fastly.DeleteHerokuInput) error {
+func deleteHerokuOK(_ *fastly.DeleteHerokuInput) error {
 	return nil
 }
 
-func deleteHerokuError(i *fastly.DeleteHerokuInput) error {
+func deleteHerokuError(_ *fastly.DeleteHerokuInput) error {
 	return errTest
 }

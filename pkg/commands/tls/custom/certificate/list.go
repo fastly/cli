@@ -6,7 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v8/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -15,7 +15,7 @@ import (
 const emptyString = ""
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List all TLS certificates")
 	c.Globals = g
@@ -34,8 +34,8 @@ func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	filterNotAfter    string
 	filterTLSDomainID string
