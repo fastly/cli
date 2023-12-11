@@ -62,7 +62,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 				text.PrintKVStore(out, "", &o)
 			}
 			if cur, ok := o.Meta["next_cursor"]; ok && cur != "" && cur != cursor {
-				if c.Globals.Flags.NonInteractive && c.Globals.Flags.AutoYes && !text.IsTTY(out) {
+				if c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes || !text.IsTTY(out) {
 					// If non-interactive or auto-yes, then load all data.
 					cursor = cur
 					continue
