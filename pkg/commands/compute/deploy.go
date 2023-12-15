@@ -129,33 +129,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), func(_ *text.SpinnerWrapper) error {
-		if projectDir != "" || c.Env != "" {
-			err = c.Globals.Manifest.File.Read(c.manifestPath)
-		} else {
-			err = c.Globals.Manifest.File.ReadError()
-		}
-		if err != nil {
-			// If the user hasn't specified a package to deploy, then we'll just check
-			// the read error and return it.
-			if c.PackagePath == "" {
-				if errors.Is(err, os.ErrNotExist) {
-					err = fsterr.ErrReadingManifest
-				}
-				c.Globals.ErrLog.Add(err)
-				return err
-			}
-			// Otherwise, we'll attempt to read the manifest from within the given
-			// package archive.
-			if err := readManifestFromPackageArchive(c.Globals.Manifest, c.PackagePath, manifestFilename); err != nil {
-				return err
-			}
-			if c.Globals.Verbose() {
-				text.Info(out, "Using %s within --package archive: %s\n\n", manifestFilename, c.PackagePath)
-			}
-		}
-		return nil
-	})
+	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), verifyDeployManifestFilename(c, projectDir, manifestFilename, out))
 	if err != nil {
 		return err
 	}
@@ -298,6 +272,37 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	displayDeployOutput(out, manageServiceBaseURL, serviceID, serviceURL, serviceVersion.Number)
 	return nil
+}
+
+func verifyDeployManifestFilename(c *DeployCommand, projectDir, manifestFilename string, out io.Writer) text.SpinnerProcess {
+	return func(_ *text.SpinnerWrapper) error {
+		var err error
+		if projectDir != "" || c.Env != "" {
+			err = c.Globals.Manifest.File.Read(c.manifestPath)
+		} else {
+			err = c.Globals.Manifest.File.ReadError()
+		}
+		if err != nil {
+			// If the user hasn't specified a package to deploy, then we'll just check
+			// the read error and return it.
+			if c.PackagePath == "" {
+				if errors.Is(err, os.ErrNotExist) {
+					err = fsterr.ErrReadingManifest
+				}
+				c.Globals.ErrLog.Add(err)
+				return err
+			}
+			// Otherwise, we'll attempt to read the manifest from within the given
+			// package archive.
+			if err := readManifestFromPackageArchive(c.Globals.Manifest, c.PackagePath, manifestFilename); err != nil {
+				return err
+			}
+			if c.Globals.Verbose() {
+				text.Info(out, "Using %s within --package archive: %s\n\n", manifestFilename, c.PackagePath)
+			}
+		}
+		return nil
+	}
 }
 
 // StatusCheck checks the service URL and identifies when it's ready.

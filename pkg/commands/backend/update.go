@@ -129,113 +129,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := &fastly.UpdateBackendInput{
-		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
-		Name:           c.name,
-	}
-
-	if c.NewName.WasSet {
-		input.NewName = &c.NewName.Value
-	}
-
-	if c.Comment.WasSet {
-		input.Comment = &c.Comment.Value
-	}
-
-	if c.Address.WasSet {
-		input.Address = &c.Address.Value
-	}
-
-	if c.Port.WasSet {
-		input.Port = &c.Port.Value
-	}
-
-	if c.OverrideHost.WasSet {
-		input.OverrideHost = &c.OverrideHost.Value
-	}
-
-	if c.ConnectTimeout.WasSet {
-		input.ConnectTimeout = &c.ConnectTimeout.Value
-	}
-
-	if c.MaxConn.WasSet {
-		input.MaxConn = &c.MaxConn.Value
-	}
-
-	if c.FirstByteTimeout.WasSet {
-		input.FirstByteTimeout = &c.FirstByteTimeout.Value
-	}
-
-	if c.BetweenBytesTimeout.WasSet {
-		input.BetweenBytesTimeout = &c.BetweenBytesTimeout.Value
-	}
-
-	if c.AutoLoadbalance.WasSet {
-		input.AutoLoadbalance = fastly.CBool(c.AutoLoadbalance.Value)
-	}
-
-	if c.Weight.WasSet {
-		input.Weight = &c.Weight.Value
-	}
-
-	if c.RequestCondition.WasSet {
-		input.RequestCondition = &c.RequestCondition.Value
-	}
-
-	if c.HealthCheck.WasSet {
-		input.HealthCheck = &c.HealthCheck.Value
-	}
-
-	if c.Shield.WasSet {
-		input.Shield = &c.Shield.Value
-	}
-
-	if c.UseSSL.WasSet {
-		input.UseSSL = fastly.CBool(c.UseSSL.Value)
-	}
-
-	if c.NoSSLCheckCert.WasSet {
-		input.SSLCheckCert = fastly.CBool(false)
-	}
-
-	if c.SSLCheckCert.WasSet {
-		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
-		input.SSLCheckCert = fastly.CBool(c.SSLCheckCert.Value)
-	}
-
-	if c.SSLCACert.WasSet {
-		input.SSLCACert = &c.SSLCACert.Value
-	}
-
-	if c.SSLClientCert.WasSet {
-		input.SSLClientCert = &c.SSLClientCert.Value
-	}
-
-	if c.SSLClientKey.WasSet {
-		input.SSLClientKey = &c.SSLClientKey.Value
-	}
-
-	if c.SSLCertHostname.WasSet {
-		input.SSLCertHostname = &c.SSLCertHostname.Value
-	}
-
-	if c.SSLSNIHostname.WasSet {
-		input.SSLSNIHostname = &c.SSLSNIHostname.Value
-	}
-
-	if c.MinTLSVersion.WasSet {
-		input.MinTLSVersion = &c.MinTLSVersion.Value
-	}
-
-	if c.MaxTLSVersion.WasSet {
-		input.MaxTLSVersion = &c.MaxTLSVersion.Value
-	}
-
-	if c.SSLCiphers.WasSet {
-		input.SSLCiphers = &c.SSLCiphers.Value
-	}
-
+	input := c.constructInput(serviceID, serviceVersion.Number, out)
 	b, err := c.Globals.APIClient.UpdateBackend(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -247,4 +141,91 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	text.Success(out, "Updated backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
 	return nil
+}
+
+func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int, out io.Writer) *fastly.UpdateBackendInput {
+	input := &fastly.UpdateBackendInput{
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Name:           c.name,
+	}
+
+	if c.NewName.WasSet {
+		input.NewName = &c.NewName.Value
+	}
+	if c.Comment.WasSet {
+		input.Comment = &c.Comment.Value
+	}
+	if c.Address.WasSet {
+		input.Address = &c.Address.Value
+	}
+	if c.Port.WasSet {
+		input.Port = &c.Port.Value
+	}
+	if c.OverrideHost.WasSet {
+		input.OverrideHost = &c.OverrideHost.Value
+	}
+	if c.ConnectTimeout.WasSet {
+		input.ConnectTimeout = &c.ConnectTimeout.Value
+	}
+	if c.MaxConn.WasSet {
+		input.MaxConn = &c.MaxConn.Value
+	}
+	if c.FirstByteTimeout.WasSet {
+		input.FirstByteTimeout = &c.FirstByteTimeout.Value
+	}
+	if c.BetweenBytesTimeout.WasSet {
+		input.BetweenBytesTimeout = &c.BetweenBytesTimeout.Value
+	}
+	if c.AutoLoadbalance.WasSet {
+		input.AutoLoadbalance = fastly.CBool(c.AutoLoadbalance.Value)
+	}
+	if c.Weight.WasSet {
+		input.Weight = &c.Weight.Value
+	}
+	if c.RequestCondition.WasSet {
+		input.RequestCondition = &c.RequestCondition.Value
+	}
+	if c.HealthCheck.WasSet {
+		input.HealthCheck = &c.HealthCheck.Value
+	}
+	if c.Shield.WasSet {
+		input.Shield = &c.Shield.Value
+	}
+	if c.UseSSL.WasSet {
+		input.UseSSL = fastly.CBool(c.UseSSL.Value)
+	}
+	if c.NoSSLCheckCert.WasSet {
+		input.SSLCheckCert = fastly.CBool(false)
+	}
+	if c.SSLCheckCert.WasSet {
+		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
+		input.SSLCheckCert = fastly.CBool(c.SSLCheckCert.Value)
+	}
+	if c.SSLCACert.WasSet {
+		input.SSLCACert = &c.SSLCACert.Value
+	}
+	if c.SSLClientCert.WasSet {
+		input.SSLClientCert = &c.SSLClientCert.Value
+	}
+	if c.SSLClientKey.WasSet {
+		input.SSLClientKey = &c.SSLClientKey.Value
+	}
+	if c.SSLCertHostname.WasSet {
+		input.SSLCertHostname = &c.SSLCertHostname.Value
+	}
+	if c.SSLSNIHostname.WasSet {
+		input.SSLSNIHostname = &c.SSLSNIHostname.Value
+	}
+	if c.MinTLSVersion.WasSet {
+		input.MinTLSVersion = &c.MinTLSVersion.Value
+	}
+	if c.MaxTLSVersion.WasSet {
+		input.MaxTLSVersion = &c.MaxTLSVersion.Value
+	}
+	if c.SSLCiphers.WasSet {
+		input.SSLCiphers = &c.SSLCiphers.Value
+	}
+
+	return input
 }

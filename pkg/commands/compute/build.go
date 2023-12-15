@@ -133,21 +133,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}(c.Globals.ErrLog)
 
-	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), func(_ *text.SpinnerWrapper) error {
-		if projectDir != "" || c.Flags.Env != "" {
-			err = c.Globals.Manifest.File.Read(manifestPath)
-		} else {
-			err = c.Globals.Manifest.File.ReadError()
-		}
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				err = fsterr.ErrReadingManifest
-			}
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-		return nil
-	})
+	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), verifyBuildManifestFilename(c, projectDir, manifestPath, out))
 	if err != nil {
 		return err
 	}
@@ -309,6 +295,25 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	out = originalOut
 	text.Success(out, "\nBuilt package (%s)", dest)
 	return nil
+}
+
+func verifyBuildManifestFilename(c *BuildCommand, projectDir, manifestPath string, out io.Writer) text.SpinnerProcess {
+	return func(_ *text.SpinnerWrapper) error {
+		var err error
+		if projectDir != "" || c.Flags.Env != "" {
+			err = c.Globals.Manifest.File.Read(manifestPath)
+		} else {
+			err = c.Globals.Manifest.File.ReadError()
+		}
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				err = fsterr.ErrReadingManifest
+			}
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		return nil
+	}
 }
 
 // AnnotateWasmBinaryShort annotates the Wasm binary with only the CLI version.

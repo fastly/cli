@@ -118,60 +118,21 @@ func TestLogPersist(t *testing.T) {
 // This means we can be sure our logic will trigger the file to be replaced
 // with a new empty file, to which we'll then write our log content into.
 func TestLogPersistLogRotation(t *testing.T) {
-	var (
-		fi   os.FileInfo
-		path string
-	)
-
-	// Create temp environment to run test code within.
-	{
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// We want to start off with an existing audit log file that we expect to
-		// be rotated because it exceeded our defined threshold.
-		seedPath, err := filepath.Abs(filepath.Join("testdata", "errors-expected.log"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		seed, err := os.ReadFile(seedPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-		f, err := os.Open(seedPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer f.Close()
-		fi, err = f.Stat()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		rootdir := testutil.NewEnv(testutil.EnvOpts{
-			T: t,
-			Write: []testutil.FileIO{
-				{Src: string(seed), Dst: "errors.log"},
-			},
-			Copy: []testutil.FileIO{
-				{
-					Src: filepath.Join("testdata", "errors-expected-rotation.log"),
-					Dst: "errors-expected-rotation.log",
-				},
-			},
-		})
-		path = filepath.Join(rootdir, "errors.log")
-		defer os.RemoveAll(rootdir)
-
-		if err := os.Chdir(rootdir); err != nil {
-			t.Fatal(err)
-		}
-		defer func() {
-			_ = os.Chdir(wd)
-		}()
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
 	}
+	fi, path, rootdir, err := tempEnv(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		_ = os.RemoveAll(rootdir)
+		_ = os.Chdir(wd)
+	}()
 
 	errors.Now = func() (t time.Time) {
 		return t
@@ -189,7 +150,7 @@ func TestLogPersistLogRotation(t *testing.T) {
 	m["nums"] = 123
 	le.AddWithContext(fmt.Errorf("qux"), m)
 
-	err := le.Persist(path, []string{"command", "one", "--example"})
+	err = le.Persist(path, []string{"command", "one", "--example"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -213,4 +174,43 @@ func TestLogPersistLogRotation(t *testing.T) {
 	havetrim := r.Replace(string(have))
 
 	testutil.AssertEqual(t, wanttrim, havetrim)
+}
+
+// tempEnv creates a temporary environment to run test code within.
+func tempEnv(t *testing.T) (os.FileInfo, string, string, error) {
+	// We want to start off with an existing audit log file that we expect to
+	// be rotated because it exceeded our defined threshold.
+	seedPath, err := filepath.Abs(filepath.Join("testdata", "errors-expected.log"))
+	if err != nil {
+		return nil, "", "", err
+	}
+	seed, err := os.ReadFile(seedPath)
+	if err != nil {
+		return nil, "", "", err
+	}
+	f, err := os.Open(seedPath)
+	if err != nil {
+		return nil, "", "", err
+	}
+	defer f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Write: []testutil.FileIO{
+			{Src: string(seed), Dst: "errors.log"},
+		},
+		Copy: []testutil.FileIO{
+			{
+				Src: filepath.Join("testdata", "errors-expected-rotation.log"),
+				Dst: "errors-expected-rotation.log",
+			},
+		},
+	})
+	path := filepath.Join(rootdir, "errors.log")
+
+	return fi, path, rootdir, nil
 }

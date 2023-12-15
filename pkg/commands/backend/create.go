@@ -131,9 +131,25 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		})
 		return err
 	}
+
+	input := c.constructInput(serviceID, serviceVersion.Number, out)
+	b, err := c.Globals.APIClient.CreateBackend(&input)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion.Number,
+		})
+		return err
+	}
+
+	text.Success(out, "Created backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
+	return nil
+}
+
+func (c *CreateCommand) constructInput(serviceID string, serviceVersion int, out io.Writer) fastly.CreateBackendInput {
 	input := fastly.CreateBackendInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: serviceVersion,
 	}
 
 	if c.name.WasSet {
@@ -236,17 +252,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	b, err := c.Globals.APIClient.CreateBackend(&input)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
-		})
-		return err
-	}
-
-	text.Success(out, "Created backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
-	return nil
+	return input
 }
 
 // SetBackendHostDefaults configures the OverrideHost and SSLSNIHostname fields.
