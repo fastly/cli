@@ -17,7 +17,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.Globals = g
 
 	// Required.
-	c.CmdClause.Flag("cert-blob", "The PEM-formatted certificate blob").Required().StringVar(&c.certBlob)
+	c.CmdClause.Flag("cert-blob", "The PEM-formatted certificate blob. Can be passed as file path or content, (e.g. \"path/to/certificate.crt\") or content (e.g. \"$(< certificate.crt)\")").Required().StringVar(&c.certBlob)
 
 	// Optional.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a TLS certificate").StringVar(&c.id)
@@ -59,7 +59,9 @@ func (c *CreateCommand) constructInput() *fastly.CreateCustomTLSCertificateInput
 	if c.id != "" {
 		input.ID = c.id
 	}
-	input.CertBlob = c.certBlob
+
+	input.CertBlob = *fastly.String(argparser.Content(c.certBlob))
+
 	if c.name != "" {
 		input.Name = c.name
 	}

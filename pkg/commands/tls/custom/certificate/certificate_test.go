@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"path/filepath"
 	"testing"
 
 	"github.com/fastly/go-fastly/v8/fastly"
@@ -15,11 +16,13 @@ import (
 )
 
 const (
-	mockResponseID        = "123"
-	mockFieldValue        = "example"
-	validateAPIError      = "validate API error"
-	validateAPISuccess    = "validate API success"
-	validateMissingIDFlag = "validate missing --id flag"
+	mockResponseID          = "123"
+	mockFieldValue          = "example"
+	validateAPIError        = "validate API error"
+	validateAPISuccess      = "validate API success"
+	validateMissingIDFlag   = "validate missing --id flag"
+	validateFilePathSuccess = "validate passing file path to --cert-blob works"
+	validateFilePathFailure = "validate passing invalid file path fails"
 )
 
 func TestTLSCustomCertCreate(t *testing.T) {
@@ -50,6 +53,28 @@ func TestTLSCustomCertCreate(t *testing.T) {
 				},
 			},
 			Args:       args("tls-custom certificate create --cert-blob example"),
+			WantOutput: fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
+		},
+		{
+			Name: validateFilePathFailure,
+			API: mock.API{
+				CreateCustomTLSCertificateFn: func(_ *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					return nil, testutil.Err
+				},
+			},
+			Args:      args(fmt.Sprintf("tls-custom certificate create --cert-blob %s", filepath.Join("invalid", "path", "missing.crt"))),
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Name: validateFilePathSuccess,
+			API: mock.API{
+				CreateCustomTLSCertificateFn: func(_ *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					return &fastly.CustomTLSCertificate{
+						ID: mockResponseID,
+					}, nil
+				},
+			},
+			Args:       args(fmt.Sprintf("tls-custom certificate create --cert-blob %s", filepath.Join("pkg", "config", "testdata", "certificate.crt"))),
 			WantOutput: fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
 		},
 	}
