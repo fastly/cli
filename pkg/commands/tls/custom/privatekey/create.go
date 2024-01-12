@@ -13,7 +13,7 @@ import (
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	var c CreateCommand
-	c.CmdClause = parent.Command("create", "Create a TLS certificate").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a TLS private key").Alias("add")
 	c.Globals = g
 
 	// Required.

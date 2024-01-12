@@ -18,7 +18,7 @@ type RootCommand struct {
 func NewRootCommand(parent argparser.Registerer, globals *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("private-key", "Upload and manage private keys used to sign a Certificate")
+	c.CmdClause = parent.Command("private-key", "Upload and manage private keys used to sign certificates")
 	return &c
 }
 
