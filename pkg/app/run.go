@@ -344,7 +344,7 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 		}
 		// User now either has an existing SSO-based token or they want to migrate.
 		// If a long-lived token, then trigger SSO.
-		if longLivedToken(profileData) {
+		if auth.IsLongLivedToken(profileData) {
 			return ssoAuthentication("You've not authenticated via OAuth before", cmds, data)
 		}
 		// Otherwise, for an existing SSO token, check its freshness.
@@ -483,7 +483,7 @@ func checkAndRefreshSSOToken(profileData *config.Profile, profileName string, da
 // informs the user how they can use the SSO flow. It checks if the SSO
 // environment variable (or flag) has been set and enables the SSO flow if so.
 func shouldSkipSSO(_ string, profileData *config.Profile, data *global.Data) bool {
-	if longLivedToken(profileData) {
+	if auth.IsLongLivedToken(profileData) {
 		// Skip SSO if user hasn't indicated they want to migrate.
 		return data.Env.UseSSO != "1" && !data.Flags.SSO
 		// FIXME: Put back messaging once SSO is GA.
@@ -499,11 +499,6 @@ func shouldSkipSSO(_ string, profileData *config.Profile, data *global.Data) boo
 		// return true // skip SSO
 	}
 	return false // don't skip SSO
-}
-
-func longLivedToken(pd *config.Profile) bool {
-	// If user has followed SSO flow before, then these will not be zero values.
-	return pd.AccessToken == "" && pd.RefreshToken == "" && pd.AccessTokenCreated == 0 && pd.RefreshTokenCreated == 0
 }
 
 // ssoAuthentication executes the `sso` command to handle authentication.
