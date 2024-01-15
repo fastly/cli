@@ -611,7 +611,11 @@ func commandCollectsData(command string) bool {
 // commandRequiresAuthServer determines if the command to be executed is one that
 // requires just the authentication server to be running.
 func commandRequiresAuthServer(command string) bool {
-	return command == "profile create"
+	switch command {
+	case "profile create", "profile update":
+		return true
+	}
+	return false
 }
 
 // commandRequiresToken determines if the command to be executed is one that
