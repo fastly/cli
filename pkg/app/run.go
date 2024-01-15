@@ -340,7 +340,7 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 	// So we have to presume those overrides are using a long-lived token.
 	switch tokenSource {
 	case lookup.SourceFile:
-		profileName, profileData, err := getProfile(data)
+		profileName, profileData, err := data.Profile()
 		if err != nil {
 			return "", tokenSource, err
 		}
@@ -377,39 +377,6 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 	}
 
 	return token, tokenSource, nil
-}
-
-// getProfile identifies the profile we should extract a token from.
-func getProfile(data *global.Data) (string, *config.Profile, error) {
-	var (
-		profileData       *config.Profile
-		found             bool
-		name, profileName string
-	)
-	switch {
-	case data.Flags.Profile != "": // --profile
-		profileName = data.Flags.Profile
-	case data.Manifest.File.Profile != "": // `profile` field in fastly.toml
-		profileName = data.Manifest.File.Profile
-	default:
-		profileName = "default"
-	}
-	for name, profileData = range data.Config.Profiles {
-		if (profileName == "default" && profileData.Default) || name == profileName {
-			// Once we find the default profile we can update the variable to be the
-			// associated profile name so later on we can use that information to
-			// update the specific profile.
-			if profileName == "default" {
-				profileName = name
-			}
-			found = true
-			break
-		}
-	}
-	if !found {
-		return "", nil, fmt.Errorf("failed to locate '%s' profile", profileName)
-	}
-	return profileName, profileData, nil
 }
 
 // checkAndRefreshSSOToken refreshes the access/refresh tokens if expired.
