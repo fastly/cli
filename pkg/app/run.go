@@ -207,6 +207,12 @@ func Exec(data *global.Data) error {
 		displayAPIEndpoint(apiEndpoint, endpointSource, data.Output)
 	}
 
+	// User can set env.DebugMode env var or the --debug-mode boolean flag.
+	// This will prioritise the flag over the env var.
+	if data.Flags.Debug {
+		data.Env.DebugMode = "true"
+	}
+
 	// NOTE: Some commands need just the auth server to be running.
 	// But not necessarily need to process an existing token.
 	// e.g. `profile create example_sso_user --sso`
