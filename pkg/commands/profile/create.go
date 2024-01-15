@@ -24,7 +24,7 @@ import (
 // CreateCommand represents a Kingpin command.
 type CreateCommand struct {
 	argparser.Base
-	authCmd *sso.RootCommand
+	ssoCmd *sso.RootCommand
 
 	automationToken bool
 	profile         string
@@ -32,10 +32,10 @@ type CreateCommand struct {
 }
 
 // NewCreateCommand returns a new command registered in the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data, authCmd *sso.RootCommand) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.RootCommand) *CreateCommand {
 	var c CreateCommand
 	c.Globals = g
-	c.authCmd = authCmd
+	c.ssoCmd = ssoCmd
 	c.CmdClause = parent.Command("create", "Create user profile")
 	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default(profile.DefaultName).Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
@@ -80,11 +80,11 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		//
 		// This is so the `sso` command will use this information to create
 		// a new 'non-default' profile.
-		c.authCmd.InvokedFromProfileCreate = true
-		c.authCmd.ProfileCreateName = c.profile
-		c.authCmd.ProfileDefault = makeDefault
+		c.ssoCmd.InvokedFromProfileCreate = true
+		c.ssoCmd.ProfileCreateName = c.profile
+		c.ssoCmd.ProfileDefault = makeDefault
 
-		err = c.authCmd.Exec(in, out)
+		err = c.ssoCmd.Exec(in, out)
 		if err != nil {
 			return fmt.Errorf("failed to authenticate: %w", err)
 		}

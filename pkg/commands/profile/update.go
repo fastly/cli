@@ -20,7 +20,7 @@ import (
 // UpdateCommand represents a Kingpin command.
 type UpdateCommand struct {
 	argparser.Base
-	authCmd *sso.RootCommand
+	ssoCmd *sso.RootCommand
 
 	automationToken bool
 	profile         string
@@ -28,10 +28,10 @@ type UpdateCommand struct {
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data, authCmd *sso.RootCommand) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.RootCommand) *UpdateCommand {
 	var c UpdateCommand
 	c.Globals = g
-	c.authCmd = authCmd
+	c.ssoCmd = ssoCmd
 	c.CmdClause = parent.Command("update", "Update user profile")
 	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
@@ -121,13 +121,13 @@ func (c *UpdateCommand) updateToken(profileName string, p *config.Profile, in io
 		//
 		// This is so the `sso` command will use this information to update
 		// the specific profile.
-		c.authCmd.InvokedFromProfileUpdate = true
-		c.authCmd.ProfileUpdateName = profileName
-		c.authCmd.ProfileDefault = false // set to false, as later we prompt for this
+		c.ssoCmd.InvokedFromProfileUpdate = true
+		c.ssoCmd.ProfileUpdateName = profileName
+		c.ssoCmd.ProfileDefault = false // set to false, as later we prompt for this
 
 		// NOTE: The `sso` command already handles writing config back to disk.
 		// So unlike `c.staticTokenFlow` (below) we don't have to do that here.
-		err := c.authCmd.Exec(in, out)
+		err := c.ssoCmd.Exec(in, out)
 		if err != nil {
 			return fmt.Errorf("failed to authenticate: %w", err)
 		}
