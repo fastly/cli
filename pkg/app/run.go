@@ -207,6 +207,22 @@ func Exec(data *global.Data) error {
 		displayAPIEndpoint(apiEndpoint, endpointSource, data.Output)
 	}
 
+	// NOTE: Some commands need just the auth server to be running.
+	// But not necessarily need to process an existing token.
+	// e.g. `profile create example_sso_user --sso`
+	// Which needs the auth server so it can start up an OAuth flow.
+	if !commandRequiresToken(commandName) && commandRequiresAuthServer(commandName) {
+		// NOTE: Checking for nil allows our test suite to mock the server.
+		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
+		if data.AuthServer == nil {
+			authServer, err := configureAuth(apiEndpoint, data.Args, data.Config, data.HTTPClient, data.Env)
+			if err != nil {
+				return fmt.Errorf("failed to configure authentication processes: %w", err)
+			}
+			data.AuthServer = authServer
+		}
+	}
+
 	if commandRequiresToken(commandName) {
 		// NOTE: Checking for nil allows our test suite to mock the server.
 		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
@@ -622,6 +638,12 @@ func commandCollectsData(command string) bool {
 		return true
 	}
 	return false
+}
+
+// commandRequiresAuthServer determines if the command to be executed is one that
+// requires just the authentication server to be running.
+func commandRequiresAuthServer(command string) bool {
+	return command == "profile create"
 }
 
 // commandRequiresToken determines if the command to be executed is one that
