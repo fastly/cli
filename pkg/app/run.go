@@ -647,7 +647,7 @@ func configureAuth(apiEndpoint string, args []string, f config.File, c api.HTTPC
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
+		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata (%s): %w", metadataEndpoint, err)
 	}
 
 	openIDConfig, err := io.ReadAll(resp.Body)
