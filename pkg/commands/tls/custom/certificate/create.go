@@ -60,7 +60,14 @@ func (c *CreateCommand) constructInput() *fastly.CreateCustomTLSCertificateInput
 		input.ID = c.id
 	}
 
-	input.CertBlob = *fastly.String(argparser.Content(c.certBlob))
+	certBlob, err := argparser.Content(c.certBlob)
+
+	if err != nil {
+		// We end up here when raw cert blob contents are passed to --cert-blob and we try to os.Stat(path) it in Content()
+		panic(err)
+	}
+
+	input.CertBlob = *fastly.String(certBlob)
 
 	if c.name != "" {
 		input.Name = c.name

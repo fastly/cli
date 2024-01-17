@@ -125,7 +125,8 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		input.NewName = &c.newName.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		content, _ := argparser.Content(c.content.Value)
+		input.Content = fastly.String(content)
 	}
 
 	return &input, nil

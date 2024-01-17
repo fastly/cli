@@ -117,7 +117,8 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.Name = &c.name.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		content, _ := argparser.Content(c.content.Value)
+		input.Content = fastly.String(content)
 	}
 	if c.location.WasSet {
 		sType := fastly.SnippetType(c.location.Value)

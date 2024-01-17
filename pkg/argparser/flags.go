@@ -275,16 +275,17 @@ func GetSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version,
 
 // Content determines if the given flag value is a file path, and if so read
 // the contents from disk, otherwise presume the given value is the content.
-func Content(flagval string) string {
+func Content(flagval string) (string, error) {
 	content := flagval
 	if path, err := filepath.Abs(flagval); err == nil {
-		if _, err := os.Stat(path); err == nil {
-			if data, err := os.ReadFile(path); err == nil /* #nosec */ {
-				content = string(data)
-			}
+		if _, err := os.Stat(path); err != nil {
+			return "", fmt.Errorf("error looking up provided path '%s': %q", path, err)
+		}
+		if data, err := os.ReadFile(path); err == nil /* #nosec */ {
+			content = string(data)
 		}
 	}
-	return content
+	return content, nil
 }
 
 // IntToBool converts a binary 0|1 to a boolean.

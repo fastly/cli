@@ -114,7 +114,7 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 	input.ACLID = c.aclID
 	input.ServiceID = serviceID
 
-	s := argparser.Content(c.file.Value)
+	s, _ := argparser.Content(c.file.Value)
 	bs := []byte(s)
 
 	err := json.Unmarshal(bs, &input)

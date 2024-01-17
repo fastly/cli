@@ -111,7 +111,7 @@ func AssertPathContentFlag(flag string, wantError string, args []string, fixture
 			if a == fmt.Sprintf("--%s", flag) {
 				want := args[i+1]
 				if want == fmt.Sprintf("./testdata/%s", fixture) {
-					want = argparser.Content(want)
+					want, _ = argparser.Content(want)
 				}
 				if content != want {
 					t.Errorf("wanted %s, have %s", want, content)

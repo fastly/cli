@@ -151,7 +151,8 @@ func (c *UpdateCommand) constructDynamicInput(serviceID string, _ int) (*fastly.
 		return nil, fmt.Errorf("error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet")
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		content, _ := argparser.Content(c.content.Value)
+		input.Content = fastly.String(content)
 	}
 
 	return &input, nil
@@ -178,7 +179,8 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		input.Priority = &c.priority.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		content, _ := argparser.Content(c.content.Value)
+		input.Content = fastly.String(content)
 	}
 	if c.location.WasSet {
 		location := fastly.SnippetType(c.location.Value)
