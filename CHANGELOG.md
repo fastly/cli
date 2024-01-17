@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## [v10.8.0](https://github.com/fastly/cli/releases/tag/v10.8.0) (2023-01-17)
+
+**Bug fixes:**
+
+- doc(tls/custom): correct flag descriptions [#1116](https://github.com/fastly/cli/pull/1116)
+- fix(profile/create): support sso [#1117](https://github.com/fastly/cli/pull/1117)
+- fix: update list of commands that require auth server [#1120](https://github.com/fastly/cli/pull/1120)
+
+**Enhancements:**
+
+- feat: install CLI version command [#1104](https://github.com/fastly/cli/pull/1104)
+- refactor(cmd): rename package to argparser [#1105](https://github.com/fastly/cli/pull/1105)
+- refactor: rename test function names [#1107](https://github.com/fastly/cli/pull/1107)
+
+**Dependencies:**
+
+- build(deps): bump golang.org/x/crypto from 0.15.0 to 0.18.0 [#1119](https://github.com/fastly/cli/pull/1119)
+
 ## [v10.7.0](https://github.com/fastly/cli/releases/tag/v10.7.0) (2023-11-30)
 
 The Fastly CLI internal configuration file has `config_version` bumped to version `6`. We've added a new `[wasm-metadata.script_info]` field so that users can omit script info (which comes from the fastly.toml) from the metadata annotated onto their compiled Wasm binaries.
