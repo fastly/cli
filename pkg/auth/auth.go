@@ -119,10 +119,23 @@ func (s Server) GetJWT(authorizationCode string) (JWT, error) {
 	if err != nil {
 		return JWT{}, err
 	}
-
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
 
+	debug, _ := strconv.ParseBool(s.DebugMode)
+	if debug {
+		rc := req.Clone(context.Background())
+		rc.Header.Set("Fastly-Key", "REDACTED")
+		dump, _ := httputil.DumpRequest(rc, true)
+		fmt.Printf("GetJWT request dump:\n\n%#v\n\n", string(dump))
+	}
+
 	res, err := http.DefaultClient.Do(req)
+
+	if debug && res != nil {
+		dump, _ := httputil.DumpResponse(res, true)
+		fmt.Printf("GetJWT response dump:\n\n%#v\n\n", string(dump))
+	}
+
 	if err != nil {
 		return JWT{}, err
 	}
@@ -325,10 +338,23 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 	if err != nil {
 		return JWT{}, err
 	}
-
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
 
+	debug, _ := strconv.ParseBool(s.DebugMode)
+	if debug {
+		rc := req.Clone(context.Background())
+		rc.Header.Set("Fastly-Key", "REDACTED")
+		dump, _ := httputil.DumpRequest(rc, true)
+		fmt.Printf("RefreshAccessToken request dump:\n\n%#v\n\n", string(dump))
+	}
+
 	res, err := http.DefaultClient.Do(req)
+
+	if debug && res != nil {
+		dump, _ := httputil.DumpResponse(res, true)
+		fmt.Printf("RefreshAccessToken response dump:\n\n%#v\n\n", string(dump))
+	}
+
 	if err != nil {
 		return JWT{}, err
 	}
