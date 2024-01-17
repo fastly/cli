@@ -1,6 +1,7 @@
 package global
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/api"
@@ -86,6 +87,39 @@ type Data struct {
 	// Versioners contains multiple software versioning checkers.
 	// e.g. Check for latest CLI or Viceroy version.
 	Versioners Versioners
+}
+
+// Profile identifies the current profile (if any).
+func (d *Data) Profile() (string, *config.Profile, error) {
+	var (
+		profileData       *config.Profile
+		found             bool
+		name, profileName string
+	)
+	switch {
+	case d.Flags.Profile != "": // --profile
+		profileName = d.Flags.Profile
+	case d.Manifest.File.Profile != "": // `profile` field in fastly.toml
+		profileName = d.Manifest.File.Profile
+	default:
+		profileName = "default" // fallback to locating the default profile
+	}
+	for name, profileData = range d.Config.Profiles {
+		if (profileName == "default" && profileData.Default) || name == profileName {
+			// Once we find the default profile we can update the variable to be the
+			// associated profile name so later on we can use that information to
+			// update the specific profile.
+			if profileName == "default" {
+				profileName = name
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		return "", nil, fmt.Errorf("failed to locate '%s' profile", profileName)
+	}
+	return profileName, profileData, nil
 }
 
 // Token yields the Fastly API token.

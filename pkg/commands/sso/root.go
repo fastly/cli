@@ -40,7 +40,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
 	// FIXME: Unhide this command once SSO is GA.
-	c.CmdClause = parent.Command("sso", "Single Sign-On authentication").Hidden()
+	c.CmdClause = parent.Command("sso", "Single Sign-On authentication (defaults to current profile)").Hidden()
 	c.CmdClause.Arg("profile", "Profile to authenticate (i.e. create/update a token for)").Short('p').StringVar(&c.profile)
 	return &c
 }
@@ -153,7 +153,6 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 	}
 
 	currentDefaultProfile, _ := profile.Default(c.Globals.Config.Profiles)
-
 	var newDefaultProfile string
 	if currentDefaultProfile == "" && len(c.Globals.Config.Profiles) > 0 {
 		newDefaultProfile, c.Globals.Config.Profiles = profile.SetADefault(c.Globals.Config.Profiles)
@@ -162,7 +161,7 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 	switch {
 	case profileOverride != "":
 		return profileOverride, ProfileUpdate
-	case c.profile != "":
+	case c.profile != "" && profile.Get(c.profile, c.Globals.Config.Profiles) != nil:
 		return c.profile, ProfileUpdate
 	case c.InvokedFromProfileCreate && c.ProfileCreateName != "":
 		return c.ProfileCreateName, ProfileCreate
@@ -186,6 +185,7 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 	profileName, flow := c.identifyProfileAndFlow()
 
+	//nolint:exhaustive
 	switch flow {
 	case ProfileCreate:
 		c.processCreateProfile(ar, profileName)
@@ -230,7 +230,6 @@ func (c *RootCommand) processUpdateProfile(ar auth.AuthorizationResult, profileN
 	if c.InvokedFromProfileUpdate {
 		isDefault = c.ProfileDefault
 	}
-
 	ps, err := editProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
 	if err != nil {
 		return err

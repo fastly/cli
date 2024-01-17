@@ -207,6 +207,12 @@ func Exec(data *global.Data) error {
 		displayAPIEndpoint(apiEndpoint, endpointSource, data.Output)
 	}
 
+	// User can set env.DebugMode env var or the --debug-mode boolean flag.
+	// This will prioritise the flag over the env var.
+	if data.Flags.Debug {
+		data.Env.DebugMode = "true"
+	}
+
 	// NOTE: Some commands need just the auth server to be running.
 	// But not necessarily need to process an existing token.
 	// e.g. `profile create example_sso_user --sso`
@@ -334,7 +340,7 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 	// So we have to presume those overrides are using a long-lived token.
 	switch tokenSource {
 	case lookup.SourceFile:
-		profileName, profileData, err := getProfile(data)
+		profileName, profileData, err := data.Profile()
 		if err != nil {
 			return "", tokenSource, err
 		}
@@ -344,7 +350,7 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 		}
 		// User now either has an existing SSO-based token or they want to migrate.
 		// If a long-lived token, then trigger SSO.
-		if longLivedToken(profileData) {
+		if auth.IsLongLivedToken(profileData) {
 			return ssoAuthentication("You've not authenticated via OAuth before", cmds, data)
 		}
 		// Otherwise, for an existing SSO token, check its freshness.
@@ -371,39 +377,6 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 	}
 
 	return token, tokenSource, nil
-}
-
-// getProfile identifies the profile we should extract a token from.
-func getProfile(data *global.Data) (string, *config.Profile, error) {
-	var (
-		profileData       *config.Profile
-		found             bool
-		name, profileName string
-	)
-	switch {
-	case data.Flags.Profile != "": // --profile
-		profileName = data.Flags.Profile
-	case data.Manifest.File.Profile != "": // `profile` field in fastly.toml
-		profileName = data.Manifest.File.Profile
-	default:
-		profileName = "default"
-	}
-	for name, profileData = range data.Config.Profiles {
-		if (profileName == "default" && profileData.Default) || name == profileName {
-			// Once we find the default profile we can update the variable to be the
-			// associated profile name so later on we can use that information to
-			// update the specific profile.
-			if profileName == "default" {
-				profileName = name
-			}
-			found = true
-			break
-		}
-	}
-	if !found {
-		return "", nil, fmt.Errorf("failed to locate '%s' profile", profileName)
-	}
-	return profileName, profileData, nil
 }
 
 // checkAndRefreshSSOToken refreshes the access/refresh tokens if expired.
@@ -483,7 +456,7 @@ func checkAndRefreshSSOToken(profileData *config.Profile, profileName string, da
 // informs the user how they can use the SSO flow. It checks if the SSO
 // environment variable (or flag) has been set and enables the SSO flow if so.
 func shouldSkipSSO(_ string, profileData *config.Profile, data *global.Data) bool {
-	if longLivedToken(profileData) {
+	if auth.IsLongLivedToken(profileData) {
 		// Skip SSO if user hasn't indicated they want to migrate.
 		return data.Env.UseSSO != "1" && !data.Flags.SSO
 		// FIXME: Put back messaging once SSO is GA.
@@ -499,11 +472,6 @@ func shouldSkipSSO(_ string, profileData *config.Profile, data *global.Data) boo
 		// return true // skip SSO
 	}
 	return false // don't skip SSO
-}
-
-func longLivedToken(pd *config.Profile) bool {
-	// If user has followed SSO flow before, then these will not be zero values.
-	return pd.AccessToken == "" && pd.RefreshToken == "" && pd.AccessTokenCreated == 0 && pd.RefreshTokenCreated == 0
 }
 
 // ssoAuthentication executes the `sso` command to handle authentication.
@@ -643,7 +611,11 @@ func commandCollectsData(command string) bool {
 // commandRequiresAuthServer determines if the command to be executed is one that
 // requires just the authentication server to be running.
 func commandRequiresAuthServer(command string) bool {
-	return command == "profile create"
+	switch command {
+	case "profile create", "profile update":
+		return true
+	}
+	return false
 }
 
 // commandRequiresToken determines if the command to be executed is one that
@@ -675,7 +647,7 @@ func configureAuth(apiEndpoint string, args []string, f config.File, c api.HTTPC
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata: %w", err)
+		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata (%s): %w", metadataEndpoint, err)
 	}
 
 	openIDConfig, err := io.ReadAll(resp.Body)

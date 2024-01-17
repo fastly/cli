@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
+	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 )
 
@@ -118,10 +120,23 @@ func (s Server) GetJWT(authorizationCode string) (JWT, error) {
 	if err != nil {
 		return JWT{}, err
 	}
-
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
 
+	debug, _ := strconv.ParseBool(s.DebugMode)
+	if debug {
+		rc := req.Clone(context.Background())
+		rc.Header.Set("Fastly-Key", "REDACTED")
+		dump, _ := httputil.DumpRequest(rc, true)
+		fmt.Printf("GetJWT request dump:\n\n%#v\n\n", string(dump))
+	}
+
 	res, err := http.DefaultClient.Do(req)
+
+	if debug && res != nil {
+		dump, _ := httputil.DumpResponse(res, true)
+		fmt.Printf("GetJWT response dump:\n\n%#v\n\n", string(dump))
+	}
+
 	if err != nil {
 		return JWT{}, err
 	}
@@ -324,10 +339,23 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 	if err != nil {
 		return JWT{}, err
 	}
-
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
 
+	debug, _ := strconv.ParseBool(s.DebugMode)
+	if debug {
+		rc := req.Clone(context.Background())
+		rc.Header.Set("Fastly-Key", "REDACTED")
+		dump, _ := httputil.DumpRequest(rc, true)
+		fmt.Printf("RefreshAccessToken request dump:\n\n%#v\n\n", string(dump))
+	}
+
 	res, err := http.DefaultClient.Do(req)
+
+	if debug && res != nil {
+		dump, _ := httputil.DumpResponse(res, true)
+		fmt.Printf("RefreshAccessToken response dump:\n\n%#v\n\n", string(dump))
+	}
+
 	if err != nil {
 		return JWT{}, err
 	}
@@ -403,4 +431,10 @@ func TokenExpired(ttl int, timestamp int64) bool {
 	d := time.Duration(ttl) * time.Second
 	ttlAgo := time.Now().Add(-d).Unix()
 	return timestamp < ttlAgo
+}
+
+// IsLongLivedToken identifies if profile has SSO access/refresh values set.
+func IsLongLivedToken(pd *config.Profile) bool {
+	// If user has followed SSO flow before, then these will not be zero values.
+	return pd.AccessToken == "" && pd.RefreshToken == "" && pd.AccessTokenCreated == 0 && pd.RefreshTokenCreated == 0
 }

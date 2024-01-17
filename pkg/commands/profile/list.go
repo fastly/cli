@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -74,4 +75,5 @@ func display(k string, v *config.Profile, out io.Writer, style func(a ...any) st
 	text.Output(out, "%s: %t", style("Default"), v.Default)
 	text.Output(out, "%s: %s", style("Email"), v.Email)
 	text.Output(out, "%s: %s", style("Token"), v.Token)
+	text.Output(out, "%s: %t", style("SSO"), !auth.IsLongLivedToken(v))
 }
