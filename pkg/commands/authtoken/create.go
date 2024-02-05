@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"

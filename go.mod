@@ -27,7 +27,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v8 v8.6.4
+	github.com/fastly/go-fastly/v9 v9.0.0
 	github.com/hashicorp/cap v0.3.4
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
@@ -39,8 +39,6 @@ require (
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	golang.org/x/mod v0.14.0
 )
-
-replace github.com/fastly/go-fastly/v8 v8.6.4 => ../go-fastly/
 
 require (
 	github.com/kr/pretty v0.3.1 // indirect
