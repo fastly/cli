@@ -3,7 +3,7 @@ package newrelicotlp
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
@@ -97,7 +97,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	l, err := c.Globals.APIClient.CreateNewRelicOTLP(input)
 	if err != nil {
@@ -108,7 +108,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created New Relic OTLP logging endpoint '%s' (service: %s, version: %d)", l.Name, l.ServiceID, l.ServiceVersion)
+	text.Success(out,
+		"Created New Relic OTLP logging endpoint '%s' (service: %s, version: %d)",
+		fastly.ToValue(l.Name),
+		fastly.ToValue(l.ServiceID),
+		fastly.ToValue(l.ServiceVersion),
+	)
 	return nil
 }
 

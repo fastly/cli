@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -351,9 +351,9 @@ var errTest = errors.New("fixture error")
 
 func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
@@ -364,16 +364,16 @@ func createDomainError(_ *fastly.CreateDomainInput) (*fastly.Domain, error) {
 func listDomainsOK(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "www.test.com",
-			Comment:        "test",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("www.test.com"),
+			Comment:        fastly.ToPointer("test"),
 		},
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "www.example.com",
-			Comment:        "example",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("www.example.com"),
+			Comment:        fastly.ToPointer("example"),
 		},
 	}, nil
 }
@@ -405,10 +405,10 @@ Version: 1
 
 func getDomainOK(i *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Comment:        "test",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer(i.Name),
+		Comment:        fastly.ToPointer("test"),
 	}, nil
 }
 
@@ -425,9 +425,9 @@ Comment: test
 
 func updateDomainOK(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.NewName,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.NewName,
 	}, nil
 }
 
@@ -445,35 +445,35 @@ func deleteDomainError(_ *fastly.DeleteDomainInput) error {
 
 func validateDomain(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
 	return &fastly.DomainValidationResult{
-		Metadata: fastly.DomainMetadata{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           i.Name,
+		Metadata: &fastly.DomainMetadata{
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer(i.Name),
 		},
-		CName: "foo",
-		Valid: true,
+		CName: fastly.ToPointer("foo"),
+		Valid: fastly.ToPointer(true),
 	}, nil
 }
 
 func validateAllDomains(i *fastly.ValidateAllDomainsInput) (results []*fastly.DomainValidationResult, err error) {
 	return []*fastly.DomainValidationResult{
 		{
-			Metadata: fastly.DomainMetadata{
-				ServiceID:      i.ServiceID,
-				ServiceVersion: i.ServiceVersion,
-				Name:           "foo.example.com",
+			Metadata: &fastly.DomainMetadata{
+				ServiceID:      fastly.ToPointer(i.ServiceID),
+				ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+				Name:           fastly.ToPointer("foo.example.com"),
 			},
-			CName: "foo",
-			Valid: true,
+			CName: fastly.ToPointer("foo"),
+			Valid: fastly.ToPointer(true),
 		},
 		{
-			Metadata: fastly.DomainMetadata{
-				ServiceID:      i.ServiceID,
-				ServiceVersion: i.ServiceVersion,
-				Name:           "bar.example.com",
+			Metadata: &fastly.DomainMetadata{
+				ServiceID:      fastly.ToPointer(i.ServiceID),
+				ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+				Name:           fastly.ToPointer("bar.example.com"),
 			},
-			CName: "bar",
-			Valid: true,
+			CName: fastly.ToPointer("bar"),
+			Valid: fastly.ToPointer(true),
 		},
 	}, nil
 }

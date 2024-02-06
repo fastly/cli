@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
@@ -98,13 +98,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	l, err := c.Globals.APIClient.UpdateNewRelicOTLP(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -114,7 +114,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		prev = fmt.Sprintf("previously: %s, ", c.endpointName)
 	}
 
-	text.Success(out, "Updated New Relic OTLP logging endpoint '%s' (%sservice: %s, version: %d)", l.Name, prev, l.ServiceID, l.ServiceVersion)
+	text.Success(out,
+		"Updated New Relic OTLP logging endpoint '%s' (%sservice: %s, version: %d)",
+		fastly.ToValue(l.Name),
+		prev,
+		fastly.ToValue(l.ServiceID),
+		fastly.ToValue(l.ServiceVersion),
+	)
 	return nil
 }
 

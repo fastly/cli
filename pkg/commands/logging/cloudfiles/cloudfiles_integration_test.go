@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -282,12 +282,12 @@ var errTest = errors.New("fixture error")
 
 func createCloudfilesOK(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	s := fastly.Cloudfiles{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
-	if *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -300,42 +300,42 @@ func createCloudfilesError(_ *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles,
 func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
 	return []*fastly.Cloudfiles{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			User:              "username",
-			AccessKey:         "1234",
-			BucketName:        "my-logs",
-			Path:              "logs/",
-			Region:            "ORD",
-			Placement:         "none",
-			Period:            3600,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			MessageType:       "classic",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			PublicKey:         pgpPublicKey(),
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			User:              fastly.ToPointer("username"),
+			AccessKey:         fastly.ToPointer("1234"),
+			BucketName:        fastly.ToPointer("my-logs"),
+			Path:              fastly.ToPointer("logs/"),
+			Region:            fastly.ToPointer("ORD"),
+			Placement:         fastly.ToPointer("none"),
+			Period:            fastly.ToPointer(3600),
+			GzipLevel:         fastly.ToPointer(9),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			MessageType:       fastly.ToPointer("classic"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			User:              "username",
-			AccessKey:         "1234",
-			BucketName:        "analytics",
-			Path:              "logs/",
-			Region:            "ORD",
-			Placement:         "none",
-			Period:            86400,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			MessageType:       "classic",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			PublicKey:         pgpPublicKey(),
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			User:              fastly.ToPointer("username"),
+			AccessKey:         fastly.ToPointer("1234"),
+			BucketName:        fastly.ToPointer("analytics"),
+			Path:              fastly.ToPointer("logs/"),
+			Region:            fastly.ToPointer("ORD"),
+			Placement:         fastly.ToPointer("none"),
+			Period:            fastly.ToPointer(86400),
+			GzipLevel:         fastly.ToPointer(9),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			MessageType:       fastly.ToPointer("classic"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		},
 	}, nil
 }
@@ -397,23 +397,23 @@ Version: 1
 
 func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return &fastly.Cloudfiles{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		User:              "username",
-		AccessKey:         "1234",
-		BucketName:        "my-logs",
-		Path:              "logs/",
-		Region:            "ORD",
-		Placement:         "none",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		PublicKey:         pgpPublicKey(),
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("username"),
+		AccessKey:         fastly.ToPointer("1234"),
+		BucketName:        fastly.ToPointer("my-logs"),
+		Path:              fastly.ToPointer("logs/"),
+		Region:            fastly.ToPointer("ORD"),
+		Placement:         fastly.ToPointer("none"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(9),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 	}, nil
 }
 
@@ -443,23 +443,23 @@ Version: 1
 
 func updateCloudfilesOK(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return &fastly.Cloudfiles{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		User:              "username",
-		AccessKey:         "1234",
-		BucketName:        "my-logs",
-		Path:              "logs/",
-		Region:            "ORD",
-		Placement:         "none",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		PublicKey:         pgpPublicKey(),
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		User:              fastly.ToPointer("username"),
+		AccessKey:         fastly.ToPointer("1234"),
+		BucketName:        fastly.ToPointer("my-logs"),
+		Path:              fastly.ToPointer("logs/"),
+		Region:            fastly.ToPointer("ORD"),
+		Placement:         fastly.ToPointer("none"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(9),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 	}, nil
 }
 

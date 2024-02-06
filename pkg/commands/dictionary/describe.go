@@ -3,7 +3,7 @@ package dictionary
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -79,17 +79,20 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = serviceVersionNumber
 
 	dictionary, err := c.Globals.APIClient.GetDictionary(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
+	dictionaryID := fastly.ToValue(dictionary.DictionaryID)
 
 	var (
 		info  *fastly.DictionaryInfo
@@ -100,25 +103,25 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		infoInput := fastly.GetDictionaryInfoInput{
 			ServiceID:      c.Input.ServiceID,
 			ServiceVersion: c.Input.ServiceVersion,
-			ID:             dictionary.ID,
+			DictionaryID:   dictionaryID,
 		}
 		info, err = c.Globals.APIClient.GetDictionaryInfo(&infoInput)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
 		itemInput := fastly.ListDictionaryItemsInput{
 			ServiceID:    c.Input.ServiceID,
-			DictionaryID: dictionary.ID,
+			DictionaryID: dictionaryID,
 		}
 		items, err = c.Globals.APIClient.ListDictionaryItems(&itemInput)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
@@ -142,14 +145,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if !c.Globals.Verbose() {
-		text.Output(out, "Service ID: %s", dictionary.ServiceID)
+		text.Output(out, "Service ID: %s", fastly.ToValue(dictionary.ServiceID))
 	}
-	text.Output(out, "Version: %d", dictionary.ServiceVersion)
+	text.Output(out, "Version: %d", fastly.ToValue(dictionary.ServiceVersion))
 	text.PrintDictionary(out, "", dictionary)
 
 	if c.Globals.Verbose() {
-		text.Output(out, "Digest: %s", info.Digest)
-		text.Output(out, "Item Count: %d", info.ItemCount)
+		text.Output(out, "Digest: %s", fastly.ToValue(info.Digest))
+		text.Output(out, "Item Count: %d", fastly.ToValue(info.ItemCount))
 
 		for i, item := range items {
 			text.Output(out, "Item %d/%d:", i+1, len(items))

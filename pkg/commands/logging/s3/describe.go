@@ -3,7 +3,7 @@ package s3
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetS3(&c.Input)
 	if err != nil {
@@ -93,34 +93,34 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Bucket":                            o.BucketName,
-		"Compression codec":                 o.CompressionCodec,
-		"File max bytes":                    o.FileMaxBytes,
-		"Format version":                    o.FormatVersion,
-		"Format":                            o.Format,
-		"GZip level":                        o.GzipLevel,
-		"Message type":                      o.MessageType,
-		"Name":                              o.Name,
-		"Path":                              o.Path,
-		"Period":                            o.Period,
-		"Placement":                         o.Placement,
-		"Public key":                        o.PublicKey,
-		"Redundancy":                        o.Redundancy,
-		"Response condition":                o.ResponseCondition,
-		"Server-side encryption KMS key ID": o.ServerSideEncryption,
-		"Server-side encryption":            o.ServerSideEncryption,
-		"Timestamp format":                  o.TimestampFormat,
-		"Version":                           o.ServiceVersion,
+		"Bucket":                            fastly.ToValue(o.BucketName),
+		"Compression codec":                 fastly.ToValue(o.CompressionCodec),
+		"File max bytes":                    fastly.ToValue(o.FileMaxBytes),
+		"Format version":                    fastly.ToValue(o.FormatVersion),
+		"Format":                            fastly.ToValue(o.Format),
+		"GZip level":                        fastly.ToValue(o.GzipLevel),
+		"Message type":                      fastly.ToValue(o.MessageType),
+		"Name":                              fastly.ToValue(o.Name),
+		"Path":                              fastly.ToValue(o.Path),
+		"Period":                            fastly.ToValue(o.Period),
+		"Placement":                         fastly.ToValue(o.Placement),
+		"Public key":                        fastly.ToValue(o.PublicKey),
+		"Redundancy":                        fastly.ToValue(o.Redundancy),
+		"Response condition":                fastly.ToValue(o.ResponseCondition),
+		"Server-side encryption KMS key ID": fastly.ToValue(o.ServerSideEncryption),
+		"Server-side encryption":            fastly.ToValue(o.ServerSideEncryption),
+		"Timestamp format":                  fastly.ToValue(o.TimestampFormat),
+		"Version":                           fastly.ToValue(o.ServiceVersion),
 	}
-	if o.AccessKey != "" || o.SecretKey != "" {
-		lines["Access key"] = o.AccessKey
-		lines["Secret key"] = o.SecretKey
+	if o.AccessKey != nil || o.SecretKey != nil {
+		lines["Access key"] = fastly.ToValue(o.AccessKey)
+		lines["Secret key"] = fastly.ToValue(o.SecretKey)
 	}
-	if o.IAMRole != "" {
-		lines["IAM role"] = o.IAMRole
+	if o.IAMRole != nil {
+		lines["IAM role"] = fastly.ToValue(o.IAMRole)
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

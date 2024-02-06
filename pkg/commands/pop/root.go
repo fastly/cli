@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -35,8 +37,27 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	t := text.NewTable(out)
 	t.AddHeader("NAME", "CODE", "GROUP", "SHIELD", "COORDINATES")
 	for _, dc := range dcs {
-		t.AddLine(dc.Name, dc.Code, dc.Group, dc.Shield, fmt.Sprintf("%+v", dc.Coordinates))
+		t.AddLine(
+			fastly.ToValue(dc.Name),
+			fastly.ToValue(dc.Code),
+			fastly.ToValue(dc.Group),
+			fastly.ToValue(dc.Shield),
+			Coordinates(dc.Coordinates),
+		)
 	}
 	t.Print()
 	return nil
+}
+
+func Coordinates(c *fastly.Coordinates) string {
+	if c != nil {
+		return fmt.Sprintf(
+			`{Latitude:%v Longtitude:%v X:%v Y:%v}`,
+			fastly.ToValue(c.Latitude),
+			fastly.ToValue(c.Longtitude),
+			fastly.ToValue(c.X),
+			fastly.ToValue(c.Y),
+		)
+	}
+	return ""
 }

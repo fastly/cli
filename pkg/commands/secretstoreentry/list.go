@@ -3,7 +3,7 @@ package secretstoreentry
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -22,7 +22,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause = parent.Command("list", "List secrets within a specified store")
 
 	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlag(argparser.CursorFlag(&c.Input.Cursor))  // --cursor

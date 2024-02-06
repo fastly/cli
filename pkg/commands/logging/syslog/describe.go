@@ -3,7 +3,7 @@ package syslog
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetSyslog(&c.Input)
 	if err != nil {
@@ -93,26 +93,26 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Address":                o.Address,
-		"Format version":         o.FormatVersion,
-		"Format":                 o.Format,
-		"Hostname":               o.Hostname,
-		"IPV4":                   o.IPV4,
-		"Message type":           o.MessageType,
-		"Name":                   o.Name,
-		"Placement":              o.Placement,
-		"Port":                   o.Port,
-		"Response condition":     o.ResponseCondition,
-		"TLS CA certificate":     o.TLSCACert,
-		"TLS client certificate": o.TLSClientCert,
-		"TLS client key":         o.TLSClientKey,
-		"TLS hostname":           o.TLSHostname,
-		"Token":                  o.Token,
-		"Use TLS":                o.UseTLS,
-		"Version":                o.ServiceVersion,
+		"Address":                fastly.ToValue(o.Address),
+		"Format version":         fastly.ToValue(o.FormatVersion),
+		"Format":                 fastly.ToValue(o.Format),
+		"Hostname":               fastly.ToValue(o.Hostname),
+		"IPV4":                   fastly.ToValue(o.IPV4),
+		"Message type":           fastly.ToValue(o.MessageType),
+		"Name":                   fastly.ToValue(o.Name),
+		"Placement":              fastly.ToValue(o.Placement),
+		"Port":                   fastly.ToValue(o.Port),
+		"Response condition":     fastly.ToValue(o.ResponseCondition),
+		"TLS CA certificate":     fastly.ToValue(o.TLSCACert),
+		"TLS client certificate": fastly.ToValue(o.TLSClientCert),
+		"TLS client key":         fastly.ToValue(o.TLSClientKey),
+		"TLS hostname":           fastly.ToValue(o.TLSHostname),
+		"Token":                  fastly.ToValue(o.Token),
+		"Use TLS":                fastly.ToValue(o.UseTLS),
+		"Version":                fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

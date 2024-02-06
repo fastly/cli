@@ -3,7 +3,7 @@ package resourcelink
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -35,7 +35,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "id",
 		Description: flagIDDescription,
-		Dst:         &c.input.ID,
+		Dst:         &c.input.ResourceID,
 		Required:    true,
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -93,12 +93,12 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.input.ServiceID = serviceID
-	c.input.ServiceVersion = serviceVersion.Number
+	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	err = c.Globals.APIClient.DeleteResource(&c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"ID":              c.input.ID,
+			"ID":              c.input.ResourceID,
 			"Service ID":      c.input.ServiceID,
 			"Service Version": c.input.ServiceVersion,
 		})
@@ -112,7 +112,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ServiceVersion int    `json:"service_version"`
 			Deleted        bool   `json:"deleted"`
 		}{
-			c.input.ID,
+			c.input.ResourceID,
 			c.input.ServiceID,
 			c.input.ServiceVersion,
 			true,
@@ -121,6 +121,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted service resource link %s from service %s version %d", c.input.ID, c.input.ServiceID, c.input.ServiceVersion)
+	text.Success(out, "Deleted service resource link %s from service %s version %d", c.input.ResourceID, c.input.ServiceID, c.input.ServiceVersion)
 	return nil
 }

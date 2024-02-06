@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListSFTPs(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, sftp := range o {
-			tw.AddLine(sftp.ServiceID, sftp.ServiceVersion, sftp.Name)
+			tw.AddLine(
+				fastly.ToValue(sftp.ServiceID),
+				fastly.ToValue(sftp.ServiceVersion),
+				fastly.ToValue(sftp.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,26 +109,26 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, sftp := range o {
 		fmt.Fprintf(out, "\tSFTP %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", sftp.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", sftp.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", sftp.Name)
-		fmt.Fprintf(out, "\t\tAddress: %s\n", sftp.Address)
-		fmt.Fprintf(out, "\t\tPort: %d\n", sftp.Port)
-		fmt.Fprintf(out, "\t\tUser: %s\n", sftp.User)
-		fmt.Fprintf(out, "\t\tPassword: %s\n", sftp.Password)
-		fmt.Fprintf(out, "\t\tPublic key: %s\n", sftp.PublicKey)
-		fmt.Fprintf(out, "\t\tSecret key: %s\n", sftp.SecretKey)
-		fmt.Fprintf(out, "\t\tSSH known hosts: %s\n", sftp.SSHKnownHosts)
-		fmt.Fprintf(out, "\t\tPath: %s\n", sftp.Path)
-		fmt.Fprintf(out, "\t\tPeriod: %d\n", sftp.Period)
-		fmt.Fprintf(out, "\t\tGZip level: %d\n", sftp.GzipLevel)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", sftp.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", sftp.FormatVersion)
-		fmt.Fprintf(out, "\t\tMessage type: %s\n", sftp.MessageType)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", sftp.ResponseCondition)
-		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", sftp.TimestampFormat)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", sftp.Placement)
-		fmt.Fprintf(out, "\t\tCompression codec: %s\n", sftp.CompressionCodec)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(sftp.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(sftp.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(sftp.Name))
+		fmt.Fprintf(out, "\t\tAddress: %s\n", fastly.ToValue(sftp.Address))
+		fmt.Fprintf(out, "\t\tPort: %d\n", fastly.ToValue(sftp.Port))
+		fmt.Fprintf(out, "\t\tUser: %s\n", fastly.ToValue(sftp.User))
+		fmt.Fprintf(out, "\t\tPassword: %s\n", fastly.ToValue(sftp.Password))
+		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(sftp.PublicKey))
+		fmt.Fprintf(out, "\t\tSecret key: %s\n", fastly.ToValue(sftp.SecretKey))
+		fmt.Fprintf(out, "\t\tSSH known hosts: %s\n", fastly.ToValue(sftp.SSHKnownHosts))
+		fmt.Fprintf(out, "\t\tPath: %s\n", fastly.ToValue(sftp.Path))
+		fmt.Fprintf(out, "\t\tPeriod: %d\n", fastly.ToValue(sftp.Period))
+		fmt.Fprintf(out, "\t\tGZip level: %d\n", fastly.ToValue(sftp.GzipLevel))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(sftp.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(sftp.FormatVersion))
+		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(sftp.MessageType))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(sftp.ResponseCondition))
+		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(sftp.TimestampFormat))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(sftp.Placement))
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(sftp.CompressionCodec))
 	}
 	fmt.Fprintln(out)
 

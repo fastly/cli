@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -2241,9 +2241,9 @@ func TestDeploy(t *testing.T) {
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:   "12345",
-		Name: *i.Name,
-		Type: *i.Type,
+		ServiceID: fastly.ToPointer("12345"),
+		Name:      i.Name,
+		Type:      i.Type,
 	}, nil
 }
 
@@ -2259,7 +2259,7 @@ func createServiceErrorNoTrial(*fastly.CreateServiceInput) (*fastly.Service, err
 
 func getCurrentUser() (*fastly.User, error) {
 	return &fastly.User{
-		CustomerID: "abc",
+		CustomerID: fastly.ToPointer("abc"),
 	}, nil
 }
 
@@ -2289,11 +2289,11 @@ func deleteBackendOK(_ *fastly.DeleteBackendInput) error {
 
 func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	return &fastly.Package{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Metadata: fastly.PackageMetadata{
-			FilesHash: "d8786807216a37608ecd0bc2357c86f883faad89043141f0a147f2c186ce0212333d31229399c131539205908f5cf0884ea64552782544ff9b27416cd5b996b2",
-			HashSum:   "bf634ccf8be5c8417cf562466ece47ea61056ddeb07273a3d861e8ad757ed3577bc182006d04093c301467cadfd2b1805eedebd1e7cfa0404c723680f2dbc01e",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Metadata: &fastly.PackageMetadata{
+			FilesHash: fastly.ToPointer("d8786807216a37608ecd0bc2357c86f883faad89043141f0a147f2c186ce0212333d31229399c131539205908f5cf0884ea64552782544ff9b27416cd5b996b2"),
+			HashSum:   fastly.ToPointer("bf634ccf8be5c8417cf562466ece47ea61056ddeb07273a3d861e8ad757ed3577bc182006d04093c301467cadfd2b1805eedebd1e7cfa0404c723680f2dbc01e"),
 		},
 	}, nil
 }

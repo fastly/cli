@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -77,14 +77,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.ListERLsInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
 	o, err := c.Globals.APIClient.ListERLs(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -105,22 +105,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, o []*fastly.ERL) {
 	for _, u := range o {
-		fmt.Fprintf(out, "\nAction: %+v\n", u.Action)
+		fmt.Fprintf(out, "\nAction: %+v\n", fastly.ToValue(u.Action))
 		fmt.Fprintf(out, "Client Key: %+v\n", u.ClientKey)
-		fmt.Fprintf(out, "Feature Revision: %+v\n", u.FeatureRevision)
+		fmt.Fprintf(out, "Feature Revision: %+v\n", fastly.ToValue(u.FeatureRevision))
 		fmt.Fprintf(out, "HTTP Methods: %+v\n", u.HTTPMethods)
-		fmt.Fprintf(out, "ID: %+v\n", u.ID)
-		fmt.Fprintf(out, "Logger Type: %+v\n", u.LoggerType)
-		fmt.Fprintf(out, "Name: %+v\n", u.Name)
-		fmt.Fprintf(out, "Penalty Box Duration: %+v\n", u.PenaltyBoxDuration)
-		fmt.Fprintf(out, "Response: %+v\n", u.Response)
-		fmt.Fprintf(out, "Response Object Name: %+v\n", u.ResponseObjectName)
-		fmt.Fprintf(out, "RPS Limit: %+v\n", u.RpsLimit)
-		fmt.Fprintf(out, "Service ID: %+v\n", u.ServiceID)
-		fmt.Fprintf(out, "URI Dictionary Name: %+v\n", u.URIDictionaryName)
-		fmt.Fprintf(out, "Version: %+v\n", u.Version)
-		fmt.Fprintf(out, "WindowSize: %+v\n", u.WindowSize)
-
+		fmt.Fprintf(out, "ID: %+v\n", fastly.ToValue(u.RateLimiterID))
+		fmt.Fprintf(out, "Logger Type: %+v\n", fastly.ToValue(u.LoggerType))
+		fmt.Fprintf(out, "Name: %+v\n", fastly.ToValue(u.Name))
+		fmt.Fprintf(out, "Penalty Box Duration: %+v\n", fastly.ToValue(u.PenaltyBoxDuration))
+		if u.Response != nil {
+			fmt.Fprintf(out, "Response: %+v\n", *u.Response)
+		}
+		fmt.Fprintf(out, "Response Object Name: %+v\n", fastly.ToValue(u.ResponseObjectName))
+		fmt.Fprintf(out, "RPS Limit: %+v\n", fastly.ToValue(u.RpsLimit))
+		fmt.Fprintf(out, "Service ID: %+v\n", fastly.ToValue(u.ServiceID))
+		fmt.Fprintf(out, "URI Dictionary Name: %+v\n", fastly.ToValue(u.URIDictionaryName))
+		fmt.Fprintf(out, "Version: %+v\n", fastly.ToValue(u.Version))
+		fmt.Fprintf(out, "WindowSize: %+v\n", fastly.ToValue(u.WindowSize))
 		if u.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", u.CreatedAt)
 		}
@@ -139,7 +140,14 @@ func (c *ListCommand) printSummary(out io.Writer, o []*fastly.ERL) {
 	t := text.NewTable(out)
 	t.AddHeader("ID", "NAME", "ACTION", "RPS LIMIT", "WINDOW SIZE", "PENALTY BOX DURATION")
 	for _, u := range o {
-		t.AddLine(u.ID, u.Name, u.Action, u.RpsLimit, u.WindowSize, u.PenaltyBoxDuration)
+		t.AddLine(
+			fastly.ToValue(u.RateLimiterID),
+			fastly.ToValue(u.Name),
+			fastly.ToValue(u.Action),
+			fastly.ToValue(u.RpsLimit),
+			fastly.ToValue(u.WindowSize),
+			fastly.ToValue(u.PenaltyBoxDuration),
+		)
 	}
 	t.Print()
 }

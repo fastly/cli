@@ -3,7 +3,7 @@ package s3
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
@@ -195,16 +195,16 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	if c.Redundancy.WasSet {
 		redundancy, err := ValidateRedundancy(c.Redundancy.Value)
 		if err == nil {
-			input.Redundancy = fastly.S3RedundancyPtr(redundancy)
+			input.Redundancy = fastly.ToPointer(redundancy)
 		}
 	}
 
 	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionPtr(fastly.S3ServerSideEncryptionAES)
+			input.ServerSideEncryption = fastly.ToPointer(fastly.S3ServerSideEncryptionAES)
 		case string(fastly.S3ServerSideEncryptionKMS):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionPtr(fastly.S3ServerSideEncryptionKMS)
+			input.ServerSideEncryption = fastly.ToPointer(fastly.S3ServerSideEncryptionKMS)
 		}
 	}
 
@@ -230,7 +230,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -242,6 +242,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated S3 logging endpoint %s (service %s version %d)", s3.Name, s3.ServiceID, s3.ServiceVersion)
+	text.Success(out,
+		"Updated S3 logging endpoint %s (service %s version %d)",
+		fastly.ToValue(s3.Name),
+		fastly.ToValue(s3.ServiceID),
+		fastly.ToValue(s3.ServiceVersion),
+	)
 	return nil
 }

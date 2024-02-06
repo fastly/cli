@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/kafka"
@@ -29,9 +29,9 @@ func TestCreateKafkaInput(t *testing.T) {
 			want: &fastly.CreateKafkaInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Topic:          fastly.String("logs"),
-				Brokers:        fastly.String("127.0.0.1,127.0.0.2"),
+				Name:           fastly.ToPointer("log"),
+				Topic:          fastly.ToPointer("logs"),
+				Brokers:        fastly.ToPointer("127.0.0.1,127.0.0.2"),
 			},
 		},
 		{
@@ -40,20 +40,20 @@ func TestCreateKafkaInput(t *testing.T) {
 			want: &fastly.CreateKafkaInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("logs"),
-				Brokers:           fastly.String("127.0.0.1,127.0.0.2"),
-				Topic:             fastly.String("logs"),
-				RequiredACKs:      fastly.String("-1"),
-				UseTLS:            fastly.CBool(true),
-				CompressionCodec:  fastly.String("zippy"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
-				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
-				TLSHostname:       fastly.String("example.com"),
-				TLSClientCert:     fastly.String("-----BEGIN CERTIFICATE-----bar"),
-				TLSClientKey:      fastly.String("-----BEGIN PRIVATE KEY-----bar"),
+				Name:              fastly.ToPointer("logs"),
+				Brokers:           fastly.ToPointer("127.0.0.1,127.0.0.2"),
+				Topic:             fastly.ToPointer("logs"),
+				RequiredACKs:      fastly.ToPointer("-1"),
+				UseTLS:            fastly.ToPointer(fastly.Compatibool(true)),
+				CompressionCodec:  fastly.ToPointer("zippy"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
+				TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+				TLSHostname:       fastly.ToPointer("example.com"),
+				TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+				TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
 			},
 		},
 		{
@@ -67,14 +67,14 @@ func TestCreateKafkaInput(t *testing.T) {
 			want: &fastly.CreateKafkaInput{
 				ServiceID:       "123",
 				ServiceVersion:  4,
-				Name:            fastly.String("log"),
-				Topic:           fastly.String("logs"),
-				Brokers:         fastly.String("127.0.0.1,127.0.0.2"),
-				ParseLogKeyvals: fastly.CBool(true),
-				RequestMaxBytes: fastly.Int(11111),
-				AuthMethod:      fastly.String("scram-sha-512"),
-				User:            fastly.String("user1"),
-				Password:        fastly.String("12345"),
+				Name:            fastly.ToPointer("log"),
+				Topic:           fastly.ToPointer("logs"),
+				Brokers:         fastly.ToPointer("127.0.0.1,127.0.0.2"),
+				ParseLogKeyvals: fastly.ToPointer(fastly.Compatibool(true)),
+				RequestMaxBytes: fastly.ToPointer(11111),
+				AuthMethod:      fastly.ToPointer("scram-sha-512"),
+				User:            fastly.ToPointer("user1"),
+				Password:        fastly.ToPointer("12345"),
 			},
 		},
 	} {
@@ -102,7 +102,7 @@ func TestCreateKafkaInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -130,25 +130,25 @@ func TestUpdateKafkaInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				Topic:             fastly.String("new2"),
-				Brokers:           fastly.String("new3"),
-				RequiredACKs:      fastly.String("new4"),
-				UseTLS:            fastly.CBool(false),
-				CompressionCodec:  fastly.String("new5"),
-				Placement:         fastly.String("new6"),
-				Format:            fastly.String("new7"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new8"),
-				TLSCACert:         fastly.String("new9"),
-				TLSClientCert:     fastly.String("new10"),
-				TLSClientKey:      fastly.String("new11"),
-				TLSHostname:       fastly.String("new12"),
-				ParseLogKeyvals:   fastly.CBool(false),
-				RequestMaxBytes:   fastly.Int(22222),
-				AuthMethod:        fastly.String("plain"),
-				User:              fastly.String("new13"),
-				Password:          fastly.String("new14"),
+				NewName:           fastly.ToPointer("new1"),
+				Topic:             fastly.ToPointer("new2"),
+				Brokers:           fastly.ToPointer("new3"),
+				RequiredACKs:      fastly.ToPointer("new4"),
+				UseTLS:            fastly.ToPointer(fastly.Compatibool(false)),
+				CompressionCodec:  fastly.ToPointer("new5"),
+				Placement:         fastly.ToPointer("new6"),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
+				TLSCACert:         fastly.ToPointer("new9"),
+				TLSClientCert:     fastly.ToPointer("new10"),
+				TLSClientKey:      fastly.ToPointer("new11"),
+				TLSHostname:       fastly.ToPointer("new12"),
+				ParseLogKeyvals:   fastly.ToPointer(fastly.Compatibool(false)),
+				RequestMaxBytes:   fastly.ToPointer(22222),
+				AuthMethod:        fastly.ToPointer("plain"),
+				User:              fastly.ToPointer("new13"),
+				Password:          fastly.ToPointer("new14"),
 			},
 		},
 		{
@@ -183,13 +183,13 @@ func TestUpdateKafkaInput(t *testing.T) {
 				ServiceID:       "123",
 				ServiceVersion:  4,
 				Name:            "log",
-				Topic:           fastly.String("logs"),
-				Brokers:         fastly.String("127.0.0.1,127.0.0.2"),
-				ParseLogKeyvals: fastly.CBool(true),
-				RequestMaxBytes: fastly.Int(11111),
-				AuthMethod:      fastly.String("scram-sha-512"),
-				User:            fastly.String("user1"),
-				Password:        fastly.String("12345"),
+				Topic:           fastly.ToPointer("logs"),
+				Brokers:         fastly.ToPointer("127.0.0.1,127.0.0.2"),
+				ParseLogKeyvals: fastly.ToPointer(fastly.Compatibool(true)),
+				RequestMaxBytes: fastly.ToPointer(11111),
+				AuthMethod:      fastly.ToPointer("scram-sha-512"),
+				User:            fastly.ToPointer("user1"),
+				Password:        fastly.ToPointer("12345"),
 			},
 		},
 		{
@@ -204,13 +204,13 @@ func TestUpdateKafkaInput(t *testing.T) {
 				ServiceID:       "123",
 				ServiceVersion:  4,
 				Name:            "log",
-				Topic:           fastly.String("logs"),
-				Brokers:         fastly.String("127.0.0.1,127.0.0.2"),
-				ParseLogKeyvals: fastly.CBool(true),
-				RequestMaxBytes: fastly.Int(11111),
-				AuthMethod:      fastly.String(""),
-				User:            fastly.String(""),
-				Password:        fastly.String(""),
+				Topic:           fastly.ToPointer("logs"),
+				Brokers:         fastly.ToPointer("127.0.0.1,127.0.0.2"),
+				ParseLogKeyvals: fastly.ToPointer(fastly.Compatibool(true)),
+				RequestMaxBytes: fastly.ToPointer(11111),
+				AuthMethod:      fastly.ToPointer(""),
+				User:            fastly.ToPointer(""),
+				Password:        fastly.ToPointer(""),
 			},
 		},
 	}
@@ -242,7 +242,7 @@ func TestUpdateKafkaInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -566,26 +566,26 @@ func updateCommandMissingServiceID() *kafka.UpdateCommand {
 
 func getKafkaSASL(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Brokers:           "127.0.0.1,127.0.0.2",
-		Topic:             "logs",
-		RequiredACKs:      "-1",
-		UseTLS:            true,
-		CompressionCodec:  "zippy",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		ParseLogKeyvals:   false,
-		RequestMaxBytes:   0,
-		AuthMethod:        "plain",
-		User:              "user",
-		Password:          "password",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Brokers:           fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		Topic:             fastly.ToPointer("logs"),
+		RequiredACKs:      fastly.ToPointer("-1"),
+		UseTLS:            fastly.ToPointer(true),
+		CompressionCodec:  fastly.ToPointer("zippy"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		ParseLogKeyvals:   fastly.ToPointer(false),
+		RequestMaxBytes:   fastly.ToPointer(0),
+		AuthMethod:        fastly.ToPointer("plain"),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
 	}, nil
 }

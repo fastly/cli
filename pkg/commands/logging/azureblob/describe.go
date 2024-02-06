@@ -3,7 +3,7 @@ package azureblob
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,13 +80,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetBlobStorage(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -96,26 +96,26 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Account name":       o.AccountName,
-		"Compression codec":  o.CompressionCodec,
-		"Container":          o.Container,
-		"File max bytes":     o.FileMaxBytes,
-		"Format version":     o.FormatVersion,
-		"Format":             o.Format,
-		"GZip level":         o.GzipLevel,
-		"Message type":       o.MessageType,
-		"Name":               o.Name,
-		"Path":               o.Path,
-		"Period":             o.Period,
-		"Placement":          o.Placement,
-		"Public key":         o.PublicKey,
-		"Response condition": o.ResponseCondition,
-		"SAS token":          o.SASToken,
-		"Timestamp format":   o.TimestampFormat,
-		"Version":            o.ServiceVersion,
+		"Account name":       fastly.ToValue(o.AccountName),
+		"Compression codec":  fastly.ToValue(o.CompressionCodec),
+		"Container":          fastly.ToValue(o.Container),
+		"File max bytes":     fastly.ToValue(o.FileMaxBytes),
+		"Format version":     fastly.ToValue(o.FormatVersion),
+		"Format":             fastly.ToValue(o.Format),
+		"GZip level":         fastly.ToValue(o.GzipLevel),
+		"Message type":       fastly.ToValue(o.MessageType),
+		"Name":               fastly.ToValue(o.Name),
+		"Path":               fastly.ToValue(o.Path),
+		"Period":             fastly.ToValue(o.Period),
+		"Placement":          fastly.ToValue(o.Placement),
+		"Public key":         fastly.ToValue(o.PublicKey),
+		"Response condition": fastly.ToValue(o.ResponseCondition),
+		"SAS token":          fastly.ToValue(o.SASToken),
+		"Timestamp format":   fastly.ToValue(o.TimestampFormat),
+		"Version":            fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

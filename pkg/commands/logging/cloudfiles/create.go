@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
@@ -125,47 +125,36 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	if c.Path.WasSet {
 		input.Path = &c.Path.Value
 	}
-
 	if c.Region.WasSet {
 		input.Region = &c.Region.Value
 	}
-
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
 	}
-
 	if c.Period.WasSet {
 		input.Period = &c.Period.Value
 	}
-
 	if c.GzipLevel.WasSet {
 		input.GzipLevel = &c.GzipLevel.Value
 	}
-
 	if c.Format.WasSet {
 		input.Format = &c.Format.Value
 	}
-
 	if c.FormatVersion.WasSet {
 		input.FormatVersion = &c.FormatVersion.Value
 	}
-
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
 	}
-
 	if c.MessageType.WasSet {
 		input.MessageType = &c.MessageType.Value
 	}
-
 	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = &c.TimestampFormat.Value
 	}
-
 	if c.PublicKey.WasSet {
 		input.PublicKey = &c.PublicKey.Value
 	}
-
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = &c.CompressionCodec.Value
 	}
@@ -192,11 +181,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -205,11 +194,16 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Created Cloudfiles logging endpoint %s (service %s version %d)", d.Name, d.ServiceID, d.ServiceVersion)
+	text.Success(out,
+		"Created Cloudfiles logging endpoint %s (service %s version %d)",
+		fastly.ToValue(d.Name),
+		fastly.ToValue(d.ServiceID),
+		fastly.ToValue(d.ServiceVersion),
+	)
 	return nil
 }

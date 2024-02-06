@@ -4,7 +4,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -133,7 +133,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	input := fastly.CreateBackendInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
 	if c.name.WasSet {
@@ -143,7 +143,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Address = &c.address.Value
 	}
 	if c.autoLoadBalance.WasSet {
-		input.AutoLoadbalance = fastly.CBool(c.autoLoadBalance.Value)
+		input.AutoLoadbalance = fastly.ToPointer(fastly.Compatibool(c.autoLoadBalance.Value))
 	}
 	if c.betweenBytesTimeout.WasSet {
 		input.BetweenBytesTimeout = &c.betweenBytesTimeout.Value
@@ -170,7 +170,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.MinTLSVersion = &c.minTLSVersion.Value
 	}
 	if c.noSSLCheckCert.WasSet {
-		input.SSLCheckCert = fastly.CBool(false)
+		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(false))
 	}
 	if c.overrideHost.WasSet {
 		input.OverrideHost = &c.overrideHost.Value
@@ -189,7 +189,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	if c.sslCheckCert.WasSet {
 		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
-		input.SSLCheckCert = fastly.CBool(c.sslCheckCert.Value)
+		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(c.sslCheckCert.Value))
 	}
 	if c.sslCiphers.WasSet {
 		input.SSLCiphers = &c.sslCiphers.Value
@@ -214,7 +214,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		if c.Globals.Flags.Verbose {
 			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443\n\n")
 		}
-		input.Port = fastly.Int(443)
+		input.Port = fastly.ToPointer(443)
 	}
 
 	if input.Address != nil && !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
@@ -245,7 +245,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
+	text.Success(out, "Created backend %s (service %s version %d)", fastly.ToValue(b.Name), fastly.ToValue(b.ServiceID), fastly.ToValue(b.ServiceVersion))
 	return nil
 }
 

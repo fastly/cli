@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -95,12 +95,14 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	if c.dynamic.WasSet {
-		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
+		input, err := c.constructDynamicInput(serviceID, serviceVersionNumber)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
@@ -108,19 +110,19 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
-		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", v.ID, v.ServiceID)
+		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", fastly.ToValue(v.SnippetID), fastly.ToValue(v.ServiceID))
 		return nil
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.constructInput(serviceID, serviceVersionNumber)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
@@ -128,11 +130,19 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
-	text.Success(out, "Updated VCL snippet '%s' (previously: '%s', service: %s, version: %d, type: %v, priority: %d)", v.Name, input.Name, v.ServiceID, v.ServiceVersion, v.Type, v.Priority)
+	text.Success(out,
+		"Updated VCL snippet '%s' (previously: '%s', service: %s, version: %d, type: %v, priority: %d)",
+		fastly.ToValue(v.Name),
+		input.Name,
+		fastly.ToValue(v.ServiceID),
+		fastly.ToValue(v.ServiceVersion),
+		fastly.ToValue(v.Type),
+		fastly.ToValue(v.Priority),
+	)
 	return nil
 }
 
@@ -140,18 +150,17 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructDynamicInput(serviceID string, _ int) (*fastly.UpdateDynamicSnippetInput, error) {
 	var input fastly.UpdateDynamicSnippetInput
 
-	input.ID = c.snippetID
+	input.SnippetID = c.snippetID
 	input.ServiceID = serviceID
 
 	if c.newName.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet")
 	}
-
 	if c.snippetID == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet")
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
 	}
 
 	return &input, nil
@@ -178,7 +187,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		input.Priority = &c.priority.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
 	}
 	if c.location.WasSet {
 		location := fastly.SnippetType(c.location.Value)

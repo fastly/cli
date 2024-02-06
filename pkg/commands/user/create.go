@@ -3,7 +3,7 @@ package user
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -48,7 +48,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created user '%s' (role: %s)", r.Name, r.Role)
+	text.Success(out, "Created user '%s' (role: %s)", fastly.ToValue(r.Name), fastly.ToValue(r.Role))
 	return nil
 }
 

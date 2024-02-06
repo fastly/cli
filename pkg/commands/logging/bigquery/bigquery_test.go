@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/bigquery"
@@ -29,12 +29,12 @@ func TestCreateBigQueryInput(t *testing.T) {
 			want: &fastly.CreateBigQueryInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				ProjectID:      fastly.String("123"),
-				Dataset:        fastly.String("dataset"),
-				Table:          fastly.String("table"),
-				User:           fastly.String("user"),
-				SecretKey:      fastly.String("-----BEGIN PRIVATE KEY-----foo"),
+				Name:           fastly.ToPointer("log"),
+				ProjectID:      fastly.ToPointer("123"),
+				Dataset:        fastly.ToPointer("dataset"),
+				Table:          fastly.ToPointer("table"),
+				User:           fastly.ToPointer("user"),
+				SecretKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----foo"),
 			},
 		},
 		{
@@ -43,17 +43,17 @@ func TestCreateBigQueryInput(t *testing.T) {
 			want: &fastly.CreateBigQueryInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				ProjectID:         fastly.String("123"),
-				Dataset:           fastly.String("dataset"),
-				Table:             fastly.String("table"),
-				Template:          fastly.String("template"),
-				User:              fastly.String("user"),
-				SecretKey:         fastly.String("-----BEGIN PRIVATE KEY-----foo"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
-				FormatVersion:     fastly.Int(2),
+				Name:              fastly.ToPointer("log"),
+				ProjectID:         fastly.ToPointer("123"),
+				Dataset:           fastly.ToPointer("dataset"),
+				Table:             fastly.ToPointer("table"),
+				Template:          fastly.ToPointer("template"),
+				User:              fastly.ToPointer("user"),
+				SecretKey:         fastly.ToPointer("-----BEGIN PRIVATE KEY-----foo"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
+				FormatVersion:     fastly.ToPointer(2),
 			},
 		},
 		{
@@ -87,7 +87,7 @@ func TestCreateBigQueryInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -129,17 +129,17 @@ func TestUpdateBigQueryInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				ProjectID:         fastly.String("new2"),
-				Dataset:           fastly.String("new3"),
-				Table:             fastly.String("new4"),
-				User:              fastly.String("new5"),
-				SecretKey:         fastly.String("new6"),
-				Template:          fastly.String("new7"),
-				ResponseCondition: fastly.String("new8"),
-				Placement:         fastly.String("new9"),
-				Format:            fastly.String("new10"),
-				FormatVersion:     fastly.Int(3),
+				NewName:           fastly.ToPointer("new1"),
+				ProjectID:         fastly.ToPointer("new2"),
+				Dataset:           fastly.ToPointer("new3"),
+				Table:             fastly.ToPointer("new4"),
+				User:              fastly.ToPointer("new5"),
+				SecretKey:         fastly.ToPointer("new6"),
+				Template:          fastly.ToPointer("new7"),
+				ResponseCondition: fastly.ToPointer("new8"),
+				Placement:         fastly.ToPointer("new9"),
+				Format:            fastly.ToPointer("new10"),
+				FormatVersion:     fastly.ToPointer(3),
 			},
 		},
 		{
@@ -177,7 +177,7 @@ func TestUpdateBigQueryInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -288,11 +288,11 @@ var errTest = errors.New("fixture error")
 
 func createHealthCheckOK(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
-		Host:           "www.test.com",
-		Path:           "/health",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
+		Host:           fastly.ToPointer("www.test.com"),
+		Path:           fastly.ToPointer("/health"),
 	}, nil
 }
 
@@ -303,22 +303,22 @@ func createHealthCheckError(_ *fastly.CreateHealthCheckInput) (*fastly.HealthChe
 func listHealthChecksOK(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
 	return []*fastly.HealthCheck{
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "test",
-			Comment:        "test",
-			Method:         "HEAD",
-			Host:           "www.test.com",
-			Path:           "/health",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("test"),
+			Comment:        fastly.ToPointer("test"),
+			Method:         fastly.ToPointer("HEAD"),
+			Host:           fastly.ToPointer("www.test.com"),
+			Path:           fastly.ToPointer("/health"),
 		},
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "example",
-			Comment:        "example",
-			Method:         "HEAD",
-			Host:           "www.example.com",
-			Path:           "/health",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("example"),
+			Comment:        fastly.ToPointer("example"),
+			Method:         fastly.ToPointer("HEAD"),
+			Host:           fastly.ToPointer("www.example.com"),
+			Path:           fastly.ToPointer("/health"),
 		},
 	}, nil
 }
@@ -370,13 +370,13 @@ var listHealthChecksVerboseOutput = strings.Join([]string{
 
 func getHealthCheckOK(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           "test",
-		Method:         "HEAD",
-		Host:           "www.test.com",
-		Path:           "/healthcheck",
-		Comment:        "test",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer("test"),
+		Method:         fastly.ToPointer("HEAD"),
+		Host:           fastly.ToPointer("www.test.com"),
+		Path:           fastly.ToPointer("/healthcheck"),
+		Comment:        fastly.ToPointer("test"),
 	}, nil
 }
 
@@ -403,9 +403,9 @@ var describeHealthCheckOutput = "\n" + strings.Join([]string{
 
 func updateHealthCheckOK(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.NewName,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.NewName,
 	}, nil
 }
 

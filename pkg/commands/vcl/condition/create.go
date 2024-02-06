@@ -3,7 +3,7 @@ package condition
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -94,7 +94,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := fastly.CreateConditionInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
 	if c.name.WasSet {
@@ -113,11 +113,16 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Created condition %s (service %s version %d)", r.Name, r.ServiceID, r.ServiceVersion)
+	text.Success(out,
+		"Created condition %s (service %s version %d)",
+		fastly.ToValue(r.Name),
+		fastly.ToValue(r.ServiceID),
+		fastly.ToValue(r.ServiceVersion),
+	)
 	return nil
 }

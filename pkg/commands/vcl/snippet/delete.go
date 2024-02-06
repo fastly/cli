@@ -3,7 +3,7 @@ package snippet
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -79,18 +79,18 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	err = c.Globals.APIClient.DeleteSnippet(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted VCL snippet '%s' (service: %s, version: %d)", c.name, serviceID, serviceVersion.Number)
+	text.Success(out, "Deleted VCL snippet '%s' (service: %s, version: %d)", c.name, serviceID, fastly.ToValue(serviceVersion.Number))
 	return nil
 }
 

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/openstack"
@@ -29,11 +29,11 @@ func TestCreateOpenstackInput(t *testing.T) {
 			want: &fastly.CreateOpenstackInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				BucketName:     fastly.String("bucket"),
-				AccessKey:      fastly.String("access"),
-				User:           fastly.String("user"),
-				URL:            fastly.String("https://example.com"),
+				Name:           fastly.ToPointer("log"),
+				BucketName:     fastly.ToPointer("bucket"),
+				AccessKey:      fastly.ToPointer("access"),
+				User:           fastly.ToPointer("user"),
+				URL:            fastly.ToPointer("https://example.com"),
 			},
 		},
 		{
@@ -42,21 +42,21 @@ func TestCreateOpenstackInput(t *testing.T) {
 			want: &fastly.CreateOpenstackInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				BucketName:        fastly.String("bucket"),
-				AccessKey:         fastly.String("access"),
-				User:              fastly.String("user"),
-				URL:               fastly.String("https://example.com"),
-				Path:              fastly.String("/log"),
-				Period:            fastly.Int(3600),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				MessageType:       fastly.String("classic"),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.String("none"),
-				PublicKey:         fastly.String(pgpPublicKey()),
-				CompressionCodec:  fastly.String("zstd"),
+				Name:              fastly.ToPointer("log"),
+				BucketName:        fastly.ToPointer("bucket"),
+				AccessKey:         fastly.ToPointer("access"),
+				User:              fastly.ToPointer("user"),
+				URL:               fastly.ToPointer("https://example.com"),
+				Path:              fastly.ToPointer("/log"),
+				Period:            fastly.ToPointer(3600),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				MessageType:       fastly.ToPointer("classic"),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+				Placement:         fastly.ToPointer("none"),
+				PublicKey:         fastly.ToPointer(pgpPublicKey()),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -90,7 +90,7 @@ func TestCreateOpenstackInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -118,22 +118,22 @@ func TestUpdateOpenstackInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				BucketName:        fastly.String("new2"),
-				User:              fastly.String("new3"),
-				AccessKey:         fastly.String("new4"),
-				URL:               fastly.String("new5"),
-				Path:              fastly.String("new6"),
-				Period:            fastly.Int(3601),
-				GzipLevel:         fastly.Int(0),
-				Format:            fastly.String("new7"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new8"),
-				MessageType:       fastly.String("new9"),
-				TimestampFormat:   fastly.String("new10"),
-				Placement:         fastly.String("new11"),
-				PublicKey:         fastly.String("new12"),
-				CompressionCodec:  fastly.String("new13"),
+				NewName:           fastly.ToPointer("new1"),
+				BucketName:        fastly.ToPointer("new2"),
+				User:              fastly.ToPointer("new3"),
+				AccessKey:         fastly.ToPointer("new4"),
+				URL:               fastly.ToPointer("new5"),
+				Path:              fastly.ToPointer("new6"),
+				Period:            fastly.ToPointer(3601),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
+				MessageType:       fastly.ToPointer("new9"),
+				TimestampFormat:   fastly.ToPointer("new10"),
+				Placement:         fastly.ToPointer("new11"),
+				PublicKey:         fastly.ToPointer("new12"),
+				CompressionCodec:  fastly.ToPointer("new13"),
 			},
 		},
 		{
@@ -185,7 +185,7 @@ func TestUpdateOpenstackInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

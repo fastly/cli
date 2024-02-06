@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/honeycomb"
@@ -29,9 +29,9 @@ func TestCreateHoneycombInput(t *testing.T) {
 			want: &fastly.CreateHoneycombInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Token:          fastly.String("tkn"),
-				Dataset:        fastly.String("logs"),
+				Name:           fastly.ToPointer("log"),
+				Token:          fastly.ToPointer("tkn"),
+				Dataset:        fastly.ToPointer("logs"),
 			},
 		},
 		{
@@ -40,13 +40,13 @@ func TestCreateHoneycombInput(t *testing.T) {
 			want: &fastly.CreateHoneycombInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				Token:             fastly.String("tkn"),
-				Dataset:           fastly.String("logs"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				Name:              fastly.ToPointer("log"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				Token:             fastly.ToPointer("tkn"),
+				Dataset:           fastly.ToPointer("logs"),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -80,7 +80,7 @@ func TestCreateHoneycombInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -122,13 +122,13 @@ func TestUpdateHoneycombInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				Format:            fastly.String("new2"),
-				FormatVersion:     fastly.Int(3),
-				Token:             fastly.String("new3"),
-				Dataset:           fastly.String("new4"),
-				ResponseCondition: fastly.String("new5"),
-				Placement:         fastly.String("new6"),
+				NewName:           fastly.ToPointer("new1"),
+				Format:            fastly.ToPointer("new2"),
+				FormatVersion:     fastly.ToPointer(3),
+				Token:             fastly.ToPointer("new3"),
+				Dataset:           fastly.ToPointer("new4"),
+				ResponseCondition: fastly.ToPointer("new5"),
+				Placement:         fastly.ToPointer("new6"),
 			},
 		},
 		{
@@ -166,7 +166,7 @@ func TestUpdateHoneycombInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

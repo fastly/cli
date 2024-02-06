@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -103,7 +103,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated ACL entry '%s' (ip: %s, service: %s)", a.ID, a.IP, a.ServiceID)
+	text.Success(out, "Updated ACL entry '%s' (ip: %s, service: %s)", fastly.ToValue(a.EntryID), fastly.ToValue(a.IP), fastly.ToValue(a.ServiceID))
 	return nil
 }
 
@@ -148,7 +148,7 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 	}
 
 	input.ACLID = c.aclID
-	input.ID = c.id.Value
+	input.EntryID = c.id.Value
 	input.ServiceID = serviceID
 
 	if c.comment.WasSet {
@@ -158,7 +158,7 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 		input.IP = &c.ip.Value
 	}
 	if c.negated.WasSet {
-		input.Negated = fastly.CBool(c.negated.Value)
+		input.Negated = fastly.ToPointer(fastly.Compatibool(c.negated.Value))
 	}
 	if c.subnet.WasSet {
 		input.Subnet = &c.subnet.Value

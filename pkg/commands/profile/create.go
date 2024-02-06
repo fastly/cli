@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
@@ -182,13 +182,13 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 		return "", err
 	}
 	if c.automationToken {
-		return fmt.Sprintf("Automation Token (%s)", t.ID), nil
+		return fmt.Sprintf("Automation Token (%s)", fastly.ToValue(t.TokenID)), nil
 	}
 
 	var user *fastly.User
 	err = spinner.Process("Getting user data", func(_ *text.SpinnerWrapper) error {
 		user, err = client.GetUser(&fastly.GetUserInput{
-			ID: t.UserID,
+			UserID: fastly.ToValue(t.UserID),
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -204,7 +204,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 	if err != nil {
 		return "", err
 	}
-	return user.Login, nil
+	return fastly.ToValue(user.Login), nil
 }
 
 // updateInMemCfg persists the updated configuration data in-memory.

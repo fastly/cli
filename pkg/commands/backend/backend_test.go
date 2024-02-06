@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -82,11 +83,18 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// The following test validates that --service-name can replace --service-id
 		{
-			Args: args("backend create --service-name Foo --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
+			Args: args("backend create --service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
-					return &testutil.ServicesPaginator{}
+				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[{"id": "123", "name": "test-service"}]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
 				},
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendOK,
@@ -360,12 +368,12 @@ var errTest = errors.New("fixture error")
 
 func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	if i.Name == nil {
-		i.Name = fastly.String("")
+		i.Name = fastly.ToPointer("")
 	}
 	return &fastly.Backend{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
@@ -388,20 +396,20 @@ func createBackendWithPort(wantPort int) func(*fastly.CreateBackendInput) (*fast
 func listBackendsOK(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return []*fastly.Backend{
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "test.com",
-			Address:        "www.test.com",
-			Port:           80,
-			Comment:        "test",
+			Address:        fastly.ToPointer("www.test.com"),
+			Comment:        fastly.ToPointer("test"),
+			Name:           fastly.ToPointer("test.com"),
+			Port:           fastly.ToPointer(80),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 		},
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "example.com",
-			Address:        "www.example.com",
-			Port:           443,
-			Comment:        "example",
+			Address:        fastly.ToPointer("www.example.com"),
+			Comment:        fastly.ToPointer("example"),
+			Name:           fastly.ToPointer("example.com"),
+			Port:           fastly.ToPointer(443),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 		},
 	}, nil
 }
@@ -414,75 +422,73 @@ var listBackendsJSONOutput = strings.TrimSpace(`
 [
   {
     "Address": "www.test.com",
-    "AutoLoadbalance": false,
-    "BetweenBytesTimeout": 0,
+    "AutoLoadbalance": null,
+    "BetweenBytesTimeout": null,
     "Comment": "test",
-    "ConnectTimeout": 0,
+    "ConnectTimeout": null,
     "CreatedAt": null,
     "DeletedAt": null,
-    "ErrorThreshold": 0,
-    "FirstByteTimeout": 0,
-    "HealthCheck": "",
-    "Hostname": "",
-    "KeepAliveTime": 0,
-    "MaxConn": 0,
-    "MaxTLSVersion": "",
-    "MinTLSVersion": "",
+    "ErrorThreshold": null,
+    "FirstByteTimeout": null,
+    "HealthCheck": null,
+    "Hostname": null,
+    "KeepAliveTime": null,
+    "MaxConn": null,
+    "MaxTLSVersion": null,
+    "MinTLSVersion": null,
     "Name": "test.com",
-    "OverrideHost": "",
+    "OverrideHost": null,
     "Port": 80,
-    "RequestCondition": "",
-    "ShareKey": "",
-    "SSLCACert": "",
-    "SSLCertHostname": "",
-    "SSLCheckCert": false,
-    "SSLCiphers": "",
-    "SSLClientCert": "",
-    "SSLClientKey": "",
-    "SSLHostname": "",
-    "SSLSNIHostname": "",
+    "RequestCondition": null,
+    "ShareKey": null,
+    "SSLCACert": null,
+    "SSLCertHostname": null,
+    "SSLCheckCert": null,
+    "SSLCiphers": null,
+    "SSLClientCert": null,
+    "SSLClientKey": null,
+    "SSLSNIHostname": null,
     "ServiceID": "123",
     "ServiceVersion": 1,
-    "Shield": "",
+    "Shield": null,
     "UpdatedAt": null,
-    "UseSSL": false,
-    "Weight": 0
+    "UseSSL": null,
+    "Weight": null
   },
   {
     "Address": "www.example.com",
-    "AutoLoadbalance": false,
-    "BetweenBytesTimeout": 0,
+    "AutoLoadbalance": null,
+    "BetweenBytesTimeout": null,
     "Comment": "example",
-    "ConnectTimeout": 0,
+    "ConnectTimeout": null,
     "CreatedAt": null,
     "DeletedAt": null,
-    "ErrorThreshold": 0,
-    "FirstByteTimeout": 0,
-    "HealthCheck": "",
-    "Hostname": "",
-    "KeepAliveTime": 0,
-    "MaxConn": 0,
-    "MaxTLSVersion": "",
-    "MinTLSVersion": "",
+    "ErrorThreshold": null,
+    "FirstByteTimeout": null,
+    "HealthCheck": null,
+    "Hostname": null,
+    "KeepAliveTime": null,
+    "MaxConn": null,
+    "MaxTLSVersion": null,
+    "MinTLSVersion": null,
     "Name": "example.com",
-    "OverrideHost": "",
+    "OverrideHost": null,
     "Port": 443,
-    "RequestCondition": "",
-    "ShareKey": "",
-    "SSLCACert": "",
-    "SSLCertHostname": "",
-    "SSLCheckCert": false,
-    "SSLCiphers": "",
-    "SSLClientCert": "",
-    "SSLClientKey": "",
-    "SSLHostname": "",
-    "SSLSNIHostname": "",
+    "RequestCondition": null,
+    "ShareKey": null,
+    "SSLCACert": null,
+    "SSLCertHostname": null,
+    "SSLCheckCert": null,
+    "SSLCiphers": null,
+    "SSLClientCert": null,
+    "SSLClientKey": null,
+    "SSLSNIHostname": null,
     "ServiceID": "123",
     "ServiceVersion": 1,
-    "Shield": "",
+    "Shield": null,
     "UpdatedAt": null,
-    "UseSSL": false,
-    "Weight": 0
+    "UseSSL": null,
+    "Weight": null
   }
 ]
 `) + "\n"
@@ -552,12 +558,12 @@ var listBackendsVerboseOutput = strings.Join([]string{
 
 func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           "test.com",
-		Address:        "www.test.com",
-		Port:           80,
-		Comment:        "test",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer("test.com"),
+		Address:        fastly.ToPointer("www.test.com"),
+		Port:           fastly.ToPointer(80),
+		Comment:        fastly.ToPointer("test"),
 	}, nil
 }
 
@@ -595,10 +601,10 @@ var describeBackendOutput = strings.Join([]string{
 
 func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.NewName,
-		Comment:        *i.Comment,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.NewName,
+		Comment:        i.Comment,
 	}, nil
 }
 

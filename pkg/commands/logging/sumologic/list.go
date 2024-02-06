@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListSumologics(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, sumologic := range o {
-			tw.AddLine(sumologic.ServiceID, sumologic.ServiceVersion, sumologic.Name)
+			tw.AddLine(
+				fastly.ToValue(sumologic.ServiceID),
+				fastly.ToValue(sumologic.ServiceVersion),
+				fastly.ToValue(sumologic.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,15 +109,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, sumologic := range o {
 		fmt.Fprintf(out, "\tSumologic %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", sumologic.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", sumologic.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", sumologic.Name)
-		fmt.Fprintf(out, "\t\tURL: %s\n", sumologic.URL)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", sumologic.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", sumologic.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", sumologic.ResponseCondition)
-		fmt.Fprintf(out, "\t\tMessage type: %s\n", sumologic.MessageType)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", sumologic.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(sumologic.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(sumologic.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(sumologic.Name))
+		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(sumologic.URL))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(sumologic.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(sumologic.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(sumologic.ResponseCondition))
+		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(sumologic.MessageType))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(sumologic.Placement))
 	}
 	fmt.Fprintln(out)
 

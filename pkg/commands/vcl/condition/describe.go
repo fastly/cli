@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -79,14 +79,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	var input fastly.GetConditionInput
 	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion.Number
+	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 	input.Name = c.name
 
 	r, err := c.Globals.APIClient.GetCondition(&input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -96,13 +96,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", r.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(r.ServiceID))
 	}
-	fmt.Fprintf(out, "Version: %d\n", r.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", r.Name)
-	fmt.Fprintf(out, "Statement: %s\n", r.Statement)
-	fmt.Fprintf(out, "Type: %s\n", r.Type)
-	fmt.Fprintf(out, "Priority: %d\n", r.Priority)
+	fmt.Fprintf(out, "Version: %d\n", fastly.ToValue(r.ServiceVersion))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
+	fmt.Fprintf(out, "Statement: %s\n", fastly.ToValue(r.Statement))
+	fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(r.Type))
+	fmt.Fprintf(out, "Priority: %d\n", fastly.ToValue(r.Priority))
 
 	return nil
 }

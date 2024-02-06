@@ -3,7 +3,7 @@ package dictionaryentry
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -13,8 +13,9 @@ import (
 // CreateCommand calls the Fastly API to create a dictionary item.
 type CreateCommand struct {
 	argparser.Base
-	Input       fastly.CreateDictionaryItemInput
-	serviceName argparser.OptionalServiceNameID
+	Input              fastly.CreateDictionaryItemInput
+	itemKey, itemValue string
+	serviceName        argparser.OptionalServiceNameID
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -28,8 +29,8 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.CmdClause.Flag("dictionary-id", "Dictionary ID").Required().StringVar(&c.Input.DictionaryID)
-	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.Input.ItemKey)
-	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(&c.Input.ItemValue)
+	c.CmdClause.Flag("key", "Dictionary item key").Required().StringVar(&c.itemKey)
+	c.CmdClause.Flag("value", "Dictionary item value").Required().StringVar(&c.itemValue)
 
 	// Optional.
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -57,6 +58,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
+	c.Input.ItemKey = &c.itemKey
+	c.Input.ItemValue = &c.itemValue
 	c.Input.ServiceID = serviceID
 	_, err = c.Globals.APIClient.CreateDictionaryItem(&c.Input)
 	if err != nil {
@@ -66,6 +69,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created dictionary item %s (service %s, dictionary %s)", c.Input.ItemKey, c.Input.ServiceID, c.Input.DictionaryID)
+	text.Success(out, "Created dictionary item %s (service %s, dictionary %s)", fastly.ToValue(c.Input.ItemKey), c.Input.ServiceID, c.Input.DictionaryID)
 	return nil
 }

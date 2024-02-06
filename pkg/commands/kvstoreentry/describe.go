@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -31,7 +31,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 
 	// Required.
 	c.CmdClause.Flag("key", "Key name").Short('k').Required().StringVar(&c.Input.Key)
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -57,11 +57,11 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	c.Input.ID = serviceID
+	c.Input.ServiceID = serviceID
 
 	if c.force {
 		s, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
-			ID: serviceID,
+			ServiceID: serviceID,
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -70,15 +70,15 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		if s.ActiveVersion.Number != 0 {
+		if s.ActiveVersion != nil && fastly.ToValue(s.ActiveVersion.Number) != 0 {
 			_, err := c.Globals.APIClient.DeactivateVersion(&fastly.DeactivateVersionInput{
 				ServiceID:      serviceID,
-				ServiceVersion: s.ActiveVersion.Number,
+				ServiceVersion: fastly.ToValue(s.ActiveVersion.Number),
 			})
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]any{
 					"Service ID":      serviceID,
-					"Service Version": s.ActiveVersion.Number,
+					"Service Version": fastly.ToValue(s.ActiveVersion.Number),
 				})
 				return err
 			}
@@ -109,6 +109,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	text.Success(out, "Deleted service ID %s", c.Input.ID)
+	text.Success(out, "Deleted service ID %s", c.Input.ServiceID)
 	return nil
 }

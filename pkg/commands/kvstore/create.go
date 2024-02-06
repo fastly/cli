@@ -3,7 +3,7 @@ package kvstore
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -48,6 +48,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created KV Store '%s' (%s)", o.Name, o.ID)
+	text.Success(out, "Created KV Store '%s' (%s)", o.Name, o.StoreID)
 	return nil
 }

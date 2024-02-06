@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -141,7 +141,7 @@ func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
 		})
 		return err
 	}
-	text.Success(out, "Purge all status: %s", p.Status)
+	text.Success(out, "Purge all status: %s", fastly.ToValue(p.Status))
 	return nil
 }
 
@@ -198,7 +198,7 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 		})
 		return err
 	}
-	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, p.Status, p.ID)
+	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
 	return nil
 }
 
@@ -214,7 +214,7 @@ func (c *RootCommand) purgeURL(out io.Writer) error {
 		})
 		return err
 	}
-	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, p.Status, p.ID)
+	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
 	return nil
 }
 

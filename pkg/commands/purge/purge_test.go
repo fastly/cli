@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -42,7 +42,7 @@ func TestPurgeAll(t *testing.T) {
 			API: mock.API{
 				PurgeAllFn: func(i *fastly.PurgeAllInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: "ok",
+						Status: fastly.ToPointer("ok"),
 					}, nil
 				},
 			},
@@ -162,8 +162,8 @@ func TestPurgeKey(t *testing.T) {
 			API: mock.API{
 				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: "ok",
-						ID:     "123",
+						Status:  fastly.ToPointer("ok"),
+						PurgeID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},
@@ -175,8 +175,8 @@ func TestPurgeKey(t *testing.T) {
 			API: mock.API{
 				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: "ok",
-						ID:     "123",
+						Status:  fastly.ToPointer("ok"),
+						PurgeID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},
@@ -220,8 +220,8 @@ func TestPurgeURL(t *testing.T) {
 			API: mock.API{
 				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: "ok",
-						ID:     "123",
+						Status:  fastly.ToPointer("ok"),
+						PurgeID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},
@@ -233,8 +233,8 @@ func TestPurgeURL(t *testing.T) {
 			API: mock.API{
 				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
-						Status: "ok",
-						ID:     "123",
+						Status:  fastly.ToPointer("ok"),
+						PurgeID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},

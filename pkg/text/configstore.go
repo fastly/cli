@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	fsttime "github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/segmentio/textio"
+
+	fsttime "github.com/fastly/cli/pkg/time"
 )
 
 // PrintConfigStoresTbl displays store data in a table format.
@@ -24,7 +25,7 @@ func PrintConfigStoresTbl(out io.Writer, stores []*fastly.ConfigStore) {
 	for _, cs := range stores {
 		// avoid gosec loop aliasing check :/
 		cs := cs
-		tbl.AddLine(cs.Name, cs.ID, fmtConfigStoreTime(cs.CreatedAt), fmtConfigStoreTime(cs.UpdatedAt))
+		tbl.AddLine(cs.Name, cs.StoreID, fmtConfigStoreTime(cs.CreatedAt), fmtConfigStoreTime(cs.UpdatedAt))
 	}
 	tbl.Print()
 }
@@ -34,7 +35,7 @@ func PrintConfigStore(out io.Writer, cs *fastly.ConfigStore, csm *fastly.ConfigS
 	out = textio.NewPrefixWriter(out, "")
 
 	fmt.Fprintf(out, "Name: %s\n", cs.Name)
-	fmt.Fprintf(out, "ID: %s\n", cs.ID)
+	fmt.Fprintf(out, "ID: %s\n", cs.StoreID)
 	fmt.Fprintf(out, "Created (UTC): %s\n", fmtConfigStoreTime(cs.CreatedAt))
 	fmt.Fprintf(out, "Updated (UTC): %s\n", fmtConfigStoreTime(cs.UpdatedAt))
 	if csm != nil {
@@ -47,7 +48,7 @@ func PrintConfigStoreServicesTbl(out io.Writer, s []*fastly.Service) {
 	tw := NewTable(out)
 	tw.AddHeader("NAME", "ID", "TYPE")
 	for _, service := range s {
-		tw.AddLine(service.Name, service.ID, service.Type)
+		tw.AddLine(service.Name, service.ServiceID, service.Type)
 	}
 	tw.Print()
 }

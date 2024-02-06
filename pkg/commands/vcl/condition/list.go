@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -78,13 +78,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	var input fastly.ListConditionsInput
 
 	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion.Number
+	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListConditions(&input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -97,7 +97,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME", "STATEMENT", "TYPE", "PRIORITY")
 		for _, r := range o {
-			tw.AddLine(r.ServiceID, r.ServiceVersion, r.Name, r.Statement, r.Type, r.Priority)
+			tw.AddLine(
+				fastly.ToValue(r.ServiceID),
+				fastly.ToValue(r.ServiceVersion),
+				fastly.ToValue(r.Name),
+				fastly.ToValue(r.Statement),
+				fastly.ToValue(r.Type),
+				fastly.ToValue(r.Priority),
+			)
 		}
 		tw.Print()
 		return nil
@@ -106,10 +113,10 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", input.ServiceVersion)
 	for i, r := range o {
 		fmt.Fprintf(out, "\tCondition %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tName: %s\n", r.Name)
-		fmt.Fprintf(out, "\t\tStatement: %v\n", r.Statement)
-		fmt.Fprintf(out, "\t\tType: %v\n", r.Type)
-		fmt.Fprintf(out, "\t\tPriority: %v\n", r.Priority)
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(r.Name))
+		fmt.Fprintf(out, "\t\tStatement: %v\n", fastly.ToValue(r.Statement))
+		fmt.Fprintf(out, "\t\tType: %v\n", fastly.ToValue(r.Type))
+		fmt.Fprintf(out, "\t\tPriority: %v\n", fastly.ToValue(r.Priority))
 	}
 	fmt.Fprintln(out)
 

@@ -3,7 +3,7 @@ package custom
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -83,18 +83,24 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	v, err := c.Globals.APIClient.CreateVCL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Created custom VCL '%s' (service: %s, version: %d, main: %t)", v.Name, v.ServiceID, v.ServiceVersion, v.Main)
+	text.Success(out,
+		"Created custom VCL '%s' (service: %s, version: %d, main: %t)",
+		fastly.ToValue(v.Name),
+		fastly.ToValue(v.ServiceID),
+		fastly.ToValue(v.ServiceVersion),
+		fastly.ToValue(v.Main),
+	)
 	return nil
 }
 
@@ -108,12 +114,10 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.Name = &c.name.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
 	}
-
 	if c.main.WasSet {
-		input.Main = fastly.Bool(c.main.Value)
+		input.Main = fastly.ToPointer(c.main.Value)
 	}
-
 	return &input
 }

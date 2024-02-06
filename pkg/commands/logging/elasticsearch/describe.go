@@ -3,7 +3,7 @@ package elasticsearch
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetElasticsearch(&c.Input)
 	if err != nil {
@@ -93,24 +93,24 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Format version":         o.FormatVersion,
-		"Format":                 o.Format,
-		"Index":                  o.Index,
-		"Name":                   o.Name,
-		"Password":               o.Password,
-		"Pipeline":               o.Pipeline,
-		"Placement":              o.Placement,
-		"Response condition":     o.ResponseCondition,
-		"TLS CA certificate":     o.TLSCACert,
-		"TLS client certificate": o.TLSClientCert,
-		"TLS client key":         o.TLSClientKey,
-		"TLS hostname":           o.TLSHostname,
-		"URL":                    o.URL,
-		"User":                   o.User,
-		"Version":                o.ServiceVersion,
+		"Format version":         fastly.ToValue(o.FormatVersion),
+		"Format":                 fastly.ToValue(o.Format),
+		"Index":                  fastly.ToValue(o.Index),
+		"Name":                   fastly.ToValue(o.Name),
+		"Password":               fastly.ToValue(o.Password),
+		"Pipeline":               fastly.ToValue(o.Pipeline),
+		"Placement":              fastly.ToValue(o.Placement),
+		"Response condition":     fastly.ToValue(o.ResponseCondition),
+		"TLS CA certificate":     fastly.ToValue(o.TLSCACert),
+		"TLS client certificate": fastly.ToValue(o.TLSClientCert),
+		"TLS client key":         fastly.ToValue(o.TLSClientKey),
+		"TLS hostname":           fastly.ToValue(o.TLSHostname),
+		"URL":                    fastly.ToValue(o.URL),
+		"User":                   fastly.ToValue(o.User),
+		"Version":                fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

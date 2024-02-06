@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,13 +80,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	o, err := c.Globals.APIClient.GetVCL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -112,12 +112,12 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) *
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, v *fastly.VCL) error {
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", v.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(v.ServiceID))
 	}
-	fmt.Fprintf(out, "Service Version: %d\n\n", v.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", v.Name)
-	fmt.Fprintf(out, "Main: %t\n", v.Main)
-	fmt.Fprintf(out, "Content: \n%s\n\n", v.Content)
+	fmt.Fprintf(out, "Service Version: %d\n\n", fastly.ToValue(v.ServiceVersion))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(v.Name))
+	fmt.Fprintf(out, "Main: %t\n", fastly.ToValue(v.Main))
+	fmt.Fprintf(out, "Content: \n%s\n\n", fastly.ToValue(v.Content))
 	if v.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
 	}

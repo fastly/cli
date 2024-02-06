@@ -3,9 +3,11 @@ package aclentry_test
 import (
 	"bytes"
 	"io"
+	"net/http"
+	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -46,10 +48,10 @@ func TestACLEntryCreate(t *testing.T) {
 			API: mock.API{
 				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return &fastly.ACLEntry{
-						ACLID:     i.ACLID,
-						ID:        "456",
-						IP:        *i.IP,
-						ServiceID: i.ServiceID,
+						ACLID:     fastly.ToPointer(i.ACLID),
+						EntryID:   fastly.ToPointer("456"),
+						IP:        i.IP,
+						ServiceID: fastly.ToPointer(i.ServiceID),
 					}, nil
 				},
 			},
@@ -61,11 +63,11 @@ func TestACLEntryCreate(t *testing.T) {
 			API: mock.API{
 				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return &fastly.ACLEntry{
-						ACLID:     i.ACLID,
-						ID:        "456",
-						IP:        *i.IP,
-						ServiceID: i.ServiceID,
-						Negated:   bool(*i.Negated),
+						ACLID:     fastly.ToPointer(i.ACLID),
+						EntryID:   fastly.ToPointer("456"),
+						IP:        i.IP,
+						ServiceID: fastly.ToPointer(i.ServiceID),
+						Negated:   fastly.ToPointer(bool(fastly.ToValue(i.Negated))),
 					}, nil
 				},
 			},
@@ -200,68 +202,6 @@ func TestACLEntryDescribe(t *testing.T) {
 	}
 }
 
-// TODO: Use generics support in go 1.18 to remove the need for multiple types.
-//
-// e.g. replace mockACLPaginator, mockDictionaryItemPaginator, mockServicesPaginator
-
-type mockACLPaginator struct {
-	count         int
-	maxPages      int
-	numOfPages    int
-	requestedPage int
-	returnErr     bool
-}
-
-func (p *mockACLPaginator) HasNext() bool {
-	if p.count > p.maxPages {
-		return false
-	}
-	p.count++
-	return true
-}
-
-func (p mockACLPaginator) Remaining() int {
-	return 1
-}
-
-func (p *mockACLPaginator) GetNext() (as []*fastly.ACLEntry, err error) {
-	if p.returnErr {
-		err = testutil.Err
-	}
-	t := testutil.Date
-	pageOne := fastly.ACLEntry{
-		ACLID:     "123",
-		Comment:   "foo",
-		CreatedAt: &t,
-		DeletedAt: &t,
-		ID:        "456",
-		IP:        "127.0.0.1",
-		ServiceID: "123",
-		UpdatedAt: &t,
-	}
-	pageTwo := fastly.ACLEntry{
-		ACLID:     "123",
-		Comment:   "bar",
-		CreatedAt: &t,
-		DeletedAt: &t,
-		ID:        "789",
-		IP:        "127.0.0.2",
-		Negated:   true,
-		ServiceID: "123",
-		UpdatedAt: &t,
-	}
-	if p.count == 1 {
-		as = append(as, &pageOne)
-	}
-	if p.count == 2 {
-		as = append(as, &pageTwo)
-	}
-	if p.requestedPage > 0 && p.numOfPages == 1 {
-		p.count = p.maxPages + 1 // forces only one result to be displayed
-	}
-	return as, err
-}
-
 func TestACLEntryList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
@@ -278,54 +218,97 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API error (via GetNext() call)",
 			API: mock.API{
-				NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-					return &mockACLPaginator{returnErr: true}
+				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
+						Errors: []error{
+							testutil.Err,
+						},
+						Responses: []*http.Response{nil},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
 			Args:      args("acl-entry list --acl-id 123 --service-id 123"),
 			WantError: testutil.Err.Error(),
 		},
-		// NOTE: Our mock paginator defines two ACL entries, and so even when
-		// setting --per-page 1 we expect the final output to display both items.
 		{
 			Name: "validate ListACLEntries API success",
 			API: mock.API{
-				NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-					return &mockACLPaginator{numOfPages: i.PerPage, maxPages: 2}
+				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[
+                  {
+                    "id": "456",
+                    "service_id": "123",
+                    "acl_id": "xyz",
+                    "ip": "127.0.0.1",
+                    "negated": 0,
+                    "subnet": 0,
+                    "comment": "",
+                    "created_at": "2020-04-21T18:14:32+00:00",
+                    "updated_at": "2020-04-21T18:14:32+00:00",
+                    "deleted_at": null
+                  },
+                  {
+                    "id": "789",
+                    "service_id": "123",
+                    "acl_id": "xyz",
+                    "ip": "127.0.0.2",
+                    "negated": 1,
+                    "subnet": 0,
+                    "comment": "",
+                    "created_at": "2020-04-21T18:14:32+00:00",
+                    "updated_at": "2020-04-21T18:14:32+00:00",
+                    "deleted_at": null
+                  }
+                ]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
-			Args:       args("acl-entry list --acl-id 123 --per-page 1 --service-id 123"),
+			Args:       args("acl-entry list --acl-id 123 --service-id 123"),
 			WantOutput: listACLEntriesOutput,
-		},
-		// In the following test, we set --page 1 and as there's only one record
-		// displayed per page we expect only the first record to be displayed.
-		{
-			Name: "validate all results displayed even when page is set",
-			API: mock.API{
-				NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-					return &mockACLPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
-				},
-			},
-			Args:       args("acl-entry list --acl-id 123 --page 1 --per-page 1 --service-id 123"),
-			WantOutput: listACLEntriesOutputPageOne,
-		},
-		// In the following test, we set --page 2 and as there's only one record
-		// displayed per page we expect only the second record to be displayed.
-		{
-			Name: "validate only page two of the results are displayed",
-			API: mock.API{
-				NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-					return &mockACLPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
-				},
-			},
-			Args:       args("acl-entry list --acl-id 123 --page 2 --per-page 1 --service-id 123"),
-			WantOutput: listACLEntriesOutputPageTwo,
 		},
 		{
 			Name: "validate --verbose flag",
 			API: mock.API{
-				NewListACLEntriesPaginatorFn: func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-					return &mockACLPaginator{numOfPages: i.PerPage, maxPages: 2}
+				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[
+                  {
+                    "id": "456",
+                    "service_id": "123",
+                    "acl_id": "123",
+                    "ip": "127.0.0.1",
+                    "negated": 0,
+                    "subnet": 0,
+                    "comment": "foo",
+                    "created_at": "2021-06-15T23:00:00Z",
+                    "updated_at": "2021-06-15T23:00:00Z",
+                    "deleted_at": "2021-06-15T23:00:00Z"
+                  },
+                  {
+                    "id": "789",
+                    "service_id": "123",
+                    "acl_id": "123",
+                    "ip": "127.0.0.2",
+                    "negated": 1,
+                    "subnet": 0,
+                    "comment": "bar",
+                    "created_at": "2021-06-15T23:00:00Z",
+                    "updated_at": "2021-06-15T23:00:00Z",
+                    "deleted_at": "2021-06-15T23:00:00Z"
+                  }
+                ]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
 			Args:       args("acl-entry list --acl-id 123 --per-page 1 --service-id 123 --verbose"),
@@ -351,14 +334,6 @@ func TestACLEntryList(t *testing.T) {
 
 var listACLEntriesOutput = `SERVICE ID  ID   IP         SUBNET  NEGATED
 123         456  127.0.0.1  0       false
-123         789  127.0.0.2  0       true
-`
-
-var listACLEntriesOutputPageOne = `SERVICE ID  ID   IP         SUBNET  NEGATED
-123         456  127.0.0.1  0       false
-`
-
-var listACLEntriesOutputPageTwo = `SERVICE ID  ID   IP         SUBNET  NEGATED
 123         789  127.0.0.2  0       true
 `
 
@@ -485,10 +460,10 @@ func getACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 	t := testutil.Date
 
 	return &fastly.ACLEntry{
-		ACLID:     i.ACLID,
-		ID:        i.ID,
-		IP:        "127.0.0.1",
-		ServiceID: i.ServiceID,
+		ACLID:     fastly.ToPointer(i.ACLID),
+		EntryID:   fastly.ToPointer(i.EntryID),
+		IP:        fastly.ToPointer("127.0.0.1"),
+		ServiceID: fastly.ToPointer(i.ServiceID),
 
 		CreatedAt: &t,
 		DeletedAt: &t,

@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -93,7 +93,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated rate limiter '%s' (%s)", o.Name, o.ID)
+	text.Success(out, "Updated rate limiter '%s' (%s)", fastly.ToValue(o.Name), fastly.ToValue(o.RateLimiterID))
 	return nil
 }
 
@@ -106,7 +106,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 	if c.action != "" {
 		for _, a := range fastly.ERLActions {
 			if c.action == string(a) {
-				input.Action = fastly.ERLActionPtr(a)
+				input.Action = fastly.ToPointer(a)
 				break
 			}
 		}
@@ -118,7 +118,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 	}
 
 	if c.featRevision > 0 {
-		input.FeatureRevision = fastly.Int(c.featRevision)
+		input.FeatureRevision = fastly.ToPointer(c.featRevision)
 	}
 
 	if c.httpMethods != "" {
@@ -130,45 +130,45 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 	if c.loggerType != "" {
 		for _, l := range fastly.ERLLoggers {
 			if c.loggerType == string(l) {
-				input.LoggerType = fastly.ERLLoggerPtr(l)
+				input.LoggerType = fastly.ToPointer(l)
 				break
 			}
 		}
 	}
 
 	if c.name != "" {
-		input.Name = fastly.String(c.name)
+		input.Name = fastly.ToPointer(c.name)
 	}
 
 	if c.penaltyDuration > 0 {
-		input.PenaltyBoxDuration = fastly.Int(c.penaltyDuration)
+		input.PenaltyBoxDuration = fastly.ToPointer(c.penaltyDuration)
 	}
 
 	if c.responseContent != "" && c.responseContentType != "" && c.responseStatus > 0 {
 		input.Response = &fastly.ERLResponseType{
-			ERLContent:     c.responseContent,
-			ERLContentType: c.responseContentType,
-			ERLStatus:      c.responseStatus,
+			ERLContent:     fastly.ToPointer(c.responseContent),
+			ERLContentType: fastly.ToPointer(c.responseContentType),
+			ERLStatus:      fastly.ToPointer(c.responseStatus),
 		}
 	}
 
 	if c.responseObjectName != "" {
-		input.ResponseObjectName = fastly.String(c.responseObjectName)
+		input.ResponseObjectName = fastly.ToPointer(c.responseObjectName)
 	}
 
 	if c.rpsLimit > 0 {
-		input.RpsLimit = fastly.Int(c.rpsLimit)
+		input.RpsLimit = fastly.ToPointer(c.rpsLimit)
 	}
 
 	if c.uriDictName != "" {
-		input.URIDictionaryName = fastly.String(c.uriDictName)
+		input.URIDictionaryName = fastly.ToPointer(c.uriDictName)
 	}
 
 	// NOTE: rateLimitWindowSizes is defined in ./create.go
 	if c.windowSize != "" {
 		for _, w := range fastly.ERLWindowSizes {
 			if c.windowSize == fmt.Sprint(w) {
-				input.WindowSize = fastly.ERLWindowSizePtr(w)
+				input.WindowSize = fastly.ToPointer(w)
 				break
 			}
 		}

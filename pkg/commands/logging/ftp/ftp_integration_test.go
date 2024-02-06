@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -282,10 +282,10 @@ var errTest = errors.New("fixture error")
 
 func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:        i.ServiceID,
-		ServiceVersion:   i.ServiceVersion,
-		Name:             *i.Name,
-		CompressionCodec: *i.CompressionCodec,
+		ServiceID:        fastly.ToPointer(i.ServiceID),
+		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
+		Name:             i.Name,
+		CompressionCodec: i.CompressionCodec,
 	}, nil
 }
 
@@ -296,42 +296,42 @@ func createFTPError(_ *fastly.CreateFTPInput) (*fastly.FTP, error) {
 func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	return []*fastly.FTP{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Address:           "example.com",
-			Port:              123,
-			Username:          "anonymous",
-			Password:          "foo@example.com",
-			PublicKey:         pgpPublicKey(),
-			Path:              "logs/",
-			Period:            3600,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Address:           fastly.ToPointer("example.com"),
+			Port:              fastly.ToPointer(123),
+			Username:          fastly.ToPointer("anonymous"),
+			Password:          fastly.ToPointer("foo@example.com"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(3600),
+			GzipLevel:         fastly.ToPointer(9),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Address:           "127.0.0.1",
-			Port:              456,
-			Username:          "foo",
-			Password:          "password",
-			PublicKey:         pgpPublicKey(),
-			Path:              "logs/",
-			Period:            86400,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Address:           fastly.ToPointer("127.0.0.1"),
+			Port:              fastly.ToPointer(456),
+			Username:          fastly.ToPointer("foo"),
+			Password:          fastly.ToPointer("password"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(86400),
+			GzipLevel:         fastly.ToPointer(9),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
@@ -393,23 +393,23 @@ Version: 1
 
 func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Address:           "example.com",
-		Port:              123,
-		Username:          "anonymous",
-		Password:          "foo@example.com",
-		PublicKey:         pgpPublicKey(),
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Address:           fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(123),
+		Username:          fastly.ToPointer("anonymous"),
+		Password:          fastly.ToPointer("foo@example.com"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(9),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
@@ -439,23 +439,23 @@ Version: 1
 
 func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Address:           "example.com",
-		Port:              123,
-		Username:          "anonymous",
-		Password:          "foo@example.com",
-		PublicKey:         pgpPublicKey(),
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Address:           fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(123),
+		Username:          fastly.ToPointer("anonymous"),
+		Password:          fastly.ToPointer("foo@example.com"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(9),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 

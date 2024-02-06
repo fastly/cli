@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -341,10 +341,10 @@ var errTest = errors.New("fixture error")
 
 func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:        i.ServiceID,
-		ServiceVersion:   i.ServiceVersion,
-		Name:             *i.Name,
-		CompressionCodec: "zstd",
+		ServiceID:        fastly.ToPointer(i.ServiceID),
+		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
+		Name:             i.Name,
+		CompressionCodec: fastly.ToPointer("zstd"),
 	}, nil
 }
 
@@ -355,50 +355,50 @@ func createS3Error(_ *fastly.CreateS3Input) (*fastly.S3, error) {
 func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	return []*fastly.S3{
 		{
-			ServiceID:                    i.ServiceID,
-			ServiceVersion:               i.ServiceVersion,
-			Name:                         "logs",
-			BucketName:                   "my-logs",
-			AccessKey:                    "1234",
-			SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			IAMRole:                      "",
-			Domain:                       "https://s3.us-east-1.amazonaws.com",
-			Path:                         "logs/",
-			Period:                       3600,
-			Format:                       `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:                2,
-			MessageType:                  "classic",
-			ResponseCondition:            "Prevent default logging",
-			TimestampFormat:              "%Y-%m-%dT%H:%M:%S.000",
-			Redundancy:                   "standard",
-			Placement:                    "none",
-			PublicKey:                    pgpPublicKey(),
-			ServerSideEncryption:         "aws:kms",
-			ServerSideEncryptionKMSKeyID: "1234",
-			CompressionCodec:             "zstd",
+			ServiceID:                    fastly.ToPointer(i.ServiceID),
+			ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
+			Name:                         fastly.ToPointer("logs"),
+			BucketName:                   fastly.ToPointer("my-logs"),
+			AccessKey:                    fastly.ToPointer("1234"),
+			SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			IAMRole:                      fastly.ToPointer("xyz"),
+			Domain:                       fastly.ToPointer("https://s3.us-east-1.amazonaws.com"),
+			Path:                         fastly.ToPointer("logs/"),
+			Period:                       fastly.ToPointer(3600),
+			Format:                       fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:                fastly.ToPointer(2),
+			MessageType:                  fastly.ToPointer("classic"),
+			ResponseCondition:            fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+			Placement:                    fastly.ToPointer("none"),
+			PublicKey:                    fastly.ToPointer(pgpPublicKey()),
+			ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+			ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
+			CompressionCodec:             fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:                    i.ServiceID,
-			ServiceVersion:               i.ServiceVersion,
-			Name:                         "analytics",
-			BucketName:                   "analytics",
-			AccessKey:                    "1234",
-			SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Domain:                       "https://s3.us-east-2.amazonaws.com",
-			Path:                         "logs/",
-			Period:                       86400,
-			Format:                       `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:                2,
-			MessageType:                  "classic",
-			ResponseCondition:            "Prevent default logging",
-			TimestampFormat:              "%Y-%m-%dT%H:%M:%S.000",
-			Redundancy:                   "standard",
-			Placement:                    "none",
-			PublicKey:                    pgpPublicKey(),
-			ServerSideEncryption:         "aws:kms",
-			ServerSideEncryptionKMSKeyID: "1234",
-			FileMaxBytes:                 12345,
-			CompressionCodec:             "zstd",
+			ServiceID:                    fastly.ToPointer(i.ServiceID),
+			ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
+			Name:                         fastly.ToPointer("analytics"),
+			BucketName:                   fastly.ToPointer("analytics"),
+			AccessKey:                    fastly.ToPointer("1234"),
+			SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Domain:                       fastly.ToPointer("https://s3.us-east-2.amazonaws.com"),
+			Path:                         fastly.ToPointer("logs/"),
+			Period:                       fastly.ToPointer(86400),
+			Format:                       fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:                fastly.ToPointer(2),
+			MessageType:                  fastly.ToPointer("classic"),
+			ResponseCondition:            fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+			Placement:                    fastly.ToPointer("none"),
+			PublicKey:                    fastly.ToPointer(pgpPublicKey()),
+			ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+			ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
+			FileMaxBytes:                 fastly.ToPointer(12345),
+			CompressionCodec:             fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
@@ -427,6 +427,7 @@ Version: 1
 		Bucket: my-logs
 		Access key: 1234
 		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
+		IAM role: xyz
 		Path: logs/
 		Period: 3600
 		GZip level: 0
@@ -468,26 +469,26 @@ Version: 1
 
 func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:                    i.ServiceID,
-		ServiceVersion:               i.ServiceVersion,
-		Name:                         "logs",
-		BucketName:                   "my-logs",
-		AccessKey:                    "1234",
-		SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Domain:                       "https://s3.us-east-1.amazonaws.com",
-		Path:                         "logs/",
-		Period:                       3600,
-		Format:                       `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:                2,
-		MessageType:                  "classic",
-		ResponseCondition:            "Prevent default logging",
-		TimestampFormat:              "%Y-%m-%dT%H:%M:%S.000",
-		Redundancy:                   "standard",
-		Placement:                    "none",
-		PublicKey:                    pgpPublicKey(),
-		ServerSideEncryption:         "aws:kms",
-		ServerSideEncryptionKMSKeyID: "1234",
-		CompressionCodec:             "zstd",
+		ServiceID:                    fastly.ToPointer(i.ServiceID),
+		ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
+		Name:                         fastly.ToPointer("logs"),
+		BucketName:                   fastly.ToPointer("my-logs"),
+		AccessKey:                    fastly.ToPointer("1234"),
+		SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Domain:                       fastly.ToPointer("https://s3.us-east-1.amazonaws.com"),
+		Path:                         fastly.ToPointer("logs/"),
+		Period:                       fastly.ToPointer(3600),
+		Format:                       fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:                fastly.ToPointer(2),
+		MessageType:                  fastly.ToPointer("classic"),
+		ResponseCondition:            fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+		Placement:                    fastly.ToPointer("none"),
+		PublicKey:                    fastly.ToPointer(pgpPublicKey()),
+		ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+		ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
+		CompressionCodec:             fastly.ToPointer("zstd"),
 	}, nil
 }
 
@@ -521,26 +522,26 @@ Version: 1
 
 func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:                    i.ServiceID,
-		ServiceVersion:               i.ServiceVersion,
-		Name:                         "log",
-		BucketName:                   "my-logs",
-		AccessKey:                    "1234",
-		SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Domain:                       "https://s3.us-east-1.amazonaws.com",
-		Path:                         "logs/",
-		Period:                       3600,
-		Format:                       `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:                2,
-		MessageType:                  "classic",
-		ResponseCondition:            "Prevent default logging",
-		TimestampFormat:              "%Y-%m-%dT%H:%M:%S.000",
-		Redundancy:                   "standard",
-		Placement:                    "none",
-		PublicKey:                    pgpPublicKey(),
-		ServerSideEncryption:         "aws:kms",
-		ServerSideEncryptionKMSKeyID: "1234",
-		CompressionCodec:             "zstd",
+		ServiceID:                    fastly.ToPointer(i.ServiceID),
+		ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
+		Name:                         fastly.ToPointer("log"),
+		BucketName:                   fastly.ToPointer("my-logs"),
+		AccessKey:                    fastly.ToPointer("1234"),
+		SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Domain:                       fastly.ToPointer("https://s3.us-east-1.amazonaws.com"),
+		Path:                         fastly.ToPointer("logs/"),
+		Period:                       fastly.ToPointer(3600),
+		Format:                       fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:                fastly.ToPointer(2),
+		MessageType:                  fastly.ToPointer("classic"),
+		ResponseCondition:            fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+		Placement:                    fastly.ToPointer("none"),
+		PublicKey:                    fastly.ToPointer(pgpPublicKey()),
+		ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+		ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
+		CompressionCodec:             fastly.ToPointer("zstd"),
 	}, nil
 }
 

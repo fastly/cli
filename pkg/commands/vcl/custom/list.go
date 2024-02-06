@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -79,13 +79,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	o, err := c.Globals.APIClient.ListVCLs(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -95,7 +95,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, serviceVersion.Number, o)
+		c.printVerbose(out, fastly.ToValue(serviceVersion.Number), o)
 	} else {
 		err = c.printSummary(out, o)
 		if err != nil {
@@ -121,9 +121,9 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, vs []*fast
 	fmt.Fprintf(out, "Service Version: %d\n", serviceVersion)
 
 	for _, v := range vs {
-		fmt.Fprintf(out, "\nName: %s\n", v.Name)
-		fmt.Fprintf(out, "Main: %t\n", v.Main)
-		fmt.Fprintf(out, "Content: \n%s\n\n", v.Content)
+		fmt.Fprintf(out, "\nName: %s\n", fastly.ToValue(v.Name))
+		fmt.Fprintf(out, "Main: %t\n", fastly.ToValue(v.Main))
+		fmt.Fprintf(out, "Content: \n%s\n\n", fastly.ToValue(v.Content))
 		if v.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
 		}
@@ -142,7 +142,12 @@ func (c *ListCommand) printSummary(out io.Writer, vs []*fastly.VCL) error {
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "VERSION", "NAME", "MAIN")
 	for _, v := range vs {
-		t.AddLine(v.ServiceID, v.ServiceVersion, v.Name, v.Main)
+		t.AddLine(
+			fastly.ToValue(v.ServiceID),
+			fastly.ToValue(v.ServiceVersion),
+			fastly.ToValue(v.Name),
+			fastly.ToValue(v.Main),
+		)
 	}
 	t.Print()
 	return nil

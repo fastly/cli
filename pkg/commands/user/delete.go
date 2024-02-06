@@ -3,7 +3,7 @@ package user
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -45,8 +45,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *DeleteCommand) constructInput() *fastly.DeleteUserInput {
 	var input fastly.DeleteUserInput
-
-	input.ID = c.id
-
+	input.UserID = c.id
 	return &input
 }

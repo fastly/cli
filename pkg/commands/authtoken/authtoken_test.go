@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -39,10 +39,10 @@ func TestAuthTokenCreate(t *testing.T) {
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   &testutil.Date,
-						ID:          "123",
-						Name:        "Example",
-						Scope:       "foobar",
-						AccessToken: "123abc",
+						TokenID:     fastly.ToPointer("123"),
+						Name:        fastly.ToPointer("Example"),
+						Scope:       fastly.ToPointer(fastly.TokenScope("foobar")),
+						AccessToken: fastly.ToPointer("123abc"),
 					}, nil
 				},
 			},
@@ -55,10 +55,10 @@ func TestAuthTokenCreate(t *testing.T) {
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   i.ExpiresAt,
-						ID:          "123",
+						TokenID:     fastly.ToPointer("123"),
 						Name:        i.Name,
 						Scope:       i.Scope,
-						AccessToken: "123abc",
+						AccessToken: fastly.ToPointer("123abc"),
 					}, nil
 				},
 			},
@@ -229,7 +229,7 @@ func TestAuthTokenList(t *testing.T) {
 			TestScenario: testutil.TestScenario{
 				Name: "validate ListTokens API error",
 				API: mock.API{
-					ListTokensFn: func() ([]*fastly.Token, error) {
+					ListTokensFn: func(_ *fastly.ListTokensInput) ([]*fastly.Token, error) {
 						return nil, testutil.Err
 					},
 				},
@@ -322,30 +322,30 @@ func getToken() (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
-		ID:         "123",
-		Name:       "Foo",
-		UserID:     "456",
+		TokenID:    fastly.ToPointer("123"),
+		Name:       fastly.ToPointer("Foo"),
+		UserID:     fastly.ToPointer("456"),
 		Services:   []string{"a", "b"},
-		Scope:      fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope)),
-		IP:         "127.0.0.1",
+		Scope:      fastly.ToPointer(fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope))),
+		IP:         fastly.ToPointer("127.0.0.1"),
 		CreatedAt:  &t,
 		ExpiresAt:  &t,
 		LastUsedAt: &t,
 	}, nil
 }
 
-func listTokens() ([]*fastly.Token, error) {
+func listTokens(_ *fastly.ListTokensInput) ([]*fastly.Token, error) {
 	t := testutil.Date
 	token, _ := getToken()
 	vs := []*fastly.Token{
 		token,
 		{
-			ID:         "456",
-			Name:       "Bar",
-			UserID:     "789",
+			TokenID:    fastly.ToPointer("456"),
+			Name:       fastly.ToPointer("Bar"),
+			UserID:     fastly.ToPointer("789"),
 			Services:   []string{"a", "b"},
-			Scope:      fastly.GlobalScope,
-			IP:         "127.0.0.2",
+			Scope:      fastly.ToPointer(fastly.GlobalScope),
+			IP:         fastly.ToPointer("127.0.0.2"),
 			CreatedAt:  &t,
 			ExpiresAt:  &t,
 			LastUsedAt: &t,
@@ -355,7 +355,7 @@ func listTokens() ([]*fastly.Token, error) {
 }
 
 func listCustomerTokens(_ *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
-	return listTokens()
+	return listTokens(nil)
 }
 
 func fileTokensOutput() string {

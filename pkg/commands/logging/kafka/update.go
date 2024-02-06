@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
@@ -144,7 +144,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.UseTLS.WasSet {
-		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+		input.UseTLS = fastly.ToPointer(fastly.Compatibool(c.UseTLS.Value))
 	}
 
 	if c.TLSCACert.WasSet {
@@ -180,7 +180,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.ParseLogKeyvals.WasSet {
-		input.ParseLogKeyvals = fastly.CBool(c.ParseLogKeyvals.Value)
+		input.ParseLogKeyvals = fastly.ToPointer(fastly.Compatibool(c.ParseLogKeyvals.Value))
 	}
 
 	if c.RequestMaxBytes.WasSet {
@@ -188,9 +188,9 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.UseSASL.WasSet && !c.UseSASL.Value {
-		input.AuthMethod = fastly.String("")
-		input.User = fastly.String("")
-		input.Password = fastly.String("")
+		input.AuthMethod = fastly.ToPointer("")
+		input.User = fastly.ToPointer("")
+		input.Password = fastly.ToPointer("")
 	}
 
 	if c.AuthMethod.WasSet {
@@ -227,7 +227,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -239,6 +239,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Kafka logging endpoint %s (service %s version %d)", kafka.Name, kafka.ServiceID, kafka.ServiceVersion)
+	text.Success(out,
+		"Updated Kafka logging endpoint %s (service %s version %d)",
+		fastly.ToValue(kafka.Name),
+		fastly.ToValue(kafka.ServiceID),
+		fastly.ToValue(kafka.ServiceVersion),
+	)
 	return nil
 }

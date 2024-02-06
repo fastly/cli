@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -88,7 +88,7 @@ func (c *DescribeCommand) constructInput(serviceID string) *fastly.GetACLEntryIn
 	var input fastly.GetACLEntryInput
 
 	input.ACLID = c.aclID
-	input.ID = c.id
+	input.EntryID = c.id
 	input.ServiceID = serviceID
 
 	return &input
@@ -97,14 +97,14 @@ func (c *DescribeCommand) constructInput(serviceID string) *fastly.GetACLEntryIn
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, a *fastly.ACLEntry) error {
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", a.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(a.ServiceID))
 	}
-	fmt.Fprintf(out, "ACL ID: %s\n", a.ACLID)
-	fmt.Fprintf(out, "ID: %s\n", a.ID)
-	fmt.Fprintf(out, "IP: %s\n", a.IP)
-	fmt.Fprintf(out, "Subnet: %d\n", a.Subnet)
-	fmt.Fprintf(out, "Negated: %t\n", a.Negated)
-	fmt.Fprintf(out, "Comment: %s\n\n", a.Comment)
+	fmt.Fprintf(out, "ACL ID: %s\n", fastly.ToValue(a.ACLID))
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(a.EntryID))
+	fmt.Fprintf(out, "IP: %s\n", fastly.ToValue(a.IP))
+	fmt.Fprintf(out, "Subnet: %d\n", fastly.ToValue(a.Subnet))
+	fmt.Fprintf(out, "Negated: %t\n", fastly.ToValue(a.Negated))
+	fmt.Fprintf(out, "Comment: %s\n\n", fastly.ToValue(a.Comment))
 
 	if a.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", a.CreatedAt)

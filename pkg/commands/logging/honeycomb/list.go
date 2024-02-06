@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListHoneycombs(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, honeycomb := range o {
-			tw.AddLine(honeycomb.ServiceID, honeycomb.ServiceVersion, honeycomb.Name)
+			tw.AddLine(
+				fastly.ToValue(honeycomb.ServiceID),
+				fastly.ToValue(honeycomb.ServiceVersion),
+				fastly.ToValue(honeycomb.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,15 +109,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, honeycomb := range o {
 		fmt.Fprintf(out, "\tHoneycomb %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", honeycomb.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", honeycomb.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", honeycomb.Name)
-		fmt.Fprintf(out, "\t\tDataset: %s\n", honeycomb.Dataset)
-		fmt.Fprintf(out, "\t\tToken: %s\n", honeycomb.Token)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", honeycomb.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", honeycomb.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", honeycomb.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", honeycomb.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(honeycomb.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(honeycomb.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(honeycomb.Name))
+		fmt.Fprintf(out, "\t\tDataset: %s\n", fastly.ToValue(honeycomb.Dataset))
+		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(honeycomb.Token))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(honeycomb.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(honeycomb.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(honeycomb.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(honeycomb.Placement))
 	}
 	fmt.Fprintln(out)
 

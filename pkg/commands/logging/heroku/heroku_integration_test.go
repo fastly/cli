@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -274,12 +274,12 @@ var errTest = errors.New("fixture error")
 
 func createHerokuOK(i *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
 	s := fastly.Heroku{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
-	if *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -292,26 +292,26 @@ func createHerokuError(_ *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
 func listHerokusOK(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 	return []*fastly.Heroku{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			URL:               "example.com",
-			Token:             "abc",
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			URL:               fastly.ToPointer("example.com"),
+			Token:             fastly.ToPointer("abc"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			URL:               "bar.com",
-			Token:             "abc",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			ResponseCondition: "Prevent default logging",
-			FormatVersion:     2,
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			URL:               fastly.ToPointer("bar.com"),
+			Token:             fastly.ToPointer("abc"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			FormatVersion:     fastly.ToPointer(2),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -357,15 +357,15 @@ Version: 1
 
 func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 	return &fastly.Heroku{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		URL:               "example.com",
-		Token:             "abc",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		URL:               fastly.ToPointer("example.com"),
+		Token:             fastly.ToPointer("abc"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -387,15 +387,15 @@ Version: 1
 
 func updateHerokuOK(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
 	return &fastly.Heroku{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		URL:               "example.com",
-		Token:             "abc",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		URL:               fastly.ToPointer("example.com"),
+		Token:             fastly.ToPointer("abc"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

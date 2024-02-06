@@ -3,7 +3,7 @@ package datadog
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
@@ -137,7 +137,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -149,6 +149,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Datadog logging endpoint %s (service %s version %d)", datadog.Name, datadog.ServiceID, datadog.ServiceVersion)
+	text.Success(out,
+		"Updated Datadog logging endpoint %s (service %s version %d)",
+		fastly.ToValue(datadog.Name),
+		fastly.ToValue(datadog.ServiceID),
+		fastly.ToValue(datadog.ServiceVersion),
+	)
 	return nil
 }

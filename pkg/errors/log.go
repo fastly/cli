@@ -11,7 +11,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 // LogPath is the location of the fastly CLI error log.
@@ -227,7 +227,7 @@ var FileRotationSize int64 = 5242880 // 5mb
 func ServiceVersion(v *fastly.Version) int {
 	var sv int
 	if v != nil {
-		sv = v.Number
+		sv = fastly.ToValue(v.Number)
 	}
 	return sv
 }

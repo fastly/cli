@@ -3,7 +3,7 @@ package service
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -59,6 +59,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created service %s", s.ID)
+	text.Success(out, "Created service %s", fastly.ToValue(s.ServiceID))
 	return nil
 }

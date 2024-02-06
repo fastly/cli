@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -46,9 +46,9 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				CreateNewRelicOTLPFn: func(i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -62,9 +62,9 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateNewRelicOTLPFn: func(i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -344,9 +344,9 @@ func TestNewRelicUpdate(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				UpdateNewRelicOTLPFn: func(i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
-						Name:           *i.NewName,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Name:           i.NewName,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -360,9 +360,9 @@ func TestNewRelicUpdate(t *testing.T) {
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateNewRelicOTLPFn: func(i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
-						Name:           *i.NewName,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
+						Name:           i.NewName,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 					}, nil
 				},
 			},
@@ -391,10 +391,10 @@ func getNewRelic(i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 	t := testutil.Date
 
 	return &fastly.NewRelicOTLP{
-		Name:           i.Name,
-		Token:          "abc",
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		Name:           fastly.ToPointer(i.Name),
+		Token:          fastly.ToPointer("abc"),
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 		CreatedAt: &t,
 		DeletedAt: &t,
@@ -406,18 +406,18 @@ func listNewRelic(i *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, erro
 	t := testutil.Date
 	vs := []*fastly.NewRelicOTLP{
 		{
-			Name:           "foo",
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
+			Name:           fastly.ToPointer("foo"),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 			CreatedAt: &t,
 			DeletedAt: &t,
 			UpdatedAt: &t,
 		},
 		{
-			Name:           "bar",
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
+			Name:           fastly.ToPointer("bar"),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 
 			CreatedAt: &t,
 			DeletedAt: &t,

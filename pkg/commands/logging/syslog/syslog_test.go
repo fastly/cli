@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
@@ -29,8 +29,8 @@ func TestCreateSyslogInput(t *testing.T) {
 			want: &fastly.CreateSyslogInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Address:        fastly.String("example.com"),
+				Name:           fastly.ToPointer("log"),
+				Address:        fastly.ToPointer("example.com"),
 			},
 		},
 		{
@@ -39,20 +39,20 @@ func TestCreateSyslogInput(t *testing.T) {
 			want: &fastly.CreateSyslogInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				Address:           fastly.String("example.com"),
-				Port:              fastly.Int(22),
-				UseTLS:            fastly.CBool(true),
-				TLSCACert:         fastly.String("-----BEGIN CERTIFICATE-----foo"),
-				TLSHostname:       fastly.String("example.com"),
-				TLSClientCert:     fastly.String("-----BEGIN CERTIFICATE-----bar"),
-				TLSClientKey:      fastly.String("-----BEGIN PRIVATE KEY-----bar"),
-				Token:             fastly.String("tkn"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				MessageType:       fastly.String("classic"),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
+				Name:              fastly.ToPointer("log"),
+				Address:           fastly.ToPointer("example.com"),
+				Port:              fastly.ToPointer(22),
+				UseTLS:            fastly.ToPointer(fastly.Compatibool(true)),
+				TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+				TLSHostname:       fastly.ToPointer("example.com"),
+				TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+				TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+				Token:             fastly.ToPointer("tkn"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				MessageType:       fastly.ToPointer("classic"),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -86,7 +86,7 @@ func TestCreateSyslogInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -128,20 +128,20 @@ func TestUpdateSyslogInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				Address:           fastly.String("new2"),
-				Port:              fastly.Int(23),
-				UseTLS:            fastly.CBool(false),
-				TLSCACert:         fastly.String("new3"),
-				TLSHostname:       fastly.String("new4"),
-				TLSClientCert:     fastly.String("new5"),
-				TLSClientKey:      fastly.String("new6"),
-				Token:             fastly.String("new7"),
-				Format:            fastly.String("new8"),
-				FormatVersion:     fastly.Int(3),
-				MessageType:       fastly.String("new9"),
-				ResponseCondition: fastly.String("new10"),
-				Placement:         fastly.String("new11"),
+				NewName:           fastly.ToPointer("new1"),
+				Address:           fastly.ToPointer("new2"),
+				Port:              fastly.ToPointer(23),
+				UseTLS:            fastly.ToPointer(fastly.Compatibool(false)),
+				TLSCACert:         fastly.ToPointer("new3"),
+				TLSHostname:       fastly.ToPointer("new4"),
+				TLSClientCert:     fastly.ToPointer("new5"),
+				TLSClientKey:      fastly.ToPointer("new6"),
+				Token:             fastly.ToPointer("new7"),
+				Format:            fastly.ToPointer("new8"),
+				FormatVersion:     fastly.ToPointer(3),
+				MessageType:       fastly.ToPointer("new9"),
+				ResponseCondition: fastly.ToPointer("new10"),
+				Placement:         fastly.ToPointer("new11"),
 			},
 		},
 		{
@@ -179,7 +179,7 @@ func TestUpdateSyslogInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

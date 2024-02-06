@@ -3,7 +3,7 @@ package kafka
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetKafka(&c.Input)
 	if err != nil {
@@ -93,29 +93,29 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Brokers":                      o.Brokers,
-		"Compression codec":            o.CompressionCodec,
-		"Format version":               o.FormatVersion,
-		"Format":                       o.Format,
-		"Max batch size":               o.RequestMaxBytes,
-		"Name":                         o.Name,
-		"Parse log key-values":         o.ParseLogKeyvals,
-		"Placement":                    o.Placement,
-		"Required acks":                o.RequiredACKs,
-		"Response condition":           o.ResponseCondition,
-		"SASL authentication method":   o.AuthMethod,
-		"SASL authentication password": o.Password,
-		"SASL authentication username": o.User,
-		"TLS CA certificate":           o.TLSCACert,
-		"TLS client certificate":       o.TLSClientCert,
-		"TLS client key":               o.TLSClientKey,
-		"TLS hostname":                 o.TLSHostname,
-		"Topic":                        o.Topic,
-		"Use TLS":                      o.UseTLS,
-		"Version":                      o.ServiceVersion,
+		"Brokers":                      fastly.ToValue(o.Brokers),
+		"Compression codec":            fastly.ToValue(o.CompressionCodec),
+		"Format version":               fastly.ToValue(o.FormatVersion),
+		"Format":                       fastly.ToValue(o.Format),
+		"Max batch size":               fastly.ToValue(o.RequestMaxBytes),
+		"Name":                         fastly.ToValue(o.Name),
+		"Parse log key-values":         fastly.ToValue(o.ParseLogKeyvals),
+		"Placement":                    fastly.ToValue(o.Placement),
+		"Required acks":                fastly.ToValue(o.RequiredACKs),
+		"Response condition":           fastly.ToValue(o.ResponseCondition),
+		"SASL authentication method":   fastly.ToValue(o.AuthMethod),
+		"SASL authentication password": fastly.ToValue(o.Password),
+		"SASL authentication username": fastly.ToValue(o.User),
+		"TLS CA certificate":           fastly.ToValue(o.TLSCACert),
+		"TLS client certificate":       fastly.ToValue(o.TLSClientCert),
+		"TLS client key":               fastly.ToValue(o.TLSClientKey),
+		"TLS hostname":                 fastly.ToValue(o.TLSHostname),
+		"Topic":                        fastly.ToValue(o.Topic),
+		"Use TLS":                      fastly.ToValue(o.UseTLS),
+		"Version":                      fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

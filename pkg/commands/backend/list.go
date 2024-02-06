@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,13 +80,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListBackends(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -99,7 +99,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME", "ADDRESS", "PORT", "COMMENT")
 		for _, backend := range o {
-			tw.AddLine(backend.ServiceID, backend.ServiceVersion, backend.Name, backend.Address, backend.Port, backend.Comment)
+			tw.AddLine(
+				fastly.ToValue(backend.ServiceID),
+				fastly.ToValue(backend.ServiceVersion),
+				fastly.ToValue(backend.Name),
+				fastly.ToValue(backend.Address),
+				fastly.ToValue(backend.Port),
+				fastly.ToValue(backend.Comment),
+			)
 		}
 		tw.Print()
 		return nil

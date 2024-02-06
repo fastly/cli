@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/commands/whoami"
 )
@@ -24,22 +24,22 @@ var Err = errors.New("test error")
 func ListVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(1),
+			Active:    fastly.ToPointer(true),
 			UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 		},
 		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(2),
+			Active:    fastly.ToPointer(false),
+			Locked:    fastly.ToPointer(true),
 			UpdatedAt: MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
 		},
 		{
-			ServiceID: i.ServiceID,
-			Number:    3,
-			Active:    false,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(3),
+			Active:    fastly.ToPointer(false),
 			UpdatedAt: MustParseTimeRFC3339("2000-01-03T01:00:00Z"),
 		},
 	}, nil
@@ -55,8 +55,8 @@ func ListVersionsError(_ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 		return &fastly.Version{
-			ServiceID: i.ServiceID,
-			Number:    version,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(version),
 		}, nil
 	}
 }

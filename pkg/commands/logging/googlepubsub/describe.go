@@ -3,7 +3,7 @@ package googlepubsub
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetPubsub(&c.Input)
 	if err != nil {
@@ -93,20 +93,20 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Account name":       o.AccountName,
-		"Format version":     o.FormatVersion,
-		"Format":             o.Format,
-		"Name":               o.Name,
-		"Placement":          o.Placement,
-		"Project ID":         o.ProjectID,
-		"Response condition": o.ResponseCondition,
-		"Secret key":         o.SecretKey,
-		"Topic":              o.Topic,
-		"User":               o.User,
-		"Version":            o.ServiceVersion,
+		"Account name":       fastly.ToValue(o.AccountName),
+		"Format version":     fastly.ToValue(o.FormatVersion),
+		"Format":             fastly.ToValue(o.Format),
+		"Name":               fastly.ToValue(o.Name),
+		"Placement":          fastly.ToValue(o.Placement),
+		"Project ID":         fastly.ToValue(o.ProjectID),
+		"Response condition": fastly.ToValue(o.ResponseCondition),
+		"Secret key":         fastly.ToValue(o.SecretKey),
+		"Topic":              fastly.ToValue(o.Topic),
+		"User":               fastly.ToValue(o.User),
+		"Version":            fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

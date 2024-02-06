@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -274,18 +274,18 @@ var errTest = errors.New("fixture error")
 
 func createGooglePubSubOK(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Topic:             "topic",
-		User:              "user",
-		SecretKey:         "secret",
-		ProjectID:         "project",
-		AccountName:       "me@fastly.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Topic:             fastly.ToPointer("topic"),
+		User:              fastly.ToPointer("user"),
+		SecretKey:         fastly.ToPointer("secret"),
+		ProjectID:         fastly.ToPointer("project"),
+		AccountName:       fastly.ToPointer("me@fastly.com"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -296,32 +296,32 @@ func createGooglePubSubError(_ *fastly.CreatePubsubInput) (*fastly.Pubsub, error
 func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	return []*fastly.Pubsub{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			User:              "user@example.com",
-			AccountName:       "none",
-			SecretKey:         "secret",
-			ProjectID:         "project",
-			Topic:             "topic",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Placement:         "none",
-			FormatVersion:     2,
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			User:              fastly.ToPointer("user@example.com"),
+			AccountName:       fastly.ToPointer("none"),
+			SecretKey:         fastly.ToPointer("secret"),
+			ProjectID:         fastly.ToPointer("project"),
+			Topic:             fastly.ToPointer("topic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			Placement:         fastly.ToPointer("none"),
+			FormatVersion:     fastly.ToPointer(2),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			User:              "user@example.com",
-			AccountName:       "none",
-			SecretKey:         "secret",
-			ProjectID:         "project",
-			Topic:             "analytics",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			User:              fastly.ToPointer("user@example.com"),
+			AccountName:       fastly.ToPointer("none"),
+			SecretKey:         fastly.ToPointer("secret"),
+			ProjectID:         fastly.ToPointer("project"),
+			Topic:             fastly.ToPointer("analytics"),
+			Placement:         fastly.ToPointer("none"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
 		},
 	}, nil
 }
@@ -373,18 +373,18 @@ Version: 1
 
 func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Topic:             "topic",
-		User:              "user@example.com",
-		AccountName:       "none",
-		SecretKey:         "secret",
-		ProjectID:         "project",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Topic:             fastly.ToPointer("topic"),
+		User:              fastly.ToPointer("user@example.com"),
+		AccountName:       fastly.ToPointer("none"),
+		SecretKey:         fastly.ToPointer("secret"),
+		ProjectID:         fastly.ToPointer("project"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -409,17 +409,17 @@ Version: 1
 
 func updateGooglePubSubOK(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Topic:             "topic",
-		User:              "user@example.com",
-		SecretKey:         "secret",
-		ProjectID:         "project",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Topic:             fastly.ToPointer("topic"),
+		User:              fastly.ToPointer("user@example.com"),
+		SecretKey:         fastly.ToPointer("secret"),
+		ProjectID:         fastly.ToPointer("project"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

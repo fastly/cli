@@ -3,7 +3,7 @@ package https
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetHTTPS(&c.Input)
 	if err != nil {
@@ -93,28 +93,28 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Content type":           o.ContentType,
-		"Format version":         o.FormatVersion,
-		"Format":                 o.Format,
-		"Header name":            o.HeaderName,
-		"Header value":           o.HeaderValue,
-		"JSON format":            o.JSONFormat,
-		"Message type":           o.MessageType,
-		"Method":                 o.Method,
-		"Name":                   o.Name,
-		"Placement":              o.Placement,
-		"Request max bytes":      o.RequestMaxBytes,
-		"Request max entries":    o.RequestMaxEntries,
-		"Response condition":     o.ResponseCondition,
-		"TLS CA certificate":     o.TLSCACert,
-		"TLS client certificate": o.TLSClientCert,
-		"TLS client key":         o.TLSClientKey,
-		"TLS hostname":           o.TLSHostname,
-		"URL":                    o.URL,
-		"Version":                o.ServiceVersion,
+		"Content type":           fastly.ToValue(o.ContentType),
+		"Format version":         fastly.ToValue(o.FormatVersion),
+		"Format":                 fastly.ToValue(o.Format),
+		"Header name":            fastly.ToValue(o.HeaderName),
+		"Header value":           fastly.ToValue(o.HeaderValue),
+		"JSON format":            fastly.ToValue(o.JSONFormat),
+		"Message type":           fastly.ToValue(o.MessageType),
+		"Method":                 fastly.ToValue(o.Method),
+		"Name":                   fastly.ToValue(o.Name),
+		"Placement":              fastly.ToValue(o.Placement),
+		"Request max bytes":      fastly.ToValue(o.RequestMaxBytes),
+		"Request max entries":    fastly.ToValue(o.RequestMaxEntries),
+		"Response condition":     fastly.ToValue(o.ResponseCondition),
+		"TLS CA certificate":     fastly.ToValue(o.TLSCACert),
+		"TLS client certificate": fastly.ToValue(o.TLSClientCert),
+		"TLS client key":         fastly.ToValue(o.TLSClientKey),
+		"TLS hostname":           fastly.ToValue(o.TLSHostname),
+		"URL":                    fastly.ToValue(o.URL),
+		"Version":                fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

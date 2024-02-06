@@ -3,7 +3,7 @@ package snippet
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -91,25 +91,34 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	v, err := c.Globals.APIClient.CreateSnippet(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, snippet id: %s, type: %s, priority: %d)", v.Name, v.ServiceID, v.ServiceVersion, c.dynamic.WasSet, v.ID, c.location.Value, v.Priority)
+	text.Success(out,
+		"Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, snippet id: %s, type: %s, priority: %d)",
+		fastly.ToValue(v.Name),
+		fastly.ToValue(v.ServiceID),
+		fastly.ToValue(v.ServiceVersion),
+		c.dynamic.WasSet,
+		fastly.ToValue(v.SnippetID),
+		c.location.Value,
+		fastly.ToValue(v.Priority),
+	)
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fastly.CreateSnippetInput {
 	input := fastly.CreateSnippetInput{
-		Dynamic:        fastly.Int(0),
+		Dynamic:        fastly.ToPointer(0),
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 	}
@@ -117,14 +126,14 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.Name = &c.name.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(argparser.Content(c.content.Value))
+		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
 	}
 	if c.location.WasSet {
 		sType := fastly.SnippetType(c.location.Value)
 		input.Type = &sType
 	}
 	if c.dynamic.WasSet {
-		input.Dynamic = fastly.Int(1)
+		input.Dynamic = fastly.ToPointer(1)
 	}
 	if c.priority.WasSet {
 		input.Priority = &c.priority.Value

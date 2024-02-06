@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListHerokus(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, heroku := range o {
-			tw.AddLine(heroku.ServiceID, heroku.ServiceVersion, heroku.Name)
+			tw.AddLine(
+				fastly.ToValue(heroku.ServiceID),
+				fastly.ToValue(heroku.ServiceVersion),
+				fastly.ToValue(heroku.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,15 +109,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, heroku := range o {
 		fmt.Fprintf(out, "\tHeroku %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", heroku.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", heroku.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", heroku.Name)
-		fmt.Fprintf(out, "\t\tURL: %s\n", heroku.URL)
-		fmt.Fprintf(out, "\t\tToken: %s\n", heroku.Token)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", heroku.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", heroku.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", heroku.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", heroku.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(heroku.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(heroku.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(heroku.Name))
+		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(heroku.URL))
+		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(heroku.Token))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(heroku.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(heroku.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(heroku.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(heroku.Placement))
 	}
 	fmt.Fprintln(out)
 

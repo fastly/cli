@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -74,7 +74,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		expires = r.ExpiresAt.String()
 	}
 
-	text.Success(out, "Created token '%s' (name: %s, id: %s, scope: %s, expires: %s)", r.AccessToken, r.Name, r.ID, r.Scope, expires)
+	text.Success(out, "Created token '%s' (name: %s, id: %s, scope: %s, expires: %s)", fastly.ToValue(r.AccessToken), fastly.ToValue(r.Name), fastly.ToValue(r.TokenID), fastly.ToValue(r.Scope), expires)
 	return nil
 }
 
@@ -82,16 +82,16 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput() *fastly.CreateTokenInput {
 	var input fastly.CreateTokenInput
 
-	input.Password = c.password
+	input.Password = fastly.ToPointer(c.password)
 
 	if !c.expires.IsZero() {
 		input.ExpiresAt = &c.expires
 	}
 	if c.name != "" {
-		input.Name = c.name
+		input.Name = fastly.ToPointer(c.name)
 	}
 	if len(c.scope) > 0 {
-		input.Scope = fastly.TokenScope(strings.Join(c.scope, " "))
+		input.Scope = fastly.ToPointer(fastly.TokenScope(strings.Join(c.scope, " ")))
 	}
 	if len(c.services) > 0 {
 		input.Services = c.services

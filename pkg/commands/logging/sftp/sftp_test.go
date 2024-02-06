@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/sftp"
@@ -29,10 +29,10 @@ func TestCreateSFTPInput(t *testing.T) {
 			want: &fastly.CreateSFTPInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Address:        fastly.String("127.0.0.1"),
-				User:           fastly.String("user"),
-				SSHKnownHosts:  fastly.String(knownHosts()),
+				Name:           fastly.ToPointer("log"),
+				Address:        fastly.ToPointer("127.0.0.1"),
+				User:           fastly.ToPointer("user"),
+				SSHKnownHosts:  fastly.ToPointer(knownHosts()),
 			},
 		},
 		{
@@ -41,23 +41,23 @@ func TestCreateSFTPInput(t *testing.T) {
 			want: &fastly.CreateSFTPInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				Address:           fastly.String("127.0.0.1"),
-				Port:              fastly.Int(80),
-				User:              fastly.String("user"),
-				Password:          fastly.String("password"),
-				PublicKey:         fastly.String(pgpPublicKey()),
-				SecretKey:         fastly.String(sshPrivateKey()),
-				SSHKnownHosts:     fastly.String(knownHosts()),
-				Path:              fastly.String("/log"),
-				Period:            fastly.Int(3600),
-				FormatVersion:     fastly.Int(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				MessageType:       fastly.String("classic"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.String("none"),
-				CompressionCodec:  fastly.String("zstd"),
+				Name:              fastly.ToPointer("log"),
+				Address:           fastly.ToPointer("127.0.0.1"),
+				Port:              fastly.ToPointer(80),
+				User:              fastly.ToPointer("user"),
+				Password:          fastly.ToPointer("password"),
+				PublicKey:         fastly.ToPointer(pgpPublicKey()),
+				SecretKey:         fastly.ToPointer(sshPrivateKey()),
+				SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+				Path:              fastly.ToPointer("/log"),
+				Period:            fastly.ToPointer(3600),
+				FormatVersion:     fastly.ToPointer(2),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				MessageType:       fastly.ToPointer("classic"),
+				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+				Placement:         fastly.ToPointer("none"),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -91,7 +91,7 @@ func TestCreateSFTPInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -119,24 +119,24 @@ func TestUpdateSFTPInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				Address:           fastly.String("new2"),
-				Port:              fastly.Int(81),
-				User:              fastly.String("new3"),
-				SSHKnownHosts:     fastly.String("new4"),
-				Password:          fastly.String("new5"),
-				PublicKey:         fastly.String("new6"),
-				SecretKey:         fastly.String("new7"),
-				Path:              fastly.String("new8"),
-				Period:            fastly.Int(3601),
-				FormatVersion:     fastly.Int(3),
-				GzipLevel:         fastly.Int(0),
-				Format:            fastly.String("new9"),
-				ResponseCondition: fastly.String("new10"),
-				TimestampFormat:   fastly.String("new11"),
-				Placement:         fastly.String("new12"),
-				MessageType:       fastly.String("new13"),
-				CompressionCodec:  fastly.String("new14"),
+				NewName:           fastly.ToPointer("new1"),
+				Address:           fastly.ToPointer("new2"),
+				Port:              fastly.ToPointer(81),
+				User:              fastly.ToPointer("new3"),
+				SSHKnownHosts:     fastly.ToPointer("new4"),
+				Password:          fastly.ToPointer("new5"),
+				PublicKey:         fastly.ToPointer("new6"),
+				SecretKey:         fastly.ToPointer("new7"),
+				Path:              fastly.ToPointer("new8"),
+				Period:            fastly.ToPointer(3601),
+				FormatVersion:     fastly.ToPointer(3),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new9"),
+				ResponseCondition: fastly.ToPointer("new10"),
+				TimestampFormat:   fastly.ToPointer("new11"),
+				Placement:         fastly.ToPointer("new12"),
+				MessageType:       fastly.ToPointer("new13"),
+				CompressionCodec:  fastly.ToPointer("new14"),
 			},
 		},
 		{
@@ -188,7 +188,7 @@ func TestUpdateSFTPInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

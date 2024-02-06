@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -66,7 +66,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated user '%s' (role: %s)", r.Name, r.Role)
+	text.Success(out, "Updated user '%s' (role: %s)", fastly.ToValue(r.Name), fastly.ToValue(r.Role))
 	return nil
 }
 
@@ -77,7 +77,7 @@ func (c *UpdateCommand) constructInput() (*fastly.UpdateUserInput, error) {
 	if c.id == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --id flag")
 	}
-	input.ID = c.id
+	input.UserID = c.id
 
 	if c.name == "" && c.role == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide either the --name or --role with the --id flag")

@@ -3,9 +3,8 @@ package service
 import (
 	"fmt"
 	"io"
-	"strconv"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -70,7 +69,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	c.Input.ID = serviceID
+	c.Input.ServiceID = serviceID
 
 	o, err := c.Globals.APIClient.GetServiceDetails(&c.Input)
 	if err != nil {
@@ -88,18 +87,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 func (c *DescribeCommand) print(s *fastly.ServiceDetail, out io.Writer) error {
-	activeVersion := "none"
-	if s.ActiveVersion.Active {
-		activeVersion = strconv.Itoa(s.ActiveVersion.Number)
-	}
-
-	fmt.Fprintf(out, "ID: %s\n", s.ID)
-	fmt.Fprintf(out, "Name: %s\n", s.Name)
-	fmt.Fprintf(out, "Type: %s\n", s.Type)
-	if s.Comment != "" {
-		fmt.Fprintf(out, "Comment: %s\n", s.Comment)
-	}
-	fmt.Fprintf(out, "Customer ID: %s\n", s.CustomerID)
+	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(s.ServiceID))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(s.Name))
+	fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(s.Type))
+	fmt.Fprintf(out, "Comment: %s\n", fastly.ToValue(s.Comment))
+	fmt.Fprintf(out, "Customer ID: %s\n", fastly.ToValue(s.CustomerID))
 	if s.CreatedAt != nil {
 		fmt.Fprintf(out, "Created (UTC): %s\n", s.CreatedAt.UTC().Format(time.Format))
 	}
@@ -109,11 +101,9 @@ func (c *DescribeCommand) print(s *fastly.ServiceDetail, out io.Writer) error {
 	if s.DeletedAt != nil {
 		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 	}
-	if s.ActiveVersion.Active {
+	if s.ActiveVersion != nil {
 		fmt.Fprintf(out, "Active version:\n")
-		text.PrintVersion(out, "\t", &s.ActiveVersion)
-	} else {
-		fmt.Fprintf(out, "Active version: %s\n", activeVersion)
+		text.PrintVersion(out, "\t", s.ActiveVersion)
 	}
 	fmt.Fprintf(out, "Versions: %d\n", len(s.Versions))
 	for j, version := range s.Versions {

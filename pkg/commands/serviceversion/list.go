@@ -3,14 +3,15 @@ package serviceversion
 import (
 	"fmt"
 	"io"
+	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/time"
+	fsttime "github.com/fastly/cli/pkg/time"
 )
 
 // ListCommand calls the Fastly API to list services.
@@ -78,7 +79,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("NUMBER", "ACTIVE", "LAST EDITED (UTC)")
 		for _, version := range o {
-			tw.AddLine(version.Number, version.Active, version.UpdatedAt.UTC().Format(time.Format))
+			tw.AddLine(
+				fastly.ToValue(version.Number),
+				fastly.ToValue(version.Active),
+				parseTime(version.UpdatedAt),
+			)
 		}
 		tw.Print()
 		return nil
@@ -92,4 +97,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintln(out)
 
 	return nil
+}
+
+func parseTime(ua *time.Time) string {
+	if ua == nil {
+		return ""
+	}
+	return ua.UTC().Format(fsttime.Format)
 }

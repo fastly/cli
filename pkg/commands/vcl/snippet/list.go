@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -79,13 +79,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	o, err := c.Globals.APIClient.ListSnippets(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -95,7 +95,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, serviceVersion.Number, o)
+		c.printVerbose(out, fastly.ToValue(serviceVersion.Number), o)
 	} else {
 		err = c.printSummary(out, o)
 		if err != nil {
@@ -122,12 +122,12 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, vs []*fast
 
 	for _, v := range vs {
 		fmt.Fprintf(out, "\n")
-		fmt.Fprintf(out, "Name: %s\n", v.Name)
-		fmt.Fprintf(out, "ID: %s\n", v.ID)
-		fmt.Fprintf(out, "Priority: %d\n", v.Priority)
-		fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(v.Dynamic))
-		fmt.Fprintf(out, "Type: %s\n", v.Type)
-		fmt.Fprintf(out, "Content: \n%s\n", v.Content)
+		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(v.Name))
+		fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(v.SnippetID))
+		fmt.Fprintf(out, "Priority: %d\n", fastly.ToValue(v.Priority))
+		fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(fastly.ToValue(v.Dynamic)))
+		fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(v.Type))
+		fmt.Fprintf(out, "Content: \n%s\n", fastly.ToValue(v.Content))
 
 		if v.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
@@ -147,7 +147,13 @@ func (c *ListCommand) printSummary(out io.Writer, ss []*fastly.Snippet) error {
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "VERSION", "NAME", "DYNAMIC", "SNIPPET ID")
 	for _, s := range ss {
-		t.AddLine(s.ServiceID, s.ServiceVersion, s.Name, argparser.IntToBool(s.Dynamic), s.ID)
+		t.AddLine(
+			fastly.ToValue(s.ServiceID),
+			fastly.ToValue(s.ServiceVersion),
+			fastly.ToValue(s.Name),
+			argparser.IntToBool(fastly.ToValue(s.Dynamic)),
+			fastly.ToValue(s.SnippetID),
+		)
 	}
 	t.Print()
 	return nil

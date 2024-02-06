@@ -3,7 +3,7 @@ package configstore
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -22,7 +22,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	c.CmdClause = parent.Command("describe", "Retrieve a single config store").Alias("get")
 
 	// Required.
-	c.RegisterFlag(argparser.StoreIDFlag(&c.input.ID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -59,7 +59,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	var csm *fastly.ConfigStoreMetadata
 	if c.metadata {
 		csm, err = c.Globals.APIClient.GetConfigStoreMetadata(&fastly.GetConfigStoreMetadataInput{
-			ID: c.input.ID,
+			StoreID: c.input.StoreID,
 		})
 		if err != nil {
 			c.Globals.ErrLog.Add(err)

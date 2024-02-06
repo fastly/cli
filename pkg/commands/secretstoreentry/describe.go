@@ -3,7 +3,7 @@ package secretstoreentry
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -22,8 +22,8 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	c.CmdClause = parent.Command("describe", "Retrieve a single secret").Alias("get")
 
 	// Required.
-	c.RegisterFlag(secretNameFlag(&c.Input.Name))      // --name
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(secretNameFlag(&c.Input.Name))           // --name
+	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json

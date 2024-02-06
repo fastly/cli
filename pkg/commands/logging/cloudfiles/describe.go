@@ -3,7 +3,7 @@ package cloudfiles
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,13 +80,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetCloudfiles(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -96,25 +96,25 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Access key":         o.AccessKey,
-		"Bucket":             o.BucketName,
-		"Format version":     o.FormatVersion,
-		"Format":             o.Format,
-		"GZip level":         o.GzipLevel,
-		"Message type":       o.MessageType,
-		"Name":               o.Name,
-		"Path":               o.Path,
-		"Period":             o.Period,
-		"Placement":          o.Placement,
-		"Public key":         o.PublicKey,
-		"Region":             o.Region,
-		"Response condition": o.ResponseCondition,
-		"Timestamp format":   o.TimestampFormat,
-		"User":               o.User,
-		"Version":            o.ServiceVersion,
+		"Access key":         fastly.ToValue(o.AccessKey),
+		"Bucket":             fastly.ToValue(o.BucketName),
+		"Format version":     fastly.ToValue(o.FormatVersion),
+		"Format":             fastly.ToValue(o.Format),
+		"GZip level":         fastly.ToValue(o.GzipLevel),
+		"Message type":       fastly.ToValue(o.MessageType),
+		"Name":               fastly.ToValue(o.Name),
+		"Path":               fastly.ToValue(o.Path),
+		"Period":             fastly.ToValue(o.Period),
+		"Placement":          fastly.ToValue(o.Placement),
+		"Public key":         fastly.ToValue(o.PublicKey),
+		"Region":             fastly.ToValue(o.Region),
+		"Response condition": fastly.ToValue(o.ResponseCondition),
+		"Timestamp format":   fastly.ToValue(o.TimestampFormat),
+		"User":               fastly.ToValue(o.User),
+		"Version":            fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

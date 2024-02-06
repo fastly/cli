@@ -3,7 +3,7 @@ package acl
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -81,7 +81,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	a, err := c.Globals.APIClient.CreateACL(input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -91,7 +91,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created ACL '%s' (id: %s, service: %s, version: %d)", a.Name, a.ID, a.ServiceID, a.ServiceVersion)
+	text.Success(out, "Created ACL '%s' (id: %s, service: %s, version: %d)", fastly.ToValue(a.Name), fastly.ToValue(a.ACLID), fastly.ToValue(a.ServiceID), fastly.ToValue(a.ServiceVersion))
 	return nil
 }
 

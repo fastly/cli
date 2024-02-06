@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/cloudfiles"
@@ -29,10 +29,10 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			want: &fastly.CreateCloudfilesInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				User:           fastly.String("user"),
-				AccessKey:      fastly.String("key"),
-				BucketName:     fastly.String("bucket"),
+				Name:           fastly.ToPointer("log"),
+				User:           fastly.ToPointer("user"),
+				AccessKey:      fastly.ToPointer("key"),
+				BucketName:     fastly.ToPointer("bucket"),
 			},
 		},
 		{
@@ -41,21 +41,21 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			want: &fastly.CreateCloudfilesInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				User:              fastly.String("user"),
-				AccessKey:         fastly.String("key"),
-				BucketName:        fastly.String("bucket"),
-				Path:              fastly.String("/logs"),
-				Region:            fastly.String("abc"),
-				Placement:         fastly.String("none"),
-				Period:            fastly.Int(3600),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				MessageType:       fastly.String("classic"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				PublicKey:         fastly.String(pgpPublicKey()),
-				CompressionCodec:  fastly.String("zstd"),
+				Name:              fastly.ToPointer("log"),
+				User:              fastly.ToPointer("user"),
+				AccessKey:         fastly.ToPointer("key"),
+				BucketName:        fastly.ToPointer("bucket"),
+				Path:              fastly.ToPointer("/logs"),
+				Region:            fastly.ToPointer("abc"),
+				Placement:         fastly.ToPointer("none"),
+				Period:            fastly.ToPointer(3600),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				MessageType:       fastly.ToPointer("classic"),
+				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+				PublicKey:         fastly.ToPointer(pgpPublicKey()),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -89,7 +89,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -131,22 +131,22 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				AccessKey:         fastly.String("new2"),
-				BucketName:        fastly.String("new3"),
-				Path:              fastly.String("new4"),
-				Region:            fastly.String("new5"),
-				Placement:         fastly.String("new6"),
-				Period:            fastly.Int(3601),
-				GzipLevel:         fastly.Int(0),
-				Format:            fastly.String("new7"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new8"),
-				MessageType:       fastly.String("new9"),
-				TimestampFormat:   fastly.String("new10"),
-				PublicKey:         fastly.String("new11"),
-				User:              fastly.String("new12"),
-				CompressionCodec:  fastly.String("new13"),
+				NewName:           fastly.ToPointer("new1"),
+				AccessKey:         fastly.ToPointer("new2"),
+				BucketName:        fastly.ToPointer("new3"),
+				Path:              fastly.ToPointer("new4"),
+				Region:            fastly.ToPointer("new5"),
+				Placement:         fastly.ToPointer("new6"),
+				Period:            fastly.ToPointer(3601),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
+				MessageType:       fastly.ToPointer("new9"),
+				TimestampFormat:   fastly.ToPointer("new10"),
+				PublicKey:         fastly.ToPointer("new11"),
+				User:              fastly.ToPointer("new12"),
+				CompressionCodec:  fastly.ToPointer("new13"),
 			},
 		},
 		{
@@ -184,7 +184,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}

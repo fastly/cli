@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -282,13 +282,13 @@ var errTest = errors.New("fixture error")
 
 func createSFTPOK(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	s := fastly.SFTP{
-		ServiceID:        i.ServiceID,
-		ServiceVersion:   i.ServiceVersion,
-		CompressionCodec: "zstd",
+		ServiceID:        fastly.ToPointer(i.ServiceID),
+		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
+		CompressionCodec: fastly.ToPointer("zstd"),
 	}
 
-	if *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
 	return &s, nil
@@ -301,46 +301,46 @@ func createSFTPError(_ *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	return []*fastly.SFTP{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Address:           "127.0.0.1",
-			Port:              514,
-			User:              "user",
-			Password:          "password",
-			PublicKey:         pgpPublicKey(),
-			SecretKey:         sshPrivateKey(),
-			SSHKnownHosts:     knownHosts(),
-			Path:              "/logs",
-			Period:            3600,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Address:           fastly.ToPointer("127.0.0.1"),
+			Port:              fastly.ToPointer(514),
+			User:              fastly.ToPointer("user"),
+			Password:          fastly.ToPointer("password"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			SecretKey:         fastly.ToPointer(sshPrivateKey()),
+			SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+			Path:              fastly.ToPointer("/logs"),
+			Period:            fastly.ToPointer(3600),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Address:           "example.com",
-			Port:              123,
-			User:              "user",
-			Password:          "password",
-			PublicKey:         pgpPublicKey(),
-			SecretKey:         sshPrivateKey(),
-			SSHKnownHosts:     knownHosts(),
-			Path:              "/analytics",
-			Period:            3600,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			MessageType:       "classic",
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Address:           fastly.ToPointer("example.com"),
+			Port:              fastly.ToPointer(123),
+			User:              fastly.ToPointer("user"),
+			Password:          fastly.ToPointer("password"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			SecretKey:         fastly.ToPointer(sshPrivateKey()),
+			SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+			Path:              fastly.ToPointer("/analytics"),
+			Period:            fastly.ToPointer(3600),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			MessageType:       fastly.ToPointer("classic"),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
@@ -408,26 +408,26 @@ Version: 1
 
 func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Address:           "example.com",
-		Port:              514,
-		User:              "user",
-		Password:          "password",
-		PublicKey:         pgpPublicKey(),
-		SecretKey:         sshPrivateKey(),
-		SSHKnownHosts:     knownHosts(),
-		Path:              "/logs",
-		Period:            3600,
-		GzipLevel:         2,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Address:           fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(514),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		SecretKey:         fastly.ToPointer(sshPrivateKey()),
+		SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+		Path:              fastly.ToPointer("/logs"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(2),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
@@ -460,25 +460,25 @@ Version: 1
 
 func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Address:           "example.com",
-		Port:              514,
-		User:              "user",
-		Password:          "password",
-		PublicKey:         pgpPublicKey(),
-		SecretKey:         sshPrivateKey(),
-		SSHKnownHosts:     knownHosts(),
-		Path:              "/logs",
-		Period:            3600,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Address:           fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(514),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		SecretKey:         fastly.ToPointer(sshPrivateKey()),
+		SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+		Path:              fastly.ToPointer("/logs"),
+		Period:            fastly.ToPointer(3600),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 

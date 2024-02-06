@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListDatadog(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, datadog := range o {
-			tw.AddLine(datadog.ServiceID, datadog.ServiceVersion, datadog.Name)
+			tw.AddLine(
+				fastly.ToValue(datadog.ServiceID),
+				fastly.ToValue(datadog.ServiceVersion),
+				fastly.ToValue(datadog.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,15 +109,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, datadog := range o {
 		fmt.Fprintf(out, "\tDatadog %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", datadog.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", datadog.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", datadog.Name)
-		fmt.Fprintf(out, "\t\tToken: %s\n", datadog.Token)
-		fmt.Fprintf(out, "\t\tRegion: %s\n", datadog.Region)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", datadog.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", datadog.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", datadog.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", datadog.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(datadog.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(datadog.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(datadog.Name))
+		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(datadog.Token))
+		fmt.Fprintf(out, "\t\tRegion: %s\n", fastly.ToValue(datadog.Region))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(datadog.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(datadog.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(datadog.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(datadog.Placement))
 	}
 	fmt.Fprintln(out)
 

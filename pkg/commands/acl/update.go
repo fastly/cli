@@ -3,7 +3,7 @@ package acl
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -81,7 +81,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	a, err := c.Globals.APIClient.UpdateACL(input)
 	if err != nil {
@@ -92,7 +92,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated ACL '%s' (previously: '%s', service: %s, version: %d)", a.Name, input.Name, a.ServiceID, a.ServiceVersion)
+	text.Success(out, "Updated ACL '%s' (previously: '%s', service: %s, version: %d)", fastly.ToValue(a.Name), input.Name, fastly.ToValue(a.ServiceID), fastly.ToValue(a.ServiceVersion))
 	return nil
 }
 

@@ -3,7 +3,7 @@ package backend
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -131,7 +131,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.UpdateBackendInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 		Name:           c.name,
 	}
 
@@ -172,7 +172,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.AutoLoadbalance.WasSet {
-		input.AutoLoadbalance = fastly.CBool(c.AutoLoadbalance.Value)
+		input.AutoLoadbalance = fastly.ToPointer(fastly.Compatibool(c.AutoLoadbalance.Value))
 	}
 
 	if c.Weight.WasSet {
@@ -192,16 +192,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.UseSSL.WasSet {
-		input.UseSSL = fastly.CBool(c.UseSSL.Value)
+		input.UseSSL = fastly.ToPointer(fastly.Compatibool(c.UseSSL.Value))
 	}
 
 	if c.NoSSLCheckCert.WasSet {
-		input.SSLCheckCert = fastly.CBool(false)
+		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(false))
 	}
 
 	if c.SSLCheckCert.WasSet {
 		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
-		input.SSLCheckCert = fastly.CBool(c.SSLCheckCert.Value)
+		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(c.SSLCheckCert.Value))
 	}
 
 	if c.SSLCACert.WasSet {
@@ -245,6 +245,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
+	text.Success(out, "Updated backend %s (service %s version %d)", fastly.ToValue(b.Name), fastly.ToValue(b.ServiceID), fastly.ToValue(b.ServiceVersion))
 	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +80,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListHTTPS(&c.Input)
 	if err != nil {
@@ -96,7 +96,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, https := range o {
-			tw.AddLine(https.ServiceID, https.ServiceVersion, https.Name)
+			tw.AddLine(
+				fastly.ToValue(https.ServiceID),
+				fastly.ToValue(https.ServiceVersion),
+				fastly.ToValue(https.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -105,26 +109,26 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, https := range o {
 		fmt.Fprintf(out, "\tHTTPS %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", https.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", https.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", https.Name)
-		fmt.Fprintf(out, "\t\tURL: %s\n", https.URL)
-		fmt.Fprintf(out, "\t\tContent type: %s\n", https.ContentType)
-		fmt.Fprintf(out, "\t\tHeader name: %s\n", https.HeaderName)
-		fmt.Fprintf(out, "\t\tHeader value: %s\n", https.HeaderValue)
-		fmt.Fprintf(out, "\t\tMethod: %s\n", https.Method)
-		fmt.Fprintf(out, "\t\tJSON format: %s\n", https.JSONFormat)
-		fmt.Fprintf(out, "\t\tTLS CA certificate: %s\n", https.TLSCACert)
-		fmt.Fprintf(out, "\t\tTLS client certificate: %s\n", https.TLSClientCert)
-		fmt.Fprintf(out, "\t\tTLS client key: %s\n", https.TLSClientKey)
-		fmt.Fprintf(out, "\t\tTLS hostname: %s\n", https.TLSHostname)
-		fmt.Fprintf(out, "\t\tRequest max entries: %d\n", https.RequestMaxEntries)
-		fmt.Fprintf(out, "\t\tRequest max bytes: %d\n", https.RequestMaxBytes)
-		fmt.Fprintf(out, "\t\tMessage type: %s\n", https.MessageType)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", https.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", https.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", https.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", https.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(https.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(https.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(https.Name))
+		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(https.URL))
+		fmt.Fprintf(out, "\t\tContent type: %s\n", fastly.ToValue(https.ContentType))
+		fmt.Fprintf(out, "\t\tHeader name: %s\n", fastly.ToValue(https.HeaderName))
+		fmt.Fprintf(out, "\t\tHeader value: %s\n", fastly.ToValue(https.HeaderValue))
+		fmt.Fprintf(out, "\t\tMethod: %s\n", fastly.ToValue(https.Method))
+		fmt.Fprintf(out, "\t\tJSON format: %s\n", fastly.ToValue(https.JSONFormat))
+		fmt.Fprintf(out, "\t\tTLS CA certificate: %s\n", fastly.ToValue(https.TLSCACert))
+		fmt.Fprintf(out, "\t\tTLS client certificate: %s\n", fastly.ToValue(https.TLSClientCert))
+		fmt.Fprintf(out, "\t\tTLS client key: %s\n", fastly.ToValue(https.TLSClientKey))
+		fmt.Fprintf(out, "\t\tTLS hostname: %s\n", fastly.ToValue(https.TLSHostname))
+		fmt.Fprintf(out, "\t\tRequest max entries: %d\n", fastly.ToValue(https.RequestMaxEntries))
+		fmt.Fprintf(out, "\t\tRequest max bytes: %d\n", fastly.ToValue(https.RequestMaxBytes))
+		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(https.MessageType))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(https.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(https.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(https.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(https.Placement))
 	}
 	fmt.Fprintln(out)
 

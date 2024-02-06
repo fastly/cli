@@ -3,7 +3,7 @@ package secretstoreentry
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -22,8 +22,8 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.CmdClause = parent.Command("delete", "Delete a secret")
 
 	// Required.
-	c.RegisterFlag(secretNameFlag(&c.Input.Name))      // --name
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(secretNameFlag(&c.Input.Name))           // --name
+	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -58,13 +58,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			Deleted bool   `json:"deleted"`
 		}{
 			c.Input.Name,
-			c.Input.ID,
+			c.Input.StoreID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted secret '%s' from Secret Store '%s'", c.Input.Name, c.Input.ID)
+	text.Success(out, "Deleted secret '%s' from Secret Store '%s'", c.Input.Name, c.Input.StoreID)
 	return nil
 }

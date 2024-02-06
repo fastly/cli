@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -52,8 +52,8 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause = parent.Command("create", "Create a new secret within specified store")
 
 	// Required.
-	c.RegisterFlag(secretNameFlag(&c.Input.Name))      // --name
-	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(secretNameFlag(&c.Input.Name))           // --name
+	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlag(secretFileFlag(&c.secretFile)) // --file
@@ -197,6 +197,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if o.Recreated {
 		action = "Recreated"
 	}
-	text.Success(out, "%s secret '%s' in Secret Store '%s' (digest: %s)", action, o.Name, c.Input.ID, hex.EncodeToString(o.Digest))
+	text.Success(out, "%s secret '%s' in Secret Store '%s' (digest: %s)", action, o.Name, c.Input.StoreID, hex.EncodeToString(o.Digest))
 	return nil
 }

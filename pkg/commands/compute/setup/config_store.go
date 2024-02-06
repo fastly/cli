@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
@@ -50,7 +50,7 @@ type ConfigStoreItem struct {
 
 // Configure prompts the user for specific values related to the service resource.
 func (o *ConfigStores) Configure() error {
-	existingStores, err := o.APIClient.ListConfigStores()
+	existingStores, err := o.APIClient.ListConfigStores(&fastly.ListConfigStoresInput{})
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (o *ConfigStores) Configure() error {
 			if store.Name == name {
 				if o.AcceptDefaults || o.NonInteractive {
 					linkExistingStore = true
-					existingStoreID = store.ID
+					existingStoreID = store.StoreID
 				} else {
 					text.Warning(o.Stdout, "\nA Config Store called '%s' already exists. If you use this store, then this implies that any keys defined in your setup configuration will either be newly created or will update an existing one. To avoid updating an existing key, then stop the command now and edit the setup configuration before re-running the deployment process\n\n", name)
 					prompt := text.Prompt("Use a different store name (or leave empty to use the existing store): ")
@@ -75,7 +75,7 @@ func (o *ConfigStores) Configure() error {
 					}
 					if value == "" {
 						linkExistingStore = true
-						existingStoreID = store.ID
+						existingStoreID = store.StoreID
 					} else {
 						name = value
 					}
@@ -156,7 +156,7 @@ func (o *ConfigStores) Create() error {
 		if configStore.LinkExistingStore {
 			err = o.Spinner.Process(fmt.Sprintf("Retrieving existing Config Store '%s'", configStore.Name), func(_ *text.SpinnerWrapper) error {
 				cs, err = o.APIClient.GetConfigStore(&fastly.GetConfigStoreInput{
-					ID: configStore.ExistingStoreID,
+					StoreID: configStore.ExistingStoreID,
 				})
 				if err != nil {
 					return fmt.Errorf("failed to get existing store '%s': %w", configStore.Name, err)
@@ -186,7 +186,7 @@ func (o *ConfigStores) Create() error {
 				err = o.Spinner.Process(fmt.Sprintf("Creating config store item '%s'", item.Key), func(_ *text.SpinnerWrapper) error {
 					_, err = o.APIClient.UpdateConfigStoreItem(&fastly.UpdateConfigStoreItemInput{
 						Upsert:  true, // Use upsert to avoid conflicts when reusing a starter kit.
-						StoreID: cs.ID,
+						StoreID: cs.StoreID,
 						Key:     item.Key,
 						Value:   item.Value,
 					})
@@ -206,8 +206,8 @@ func (o *ConfigStores) Create() error {
 			_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
 				ServiceID:      o.ServiceID,
 				ServiceVersion: o.ServiceVersion,
-				Name:           fastly.String(cs.Name),
-				ResourceID:     fastly.String(cs.ID),
+				Name:           fastly.ToPointer(cs.Name),
+				ResourceID:     fastly.ToPointer(cs.StoreID),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating resource link between the service '%s' and the config store '%s': %w", o.ServiceID, configStore.Name, err)

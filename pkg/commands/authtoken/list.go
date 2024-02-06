@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -62,7 +62,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 	} else {
-		o, err = c.Globals.APIClient.ListTokens()
+		o, err = c.Globals.APIClient.ListTokens(&fastly.ListTokensInput{})
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -97,12 +97,12 @@ func (c *ListCommand) constructInput() *fastly.ListCustomerTokensInput {
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.Token) {
 	for _, r := range rs {
-		fmt.Fprintf(out, "\nID: %s\n", r.ID)
-		fmt.Fprintf(out, "Name: %s\n", r.Name)
-		fmt.Fprintf(out, "User ID: %s\n", r.UserID)
+		fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.TokenID))
+		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
+		fmt.Fprintf(out, "User ID: %s\n", fastly.ToValue(r.UserID))
 		fmt.Fprintf(out, "Services: %s\n", strings.Join(r.Services, ", "))
-		fmt.Fprintf(out, "Scope: %s\n", r.Scope)
-		fmt.Fprintf(out, "IP: %s\n\n", r.IP)
+		fmt.Fprintf(out, "Scope: %s\n", fastly.ToValue(r.Scope))
+		fmt.Fprintf(out, "IP: %s\n\n", fastly.ToValue(r.IP))
 
 		if r.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)
@@ -119,12 +119,18 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.Token) {
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.Token) error {
-	t := text.NewTable(out)
-	t.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
-	for _, r := range rs {
-		t.AddLine(r.Name, r.ID, r.UserID, r.Scope, strings.Join(r.Services, ", "))
+func (c *ListCommand) printSummary(out io.Writer, ts []*fastly.Token) error {
+	tbl := text.NewTable(out)
+	tbl.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
+	for _, t := range ts {
+		tbl.AddLine(
+			fastly.ToValue(t.Name),
+			fastly.ToValue(t.TokenID),
+			fastly.ToValue(t.UserID),
+			fastly.ToValue(t.Scope),
+			strings.Join(t.Services, ", "),
+		)
 	}
-	t.Print()
+	tbl.Print()
 	return nil
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	fsterrors "github.com/fastly/cli/pkg/errors"
@@ -89,7 +89,7 @@ func (s *SecretStores) Configure() error {
 			if store.Name == name {
 				if s.AcceptDefaults || s.NonInteractive {
 					linkExistingStore = true
-					existingStoreID = store.ID
+					existingStoreID = store.StoreID
 				} else {
 					text.Warning(s.Stdout, "\nA Secret Store called '%s' already exists\n\n", name)
 					prompt := text.Prompt("Use a different store name (or leave empty to use the existing store): ")
@@ -99,7 +99,7 @@ func (s *SecretStores) Configure() error {
 					}
 					if value == "" {
 						linkExistingStore = true
-						existingStoreID = store.ID
+						existingStoreID = store.StoreID
 					} else {
 						name = value
 					}
@@ -175,7 +175,7 @@ func (s *SecretStores) Create() error {
 		if secretStore.LinkExistingStore {
 			err = s.Spinner.Process(fmt.Sprintf("Retrieving existing Secret Store '%s'", secretStore.Name), func(_ *text.SpinnerWrapper) error {
 				store, err = s.APIClient.GetSecretStore(&fastly.GetSecretStoreInput{
-					ID: secretStore.ExistingStoreID,
+					StoreID: secretStore.ExistingStoreID,
 				})
 				if err != nil {
 					return fmt.Errorf("failed to get existing store '%s': %w", secretStore.Name, err)
@@ -203,9 +203,9 @@ func (s *SecretStores) Create() error {
 		for _, entry := range secretStore.Entries {
 			err = s.Spinner.Process(fmt.Sprintf("Creating Secret Store entry '%s'...", entry.Name), func(_ *text.SpinnerWrapper) error {
 				_, err = s.APIClient.CreateSecret(&fastly.CreateSecretInput{
-					ID:     store.ID,
-					Name:   entry.Name,
-					Secret: []byte(entry.Secret),
+					StoreID: store.StoreID,
+					Name:    entry.Name,
+					Secret:  []byte(entry.Secret),
 				})
 				if err != nil {
 					return fmt.Errorf("error creating Secret Store entry %q: %w", entry.Name, err)
@@ -223,8 +223,8 @@ func (s *SecretStores) Create() error {
 			_, err = s.APIClient.CreateResource(&fastly.CreateResourceInput{
 				ServiceID:      s.ServiceID,
 				ServiceVersion: s.ServiceVersion,
-				Name:           fastly.String(store.Name),
-				ResourceID:     fastly.String(store.ID),
+				Name:           fastly.ToPointer(store.Name),
+				ResourceID:     fastly.ToPointer(store.StoreID),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating resource link between the service %q and the Secret Store %q: %w", s.ServiceID, store.Name, err)

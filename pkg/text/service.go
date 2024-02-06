@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/cli/pkg/time"
 )
 
 // PrintService pretty prints a fastly.Service structure in verbose format
@@ -15,13 +16,21 @@ import (
 func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "ID: %s\n", s.ID)
-	fmt.Fprintf(out, "Name: %s\n", s.Name)
-	fmt.Fprintf(out, "Type: %s\n", s.Type)
-	if s.Comment != "" {
-		fmt.Fprintf(out, "Comment: %s\n", s.Comment)
+	if s.ServiceID != nil {
+		fmt.Fprintf(out, "ID: %s\n", *s.ServiceID)
 	}
-	fmt.Fprintf(out, "Customer ID: %s\n", s.CustomerID)
+	if s.Name != nil {
+		fmt.Fprintf(out, "Name: %s\n", *s.Name)
+	}
+	if s.Type != nil {
+		fmt.Fprintf(out, "Type: %s\n", *s.Type)
+	}
+	if s.Comment != nil {
+		fmt.Fprintf(out, "Comment: %s\n", *s.Comment)
+	}
+	if s.CustomerID != nil {
+		fmt.Fprintf(out, "Customer ID: %s\n", *s.CustomerID)
+	}
 	if s.CreatedAt != nil {
 		fmt.Fprintf(out, "Created (UTC): %s\n", s.CreatedAt.UTC().Format(time.Format))
 	}
@@ -31,7 +40,9 @@ func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 	if s.DeletedAt != nil {
 		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 	}
-	fmt.Fprintf(out, "Active version: %d\n", s.ActiveVersion)
+	if s.ActiveVersion != nil {
+		fmt.Fprintf(out, "Active version: %d\n", *s.ActiveVersion)
+	}
 	fmt.Fprintf(out, "Versions: %d\n", len(s.Versions))
 	for j, version := range s.Versions {
 		fmt.Fprintf(out, "\tVersion %d/%d\n", j+1, len(s.Versions))
@@ -45,16 +56,30 @@ func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 func PrintVersion(out io.Writer, indent string, v *fastly.Version) {
 	out = textio.NewPrefixWriter(out, indent)
 
-	fmt.Fprintf(out, "Number: %d\n", v.Number)
-	if v.Comment != "" {
-		fmt.Fprintf(out, "Comment: %s\n", v.Comment)
+	if v.Number != nil {
+		fmt.Fprintf(out, "Number: %d\n", *v.Number)
 	}
-	fmt.Fprintf(out, "Service ID: %s\n", v.ServiceID)
-	fmt.Fprintf(out, "Active: %v\n", v.Active)
-	fmt.Fprintf(out, "Locked: %v\n", v.Locked)
-	fmt.Fprintf(out, "Deployed: %v\n", v.Deployed)
-	fmt.Fprintf(out, "Staging: %v\n", v.Staging)
-	fmt.Fprintf(out, "Testing: %v\n", v.Testing)
+	if v.Comment != nil {
+		fmt.Fprintf(out, "Comment: %s\n", *v.Comment)
+	}
+	if v.ServiceID != nil {
+		fmt.Fprintf(out, "Service ID: %s\n", *v.ServiceID)
+	}
+	if v.Active != nil {
+		fmt.Fprintf(out, "Active: %v\n", *v.Active)
+	}
+	if v.Locked != nil {
+		fmt.Fprintf(out, "Locked: %v\n", *v.Locked)
+	}
+	if v.Deployed != nil {
+		fmt.Fprintf(out, "Deployed: %v\n", *v.Deployed)
+	}
+	if v.Staging != nil {
+		fmt.Fprintf(out, "Staging: %v\n", *v.Staging)
+	}
+	if v.Testing != nil {
+		fmt.Fprintf(out, "Testing: %v\n", *v.Testing)
+	}
 	if v.CreatedAt != nil {
 		fmt.Fprintf(out, "Created (UTC): %s\n", v.CreatedAt.UTC().Format(time.Format))
 	}

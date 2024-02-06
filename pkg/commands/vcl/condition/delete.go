@@ -3,7 +3,7 @@ package condition
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -80,17 +80,17 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	var input fastly.DeleteConditionInput
 	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion.Number
+	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 	input.Name = c.name
 
 	if err := c.Globals.APIClient.DeleteCondition(&input); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Deleted condition %s (service %s version %d)", c.name, serviceID, serviceVersion.Number)
+	text.Success(out, "Deleted condition %s (service %s version %d)", c.name, serviceID, fastly.ToValue(serviceVersion.Number))
 	return nil
 }

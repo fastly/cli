@@ -83,7 +83,8 @@ type ValidateCommand struct {
 //
 // NOTE: This function is also called by the `deploy` command.
 func validatePackageContent(pkgPath string) error {
-	// nosemgrep: trailofbits.go.iterate-over-empty-map.iterate-over-empty-map (false positive)
+	// False positive https://github.com/semgrep/semgrep/issues/8593
+	// nosemgrep: trailofbits.go.iterate-over-empty-map.iterate-over-empty-map
 	files := map[string]bool{
 		manifest.Filename: false,
 		"main.wasm":       false,

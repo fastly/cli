@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	fsterrs "github.com/fastly/cli/pkg/errors"
@@ -283,34 +283,34 @@ var errTest = errors.New("fixture error")
 
 func createScalyrOK(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	s := fastly.Scalyr{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
 	// Avoids null pointer dereference for test cases with missing required params.
 	// If omitted, tests are guaranteed to panic.
-	if i.Name != nil && *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
-	if i.Token != nil && *i.Token != "" {
-		s.Token = *i.Token
+	if i.Token != nil {
+		s.Token = i.Token
 	}
 
-	if i.Format != nil && *i.Format != "" {
-		s.Format = *i.Format
+	if i.Format != nil {
+		s.Format = i.Format
 	}
 
-	if i.FormatVersion != nil && *i.FormatVersion != 0 {
-		s.FormatVersion = *i.FormatVersion
+	if i.FormatVersion != nil {
+		s.FormatVersion = i.FormatVersion
 	}
 
-	if i.ResponseCondition != nil && *i.ResponseCondition != "" {
-		s.ResponseCondition = *i.ResponseCondition
+	if i.ResponseCondition != nil {
+		s.ResponseCondition = i.ResponseCondition
 	}
 
-	if i.Placement != nil && *i.Placement != "" {
-		s.Placement = *i.Placement
+	if i.Placement != nil {
+		s.Placement = i.Placement
 	}
 
 	return &s, nil
@@ -323,26 +323,26 @@ func createScalyrError(_ *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	return []*fastly.Scalyr{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Token:             "abc",
-			Region:            "US",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Token:             fastly.ToPointer("abc"),
+			Region:            fastly.ToPointer("US"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Token:             "abc",
-			Region:            "US",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Token:             fastly.ToPointer("abc"),
+			Region:            fastly.ToPointer("US"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -388,15 +388,15 @@ Version: 1
 
 func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Token:             "abc",
-		Region:            "US",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Token:             fastly.ToPointer("abc"),
+		Region:            fastly.ToPointer("US"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -418,15 +418,15 @@ Version: 1
 
 func updateScalyrOK(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Token:             "abc",
-		Region:            "EU",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Token:             fastly.ToPointer("abc"),
+		Region:            fastly.ToPointer("EU"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

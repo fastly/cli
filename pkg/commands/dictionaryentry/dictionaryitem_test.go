@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -61,59 +62,6 @@ func TestDictionaryItemDescribe(t *testing.T) {
 	}
 }
 
-type mockDictionaryItemPaginator struct {
-	count         int
-	maxPages      int
-	numOfPages    int
-	requestedPage int
-	returnErr     bool
-}
-
-func (p *mockDictionaryItemPaginator) HasNext() bool {
-	if p.count > p.maxPages {
-		return false
-	}
-	p.count++
-	return true
-}
-
-func (p mockDictionaryItemPaginator) Remaining() int {
-	return 1
-}
-
-func (p *mockDictionaryItemPaginator) GetNext() (di []*fastly.DictionaryItem, err error) {
-	if p.returnErr {
-		err = testutil.Err
-	}
-	pageOne := fastly.DictionaryItem{
-		ServiceID:    "123",
-		DictionaryID: "456",
-		ItemKey:      "foo",
-		ItemValue:    "bar",
-		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
-	}
-	pageTwo := fastly.DictionaryItem{
-		ServiceID:    "123",
-		DictionaryID: "456",
-		ItemKey:      "baz",
-		ItemValue:    "bear",
-		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
-		DeletedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:06:08Z"),
-	}
-	if p.count == 1 {
-		di = append(di, &pageOne)
-	}
-	if p.count == 2 {
-		di = append(di, &pageTwo)
-	}
-	if p.requestedPage > 0 && p.numOfPages == 1 {
-		p.count = p.maxPages + 1 // forces only one result to be displayed
-	}
-	return di, err
-}
-
 func TestDictionaryItemsList(t *testing.T) {
 	args := testutil.Args
 	scenarios := []struct {
@@ -132,45 +80,49 @@ func TestDictionaryItemsList(t *testing.T) {
 		},
 		{
 			api: mock.API{
-				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-					return &mockDictionaryItemPaginator{returnErr: true}
+				GetDictionaryItemsFn: func(i *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
+					return fastly.NewPaginator[fastly.DictionaryItem](mock.HTTPClient{
+						Errors: []error{
+							testutil.Err,
+						},
+						Responses: []*http.Response{nil},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
 			args:      args("dictionary-entry list --service-id 123 --dictionary-id 456"),
 			wantError: testutil.Err.Error(),
 		},
-		// NOTE: Our mock paginator defines two dictionary items, and so even when
-		// setting --per-page 1 we expect the final output to display both items.
 		{
 			api: mock.API{
-				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-					return &mockDictionaryItemPaginator{numOfPages: i.PerPage, maxPages: 2}
+				GetDictionaryItemsFn: func(i *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
+					return fastly.NewPaginator[fastly.DictionaryItem](mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[
+                  {
+                    "dictionary_id": "123",
+                    "item_key": "foo",
+                    "item_value": "bar",
+                    "created_at": "2021-06-15T23:00:00Z",
+                    "updated_at": "2021-06-15T23:00:00Z"
+                  },
+                  {
+                    "dictionary_id": "456",
+                    "item_key": "baz",
+                    "item_value": "qux",
+                    "created_at": "2021-06-15T23:00:00Z",
+                    "updated_at": "2021-06-15T23:00:00Z",
+                    "deleted_at": "2021-06-15T23:00:00Z"
+                  }
+                ]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
 			args:       args("dictionary-entry list --service-id 123 --dictionary-id 456 --per-page 1"),
 			wantOutput: listDictionaryItemsOutput,
-		},
-		// In the following test, we set --page 1 and as there's only one record
-		// displayed per page we expect only the first record to be displayed.
-		{
-			api: mock.API{
-				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-					return &mockDictionaryItemPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
-				},
-			},
-			args:       args("dictionary-entry list --service-id 123 --dictionary-id 456 --page 1 --per-page 1"),
-			wantOutput: listDictionaryItemsPageOneOutput,
-		},
-		// In the following test, we set --page 2 and as there's only one record
-		// displayed per page we expect only the second record to be displayed.
-		{
-			api: mock.API{
-				NewListDictionaryItemsPaginatorFn: func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-					return &mockDictionaryItemPaginator{count: i.Page - 1, requestedPage: i.Page, numOfPages: i.PerPage, maxPages: 2}
-				},
-			},
-			args:       args("dictionary-entry list --service-id 123 --dictionary-id 456 --page 2 --per-page 1"),
-			wantOutput: listDictionaryItemsPageTwoOutput,
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -350,10 +302,10 @@ func TestDictionaryItemDelete(t *testing.T) {
 
 func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    i.ServiceID,
-		DictionaryID: i.DictionaryID,
-		ItemKey:      i.ItemKey,
-		ItemValue:    "bar",
+		ServiceID:    fastly.ToPointer(i.ServiceID),
+		DictionaryID: fastly.ToPointer(i.DictionaryID),
+		ItemKey:      fastly.ToPointer(i.ItemKey),
+		ItemValue:    fastly.ToPointer("bar"),
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
@@ -378,10 +330,10 @@ Last edited (UTC): 2001-02-03 04:05
 
 func describeDictionaryItemOKDeleted(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    i.ServiceID,
-		DictionaryID: i.DictionaryID,
-		ItemKey:      i.ItemKey,
-		ItemValue:    "bar",
+		ServiceID:    fastly.ToPointer(i.ServiceID),
+		DictionaryID: fastly.ToPointer(i.DictionaryID),
+		ItemKey:      fastly.ToPointer(i.ItemKey),
+		ItemValue:    fastly.ToPointer("bar"),
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		DeletedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:06:08Z"),
@@ -398,49 +350,28 @@ Last edited (UTC): 2001-02-03 04:05
 Deleted (UTC): 2001-02-03 04:06
 `) + "\n"
 
-var listDictionaryItemsPageOneOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Item: 1/1
-	Dictionary ID: 456
-	Item Key: foo
-	Item Value: bar
-	Created (UTC): 2001-02-03 04:05
-	Last edited (UTC): 2001-02-03 04:05
-`) + "\n\n"
-
-var listDictionaryItemsPageTwoOutput = "\n" + strings.TrimSpace(`
-Service ID: 123
-Item: 1/1
-	Dictionary ID: 456
-	Item Key: baz
-	Item Value: bear
-	Created (UTC): 2001-02-03 04:05
-	Last edited (UTC): 2001-02-03 04:05
-	Deleted (UTC): 2001-02-03 04:06
-`) + "\n\n"
-
 var listDictionaryItemsOutput = "\n" + strings.TrimSpace(`
 Service ID: 123
 Item: 1/2
-	Dictionary ID: 456
+	Dictionary ID: 123
 	Item Key: foo
 	Item Value: bar
-	Created (UTC): 2001-02-03 04:05
-	Last edited (UTC): 2001-02-03 04:05
+	Created (UTC): 2021-06-15 23:00
+	Last edited (UTC): 2021-06-15 23:00
 
 Item: 2/2
 	Dictionary ID: 456
 	Item Key: baz
-	Item Value: bear
-	Created (UTC): 2001-02-03 04:05
-	Last edited (UTC): 2001-02-03 04:05
-	Deleted (UTC): 2001-02-03 04:06
+	Item Value: qux
+	Created (UTC): 2021-06-15 23:00
+	Last edited (UTC): 2021-06-15 23:00
+	Deleted (UTC): 2021-06-15 23:00
 `) + "\n\n"
 
 func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    i.ServiceID,
-		DictionaryID: i.DictionaryID,
+		ServiceID:    fastly.ToPointer(i.ServiceID),
+		DictionaryID: fastly.ToPointer(i.DictionaryID),
 		ItemKey:      i.ItemKey,
 		ItemValue:    i.ItemValue,
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
@@ -450,10 +381,10 @@ func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.Dictio
 
 func updateDictionaryItemOK(i *fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
-		ServiceID:    i.ServiceID,
-		DictionaryID: i.DictionaryID,
-		ItemKey:      i.ItemKey,
-		ItemValue:    i.ItemValue,
+		ServiceID:    fastly.ToPointer(i.ServiceID),
+		DictionaryID: fastly.ToPointer(i.DictionaryID),
+		ItemKey:      fastly.ToPointer(i.ItemKey),
+		ItemValue:    fastly.ToPointer(i.ItemValue),
 		CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 		UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
