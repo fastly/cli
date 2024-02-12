@@ -28,7 +28,7 @@ require (
 
 require (
 	github.com/fastly/go-fastly/v9 v9.0.0
-	github.com/hashicorp/cap v0.3.4
+	github.com/hashicorp/cap v0.5.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.14.0
@@ -52,7 +52,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
