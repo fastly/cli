@@ -22,8 +22,8 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
-	golang.org/x/sys v0.16.0 // indirect
-	golang.org/x/term v0.16.0
+	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/term v0.17.0
 )
 
 require (
