@@ -11,7 +11,8 @@ import (
 // APIClient takes a mock.API and returns an app.ClientFactory that uses that
 // mock, ignoring the token and endpoint. It should only be used for tests.
 func APIClient(a API) func(string, string, bool) (api.Interface, error) {
-	return func(token, endpoint string, debugMode bool) (api.Interface, error) {
+	// (token, endpoint, debugMode)
+	return func(_, _ string, _ bool) (api.Interface, error) {
 		return a, nil
 	}
 }
@@ -26,14 +27,14 @@ type HTTPClient struct {
 	Errors []error
 }
 
-func (c HTTPClient) Get(p string, _ *fastly.RequestOptions) (*http.Response, error) {
+func (c HTTPClient) Get(_ string, _ *fastly.RequestOptions) (*http.Response, error) {
 	// IMPORTANT: Have to increment on defer as index is already 0 by this point.
 	// This is opposite to the Do() method which is -1 at the time it's called.
 	defer func() { c.Index++ }()
 	return c.Responses[c.Index], c.Errors[c.Index]
 }
 
-func (c HTTPClient) Do(r *http.Request) (*http.Response, error) {
+func (c HTTPClient) Do(_ *http.Request) (*http.Response, error) {
 	c.Index++
 	return c.Responses[c.Index], c.Errors[c.Index]
 }

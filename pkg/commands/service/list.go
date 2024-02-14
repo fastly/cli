@@ -53,6 +53,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.Page = &c.page
 	c.input.PerPage = &c.perPage
 	c.input.Sort = &c.sort
+
 	paginator := c.Globals.APIClient.GetServices(&c.input)
 
 	var o []*fastly.Service

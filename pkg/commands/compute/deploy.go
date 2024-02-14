@@ -462,7 +462,6 @@ func locateManifest(path, manifestFilename string) (string, error) {
 		}
 		return nil
 	})
-
 	if err != nil {
 		// If the error isn't ErrStopWalk, then the WalkDir() function had an
 		// issue processing the directory tree.
