@@ -1,6 +1,22 @@
 # CHANGELOG
 
-## [v10.8.0](https://github.com/fastly/cli/releases/tag/v10.8.0) (2023-01-17)
+## [v10.8.1](https://github.com/fastly/cli/releases/tag/v10.8.1) (2024-02-14)
+
+**Bug fixes:**
+
+- fix(compute/build): normalise and bucket heap allocations [#1130](https://github.com/fastly/cli/pull/1130)
+
+**Enhancements:**
+
+- refactor(all): support go-fastly v9 [#1124](https://github.com/fastly/cli/pull/1124)
+
+**Dependencies:**
+
+- build(deps): bump actions/cache from 3 to 4 [#1122](https://github.com/fastly/cli/pull/1122)
+- build(deps): bump github.com/hashicorp/cap from 0.3.4 to 0.5.0 [#1128](https://github.com/fastly/cli/pull/1128)
+- build(deps): bump golang.org/x/crypto from 0.18.0 to 0.19.0 [#1127](https://github.com/fastly/cli/pull/1127)
+
+## [v10.8.0](https://github.com/fastly/cli/releases/tag/v10.8.0) (2024-01-17)
 
 **Bug fixes:**
 
