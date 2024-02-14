@@ -163,7 +163,7 @@ snapshot:
 
 # https://goreleaser.com/customization/changelog/
 changelog:
-  skip: true
+  disable: true
 
 # https://goreleaser.com/customization/docker/
 # dockers:
