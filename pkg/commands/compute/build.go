@@ -830,7 +830,7 @@ func bytesToMB(bytes uint64) uint64 {
 }
 
 // bucketMB determines a consistent bucket size for heap allocation.
-// NOTE: This is to avoid building a package with a fluctuation hashsum.
+// NOTE: This is to avoid building a package with a fluctuating hashsum.
 // e.g. `fastly compute hash-files` should be consistent unless memory increase is significant.
 func bucketMB(mb uint64) string {
 	switch {
