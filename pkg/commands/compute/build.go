@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -327,7 +328,7 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 
 	if metadata.BuildInfo == "enable" {
 		dc.BuildInfo = DataCollectionBuildInfo{
-			MemoryHeapAlloc: ms.HeapAlloc,
+			MemoryHeapAlloc: bucketMB(bytesToMB(ms.HeapAlloc)) + "MB",
 		}
 	}
 	if metadata.MachineInfo == "enable" {
@@ -823,6 +824,35 @@ func GetNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, er
 	return files, err
 }
 
+// bytesToMB converts the runtime.MemStats.HeapAlloc bytes into megabytes.
+func bytesToMB(bytes uint64) uint64 {
+	return uint64(math.Round(float64(bytes) / (1024 * 1024)))
+}
+
+// bucketMB determines a consistent bucket size for heap allocation.
+// NOTE: This is to avoid building a package with a fluctuation hashsum.
+// e.g. `fastly compute hash-files` should be consistent unless memory increase is significant.
+func bucketMB(mb uint64) string {
+	switch {
+	case mb < 2:
+		return "<2"
+	case mb >= 2 && mb < 5:
+		return "2-5"
+	case mb >= 5 && mb < 10:
+		return "5-10"
+	case mb >= 10 && mb < 20:
+		return "10-20"
+	case mb >= 20 && mb < 30:
+		return "20-30"
+	case mb >= 30 && mb < 40:
+		return "30-40"
+	case mb >= 40 && mb < 50:
+		return "40-50"
+	default:
+		return ">50"
+	}
+}
+
 // DataCollection represents data annotated onto the Wasm binary.
 type DataCollection struct {
 	BuildInfo   DataCollectionBuildInfo   `json:"build_info,omitempty"`
@@ -833,7 +863,7 @@ type DataCollection struct {
 
 // DataCollectionBuildInfo represents build data annotated onto the Wasm binary.
 type DataCollectionBuildInfo struct {
-	MemoryHeapAlloc uint64 `json:"mem_heap_alloc,omitempty"`
+	MemoryHeapAlloc string `json:"mem_heap_alloc,omitempty"`
 }
 
 // DataCollectionMachineInfo represents machine data annotated onto the Wasm binary.
