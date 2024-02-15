@@ -65,6 +65,7 @@ type ServeCommand struct {
 	file            string
 	profileGuest    bool
 	profileGuestDir argparser.OptionalString
+	projectDir      string
 	skipBuild       bool
 	watch           bool
 	watchDir        argparser.OptionalString
@@ -114,14 +115,6 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if !c.skipBuild {
-		err = c.Build(in, out)
-		if err != nil {
-			return err
-		}
-		text.Break(out)
-	}
-
 	manifestFilename := EnvironmentManifest(c.env.Value)
 	if c.env.Value != "" {
 		if c.Globals.Verbose() {
@@ -138,15 +131,23 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}()
 	manifestPath := filepath.Join(wd, manifestFilename)
 
-	projectDir, err := ChangeProjectDirectory(c.dir.Value)
+	c.projectDir, err = ChangeProjectDirectory(c.dir.Value)
 	if err != nil {
 		return err
 	}
-	if projectDir != "" {
+	if c.projectDir != "" {
 		if c.Globals.Verbose() {
-			text.Info(out, ProjectDirMsg, projectDir)
+			text.Info(out, ProjectDirMsg, c.projectDir)
 		}
-		manifestPath = filepath.Join(projectDir, manifestFilename)
+		manifestPath = filepath.Join(c.projectDir, manifestFilename)
+	}
+
+	if !c.skipBuild {
+		err = c.Build(in, out)
+		if err != nil {
+			return err
+		}
+		text.Break(out)
 	}
 
 	c.setBackendsWithDefaultOverrideHostIfMissing(out)
@@ -268,7 +269,9 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	if c.metadataShow.WasSet {
 		c.build.MetadataShow = c.metadataShow.Value
 	}
-
+	if c.projectDir != "" {
+		c.build.SkipChangeDir = true // we've already changed directory
+	}
 	return c.build.Exec(in, out)
 }
 
