@@ -37,6 +37,9 @@ type PublishCommand struct {
 	statusCheckOff     bool
 	statusCheckPath    string
 	statusCheckTimeout int
+
+	// Publish private fields
+	projectDir string
 }
 
 // NewPublishCommand returns a usable command registered under the parent.
@@ -93,6 +96,42 @@ func NewPublishCommand(parent argparser.Registerer, g *global.Data, build *Build
 // non-deterministic ways. It's best to leave those nested commands to handle
 // the progress indicator.
 func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
+
+	c.projectDir, err = ChangeProjectDirectory(c.dir.Value)
+	if err != nil {
+		return err
+	}
+	if c.projectDir != "" {
+		if c.Globals.Verbose() {
+			text.Info(out, ProjectDirMsg, c.projectDir)
+		}
+	}
+
+	err = c.Build(in, out)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	text.Break(out)
+
+	err = c.Deploy(in, out)
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	return nil
+}
+
+// Build constructs and executes the build logic.
+func (c *PublishCommand) Build(in io.Reader, out io.Writer) error {
 	// Reset the fields on the BuildCommand based on PublishCommand values.
 	if c.dir.WasSet {
 		c.build.Flags.Dir = c.dir.Value
@@ -121,33 +160,14 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if c.metadataShow.WasSet {
 		c.build.MetadataShow = c.metadataShow.Value
 	}
-
-	err = c.build.Exec(in, out)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
+	if c.projectDir != "" {
+		c.build.SkipChangeDir = true // we've already changed directory
 	}
+	return c.build.Exec(in, out)
+}
 
-	text.Break(out)
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get current working directory: %w", err)
-	}
-	defer func() {
-		_ = os.Chdir(wd)
-	}()
-
-	projectDir, err := ChangeProjectDirectory(c.dir.Value)
-	if err != nil {
-		return err
-	}
-	if projectDir != "" {
-		if c.Globals.Verbose() {
-			text.Info(out, ProjectDirMsg, projectDir)
-		}
-	}
-
+// Deploy constructs and executes the deploy logic.
+func (c *PublishCommand) Deploy(in io.Reader, out io.Writer) error {
 	// Reset the fields on the DeployCommand based on PublishCommand values.
 	if c.dir.WasSet {
 		c.deploy.Dir = c.dir.Value
@@ -180,12 +200,5 @@ func (c *PublishCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.deploy.StatusCheckTimeout = c.statusCheckTimeout
 	}
 	c.deploy.StatusCheckPath = c.statusCheckPath
-
-	err = c.deploy.Exec(in, out)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
-
-	return nil
+	return c.deploy.Exec(in, out)
 }
