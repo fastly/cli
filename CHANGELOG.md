@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v10.8.2](https://github.com/fastly/cli/releases/tag/v10.8.2) (2024-02-15)
+
+**Bug fixes:**
+
+- fix: directory switching logic [#1132](https://github.com/fastly/cli/pull/1132)
+
 ## [v10.8.1](https://github.com/fastly/cli/releases/tag/v10.8.1) (2024-02-14)
 
 **Bug fixes:**
