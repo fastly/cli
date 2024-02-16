@@ -3,8 +3,8 @@ package setup
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // Loggers represents the service state related to log entries defined within

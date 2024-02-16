@@ -11,13 +11,13 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/kvstoreentry"
-	fstfmt "github.com/fastly/cli/pkg/fmt"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/threadsafe"
+	"github.com/fastly/cli/v10/pkg/app"
+	"github.com/fastly/cli/v10/pkg/commands/kvstoreentry"
+	fstfmt "github.com/fastly/cli/v10/pkg/fmt"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/mock"
+	"github.com/fastly/cli/v10/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/threadsafe"
 )
 
 func TestCreateCommand(t *testing.T) {

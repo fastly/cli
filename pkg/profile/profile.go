@@ -1,7 +1,7 @@
 package profile
 
 import (
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/v10/pkg/config"
 )
 
 // DefaultName is the default profile name.

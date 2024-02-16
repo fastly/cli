@@ -8,10 +8,10 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/fastly/cli/pkg/api/undocumented"
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/useragent"
+	"github.com/fastly/cli/v10/pkg/api/undocumented"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/useragent"
 )
 
 // RootCommand is the parent command for all subcommands in this package.

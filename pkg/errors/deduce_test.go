@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/testutil"
 	"github.com/fastly/go-fastly/v9/fastly"
 )
 

@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/text"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // AsDefaultBuildCommand is a build command compiled into the CLI binary so it

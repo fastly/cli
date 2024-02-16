@@ -10,11 +10,11 @@ import (
 
 	toml "github.com/pelletier/go-toml"
 
-	"github.com/fastly/cli/pkg/env"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/revision"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/env"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/filesystem"
+	"github.com/fastly/cli/v10/pkg/revision"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 const (

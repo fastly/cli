@@ -10,11 +10,11 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/app"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/mock"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 func TestBackendCreate(t *testing.T) {

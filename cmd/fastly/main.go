@@ -4,8 +4,8 @@ package main
 import (
 	"os"
 
-	"github.com/fastly/cli/pkg/app"
-	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/app"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
 )
 
 func main() {

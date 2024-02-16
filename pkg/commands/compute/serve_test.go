@@ -7,15 +7,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/github"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/commands/compute"
+	"github.com/fastly/cli/v10/pkg/config"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/github"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/mock"
+	"github.com/fastly/cli/v10/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // TestGetViceroy validates that Viceroy is installed to the appropriate

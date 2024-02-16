@@ -17,16 +17,16 @@ import (
 
 	cp "github.com/otiai10/copy"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	fstexec "github.com/fastly/cli/pkg/exec"
-	"github.com/fastly/cli/pkg/file"
-	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/profile"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/config"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	fstexec "github.com/fastly/cli/v10/pkg/exec"
+	"github.com/fastly/cli/v10/pkg/file"
+	"github.com/fastly/cli/v10/pkg/filesystem"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/profile"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 var (

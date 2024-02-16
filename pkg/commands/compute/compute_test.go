@@ -9,10 +9,10 @@ import (
 	"github.com/fastly/kingpin"
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/commands/compute"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 // TestFlagDivergencePublish validates that the manually curated list of flags

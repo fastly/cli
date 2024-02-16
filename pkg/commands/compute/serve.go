@@ -22,15 +22,15 @@ import (
 	"github.com/fsnotify/fsnotify"
 	ignore "github.com/sabhiram/go-gitignore"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/check"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	fstexec "github.com/fastly/cli/pkg/exec"
-	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/github"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/check"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	fstexec "github.com/fastly/cli/v10/pkg/exec"
+	"github.com/fastly/cli/v10/pkg/filesystem"
+	"github.com/fastly/cli/v10/pkg/github"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 var viceroyError = fsterr.RemediationError{

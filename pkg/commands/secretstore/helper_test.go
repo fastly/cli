@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 func fmtStore(s *fastly.SecretStore) string {

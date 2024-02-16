@@ -10,11 +10,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 	toml "github.com/pelletier/go-toml"
 
-	"github.com/fastly/cli/pkg/env"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/threadsafe"
+	"github.com/fastly/cli/v10/pkg/env"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/threadsafe"
 )
 
 func TestManifest(t *testing.T) {

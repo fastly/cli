@@ -7,7 +7,7 @@ import (
 
 	"github.com/blang/semver"
 
-	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/v10/pkg/github"
 )
 
 // Check if the CLI can be updated.

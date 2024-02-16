@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	"github.com/fastly/cli/pkg/commands/update"
-	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/github"
-	"github.com/fastly/cli/pkg/mock"
+	"github.com/fastly/cli/v10/pkg/commands/update"
+	"github.com/fastly/cli/v10/pkg/config"
+	"github.com/fastly/cli/v10/pkg/github"
+	"github.com/fastly/cli/v10/pkg/mock"
 	"github.com/google/go-cmp/cmp"
 )
 

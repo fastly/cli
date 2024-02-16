@@ -6,9 +6,9 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/global"
 )
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.

@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/env"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // RemediationError wraps a normal error with a suggested remediation.

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/auth"
-	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/github"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/api"
+	"github.com/fastly/cli/v10/pkg/auth"
+	"github.com/fastly/cli/v10/pkg/config"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/github"
+	"github.com/fastly/cli/v10/pkg/lookup"
+	"github.com/fastly/cli/v10/pkg/manifest"
 )
 
 // DefaultAPIEndpoint is the default Fastly API endpoint.

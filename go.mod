@@ -1,4 +1,4 @@
-module github.com/fastly/cli
+module github.com/fastly/cli/v10
 
 go 1.21
 

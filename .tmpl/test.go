@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/app"
+	"github.com/fastly/cli/v10/pkg/mock"
+	"github.com/fastly/cli/v10/pkg/testutil"
 	"github.com/fastly/go-fastly/v4/fastly"
 )
 

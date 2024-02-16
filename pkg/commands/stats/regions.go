@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // RegionsCommand exposes the Stats Regions API.

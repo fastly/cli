@@ -10,9 +10,9 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/mock"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 func TestOptionalServiceVersionParse(t *testing.T) {

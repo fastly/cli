@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 func TestPrintLines(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"testing"
 
-	fstruntime "github.com/fastly/cli/pkg/runtime"
+	fstruntime "github.com/fastly/cli/v10/pkg/runtime"
 )
 
 // TestDownloadArchiveExtract validates both Windows and Unix release assets.

@@ -7,12 +7,12 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/fastly/kingpin"
 
-	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/env"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/api"
+	"github.com/fastly/cli/v10/pkg/env"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // Command is an interface that abstracts over all of the concrete command

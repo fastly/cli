@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/manifest"
 )
 
 // EnvManifestMsg informs the user that an environment manifest is being used.

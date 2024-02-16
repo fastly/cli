@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	fsterr "github.com/fastly/cli/pkg/errors"
-	fstexec "github.com/fastly/cli/pkg/exec"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	fstexec "github.com/fastly/cli/v10/pkg/exec"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 const (

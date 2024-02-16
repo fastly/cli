@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/segmentio/textio"
 
-	fsttime "github.com/fastly/cli/pkg/time"
+	fsttime "github.com/fastly/cli/v10/pkg/time"
 )
 
 // PrintConfigStoresTbl displays store data in a table format.

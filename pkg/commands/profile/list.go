@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/auth"
-	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/profile"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/auth"
+	"github.com/fastly/cli/v10/pkg/config"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/profile"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // ListCommand represents a Kingpin command.

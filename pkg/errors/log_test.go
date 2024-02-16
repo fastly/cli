@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 func TestLogAdd(t *testing.T) {

@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/version"
-	"github.com/fastly/cli/pkg/github"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/app"
+	"github.com/fastly/cli/v10/pkg/commands/version"
+	"github.com/fastly/cli/v10/pkg/github"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 func TestVersion(t *testing.T) {

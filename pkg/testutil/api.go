@@ -8,7 +8,7 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/commands/whoami"
+	"github.com/fastly/cli/v10/pkg/commands/whoami"
 )
 
 // Err represents a generic error.

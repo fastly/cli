@@ -15,10 +15,10 @@ import (
 	"github.com/hashicorp/cap/jwt"
 	"github.com/hashicorp/cap/oidc"
 
-	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/api/undocumented"
-	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/api"
+	"github.com/fastly/cli/v10/pkg/api/undocumented"
+	"github.com/fastly/cli/v10/pkg/config"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
 )
 
 // Remediation is a generic remediation message for an error authorizing.

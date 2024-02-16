@@ -10,11 +10,11 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/github"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/revision"
-	"github.com/fastly/cli/pkg/useragent"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/github"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/revision"
+	"github.com/fastly/cli/v10/pkg/useragent"
 )
 
 func init() {

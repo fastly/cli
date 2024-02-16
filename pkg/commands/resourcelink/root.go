@@ -3,8 +3,8 @@ package resourcelink
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/global"
 )
 
 // RootName is the name of this package's sub-command in the CLI,

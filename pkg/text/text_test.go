@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 func TestInput(t *testing.T) {

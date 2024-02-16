@@ -13,12 +13,12 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/argparser"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/runtime"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/api"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/runtime"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.

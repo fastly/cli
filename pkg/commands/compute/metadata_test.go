@@ -10,11 +10,11 @@ import (
 
 	toml "github.com/pelletier/go-toml"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/revision"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/app"
+	"github.com/fastly/cli/v10/pkg/config"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/revision"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 // Scenario is an extension of the base TestScenario.

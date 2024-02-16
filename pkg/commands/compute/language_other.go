@@ -3,8 +3,8 @@ package compute
 import (
 	"io"
 
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/text"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // NewOther constructs a new unsupported language instance.

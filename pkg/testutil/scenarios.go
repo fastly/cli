@@ -1,6 +1,6 @@
 package testutil
 
-import "github.com/fastly/cli/pkg/mock"
+import "github.com/fastly/cli/v10/pkg/mock"
 
 // TestScenario represents a standard test case to be validated.
 type TestScenario struct {

@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/threadsafe"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/text"
+	"github.com/fastly/cli/v10/pkg/threadsafe"
 )
 
 // divider is used as separator lines around shell output.

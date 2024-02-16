@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/cli/pkg/auth"
-	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/runtime"
+	"github.com/fastly/cli/v10/pkg/auth"
+	"github.com/fastly/cli/v10/pkg/config"
+	"github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/mock"
+	"github.com/fastly/cli/v10/pkg/runtime"
 )
 
 var argsPattern = regexp.MustCompile("`.+`")

@@ -14,10 +14,10 @@ import (
 	"github.com/Masterminds/semver/v3"
 	toml "github.com/pelletier/go-toml"
 
-	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/config"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/filesystem"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // RustDefaultBuildCommand is a build command compiled into the CLI binary so it

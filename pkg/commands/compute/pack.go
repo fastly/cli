@@ -8,12 +8,12 @@ import (
 
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/cli/pkg/argparser"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/filesystem"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // PackCommand takes a .wasm and builds the required tar/gzip package ready to be uploaded.

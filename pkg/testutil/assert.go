@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/errors"
 	"github.com/google/go-cmp/cmp"
 )
 

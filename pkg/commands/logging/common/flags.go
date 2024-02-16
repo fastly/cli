@@ -3,7 +3,7 @@ package common
 import (
 	"github.com/fastly/kingpin"
 
-	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/argparser"
 )
 
 // AccountName defines the account-name flag.

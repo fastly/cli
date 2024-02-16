@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/cli/pkg/api"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/useragent"
+	"github.com/fastly/cli/v10/pkg/api"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/useragent"
 )
 
 // EdgeComputeTrial is the API endpoint for activating a compute trial.

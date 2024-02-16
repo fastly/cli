@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/app"
+	"github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 func TestShellCompletion(t *testing.T) {

@@ -3,7 +3,7 @@ package manifest
 import (
 	"os"
 
-	"github.com/fastly/cli/pkg/env"
+	"github.com/fastly/cli/v10/pkg/env"
 )
 
 // Data holds global-ish manifest data from manifest files, and flag sources.

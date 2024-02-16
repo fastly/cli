@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/go-wordwrap"
 	"golang.org/x/term"
 
-	"github.com/fastly/cli/pkg/sync"
+	"github.com/fastly/cli/v10/pkg/sync"
 )
 
 // DefaultTextWidth is the width that should be passed to Wrap for most

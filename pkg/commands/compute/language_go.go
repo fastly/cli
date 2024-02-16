@@ -12,9 +12,9 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"golang.org/x/mod/modfile"
 
-	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/config"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // TinyGoDefaultBuildCommand is a build command compiled into the CLI binary so it

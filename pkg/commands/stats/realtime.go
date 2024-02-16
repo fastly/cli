@@ -7,10 +7,10 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/api"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // RealtimeCommand exposes the Realtime Metrics API.

@@ -7,7 +7,7 @@ package compute_test
 import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 func getServiceOK(_ *fastly.GetServiceInput) (*fastly.Service, error) {

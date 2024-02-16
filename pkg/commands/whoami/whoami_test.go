@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/env"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/api"
+	"github.com/fastly/cli/v10/pkg/app"
+	"github.com/fastly/cli/v10/pkg/config"
+	"github.com/fastly/cli/v10/pkg/env"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 func TestWhoami(t *testing.T) {

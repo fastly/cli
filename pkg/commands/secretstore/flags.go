@@ -1,7 +1,7 @@
 package secretstore
 
 import (
-	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/argparser"
 )
 
 func storeNameFlag(dst *string) argparser.StringFlagOpts {

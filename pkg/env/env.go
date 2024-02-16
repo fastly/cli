@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fastly/cli/pkg/runtime"
+	"github.com/fastly/cli/v10/pkg/runtime"
 )
 
 const (

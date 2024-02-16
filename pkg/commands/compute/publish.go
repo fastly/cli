@@ -5,9 +5,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // PublishCommand produces and deploys an artifact from files on the local disk.

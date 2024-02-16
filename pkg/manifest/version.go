@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	fsterr "github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
 )
 
 // Version represents the currently supported schema for the fastly.toml

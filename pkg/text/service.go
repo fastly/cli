@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/segmentio/textio"
 
-	"github.com/fastly/cli/pkg/time"
+	"github.com/fastly/cli/v10/pkg/time"
 )
 
 // PrintService pretty prints a fastly.Service structure in verbose format

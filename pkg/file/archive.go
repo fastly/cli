@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/errors"
 	"github.com/mholt/archiver"
 )
 

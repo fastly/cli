@@ -20,9 +20,9 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/tomnomnom/linkheader"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/global"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // RootCommand is the parent command for all subcommands in this package.

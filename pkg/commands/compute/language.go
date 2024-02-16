@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/v10/pkg/config"
 )
 
 // NewLanguages returns a list of supported programming languages.

@@ -5,7 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/v10/pkg/api"
 )
 
 // APIClient takes a mock.API and returns an app.ClientFactory that uses that

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	fsterr "github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
 )
 
 const (

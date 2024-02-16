@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // Fn is a function with no arguments which returns an error or nil.

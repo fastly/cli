@@ -10,9 +10,9 @@ import (
 
 	toml "github.com/pelletier/go-toml"
 
-	"github.com/fastly/cli/pkg/config"
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/v10/pkg/config"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/testutil"
 )
 
 //go:embed testdata/static/config.toml

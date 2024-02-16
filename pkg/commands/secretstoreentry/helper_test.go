@@ -3,7 +3,7 @@ package secretstoreentry_test
 import (
 	"bytes"
 
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/text"
 	"github.com/fastly/go-fastly/v9/fastly"
 )
 

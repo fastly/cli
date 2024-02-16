@@ -3,8 +3,8 @@ package secretstoreentry
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/global"
 )
 
 // RootNameSecret is the base command name for secret operations.

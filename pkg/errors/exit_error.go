@@ -3,7 +3,7 @@ package errors
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // SkipExitError is an error that can cause the os.Exit(1) to be skipped.

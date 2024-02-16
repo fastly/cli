@@ -14,8 +14,8 @@ import (
 	"github.com/blang/semver"
 	"github.com/mholt/archiver"
 
-	"github.com/fastly/cli/pkg/api"
-	fstruntime "github.com/fastly/cli/pkg/runtime"
+	"github.com/fastly/cli/v10/pkg/api"
+	fstruntime "github.com/fastly/cli/v10/pkg/runtime"
 )
 
 const (

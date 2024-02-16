@@ -6,7 +6,7 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // Process persists the error log to disk and deduces the error type.

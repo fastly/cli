@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/manifest"
+	"github.com/fastly/cli/v10/pkg/config"
+	"github.com/fastly/cli/v10/pkg/errors"
 	"github.com/fastly/go-fastly/v4/fastly"
 )
 

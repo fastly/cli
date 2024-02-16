@@ -3,8 +3,8 @@ package ${CLI_PACKAGE}
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/v10/pkg/argparser"
+	"github.com/fastly/cli/v10/pkg/config"
 )
 
 // RootCommand is the parent command for all subcommands in this package.

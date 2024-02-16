@@ -10,8 +10,8 @@ import (
 
 	toml "github.com/pelletier/go-toml"
 
-	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/text"
+	fsterr "github.com/fastly/cli/v10/pkg/errors"
+	"github.com/fastly/cli/v10/pkg/text"
 )
 
 // File represents all of the configuration parameters in the fastly.toml
