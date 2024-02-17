@@ -1,18 +1,54 @@
 # Release Process
 
-1. Merge all PRs intended for the release.
-1. Ensure any relevant `FIXME` notes in the code are addressed (e.g. `FIXME: remove this feature before next major release`).
-1. Rebase latest remote main branch locally (`git pull --rebase origin main`).
-1. Ensure all analysis checks and tests are passing (`time TEST_COMPUTE_INIT=1 TEST_COMPUTE_BUILD=1 TEST_COMPUTE_DEPLOY=1 make all`).
-1. Ensure goreleaser builds locally (`make release GORELEASER_ARGS="--skip=validate --skip=post-hooks --clean"`).
-1. Open a new PR to update CHANGELOG ([example](https://github.com/fastly/cli/pull/273))<sup>[1](#note1)</sup>.
-1. Merge CHANGELOG.
-1. Rebase latest remote main branch locally (`git pull --rebase origin main`).
-1. Tag a new release (`tag=vX.Y.Z && git tag -s $tag -m "$tag" && git push origin $tag`)<sup>[2](#note2)</sup>.
-1. Copy/paste CHANGELOG into the [draft release](https://github.com/fastly/cli/releases).
-1. Publish draft release.
+> **IMPORTANT:** If publishing a new major version, ensure the module name in
+> the [go.mod](./go.mod) (and any references to the module name in the code) are
+> updated to reflect the latest release.
 
-## Footnotes
+```diff
+- module github.com/fastly/cli/v1
++ module github.com/fastly/cli/v2
 
-1. <a name="note1"></a>We utilize [semantic versioning](https://semver.org/) and only include relevant/significant changes within the CHANGELOG (be sure to document changes to the app config if `config_version` has changed, and if any breaking interface changes are made to the fastly.toml manifest those should be documented on developer.fastly.com).
-1. <a name="note2"></a>Triggers a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_release.yml) that produces a 'draft' release.
+...
+
+- import ""github.com/fastly/cli/v1/pkg/app""
++ import ""github.com/fastly/cli/v2/pkg/app""
+```
+
+- Ensure any relevant `FIXME` notes are resolved.
+- Merge all PRs intended for the release.
+- Rebase latest remote changes:
+
+```shell
+git pull --rebase origin main
+```
+
+- Ensure all analysis checks and tests are passing:
+
+```shell
+time TEST_COMPUTE_INIT=1 TEST_COMPUTE_BUILD=1 TEST_COMPUTE_DEPLOY=1 make all
+```
+
+- Ensure goreleaser builds locally:
+
+```shell
+make release GORELEASER_ARGS="--skip=validate --skip=post-hooks --clean"
+```
+
+- Open a new PR to update [CHANGELOG](./CHANGELOG.md).
+
+> **NOTE:** Document changes to the app config (if `config_version` has
+> changed), and any changes to the [fastly.toml](https://www.fastly.com/documentation/reference/compute/fastly-toml/).
+
+- Merge CHANGELOG.
+- Rebase latest remote changes.
+- Tag a new release:
+
+```shell
+tag=vX.Y.Z && git tag -s $tag -m "$tag" && git push origin $tag
+```
+
+> **NOTE:** This will trigger a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_release.yml)
+> that produces a 'draft' release.
+
+- Copy/paste CHANGELOG into the [draft release](https://github.com/fastly/cli/releases).
+- Publish draft release.
