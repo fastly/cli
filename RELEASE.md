@@ -1,8 +1,10 @@
 # Release Process
 
-> **IMPORTANT:** If publishing a new major version, ensure the module name in
+> ⚠️ **IMPORTANT:** If publishing a new major version, ensure the module name in
 > the [go.mod](./go.mod) (and any references to the module name in the code) are
 > updated to reflect the latest release.
+
+## Example
 
 ```diff
 - module github.com/fastly/cli/v1
@@ -10,9 +12,11 @@
 
 ...
 
-- import ""github.com/fastly/cli/v1/pkg/app""
-+ import ""github.com/fastly/cli/v2/pkg/app""
+- import "github.com/fastly/cli/v1/pkg/app"
++ import "github.com/fastly/cli/v2/pkg/app"
 ```
+
+## Steps
 
 - Ensure any relevant `FIXME` notes are resolved.
 - Merge all PRs intended for the release.
