@@ -451,7 +451,7 @@ func (m Metadata) URL() string {
 		// NOTE: We use `m.repo` for wasm-tools instead of `m.binary`.
 		// This is because we append `.exe` to `m.binary` on Windows.
 		// Instead of filtering the extension we just use `m.repo` instead.
-		pattern := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s-%s/%s-%s-%s-%s.%s", m.org, m.repo, m.repo, version, m.repo, version, arch, platform, extension)
+		pattern := fmt.Sprintf("https://github.com/%s/%s/releases/download/v%s/%s-%s-%s-%s.%s", m.org, m.repo, version, m.repo, version, arch, platform, extension)
 		if matched, _ := regexp.MatchString(pattern, a.BrowserDownloadURL); matched {
 			return a.BrowserDownloadURL
 		}
