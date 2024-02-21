@@ -49,6 +49,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	return nil
 }
 
+// Coordinates returns a stringified object of coordinate data.
 func Coordinates(c *fastly.Coordinates) string {
 	if c != nil {
 		return fmt.Sprintf(
