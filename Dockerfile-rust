@@ -15,8 +15,6 @@ RUN rustup toolchain install ${RUST_TOOLCHAIN} \
   && useradd -ms /bin/bash fastly
 
 USER fastly
-# this forces the download of the crates index; it will save build time if the image was recently built
-RUN cargo search --limit 0
 
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/fastly"]
