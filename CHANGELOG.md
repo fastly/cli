@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [v10.8.3](https://github.com/fastly/cli/releases/tag/v10.8.3) (2024-02-21)
+
+**Bug fixes:**
+
+- fix(github): update wasm-tools path [#1136](https://github.com/fastly/cli/pull/1136)
+- fix(compute/serve): avoid `text.Output` when dealing with large `bytes.Buffer` [#1138](https://github.com/fastly/cli/pull/1138)
+
+**Enhancements:**
+
+- resolve GitHub linter issues [#1137](https://github.com/fastly/cli/pull/1137)
+
+**Dependencies:**
+
+- build(deps): bump golang.org/x/mod from 0.14.0 to 0.15.0 [#1135](https://github.com/fastly/cli/pull/1135)
+
 ## [v10.8.2](https://github.com/fastly/cli/releases/tag/v10.8.2) (2024-02-15)
 
 **Bug fixes:**
