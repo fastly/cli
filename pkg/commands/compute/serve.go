@@ -615,7 +615,7 @@ func local(opts localOpts) error {
 		}
 
 		if opts.verbose {
-			text.Info(opts.out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).", root)
+			text.Info(opts.out, "Watching files for changes (using --watch-dir=%s). To ignore certain files, define patterns within a .fastlyignore config file (uses .fastlyignore from --watch-dir).\n\n", root)
 		}
 
 		gi := ignoreFiles(opts.watchDir)
