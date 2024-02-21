@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -110,11 +111,14 @@ func MockGlobalData(args []string, stdout io.Writer) *global.Data {
 		Env:        config.Environment{},
 		ErrLog:     errors.Log,
 		ExecuteWasmTools: func(bin string, args []string) error {
+			fmt.Printf("bin: %s\n", bin)
+			fmt.Printf("args: %#v\n", args)
 			return nil
 		},
 		HTTPClient: &http.Client{Timeout: time.Second * 5},
 		Manifest:   &md,
 		Opener: func(input string) error {
+			fmt.Printf("%s\n", input)
 			return nil // no-op
 		},
 		Output: stdout,
