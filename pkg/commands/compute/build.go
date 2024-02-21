@@ -138,6 +138,9 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}(c.Globals.ErrLog)
 
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
 	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), func(_ *text.SpinnerWrapper) error {
 		// The check for c.SkipChangeDir here is because we might need to attempt
 		// another read of the manifest file. To explain: if we're skipping the
