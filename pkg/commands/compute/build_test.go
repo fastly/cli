@@ -860,7 +860,7 @@ func TestBuildOther(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			[scripts]
-			build = "ls ./bin"
+			build = "cp ./bin/test.main.wasm ./bin/main.wasm"
       post_build = "echo doing a post build"`,
 			stdin: "N",
 			wantOutput: []string{
@@ -877,7 +877,7 @@ func TestBuildOther(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			[scripts]
-			build = "ls ./bin"
+			build = "cp ./bin/test.main.wasm ./bin/main.wasm"
       post_build = "echo doing a post build"`,
 			stdin: "Y",
 			wantOutput: []string{
@@ -894,7 +894,7 @@ func TestBuildOther(t *testing.T) {
 			name = "test"
 			language = "other"
 			[scripts]
-			build = "ls ./bin"
+			build = "cp ./bin/test.main.wasm ./bin/main.wasm"
       post_build = "echo doing a post build"`,
 			stdin: "Y",
 			wantOutput: []string{
@@ -910,7 +910,7 @@ func TestBuildOther(t *testing.T) {
 			manifest_version = 2
 			name = "test"
 			[scripts]
-			build = "ls ./bin"
+			build = "cp ./bin/test.main.wasm ./bin/main.wasm"
       post_build = "echo doing a post build with no confirmation prompt && exit 1"`, // force an error so post_build is displayed to validate it was run.
 			wantOutput: []string{
 				"doing a post build with no confirmation prompt",
@@ -953,7 +953,8 @@ func TestBuildOther(t *testing.T) {
 			//
 			// NOTE: Our only requirement is that there be a bin directory. The custom
 			// build script we're using in the test is not going to use any files in the
-			// directory (the script will just `echo` a message).
+			// directory (the script will just copy a test binary into the expected
+			// location of the final main.wasm binary).
 			//
 			// NOTE: We create a "valid" main.wasm file with a quick shell script.
 			//
@@ -967,7 +968,7 @@ func TestBuildOther(t *testing.T) {
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Copy: []testutil.FileIO{
-					{Src: "./testdata/main.wasm", Dst: "bin/main.wasm"},
+					{Src: "./testdata/main.wasm", Dst: "bin/test.main.wasm"},
 				},
 				Write: []testutil.FileIO{
 					{Src: `#!/usr/bin/env bash
@@ -979,7 +980,6 @@ func TestBuildOther(t *testing.T) {
 			})
 			defer os.RemoveAll(rootdir)
 			wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
-			mainwasmBinPath := filepath.Join(rootdir, "bin", "main.wasm")
 
 			// Before running the test, chdir into the build environment.
 			// When we're done, chdir back to our original location.
@@ -989,24 +989,6 @@ func TestBuildOther(t *testing.T) {
 			}
 			defer func() {
 				_ = os.Chdir(pwd)
-			}()
-
-			// Make a backup of the bin/main.wasm as it will get modified by the
-			// post_build script and that will cause it to fail validation.
-			//
-			// TODO: Check if this backup is still needed?
-			// We had this back when the test environment was setup once.
-			// But we've moved to having the test environment created for each test case.
-			// So we might not need to restore mainwasmBinPath as it's created afresh.
-			mainWasmBackup, err := os.ReadFile(mainwasmBinPath)
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer func() {
-				err := os.WriteFile(mainwasmBinPath, mainWasmBackup, 0o600)
-				if err != nil {
-					t.Fatal(err)
-				}
 			}()
 
 			if testcase.fastlyManifest != "" {
