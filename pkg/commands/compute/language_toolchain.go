@@ -86,6 +86,12 @@ type BuildToolchain struct {
 
 // Build compiles the user's source code into a Wasm binary.
 func (bt BuildToolchain) Build() error {
+	// Make sure to delete any pre-existing binary otherwise prior metadata will
+	// continue to be persisted.
+	if _, err := os.Stat(binWasmPath); err == nil {
+		os.Remove(binWasmPath)
+	}
+
 	cmd, args := bt.buildFn(bt.buildScript)
 
 	if bt.verbose {
