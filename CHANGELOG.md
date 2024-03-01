@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v10.8.4](https://github.com/fastly/cli/releases/tag/v10.8.4) (2024-03-01)
+
+**Bug fixes:**
+
+- fix(compute/build): avoid persisting old metadata [#1142](https://github.com/fastly/cli/pull/1142)
+
 ## [v10.8.3](https://github.com/fastly/cli/releases/tag/v10.8.3) (2024-02-21)
 
 **Bug fixes:**
