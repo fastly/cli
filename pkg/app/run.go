@@ -622,7 +622,7 @@ func commandRequiresAuthServer(command string) bool {
 // requires an API token.
 func commandRequiresToken(command string) bool {
 	switch command {
-	case "compute init", "compute metadata", "compute serve":
+	case "compute build", "compute hash-files", "compute init", "compute metadata", "compute serve":
 		return false
 	}
 	command = strings.Split(command, " ")[0]
