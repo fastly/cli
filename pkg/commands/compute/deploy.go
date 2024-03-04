@@ -352,7 +352,7 @@ func validStatusCodeRange(status int) bool {
 // - Validate there is a package to deploy.
 // - Determine if a trial needs to be activated on the user's account.
 func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, serviceID string, err error) {
-	defaultActivator := func(customerID string) error { return nil }
+	defaultActivator := func(_ string) error { return nil }
 
 	token, s := c.Globals.Token()
 	if s == lookup.SourceUndefined {
@@ -462,7 +462,6 @@ func locateManifest(path, manifestFilename string) (string, error) {
 		}
 		return nil
 	})
-
 	if err != nil {
 		// If the error isn't ErrStopWalk, then the WalkDir() function had an
 		// issue processing the directory tree.
