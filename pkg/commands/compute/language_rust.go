@@ -62,6 +62,7 @@ func NewRust(
 		nonInteractive:        c.Globals.Flags.NonInteractive,
 		output:                out,
 		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
+		serveFile:             c.ServeFile,
 		spinner:               spinner,
 		timeout:               c.Flags.Timeout,
 		verbose:               c.Globals.Verbose(),
@@ -101,6 +102,8 @@ type Rust struct {
 	postBuild string
 	// projectRoot is the root directory where the Cargo.toml is located.
 	projectRoot string
+	// serveFile indicates if --file was passed as part of `compute serve`.
+	serveFile bool
 	// spinner is a terminal progress status indicator.
 	spinner text.Spinner
 	// timeout is the build execution threshold.
@@ -172,6 +175,7 @@ func (r *Rust) Build() error {
 		nonInteractive:            r.nonInteractive,
 		out:                       r.output,
 		postBuild:                 r.postBuild,
+		serveFile:                 r.serveFile,
 		spinner:                   r.spinner,
 		timeout:                   r.timeout,
 		verbose:                   r.verbose,
