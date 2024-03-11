@@ -76,6 +76,8 @@ type BuildToolchain struct {
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
+	// serveFile indicates if --file was passed as part of `compute serve`.
+	serveFile bool
 	// spinner is a terminal progress status indicator.
 	spinner text.Spinner
 	// timeout is the build execution threshold.
@@ -175,16 +177,19 @@ func (bt BuildToolchain) Build() error {
 		}
 	}
 
-	// IMPORTANT: The stat check MUST come after the internalPostBuildCallback.
-	// This is because for Rust it needs to move the binary first.
-	_, err = os.Stat(binWasmPath)
-	if err != nil {
-		return bt.handleError(err)
-	}
-
-	// NOTE: The logic for checking the Wasm binary is 'valid' is not exhaustive.
-	if err := bt.validateWasm(); err != nil {
-		return err
+	// We only validate the build output if --file isn't specified in the
+	// `compute serve` command.
+	if !bt.serveFile {
+		// IMPORTANT: The stat check MUST come after the internalPostBuildCallback.
+		// This is because for Rust it needs to move the binary first.
+		_, err = os.Stat(binWasmPath)
+		if err != nil {
+			return bt.handleError(err)
+		}
+		// NOTE: The logic for checking the Wasm binary is 'valid' is not exhaustive.
+		if err := bt.validateWasm(); err != nil {
+			return err
+		}
 	}
 
 	if bt.postBuild != "" {

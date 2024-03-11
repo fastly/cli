@@ -53,6 +53,7 @@ func NewGo(
 		nonInteractive:        c.Globals.Flags.NonInteractive,
 		output:                out,
 		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
+		serveFile:             c.ServeFile,
 		spinner:               spinner,
 		timeout:               c.Flags.Timeout,
 		verbose:               c.Globals.Verbose(),
@@ -93,6 +94,8 @@ type Go struct {
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
+	// serveFile indicates if --file was passed as part of `compute serve`.
+	serveFile bool
 	// spinner is a terminal progress status indicator.
 	spinner text.Spinner
 	// timeout is the build execution threshold.
@@ -187,6 +190,7 @@ func (g *Go) Build() error {
 		nonInteractive:        g.nonInteractive,
 		out:                   g.output,
 		postBuild:             g.postBuild,
+		serveFile:             g.serveFile,
 		spinner:               g.spinner,
 		timeout:               g.timeout,
 		verbose:               g.verbose,

@@ -29,6 +29,7 @@ func NewOther(
 		nonInteractive:        c.Globals.Flags.NonInteractive,
 		output:                out,
 		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
+		serveFile:             c.ServeFile,
 		spinner:               spinner,
 		timeout:               c.Flags.Timeout,
 		verbose:               c.Globals.Verbose(),
@@ -62,6 +63,8 @@ type Other struct {
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
+	// serveFile indicates if --file was passed as part of `compute serve`.
+	serveFile bool
 	// spinner is a terminal progress status indicator.
 	spinner text.Spinner
 	// timeout is the build execution threshold.
@@ -96,6 +99,7 @@ func (o Other) Build() error {
 		nonInteractive:        o.nonInteractive,
 		out:                   o.output,
 		postBuild:             o.postBuild,
+		serveFile:             o.serveFile,
 		spinner:               o.spinner,
 		timeout:               o.timeout,
 		verbose:               o.verbose,
