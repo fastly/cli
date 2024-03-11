@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [v10.8.5](https://github.com/fastly/cli/releases/tag/v10.8.5) (2024-03-11)
+
+**Bug fixes:**
+
+- fix(compute/serve): avoid wasm validation when --file is set [#1150](https://github.com/fastly/cli/pull/1150)
+
+**Enhancements:**
+
+- refactor(app): update list of commands that require a token [#1145](https://github.com/fastly/cli/pull/1145)
+
+**Dependencies:**
+
+- build(deps): bump golang.org/x/crypto from 0.19.0 to 0.20.0 [#1146](https://github.com/fastly/cli/pull/1146)
+- build(deps): bump golang.org/x/mod from 0.15.0 to 0.16.0 [#1147](https://github.com/fastly/cli/pull/1147)
+
 ## [v10.8.4](https://github.com/fastly/cli/releases/tag/v10.8.4) (2024-03-01)
 
 **Bug fixes:**
