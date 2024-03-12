@@ -15,7 +15,7 @@ jobs:
       - name: "Generate static app config"
         run: make config
       - name: "Config Artifact"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
