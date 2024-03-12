@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [v10.8.6](https://github.com/fastly/cli/releases/tag/v10.8.6) (2024-03-12)
+
+**Dependencies:**
+
+- build(deps): bump golang.org/x/crypto from 0.20.0 to 0.21.0 [#1153](https://github.com/fastly/cli/pull/1153)
+- build: bump go-fastly to v9.0.1 [#1155](https://github.com/fastly/cli/pull/1155)
+- build(deps): bump actions/setup-go from 4 to 5 [#1106](https://github.com/fastly/cli/pull/1106)
+- build(deps): bump github.com/go-jose/go-jose/v3 from 3.0.1 to 3.0.3 [#1149](https://github.com/fastly/cli/pull/1149)
+- build(deps): bump actions/download-artifact and actions/upload-artifact from 3 to 4 [#1156](https://github.com/fastly/cli/pull/1156)
+
 ## [v10.8.5](https://github.com/fastly/cli/releases/tag/v10.8.5) (2024-03-11)
 
 **Bug fixes:**
