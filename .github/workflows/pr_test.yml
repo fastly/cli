@@ -134,7 +134,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Config Artifact"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
