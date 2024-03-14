@@ -3,6 +3,7 @@ package compute
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 
@@ -19,7 +20,7 @@ import (
 // NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
 // We no longer do that. In 6.x we use the default and just inform the user.
 // This makes the experience less confusing as users didn't expect file changes.
-const AsDefaultBuildCommand = "npm exec -- asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
+var AsDefaultBuildCommand = fmt.Sprintf("npm exec -- asc assembly/index.ts --outFile %s --optimize --noAssert", binWasmPath)
 
 // AsDefaultBuildCommandForWebpack is a build command compiled into the CLI
 // binary so it can be used as a fallback for customer's who have an existing
@@ -29,7 +30,7 @@ const AsDefaultBuildCommand = "npm exec -- asc assembly/index.ts --outFile bin/m
 //
 // NOTE: For this variation of the build script to be added to the user's
 // fastly.toml will require a successful check for the webpack dependency.
-const AsDefaultBuildCommandForWebpack = "npm exec webpack && npm exec -- asc assembly/index.ts --outFile bin/main.wasm --optimize --noAssert"
+var AsDefaultBuildCommandForWebpack = fmt.Sprintf("npm exec webpack && npm exec -- asc assembly/index.ts --outFile %s --optimize --noAssert", binWasmPath)
 
 // AsSourceDirectory represents the source code directory.
 const AsSourceDirectory = "assembly"

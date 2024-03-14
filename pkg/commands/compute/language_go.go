@@ -26,7 +26,7 @@ import (
 // NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
 // We no longer do that. In 6.x we use the default and just inform the user.
 // This makes the experience less confusing as users didn't expect file changes.
-const TinyGoDefaultBuildCommand = "tinygo build -target=wasi -gc=conservative -o bin/main.wasm ./"
+var TinyGoDefaultBuildCommand = fmt.Sprintf("tinygo build -target=wasi -gc=conservative -o %s ./", binWasmPath)
 
 // GoSourceDirectory represents the source code directory.
 const GoSourceDirectory = "."

@@ -214,7 +214,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			revision.AppVersion, cases.Title(textlang.English).String(language.Name),
 		)
 		metadataArgs := []string{
-			"metadata", "add", "bin/main.wasm", metadataProcessedBy,
+			"metadata", "add", binWasmPath, metadataProcessedBy,
 		}
 
 		metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
@@ -292,7 +292,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 		files := []string{
 			manifest.Filename,
-			"bin/main.wasm",
+			binWasmPath,
 		}
 		files, err = c.includeSourceCode(files, language.SourceDirectory)
 		if err != nil {
@@ -384,7 +384,7 @@ func (c *BuildCommand) ShowMetadata(wasmtools string, out io.Writer) {
 	// Disabling as the variables come from trusted sources.
 	// #nosec
 	// nosemgrep
-	command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm")
+	command := exec.Command(wasmtools, "metadata", "show", binWasmPath)
 	wasmtoolsOutput, err := command.Output()
 	if err != nil {
 		text.Error(out, "failed to execute wasm-tools metadata command: %s\n\n", err)
@@ -499,7 +499,7 @@ func ExecuteWasmTools(wasmtools string, args []string, d *global.Data) error {
 		// #nosec
 		err = os.WriteFile(binWasmPath, originalBin, 0o777)
 		if err != nil {
-			return fmt.Errorf("failed to restore bin/main.wasm: %w", err)
+			return fmt.Errorf("failed to restore %s: %w", binWasmPath, err)
 		}
 	}
 

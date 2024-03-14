@@ -3,6 +3,7 @@ package compute
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -20,7 +21,7 @@ import (
 // NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
 // We no longer do that. In 6.x we use the default and just inform the user.
 // This makes the experience less confusing as users didn't expect file changes.
-const JsDefaultBuildCommand = "npm exec js-compute-runtime ./src/index.js ./bin/main.wasm"
+var JsDefaultBuildCommand = fmt.Sprintf("npm exec js-compute-runtime ./src/index.js %s", binWasmPath)
 
 // JsDefaultBuildCommandForWebpack is a build command compiled into the CLI
 // binary so it can be used as a fallback for customer's who have an existing
@@ -30,7 +31,7 @@ const JsDefaultBuildCommand = "npm exec js-compute-runtime ./src/index.js ./bin/
 //
 // NOTE: For this variation of the build script to be added to the user's
 // fastly.toml will require a successful check for the webpack dependency.
-const JsDefaultBuildCommandForWebpack = "npm exec webpack && npm exec js-compute-runtime ./bin/index.js ./bin/main.wasm"
+var JsDefaultBuildCommandForWebpack = fmt.Sprintf("npm exec webpack && npm exec js-compute-runtime ./bin/index.js %s", binWasmPath)
 
 // JsSourceDirectory represents the source code directory.
 const JsSourceDirectory = "src"
