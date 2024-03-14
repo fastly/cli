@@ -17,19 +17,19 @@ func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 	out = textio.NewPrefixWriter(out, prefix)
 
 	if s.ServiceID != nil {
-		fmt.Fprintf(out, "ID: %s\n", *s.ServiceID)
+		fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(s.ServiceID))
 	}
 	if s.Name != nil {
-		fmt.Fprintf(out, "Name: %s\n", *s.Name)
+		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(s.Name))
 	}
 	if s.Type != nil {
-		fmt.Fprintf(out, "Type: %s\n", *s.Type)
+		fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(s.Type))
 	}
 	if s.Comment != nil {
-		fmt.Fprintf(out, "Comment: %s\n", *s.Comment)
+		fmt.Fprintf(out, "Comment: %s\n", fastly.ToValue(s.Comment))
 	}
 	if s.CustomerID != nil {
-		fmt.Fprintf(out, "Customer ID: %s\n", *s.CustomerID)
+		fmt.Fprintf(out, "Customer ID: %s\n", fastly.ToValue(s.CustomerID))
 	}
 	if s.CreatedAt != nil {
 		fmt.Fprintf(out, "Created (UTC): %s\n", s.CreatedAt.UTC().Format(time.Format))
@@ -41,7 +41,7 @@ func PrintService(out io.Writer, prefix string, s *fastly.Service) {
 		fmt.Fprintf(out, "Deleted (UTC): %s\n", s.DeletedAt.UTC().Format(time.Format))
 	}
 	if s.ActiveVersion != nil {
-		fmt.Fprintf(out, "Active version: %d\n", *s.ActiveVersion)
+		fmt.Fprintf(out, "Active version: %d\n", fastly.ToValue(s.ActiveVersion))
 	}
 	fmt.Fprintf(out, "Versions: %d\n", len(s.Versions))
 	for j, version := range s.Versions {
@@ -57,28 +57,28 @@ func PrintVersion(out io.Writer, indent string, v *fastly.Version) {
 	out = textio.NewPrefixWriter(out, indent)
 
 	if v.Number != nil {
-		fmt.Fprintf(out, "Number: %d\n", *v.Number)
+		fmt.Fprintf(out, "Number: %d\n", fastly.ToValue(v.Number))
 	}
 	if v.Comment != nil {
-		fmt.Fprintf(out, "Comment: %s\n", *v.Comment)
+		fmt.Fprintf(out, "Comment: %s\n", fastly.ToValue(v.Comment))
 	}
 	if v.ServiceID != nil {
-		fmt.Fprintf(out, "Service ID: %s\n", *v.ServiceID)
+		fmt.Fprintf(out, "Service ID: %s\n", fastly.ToValue(v.ServiceID))
 	}
 	if v.Active != nil {
-		fmt.Fprintf(out, "Active: %v\n", *v.Active)
+		fmt.Fprintf(out, "Active: %v\n", fastly.ToValue(v.Active))
 	}
 	if v.Locked != nil {
-		fmt.Fprintf(out, "Locked: %v\n", *v.Locked)
+		fmt.Fprintf(out, "Locked: %v\n", fastly.ToValue(v.Locked))
 	}
 	if v.Deployed != nil {
-		fmt.Fprintf(out, "Deployed: %v\n", *v.Deployed)
+		fmt.Fprintf(out, "Deployed: %v\n", fastly.ToValue(v.Deployed))
 	}
 	if v.Staging != nil {
-		fmt.Fprintf(out, "Staging: %v\n", *v.Staging)
+		fmt.Fprintf(out, "Staging: %v\n", fastly.ToValue(v.Staging))
 	}
 	if v.Testing != nil {
-		fmt.Fprintf(out, "Testing: %v\n", *v.Testing)
+		fmt.Fprintf(out, "Testing: %v\n", fastly.ToValue(v.Testing))
 	}
 	if v.CreatedAt != nil {
 		fmt.Fprintf(out, "Created (UTC): %s\n", v.CreatedAt.UTC().Format(time.Format))
