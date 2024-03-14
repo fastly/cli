@@ -14,7 +14,7 @@ import (
 )
 
 // Scopes is a list of purging scope options.
-// https://developer.fastly.com/reference/api/auth/#scopes
+// https://www.fastly.com/documentation/reference/api/auth-tokens#scopes
 var Scopes = []string{"global", "purge_select", "purge_all", "global:read"}
 
 // NewCreateCommand returns a usable command registered under the parent.

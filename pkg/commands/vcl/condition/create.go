@@ -12,7 +12,7 @@ import (
 )
 
 // ConditionTypes are the allowed input values for the --type flag.
-// Reference: https://developer.fastly.com/reference/api/vcl-services/condition/
+// Reference: https://www.fastly.com/documentation/reference/api/vcl-services/condition
 var ConditionTypes = []string{"REQUEST", "CACHE", "RESPONSE", "PREFETCH"}
 
 // CreateCommand calls the Fastly API to create an appropriate resource.

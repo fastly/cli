@@ -2,7 +2,7 @@
   <h3 align="center">Fastly CLI</h3>
   <p align="center">A CLI for interacting with the Fastly platform.</p>
   <p align="center">
-      <a href="https://developer.fastly.com/reference/cli/"><img alt="Documentation" src="https://img.shields.io/badge/cli-reference-yellow"></a>
+      <a href="https://www.fastly.com/documentation/reference/cli"><img alt="Documentation" src="https://img.shields.io/badge/cli-reference-yellow"></a>
       <a href="https://github.com/fastly/cli/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/fastly/cli" /></a>
       <a href="#License"><img alt="Apache 2.0 License" src="https://img.shields.io/github/license/fastly/cli" /></a>
       <a href="https://goreportcard.com/report/github.com/fastly/cli"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/fastly/cli" /></a>
@@ -11,10 +11,10 @@
 
 ## Quick links
 
-- [Installation](https://developer.fastly.com/learning/tools/cli#installing)
-- [Shell auto-completion](https://developer.fastly.com/learning/tools/cli#shell-auto-completion)
-- [Configuring](https://developer.fastly.com/learning/tools/cli#configuring)
-- [Commands](https://developer.fastly.com/reference/cli/#command-groups)
+- [Installation](https://www.fastly.com/documentation/reference/tools/cli#installing)
+- [Shell auto-completion](https://www.fastly.com/documentation/reference/tools/cli#shell-auto-completion)
+- [Configuring](https://www.fastly.com/documentation/reference/tools/cli#configuring)
+- [Commands](https://www.fastly.com/documentation/reference/cli#command-groups)
 - [Development](DEVELOPMENT.md)
 - [Testing](TESTING.md)
 - [Documentation](DOCUMENTATION.md)

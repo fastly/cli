@@ -144,7 +144,7 @@ func (g *Go) Build() error {
 		if !g.verbose {
 			text.Break(g.output)
 		}
-		text.Info(g.output, "No [scripts.build] found in %s. Visit https://developer.fastly.com/learning/compute/go/ to learn how to target standard Go vs TinyGo.\n\n", g.manifestFilename)
+		text.Info(g.output, "No [scripts.build] found in %s. Visit https://www.fastly.com/documentation/guides/compute/go/ to learn how to target standard Go vs TinyGo.\n\n", g.manifestFilename)
 		text.Description(g.output, "The following default build command for TinyGo will be used", g.build)
 	}
 

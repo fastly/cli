@@ -25,7 +25,7 @@ import (
 // Fastly Package API endpoint.
 //
 // NOTE: This is variable not a constant for the sake of test manipulations.
-// https://developer.fastly.com/learning/compute/#limitations-and-constraints
+// https://www.fastly.com/documentation/guides/compute#limitations-and-constraints
 var MaxPackageSize int64 = 100000000 // 100MB in bytes
 
 // HashFilesCommand produces a deployable artifact from files on the local disk.

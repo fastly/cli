@@ -34,7 +34,7 @@ addEventListener('fetch', async function handleRequest(event) {
   if (method == "GET" && url.pathname == "/") {
     let headers = new Headers();
     headers.set('Content-Type', 'text/html; charset=utf-8');
-    let response = new Response("<iframe src='https://developer.fastly.com/compute-welcome' style='border:0; position: absolute; top: 0; left: 0; width: 100%; height: 100%'></iframe>\n", {
+    let response = new Response("<iframe src='https://fastly.com/documentation/help/compute-welcome' style='border:0; position: absolute; top: 0; left: 0; width: 100%; height: 100%'></iframe>\n", {
       status: 200,
       headers
     });

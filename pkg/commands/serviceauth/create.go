@@ -11,7 +11,7 @@ import (
 )
 
 // Permissions is a list of supported permission values.
-// https://developer.fastly.com/reference/api/account/service-authorization/#data-model
+// https://www.fastly.com/documentation/reference/api/account/service-authorization#data-model
 var Permissions = []string{"full", "read_only", "purge_select", "purge_all"}
 
 // CreateCommand calls the Fastly API to create a service authorization.

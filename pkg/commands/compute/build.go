@@ -449,7 +449,7 @@ func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 	default:
 		return "", fsterr.RemediationError{
 			Inner:       fmt.Errorf("package name is missing"),
-			Remediation: fmt.Sprintf("Add a name to the %s 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/", manifestFilename),
+			Remediation: fmt.Sprintf("Add a name to the %s 'name' field. Reference: https://www.fastly.com/documentation/reference/compute/fastly-toml", manifestFilename),
 		}
 	}
 

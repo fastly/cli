@@ -1,7 +1,7 @@
 package manifest
 
 // Setup represents a set of service configuration that works with the code in
-// the package. See https://developer.fastly.com/reference/fastly-toml/.
+// the package. See https://www.fastly.com/documentation/reference/compute/fastly-toml.
 type Setup struct {
 	Backends     map[string]*SetupBackend     `toml:"backends,omitempty"`
 	ConfigStores map[string]*SetupConfigStore `toml:"config_stores,omitempty"`

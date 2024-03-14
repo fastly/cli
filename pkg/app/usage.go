@@ -131,7 +131,7 @@ var UsageTemplateFuncs = template.FuncMap{
 	},
 	"SeeAlso": func(cm *kingpin.CmdModel) string {
 		cmd := cm.FullCommand()
-		url := "https://developer.fastly.com/reference/cli/"
+		url := "https://www.fastly.com/documentation/reference/cli"
 		var trail string
 		if len(cmd) > 0 {
 			trail = "/"
@@ -410,7 +410,7 @@ func useFullHelpOutput(app *kingpin.Application, args []string, out io.Writer) *
 
 // metadata is combined into the usage output so the Developer Hub can display
 // additional information about how to use the commands and what APIs they call.
-// e.g. https://developer.fastly.com/reference/cli/vcl/snippet/create/
+// e.g. https://www.fastly.com/documentation/reference/cli/vcl/snippet/create/
 //
 //go:embed metadata.json
 var metadata []byte

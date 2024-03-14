@@ -117,7 +117,7 @@ var IDRemediation = strings.Join([]string{
 // current package size limit.
 var PackageSizeRemediation = strings.Join([]string{
 	"Please check our Compute resource limits:",
-	"https://developer.fastly.com/learning/compute/#limitations-and-constraints",
+	"https://www.fastly.com/documentation/guides/compute#limitations-and-constraints",
 }, " ")
 
 // UnrecognisedManifestVersionRemediation suggests steps to resolve an issue
@@ -125,7 +125,7 @@ var PackageSizeRemediation = strings.Join([]string{
 // current CLI version supports.
 var UnrecognisedManifestVersionRemediation = strings.Join([]string{
 	"Please try updating the installed CLI version using: `fastly update`.",
-	"See also https://developer.fastly.com/reference/fastly-toml/ to check your fastly.toml manifest is up-to-date with the latest data model.",
+	"See also https://www.fastly.com/documentation/reference/compute/fastly-toml to check your fastly.toml manifest is up-to-date with the latest data model.",
 	BugRemediation,
 }, " ")
 
@@ -133,7 +133,7 @@ var UnrecognisedManifestVersionRemediation = strings.Join([]string{
 // manifest issue.
 var ComputeInitRemediation = strings.Join([]string{
 	"Run `fastly compute init` to ensure a correctly configured manifest.",
-	"See more at https://developer.fastly.com/reference/fastly-toml/",
+	"See more at https://www.fastly.com/documentation/reference/compute/fastly-toml",
 }, " ")
 
 // ComputeServeRemediation suggests re-running `compute serve` with one of the
@@ -147,7 +147,7 @@ var ComputeServeRemediation = strings.Join([]string{
 // the fastly.toml manifest.
 var ComputeBuildRemediation = strings.Join([]string{
 	"Add a [scripts] section with `build = \"%s\"`.",
-	"See more at https://developer.fastly.com/reference/fastly-toml/",
+	"See more at https://www.fastly.com/documentation/reference/compute/fastly-toml",
 }, " ")
 
 // ComputeTrialRemediation suggests contacting customer manager to enable the

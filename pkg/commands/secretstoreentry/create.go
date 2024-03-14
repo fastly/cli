@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	// Maximum secret length, as defined at https://developer.fastly.com/reference/api/services/resources/secret-store-secret/
+	// Maximum secret length, as defined at https://www.fastly.com/documentation/reference/api/services/resources/secret-store-secret
 	maxSecretKiB = 64
 	maxSecretLen = maxSecretKiB * 1024
 )
