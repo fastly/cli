@@ -48,7 +48,11 @@ func PrintConfigStoreServicesTbl(out io.Writer, s []*fastly.Service) {
 	tw := NewTable(out)
 	tw.AddHeader("NAME", "ID", "TYPE")
 	for _, service := range s {
-		tw.AddLine(service.Name, service.ServiceID, service.Type)
+		tw.AddLine(
+			fastly.ToValue(service.Name),
+			fastly.ToValue(service.ServiceID),
+			fastly.ToValue(service.Type),
+		)
 	}
 	tw.Print()
 }
