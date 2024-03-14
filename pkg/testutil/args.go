@@ -110,9 +110,10 @@ func MockGlobalData(args []string, stdout io.Writer) *global.Data {
 		ConfigPath: configPath,
 		Env:        config.Environment{},
 		ErrLog:     errors.Log,
-		ExecuteWasmTools: func(bin string, args []string) error {
+		ExecuteWasmTools: func(bin string, args []string, d *global.Data) error {
 			fmt.Printf("bin: %s\n", bin)
 			fmt.Printf("args: %#v\n", args)
+			fmt.Printf("global: %#v\n", d)
 			return nil
 		},
 		HTTPClient: &http.Client{Timeout: time.Second * 5},

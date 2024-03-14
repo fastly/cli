@@ -228,9 +228,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 		}
 		if c.MetadataShow {
-			if err := c.ShowMetadata(wasmtools, out); err != nil {
-				return err
-			}
+			c.ShowMetadata(wasmtools, out)
 		}
 	} else {
 		if !c.Globals.Verbose() {
@@ -321,7 +319,7 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 // AnnotateWasmBinaryShort annotates the Wasm binary with only the CLI version.
 func (c *BuildCommand) AnnotateWasmBinaryShort(wasmtools string, args []string) error {
-	return c.Globals.ExecuteWasmTools(wasmtools, args)
+	return c.Globals.ExecuteWasmTools(wasmtools, args, c.Globals)
 }
 
 // AnnotateWasmBinaryLong annotates the Wasm binary will all available data.
@@ -373,16 +371,14 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 
 	data, err := json.Marshal(dc)
 	if err != nil {
-		return err
+		text.Info(c.Globals.Output, "failed to marshal DataCollection struct into JSON: %s", err)
 	}
-
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
-
-	return c.Globals.ExecuteWasmTools(wasmtools, args)
+	return c.Globals.ExecuteWasmTools(wasmtools, args, c.Globals)
 }
 
 // ShowMetadata displays the metadata attached to the Wasm binary.
-func (c *BuildCommand) ShowMetadata(wasmtools string, out io.Writer) error {
+func (c *BuildCommand) ShowMetadata(wasmtools string, out io.Writer) {
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as the variables come from trusted sources.
@@ -391,12 +387,12 @@ func (c *BuildCommand) ShowMetadata(wasmtools string, out io.Writer) error {
 	command := exec.Command(wasmtools, "metadata", "show", "bin/main.wasm")
 	wasmtoolsOutput, err := command.Output()
 	if err != nil {
-		return fmt.Errorf("failed to execute wasm-tools metadata command: %w", err)
+		text.Error(out, "failed to execute wasm-tools metadata command: %s\n\n", err)
+		return
 	}
 	text.Info(out, "\nBelow is the metadata attached to the Wasm binary\n\n")
 	fmt.Fprintln(out, string(wasmtoolsOutput))
 	text.Break(out)
-	return nil
 }
 
 // includeSourceCode calculates what source code files to include in the final
@@ -461,7 +457,8 @@ func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 }
 
 // ExecuteWasmTools calls the wasm-tools binary.
-func ExecuteWasmTools(wasmtools string, args []string) error {
+func ExecuteWasmTools(wasmtools string, args []string, d *global.Data) error {
+	errMsg := "failed to annotate binary with metadata: %s\n\n"
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
 	// Disabling as we trust the source of the variable.
@@ -469,19 +466,43 @@ func ExecuteWasmTools(wasmtools string, args []string) error {
 	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
 	command := exec.Command(wasmtools, args...)
 	wasmtoolsOutput, err := command.Output()
-	if err != nil {
-		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+	if err != nil && d.Verbose() {
+		text.Info(d.Output, errMsg, err)
 	}
-	// Ensure the Wasm binary can be executed.
+	if len(wasmtoolsOutput) == 0 {
+		return nil
+	}
+
+	// Make a backup of the original Wasm binary (before being annotated).
+	originalBin, err := os.ReadFile(binWasmPath)
+	if err != nil {
+		return err
+	}
+
+	// Overwrite the original Wasm binary with the annotated version.
 	//
 	// G302 (CWE-276): Expect file permissions to be 0600 or less
 	// gosec flagged this:
 	// Disabling as we want all users to be able to execute this binary.
 	// #nosec
-	err = os.WriteFile("bin/main.wasm", wasmtoolsOutput, 0o777)
+	err = os.WriteFile(binWasmPath, wasmtoolsOutput, 0o777)
 	if err != nil {
-		return fmt.Errorf("failed to annotate binary with metadata: %w", err)
+		if d.Verbose() {
+			text.Info(d.Output, errMsg, err)
+		}
+
+		// Restore the original Wasm binary.
+		//
+		// G302 (CWE-276): Expect file permissions to be 0600 or less
+		// gosec flagged this:
+		// Disabling as we want all users to be able to execute this binary.
+		// #nosec
+		err = os.WriteFile(binWasmPath, originalBin, 0o777)
+		if err != nil {
+			return fmt.Errorf("failed to restore bin/main.wasm: %w", err)
+		}
 	}
+
 	return nil
 }
 
