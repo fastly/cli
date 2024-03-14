@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [v10.8.7](https://github.com/fastly/cli/releases/tag/v10.8.7) (2024-03-14)
+
+**Bug fixes:**
+
+- fix(text): deref pointers [#1161](https://github.com/fastly/cli/pull/1161)
+- fix(compute/serve): let wasm-tools fail more gracefully [#1160](https://github.com/fastly/cli/pull/1160)
+- fix(compute/serve): support Windows [#1159](https://github.com/fastly/cli/pull/1159)
+
+**Enhancements:**
+
+- refactor: avoid duplicate path strings [#1162](https://github.com/fastly/cli/pull/1162)
+
 ## [v10.8.6](https://github.com/fastly/cli/releases/tag/v10.8.6) (2024-03-12)
 
 **Dependencies:**
