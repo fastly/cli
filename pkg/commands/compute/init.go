@@ -562,7 +562,7 @@ func (c *InitCommand) PromptForLanguage(languages []*Language, in io.Reader, out
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Output(out, "\n%s", text.Bold("Language:"))
-		text.Output(out, "(Find out more about language support at https://developer.fastly.com/learning/compute)")
+		text.Output(out, "(Find out more about language support at https://www.fastly.com/documentation/guides/compute)")
 		for i, lang := range languages {
 			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
 		}
@@ -619,7 +619,7 @@ func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader
 			text.Indent(out, 4, "%s\n%s", kit.Description, kit.Path)
 		}
 		text.Info(out, "\nFor a complete list of Starter Kits:")
-		text.Indent(out, 4, "https://developer.fastly.com/solutions/starters/")
+		text.Indent(out, 4, "https://www.fastly.com/documentation/solutions/starters")
 		text.Break(out)
 
 		option, err = text.Input(out, "Choose option or paste git URL: [1] ", in, validateTemplateOptionOrURL(kits))
@@ -1131,6 +1131,6 @@ func displayInitOutput(name, dst, language string, out io.Writer) {
 		text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
 	}
 
-	text.Description(out, "To learn about deploying Compute projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
+	text.Description(out, "To learn about deploying Compute projects using third-party orchestration tools, visit", "https://www.fastly.com/documentation/guides/integrations/orchestration")
 	text.Success(out, "Initialized package %s", text.Bold(name))
 }

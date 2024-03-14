@@ -129,7 +129,7 @@ func (a *AssemblyScript) Build() error {
 	if !a.verbose {
 		text.Break(a.output)
 	}
-	text.Deprecated(a.output, "The Fastly AssemblyScript SDK is being deprecated in favor of the more up-to-date and feature-rich JavaScript SDK. You can learn more about the JavaScript SDK on our Developer Hub Page - https://developer.fastly.com/learning/compute/javascript/\n\n")
+	text.Deprecated(a.output, "The Fastly AssemblyScript SDK is being deprecated in favor of the more up-to-date and feature-rich JavaScript SDK. You can learn more about the JavaScript SDK on our Developer Hub Page - https://www.fastly.com/documentation/guides/computejavascript/\n\n")
 
 	if a.build == "" {
 		a.build = AsDefaultBuildCommand

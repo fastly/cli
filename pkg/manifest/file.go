@@ -116,7 +116,7 @@ func (f *File) Read(path string) (err error) {
 	}
 
 	if dt := tree.Get("setup.dictionaries"); dt != nil {
-		text.Warning(f.output, "Your fastly.toml manifest contains `[setup.dictionaries]`, which should be updated to `[setup.config_stores]`. Refer to the documentation at https://developer.fastly.com/reference/compute/fastly-toml/\n\n")
+		text.Warning(f.output, "Your fastly.toml manifest contains `[setup.dictionaries]`, which should be updated to `[setup.config_stores]`. Refer to the documentation at https://www.fastly.com/documentation/reference/compute/fastly-toml\n\n")
 	}
 
 	f.exists = true

@@ -223,7 +223,7 @@ When upgrading to this version of the CLI, and running a command for the first t
 fastly config --reset
 ```
 
-The other change worth noting is to the parsing of the `fastly.toml` manifest file, which now supports a `file` field inside `[setup.kv_stores.<T>.items]` which can be used in place of the `value` field. Assigning a file path to the `file` field will use the content of the file as the value for the key. See: https://developer.fastly.com/reference/compute/fastly-toml/
+The other change worth noting is to the parsing of the `fastly.toml` manifest file, which now supports a `file` field inside `[setup.kv_stores.<T>.items]` which can be used in place of the `value` field. Assigning a file path to the `file` field will use the content of the file as the value for the key. See: https://www.fastly.com/documentation/reference/compute/fastly-toml
 
 **Bug fixes:**
 
@@ -460,7 +460,7 @@ This release introduces a breaking interface change to the `kv-store-entry` comm
 
 There are a couple of important 'breaking' changes in this release.
 
-The `object-store` command has been renamed to `kv-store` and the `fastly.toml` manifest (used by the Fastly CLI) has updated its data model (see https://developer.fastly.com/reference/compute/fastly-toml/) by renaming `[setup.dictionaries]` and `[local_server.dictionaries]` to their `config_stores` equivalent, which has resulted in a new `manifest_version` number due to the change to the consumer interface.
+The `object-store` command has been renamed to `kv-store` and the `fastly.toml` manifest (used by the Fastly CLI) has updated its data model (see https://www.fastly.com/documentation/reference/compute/fastly-toml) by renaming `[setup.dictionaries]` and `[local_server.dictionaries]` to their `config_stores` equivalent, which has resulted in a new `manifest_version` number due to the change to the consumer interface.
 
 **Breaking:**
 

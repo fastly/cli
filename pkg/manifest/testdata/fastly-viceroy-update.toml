@@ -1,5 +1,5 @@
 # This file describes a Fastly Compute package. To learn more visit:
-# https://developer.fastly.com/reference/fastly-toml/
+# https://www.fastly.com/documentation/reference/compute/fastly-toml
 
 authors = ["phamann <patrick@fastly.com>"]
 description = "Default package template for Rust based edge compute projects."

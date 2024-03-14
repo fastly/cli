@@ -35,7 +35,7 @@ var DefaultBuildErrorRemediation = func() string {
 - Did the build script (see fastly.toml [scripts.build]) produce a ./bin/main.wasm binary file?
 - Was there a configured [scripts.post_build] step that needs to be double-checked?
 
-For more information on fastly.toml configuration settings, refer to https://developer.fastly.com/reference/compute/fastly-toml/`,
+For more information on fastly.toml configuration settings, refer to https://www.fastly.com/documentation/reference/compute/fastly-toml`,
 		text.BoldYellow("Here are some steps you can follow to debug the issue"))
 }()
 
