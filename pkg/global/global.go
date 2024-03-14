@@ -65,7 +65,7 @@ type Data struct {
 	// ErrLog provides an interface for recording errors to disk.
 	ErrLog fsterr.LogInterface
 	// ExecuteWasmTools is a function that executes the wasm-tools binary.
-	ExecuteWasmTools func(bin string, args []string) error
+	ExecuteWasmTools func(bin string, args []string, global *Data) error
 	// Flags are all the global CLI flags.
 	Flags Flags
 	// HTTPClient is a HTTP client.
