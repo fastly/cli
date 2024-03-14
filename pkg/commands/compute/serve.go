@@ -30,6 +30,7 @@ import (
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
+	fstruntime "github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -665,14 +666,21 @@ func local(opts localOpts) error {
 	}
 
 	if err := s.Exec(); err != nil {
-		if !strings.Contains(err.Error(), "signal: ") {
+		errPrefix := "signal: "
+		errKilled := "killed"
+		if fstruntime.Windows {
+			errPrefix = "exit status"
+			errKilled = errPrefix + " 1"
+		}
+
+		if !strings.Contains(err.Error(), errPrefix) {
 			opts.errLog.Add(err)
 		}
 		e := strings.TrimSpace(err.Error())
 		if strings.Contains(e, "interrupt") {
 			return fsterr.ErrSignalInterrupt
 		}
-		if strings.Contains(e, "killed") {
+		if strings.Contains(e, errKilled) {
 			select {
 			case asyncErr := <-failure:
 				s.SignalCh <- syscall.SIGTERM
