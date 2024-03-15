@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [v10.8.8](https://github.com/fastly/cli/releases/tag/v10.8.8) (2024-03-15)
+
+**Enhancements:**
+
+- feat(logging/scalyr): add project-id [#1166](https://github.com/fastly/cli/pull/1166)
+- Update all URLs for developer.fastly.com to their new forms [#1164](https://github.com/fastly/cli/pull/1164)
+
+**Dependencies:**
+
+- build(deps): bump google.golang.org/protobuf from 1.28.1 to 1.33.0 [#1158](https://github.com/fastly/cli/pull/1158)
+
 ## [v10.8.7](https://github.com/fastly/cli/releases/tag/v10.8.7) (2024-03-14)
 
 **Bug fixes:**
