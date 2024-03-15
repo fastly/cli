@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -42,6 +44,8 @@ func TestInit(t *testing.T) {
 		name             string
 		args             []string
 		configFile       config.File
+		httpClientRes    []*http.Response
+		httpClientErr    []error
 		manifest         string
 		wantFiles        []string
 		unwantedFiles    []string
@@ -54,7 +58,17 @@ func TestInit(t *testing.T) {
 		{
 			name:      "broken endpoint",
 			args:      args("compute init --from https://example.com/i-dont-exist"),
-			wantError: "failed to get package: 404 Not Found",
+			wantError: "failed to get package: Not Found",
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader("")),
+					Status:     http.StatusText(http.StatusNotFound),
+					StatusCode: http.StatusNotFound,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
 		},
 		{
 			name: "name prompt",
@@ -363,6 +377,10 @@ func TestInit(t *testing.T) {
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.Config = testcase.configFile
+
+				if testcase.httpClientRes != nil || testcase.httpClientErr != nil {
+					opts.HTTPClient = mock.HTMLClient(testcase.httpClientRes, testcase.httpClientErr)
+				}
 
 				// we need to define stdin as the init process prompts the user multiple
 				// times, but we don't need to provide any values as all our prompts will
