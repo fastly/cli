@@ -31,6 +31,7 @@ type CreateCommand struct {
 	Placement         argparser.OptionalString
 	Region            argparser.OptionalString
 	ResponseCondition argparser.OptionalString
+	ProjectID         argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -60,6 +61,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.Placement(c.CmdClause, &c.Placement)
+	c.CmdClause.Flag("project-id", "The name of the logfile field sent to Scalyr").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -89,25 +91,23 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	if c.Token.WasSet {
 		input.Token = &c.Token.Value
 	}
-
 	if c.Region.WasSet {
 		input.Region = &c.Region.Value
 	}
-
 	if c.Format.WasSet {
 		input.Format = &c.Format.Value
 	}
-
 	if c.FormatVersion.WasSet {
 		input.FormatVersion = &c.FormatVersion.Value
 	}
-
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
 	}
-
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+	if c.ProjectID.WasSet {
+		input.ProjectID = &c.ProjectID.Value
 	}
 
 	return &input, nil

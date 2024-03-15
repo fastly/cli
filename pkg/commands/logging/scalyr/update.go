@@ -32,6 +32,7 @@ type UpdateCommand struct {
 	Region            argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	Placement         argparser.OptionalString
+	ProjectID         argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -62,6 +63,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("new-name", "New name of the Scalyr logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Placement(c.CmdClause, &c.Placement)
+	c.CmdClause.Flag("project-id", "The name of the logfile field sent to Scalyr").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -86,35 +88,30 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		ServiceVersion: serviceVersion,
 		Name:           c.EndpointName,
 	}
-
 	if c.NewName.WasSet {
 		input.NewName = &c.NewName.Value
 	}
-
 	if c.Format.WasSet {
 		input.Format = &c.Format.Value
 	}
-
 	if c.FormatVersion.WasSet {
 		input.FormatVersion = &c.FormatVersion.Value
 	}
-
 	if c.Token.WasSet {
 		input.Token = &c.Token.Value
 	}
-
 	if c.Region.WasSet {
 		input.Region = &c.Region.Value
 	}
-
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
 	}
-
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
 	}
-
+	if c.ProjectID.WasSet {
+		input.ProjectID = &c.ProjectID.Value
+	}
 	return &input, nil
 }
 

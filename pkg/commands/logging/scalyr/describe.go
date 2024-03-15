@@ -97,6 +97,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Format":             fastly.ToValue(o.Format),
 		"Name":               fastly.ToValue(o.Name),
 		"Placement":          fastly.ToValue(o.Placement),
+		"Project ID":         fastly.ToValue(o.ProjectID),
 		"Region":             fastly.ToValue(o.Region),
 		"Response condition": fastly.ToValue(o.ResponseCondition),
 		"Token":              fastly.ToValue(o.Token),
