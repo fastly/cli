@@ -41,6 +41,7 @@ func (c HTTPClient) Get(p string, _ *fastly.RequestOptions) (*http.Response, err
 
 // Do mocks a HTTP Client Do operation.
 func (c HTTPClient) Do(r *http.Request) (*http.Response, error) {
+	fmt.Printf("r.URL: %#v\n", r.URL.String())
 	fmt.Printf("r: %#v\n", r)
 	c.Index++
 	return c.Responses[c.Index], c.Errors[c.Index]
