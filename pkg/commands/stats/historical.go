@@ -65,11 +65,19 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := fastly.GetStatsInput{
-		By:      &c.by,
-		From:    &c.from,
-		Region:  &c.region,
 		Service: fastly.ToPointer(serviceID),
-		To:      &c.to,
+	}
+	if c.by != "" {
+		input.By = &c.by
+	}
+	if c.from != "" {
+		input.From = &c.from
+	}
+	if c.region != "" {
+		input.Region = &c.region
+	}
+	if c.to != "" {
+		input.To = &c.to
 	}
 
 	var envelope statsResponse
