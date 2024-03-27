@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v10.8.9](https://github.com/fastly/cli/releases/tag/v10.8.9) (2024-03-27)
+
+**Bug fixes:**
+
+- fix(stats/historical): avoid runtime SIGSEGV [#1169](https://github.com/fastly/cli/pull/1169)
+
 ## [v10.8.8](https://github.com/fastly/cli/releases/tag/v10.8.8) (2024-03-15)
 
 **Enhancements:**
