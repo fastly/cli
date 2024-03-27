@@ -17,9 +17,12 @@ const statusSuccess = "success"
 type HistoricalCommand struct {
 	argparser.Base
 
-	Input       fastly.GetStatsInput
+	by          string
 	formatFlag  string
+	from        string
+	region      string
 	serviceName argparser.OptionalServiceNameID
+	to          string
 }
 
 // NewHistoricalCommand is the "stats historical" subcommand.
@@ -41,10 +44,10 @@ func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *Historic
 		Dst:         &c.serviceName.Value,
 	})
 
-	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(c.Input.From)
-	c.CmdClause.Flag("to", "To time").StringVar(c.Input.To)
-	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(c.Input.By, "minute", "hour", "day")
-	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(c.Input.Region)
+	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.from)
+	c.CmdClause.Flag("to", "To time").StringVar(&c.to)
+	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
+	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.region)
 
 	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
 
@@ -61,10 +64,16 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	c.Input.Service = fastly.ToPointer(serviceID)
+	input := fastly.GetStatsInput{
+		By:      &c.by,
+		From:    &c.from,
+		Region:  &c.region,
+		Service: fastly.ToPointer(serviceID),
+		To:      &c.to,
+	}
 
 	var envelope statsResponse
-	err = c.Globals.APIClient.GetStatsJSON(&c.Input, &envelope)
+	err = c.Globals.APIClient.GetStatsJSON(&input, &envelope)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
