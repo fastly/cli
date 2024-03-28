@@ -131,7 +131,7 @@ var UsageTemplateFuncs = template.FuncMap{
 	},
 	"SeeAlso": func(cm *kingpin.CmdModel) string {
 		cmd := cm.FullCommand()
-		url := "https://www.fastly.com/documentation/reference/cli"
+		url := "https://www.fastly.com/documentation/reference/cli/"
 		var trail string
 		if len(cmd) > 0 {
 			trail = "/"
