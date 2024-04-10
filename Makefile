@@ -145,6 +145,12 @@ graph: ## Graph generates a call graph that focuses on the specified package
 	go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
 	@rm callvis.gv
 
+.PHONY: deps-app-update
+deps-app-update: ## Update all application dependencies
+	$(GO_BIN) get -u -d -t ./...
+	$(GO_BIN) mod tidy
+	if [ -d "vendor" ]; then $(GO_BIN) mod vendor; fi
+
 .PHONY: help
 help:
 	@printf "Targets\n"
