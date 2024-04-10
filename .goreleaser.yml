@@ -123,7 +123,7 @@ brews:
     skip_upload: auto
     description: A CLI for interacting with the Fastly platform
     homepage: https://github.com/fastly/cli
-    folder: Formula
+    directory: Formula
     custom_block: |
       head do
         url "https://github.com/fastly/cli.git"
