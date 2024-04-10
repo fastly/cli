@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [v10.8.10](https://github.com/fastly/cli/releases/tag/v10.8.10) (2024-04-10)
+
+**Dependencies:**
+
+- build(deps): bump golang.org/x/crypto from 0.21.0 to 0.22.0 [#1173](https://github.com/fastly/cli/pull/1173)
+- build(deps): bump golang.org/x/mod from 0.16.0 to 0.17.0 [#1175](https://github.com/fastly/cli/pull/1175)
+
 ## [v10.8.9](https://github.com/fastly/cli/releases/tag/v10.8.9) (2024-03-27)
 
 **Bug fixes:**
