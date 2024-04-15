@@ -24,7 +24,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("list", "List kv stores")
+	c.CmdClause = parent.Command("list", "List KV Stores")
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
