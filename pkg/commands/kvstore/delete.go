@@ -26,7 +26,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("delete", "Delete an kv store")
+	c.CmdClause = parent.Command("delete", "Delete a KV Store")
 
 	// Required.
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
