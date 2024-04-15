@@ -26,7 +26,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create an kv store")
+	c.CmdClause = parent.Command("create", "Create a KV Store")
 	c.CmdClause.Flag("name", "Name of KV Store").Short('n').Required().StringVar(&c.Input.Name)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
