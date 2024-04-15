@@ -119,7 +119,11 @@ func Call(opts CallOptions) (data []byte, err error) {
 				Remediation: fsterr.NetworkRemediation,
 			}
 		}
-		return data, NewError(err, res.StatusCode)
+		statusCode := http.StatusInternalServerError
+		if res != nil {
+			statusCode = res.StatusCode
+		}
+		return data, NewError(err, statusCode)
 	}
 	defer res.Body.Close() // #nosec G307
 
