@@ -26,7 +26,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("describe", "Describe a KV store").Alias("get")
+	c.CmdClause = parent.Command("describe", "Describe a KV Store").Alias("get")
 
 	// Required.
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
