@@ -150,9 +150,9 @@ var ComputeBuildRemediation = strings.Join([]string{
 	"See more at https://www.fastly.com/documentation/reference/compute/fastly-toml",
 }, " ")
 
-// ComputeTrialRemediation suggests contacting customer manager to enable the
-// free trial feature flag.
-var ComputeTrialRemediation = "For more help with this error see fastly.help/cli/ecp-feature"
+// ComputeAccessRemediation directs users to an official help page when there are
+// issues checking the entitlement to the Compute product.
+var ComputeAccessRemediation = "For more help with this error see https://www.fastly.com/documentation/help/cli/ecp-feature/ and contact https://support.fastly.com/"
 
 // ProfileRemediation suggests no profiles exist.
 var ProfileRemediation = "Run `fastly profile create <NAME>` to create a profile, or `fastly profile list` to view available profiles (at least one profile should be set as 'default')."

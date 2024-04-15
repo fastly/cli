@@ -32,7 +32,7 @@ type HTTPClient struct {
 
 // Get mocks a HTTP Client Get request.
 func (c HTTPClient) Get(p string, _ *fastly.RequestOptions) (*http.Response, error) {
-	fmt.Printf("p: %#v\n", p)
+	fmt.Printf("(c HTTPClient) Get(p): %#v\n", p)
 	// IMPORTANT: Have to increment on defer as index is already 0 by this point.
 	// This is opposite to the Do() method which is -1 at the time it's called.
 	defer func() { c.Index++ }()
@@ -41,8 +41,8 @@ func (c HTTPClient) Get(p string, _ *fastly.RequestOptions) (*http.Response, err
 
 // Do mocks a HTTP Client Do operation.
 func (c HTTPClient) Do(r *http.Request) (*http.Response, error) {
-	fmt.Printf("r.URL: %#v\n", r.URL.String())
-	fmt.Printf("r: %#v\n", r)
+	fmt.Printf("(c HTTPClient) Do(r *http.Request): r.URL: %#v\n", r.URL.String())
+	fmt.Printf("(c HTTPClient) Do(r *http.Request): r: %#v\n", r)
 	c.Index++
 	return c.Responses[c.Index], c.Errors[c.Index]
 }
