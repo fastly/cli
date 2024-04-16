@@ -1,11 +1,14 @@
 package kvstore
 
 import (
+	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/kvstoreentry"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -16,7 +19,11 @@ type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	Input fastly.DeleteKVStoreInput
+	batchSize    int
+	deleteAll    bool
+	poolSize     int
+	requestLimit int
+	Input        fastly.DeleteKVStoreInput
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -32,7 +39,11 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
+	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.deleteAll)
+	c.CmdClause.Flag("batch-size", "Splits each thread pool's work into nested concurrent batches (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysBatchSize)).Short('b').IntVar(&c.batchSize)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
+	c.CmdClause.Flag("pool-size", "The thread pool size, each thread handles a maximum of 1000 keys (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysPoolSize)).Short('c').IntVar(&c.poolSize)
+	c.CmdClause.Flag("request-limit", "The maximum number of API requests to allow (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysRequestLimit)).Short('r').IntVar(&c.requestLimit)
 	return &c
 }
 
@@ -42,10 +53,27 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
+	if c.deleteAll {
+		dc := kvstoreentry.DeleteCommand{
+			Base: argparser.Base{
+				Globals: c.Globals,
+			},
+			BatchSize:    c.batchSize,
+			PoolSize:     c.poolSize,
+			DeleteAll:    c.deleteAll,
+			RequestLimit: c.requestLimit,
+			StoreID:      c.Input.StoreID,
+		}
+		if err := dc.DeleteAllKeys(out); err != nil {
+			return err
+		}
+		text.Break(out)
+	}
+
 	err := c.Globals.APIClient.DeleteKVStore(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
-		return err
+		return fmt.Errorf("failed to delete KV store: %w", err)
 	}
 
 	if c.JSONOutput.Enabled {

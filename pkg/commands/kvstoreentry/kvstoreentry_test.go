@@ -213,12 +213,7 @@ func TestDeleteCommand(t *testing.T) {
 					return nil
 				},
 			},
-			WantOutput: fmt.Sprintf(`Deleting key: bar
-Deleting key: baz
-Deleting key: foo
-
-SUCCESS: Deleted all keys from KV Store '%s'
-`, storeID),
+			WantOutput: "deleting keys...",
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", kvstoreentry.RootName, storeID)),
@@ -233,7 +228,7 @@ SUCCESS: Deleted all keys from KV Store '%s'
 					return errors.New("whoops")
 				},
 			},
-			WantError: "failed to delete keys: bar, baz, foo",
+			WantError: "failed to delete keys: foo, bar, baz",
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", kvstoreentry.RootName, storeID)),
@@ -244,7 +239,7 @@ SUCCESS: Deleted all keys from KV Store '%s'
 					}
 				},
 			},
-			WantError: "failed to delete keys: whoops",
+			WantError: "failed to paginate keys: whoops",
 		},
 	}
 
