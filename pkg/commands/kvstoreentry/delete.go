@@ -181,7 +181,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("failed to stop spinner: %w", err)
 		}
-		text.Error(out, "failed to delete %d keys", len(errorsCh))
+		return fmt.Errorf("failed to delete %d keys", len(errorsCh))
 	} else {
 		spinner.StopMessage(spinnerMessage)
 		if err := spinner.Stop(); err != nil {
