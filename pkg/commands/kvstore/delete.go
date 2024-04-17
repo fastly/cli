@@ -19,11 +19,9 @@ type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	batchSize    int
-	deleteAll    bool
-	poolSize     int
-	requestLimit int
-	Input        fastly.DeleteKVStoreInput
+	deleteAll bool
+	poolSize  int
+	Input     fastly.DeleteKVStoreInput
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -40,10 +38,8 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 
 	// Optional.
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.deleteAll)
-	c.CmdClause.Flag("batch-size", "Splits each thread pool's work into nested concurrent batches (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysBatchSize)).Short('b').IntVar(&c.batchSize)
+	c.CmdClause.Flag("concurrency", "The thread pool size (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysPoolSize)).Short('r').IntVar(&c.poolSize)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("pool-size", "The thread pool size, each thread handles a maximum of 1000 keys (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysPoolSize)).Short('c').IntVar(&c.poolSize)
-	c.CmdClause.Flag("request-limit", "The maximum number of API requests to allow (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysRequestLimit)).Short('r').IntVar(&c.requestLimit)
 	return &c
 }
 
@@ -58,11 +54,9 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			Base: argparser.Base{
 				Globals: c.Globals,
 			},
-			BatchSize:    c.batchSize,
-			PoolSize:     c.poolSize,
-			DeleteAll:    c.deleteAll,
-			RequestLimit: c.requestLimit,
-			StoreID:      c.Input.StoreID,
+			PoolSize:  c.poolSize,
+			DeleteAll: c.deleteAll,
+			StoreID:   c.Input.StoreID,
 		}
 		if err := dc.DeleteAllKeys(out); err != nil {
 			return err

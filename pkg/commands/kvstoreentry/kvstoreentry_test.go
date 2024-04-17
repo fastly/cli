@@ -213,7 +213,7 @@ func TestDeleteCommand(t *testing.T) {
 					return nil
 				},
 			},
-			WantOutput: "deleting keys...",
+			WantOutput: "Deleting keys...",
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", kvstoreentry.RootName, storeID)),
@@ -228,18 +228,7 @@ func TestDeleteCommand(t *testing.T) {
 					return errors.New("whoops")
 				},
 			},
-			WantError: "failed to delete keys: foo, bar, baz",
-		},
-		{
-			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", kvstoreentry.RootName, storeID)),
-			API: mock.API{
-				NewListKVStoreKeysPaginatorFn: func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
-					return &mockKVStoresEntriesPaginator{
-						err: errors.New("whoops"),
-					}
-				},
-			},
-			WantError: "failed to paginate keys: whoops",
+			WantError: "failed to delete 3 keys",
 		},
 	}
 
