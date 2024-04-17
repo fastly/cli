@@ -526,7 +526,7 @@ func (c *DeployCommand) NewService(manifestFilename string, spinner text.Spinner
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceID` and `serviceVersion` variables.
-	serviceID, serviceVersion, err = createService(c.Globals, serviceName, spinner, out)
+	serviceID, serviceVersion, err = createService(c.Globals, serviceName, spinner, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service name": serviceName,
@@ -556,7 +556,7 @@ func (c *DeployCommand) NewService(manifestFilename string, spinner text.Spinner
 }
 
 // createService creates a service to associate with the compute package.
-func createService(g *global.Data, serviceName string, spinner text.Spinner, out io.Writer) (serviceID string, serviceVersion *fastly.Version, err error) {
+func createService(g *global.Data, serviceName string, spinner text.Spinner, in io.Reader, out io.Writer) (serviceID string, serviceVersion *fastly.Version, err error) {
 	f := g.Flags
 	apiClient := g.APIClient
 	errLog := g.ErrLog
@@ -608,6 +608,13 @@ func createService(g *global.Data, serviceName string, spinner text.Spinner, out
 
 	if !epr.HasAccess {
 		text.Info(out, "\n"+undocumented.EntitledProductMessageCompute+"\n\n")
+		cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
+		if err != nil {
+			return "", nil, err
+		}
+		if !cont {
+			return "", nil, fsterr.ErrComputeTrialStopped
+		}
 	}
 
 	err = spinner.Start()
