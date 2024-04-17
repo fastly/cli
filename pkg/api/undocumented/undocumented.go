@@ -23,7 +23,7 @@ const EntitledProductCheck = "/entitled-products/%s"
 
 // EntitledProductMessageCompute is shown to a user who doesn't yet have paid
 // access to the Compute product.
-const EntitledProductMessageCompute = "You are creating a Compute trial service which is subject to our terms and conditions as they apply to product trials"
+const EntitledProductMessageCompute = "By creating this Compute service, you acknowledge that the service is a trial service for evaluation purposes subject to Fastly’s terms of service (www.fastly.com/terms)."
 
 // ProductCompute is the ID for the Compute product.
 const ProductCompute = "compute"
