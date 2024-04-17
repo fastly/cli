@@ -20,6 +20,7 @@ type DeleteCommand struct {
 	argparser.JSONOutput
 
 	deleteAll bool
+	maxErrors int
 	poolSize  int
 	Input     fastly.DeleteKVStoreInput
 }
@@ -40,6 +41,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.deleteAll)
 	c.CmdClause.Flag("concurrency", "The thread pool size (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysPoolSize)).Short('r').IntVar(&c.poolSize)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
+	c.CmdClause.Flag("max-errors", "The number of errors to accept before stopping (ignored when set without the --all flag)").Default(strconv.Itoa(kvstoreentry.DeleteKeysMaxErrors)).Short('m').IntVar(&c.maxErrors)
 	return &c
 }
 
@@ -54,8 +56,9 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			Base: argparser.Base{
 				Globals: c.Globals,
 			},
-			PoolSize:  c.poolSize,
 			DeleteAll: c.deleteAll,
+			MaxErrors: c.maxErrors,
+			PoolSize:  c.poolSize,
 			StoreID:   c.Input.StoreID,
 		}
 		if err := dc.DeleteAllKeys(out); err != nil {

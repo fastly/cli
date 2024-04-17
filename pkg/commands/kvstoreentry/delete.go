@@ -18,6 +18,10 @@ import (
 // Each pool will take a 'key' from a channel and issue a DELETE request.
 const DeleteKeysPoolSize int = 100
 
+// DeleteKeysMaxErrors is the maximum number of errors we'll allow before
+// stopping the goroutines from executing.
+const DeleteKeysMaxErrors int = 100
+
 // DeleteCommand calls the Fastly API to delete an kv store.
 type DeleteCommand struct {
 	argparser.Base
@@ -26,6 +30,7 @@ type DeleteCommand struct {
 
 	// NOTE: Public fields can be set via `kv-store delete`.
 	DeleteAll bool
+	MaxErrors int
 	PoolSize  int
 	StoreID   string
 }
@@ -44,9 +49,10 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 
 	// Optional.
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.DeleteAll)
+	c.CmdClause.Flag("concurrency", "The thread pool size (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysPoolSize)).Short('r').IntVar(&c.PoolSize)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').Action(c.key.Set).StringVar(&c.key.Value)
-	c.CmdClause.Flag("concurrency", "The thread pool size (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysPoolSize)).Short('r').IntVar(&c.PoolSize)
+	c.CmdClause.Flag("max-errors", "The number of errors to accept before stopping (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysMaxErrors)).Short('m').IntVar(&c.MaxErrors)
 
 	return &c
 }
@@ -132,7 +138,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 		StoreID: c.StoreID,
 	})
 
-	errorsCh := make(chan string, 100)
+	errorsCh := make(chan string, c.MaxErrors)
 	keysCh := make(chan string, 1000)
 
 	var (
