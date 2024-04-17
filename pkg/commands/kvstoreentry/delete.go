@@ -139,7 +139,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 	})
 
 	errorsCh := make(chan string, c.MaxErrors)
-	keysCh := make(chan string, 1000)
+	keysCh := make(chan string, 1000) // number correlates to pagination page size
 
 	var (
 		failedKeys []string
