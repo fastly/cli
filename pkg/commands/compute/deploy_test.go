@@ -166,11 +166,46 @@ func TestDeploy(t *testing.T) {
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
+				"",  // when prompted for a service name use the default
+				"Y", // when prompted to approve the trial account setup
+				"",  // this is so we generate a backend name using a built-in formula
+				"",  // this stops prompting for backends
 			},
 			wantOutput: []string{
-				"INFO: You are creating a Compute trial service",
+				"INFO: By creating this Compute service,",
+				"you acknowledge that the service is a trial service",
 				"Deployed package (service 12345, version 1)",
 			},
+		},
+		{
+			// This test is the same as above but instead we don't configure a Y
+			// response to the prompt asking if they want to start the trial account.
+			// So this leads to an error.
+			name: "error when declining trial account setup",
+			args: args("compute deploy --token 123 -v --package pkg/package.tar.gz"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				ListDomainsFn:     listDomainsOk,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				{
+					Body:       io.NopCloser(strings.NewReader(`{"has_access":false}`)),
+					Status:     http.StatusText(http.StatusOK),
+					StatusCode: http.StatusOK,
+				},
+			},
+			httpClientErr: []error{
+				nil,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantError: "deploy stopped by user",
 		},
 		{
 			// This test validates what happens when the entitlement check fails.
