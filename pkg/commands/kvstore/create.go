@@ -29,10 +29,12 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
+
 	c.CmdClause = parent.Command("create", "Create a KV Store")
-	c.CmdClause.Flag("name", "Name of KV Store").Short('n').Required().StringVar(&c.Input.Name)
-	c.CmdClause.Flag("location", "Regional location of KV Store").Short('l').HintOptions(locations...).EnumVar(&c.Input.Location, locations...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
+	c.CmdClause.Flag("location", "Regional location of KV Store").Short('l').HintOptions(locations...).EnumVar(&c.Input.Location, locations...)
+	c.CmdClause.Flag("name", "Name of KV Store").Short('n').Required().StringVar(&c.Input.Name)
+
 	return &c
 }
 
