@@ -114,7 +114,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 // DeleteAllKeys deletes all keys within the specified KV Store.
 // NOTE: It's a public method as it can be called via `kv-store delete --all`.
 func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
-	spinnerMessage := "Acquiring keys"
+	spinnerMessage := "Deleting keys"
 	var spinner text.Spinner
 
 	var err error
@@ -132,33 +132,32 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 		StoreID: c.StoreID,
 	})
 
-	var keys []string
+	errorsCh := make(chan string, 100)
+	keysCh := make(chan string, 1000)
 
-	for p.Next() {
-		keys = append(keys, p.Keys()...)
-	}
+	var (
+		failedKeys []string
+		wg         sync.WaitGroup
+	)
 
-	spinner.StopMessage(spinnerMessage)
-	if err := spinner.Stop(); err != nil {
-		return fmt.Errorf("failed to stop spinner: %w", err)
-	}
+	// We have two separate execution flows happening at once:
+	//
+	// 1. Pushing keys from pagination data into a key channel.
+	// 2. Pulling keys from key channel and issuing API DELETE call.
+	//
+	// We have a limit on the number of errors. Once that limit is reached we'll
+	// stop the 2. set of goroutines.
 
-	spinnerMessage = "Deleting keys"
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	spinner.Message(spinnerMessage + "...")
-
-	errorsCh := make(chan string, len(keys))
-	keysCh := make(chan string, len(keys))
-
-	for _, key := range keys {
-		keysCh <- key
-	}
-	close(keysCh)
-
-	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer close(keysCh)
+		for p.Next() {
+			for _, key := range p.Keys() {
+				keysCh <- key
+			}
+		}
+	}()
 
 	for range c.PoolSize {
 		wg.Add(1)
@@ -167,7 +166,11 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 			for key := range keysCh {
 				err := c.Globals.APIClient.DeleteKVStoreKey(&fastly.DeleteKVStoreKeyInput{StoreID: c.StoreID, Key: key})
 				if err != nil {
-					errorsCh <- key
+					select {
+					case errorsCh <- key:
+					default:
+						return // channel is blocked
+					}
 				}
 			}
 		}()
@@ -175,18 +178,23 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 
 	wg.Wait()
 
-	if len(errorsCh) > 0 {
+	close(errorsCh)
+	for err := range errorsCh {
+		failedKeys = append(failedKeys, err)
+	}
+
+	if len(failedKeys) > 0 {
 		spinner.StopFailMessage(spinnerMessage)
 		err := spinner.StopFail()
 		if err != nil {
 			return fmt.Errorf("failed to stop spinner: %w", err)
 		}
-		return fmt.Errorf("failed to delete %d keys", len(errorsCh))
-	} else {
-		spinner.StopMessage(spinnerMessage)
-		if err := spinner.Stop(); err != nil {
-			return fmt.Errorf("failed to stop spinner: %w", err)
-		}
+		return fmt.Errorf("failed to delete %d keys", len(failedKeys))
+	}
+
+	spinner.StopMessage(spinnerMessage)
+	if err := spinner.Stop(); err != nil {
+		return fmt.Errorf("failed to stop spinner: %w", err)
 	}
 
 	text.Success(out, "\nDeleted all keys from KV Store '%s'", c.StoreID)
