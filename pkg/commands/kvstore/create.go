@@ -19,6 +19,9 @@ type CreateCommand struct {
 	Input fastly.CreateKVStoreInput
 }
 
+// locations is a list of supported regional location options.
+var locations = []string{"US", "EU", "ASIA", "AUS"}
+
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
@@ -28,6 +31,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	}
 	c.CmdClause = parent.Command("create", "Create a KV Store")
 	c.CmdClause.Flag("name", "Name of KV Store").Short('n').Required().StringVar(&c.Input.Name)
+	c.CmdClause.Flag("location", "Regional location of KV Store").Short('l').HintOptions(locations...).EnumVar(&c.Input.Location, locations...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
