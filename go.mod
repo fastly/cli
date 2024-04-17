@@ -27,7 +27,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v9 v9.2.2
+	github.com/fastly/go-fastly/v9 v9.3.0
 	github.com/hashicorp/cap v0.6.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/mholt/archiver v3.1.1+incompatible
