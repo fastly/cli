@@ -21,8 +21,9 @@ import (
 
 func TestCreateStoreCommand(t *testing.T) {
 	const (
-		storeName = "test123"
-		storeID   = "store-id-123"
+		storeName     = "test123"
+		storeLocation = "EU"
+		storeID       = "store-id-123"
 	)
 	now := time.Now()
 
@@ -54,6 +55,41 @@ func TestCreateStoreCommand(t *testing.T) {
 		},
 		{
 			Args: testutil.Args(fmt.Sprintf("%s create --name %s --json", kvstore.RootName, storeName)),
+			API: mock.API{
+				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+					return &fastly.KVStore{
+						StoreID:   storeID,
+						Name:      i.Name,
+						CreatedAt: &now,
+						UpdatedAt: &now,
+					}, nil
+				},
+			},
+			WantOutput: fstfmt.EncodeJSON(&fastly.KVStore{
+				StoreID:   storeID,
+				Name:      storeName,
+				CreatedAt: &now,
+				UpdatedAt: &now,
+			}),
+		},
+		{
+			// NOTE: The following tests only validate support for the --location flag.
+			// Location/region indicators are not exposed for us to validate.
+			Args: testutil.Args(fmt.Sprintf("%s create --name %s --location %s", kvstore.RootName, storeName, storeLocation)),
+			API: mock.API{
+				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+					return &fastly.KVStore{
+						StoreID: storeID,
+						Name:    i.Name,
+					}, nil
+				},
+			},
+			WantOutput: fstfmt.Success("Created KV Store '%s' (%s)", storeName, storeID),
+		},
+		{
+			// NOTE: The following tests only validate support for the --location flag.
+			// Location/region indicators are not exposed for us to validate.
+			Args: testutil.Args(fmt.Sprintf("%s create --name %s --location %s --json", kvstore.RootName, storeName, storeLocation)),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
