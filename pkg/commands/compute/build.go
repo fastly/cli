@@ -509,7 +509,22 @@ func ExecuteWasmTools(wasmtools string, args []string, d *global.Data) error {
 // GetWasmTools returns the path to the wasm-tools binary.
 // If there is no version installed, install the latest version.
 // If there is a version installed, update to the latest version if not already.
+//
+// But only update the version if the CLI installed it.
+// Otherwise updating a binary in the $PATH could cause problems if it's managed
+// by a third-party software management tool like Homebrew, MacPorts etc.
 func GetWasmTools(spinner text.Spinner, out io.Writer, wasmtoolsVersioner github.AssetVersioner, g *global.Data) (binPath string, err error) {
+	binPath, err = exec.LookPath("wasm-tools")
+	if err == nil {
+		if g.Verbose() {
+			text.Info(out, "\nUsing wasm-tools binary found in user $PATH\n\n")
+		}
+		return binPath, nil
+	}
+	if g.Verbose() {
+		text.Info(out, "\nFailed to lookup wasm-tools binary in user $PATH. We'll attempt to locate it inside a Fastly CLI managed directory.")
+	}
+
 	binPath = wasmtoolsVersioner.InstallPath()
 
 	// NOTE: When checking if wasm-tools is installed we don't use $PATH.
