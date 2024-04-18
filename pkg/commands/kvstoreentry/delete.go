@@ -5,6 +5,7 @@ import (
 	"io"
 	"strconv"
 	"sync"
+	"sync/atomic"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
@@ -142,8 +143,9 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 	keysCh := make(chan string, 1000) // number correlates to pagination page size
 
 	var (
-		failedKeys []string
-		wg         sync.WaitGroup
+		deleteCount atomic.Uint64
+		failedKeys  []string
+		wg          sync.WaitGroup
 	)
 
 	// We have two separate execution flows happening at once:
@@ -178,6 +180,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 						return // channel is blocked
 					}
 				}
+				spinner.Message(spinnerMessage + "..." + strconv.FormatUint(deleteCount.Add(1), 10))
 			}
 		}()
 	}
@@ -188,6 +191,8 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 	for err := range errorsCh {
 		failedKeys = append(failedKeys, err)
 	}
+
+	spinnerMessage = "Deleted keys: " + strconv.FormatUint(deleteCount.Load(), 10)
 
 	if len(failedKeys) > 0 {
 		spinner.StopFailMessage(spinnerMessage)
