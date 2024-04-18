@@ -582,7 +582,7 @@ func createService(g *global.Data, serviceName string, spinner text.Spinner, in 
 	data, err := undocumented.Call(undocumented.CallOptions{
 		APIEndpoint: apiEndpoint,
 		HTTPClient:  g.HTTPClient,
-		Method:      http.MethodPost,
+		Method:      http.MethodGet,
 		Path:        fmt.Sprintf(undocumented.EntitledProductCheck, undocumented.ProductCompute),
 		Token:       token,
 		Debug:       debug,
@@ -607,7 +607,7 @@ func createService(g *global.Data, serviceName string, spinner text.Spinner, in 
 	}
 
 	if !epr.HasAccess {
-		text.Info(out, "\n"+undocumented.EntitledProductMessageCompute+"\n\n")
+		text.Info(out, undocumented.EntitledProductMessageCompute+"\n\n")
 		cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
 		if err != nil {
 			return "", nil, err
@@ -615,6 +615,7 @@ func createService(g *global.Data, serviceName string, spinner text.Spinner, in 
 		if !cont {
 			return "", nil, fsterr.ErrComputeTrialStopped
 		}
+		text.Break(out)
 	}
 
 	err = spinner.Start()
