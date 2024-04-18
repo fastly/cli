@@ -46,12 +46,23 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 }
 
 // Exec invokes the application logic for the command.
-func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	if c.deleteAll {
+		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+			text.Warning(out, "This will delete ALL entries from your store!\n\n")
+			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
+			if err != nil {
+				return err
+			}
+			if !cont {
+				return nil
+			}
+			text.Break(out)
+		}
 		dc := kvstoreentry.DeleteCommand{
 			Base: argparser.Base{
 				Globals: c.Globals,
