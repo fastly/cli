@@ -56,6 +56,7 @@ type ServeCommand struct {
 
 	// Serve public fields (public for testing purposes)
 	ForceCheckViceroyLatest bool
+	ViceroyBinExtraArgs     string
 	ViceroyBinPath          string
 	ViceroyVersioner        github.AssetVersioner
 
@@ -95,6 +96,7 @@ func NewServeCommand(parent argparser.Registerer, g *global.Data, build *BuildCo
 	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").Action(c.timeout.Set).IntVar(&c.timeout.Value)
+	c.CmdClause.Flag("viceroy-args", "Additional arguments to pass to the Viceroy binary, separated by space").StringVar(&c.ViceroyBinExtraArgs)
 	c.CmdClause.Flag("viceroy-check", "Force the CLI to check for a newer version of the Viceroy binary").BoolVar(&c.ForceCheckViceroyLatest)
 	c.CmdClause.Flag("viceroy-path", "The path to a user installed version of the Viceroy binary").StringVar(&c.ViceroyBinPath)
 	c.CmdClause.Flag("watch", "Watch for file changes, then rebuild project and restart local server").BoolVar(&c.watch)
@@ -207,6 +209,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			bin:             bin,
 			debug:           c.debug,
 			errLog:          c.Globals.ErrLog,
+			extraArgs:       c.ViceroyBinExtraArgs,
 			file:            c.file,
 			manifestPath:    manifestPath,
 			out:             out,
@@ -544,6 +547,7 @@ type localOpts struct {
 	bin             string
 	debug           bool
 	errLog          fsterr.LogInterface
+	extraArgs       string
 	file            string
 	manifestPath    string
 	out             io.Writer
@@ -575,6 +579,11 @@ func local(opts localOpts) error {
 		if opts.verbose {
 			text.Info(opts.out, "Saving per-request profiles to %s.", directory)
 		}
+	}
+
+	if opts.extraArgs != "" {
+		extraArgs := strings.Split(opts.extraArgs, " ")
+		args = append(args, extraArgs...)
 	}
 
 	if opts.verbose {
