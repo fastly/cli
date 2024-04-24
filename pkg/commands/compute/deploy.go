@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -163,7 +164,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		text.Break(out)
 	}
 
-	fnActivateTrial, serviceID, err := c.Setup(out)
+	serviceID, err := c.Setup(out)
 	if err != nil {
 		return err
 	}
@@ -190,7 +191,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 	var serviceVersion *fastly.Version
 	if noExistingService {
-		serviceID, serviceVersion, err = c.NewService(manifestFilename, fnActivateTrial, spinner, in, out)
+		serviceID, serviceVersion, err = c.NewService(manifestFilename, spinner, in, out)
 		if err != nil {
 			return err
 		}
@@ -351,14 +352,7 @@ func validStatusCodeRange(status int) bool {
 // - Acquire the Service ID/Version.
 // - Validate there is a package to deploy.
 // - Determine if a trial needs to be activated on the user's account.
-func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, serviceID string, err error) {
-	defaultActivator := func(_ string) error { return nil }
-
-	token, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return defaultActivator, "", fsterr.ErrNoToken
-	}
-
+func (c *DeployCommand) Setup(out io.Writer) (serviceID string, err error) {
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
 	// This is because later in the Exec() flow we might create a 'new' service.
 	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
@@ -369,7 +363,7 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 	if c.PackagePath == "" {
 		projectName, source := c.Globals.Manifest.Name()
 		if source == manifest.SourceUndefined {
-			return defaultActivator, serviceID, fsterr.ErrReadingManifest
+			return serviceID, fsterr.ErrReadingManifest
 		}
 		c.PackagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
 	}
@@ -379,13 +373,10 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Package path": c.PackagePath,
 		})
-		return defaultActivator, serviceID, err
+		return serviceID, err
 	}
 
-	endpoint, _ := c.Globals.APIEndpoint()
-	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient, c.Globals.Env.DebugMode)
-
-	return fnActivateTrial, serviceID, err
+	return serviceID, err
 }
 
 // validatePackage checks the package and returns its path, which can change
@@ -487,44 +478,8 @@ func packageSize(path string) (size int64, err error) {
 	return fi.Size(), nil
 }
 
-// Activator represents a function that calls an undocumented API endpoint for
-// activating a Compute free trial on the given customer account.
-//
-// It is preconfigured with the Fastly API endpoint, a user token and a simple
-// HTTP Client.
-//
-// This design allows us to pass an Activator rather than passing multiple
-// unrelated arguments through several nested functions.
-type Activator func(customerID string) error
-
-// preconfigureActivateTrial activates a free trial on the customer account.
-func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient, debugMode string) Activator {
-	debug, _ := strconv.ParseBool(debugMode)
-	return func(customerID string) error {
-		_, err := undocumented.Call(undocumented.CallOptions{
-			APIEndpoint: endpoint,
-			HTTPClient:  httpClient,
-			Method:      http.MethodPost,
-			Path:        fmt.Sprintf(undocumented.EdgeComputeTrial, customerID),
-			Token:       token,
-			Debug:       debug,
-		})
-		if err != nil {
-			apiErr, ok := err.(undocumented.APIError)
-			if !ok {
-				return err
-			}
-			// 409 Conflict == The Compute trial has already been created.
-			if apiErr.StatusCode != http.StatusConflict {
-				return fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
-			}
-		}
-		return nil
-	}
-}
-
 // NewService handles creating a new service when no Service ID is found.
-func (c *DeployCommand) NewService(manifestFilename string, fnActivateTrial Activator, spinner text.Spinner, in io.Reader, out io.Writer) (string, *fastly.Version, error) {
+func (c *DeployCommand) NewService(manifestFilename string, spinner text.Spinner, in io.Reader, out io.Writer) (string, *fastly.Version, error) {
 	var (
 		err            error
 		serviceID      string
@@ -571,7 +526,7 @@ func (c *DeployCommand) NewService(manifestFilename string, fnActivateTrial Acti
 	// There is no service and so we'll do a one time creation of the service
 	//
 	// NOTE: we're shadowing the `serviceID` and `serviceVersion` variables.
-	serviceID, serviceVersion, err = createService(c.Globals, serviceName, fnActivateTrial, spinner, out)
+	serviceID, serviceVersion, err = createService(c.Globals, serviceName, spinner, in, out)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service name": serviceName,
@@ -601,21 +556,65 @@ func (c *DeployCommand) NewService(manifestFilename string, fnActivateTrial Acti
 }
 
 // createService creates a service to associate with the compute package.
-//
-// NOTE: If the creation of the service fails because the user has not
-// activated a free trial, then we'll trigger the trial for their account.
-func createService(
-	g *global.Data,
-	serviceName string,
-	fnActivateTrial Activator,
-	spinner text.Spinner,
-	out io.Writer,
-) (serviceID string, serviceVersion *fastly.Version, err error) {
+func createService(g *global.Data, serviceName string, spinner text.Spinner, in io.Reader, out io.Writer) (serviceID string, serviceVersion *fastly.Version, err error) {
 	f := g.Flags
 	apiClient := g.APIClient
 	errLog := g.ErrLog
 
 	if !f.AcceptDefaults && !f.NonInteractive {
+		text.Break(out)
+	}
+
+	// Before we create the service, we first check if the user has either paid
+	// access to the Compute product or is already on a trial (i.e. `has_access`
+	// will be `true`). If `has_access` is `false`, then we'll display a message
+	// to explain that the service we're about to create will be part of a trial
+	// access to the Compute product. The `has_access` will be `true` once the
+	// service is created and the user creates a new service using the CLI (as
+	// this means we don't keep showing them the 'trial' message unnecessarily).
+	// The API will internally handle the service trial activation (if needed).
+	apiEndpoint, _ := g.APIEndpoint()
+	token, s := g.Token()
+	if s == lookup.SourceUndefined {
+		return "", nil, fsterr.ErrNoToken
+	}
+	debug, _ := strconv.ParseBool(g.Env.DebugMode)
+	data, err := undocumented.Call(undocumented.CallOptions{
+		APIEndpoint: apiEndpoint,
+		HTTPClient:  g.HTTPClient,
+		Method:      http.MethodGet,
+		Path:        fmt.Sprintf(undocumented.EntitledProductCheck, undocumented.ProductCompute),
+		Token:       token,
+		Debug:       debug,
+	})
+	if err != nil {
+		if apiErr, ok := err.(undocumented.APIError); ok {
+			err = fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
+		}
+		err = fmt.Errorf("error checking entitlement to the Compute product: %w", err)
+		return "", nil, fsterr.RemediationError{
+			Inner:       err,
+			Remediation: fsterr.ComputeAccessRemediation,
+		}
+	}
+
+	var epr undocumented.EntitledProductResponse
+	if err := json.Unmarshal(data, &epr); err != nil {
+		return "", nil, fsterr.RemediationError{
+			Inner:       err,
+			Remediation: fsterr.ComputeAccessRemediation,
+		}
+	}
+
+	if !epr.HasAccess {
+		text.Info(out, undocumented.EntitledProductMessageCompute+"\n\n")
+		cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
+		if err != nil {
+			return "", nil, err
+		}
+		if !cont {
+			return "", nil, fsterr.ErrComputeTrialStopped
+		}
 		text.Break(out)
 	}
 
@@ -631,60 +630,15 @@ func createService(
 		Type: fastly.ToPointer("wasm"),
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), trialNotActivated) {
-			user, err := apiClient.GetCurrentUser()
-			if err != nil {
-				err = fmt.Errorf("unable to identify user associated with the given token: %w", err)
-				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
-				}
-				return serviceID, serviceVersion, fsterr.RemediationError{
-					Inner:       err,
-					Remediation: "To ensure you have access to the Compute platform we need your Customer ID. " + fsterr.AuthRemediation,
-				}
-			}
-
-			customerID := fastly.ToValue(user.CustomerID)
-			err = fnActivateTrial(customerID)
-			if err != nil {
-				err = fmt.Errorf("error creating service: you do not have the Compute free trial enabled on your Fastly account")
-				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
-				}
-				return serviceID, serviceVersion, fsterr.RemediationError{
-					Inner:       err,
-					Remediation: fsterr.ComputeTrialRemediation,
-				}
-			}
-
-			errLog.AddWithContext(err, map[string]any{
-				"Service Name": serviceName,
-				"Customer ID":  customerID,
-			})
-
-			spinner.StopFailMessage(msg)
-			err = spinner.StopFail()
-			if err != nil {
-				return "", nil, err
-			}
-
-			return createService(g, serviceName, fnActivateTrial, spinner, out)
-		}
-
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
 			return "", nil, spinErr
 		}
-
 		errLog.AddWithContext(err, map[string]any{
 			"Service Name": serviceName,
 		})
-		return serviceID, serviceVersion, fmt.Errorf("error creating service: %w", err)
+		return "", nil, fmt.Errorf("error creating service: %w", err)
 	}
 
 	spinner.StopMessage(msg)
@@ -1211,7 +1165,7 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 		})
 		return serviceVersion, fsterr.RemediationError{
 			Inner:       fmt.Errorf("invalid service type: %s", serviceType),
-			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
+			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeAccessRemediation,
 		}
 	}
 

@@ -17,11 +17,29 @@ import (
 	"github.com/fastly/cli/pkg/useragent"
 )
 
-// EdgeComputeTrial is the API endpoint for activating a compute trial.
-const EdgeComputeTrial = "/customer/%s/edge-compute-trial"
+// EntitledProductCheck is the API endpoint for checking whether a user already
+// has paid access to the specified product.
+const EntitledProductCheck = "/entitled-products/%s"
+
+// EntitledProductMessageCompute is shown to a user who doesn't yet have paid
+// access to the Compute product.
+const EntitledProductMessageCompute = "By creating this Compute service, you acknowledge that the service is a trial service for evaluation purposes subject to Fastly’s terms of service (www.fastly.com/terms)."
+
+// ProductCompute is the ID for the Compute product.
+const ProductCompute = "compute"
 
 // RequestTimeout is the timeout for the API network request.
 const RequestTimeout = 5 * time.Second
+
+// EntitledProductResponse represents the API response for requesting a
+// customer's entitlement data.
+type EntitledProductResponse struct {
+	AccessLevel      string `json:"access_level"`
+	CustomerID       string `json:"customer_id"`
+	HasAccess        bool   `json:"has_access"`
+	HasPermToDisable bool   `json:"has_permission_to_disable"`
+	HasPermToEnable  bool   `json:"has_permission_to_enable"`
+}
 
 // APIError models a custom error for undocumented API calls.
 type APIError struct {
@@ -101,7 +119,11 @@ func Call(opts CallOptions) (data []byte, err error) {
 				Remediation: fsterr.NetworkRemediation,
 			}
 		}
-		return data, NewError(err, 0)
+		statusCode := http.StatusInternalServerError
+		if res != nil {
+			statusCode = res.StatusCode
+		}
+		return data, NewError(err, statusCode)
 	}
 	defer res.Body.Close() // #nosec G307
 

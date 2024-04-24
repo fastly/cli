@@ -171,3 +171,7 @@ var ErrInvalidEnableDisableFlagCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination: --enable and --disable"),
 	Remediation: "Use either --enable or --disable, not both.",
 }
+
+// ErrComputeTrialStopped means the user declined to go ahead and create a trial
+// account to deploy their Compute application.
+var ErrComputeTrialStopped = errors.New("deploy stopped by user")
