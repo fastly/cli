@@ -927,7 +927,7 @@ func TestDeploy(t *testing.T) {
 		// when the user has no [setup] configuration and they also pass the
 		// --non-interactive flag. This is done by ensuring we DON'T see the
 		// standard 'Creating backend' output because we want to conceal the fact
-		// that we require a backend for compute services because it's a temporary
+		// that we require a backend for Compute services because it's a temporary
 		// implementation detail.
 		{
 			name: "success with no setup.backends configuration and non-interactive for new service creation",

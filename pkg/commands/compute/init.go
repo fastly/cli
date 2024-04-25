@@ -27,6 +27,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 var (
@@ -39,11 +40,16 @@ var (
 type InitCommand struct {
 	argparser.Base
 
-	branch    string
-	dir       string
-	cloneFrom string
-	language  string
-	tag       string
+	// CloneFrom is the value of the --from flag.
+	// NOTE: CloneFrom is public so that we can check to see if we need
+	// a token (to use --from=service-id) or not (to use a git
+	// repository).
+	CloneFrom string
+
+	branch   string
+	dir      string
+	language string
+	tag      string
 }
 
 // Languages is a list of supported language options.
@@ -58,7 +64,7 @@ func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&g.Manifest.File.Authors)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
-	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.cloneFrom)
+	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.CloneFrom)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 
@@ -67,15 +73,25 @@ func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
 
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	var introContext string
-	if c.cloneFrom != "" {
-		introContext = " (using --from to locate package template)"
+	var (
+		introContext      string
+		isExistingService bool
+	)
+	if c.CloneFrom != "" {
+		isExistingService = text.IsFastlyID(c.CloneFrom)
+		if !isExistingService {
+			introContext = " (using --from to locate package template)"
+		}
 	}
 
-	text.Output(out, "Creating a new Compute project%s.\n\n", introContext)
+	if isExistingService {
+		text.Output(out, "Initializing Compute project from service %s.\n\n", c.CloneFrom)
+	} else {
+		text.Output(out, "Creating a new Compute project%s.\n\n", introContext)
+	}
 	text.Output(out, "Press ^C at any time to quit.")
 
-	if c.cloneFrom != "" && c.language == "" {
+	if c.CloneFrom != "" && !isExistingService && c.language == "" {
 		text.Warning(out, "\nWhen using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
 	}
 
@@ -142,20 +158,27 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		email = p.Email
 	}
 
-	name, desc, authors, err := c.PromptOrReturn(email, in, out)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Description": desc,
-			"Directory":   c.dir,
-		})
-		return err
+	var (
+		name    string
+		desc    string
+		authors []string
+	)
+	if !isExistingService {
+		name, desc, authors, err = c.PromptOrReturn(email, in, out)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Description": desc,
+				"Directory":   c.dir,
+			})
+			return err
+		}
 	}
 
 	languages := NewLanguages(c.Globals.Config.StarterKits)
 
 	var language *Language
 
-	if c.language == "" && c.cloneFrom == "" && c.Globals.Manifest.File.Language == "" {
+	if c.language == "" && c.CloneFrom == "" && c.Globals.Manifest.File.Language == "" {
 		language, err = c.PromptForLanguage(languages, in, out)
 		if err != nil {
 			return err
@@ -181,40 +204,141 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// fastly.toml manifest, or the language they selected was "other" (meaning
 	// they're bringing their own project code), then we'll prompt the user to
 	// select a starter kit project.
-	triggerStarterKitPrompt := c.cloneFrom == "" && !mf.Exists() && language.Name != "other"
+	triggerStarterKitPrompt := c.CloneFrom == "" && !mf.Exists() && language.Name != "other"
 	if triggerStarterKitPrompt {
 		from, branch, tag, err = c.PromptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"From":           c.cloneFrom,
+				"From":           c.CloneFrom,
 				"Branch":         c.branch,
 				"Tag":            c.tag,
 				"Manifest Exist": false,
 			})
 			return err
 		}
-		c.cloneFrom = from
+		c.CloneFrom = from
 	}
 
-	// We only want to fetch a remote package if c.cloneFrom has been set.
-	// This can happen in two ways:
+	// There are three situations in which we might fetch something
+	// here. We might fetch a template if:
 	//
-	// 1. --from flag is set
+	// 1. --from flag is set to a template repository, or
 	// 2. user selects starter kit when prompted
+	//
+	// Or we fetch an existing, deployed package if
+	//
+	// 3. --from flag is set to a serviceID
 	//
 	// We don't fetch if the user has indicated their language of choice is
 	// "other" because this means they intend on handling the compilation of code
 	// that isn't natively supported by the platform.
-	if c.cloneFrom != "" {
-		err = c.FetchPackageTemplate(branch, tag, file.Archives, spinner, out)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"From":      from,
-				"Branch":    branch,
-				"Tag":       tag,
-				"Directory": c.dir,
+	if c.CloneFrom != "" {
+		if !isExistingService {
+			err = c.FetchPackageTemplate(branch, tag, file.Archives, spinner, out)
+			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]any{
+					"From":      from,
+					"Branch":    branch,
+					"Tag":       tag,
+					"Directory": c.dir,
+				})
+				return err
+			}
+		} else {
+			var (
+				serviceDetails *fastly.ServiceDetail
+				pack           *fastly.Package
+			)
+			err = spinner.Process("Fetching service details", func(_ *text.SpinnerWrapper) error {
+				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
+					ServiceID: c.CloneFrom,
+				})
+				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]any{
+						"From":      c.CloneFrom,
+						"Directory": c.dir,
+					})
+					if hErr, ok := err.(*fastly.HTTPError); ok && hErr.IsNotFound() {
+						return fmt.Errorf("the service %s could not be found", c.CloneFrom)
+					}
+					return err
+				}
+
+				if fastly.ToValue(serviceDetails.Type) != "wasm" {
+					return fmt.Errorf("service %s is not a Compute service (type is %s)", c.CloneFrom, fastly.ToValue(serviceDetails.Type))
+				}
+
+				if serviceDetails.ActiveVersion != nil {
+					serviceVersion := fastly.ToValue(serviceDetails.ActiveVersion.Number)
+					pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
+						ServiceID:      c.CloneFrom,
+						ServiceVersion: serviceVersion,
+					})
+					if err != nil {
+						return err
+					}
+				} else {
+					for i := len(serviceDetails.Versions) - 1; i >= 0; i-- {
+						pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
+							ServiceID:      c.CloneFrom,
+							ServiceVersion: fastly.ToValue(serviceDetails.Versions[i].Number),
+						})
+						if err != nil {
+							if hErr, ok := err.(*fastly.HTTPError); ok {
+								if hErr.IsNotFound() {
+									continue
+								}
+							}
+							return err
+						}
+						if pack != nil {
+							break
+						}
+					}
+				}
+
+				// were not able to find any service versions with an
+				// existing package
+				if pack == nil {
+					return fmt.Errorf("unable to find any version of service %s with an existing package", c.CloneFrom)
+				}
+
+				return nil
 			})
-			return err
+			if err != nil {
+				return err
+			}
+
+			if pack.Metadata != nil {
+				if pack.Metadata.Name != nil {
+					name = *pack.Metadata.Name
+				}
+				if name == "" {
+					name = *serviceDetails.Name
+				}
+
+				if pack.Metadata.Description != nil {
+					desc = *pack.Metadata.Description
+				}
+				if desc == "" {
+					desc = fastly.ToValue(serviceDetails.Comment)
+				}
+			}
+
+			authors = append(authors, pack.Metadata.Authors...)
+
+			mf.Name = name
+			mf.ServiceID = *pack.ServiceID
+			mf.Description = desc
+			// mf.Profile = profileName
+			mf.Authors = authors
+			mf.Language = *pack.Metadata.Language
+
+			mp := filepath.Join(c.dir, manifest.Filename)
+			err = mf.Write(mp)
+			if err != nil {
+				return fmt.Errorf("error creating fastly.toml: %w", err)
+			}
 		}
 	}
 
@@ -674,8 +798,8 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 
 	// If the user has provided a local file path, we'll recursively copy the
 	// directory to c.dir.
-	if fi, err := os.Stat(c.cloneFrom); err == nil && fi.IsDir() {
-		if err := cp.Copy(c.cloneFrom, c.dir); err != nil {
+	if fi, err := os.Stat(c.CloneFrom); err == nil && fi.IsDir() {
+		if err := cp.Copy(c.CloneFrom, c.dir); err != nil {
 			spinner.StopFailMessage(msg)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
@@ -688,12 +812,12 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	}
 	c.Globals.ErrLog.Add(err)
 
-	req, err := http.NewRequest("GET", c.cloneFrom, nil)
+	req, err := http.NewRequest("GET", c.CloneFrom, nil)
 	if err != nil {
 		err = fmt.Errorf("failed to construct package request URL: %w", err)
 		c.Globals.ErrLog.Add(err)
 
-		if gitRepositoryRegEx.MatchString(c.cloneFrom) {
+		if gitRepositoryRegEx.MatchString(c.CloneFrom) {
 			if err := c.ClonePackageFromEndpoint(branch, tag); err != nil {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
@@ -744,7 +868,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		return err
 	}
 
-	filename := filepath.Base(c.cloneFrom)
+	filename := filepath.Base(c.CloneFrom)
 	ext := filepath.Ext(filename)
 
 	// gosec flagged this:
@@ -872,7 +996,7 @@ mimes:
 // ClonePackageFromEndpoint clones the given repo (from) into a temp directory,
 // then copies specific files to the destination directory (path).
 func (c *InitCommand) ClonePackageFromEndpoint(branch, tag string) error {
-	from := c.cloneFrom
+	from := c.CloneFrom
 
 	_, err := exec.LookPath("git")
 	if err != nil {
@@ -951,7 +1075,6 @@ func (c *InitCommand) ClonePackageFromEndpoint(branch, tag string) error {
 
 		return filesystem.CopyFile(path, dst)
 	})
-
 	if err != nil {
 		return fmt.Errorf("error copying files from package template: %w", err)
 	}
@@ -994,7 +1117,7 @@ func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name
 					m.Description = desc
 					m.Authors = authors
 					m.Language = language.Name
-					m.ClonedFrom = c.cloneFrom
+					m.ClonedFrom = c.CloneFrom
 					if err := m.Write(mp); err != nil {
 						return fmt.Errorf("error saving fastly.toml: %w", err)
 					}
@@ -1055,7 +1178,7 @@ func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name
 		}
 	}
 
-	m.ClonedFrom = c.cloneFrom
+	m.ClonedFrom = c.CloneFrom
 
 	err = spinner.Process("Saving manifest changes", func(_ *text.SpinnerWrapper) error {
 		if err := m.Write(mp); err != nil {

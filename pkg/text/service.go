@@ -3,6 +3,7 @@ package text
 import (
 	"fmt"
 	"io"
+	"regexp"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/segmentio/textio"
@@ -89,4 +90,11 @@ func PrintVersion(out io.Writer, indent string, v *fastly.Version) {
 	if v.DeletedAt != nil {
 		fmt.Fprintf(out, "Deleted (UTC): %s\n", v.DeletedAt.UTC().Format(time.Format))
 	}
+}
+
+var fastlyIDRegEx = regexp.MustCompile("^[0-9a-zA-Z]{22}$")
+
+// IsFastlyID determines if a string looks like a Fastly ID.
+func IsFastlyID(s string) bool {
+	return fastlyIDRegEx.Match([]byte(s))
 }
