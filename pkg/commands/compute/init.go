@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,6 +25,7 @@ import (
 	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/internal/beacon"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
@@ -219,6 +221,26 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		c.CloneFrom = from
 	}
 
+	defer func() {
+		if triggerStarterKitPrompt || !isExistingService {
+			return
+		}
+
+		evt := beacon.Event{
+			Name: "init",
+		}
+		if err != nil {
+			evt.Status = beacon.StatusFail
+		} else {
+			evt.Status = beacon.StatusSuccess
+		}
+
+		bErr := beacon.Notify(c.Globals, c.CloneFrom, evt)
+		if bErr != nil {
+			c.Globals.ErrLog.Add(bErr)
+		}
+	}()
+
 	// There are three situations in which we might fetch something
 	// here. We might fetch a template if:
 	//
@@ -234,6 +256,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// that isn't natively supported by the platform.
 	if c.CloneFrom != "" {
 		if !isExistingService {
+			fmt.Printf("Fetching package from: %s\n", c.CloneFrom)
 			err = c.FetchPackageTemplate(branch, tag, file.Archives, spinner, out)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -812,7 +835,29 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	}
 	c.Globals.ErrLog.Add(err)
 
-	req, err := http.NewRequest("GET", c.CloneFrom, nil)
+	// If this isn't a local file path, it should be a URL.
+	u, err := url.Parse(c.CloneFrom)
+	if err != nil {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		}
+		return fmt.Errorf("could not read --from URL: %w", err)
+	}
+
+	// If given an opaque string, the scheme and host are typically
+	// empty and the string ends up in u.Path.
+	if u.Host == "" && u.Scheme == "" {
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		}
+		return fmt.Errorf("--from url seems invalid: %s", c.CloneFrom)
+	}
+
+	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		err = fmt.Errorf("failed to construct package request URL: %w", err)
 		c.Globals.ErrLog.Add(err)

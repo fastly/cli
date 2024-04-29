@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
@@ -426,13 +425,13 @@ func TestInit_ExistingService(t *testing.T) {
 	scenarios := []struct {
 		name              string
 		args              []string
-		apiClient         api.Interface
 		getServiceDetails func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error)
 		getPackage        func(*fastly.GetPackageInput) (*fastly.Package, error)
 		expectInOutput    []string
 		expectInManifest  []string
 		expectNoManifest  bool
 		expectInError     string
+		suppresBeacon     bool
 	}{
 		{
 			name: "when the service exists",
@@ -539,7 +538,9 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name:          "service id does not look like a Fastly ID",
 			args:          testutil.Args("compute init --from LsyQ2UXDGk6d4EN"),
-			expectInError: "failed to get package",
+			expectInError: "--from url seems invalid",
+			// Not a valid URL OR Service ID
+			suppresBeacon: true,
 		},
 	}
 
@@ -573,6 +574,9 @@ func TestInit_ExistingService(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			httpClient := testutil.NewRecordingHTTPClient()
+			httpClient.SingleResponse(testutil.NewHTTPResponse(http.StatusOK, nil, nil), nil)
+
 			stdout := &testutil.MockStdout{}
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts := testutil.MockGlobalData(testcase.args, stdout)
@@ -581,11 +585,13 @@ func TestInit_ExistingService(t *testing.T) {
 					GetPackageFn:        testcase.getPackage,
 				})
 				opts.Input = strings.NewReader("")
+				opts.HTTPClient = httpClient
 
 				return opts, nil
 			}
 
 			err = app.Run(testcase.args, nil)
+
 			if testcase.expectInError == "" {
 				if err != nil {
 					t.Fatal(err)
@@ -599,6 +605,18 @@ func TestInit_ExistingService(t *testing.T) {
 			}
 
 			t.Log(stdout.String())
+
+			if testcase.suppresBeacon {
+				testutil.AssertLength(t, 0, httpClient.GetRequests())
+			} else {
+				testutil.AssertLength(t, 1, httpClient.GetRequests())
+				beaconReq, ok := httpClient.GetRequest(0)
+				if !ok {
+					t.Log("request doesn't appear in log")
+					t.Fail()
+				}
+				testutil.AssertEqual(t, "fastly-notification-relay.edgecompute.app", beaconReq.URL.Hostname())
+			}
 
 			for _, s := range testcase.expectInOutput {
 				testutil.AssertStringContains(t, stdout.String(), s)

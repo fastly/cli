@@ -1,6 +1,7 @@
 package compute_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -2237,6 +2238,95 @@ func TestDeploy(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDeploy_ActivateBeacon(t *testing.T) {
+	//
+	// We're going to chdir to a deploy environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{
+				Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),
+				Dst: filepath.Join("pkg", "package.tar.gz"),
+			},
+		},
+		Write: []testutil.FileIO{
+			{
+				Src: "This is my data for the KV Store 'store_one' baz field.",
+				Dst: "kv_store_one_baz.txt",
+			},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
+
+	stdout := threadsafe.Buffer{}
+	args := testutil.Args("compute deploy --auto-yes --non-interactive")
+	recordingHTTP := testutil.NewRecordingHTTPClient()
+	recordingHTTP.SingleResponse(&http.Response{
+		StatusCode: http.StatusNoContent,
+		Status:     http.StatusText(http.StatusNoContent),
+		Body:       io.NopCloser(bytes.NewBufferString("")),
+	}, nil)
+	fmt.Printf("recording HTTP with...\n%#v\n", recordingHTTP)
+	manifestContent := `
+	name = "package"
+	manifest_version = 2
+	language = "rust"
+	`
+
+	if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	opts := testutil.MockGlobalData(args, &stdout)
+	opts.HTTPClient = recordingHTTP
+	opts.APIClientFactory = mock.APIClient(mock.API{
+		ActivateVersionFn: func(*fastly.ActivateVersionInput) (*fastly.Version, error) {
+			return nil, testutil.Err
+		},
+		CloneVersionFn:      testutil.CloneVersionResult(4),
+		CreateBackendFn:     createBackendOK,
+		CreateServiceFn:     createServiceOK,
+		DeleteServiceFn:     deleteServiceOK,
+		GetPackageFn:        getPackageOk,
+		GetServiceDetailsFn: getServiceDetailsWasm,
+		GetServiceFn:        getServiceOK,
+		ListDomainsFn:       listDomainsOk,
+		ListVersionsFn:      testutil.ListVersions,
+		UpdatePackageFn:     updatePackageOk,
+	})
+
+	app.Init = func(_ []string, stdin io.Reader) (*global.Data, error) {
+		opts.Input = stdin
+		return opts, nil
+	}
+
+	err = app.Run(args, nil)
+
+	testutil.AssertErrorContains(t, err, "error activating version:")
+	testutil.AssertLength(t, 1, recordingHTTP.GetRequests())
+
+	beaconReq, ok := recordingHTTP.GetRequest(0)
+	testutil.AssertBool(t, true, ok)
+	testutil.AssertEqual(t, "fastly-notification-relay.edgecompute.app", beaconReq.URL.Hostname())
 }
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
