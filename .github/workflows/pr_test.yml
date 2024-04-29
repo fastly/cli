@@ -88,7 +88,7 @@ jobs:
     needs: [config]
     strategy:
       matrix:
-        tinygo-version: [0.27.0]
+        tinygo-version: [0.31.2]
         go-version: [1.22.x]
         node-version: [18]
         platform: [ubuntu-latest, macos-latest, windows-latest]
