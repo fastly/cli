@@ -93,3 +93,41 @@ func TestPrintVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestIsFastlyID(t *testing.T) {
+	for _, testcase := range []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{
+			name:  "looks like an ID",
+			input: "XkblwIHmR01sOnDHxusu6a",
+			want:  true,
+		},
+		{
+			name:  "looks like a URL",
+			input: "https://github.com/fastly/cli",
+			want:  false,
+		},
+		{
+			name:  "too short",
+			input: "Vkzj9WNseT1XN0",
+			want:  false,
+		},
+		{
+			name:  "too long",
+			input: "Vkzj9WNseT1XN0GqjYrgQGVkzj9WNseT1",
+			want:  false,
+		},
+		{
+			name:  "invalid characters",
+			input: "GLql1:uzgoC-tEK7bdobt5",
+			want:  false,
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			testutil.AssertBool(t, testcase.want, text.IsFastlyID(testcase.input))
+		})
+	}
+}

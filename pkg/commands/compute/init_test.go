@@ -10,12 +10,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 func TestInit(t *testing.T) {
@@ -342,8 +344,7 @@ func TestInit(t *testing.T) {
 			},
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
+	for _, testcase := range scenarios {
 		t.Run(testcase.name, func(t *testing.T) {
 			// We're going to chdir to an init environment,
 			// so save the PWD to return to, afterwards.
@@ -412,6 +413,214 @@ func TestInit(t *testing.T) {
 					t.Fatal(err)
 				}
 				testutil.AssertStringContains(t, string(content), testcase.manifestIncludes)
+			}
+		})
+	}
+}
+
+func TestInit_ExistingService(t *testing.T) {
+	serviceID := fastly.NullString("LsyQ2UXDGk6d4ENjvgqTN4")
+	customerID := fastly.NullString("YflD2HKQTx6q4RAwitdGA4")
+	packageID := fastly.NullString("4AGdtiwAR4q6xTQKH2DlfY")
+
+	scenarios := []struct {
+		name              string
+		args              []string
+		apiClient         api.Interface
+		getServiceDetails func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error)
+		getPackage        func(*fastly.GetPackageInput) (*fastly.Package, error)
+		expectInOutput    []string
+		expectInManifest  []string
+		expectNoManifest  bool
+		expectInError     string
+	}{
+		{
+			name: "when the service exists",
+			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			getServiceDetails: func(gsi *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+				if gsi.ServiceID != *serviceID {
+					return nil, &fastly.HTTPError{
+						StatusCode: http.StatusNotFound,
+					}
+				}
+				return &fastly.ServiceDetail{
+					ServiceID:  serviceID,
+					CustomerID: customerID,
+					Comment:    fastly.ToPointer(""),
+					Name:       fastly.ToPointer("example service"),
+					Type:       fastly.ToPointer("wasm"),
+					ActiveVersion: &fastly.Version{
+						Number: fastly.ToPointer(1),
+					},
+				}, nil
+			},
+			getPackage: func(gpi *fastly.GetPackageInput) (*fastly.Package, error) {
+				if gpi.ServiceID != *serviceID || gpi.ServiceVersion != 1 {
+					return nil, &fastly.HTTPError{
+						StatusCode: http.StatusNotFound,
+					}
+				}
+				return &fastly.Package{
+					PackageID: packageID,
+					ServiceID: serviceID,
+					Metadata: &fastly.PackageMetadata{
+						Authors:     []string{"author@example.com"},
+						Description: fastly.NullString("a description"),
+						Name:        fastly.NullString("test-package"),
+						Language:    fastly.NullString("rust"),
+					},
+				}, nil
+			},
+			expectInOutput: []string{
+				"Initializing Compute project from service LsyQ2UXDGk6d4ENjvgqTN4.",
+				"SUCCESS: Initialized package test-package",
+			},
+			expectInManifest: []string{
+				`name = "test-package"`,
+				`authors = ["author@example.com"]`,
+				`description = "a description"`,
+				`language = "rust"`,
+				`service_id = "LsyQ2UXDGk6d4ENjvgqTN4"`,
+			},
+		},
+		{
+			name: "when the service doesn't exist",
+			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			getServiceDetails: func(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+				return nil, &fastly.HTTPError{
+					StatusCode: http.StatusNotFound,
+				}
+			},
+			expectInOutput: []string{
+				"Initializing Compute project from service LsyQ2UXDGk6d4ENjvgqTN4.",
+			},
+			expectInError:    "the service LsyQ2UXDGk6d4ENjvgqTN4 could not be found",
+			expectNoManifest: true,
+		},
+		{
+			name: "service has no versions that include package metadata",
+			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			getServiceDetails: func(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+				return &fastly.ServiceDetail{
+					ServiceID:     serviceID,
+					Name:          fastly.NullString("test-service"),
+					Comment:       fastly.NullString(""),
+					Type:          fastly.NullString("wasm"),
+					ActiveVersion: nil,
+					Versions: []*fastly.Version{
+						{
+							Active:   fastly.ToPointer(false),
+							Deployed: fastly.ToPointer(false),
+							Locked:   fastly.ToPointer(false),
+							Number:   fastly.ToPointer(1),
+						},
+					},
+				}, nil
+			},
+			getPackage: func(_ *fastly.GetPackageInput) (*fastly.Package, error) {
+				return nil, &fastly.HTTPError{
+					StatusCode: http.StatusNotFound,
+				}
+			},
+			expectInError: "unable to find any version of service LsyQ2UXDGk6d4ENjvgqTN4 with an existing package",
+		},
+		{
+			name: "service is vcl",
+			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			getServiceDetails: func(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+				return &fastly.ServiceDetail{
+					ServiceID: serviceID,
+					Type:      fastly.NullString("vcl"),
+				}, nil
+			},
+			expectInError:    "service LsyQ2UXDGk6d4ENjvgqTN4 is not a Compute service",
+			expectNoManifest: true,
+		},
+		{
+			name:          "service id does not look like a Fastly ID",
+			args:          testutil.Args("compute init --from LsyQ2UXDGk6d4EN"),
+			expectInError: "failed to get package",
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.name, func(t *testing.T) {
+			// We're going to chdir to an init environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
+
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Write: []testutil.FileIO{
+					{Src: "", Dst: manifest.Filename},
+				},
+			})
+			defer os.RemoveAll(rootdir)
+
+			manifestPath := filepath.Join(rootdir, manifest.Filename)
+
+			// Before running the test, chdir into the init environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably assert file structure.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+
+			stdout := &testutil.MockStdout{}
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, stdout)
+				opts.APIClientFactory = mock.APIClient(mock.API{
+					GetServiceDetailsFn: testcase.getServiceDetails,
+					GetPackageFn:        testcase.getPackage,
+				})
+				opts.Input = strings.NewReader("")
+
+				return opts, nil
+			}
+
+			err = app.Run(testcase.args, nil)
+			if testcase.expectInError == "" {
+				if err != nil {
+					t.Fatal(err)
+				}
+			} else {
+				if err == nil {
+					t.Log("expected an error and did not get one")
+					t.Fail()
+				}
+				testutil.AssertErrorContains(t, err, testcase.expectInError)
+			}
+
+			t.Log(stdout.String())
+
+			for _, s := range testcase.expectInOutput {
+				testutil.AssertStringContains(t, stdout.String(), s)
+			}
+
+			if testcase.expectNoManifest {
+				_, err = os.Stat(manifestPath)
+				if err == nil {
+					t.Log("found unexpected manifest file", manifestPath)
+					t.Fail()
+				}
+			}
+
+			if len(testcase.expectInManifest) > 0 {
+				mfContentBytes, err := os.ReadFile(manifestPath)
+				if err != nil {
+					t.Fatal(err)
+				}
+				mfContent := string(mfContentBytes)
+				for _, s := range testcase.expectInManifest {
+					testutil.AssertStringContains(t, mfContent, s)
+				}
 			}
 		})
 	}

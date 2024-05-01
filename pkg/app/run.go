@@ -217,7 +217,7 @@ func Exec(data *global.Data) error {
 	// But not necessarily need to process an existing token.
 	// e.g. `profile create example_sso_user --sso`
 	// Which needs the auth server so it can start up an OAuth flow.
-	if !commandRequiresToken(commandName) && commandRequiresAuthServer(commandName) {
+	if !commandRequiresToken(command) && commandRequiresAuthServer(commandName) {
 		// NOTE: Checking for nil allows our test suite to mock the server.
 		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
 		if data.AuthServer == nil {
@@ -229,7 +229,7 @@ func Exec(data *global.Data) error {
 		}
 	}
 
-	if commandRequiresToken(commandName) {
+	if commandRequiresToken(command) {
 		// NOTE: Checking for nil allows our test suite to mock the server.
 		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
 		if data.AuthServer == nil {
@@ -620,13 +620,19 @@ func commandRequiresAuthServer(command string) bool {
 
 // commandRequiresToken determines if the command to be executed is one that
 // requires an API token.
-func commandRequiresToken(command string) bool {
-	switch command {
-	case "compute build", "compute hash-files", "compute init", "compute metadata", "compute serve":
+func commandRequiresToken(command argparser.Command) bool {
+	commandName := command.Name()
+	switch commandName {
+	case "compute init":
+		if initCmd, ok := command.(*compute.InitCommand); ok {
+			return text.IsFastlyID(initCmd.CloneFrom)
+		}
+		return false
+	case "compute build", "compute hash-files", "compute metadata", "compute serve":
 		return false
 	}
-	command = strings.Split(command, " ")[0]
-	switch command {
+	commandName = strings.Split(commandName, " ")[0]
+	switch commandName {
 	case "config", "profile", "update", "version":
 		return false
 	}
