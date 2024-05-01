@@ -24,7 +24,7 @@ func NewListHistoryCommand(parent argparser.Registerer, g *global.Data) *ListHis
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("cursor", "Pagination cursor (Use 'next_cursor' value from list output)").Action(c.cursor.Set).StringVar(&c.cursor.Value)
 	c.CmdClause.Flag("limit", "Maximum number of items to list").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.CmdClause.Flag("sort", "Sort by one of the following [name, created_at, updated_at]").Action(c.sort.Set).StringVar(&c.sort.Value)
+	c.CmdClause.Flag("sort", "Sort by one of the following [start]").Action(c.sort.Set).StringVar(&c.sort.Value)
 	c.CmdClause.Flag("order", "Sort by one of the following [asc, desc]").Action(c.order.Set).StringVar(&c.order.Value)
 	c.CmdClause.Flag("status", "Status of the history record [active, resolved]").Action(c.status.Set).StringVar(&c.status.Value)
 	c.CmdClause.Flag("after", "After filter history record that either started or ended after a specific date").Action(c.after.Set).StringVar(&c.after.Value)
