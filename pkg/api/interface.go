@@ -392,6 +392,14 @@ type Interface interface {
 	GetProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
 	EnableProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
 	DisableProduct(i *fastly.ProductEnablementInput) error
+
+	ListAlertDefinitions(i *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error)
+	CreateAlertDefinition(i *fastly.CreateAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	GetAlertDefinition(i *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	UpdateAlertDefinition(i *fastly.UpdateAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	DeleteAlertDefinition(i *fastly.DeleteAlertDefinitionInput) error
+	TestAlertDefinition(i *fastly.TestAlertDefinitionInput) error
+	ListAlertHistory(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error)
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
