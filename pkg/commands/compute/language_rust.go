@@ -312,8 +312,8 @@ func (r *Rust) toolchainConstraint() {
 	// #nosec
 	// nosemgrep
 	cmd := exec.Command(args[0], args[1:]...)
-	stdoutStderr, err := cmd.CombinedOutput()
-	output := string(stdoutStderr)
+	stdout, err := cmd.Output()
+	output := string(stdout)
 	if err != nil {
 		return
 	}
