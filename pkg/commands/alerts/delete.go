@@ -18,7 +18,10 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
+
 	c.CmdClause = parent.Command("delete", "Delete Alert")
+
+	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying an Alert definition").Required().StringVar(&c.definitionID)
 
 	// Optional.

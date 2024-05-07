@@ -3,11 +3,10 @@ package alerts
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v9/fastly"
-
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -17,21 +16,24 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
+
 	c.CmdClause = parent.Command("create", "Create Alerts")
-	c.CmdClause.Flag("name", "Name of the alert definition").Required().StringVar(&c.name)
-	c.CmdClause.Flag("description", "Description of the alert definition").Required().StringVar(&c.description)
-	c.CmdClause.Flag("metric", "Metric to alert on").Required().StringVar(&c.metric)
-	c.CmdClause.Flag("source", "Source to get the metric from").Required().StringVar(&c.source)
-	c.CmdClause.Flag("type", "Type of evaluation strategy, one of [all_above_threshold, above_threshold, below_threshold, percent_absolute, percent_decrease, percent_increase]").Required().StringVar(&c.eType)
-	c.CmdClause.Flag("period", "Period of time to evaluate, one of [2m, 3m, 5m, 15m, 30m]").Required().StringVar(&c.period)
-	c.CmdClause.Flag("threshold", "Threshold use to compare during evaluation").Required().Float64Var(&c.threshold)
+
+	// Required.
+	c.CmdClause.Flag("description", "Additional text that is included in the alert notification.").Required().StringVar(&c.description)
+	c.CmdClause.Flag("metric", "Metric name to alert on for a specific source.").Required().StringVar(&c.metric)
+	c.CmdClause.Flag("name", "Name of the alert definition.").Required().StringVar(&c.name)
+	c.CmdClause.Flag("period", "Period of time to evaluate whether the conditions have been met. The data is polled every minute.").Required().HintOptions(evaluationPeriod...).EnumVar(&c.period, evaluationPeriod...)
+	c.CmdClause.Flag("source", "Source where the metric comes from.").Required().StringVar(&c.source)
+	c.CmdClause.Flag("threshold", "Threshold used to alert.").Required().Float64Var(&c.threshold)
+	c.CmdClause.Flag("type", "Type of strategy to use to evaluate.").Required().HintOptions(evaluationType...).EnumVar(&c.eType, evaluationType...)
 
 	// Optional.
-	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("ignoreBelow", "IgnoreBelow use to discard data that are below this threshold").Action(c.ignoreBelow.Set).Float64Var(&c.ignoreBelow.Value)
-	c.CmdClause.Flag(argparser.FlagServiceIDName, "ServiceID of the definition").Action(c.serviceID.Set).StringVar(&c.serviceID.Value)
-	c.CmdClause.Flag("dimensions", "Dimensions to filter on origins or domains").Action(c.dimensions.Set).StringsVar(&c.dimensions.Value)
-	c.CmdClause.Flag("integrations", "Integrations used to notify when an alert is firing or resolving").Action(c.integrations.Set).StringsVar(&c.integrations.Value)
+	c.CmdClause.Flag("dimensions", "Dimensions filters depending on the source type.").Action(c.dimensions.Set).StringsVar(&c.dimensions.Value)
+	c.CmdClause.Flag("ignoreBelow", "IgnoreBelow is the threshold for the denominator value used in evaluations that calculate a rate or ratio. Usually used to filter out noise.").Action(c.ignoreBelow.Set).Float64Var(&c.ignoreBelow.Value)
+	c.CmdClause.Flag("integrations", "Integrations are a list of integrations used to notify when alert fires.").Action(c.integrations.Set).StringsVar(&c.integrations.Value)
+	c.RegisterFlagBool(c.JSONFlag())                                                                                                   // --json
+	c.CmdClause.Flag(argparser.FlagServiceIDName, "ServiceID of the definition").Action(c.serviceID.Set).StringVar(&c.serviceID.Value) // --service-id
 
 	return &c
 }
@@ -41,18 +43,18 @@ type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	name        string
 	description string
-	metric      string
-	source      string
 	eType       string
+	metric      string
+	name        string
 	period      string
+	source      string
 	threshold   float64
 
-	ignoreBelow  argparser.OptionalFloat64
-	serviceID    argparser.OptionalString
 	dimensions   argparser.OptionalStringSlice
+	ignoreBelow  argparser.OptionalFloat64
 	integrations argparser.OptionalStringSlice
+	serviceID    argparser.OptionalString
 }
 
 // Exec invokes the application logic for the command.
@@ -82,10 +84,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateAlertDefinitionInput {
+	eetype := c.eType
 	input := fastly.CreateAlertDefinitionInput{
 		Description: &c.description,
 		EvaluationStrategy: map[string]any{
-			"type":      c.eType,
+			"type":      eetype,
 			"period":    c.period,
 			"threshold": c.threshold,
 		},

@@ -8,14 +8,25 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 )
 
+const (
+	defaultEvaluationType   = "above_threshold"
+	defaultEvaluationPeriod = "5m"
+)
+
+// evaluationType is a list of supported evaluation types.
+var evaluationType = []string{"above_threshold", "all_above_threshold", "below_threshold", "percent_absolute", "percent_decrease", "percent_increase"}
+
+// evaluationPeriod is a list of supported evaluation periods.
+var evaluationPeriod = []string{"2m", "3m", "5m", "15m", "30m"}
+
 func printDefinition(out io.Writer, indent uint, definition *fastly.AlertDefinition) {
 	if definition != nil {
-		text.Indent(out, indent, "Definition ID: %s", fastly.ToValue(&definition.ID))
-		text.Indent(out, indent, "Service ID: %s", fastly.ToValue(&definition.ServiceID))
-		text.Indent(out, indent, "Name: %s", fastly.ToValue(&definition.Name))
-		text.Indent(out, indent, "Source: %s", fastly.ToValue(&definition.Source))
+		text.Indent(out, indent, "Definition ID: %s", definition.ID)
+		text.Indent(out, indent, "Service ID: %s", definition.ServiceID)
+		text.Indent(out, indent, "Name: %s", definition.Name)
+		text.Indent(out, indent, "Source: %s", definition.Source)
 
-		dimensions, ok := definition.Dimensions[fastly.ToValue(&definition.Source)]
+		dimensions, ok := definition.Dimensions[definition.Source]
 		if ok && len(dimensions) > 0 {
 			text.Indent(out, indent, "Dimensions:")
 			for i := range dimensions {
@@ -23,24 +34,24 @@ func printDefinition(out io.Writer, indent uint, definition *fastly.AlertDefinit
 			}
 		}
 
-		text.Indent(out, indent, "Metric: %s", fastly.ToValue(&definition.Metric))
+		text.Indent(out, indent, "Metric: %s", definition.Metric)
 
 		text.Indent(out, indent, "Evaluation Strategy:")
 		eType := definition.EvaluationStrategy["type"].(string)
-		text.Indent(out, indent+4, "  Type: %s", fastly.ToValue(&eType))
+		text.Indent(out, indent+4, "  Type: %s", eType)
 
 		period := definition.EvaluationStrategy["period"].(string)
-		text.Indent(out, indent+4, "  Period: %s", fastly.ToValue(&period))
+		text.Indent(out, indent+4, "  Period: %s", period)
 
 		threshold := definition.EvaluationStrategy["threshold"].(float64)
-		text.Indent(out, indent+4, "  Threshold: %v", fastly.ToValue(&threshold))
+		text.Indent(out, indent+4, "  Threshold: %v", threshold)
 
 		if ignoreBelow, ok := definition.EvaluationStrategy["ignore_below"].(float64); ok {
-			text.Indent(out, indent+4, "  IgnoreBelow: %v", fastly.ToValue(&ignoreBelow))
+			text.Indent(out, indent+4, "  IgnoreBelow: %v", ignoreBelow)
 		}
 
 		integrations := definition.IntegrationIDs
-		if ok && len(integrations) > 0 {
+		if len(integrations) > 0 {
 			text.Indent(out, indent, "Integrations:")
 			for i := range integrations {
 				text.Indent(out, indent, "  %s", integrations[i])
@@ -49,12 +60,6 @@ func printDefinition(out io.Writer, indent uint, definition *fastly.AlertDefinit
 
 		text.Indent(out, indent, "Created at: %s", definition.CreatedAt)
 		text.Indent(out, indent, "Updated at: %s", definition.UpdatedAt)
-	}
-}
-
-func printCursor(out io.Writer, meta *fastly.AlertsMeta) {
-	if meta != nil && meta.NextCursor != "" {
-		fmt.Fprintf(out, "\nNext Cursor: %s\n", fastly.ToValue(&meta.NextCursor))
 	}
 }
 
@@ -68,18 +73,17 @@ func printSummary(out io.Writer, meta *fastly.AlertsMeta, as []*fastly.AlertDefi
 		period := a.EvaluationStrategy["period"].(string)
 		threshold := a.EvaluationStrategy["threshold"].(float64)
 		t.AddLine(
-			fastly.ToValue(&a.ID),
-			fastly.ToValue(&a.ServiceID),
-			fastly.ToValue(&a.Name),
-			fastly.ToValue(&a.Source),
-			fastly.ToValue(&a.Metric),
-			fastly.ToValue(&eType),
-			fastly.ToValue(&threshold),
-			fastly.ToValue(&period),
+			a.ID,
+			a.ServiceID,
+			a.Name,
+			a.Source,
+			a.Metric,
+			eType,
+			threshold,
+			period,
 		)
 	}
 	t.Print()
-	printCursor(out, meta)
 }
 
 // printVerbose displays the information returned from the API in a verbose
@@ -89,19 +93,18 @@ func printVerbose(out io.Writer, meta *fastly.AlertsMeta, as []*fastly.AlertDefi
 		printDefinition(out, 0, a)
 		fmt.Fprintf(out, "\n")
 	}
-	printCursor(out, meta)
 }
 
 func printHistory(out io.Writer, history *fastly.AlertHistory) {
 	if history != nil {
 		start := history.Start.UTC().String()
 		end := history.End.UTC().String()
-		fmt.Fprintf(out, "History ID: %s\n", fastly.ToValue(&history.ID))
+		fmt.Fprintf(out, "History ID: %s\n", history.ID)
 		fmt.Fprintf(out, "Definition:\n")
 		printDefinition(out, 4, &history.Definition)
-		fmt.Fprintf(out, "Status: %s\n", fastly.ToValue(&history.Status))
-		fmt.Fprintf(out, "Start: %s\n", fastly.ToValue(&start))
-		fmt.Fprintf(out, "End: %s\n", fastly.ToValue(&end))
+		fmt.Fprintf(out, "Status: %s\n", history.Status)
+		fmt.Fprintf(out, "Start: %s\n", start)
+		fmt.Fprintf(out, "End: %s\n", end)
 		fmt.Fprintf(out, "\n")
 	}
 }
@@ -115,15 +118,14 @@ func printHistorySummary(out io.Writer, meta *fastly.AlertsMeta, as []*fastly.Al
 		start := a.Start.UTC().String()
 		end := a.End.UTC().String()
 		t.AddLine(
-			fastly.ToValue(&a.ID),
-			fastly.ToValue(&a.DefinitionID),
-			fastly.ToValue(&a.Status),
-			fastly.ToValue(&start),
-			fastly.ToValue(&end),
+			a.ID,
+			a.DefinitionID,
+			a.Status,
+			start,
+			end,
 		)
 	}
 	t.Print()
-	printCursor(out, meta)
 }
 
 // printVerbose displays the information returned from the API in a verbose
@@ -132,5 +134,4 @@ func printHistoryVerbose(out io.Writer, meta *fastly.AlertsMeta, history []*fast
 	for _, h := range history {
 		printHistory(out, h)
 	}
-	printCursor(out, meta)
 }

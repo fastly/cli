@@ -17,7 +17,10 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 			Globals: g,
 		},
 	}
+
 	c.CmdClause = parent.Command("describe", "Describe Alert")
+
+	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying an Alert definition").Required().StringVar(&c.definitionID)
 
 	// Optional.

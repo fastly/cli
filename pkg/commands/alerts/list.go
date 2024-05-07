@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -25,9 +26,9 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause.Flag("cursor", "Pagination cursor (Use 'next_cursor' value from list output)").Action(c.cursor.Set).StringVar(&c.cursor.Value)
 	c.CmdClause.Flag("limit", "Maximum number of items to list").Action(c.limit.Set).IntVar(&c.limit.Value)
 	c.CmdClause.Flag("name", "Name of the definition").Action(c.definitionName.Set).StringVar(&c.definitionName.Value)
-	c.CmdClause.Flag("sort", "Sort by one of the following [name, created_at, updated_at]").Action(c.sort.Set).StringVar(&c.sort.Value)
 	c.CmdClause.Flag("order", "Sort by one of the following [asc, desc]").Action(c.order.Set).StringVar(&c.order.Value)
-	c.CmdClause.Flag(argparser.FlagServiceIDName, "ServiceID of the definition").Action(c.serviceID.Set).StringVar(&c.serviceID.Value)
+	c.CmdClause.Flag("sort", "Sort by one of the following [name, created_at, updated_at]").Action(c.sort.Set).StringVar(&c.sort.Value)
+	c.CmdClause.Flag(argparser.FlagServiceIDName, "ServiceID of the definition").Action(c.serviceID.Set).StringVar(&c.serviceID.Value) // --service-id
 
 	return &c
 }
@@ -46,7 +47,7 @@ type ListCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -56,26 +57,44 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	definitions, err := c.Globals.APIClient.ListAlertDefinitions(input)
-	if err != nil {
-		return err
-	}
+	for {
+		definitions, err := c.Globals.APIClient.ListAlertDefinitions(input)
+		if err != nil {
+			return err
+		}
 
-	if ok, err := c.WriteJSON(out, definitions); ok {
-		return err
-	}
+		if ok, err := c.WriteJSON(out, definitions); ok {
+			// No pagination prompt w/ JSON output.
+			return err
+		}
 
-	definitionsPtr := make([]*fastly.AlertDefinition, len(definitions.Data))
-	for i := range definitions.Data {
-		definitionsPtr[i] = &definitions.Data[i]
-	}
+		definitionsPtr := make([]*fastly.AlertDefinition, len(definitions.Data))
+		for i := range definitions.Data {
+			definitionsPtr[i] = &definitions.Data[i]
+		}
 
-	if c.Globals.Verbose() {
-		printVerbose(out, &definitions.Meta, definitionsPtr)
-	} else {
-		printSummary(out, &definitions.Meta, definitionsPtr)
+		if c.Globals.Verbose() {
+			printVerbose(out, &definitions.Meta, definitionsPtr)
+		} else {
+			printSummary(out, &definitions.Meta, definitionsPtr)
+		}
+
+		if definitions != nil && definitions.Meta.NextCursor != "" {
+			// Check if 'out' is interactive before prompting.
+			if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
+				printNext, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
+				if err != nil {
+					return err
+				}
+				if printNext {
+					input.Cursor = &definitions.Meta.NextCursor
+					continue
+				}
+			}
+		}
+
+		return nil
 	}
-	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
