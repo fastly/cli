@@ -80,9 +80,9 @@ func (c *ListHistoryCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 
 		if c.Globals.Verbose() {
-			printHistoryVerbose(out, &history.Meta, historyPtr)
+			printHistoryVerbose(out, historyPtr)
 		} else {
-			printHistorySummary(out, &history.Meta, historyPtr)
+			printHistorySummary(out, historyPtr)
 		}
 
 		if history != nil && history.Meta.NextCursor != "" {

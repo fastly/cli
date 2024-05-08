@@ -65,7 +65,7 @@ func printDefinition(out io.Writer, indent uint, definition *fastly.AlertDefinit
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func printSummary(out io.Writer, meta *fastly.AlertsMeta, as []*fastly.AlertDefinition) {
+func printSummary(out io.Writer, as []*fastly.AlertDefinition) {
 	t := text.NewTable(out)
 	t.AddHeader("DEFINITION ID", "SERVICE ID", "NAME", "SOURCE", "METRIC", "TYPE", "THRESHOLD", "PERIOD")
 	for _, a := range as {
@@ -88,7 +88,7 @@ func printSummary(out io.Writer, meta *fastly.AlertsMeta, as []*fastly.AlertDefi
 
 // printVerbose displays the information returned from the API in a verbose
 // format.
-func printVerbose(out io.Writer, meta *fastly.AlertsMeta, as []*fastly.AlertDefinition) {
+func printVerbose(out io.Writer, as []*fastly.AlertDefinition) {
 	for _, a := range as {
 		printDefinition(out, 0, a)
 		fmt.Fprintf(out, "\n")
@@ -111,7 +111,7 @@ func printHistory(out io.Writer, history *fastly.AlertHistory) {
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func printHistorySummary(out io.Writer, meta *fastly.AlertsMeta, as []*fastly.AlertHistory) {
+func printHistorySummary(out io.Writer, as []*fastly.AlertHistory) {
 	t := text.NewTable(out)
 	t.AddHeader("HISTORY ID", "DEFINITION ID", "STATUS", "START", "END")
 	for _, a := range as {
@@ -130,7 +130,7 @@ func printHistorySummary(out io.Writer, meta *fastly.AlertsMeta, as []*fastly.Al
 
 // printVerbose displays the information returned from the API in a verbose
 // format.
-func printHistoryVerbose(out io.Writer, meta *fastly.AlertsMeta, history []*fastly.AlertHistory) {
+func printHistoryVerbose(out io.Writer, history []*fastly.AlertHistory) {
 	for _, h := range history {
 		printHistory(out, h)
 	}

@@ -74,9 +74,9 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 
 		if c.Globals.Verbose() {
-			printVerbose(out, &definitions.Meta, definitionsPtr)
+			printVerbose(out, definitionsPtr)
 		} else {
-			printSummary(out, &definitions.Meta, definitionsPtr)
+			printSummary(out, definitionsPtr)
 		}
 
 		if definitions != nil && definitions.Meta.NextCursor != "" {

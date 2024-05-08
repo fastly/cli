@@ -55,9 +55,9 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	definitions := []*fastly.AlertDefinition{definition}
 	if c.Globals.Verbose() {
-		printVerbose(out, nil, definitions)
+		printVerbose(out, definitions)
 	} else {
-		printSummary(out, nil, definitions)
+		printSummary(out, definitions)
 	}
 	return nil
 }

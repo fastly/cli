@@ -75,20 +75,19 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	definitions := []*fastly.AlertDefinition{definition}
 	if c.Globals.Verbose() {
-		printVerbose(out, nil, definitions)
+		printVerbose(out, definitions)
 	} else {
-		printSummary(out, nil, definitions)
+		printSummary(out, definitions)
 	}
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateAlertDefinitionInput {
-	eetype := c.eType
 	input := fastly.CreateAlertDefinitionInput{
 		Description: &c.description,
 		EvaluationStrategy: map[string]any{
-			"type":      eetype,
+			"type":      c.eType,
 			"period":    c.period,
 			"threshold": c.threshold,
 		},
