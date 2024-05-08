@@ -592,6 +592,7 @@ func local(opts localOpts) error {
 		}
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Manifest"), opts.manifestPath)
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Wasm binary"), opts.file)
+		text.Output(opts.out, "%s: %s", text.BoldYellow("Viceroy command"), strings.Join(args, " "))
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Viceroy binary"), opts.bin)
 
 		// gosec flagged this:
