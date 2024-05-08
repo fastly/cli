@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## [v10.9.0](https://github.com/fastly/cli/releases/tag/v10.9.0) (2024-05-08)
+
+**Enhancements:**
+
+- chore: grammar and capitalization fixes for KV Store commands [#1178](https://github.com/fastly/cli/pull/1178)
+- feat(kvstores): add support for specifying location when creating KV stores [#1182](https://github.com/fastly/cli/pull/1182)
+- feat(compute/build): support wasm-tools installed into `$PATH` [#1183](https://github.com/fastly/cli/pull/1183)
+- feat(compute/serve): support arbitrary arguments to Viceroy [#1186](https://github.com/fastly/cli/pull/1186)
+- ci: update tinygo version used in tests [#1188](https://github.com/fastly/cli/pull/1188)
+- feat(compute/init): allow `--from` to take a Service ID [#1187](https://github.com/fastly/cli/pull/1187)
+
+**Bug fixes:**
+
+- fix(kvstore): delete all keys [#1181](https://github.com/fastly/cli/pull/1181)
+- fix(compute/rust) handling of 'cargo version' output [#1197](https://github.com/fastly/cli/pull/1197)
+- fix(compute/serve): skip build if `--file` set [#1200](https://github.com/fastly/cli/pull/1200)
+
+**Dependencies:**
+
+- build(deps): bump github.com/fastly/go-fastly/v9 from 9.2.1 to 9.2.2 [#1180](https://github.com/fastly/cli/pull/1180)
+- build(deps): bump golang.org/x/crypto from 0.22.0 to 0.23.0 [#1194](https://github.com/fastly/cli/pull/1194)
+
 ## [v10.8.10](https://github.com/fastly/cli/releases/tag/v10.8.10) (2024-04-10)
 
 **Dependencies:**
