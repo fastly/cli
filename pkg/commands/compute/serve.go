@@ -64,7 +64,7 @@ type ServeCommand struct {
 	addr            string
 	debug           bool
 	env             argparser.OptionalString
-	file            string
+	file            argparser.OptionalString
 	profileGuest    bool
 	profileGuestDir argparser.OptionalString
 	projectDir      string
@@ -85,7 +85,7 @@ func NewServeCommand(parent argparser.Registerer, g *global.Data, build *BuildCo
 	c.CmdClause.Flag("debug", "Run the server in Debug Adapter mode").Hidden().BoolVar(&c.debug)
 	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').Action(c.dir.Set).StringVar(&c.dir.Value)
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
-	c.CmdClause.Flag("file", fmt.Sprintf("The Wasm file to run (causes validation checks for %s to be skipped)", binWasmPath)).Default(binWasmPath).StringVar(&c.file)
+	c.CmdClause.Flag("file", "The Wasm file to run (causes build process to be skipped)").Action(c.file.Set).StringVar(&c.file.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("metadata-disable", "Disable Wasm binary metadata annotations").Action(c.metadataDisable.Set).BoolVar(&c.metadataDisable.Value)
@@ -145,7 +145,16 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		manifestPath = filepath.Join(c.projectDir, manifestFilename)
 	}
 
-	if !c.skipBuild {
+	wasmBinaryToRun := binWasmPath
+	if c.file.WasSet {
+		wasmBinaryToRun = c.file.Value
+	}
+
+	// We skip the build if explicitly told to with --skip-build but also when the
+	// user sets --file to specify their own wasm binary to pass to Viceroy. This
+	// is typically for users who compile a Wasm binary using an unsupported
+	// programming language for the Fastly Compute platform.
+	if !c.skipBuild && !c.file.WasSet {
 		err = c.Build(in, out)
 		if err != nil {
 			return err
@@ -169,13 +178,16 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// If the user doesn't set --skip-build then `compute serve` will call
 	// `compute build` and the logic there will update the manifest in-memory data
 	// with the relevant project directory and environment manifest content.
-	if c.skipBuild {
+	if c.skipBuild || c.file.WasSet {
 		err := c.Globals.Manifest.File.Read(manifestPath)
 		if err != nil {
 			return fmt.Errorf("failed to parse manifest '%s': %w", manifestPath, err)
 		}
 		c.ViceroyVersioner.SetRequestedVersion(c.Globals.Manifest.File.LocalServer.ViceroyVersion)
 		if c.Globals.Verbose() {
+			if c.skipBuild || c.file.WasSet {
+				text.Break(out)
+			}
 			text.Info(out, "Fastly manifest set to: %s\n\n", manifestPath)
 		}
 	}
@@ -210,13 +222,13 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			debug:           c.debug,
 			errLog:          c.Globals.ErrLog,
 			extraArgs:       c.ViceroyBinExtraArgs,
-			file:            c.file,
 			manifestPath:    manifestPath,
 			out:             out,
 			profileGuest:    c.profileGuest,
 			profileGuestDir: c.profileGuestDir,
 			restarted:       restart,
 			verbose:         c.Globals.Verbose(),
+			wasmBinPath:     wasmBinaryToRun,
 			watch:           c.watch,
 			watchDir:        c.watchDir,
 		})
@@ -275,9 +287,6 @@ func (c *ServeCommand) Build(in io.Reader, out io.Writer) error {
 	}
 	if c.projectDir != "" {
 		c.build.SkipChangeDir = true // we've already changed directory
-	}
-	if c.file != "" {
-		c.build.ServeFile = true
 	}
 	return c.build.Exec(in, out)
 }
@@ -548,13 +557,13 @@ type localOpts struct {
 	debug           bool
 	errLog          fsterr.LogInterface
 	extraArgs       string
-	file            string
 	manifestPath    string
 	out             io.Writer
 	profileGuest    bool
 	profileGuestDir argparser.OptionalString
 	restarted       bool
 	verbose         bool
+	wasmBinPath     string
 	watch           bool
 	watchDir        argparser.OptionalString
 }
@@ -564,7 +573,7 @@ func local(opts localOpts) error {
 	// NOTE: Viceroy no longer displays errors unless in verbose mode.
 	// This can cause confusion for customers: https://github.com/fastly/cli/issues/913
 	// So regardless of CLI --verbose flag we'll always set verbose for Viceroy.
-	args := []string{"-v", "-C", opts.manifestPath, "--addr", opts.addr, opts.file}
+	args := []string{"-v", "-C", opts.manifestPath, "--addr", opts.addr, opts.wasmBinPath}
 
 	if opts.debug {
 		args = append(args, "--debug")
@@ -591,7 +600,8 @@ func local(opts localOpts) error {
 			text.Break(opts.out)
 		}
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Manifest"), opts.manifestPath)
-		text.Output(opts.out, "%s: %s", text.BoldYellow("Wasm binary"), opts.file)
+		text.Output(opts.out, "%s: %s", text.BoldYellow("Wasm binary"), opts.wasmBinPath)
+		text.Output(opts.out, "%s: %s", text.BoldYellow("Viceroy command"), strings.Join(args, " "))
 		text.Output(opts.out, "%s: %s", text.BoldYellow("Viceroy binary"), opts.bin)
 
 		// gosec flagged this:

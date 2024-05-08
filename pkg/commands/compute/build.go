@@ -66,7 +66,6 @@ type BuildCommand struct {
 	MetadataDisable       bool
 	MetadataFilterEnvVars string
 	MetadataShow          bool
-	ServeFile             bool // skip checking for `binWasmPath` after build as --file might indicate a non-standard named wasm binary
 	SkipChangeDir         bool // set by parent composite commands (e.g. serve, publish)
 }
 
