@@ -384,6 +384,14 @@ type API struct {
 	GetProductFn     func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
 	EnableProductFn  func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
 	DisableProductFn func(i *fastly.ProductEnablementInput) error
+
+	ListAlertDefinitionsFn  func(i *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error)
+	CreateAlertDefinitionFn func(i *fastly.CreateAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	GetAlertDefinitionFn    func(i *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	UpdateAlertDefinitionFn func(i *fastly.UpdateAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	DeleteAlertDefinitionFn func(i *fastly.DeleteAlertDefinitionInput) error
+	TestAlertDefinitionFn   func(i *fastly.TestAlertDefinitionInput) error
+	ListAlertHistoryFn      func(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error)
 }
 
 // AllDatacenters implements Interface.
@@ -1949,4 +1957,39 @@ func (m API) EnableProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEna
 // DisableProduct implements Interface.
 func (m API) DisableProduct(i *fastly.ProductEnablementInput) error {
 	return m.DisableProductFn(i)
+}
+
+// ListAlertDefinitions implements Interface.
+func (m API) ListAlertDefinitions(i *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
+	return m.ListAlertDefinitionsFn(i)
+}
+
+// CreateAlertDefinition implements Interface.
+func (m API) CreateAlertDefinition(i *fastly.CreateAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+	return m.CreateAlertDefinitionFn(i)
+}
+
+// GetAlertDefinition implements Interface.
+func (m API) GetAlertDefinition(i *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+	return m.GetAlertDefinitionFn(i)
+}
+
+// UpdateAlertDefinition implements Interface.
+func (m API) UpdateAlertDefinition(i *fastly.UpdateAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+	return m.UpdateAlertDefinitionFn(i)
+}
+
+// DeleteAlertDefinition implements Interface.
+func (m API) DeleteAlertDefinition(i *fastly.DeleteAlertDefinitionInput) error {
+	return m.DeleteAlertDefinitionFn(i)
+}
+
+// TestAlertDefinition implements Interface.
+func (m API) TestAlertDefinition(i *fastly.TestAlertDefinitionInput) error {
+	return m.TestAlertDefinitionFn(i)
+}
+
+// ListAlertHistory implements Interface.
+func (m API) ListAlertHistory(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
+	return m.ListAlertHistoryFn(i)
 }

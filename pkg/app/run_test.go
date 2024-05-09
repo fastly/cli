@@ -61,6 +61,7 @@ complete -F _fastly_bash_autocomplete fastly
 			WantOutput: `help
 acl
 acl-entry
+alerts
 auth-token
 backend
 compute

@@ -6,6 +6,7 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
+	"github.com/fastly/cli/pkg/commands/alerts"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -108,6 +109,13 @@ func Define(
 	aclEntryDescribe := aclentry.NewDescribeCommand(aclEntryCmdRoot.CmdClause, data)
 	aclEntryList := aclentry.NewListCommand(aclEntryCmdRoot.CmdClause, data)
 	aclEntryUpdate := aclentry.NewUpdateCommand(aclEntryCmdRoot.CmdClause, data)
+	alertsCmdRoot := alerts.NewRootCommand(app, data)
+	alertsCreate := alerts.NewCreateCommand(alertsCmdRoot.CmdClause, data)
+	alertsDelete := alerts.NewDeleteCommand(alertsCmdRoot.CmdClause, data)
+	alertsDescribe := alerts.NewDescribeCommand(alertsCmdRoot.CmdClause, data)
+	alertsList := alerts.NewListCommand(alertsCmdRoot.CmdClause, data)
+	alertsListHistory := alerts.NewListHistoryCommand(alertsCmdRoot.CmdClause, data)
+	alertsUpdate := alerts.NewUpdateCommand(alertsCmdRoot.CmdClause, data)
 	authtokenCmdRoot := authtoken.NewRootCommand(app, data)
 	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, data)
@@ -475,6 +483,12 @@ func Define(
 		aclEntryDescribe,
 		aclEntryList,
 		aclEntryUpdate,
+		alertsCreate,
+		alertsDelete,
+		alertsDescribe,
+		alertsList,
+		alertsListHistory,
+		alertsUpdate,
 		authtokenCmdRoot,
 		authtokenCreate,
 		authtokenDelete,

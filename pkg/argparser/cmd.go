@@ -99,6 +99,12 @@ type OptionalInt struct {
 	Value int
 }
 
+// OptionalFloat64 models an optional int flag value.
+type OptionalFloat64 struct {
+	Optional
+	Value float64
+}
+
 // ServiceDetailsOpts provides data and behaviours required by the
 // ServiceDetails function.
 type ServiceDetailsOpts struct {
