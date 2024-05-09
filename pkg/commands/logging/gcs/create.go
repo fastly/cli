@@ -36,6 +36,7 @@ type CreateCommand struct {
 	Path              argparser.OptionalString
 	Period            argparser.OptionalInt
 	Placement         argparser.OptionalString
+	ProjectID         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	SecretKey         argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
@@ -75,6 +76,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
 	common.Placement(c.CmdClause, &c.Placement)
+	c.CmdClause.Flag("project-id", "The google project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -139,6 +141,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+	if c.ProjectID.WasSet {
+		input.ProjectID = &c.ProjectID.Value
 	}
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value

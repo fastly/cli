@@ -33,6 +33,15 @@ func TestGCSCreate(t *testing.T) {
 			wantOutput: "Created GCS logging endpoint log (service 123 version 4)",
 		},
 		{
+			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --account-name service-account-id --project-id gcp-prj-id --period 86400 --autoclone"),
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				CreateGCSFn:    createGCSOK,
+			},
+			wantOutput: "Created GCS logging endpoint log (service 123 version 4)",
+		},
+		{
 			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
