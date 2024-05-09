@@ -437,6 +437,7 @@ Name: logs
 Path: logs/
 Period: 3600
 Placement: none
+Project ID: 
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 Service ID: 123
