@@ -24,6 +24,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute/setup"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/internal/beacon"
 	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
@@ -1000,9 +1001,24 @@ func (c *DeployCommand) CreateServiceResources(
 
 // ProcessService updates the service version comment and then activates the
 // service version.
-func (c *DeployCommand) ProcessService(serviceID string, serviceVersion int, spinner text.Spinner) error {
+func (c *DeployCommand) ProcessService(serviceID string, serviceVersion int, spinner text.Spinner) (err error) {
+	defer func() {
+		event := beacon.Event{
+			Name: "activate",
+		}
+		if err != nil {
+			event.Status = beacon.StatusFail
+		} else {
+			event.Status = beacon.StatusSuccess
+		}
+		bErr := beacon.Notify(c.Globals, serviceID, event)
+		if bErr != nil {
+			c.Globals.ErrLog.Add(bErr)
+		}
+	}()
+
 	if c.Comment.WasSet {
-		_, err := c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
+		_, err = c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
 			Comment:        &c.Comment.Value,
@@ -1013,7 +1029,7 @@ func (c *DeployCommand) ProcessService(serviceID string, serviceVersion int, spi
 	}
 
 	return spinner.Process(fmt.Sprintf("Activating service (version %d)", serviceVersion), func(_ *text.SpinnerWrapper) error {
-		_, err := c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
+		_, err = c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
 		})

@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -119,5 +120,29 @@ func AssertPathContentFlag(flag string, wantError string, args []string, fixture
 				break
 			}
 		}
+	}
+}
+
+// Borrowed from https://github.com/stretchr/testify/blob/v1.9.0/assert/assertions.go#L778-L784
+func getLen(x any) (l int, ok bool) {
+	v := reflect.ValueOf(x)
+	defer func() {
+		ok = recover() == nil
+	}()
+	return v.Len(), true
+}
+
+// AssertLength fails a test scenario if the given slice or string does
+// not have the expected length.
+func AssertLength(t *testing.T, want int, have any) {
+	t.Helper()
+	l, ok := getLen(have)
+
+	if !ok {
+		t.Fatalf("cannot get len of type %T", have)
+	}
+
+	if l != want {
+		t.Fatalf("wanted %d elements, got %d (%#v)", want, l, have)
 	}
 }
