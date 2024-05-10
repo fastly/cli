@@ -81,7 +81,7 @@ func TestDictionaryItemsList(t *testing.T) {
 		{
 			api: mock.API{
 				GetDictionaryItemsFn: func(i *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
-					return fastly.NewPaginator[fastly.DictionaryItem](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.DictionaryItem](&mock.HTTPClient{
 						Errors: []error{
 							testutil.Err,
 						},
@@ -95,7 +95,7 @@ func TestDictionaryItemsList(t *testing.T) {
 		{
 			api: mock.API{
 				GetDictionaryItemsFn: func(i *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
-					return fastly.NewPaginator[fastly.DictionaryItem](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.DictionaryItem](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{

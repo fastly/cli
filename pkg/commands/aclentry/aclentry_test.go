@@ -219,7 +219,7 @@ func TestACLEntryList(t *testing.T) {
 			Name: "validate ListACLEntries API error (via GetNext() call)",
 			API: mock.API{
 				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
 						Errors: []error{
 							testutil.Err,
 						},
@@ -234,7 +234,7 @@ func TestACLEntryList(t *testing.T) {
 			Name: "validate ListACLEntries API success",
 			API: mock.API{
 				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -276,7 +276,7 @@ func TestACLEntryList(t *testing.T) {
 			Name: "validate --verbose flag",
 			API: mock.API{
 				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
