@@ -256,7 +256,6 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// that isn't natively supported by the platform.
 	if c.CloneFrom != "" {
 		if !isExistingService {
-			fmt.Printf("Fetching package from: %s\n", c.CloneFrom)
 			err = c.FetchPackageTemplate(branch, tag, file.Archives, spinner, out)
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]any{

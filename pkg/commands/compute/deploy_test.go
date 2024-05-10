@@ -2241,7 +2241,6 @@ func TestDeploy(t *testing.T) {
 }
 
 func TestDeploy_ActivateBeacon(t *testing.T) {
-	//
 	// We're going to chdir to a deploy environment,
 	// so save the PWD to return to, afterwards.
 	pwd, err := os.Getwd()
@@ -2285,7 +2284,7 @@ func TestDeploy_ActivateBeacon(t *testing.T) {
 		Status:     http.StatusText(http.StatusNoContent),
 		Body:       io.NopCloser(bytes.NewBufferString("")),
 	}, nil)
-	fmt.Printf("recording HTTP with...\n%#v\n", recordingHTTP)
+
 	manifestContent := `
 	name = "package"
 	manifest_version = 2

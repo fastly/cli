@@ -10,11 +10,14 @@ import (
 	"github.com/fastly/cli/pkg/global"
 )
 
+// Common event statuses or results.
 const (
 	StatusSuccess = "success"
 	StatusFail    = "fail"
 )
 
+// Event represents something that happened that we need to signal to
+// the notification relay.
 type Event struct {
 	Name    string         `json:"event"`
 	Status  string         `json:"status"`
@@ -23,6 +26,8 @@ type Event struct {
 
 const beaconNotify = "/cli/%s/notify"
 
+// Notify emits an Event for the given serviceID to the notification
+// relay.
 func Notify(g *global.Data, serviceID string, e Event) error {
 	headers := []undocumented.HTTPHeader{
 		{
