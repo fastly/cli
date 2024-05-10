@@ -86,7 +86,7 @@ func TestServiceList(t *testing.T) {
 		{
 			api: mock.API{
 				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
 						Errors: []error{
 							testutil.Err,
 						},
@@ -100,7 +100,7 @@ func TestServiceList(t *testing.T) {
 		{
 			api: mock.API{
 				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -137,7 +137,7 @@ func TestServiceList(t *testing.T) {
 		{
 			api: mock.API{
 				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{

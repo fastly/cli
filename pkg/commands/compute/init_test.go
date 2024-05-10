@@ -575,8 +575,18 @@ func TestInit_ExistingService(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			httpClient := testutil.NewRecordingHTTPClient()
-			httpClient.SingleResponse(testutil.NewHTTPResponse(http.StatusOK, nil, nil), nil)
+			httpClient := &mock.HTTPClient{
+				Responses: []*http.Response{
+					// The body is closed by beacon.Notify.
+					//nolint: bodyclose
+					mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				},
+				Errors: []error{
+					nil,
+				},
+				Index:        -1,
+				SaveRequests: true,
+			}
 
 			stdout := &threadsafe.Buffer{}
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
@@ -608,14 +618,10 @@ func TestInit_ExistingService(t *testing.T) {
 			t.Log(stdout.String())
 
 			if testcase.suppresBeacon {
-				testutil.AssertLength(t, 0, httpClient.GetRequests())
+				testutil.AssertLength(t, 0, httpClient.Requests)
 			} else {
-				testutil.AssertLength(t, 1, httpClient.GetRequests())
-				beaconReq, ok := httpClient.GetRequest(0)
-				if !ok {
-					t.Log("request doesn't appear in log")
-					t.Fail()
-				}
+				testutil.AssertLength(t, 1, httpClient.Requests)
+				beaconReq := httpClient.Requests[0]
 				testutil.AssertEqual(t, "fastly-notification-relay.edgecompute.app", beaconReq.URL.Hostname())
 			}
 

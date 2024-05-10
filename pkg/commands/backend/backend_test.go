@@ -87,7 +87,7 @@ func TestBackendCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](mock.HTTPClient{
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{

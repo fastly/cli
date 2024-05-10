@@ -1,7 +1,6 @@
 package compute_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -2278,12 +2277,18 @@ func TestDeploy_ActivateBeacon(t *testing.T) {
 
 	stdout := threadsafe.Buffer{}
 	args := testutil.Args("compute deploy --auto-yes --non-interactive")
-	recordingHTTP := testutil.NewRecordingHTTPClient()
-	recordingHTTP.SingleResponse(&http.Response{
-		StatusCode: http.StatusNoContent,
-		Status:     http.StatusText(http.StatusNoContent),
-		Body:       io.NopCloser(bytes.NewBufferString("")),
-	}, nil)
+	recordingHTTP := &mock.HTTPClient{
+		Responses: []*http.Response{
+			// the body is closed by beacon.Notify
+			//nolint: bodyclose
+			mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+		},
+		Errors: []error{
+			nil,
+		},
+		Index:        -1,
+		SaveRequests: true,
+	}
 
 	manifestContent := `
 	name = "package"
@@ -2321,10 +2326,9 @@ func TestDeploy_ActivateBeacon(t *testing.T) {
 	err = app.Run(args, nil)
 
 	testutil.AssertErrorContains(t, err, "error activating version:")
-	testutil.AssertLength(t, 1, recordingHTTP.GetRequests())
+	testutil.AssertLength(t, 1, recordingHTTP.Requests)
 
-	beaconReq, ok := recordingHTTP.GetRequest(0)
-	testutil.AssertBool(t, true, ok)
+	beaconReq := recordingHTTP.Requests[0]
 	testutil.AssertEqual(t, "fastly-notification-relay.edgecompute.app", beaconReq.URL.Hostname())
 }
 
