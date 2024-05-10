@@ -135,13 +135,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -166,13 +164,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -354,13 +350,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -501,13 +495,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -533,13 +525,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -569,13 +559,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			noManifest: true,
@@ -603,13 +591,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -632,13 +618,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -661,13 +645,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -691,13 +673,11 @@ func TestDeploy(t *testing.T) {
 				UpdateVersionFn:     updateVersionOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -724,13 +704,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -779,13 +757,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -831,13 +807,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -884,13 +858,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -942,13 +914,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -971,13 +941,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -1012,13 +980,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -1057,13 +1023,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -1096,13 +1060,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -1133,13 +1095,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1185,13 +1145,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1242,13 +1200,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1304,13 +1260,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1366,13 +1320,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1421,13 +1373,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1478,13 +1428,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1526,13 +1474,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1575,13 +1521,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1625,13 +1569,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1672,13 +1614,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1729,13 +1669,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1791,13 +1729,11 @@ func TestDeploy(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1840,13 +1776,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1895,13 +1829,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1953,13 +1885,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -2008,13 +1938,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -2074,13 +2002,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
