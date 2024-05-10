@@ -16,6 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 	"github.com/fastly/go-fastly/v9/fastly"
 )
 
@@ -577,7 +578,7 @@ func TestInit_ExistingService(t *testing.T) {
 			httpClient := testutil.NewRecordingHTTPClient()
 			httpClient.SingleResponse(testutil.NewHTTPResponse(http.StatusOK, nil, nil), nil)
 
-			stdout := &testutil.MockStdout{}
+			stdout := &threadsafe.Buffer{}
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts := testutil.MockGlobalData(testcase.args, stdout)
 				opts.APIClientFactory = mock.APIClient(mock.API{
