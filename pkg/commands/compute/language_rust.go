@@ -157,7 +157,14 @@ func (r *Rust) Build() error {
 		text.Info(r.output, "No [scripts.build] found in %s. The following default build command for Rust will be used: `%s`\n\n", r.manifestFilename, r.build)
 	}
 
-	r.toolchainConstraint()
+	version := r.toolchainConstraint()
+
+	if version != nil {
+		err := r.checkCargoConfigFileName(version)
+		if err != nil {
+			return err
+		}
+	}
 
 	bt := BuildToolchain{
 		autoYes:                   r.autoYes,
@@ -294,7 +301,7 @@ func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 // NOTE: We don't stop the build as their toolchain may compile successfully.
 // The warning is to help a user know something isn't quite right and gives them
 // the opportunity to do something about it if they choose.
-func (r *Rust) toolchainConstraint() {
+func (r *Rust) toolchainConstraint() *semver.Version {
 	if r.verbose {
 		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'.\n\n", r.config.ToolchainConstraint)
 	}
@@ -311,29 +318,55 @@ func (r *Rust) toolchainConstraint() {
 	stdout, err := cmd.Output()
 	output := string(stdout)
 	if err != nil {
-		return
+		return nil
 	}
 
 	versionPattern := regexp.MustCompile(`cargo (?P<version>\d[^\s]+)`)
 	match := versionPattern.FindStringSubmatch(output)
 	if len(match) < 2 { // We expect a pattern with one capture group.
-		return
+		return nil
 	}
 	version := match[1]
 
 	v, err := semver.NewVersion(version)
 	if err != nil {
-		return
+		return nil
 	}
 
 	c, err := semver.NewConstraint(r.config.ToolchainConstraint)
 	if err != nil {
-		return
+		return nil
 	}
 
 	if !c.Check(v) {
 		text.Warning(r.output, "The Rust version '%s' didn't meet the constraint '%s'\n\n", version, r.config.ToolchainConstraint)
 	}
+
+	return v
+}
+
+func (r *Rust) checkCargoConfigFileName(rustVersion *semver.Version) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		r.errlog.Add(err)
+		return fmt.Errorf("getting current working directory: %w", err)
+	}
+
+	if !filesystem.FileExists(filepath.Join(dir, ".cargo", "config")) {
+		return nil
+	}
+
+	filenameMsg := "\nThe Cargo configuration file name is .cargo/config"
+
+	c, _ := semver.NewConstraint(">=1.78.0")
+
+	if c.Check(rustVersion) {
+		text.Warning(r.output, filenameMsg)
+		return fmt.Errorf("The build cannot proceed with Rust version '%s' as the file must be named .cargo/config.toml", rustVersion)
+	}
+
+	text.Warning(r.output, filenameMsg+". The file should be renamed to .cargo/config.toml to be compatible with Rust 1.78.0 or later\n\n")
+	return nil
 }
 
 // ProcessLocation ensures the generated Rust Wasm binary is moved to the
