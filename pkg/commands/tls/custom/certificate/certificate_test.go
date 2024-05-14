@@ -23,17 +23,42 @@ const (
 )
 
 func TestTLSCustomCertCreate(t *testing.T) {
+	var content string
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --cert-blob flag",
+			Name:      "validate missing --cert-blob and --cert-path flags",
 			Args:      args("tls-custom certificate create"),
-			WantError: "required flag --cert-blob not provided",
+			WantError: "neither --cert-path or --cert-blob provided, one must be provided",
+		},
+		{
+			Name:      "validate specifying both --cert-blob and --cert-path flags",
+			Args:      args("tls-custom certificate create --cert-blob foo --cert-path bar"),
+			WantError: "cert-path and cert-blob provided, only one can be specified",
+		},
+		{
+			Name:      "validate invalid --cert-path arg",
+			Args:      args("tls-custom certificate create --cert-path ............"),
+			WantError: "error reading cert-path",
+		},
+		{
+			Name: "validate custom cert is submitted",
+			API: mock.API{
+				CreateCustomTLSCertificateFn: func(certInput *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					content = certInput.CertBlob
+					return &fastly.CustomTLSCertificate{
+						ID: mockResponseID,
+					}, nil
+				},
+			},
+			Args:       args("tls-custom certificate create --cert-path ./testdata/certificate.crt"),
+			WantOutput: fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
 		},
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				CreateCustomTLSCertificateFn: func(_ *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+				CreateCustomTLSCertificateFn: func(certInput *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					content = certInput.CertBlob
 					return nil, testutil.Err
 				},
 			},
@@ -43,7 +68,8 @@ func TestTLSCustomCertCreate(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				CreateCustomTLSCertificateFn: func(_ *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+				CreateCustomTLSCertificateFn: func(certInput *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					content = certInput.CertBlob
 					return &fastly.CustomTLSCertificate{
 						ID: mockResponseID,
 					}, nil
@@ -66,6 +92,7 @@ func TestTLSCustomCertCreate(t *testing.T) {
 			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+			testutil.AssertPathContentFlag("cert-path", testcase.WantError, testcase.Args, "certificate.crt", content, t)
 		})
 	}
 }
