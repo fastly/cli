@@ -54,6 +54,8 @@ type Runner interface {
 	// RefreshAccessToken constructs and calls the token_endpoint with the
 	// refresh token so we can refresh and return the access token.
 	RefreshAccessToken(refreshToken string) (JWT, error)
+	// SetLoginHint sets login_hint parameter for the authorization_endpoint.
+	SetLoginHint(login string)
 	// Start starts a local server for handling authentication processing.
 	Start() error
 	// ValidateAndRetrieveAPIToken verifies the signature and the claims and
@@ -71,6 +73,8 @@ type Server struct {
 	DebugMode string
 	// HTTPClient is a HTTP client used to call the API to exchange the access token for a session token.
 	HTTPClient api.HTTPClient
+	// LoginHint is the login_hint parameter for the authorization_endpoint.
+	LoginHint string
 	// Result is a channel that reports the result of authorization.
 	Result chan AuthorizationResult
 	// Router is an HTTP request multiplexer.
@@ -89,15 +93,27 @@ func (s Server) AuthURL() (string, error) {
 		return "", err
 	}
 
+	// We only send login_hint if the user has switched profiles.
+	var loginHint string
+	if s.LoginHint != "" {
+		loginHint = "&login_hint=" + s.LoginHint
+	}
+
 	authorizationURL := fmt.Sprintf(
 		"%s?audience=%s"+
 			"&scope=openid"+
 			"&response_type=code&client_id=%s"+
 			"&code_challenge=%s"+
-			"&code_challenge_method=S256&redirect_uri=%s",
-		s.WellKnownEndpoints.Auth, s.APIEndpoint, ClientID, challenge, RedirectURL)
+			"&code_challenge_method=S256&redirect_uri=%s"+
+			"%s",
+		s.WellKnownEndpoints.Auth, s.APIEndpoint, ClientID, challenge, RedirectURL, loginHint)
 
 	return authorizationURL, nil
+}
+
+// SetLoginHint sets login_hint parameter for the authorization_endpoint.
+func (s *Server) SetLoginHint(login string) {
+	s.LoginHint = login
 }
 
 // GetResult returns the result channel.

@@ -23,6 +23,10 @@ type RootCommand struct {
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
 
+	// InvokedFromProfileSwitch indicates if we should re-authenticate.
+	InvokedFromProfileSwitch bool
+	// ProfileSwitchName indicates the profile account to switch to.
+	ProfileSwitchName string
 	// InvokedFromProfileCreate indicates if we should create a new profile.
 	InvokedFromProfileCreate bool
 	// ProfileCreateName indicates the new profile name.
@@ -47,13 +51,14 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+	profileName, _ := c.identifyProfileAndFlow()
+
 	// We need to prompt the user, so they know we're about to open their web
 	// browser, but we also need to handle the scenario where the `sso` command is
 	// invoked indirectly via ../../app/run.go as that package will have its own
 	// (similar) prompt before invoking this command. So to avoid a double prompt,
 	// the app package will set `SkipAuthPrompt: true`.
 	if !c.Globals.SkipAuthPrompt && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		profileName, _ := c.identifyProfileAndFlow()
 		msg := fmt.Sprintf("We're going to authenticate the '%s' profile", profileName)
 		text.Important(out, "%s. We need to open your browser to authenticate you.", msg)
 		text.Break(out)
@@ -82,6 +87,21 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Info(out, "Starting a local server to handle the authentication flow.")
+
+	// Before we invoke the authentication flow we need to set login_hint to the
+	// email address of the profile. We do this not only when switching profiles
+	// but for creating and updating a profile too because there could be an
+	// existing session, and that might end up causing problems if its not the
+	// session you want/need (depending on what the intention is).
+	if c.InvokedFromProfileSwitch || c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate {
+		p := profile.Get(profileName, c.Globals.Config.Profiles)
+		if p == nil {
+			errNoProfile := fmt.Errorf(profile.DoesNotExist, profileName)
+			c.Globals.ErrLog.Add(errNoProfile)
+			return errNoProfile
+		}
+		c.Globals.AuthServer.SetLoginHint(p.Email)
+	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
 	if err != nil {
@@ -140,6 +160,10 @@ const (
 	// ProfileUpdate indicates we need to update a profile using details passed in
 	// either from the `sso` or `profile update` command.
 	ProfileUpdate
+
+	// ProfileSwitch indicates we need to re-authenticate and switch profiles.
+	// Triggered by user invoking `fastly profile switch` with an SSO-based profile.
+	ProfileSwitch
 )
 
 // identifyProfileAndFlow identifies the profile and the specific workflow.
@@ -167,6 +191,8 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 		return c.ProfileCreateName, ProfileCreate
 	case c.InvokedFromProfileUpdate && c.ProfileUpdateName != "":
 		return c.ProfileUpdateName, ProfileUpdate
+	case c.InvokedFromProfileSwitch && c.ProfileSwitchName != "":
+		return c.ProfileSwitchName, ProfileSwitch
 	case currentDefaultProfile != "":
 		return currentDefaultProfile, ProfileUpdate
 	case newDefaultProfile != "":
@@ -194,6 +220,11 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 		if err != nil {
 			return fmt.Errorf("failed to update profile: %w", err)
 		}
+	case ProfileSwitch:
+		err := c.processSwitchProfile(ar, profileName)
+		if err != nil {
+			return fmt.Errorf("failed to switch profile: %w", err)
+		}
 	}
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
@@ -215,8 +246,8 @@ func (c *RootCommand) processCreateProfile(ar auth.AuthorizationResult, profileN
 	// we'll call Set for its side effect of resetting all other profiles to have
 	// their Default field set to false.
 	if c.ProfileDefault { // this is set by the `profile create` command.
-		if p, ok := profile.SetDefault(c.ProfileCreateName, c.Globals.Config.Profiles); ok {
-			c.Globals.Config.Profiles = p
+		if ps, ok := profile.SetDefault(c.ProfileCreateName, c.Globals.Config.Profiles); ok {
+			c.Globals.Config.Profiles = ps
 		}
 	}
 }
@@ -231,6 +262,16 @@ func (c *RootCommand) processUpdateProfile(ar auth.AuthorizationResult, profileN
 		isDefault = c.ProfileDefault
 	}
 	ps, err := editProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
+	if err != nil {
+		return err
+	}
+	c.Globals.Config.Profiles = ps
+	return nil
+}
+
+// processSwitchProfile handles updating a profile.
+func (c *RootCommand) processSwitchProfile(ar auth.AuthorizationResult, profileName string) error {
+	ps, err := editProfile(profileName, c.ProfileDefault, c.Globals.Config.Profiles, ar)
 	if err != nil {
 		return err
 	}
@@ -259,6 +300,9 @@ func createNewProfile(profileName string, makeDefault bool, p config.Profiles, a
 	return p
 }
 
+// editProfile mutates the given profile with JWT details returned from the SSO
+// authentication process.
+//
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
 func editProfile(profileName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
