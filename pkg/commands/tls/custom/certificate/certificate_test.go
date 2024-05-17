@@ -255,12 +255,13 @@ func TestTLSCustomCertList(t *testing.T) {
 }
 
 func TestTLSCustomCertUpdate(t *testing.T) {
+	var content string
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --cert-blob flag",
 			Args:      args("tls-custom certificate update --id example"),
-			WantError: "required flag --cert-blob not provided",
+			WantError: "neither --cert-path or --cert-blob provided, one must be provided",
 		},
 		{
 			Name:      validateMissingIDFlag,
@@ -268,9 +269,25 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 			WantError: "required flag --id not provided",
 		},
 		{
+			Name:      "validate missing --cert-blob and --cert-path flags",
+			Args:      args("tls-custom certificate create"),
+			WantError: "neither --cert-path or --cert-blob provided, one must be provided",
+		},
+		{
+			Name:      "validate specifying both --cert-blob and --cert-path flags",
+			Args:      args("tls-custom certificate create --cert-blob foo --cert-path bar"),
+			WantError: "cert-path and cert-blob provided, only one can be specified",
+		},
+		{
+			Name:      "validate invalid --cert-path arg",
+			Args:      args("tls-custom certificate create --cert-path ............"),
+			WantError: "error reading cert-path",
+		},
+		{
 			Name: validateAPIError,
 			API: mock.API{
-				UpdateCustomTLSCertificateFn: func(_ *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+				UpdateCustomTLSCertificateFn: func(certInput *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					content = certInput.CertBlob
 					return nil, testutil.Err
 				},
 			},
@@ -280,7 +297,8 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				UpdateCustomTLSCertificateFn: func(_ *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+				UpdateCustomTLSCertificateFn: func(certInput *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					content = certInput.CertBlob
 					return &fastly.CustomTLSCertificate{
 						ID: mockResponseID,
 					}, nil
@@ -292,7 +310,8 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 		{
 			Name: validateAPISuccess + " with --name for different output",
 			API: mock.API{
-				UpdateCustomTLSCertificateFn: func(_ *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+				UpdateCustomTLSCertificateFn: func(certInput *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					content = certInput.CertBlob
 					return &fastly.CustomTLSCertificate{
 						ID:   mockResponseID,
 						Name: "Updated",
@@ -301,6 +320,19 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 			},
 			Args:       args("tls-custom certificate update --cert-blob example --id example --name example"),
 			WantOutput: "Updated TLS Certificate 'Updated' (previously: 'example')",
+		},
+		{
+			Name: "validate custom cert is submitted",
+			API: mock.API{
+				UpdateCustomTLSCertificateFn: func(certInput *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
+					content = certInput.CertBlob
+					return &fastly.CustomTLSCertificate{
+						ID: mockResponseID,
+					}, nil
+				},
+			},
+			Args:       args("tls-custom certificate update --id example --cert-path ./testdata/certificate.crt"),
+			WantOutput: "SUCCESS: Updated TLS Certificate '123'",
 		},
 	}
 
@@ -316,6 +348,7 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+			testutil.AssertPathContentFlag("cert-path", testcase.WantError, testcase.Args, "certificate.crt", content, t)
 		})
 	}
 }
