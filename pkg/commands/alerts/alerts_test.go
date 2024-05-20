@@ -502,9 +502,7 @@ type flagList struct {
 
 func (t *flagList) Add(flag flag) *flagList {
 	newTuples := flagList{}
-	for i := range t.Flags {
-		newTuples.Flags = append(newTuples.Flags, t.Flags[i])
-	}
+	newTuples.Flags = append(newTuples.Flags, t.Flags...)
 	newTuples.Flags = append(newTuples.Flags, flag)
 	return &newTuples
 }

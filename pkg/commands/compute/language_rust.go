@@ -362,7 +362,7 @@ func (r *Rust) checkCargoConfigFileName(rustVersion *semver.Version) error {
 
 	if c.Check(rustVersion) {
 		text.Warning(r.output, filenameMsg)
-		return fmt.Errorf("The build cannot proceed with Rust version '%s' as the file must be named .cargo/config.toml", rustVersion)
+		return fmt.Errorf("the build cannot proceed with Rust version '%s' as the file must be named .cargo/config.toml", rustVersion)
 	}
 
 	text.Warning(r.output, filenameMsg+". The file should be renamed to .cargo/config.toml to be compatible with Rust 1.78.0 or later\n\n")

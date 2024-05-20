@@ -8,11 +8,6 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 )
 
-const (
-	defaultEvaluationType   = "above_threshold"
-	defaultEvaluationPeriod = "5m"
-)
-
 // evaluationType is a list of supported evaluation types.
 var evaluationType = []string{"above_threshold", "all_above_threshold", "below_threshold", "percent_absolute", "percent_decrease", "percent_increase"}
 
