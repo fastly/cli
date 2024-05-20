@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [v10.10.0](https://github.com/fastly/cli/releases/tag/v10.10.0) (2024-05-20)
+
+**Enhancements:**
+
+- Adds --cert-path argument to `tls-custom certificate create` command to pass in a path to a certificate file [#1189](https://github.com/fastly/cli/pull/1189)
+- feat(observability/alerts): Alerts support [#1192](https://github.com/fastly/cli/pull/1192)
+- feat(compute/rust) Handle Cargo config filename for Rust >=1.78.0 [#1199](https://github.com/fastly/cli/pull/1199)
+- add project-id to gcs logging setting [#1202](https://github.com/fastly/cli/pull/1202)
+
+**Dependencies:**
+
+- build(deps): bump github.com/fastly/go-fastly/v9 from 9.3.1 to 9.3.2 [#1204](https://github.com/fastly/cli/pull/1204)
+- build(deps): bump github.com/fatih/color from 1.16.0 to 1.17.0 [#1205](https://github.com/fastly/cli/pull/1205)
+
 ## [v10.9.0](https://github.com/fastly/cli/releases/tag/v10.9.0) (2024-05-08)
 
 **Enhancements:**
