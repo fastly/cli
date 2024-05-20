@@ -87,7 +87,7 @@ type Server struct {
 	WellKnownEndpoints WellKnownEndpoints
 }
 
-// type Param is an individual parameter set on the authorization_endpoint.
+// Param is an individual parameter set on the authorization_endpoint.
 type Param struct {
 	Field string
 	Value string
