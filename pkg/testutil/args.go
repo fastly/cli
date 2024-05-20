@@ -62,8 +62,8 @@ type MockAuthServer struct {
 	Result chan auth.AuthorizationResult
 }
 
-// SetLoginHint sets login_hint parameter for the authorization_endpoint.
-func (s MockAuthServer) SetLoginHint(_ string) {
+// SetParam sets the specified parameter for the authorization_endpoint.
+func (s MockAuthServer) SetParam(_, _ string) {
 	// no-op
 }
 

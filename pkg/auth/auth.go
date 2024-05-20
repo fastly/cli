@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -54,8 +55,9 @@ type Runner interface {
 	// RefreshAccessToken constructs and calls the token_endpoint with the
 	// refresh token so we can refresh and return the access token.
 	RefreshAccessToken(refreshToken string) (JWT, error)
-	// SetLoginHint sets login_hint parameter for the authorization_endpoint.
-	SetLoginHint(login string)
+	// SetParam sets the specified parameter for the authorization_endpoint.
+	// https://openid.net/specs/openid-connect-basic-1_0.html#rfc.section.2.1.1.1
+	SetParam(field, value string)
 	// Start starts a local server for handling authentication processing.
 	Start() error
 	// ValidateAndRetrieveAPIToken verifies the signature and the claims and
@@ -73,8 +75,8 @@ type Server struct {
 	DebugMode string
 	// HTTPClient is a HTTP client used to call the API to exchange the access token for a session token.
 	HTTPClient api.HTTPClient
-	// LoginHint is the login_hint parameter for the authorization_endpoint.
-	LoginHint string
+	// Params are additional parameters for the authorization_endpoint.
+	Params []Param
 	// Result is a channel that reports the result of authorization.
 	Result chan AuthorizationResult
 	// Router is an HTTP request multiplexer.
@@ -85,6 +87,12 @@ type Server struct {
 	WellKnownEndpoints WellKnownEndpoints
 }
 
+// type Param is an individual parameter set on the authorization_endpoint.
+type Param struct {
+	Field string
+	Value string
+}
+
 // AuthURL returns a fully qualified authorization_endpoint.
 // i.e. path + audience + scope + code_challenge etc.
 func (s Server) AuthURL() (string, error) {
@@ -92,28 +100,23 @@ func (s Server) AuthURL() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	// We only send login_hint if the user has switched profiles.
-	var loginHint string
-	if s.LoginHint != "" {
-		loginHint = "&login_hint=" + s.LoginHint
+	params := url.Values{}
+	params.Add("audience", s.APIEndpoint)
+	params.Add("scope", "openid")
+	params.Add("response_type", "code")
+	params.Add("client_id", ClientID)
+	params.Add("code_challenge", challenge)
+	params.Add("code_challenge_method", "S256")
+	params.Add("redirect_uri", RedirectURL)
+	for _, p := range s.Params {
+		params.Add(p.Field, p.Value)
 	}
-
-	authorizationURL := fmt.Sprintf(
-		"%s?audience=%s"+
-			"&scope=openid"+
-			"&response_type=code&client_id=%s"+
-			"&code_challenge=%s"+
-			"&code_challenge_method=S256&redirect_uri=%s"+
-			"%s",
-		s.WellKnownEndpoints.Auth, s.APIEndpoint, ClientID, challenge, RedirectURL, loginHint)
-
-	return authorizationURL, nil
+	return fmt.Sprintf("%s?%s", s.WellKnownEndpoints.Auth, params.Encode()), nil
 }
 
-// SetLoginHint sets login_hint parameter for the authorization_endpoint.
-func (s *Server) SetLoginHint(login string) {
-	s.LoginHint = login
+// SetParam sets the specified parameter for the authorization_endpoint.
+func (s *Server) SetParam(field, value string) {
+	s.Params = append(s.Params, Param{field, value})
 }
 
 // GetResult returns the result channel.

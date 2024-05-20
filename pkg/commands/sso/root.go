@@ -88,19 +88,33 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Info(out, "Starting a local server to handle the authentication flow.")
 
-	// Before we invoke the authentication flow we need to set login_hint to the
+	// Before we invoke the authentication flow we need to set `login_hint` to the
 	// email address of the profile. We do this not only when switching profiles
-	// but for creating and updating a profile too because there could be an
-	// existing session, and that might end up causing problems if its not the
-	// session you want/need (depending on what the intention is).
-	if c.InvokedFromProfileSwitch || c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate {
+	// but for updating a profile too because there could be an existing session,
+	// and that might end up causing problems if its not the right session.
+	if c.InvokedFromProfileSwitch || c.InvokedFromProfileUpdate {
 		p := profile.Get(profileName, c.Globals.Config.Profiles)
 		if p == nil {
 			errNoProfile := fmt.Errorf(profile.DoesNotExist, profileName)
 			c.Globals.ErrLog.Add(errNoProfile)
 			return errNoProfile
 		}
-		c.Globals.AuthServer.SetLoginHint(p.Email)
+		c.Globals.AuthServer.SetParam("login_hint", p.Email)
+	}
+
+	// For creating a new profile we set `prompt` because the CLI doesn't ask the
+	// user for an email, only the name of the profile they want to create. This
+	// means we can't use the`login_hint` field. So we force a re-auth.
+	//
+	// NOTE: I tried `select_account` but it would only present account
+	// information from the current session and so didn't work for my scenario
+	// where I wanted to create a new profile from a completely different account.
+	//
+	// FIXME: Setting `prompt=login` just tells me (after authenticating) that I'm
+	// already authenticated with a different account and sends me back to the UI
+	// application and the CLI will hang waiting.
+	if c.InvokedFromProfileCreate {
+		c.Globals.AuthServer.SetParam("prompt", "login")
 	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
