@@ -76,11 +76,9 @@ jobs:
       - name: "Run revive"
         run: make revive
         shell: bash
-      # FIXME: Put back staticcheck once it fixes https://github.com/dominikh/go-tools/issues/1496
-      #
-      # - name: "Static analysis check"
-      #   run: make staticcheck
-      #   shell: bash
+      - name: "Static analysis check"
+        run: make staticcheck
+        shell: bash
       - name: "Security audit"
         run: make gosec
         shell: bash
