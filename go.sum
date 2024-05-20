@@ -22,8 +22,8 @@ github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5/go.mod h1:qssHWj6
 github.com/dsnet/golib v0.0.0-20171103203638-1ea166775780/go.mod h1:Lj+Z9rebOhdfkVLjJ8T6VcRQv3SXugXy999NBtR9aFY=
 github.com/dustinkirkland/golang-petname v0.0.0-20231002161417-6a283f1aaaf2 h1:S6Dco8FtAhEI/qkg/00H6RdEGC+MCy5GPiQ+xweNRFE=
 github.com/dustinkirkland/golang-petname v0.0.0-20231002161417-6a283f1aaaf2/go.mod h1:8AuBTZBRSFqEYBPYULd+NN474/zZBLP+6WeT5S9xlAc=
-github.com/fastly/go-fastly/v9 v9.3.2 h1:bchK1DbVf2P/3PT19Vtkx6rB9rxKPCJJs42/0Gbga0M=
-github.com/fastly/go-fastly/v9 v9.3.2/go.mod h1:5w2jgJBZqQEebOwM/rRg7wutAcpDTziiMYWb/6qdM7U=
+github.com/fastly/go-fastly/v9 v9.4.0 h1:yUuj1Wy2kpK0sdB+OAxXAY54qhH8GerM7BeSngKfNRY=
+github.com/fastly/go-fastly/v9 v9.4.0/go.mod h1:5w2jgJBZqQEebOwM/rRg7wutAcpDTziiMYWb/6qdM7U=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible h1:FhrXlfhgGCS+uc6YwyiFUt04alnjpoX7vgDKJxS6Qbk=
 github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible/go.mod h1:U8UynVoU1SQaqD2I4ZqgYd5lx3A1ipQYn4aSt2Y5h6c=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
