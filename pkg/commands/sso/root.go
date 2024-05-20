@@ -105,14 +105,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// For creating a new profile we set `prompt` because the CLI doesn't ask the
 	// user for an email, only the name of the profile they want to create. This
 	// means we can't use the`login_hint` field. So we force a re-auth.
-	//
-	// NOTE: I tried `select_account` but it would only present account
-	// information from the current session and so didn't work for my scenario
-	// where I wanted to create a new profile from a completely different account.
-	//
-	// FIXME: Setting `prompt=login` just tells me (after authenticating) that I'm
-	// already authenticated with a different account and sends me back to the UI
-	// application and the CLI will hang waiting.
 	if c.InvokedFromProfileCreate {
 		c.Globals.AuthServer.SetParam("prompt", "login")
 	}
