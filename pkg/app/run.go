@@ -657,7 +657,7 @@ func configureAuth(apiEndpoint string, args []string, f config.File, c api.HTTPC
 	}
 	// Set a more meaningful error message when Fastly servers are unresponsive
 	// check if the response code is a 500 or above
-	if resp.StatusCode >= 500 {
+	if resp.StatusCode >= http.StatusInternalServerError {
 		var body string // default to empty string if we fail to read the body
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("the Fastly servers are unresponsive, please check the Fastly Status page (https://fastlystatus.com) and reach out to support if the error persists (HTTP Status Code: %d, Error Message: %s)", resp.StatusCode, body)
