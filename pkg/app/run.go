@@ -655,6 +655,13 @@ func configureAuth(apiEndpoint string, args []string, f config.File, c api.HTTPC
 	if err != nil {
 		return nil, fmt.Errorf("failed to request OpenID Connect .well-known metadata (%s): %w", metadataEndpoint, err)
 	}
+	// Set a more meaningful error message when Fastly servers are unresponsive
+	// check if the response code is a 500 or above
+	if resp.StatusCode >= http.StatusInternalServerError {
+		var body []byte
+		body, _ = io.ReadAll(resp.Body) // default to empty string if we fail to read the body
+		return nil, fmt.Errorf("the Fastly servers are unresponsive, please check the Fastly Status page (https://fastlystatus.com) and reach out to support if the error persists (HTTP Status Code: %d, Error Message: %s)", resp.StatusCode, body)
+	}
 
 	openIDConfig, err := io.ReadAll(resp.Body)
 	if err != nil {
