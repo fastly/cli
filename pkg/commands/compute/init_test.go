@@ -527,7 +527,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service is vcl",
 			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Type:      fastly.NullString("vcl"),
@@ -542,6 +542,58 @@ func TestInit_ExistingService(t *testing.T) {
 			expectInError: "--from url seems invalid",
 			// Not a valid URL OR Service ID
 			suppresBeacon: true,
+		},
+		{
+			name: "service has a cloned_from value",
+			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+				return &fastly.ServiceDetail{
+					ServiceID: serviceID,
+					Name:      fastly.NullString("cloned-service"),
+					Comment:   fastly.NullString(""),
+					Type:      fastly.NullString("wasm"),
+					ActiveVersion: &fastly.Version{
+						Number: fastly.ToPointer(1),
+					},
+				}, nil
+			},
+			getPackage: func(*fastly.GetPackageInput) (*fastly.Package, error) {
+				return &fastly.Package{
+					ServiceID: serviceID,
+					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
+					Metadata: &fastly.PackageMetadata{
+						ClonedFrom: fastly.ToPointer("https://github.com/fastly/compute-starter-kit-rust-empty"),
+						Language:   fastly.ToPointer("rust"),
+					},
+				}, nil
+			},
+			expectInOutput: []string{"Fetching package template..."},
+		},
+		{
+			name: "service has an unreachable cloned_from value",
+			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+				return &fastly.ServiceDetail{
+					ServiceID: serviceID,
+					Name:      fastly.NullString("cloned-service"),
+					Comment:   fastly.NullString(""),
+					Type:      fastly.NullString("wasm"),
+					ActiveVersion: &fastly.Version{
+						Number: fastly.ToPointer(1),
+					},
+				}, nil
+			},
+			getPackage: func(*fastly.GetPackageInput) (*fastly.Package, error) {
+				return &fastly.Package{
+					ServiceID: serviceID,
+					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
+					Metadata: &fastly.PackageMetadata{
+						ClonedFrom: fastly.ToPointer("https://github.com/fastly/fake-template"),
+						Language:   fastly.ToPointer("rust"),
+					},
+				}, nil
+			},
+			expectInError: "could not fetch original source code",
 		},
 	}
 

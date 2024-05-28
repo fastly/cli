@@ -332,9 +332,27 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 
 			if pack.Metadata != nil {
+				clonedFrom := fastly.ToValue(pack.Metadata.ClonedFrom)
+				if gitRepositoryRegEx.MatchString(clonedFrom) {
+					err = spinner.Process("Fetching package template", func(*text.SpinnerWrapper) error {
+						err := c.ClonePackageFromEndpoint(clonedFrom, "", "")
+						if err != nil {
+							c.Globals.ErrLog.AddWithContext(err, map[string]any{
+								"cloned_from": clonedFrom,
+							})
+							return fmt.Errorf("could not fetch original source code: %w", err)
+						}
+						return nil
+					})
+					if err != nil {
+						return err
+					}
+				}
+
 				if pack.Metadata.Name != nil {
 					name = *pack.Metadata.Name
 				}
+
 				if name == "" {
 					name = *serviceDetails.Name
 				}
@@ -342,19 +360,20 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				if pack.Metadata.Description != nil {
 					desc = *pack.Metadata.Description
 				}
+
 				if desc == "" {
 					desc = fastly.ToValue(serviceDetails.Comment)
 				}
-			}
 
-			authors = append(authors, pack.Metadata.Authors...)
+				authors = append(authors, pack.Metadata.Authors...)
+				mf.Language = fastly.ToValue(pack.Metadata.Language)
+			}
 
 			mf.Name = name
 			mf.ServiceID = *pack.ServiceID
 			mf.Description = desc
 			// mf.Profile = profileName
 			mf.Authors = authors
-			mf.Language = *pack.Metadata.Language
 
 			mp := filepath.Join(c.dir, manifest.Filename)
 			err = mf.Write(mp)
@@ -862,7 +881,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		c.Globals.ErrLog.Add(err)
 
 		if gitRepositoryRegEx.MatchString(c.CloneFrom) {
-			if err := c.ClonePackageFromEndpoint(branch, tag); err != nil {
+			if err := c.ClonePackageFromEndpoint(c.CloneFrom, branch, tag); err != nil {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
@@ -1024,7 +1043,7 @@ mimes:
 		return spinner.Stop()
 	}
 
-	if err := c.ClonePackageFromEndpoint(branch, tag); err != nil {
+	if err := c.ClonePackageFromEndpoint(c.CloneFrom, branch, tag); err != nil {
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
@@ -1039,9 +1058,7 @@ mimes:
 
 // ClonePackageFromEndpoint clones the given repo (from) into a temp directory,
 // then copies specific files to the destination directory (path).
-func (c *InitCommand) ClonePackageFromEndpoint(branch, tag string) error {
-	from := c.CloneFrom
-
+func (c *InitCommand) ClonePackageFromEndpoint(from, branch, tag string) error {
 	_, err := exec.LookPath("git")
 	if err != nil {
 		return fsterr.RemediationError{
