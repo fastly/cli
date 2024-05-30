@@ -567,7 +567,7 @@ func TestInit_ExistingService(t *testing.T) {
 					},
 				}, nil
 			},
-			expectInOutput: []string{"Fetching package template..."},
+			expectInOutput: []string{"Initializing file structure from selected starter kit..."},
 		},
 		{
 			name: "service has an unreachable cloned_from value",
@@ -594,6 +594,32 @@ func TestInit_ExistingService(t *testing.T) {
 				}, nil
 			},
 			expectInError: "could not fetch original source code",
+		},
+		{
+			name: "service has active version greater than 1",
+			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+				return &fastly.ServiceDetail{
+					ServiceID: serviceID,
+					Name:      fastly.NullString("cloned-service"),
+					Comment:   fastly.NullString(""),
+					Type:      fastly.NullString("wasm"),
+					ActiveVersion: &fastly.Version{
+						Number: fastly.ToPointer(2),
+					},
+				}, nil
+			},
+			getPackage: func(*fastly.GetPackageInput) (*fastly.Package, error) {
+				return &fastly.Package{
+					ServiceID: serviceID,
+					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
+					Metadata: &fastly.PackageMetadata{
+						ClonedFrom: fastly.ToPointer("https://github.com/fastly/fake-template"),
+						Language:   fastly.ToPointer("rust"),
+					},
+				}, nil
+			},
+			expectInOutput: []string{"not fetching starter kit source"},
 		},
 	}
 

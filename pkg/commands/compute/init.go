@@ -270,6 +270,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			var (
 				serviceDetails *fastly.ServiceDetail
 				pack           *fastly.Package
+				serviceVersion int
 			)
 			err = spinner.Process("Fetching service details", func(_ *text.SpinnerWrapper) error {
 				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
@@ -291,7 +292,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				}
 
 				if serviceDetails.ActiveVersion != nil {
-					serviceVersion := fastly.ToValue(serviceDetails.ActiveVersion.Number)
+					serviceVersion = fastly.ToValue(serviceDetails.ActiveVersion.Number)
 					pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
 						ServiceID:      c.CloneFrom,
 						ServiceVersion: serviceVersion,
@@ -301,9 +302,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					}
 				} else {
 					for i := len(serviceDetails.Versions) - 1; i >= 0; i-- {
+						serviceVersion = fastly.ToValue(serviceDetails.Versions[i].Number)
 						pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
 							ServiceID:      c.CloneFrom,
-							ServiceVersion: fastly.ToValue(serviceDetails.Versions[i].Number),
+							ServiceVersion: serviceVersion,
 						})
 						if err != nil {
 							if hErr, ok := err.(*fastly.HTTPError); ok {
@@ -333,8 +335,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 			if pack.Metadata != nil {
 				clonedFrom := fastly.ToValue(pack.Metadata.ClonedFrom)
-				if gitRepositoryRegEx.MatchString(clonedFrom) {
-					err = spinner.Process("Fetching package template", func(*text.SpinnerWrapper) error {
+				if serviceVersion > 1 {
+					out.Write([]byte("Service has active versions, not fetching starter kit source"))
+				} else if gitRepositoryRegEx.MatchString(clonedFrom) {
+					err = spinner.Process("Initializing file structure from selected starter kit", func(*text.SpinnerWrapper) error {
 						err := c.ClonePackageFromEndpoint(clonedFrom, "", "")
 						if err != nil {
 							c.Globals.ErrLog.AddWithContext(err, map[string]any{
