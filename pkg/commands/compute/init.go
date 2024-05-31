@@ -66,7 +66,7 @@ func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
 	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&g.Manifest.File.Authors)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
 	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
-	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.CloneFrom)
+	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template, or an existing service ID created from a starter kit").Short('f').StringVar(&c.CloneFrom)
 	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 
@@ -270,6 +270,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			var (
 				serviceDetails *fastly.ServiceDetail
 				pack           *fastly.Package
+				serviceVersion int
 			)
 			err = spinner.Process("Fetching service details", func(_ *text.SpinnerWrapper) error {
 				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
@@ -291,7 +292,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				}
 
 				if serviceDetails.ActiveVersion != nil {
-					serviceVersion := fastly.ToValue(serviceDetails.ActiveVersion.Number)
+					serviceVersion = fastly.ToValue(serviceDetails.ActiveVersion.Number)
 					pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
 						ServiceID:      c.CloneFrom,
 						ServiceVersion: serviceVersion,
@@ -301,9 +302,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 					}
 				} else {
 					for i := len(serviceDetails.Versions) - 1; i >= 0; i-- {
+						serviceVersion = fastly.ToValue(serviceDetails.Versions[i].Number)
 						pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
 							ServiceID:      c.CloneFrom,
-							ServiceVersion: fastly.ToValue(serviceDetails.Versions[i].Number),
+							ServiceVersion: serviceVersion,
 						})
 						if err != nil {
 							if hErr, ok := err.(*fastly.HTTPError); ok {
@@ -332,9 +334,29 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			}
 
 			if pack.Metadata != nil {
+				clonedFrom := fastly.ToValue(pack.Metadata.ClonedFrom)
+				if serviceVersion > 1 {
+					text.Info(out, "\nService has active versions, not fetching starter kit source\n\n")
+				} else if gitRepositoryRegEx.MatchString(clonedFrom) {
+					err = spinner.Process("Initializing file structure from selected starter kit", func(*text.SpinnerWrapper) error {
+						err := c.ClonePackageFromEndpoint(clonedFrom, "", "")
+						if err != nil {
+							c.Globals.ErrLog.AddWithContext(err, map[string]any{
+								"cloned_from": clonedFrom,
+							})
+							return fmt.Errorf("could not fetch original source code: %w", err)
+						}
+						return nil
+					})
+					if err != nil {
+						return err
+					}
+				}
+
 				if pack.Metadata.Name != nil {
 					name = *pack.Metadata.Name
 				}
+
 				if name == "" {
 					name = *serviceDetails.Name
 				}
@@ -342,19 +364,20 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				if pack.Metadata.Description != nil {
 					desc = *pack.Metadata.Description
 				}
+
 				if desc == "" {
 					desc = fastly.ToValue(serviceDetails.Comment)
 				}
-			}
 
-			authors = append(authors, pack.Metadata.Authors...)
+				authors = append(authors, pack.Metadata.Authors...)
+				mf.Language = fastly.ToValue(pack.Metadata.Language)
+			}
 
 			mf.Name = name
 			mf.ServiceID = *pack.ServiceID
 			mf.Description = desc
 			// mf.Profile = profileName
 			mf.Authors = authors
-			mf.Language = *pack.Metadata.Language
 
 			mp := filepath.Join(c.dir, manifest.Filename)
 			err = mf.Write(mp)
@@ -862,7 +885,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		c.Globals.ErrLog.Add(err)
 
 		if gitRepositoryRegEx.MatchString(c.CloneFrom) {
-			if err := c.ClonePackageFromEndpoint(branch, tag); err != nil {
+			if err := c.ClonePackageFromEndpoint(c.CloneFrom, branch, tag); err != nil {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
@@ -1024,7 +1047,7 @@ mimes:
 		return spinner.Stop()
 	}
 
-	if err := c.ClonePackageFromEndpoint(branch, tag); err != nil {
+	if err := c.ClonePackageFromEndpoint(c.CloneFrom, branch, tag); err != nil {
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
 		if spinErr != nil {
@@ -1039,9 +1062,7 @@ mimes:
 
 // ClonePackageFromEndpoint clones the given repo (from) into a temp directory,
 // then copies specific files to the destination directory (path).
-func (c *InitCommand) ClonePackageFromEndpoint(branch, tag string) error {
-	from := c.CloneFrom
-
+func (c *InitCommand) ClonePackageFromEndpoint(from, branch, tag string) error {
 	_, err := exec.LookPath("git")
 	if err != nil {
 		return fsterr.RemediationError{
