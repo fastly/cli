@@ -336,7 +336,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			if pack.Metadata != nil {
 				clonedFrom := fastly.ToValue(pack.Metadata.ClonedFrom)
 				if serviceVersion > 1 {
-					out.Write([]byte("Service has active versions, not fetching starter kit source"))
+					text.Info(out, "\nService has active versions, not fetching starter kit source\n\n")
 				} else if gitRepositoryRegEx.MatchString(clonedFrom) {
 					err = spinner.Process("Initializing file structure from selected starter kit", func(*text.SpinnerWrapper) error {
 						err := c.ClonePackageFromEndpoint(clonedFrom, "", "")
