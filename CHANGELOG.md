@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [v10.11.0](https://github.com/fastly/cli/releases/tag/v10.11.0) (2024-06-06)
+
+**Enhancements:**
+
+- feat(app): improve error messaging when Fastly servers are unresponsive [#1212](https://github.com/fastly/cli/pull/1212)
+- feat(compute): clone starter kit source with init --from=serviceID [#1213](https://github.com/fastly/cli/pull/1213)
+- Adds --cert-path argument to `tls-custom certificate update` command to pass in a path to a certificate file [#1214](https://github.com/fastly/cli/pull/1214)
+
 ## [v10.10.0](https://github.com/fastly/cli/releases/tag/v10.10.0) (2024-05-20)
 
 **Enhancements:**
