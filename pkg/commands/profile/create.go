@@ -77,8 +77,8 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
-		text.Break(out)
 	}
+	text.Break(out)
 
 	if c.sso {
 		// IMPORTANT: We need to set profile fields for `sso` command.
