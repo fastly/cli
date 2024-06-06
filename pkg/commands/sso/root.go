@@ -15,9 +15,9 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// RefreshBeforeSession indicates user already has an active session.
+// ForceReAuth indicates we want to force a re-auth of the user's session.
 // This variable is overridden by ../../app/run.go to force a re-auth.
-var RefreshBeforeSession = false
+var ForceReAuth = false
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
@@ -111,7 +111,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// means we can't use the`login_hint` field. So we force a re-auth.
 	// Additionally, we have to force a re-auth when the user wants to switch to
 	// another SSO profile that exists under a different auth session.
-	if c.InvokedFromProfileCreate || RefreshBeforeSession {
+	if c.InvokedFromProfileCreate || ForceReAuth {
 		c.Globals.AuthServer.SetParam("prompt", "login")
 	}
 

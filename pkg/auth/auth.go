@@ -35,8 +35,8 @@ const RedirectURL = "http://localhost:8080/callback"
 // https://swagger.io/docs/specification/authentication/openid-connect-discovery/
 const OIDCMetadata = "%s/realms/fastly/.well-known/openid-configuration"
 
-// ErrRefreshBeforeSession represents an error refreshing the user's token.
-var ErrRefreshBeforeSession = errors.New("Refresh token issued before the user session started")
+// ErrInvalidGrant represents an error refreshing the user's token.
+var ErrInvalidGrant = errors.New("failed to refresh token: invalid grant")
 
 // WellKnownEndpoints represents the OpenID Connect metadata.
 type WellKnownEndpoints struct {
@@ -395,8 +395,8 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 			return JWT{}, err
 		}
 
-		if re.Error == "invalid_grant" && re.Description == ErrRefreshBeforeSession.Error() {
-			return JWT{}, ErrRefreshBeforeSession
+		if re.Error == "invalid_grant" {
+			return JWT{}, ErrInvalidGrant
 		}
 		return JWT{}, fmt.Errorf("non-2xx status: %s", res.Status)
 	}
