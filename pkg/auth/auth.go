@@ -35,6 +35,9 @@ const RedirectURL = "http://localhost:8080/callback"
 // https://swagger.io/docs/specification/authentication/openid-connect-discovery/
 const OIDCMetadata = "%s/realms/fastly/.well-known/openid-configuration"
 
+// ErrRefreshBeforeSession represents an error refreshing the user's token.
+var ErrRefreshBeforeSession = errors.New("Refresh token issued before the user session started")
+
 // WellKnownEndpoints represents the OpenID Connect metadata.
 type WellKnownEndpoints struct {
 	// Auth is the authorization_endpoint.
@@ -386,7 +389,16 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return JWT{}, fmt.Errorf("failed to refresh the access token (status: %s)", res.Status)
+		var re RefreshError
+		err = json.Unmarshal(body, &re)
+		if err != nil {
+			return JWT{}, err
+		}
+
+		if re.Error == "invalid_grant" && re.Description == ErrRefreshBeforeSession.Error() {
+			return JWT{}, ErrRefreshBeforeSession
+		}
+		return JWT{}, fmt.Errorf("non-2xx status: %s", res.Status)
 	}
 
 	var j JWT
@@ -396,6 +408,12 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 	}
 
 	return j, nil
+}
+
+// RefreshError represents an error when refreshing the user's token.
+type RefreshError struct {
+	Error       string `json:"error"`
+	Description string `json:"error_description"`
 }
 
 // APIToken is returned from the /login-enhanced endpoint.

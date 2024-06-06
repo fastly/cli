@@ -23,6 +23,7 @@ import (
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/commands"
 	"github.com/fastly/cli/pkg/commands/compute"
+	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
@@ -356,6 +357,12 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 		// Otherwise, for an existing SSO token, check its freshness.
 		reauth, err := checkAndRefreshSSOToken(profileData, profileName, data)
 		if err != nil {
+			// The following scenario is when the user wants to switch to another SSO
+			// profile that exists under a different auth session.
+			if errors.Is(err, auth.ErrRefreshBeforeSession) {
+				sso.RefreshBeforeSession = true
+				return ssoAuthentication("We can't refresh your token as another session is still active", cmds, data)
+			}
 			return token, tokenSource, fmt.Errorf("failed to check access/refresh token: %w", err)
 		}
 		if reauth {
@@ -394,6 +401,9 @@ func checkAndRefreshSSOToken(profileData *config.Profile, profileName string, da
 
 		updatedJWT, err := data.AuthServer.RefreshAccessToken(profileData.RefreshToken)
 		if err != nil {
+			if errors.Is(err, auth.ErrRefreshBeforeSession) {
+				return false, err
+			}
 			return false, fmt.Errorf("failed to refresh access token: %w", err)
 		}
 

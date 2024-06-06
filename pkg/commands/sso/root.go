@@ -15,6 +15,10 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// RefreshBeforeSession indicates user already has an active session.
+// This variable is overridden by ../../app/run.go to force a re-auth.
+var RefreshBeforeSession = false
+
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
@@ -105,7 +109,9 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// For creating a new profile we set `prompt` because the CLI doesn't ask the
 	// user for an email, only the name of the profile they want to create. This
 	// means we can't use the`login_hint` field. So we force a re-auth.
-	if c.InvokedFromProfileCreate {
+	// Additionally, we have to force a re-auth when the user wants to switch to
+	// another SSO profile that exists under a different auth session.
+	if c.InvokedFromProfileCreate || RefreshBeforeSession {
 		c.Globals.AuthServer.SetParam("prompt", "login")
 	}
 
