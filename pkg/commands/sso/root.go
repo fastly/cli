@@ -88,26 +88,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	text.Info(out, "Starting a local server to handle the authentication flow.")
 
-	// Before we invoke the authentication flow we need to set `login_hint` to the
-	// email address of the profile. We do this not only when switching profiles
-	// but for updating a profile too because there could be an existing session,
-	// and that might end up causing problems if its not the right session.
-	if c.InvokedFromProfileUpdate {
-		p := profile.Get(profileName, c.Globals.Config.Profiles)
-		if p == nil {
-			errNoProfile := fmt.Errorf(profile.DoesNotExist, profileName)
-			c.Globals.ErrLog.Add(errNoProfile)
-			return errNoProfile
-		}
-		c.Globals.AuthServer.SetParam("login_hint", p.Email)
-	}
-
-	// For creating a new profile we set `prompt` because the CLI doesn't ask the
-	// user for an email, only the name of the profile they want to create. This
-	// means we can't use the`login_hint` field. So we force a re-auth.
-	// Additionally, we have to force a re-auth when the user wants to switch to
-	// another SSO profile that exists under a different auth session.
-	if c.InvokedFromProfileCreate || ForceReAuth {
+	// For creating/updating a profile we set `prompt` because we want to ensure
+	// that another session (from a different profile) doesn't cause unexpected
+	// errors for the user flow. This forces a re-auth. Additionally, we have to
+	// force a re-auth when the user wants to switch to another SSO profile that
+	// exists under a different auth session.
+	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || ForceReAuth {
 		c.Globals.AuthServer.SetParam("prompt", "login")
 	}
 
