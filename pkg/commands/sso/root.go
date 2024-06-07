@@ -154,10 +154,6 @@ const (
 	// ProfileUpdate indicates we need to update a profile using details passed in
 	// either from the `sso` or `profile update` command.
 	ProfileUpdate
-
-	// ProfileSwitch indicates we need to re-authenticate and switch profiles.
-	// Triggered by user invoking `fastly profile switch` with an SSO-based profile.
-	ProfileSwitch
 )
 
 // identifyProfileAndFlow identifies the profile and the specific workflow.
@@ -212,11 +208,6 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 		if err != nil {
 			return fmt.Errorf("failed to update profile: %w", err)
 		}
-	case ProfileSwitch:
-		err := c.processSwitchProfile(ar, profileName)
-		if err != nil {
-			return fmt.Errorf("failed to switch profile: %w", err)
-		}
 	}
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
@@ -254,16 +245,6 @@ func (c *RootCommand) processUpdateProfile(ar auth.AuthorizationResult, profileN
 		isDefault = c.ProfileDefault
 	}
 	ps, err := editProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
-	if err != nil {
-		return err
-	}
-	c.Globals.Config.Profiles = ps
-	return nil
-}
-
-// processSwitchProfile handles updating a profile.
-func (c *RootCommand) processSwitchProfile(ar auth.AuthorizationResult, profileName string) error {
-	ps, err := editProfile(profileName, c.ProfileDefault, c.Globals.Config.Profiles, ar)
 	if err != nil {
 		return err
 	}

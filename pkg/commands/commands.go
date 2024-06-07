@@ -354,7 +354,7 @@ func Define(
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
 	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, data)
 	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, data)
-	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
+	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data)
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, data)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
 	purgeCmdRoot := purge.NewRootCommand(app, data)

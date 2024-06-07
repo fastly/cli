@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
@@ -17,14 +16,12 @@ type SwitchCommand struct {
 	argparser.Base
 
 	profile string
-	ssoCmd  *sso.RootCommand
 }
 
 // NewSwitchCommand returns a usable command registered under the parent.
-func NewSwitchCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.RootCommand) *SwitchCommand {
+func NewSwitchCommand(parent argparser.Registerer, g *global.Data) *SwitchCommand {
 	var c SwitchCommand
 	c.Globals = g
-	c.ssoCmd = ssoCmd
 	c.CmdClause = parent.Command("switch", "Switch user profile")
 	c.CmdClause.Arg("profile", "Profile to switch to").Short('p').Required().StringVar(&c.profile)
 	return &c
@@ -51,6 +48,9 @@ func (c *SwitchCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 
+  if c.Globals.Verbose() {
+    text.Break(out)
+  }
 	text.Success(out, "Profile switched to '%s'", c.profile)
 	return nil
 }
