@@ -27,10 +27,6 @@ type RootCommand struct {
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
 
-	// InvokedFromProfileSwitch indicates if we should re-authenticate.
-	InvokedFromProfileSwitch bool
-	// ProfileSwitchName indicates the profile account to switch to.
-	ProfileSwitchName string
 	// InvokedFromProfileCreate indicates if we should create a new profile.
 	InvokedFromProfileCreate bool
 	// ProfileCreateName indicates the new profile name.
@@ -96,7 +92,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// email address of the profile. We do this not only when switching profiles
 	// but for updating a profile too because there could be an existing session,
 	// and that might end up causing problems if its not the right session.
-	if c.InvokedFromProfileSwitch || c.InvokedFromProfileUpdate {
+	if c.InvokedFromProfileUpdate {
 		p := profile.Get(profileName, c.Globals.Config.Profiles)
 		if p == nil {
 			errNoProfile := fmt.Errorf(profile.DoesNotExist, profileName)
@@ -203,8 +199,6 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 		return c.ProfileCreateName, ProfileCreate
 	case c.InvokedFromProfileUpdate && c.ProfileUpdateName != "":
 		return c.ProfileUpdateName, ProfileUpdate
-	case c.InvokedFromProfileSwitch && c.ProfileSwitchName != "":
-		return c.ProfileSwitchName, ProfileSwitch
 	case currentDefaultProfile != "":
 		return currentDefaultProfile, ProfileUpdate
 	case newDefaultProfile != "":

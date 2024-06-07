@@ -622,7 +622,7 @@ func commandCollectsData(command string) bool {
 // requires just the authentication server to be running.
 func commandRequiresAuthServer(command string) bool {
 	switch command {
-	case "profile create", "profile switch", "profile update":
+	case "profile create", "profile update":
 		return true
 	}
 	return false
