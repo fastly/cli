@@ -90,9 +90,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 
 	// For creating/updating a profile we set `prompt` because we want to ensure
 	// that another session (from a different profile) doesn't cause unexpected
-	// errors for the user flow. This forces a re-auth. Additionally, we have to
-	// force a re-auth when the user wants to switch to another SSO profile that
-	// exists under a different auth session.
+	// errors for the user flow. This forces a re-auth.
 	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || ForceReAuth {
 		c.Globals.AuthServer.SetParam("prompt", "login")
 	}
