@@ -48,9 +48,9 @@ func (c *SwitchCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("error saving config file: %w", err)
 	}
 
-  if c.Globals.Verbose() {
-    text.Break(out)
-  }
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
 	text.Success(out, "Profile switched to '%s'", c.profile)
 	return nil
 }
