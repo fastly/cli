@@ -231,7 +231,7 @@ type Flags struct {
 	Profile string
 	// Quiet silences all output except direct command output.
 	Quiet bool
-	// SSO enables to SSO authentication tokens for the current profile.
+	// SSO enables SSO authentication tokens for the current profile.
 	SSO bool
 	// Token is an override for a profile (when passed SSO is disabled).
 	Token string
