@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v10.12.0](https://github.com/fastly/cli/releases/tag/v10.12.0) (2024-06-10)
+
+**Enhancements:**
+
+- feat(sso): support active session account switching [#1207](https://github.com/fastly/cli/pull/1207)
+
 ## [v10.11.0](https://github.com/fastly/cli/releases/tag/v10.11.0) (2024-06-06)
 
 **Enhancements:**
