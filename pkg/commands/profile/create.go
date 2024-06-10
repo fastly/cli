@@ -39,7 +39,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.R
 	c.CmdClause = parent.Command("create", "Create user profile")
 	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default(profile.DefaultName).Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
-	c.CmdClause.Flag("sso", "Create an SSO-based token").Hidden().BoolVar(&c.sso)
+	c.CmdClause.Flag("sso", "Create an SSO-based token").BoolVar(&c.sso)
 	return &c
 }
 

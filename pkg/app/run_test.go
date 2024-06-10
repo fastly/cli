@@ -59,6 +59,7 @@ complete -F _fastly_bash_autocomplete fastly
 			Name: "shell evaluate completion options",
 			Args: args("--completion-bash"),
 			WantOutput: `help
+sso
 acl
 acl-entry
 alerts
