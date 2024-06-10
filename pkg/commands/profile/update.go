@@ -45,6 +45,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("failed to identify the profile to update: %w", err)
 	}
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
 	text.Info(out, "Profile being updated: '%s'.\n\n", profileName)
 
 	err = c.updateToken(profileName, p, in, out)

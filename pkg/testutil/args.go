@@ -62,6 +62,11 @@ type MockAuthServer struct {
 	Result chan auth.AuthorizationResult
 }
 
+// SetParam sets the specified parameter for the authorization_endpoint.
+func (s MockAuthServer) SetParam(_, _ string) {
+	// no-op
+}
+
 // AuthURL returns a fully qualified authorization_endpoint.
 // i.e. path + audience + scope + code_challenge etc.
 func (s MockAuthServer) AuthURL() (string, error) {

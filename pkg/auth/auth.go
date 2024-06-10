@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -34,6 +35,9 @@ const RedirectURL = "http://localhost:8080/callback"
 // https://swagger.io/docs/specification/authentication/openid-connect-discovery/
 const OIDCMetadata = "%s/realms/fastly/.well-known/openid-configuration"
 
+// ErrInvalidGrant represents an error refreshing the user's token.
+var ErrInvalidGrant = errors.New("failed to refresh token: invalid grant")
+
 // WellKnownEndpoints represents the OpenID Connect metadata.
 type WellKnownEndpoints struct {
 	// Auth is the authorization_endpoint.
@@ -54,6 +58,9 @@ type Runner interface {
 	// RefreshAccessToken constructs and calls the token_endpoint with the
 	// refresh token so we can refresh and return the access token.
 	RefreshAccessToken(refreshToken string) (JWT, error)
+	// SetParam sets the specified parameter for the authorization_endpoint.
+	// https://openid.net/specs/openid-connect-basic-1_0.html#rfc.section.2.1.1.1
+	SetParam(field, value string)
 	// Start starts a local server for handling authentication processing.
 	Start() error
 	// ValidateAndRetrieveAPIToken verifies the signature and the claims and
@@ -71,6 +78,8 @@ type Server struct {
 	DebugMode string
 	// HTTPClient is a HTTP client used to call the API to exchange the access token for a session token.
 	HTTPClient api.HTTPClient
+	// Params are additional parameters for the authorization_endpoint.
+	Params []Param
 	// Result is a channel that reports the result of authorization.
 	Result chan AuthorizationResult
 	// Router is an HTTP request multiplexer.
@@ -81,6 +90,12 @@ type Server struct {
 	WellKnownEndpoints WellKnownEndpoints
 }
 
+// Param is an individual parameter set on the authorization_endpoint.
+type Param struct {
+	Field string
+	Value string
+}
+
 // AuthURL returns a fully qualified authorization_endpoint.
 // i.e. path + audience + scope + code_challenge etc.
 func (s Server) AuthURL() (string, error) {
@@ -88,16 +103,23 @@ func (s Server) AuthURL() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	params := url.Values{}
+	params.Add("audience", s.APIEndpoint)
+	params.Add("scope", "openid")
+	params.Add("response_type", "code")
+	params.Add("client_id", ClientID)
+	params.Add("code_challenge", challenge)
+	params.Add("code_challenge_method", "S256")
+	params.Add("redirect_uri", RedirectURL)
+	for _, p := range s.Params {
+		params.Add(p.Field, p.Value)
+	}
+	return fmt.Sprintf("%s?%s", s.WellKnownEndpoints.Auth, params.Encode()), nil
+}
 
-	authorizationURL := fmt.Sprintf(
-		"%s?audience=%s"+
-			"&scope=openid"+
-			"&response_type=code&client_id=%s"+
-			"&code_challenge=%s"+
-			"&code_challenge_method=S256&redirect_uri=%s",
-		s.WellKnownEndpoints.Auth, s.APIEndpoint, ClientID, challenge, RedirectURL)
-
-	return authorizationURL, nil
+// SetParam sets the specified parameter for the authorization_endpoint.
+func (s *Server) SetParam(field, value string) {
+	s.Params = append(s.Params, Param{field, value})
 }
 
 // GetResult returns the result channel.
@@ -367,7 +389,16 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return JWT{}, fmt.Errorf("failed to refresh the access token (status: %s)", res.Status)
+		var re RefreshError
+		err = json.Unmarshal(body, &re)
+		if err != nil {
+			return JWT{}, err
+		}
+
+		if re.Error == "invalid_grant" {
+			return JWT{}, ErrInvalidGrant
+		}
+		return JWT{}, fmt.Errorf("non-2xx status: %s", res.Status)
 	}
 
 	var j JWT
@@ -377,6 +408,12 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 	}
 
 	return j, nil
+}
+
+// RefreshError represents an error when refreshing the user's token.
+type RefreshError struct {
+	Error       string `json:"error"`
+	Description string `json:"error_description"`
 }
 
 // APIToken is returned from the /login-enhanced endpoint.

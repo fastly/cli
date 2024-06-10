@@ -49,6 +49,11 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fsterr.ErrInvalidProfileSSOCombo
 	}
 
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
+	text.Output(out, "Creating profile '%s'", c.profile)
+
 	if profile.Exist(c.profile, c.Globals.Config.Profiles) {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("profile '%s' already exists", c.profile),
@@ -72,8 +77,8 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		if err != nil {
 			return err
 		}
-		text.Break(out)
 	}
+	text.Break(out)
 
 	if c.sso {
 		// IMPORTANT: We need to set profile fields for `sso` command.
@@ -134,7 +139,7 @@ func (c *CreateCommand) staticTokenFlow(makeDefault bool, in io.Reader, out io.W
 }
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
-	text.Output(out, "\nAn API token is used to authenticate requests to the Fastly API. To create a token, visit https://manage.fastly.com/account/personal/tokens\n\n")
+	text.Output(out, "An API token is used to authenticate requests to the Fastly API. To create a token, visit https://manage.fastly.com/account/personal/tokens\n\n")
 	token, err := text.InputSecure(out, text.Prompt("Fastly API token: "), in, validateTokenNotEmpty)
 	if err != nil {
 		errLog.Add(err)
@@ -268,7 +273,7 @@ func displayCfgPath(path string, out io.Writer) {
 }
 
 func (c *CreateCommand) promptForDefault(in io.Reader, out io.Writer) (bool, error) {
-	cont, err := text.AskYesNo(out, "Set this profile to be your default? [y/N] ", in)
+	cont, err := text.AskYesNo(out, "\nSet this profile to be your default? [y/N] ", in)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return false, err

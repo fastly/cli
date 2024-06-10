@@ -15,6 +15,10 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// ForceReAuth indicates we want to force a re-auth of the user's session.
+// This variable is overridden by ../../app/run.go to force a re-auth.
+var ForceReAuth = false
+
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
@@ -47,13 +51,14 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
+	profileName, _ := c.identifyProfileAndFlow()
+
 	// We need to prompt the user, so they know we're about to open their web
 	// browser, but we also need to handle the scenario where the `sso` command is
 	// invoked indirectly via ../../app/run.go as that package will have its own
 	// (similar) prompt before invoking this command. So to avoid a double prompt,
 	// the app package will set `SkipAuthPrompt: true`.
 	if !c.Globals.SkipAuthPrompt && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		profileName, _ := c.identifyProfileAndFlow()
 		msg := fmt.Sprintf("We're going to authenticate the '%s' profile", profileName)
 		text.Important(out, "%s. We need to open your browser to authenticate you.", msg)
 		text.Break(out)
@@ -82,6 +87,13 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Info(out, "Starting a local server to handle the authentication flow.")
+
+	// For creating/updating a profile we set `prompt` because we want to ensure
+	// that another session (from a different profile) doesn't cause unexpected
+	// errors for the user flow. This forces a re-auth.
+	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || ForceReAuth {
+		c.Globals.AuthServer.SetParam("prompt", "login")
+	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
 	if err != nil {
@@ -215,8 +227,8 @@ func (c *RootCommand) processCreateProfile(ar auth.AuthorizationResult, profileN
 	// we'll call Set for its side effect of resetting all other profiles to have
 	// their Default field set to false.
 	if c.ProfileDefault { // this is set by the `profile create` command.
-		if p, ok := profile.SetDefault(c.ProfileCreateName, c.Globals.Config.Profiles); ok {
-			c.Globals.Config.Profiles = p
+		if ps, ok := profile.SetDefault(c.ProfileCreateName, c.Globals.Config.Profiles); ok {
+			c.Globals.Config.Profiles = ps
 		}
 	}
 }
@@ -259,6 +271,9 @@ func createNewProfile(profileName string, makeDefault bool, p config.Profiles, a
 	return p
 }
 
+// editProfile mutates the given profile with JWT details returned from the SSO
+// authentication process.
+//
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
 func editProfile(profileName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
