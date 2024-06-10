@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v10.12.1](https://github.com/fastly/cli/releases/tag/v10.12.1) (2024-06-10)
+
+**Enhancements:**
+
+- expose SSO commands and flags [#1218](https://github.com/fastly/cli/pull/1218)
+
 ## [v10.12.0](https://github.com/fastly/cli/releases/tag/v10.12.0) (2024-06-10)
 
 **Enhancements:**
