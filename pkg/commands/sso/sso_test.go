@@ -90,6 +90,7 @@ func TestSSO(t *testing.T) {
 					"Session token (persisted to your local configuration): 123",
 				},
 			},
+			HTTPClient: testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
 			AuthResult: &auth.AuthorizationResult{
 				SessionToken: "123",
 			},
@@ -110,6 +111,7 @@ func TestSSO(t *testing.T) {
 					"Session token (persisted to your local configuration): 123",
 				},
 			},
+			HTTPClient: testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse),
 			AuthResult: &auth.AuthorizationResult{
 				SessionToken: "123",
 			},

@@ -1,11 +1,15 @@
 package sso
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
@@ -13,6 +17,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/pkg/useragent"
 )
 
 // ForceReAuth indicates we want to force a re-auth of the user's session.
@@ -24,6 +29,10 @@ var ForceReAuth = false
 type RootCommand struct {
 	argparser.Base
 	profile string
+
+	// The following fields are populated once authentication is complete.
+	customerID   string
+	customerName string
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
 
@@ -37,6 +46,14 @@ type RootCommand struct {
 	InvokedFromProfileUpdate bool
 	// ProfileUpdateName indicates the profile name to update.
 	ProfileUpdateName string
+	// InvokedFromProfileSwitch indicates if we should switch a profile.
+	InvokedFromProfileSwitch bool
+	// ProfileSwitchName indicates the profile name to switch to.
+	ProfileSwitchName string
+	// ProfileSwitchEmail indicates the profile email to reference in auth URL.
+	ProfileSwitchEmail string
+	// ProfileSwitchCustomerID indicates the customer ID to reference in auth URL.
+	ProfileSwitchCustomerID string
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -94,6 +111,11 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || ForceReAuth {
 		c.Globals.AuthServer.SetParam("prompt", "login select_account")
 	}
+	if c.InvokedFromProfileSwitch {
+		c.Globals.AuthServer.SetParam("prompt", "login")
+		c.Globals.AuthServer.SetParam("login_hint", c.ProfileSwitchEmail)
+		c.Globals.AuthServer.SetParam("account_hint", c.ProfileSwitchCustomerID)
+	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
 	if err != nil {
@@ -123,6 +145,11 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
+	err = c.processCustomer(ar)
+	if err != nil {
+		return fmt.Errorf("failed to use session token to get customer data: %w", err)
+	}
+
 	err = c.processProfiles(ar)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -130,7 +157,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	textFn := text.Success
-	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate {
+	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch {
 		textFn = text.Info
 	}
 	textFn(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
@@ -152,6 +179,10 @@ const (
 	// ProfileUpdate indicates we need to update a profile using details passed in
 	// either from the `sso` or `profile update` command.
 	ProfileUpdate
+
+	// ProfileSwitch indicates we need to re-authenticate and switch profiles.
+	// Triggered by user invoking `fastly profile switch` with an SSO-based profile.
+	ProfileSwitch
 )
 
 // identifyProfileAndFlow identifies the profile and the specific workflow.
@@ -188,6 +219,55 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 	}
 }
 
+func (c *RootCommand) processCustomer(ar auth.AuthorizationResult) error {
+	debugMode, _ := strconv.ParseBool(c.Globals.Env.DebugMode)
+	apiEndpoint, _ := c.Globals.APIEndpoint()
+	data, err := undocumented.Call(undocumented.CallOptions{
+		APIEndpoint: apiEndpoint,
+		HTTPClient:  c.Globals.HTTPClient,
+		HTTPHeaders: []undocumented.HTTPHeader{
+			{
+				Key:   "Accept",
+				Value: "application/json",
+			},
+			{
+				Key:   "User-Agent",
+				Value: useragent.Name,
+			},
+		},
+		Method: http.MethodGet,
+		Path:   "/verify",
+		Token:  ar.SessionToken,
+		Debug:  debugMode,
+	})
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("error executing verify API request: %w", err)
+	}
+
+	var response VerifyResponse
+	if err := json.Unmarshal(data, &response); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("error decoding verify API response: %w", err)
+	}
+
+	c.customerID = response.Customer.ID
+	c.customerName = response.Customer.Name
+
+	return nil
+}
+
+// VerifyResponse models the Fastly API response for the /verify endpoint.
+type VerifyResponse struct {
+	Customer Customer `json:"customer"`
+}
+
+// Customer is part of the Fastly API response for the /verify endpoint.
+type Customer struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // processProfiles updates the relevant profile with the returned token data.
 //
 // First it checks the --profile flag and the `profile` fastly.toml field.
@@ -206,6 +286,11 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 		if err != nil {
 			return fmt.Errorf("failed to update profile: %w", err)
 		}
+	case ProfileSwitch:
+		err := c.processSwitchProfile(ar, profileName)
+		if err != nil {
+			return fmt.Errorf("failed to switch profile: %w", err)
+		}
 	}
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
@@ -221,7 +306,14 @@ func (c *RootCommand) processCreateProfile(ar auth.AuthorizationResult, profileN
 		isDefault = c.ProfileDefault
 	}
 
-	c.Globals.Config.Profiles = createNewProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
+	c.Globals.Config.Profiles = createNewProfile(
+		profileName,
+		c.customerID,
+		c.customerName,
+		isDefault,
+		c.Globals.Config.Profiles,
+		ar,
+	)
 
 	// If the user wants the newly created profile to be their new default, then
 	// we'll call Set for its side effect of resetting all other profiles to have
@@ -242,7 +334,31 @@ func (c *RootCommand) processUpdateProfile(ar auth.AuthorizationResult, profileN
 	if c.InvokedFromProfileUpdate {
 		isDefault = c.ProfileDefault
 	}
-	ps, err := editProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
+	ps, err := editProfile(
+		profileName,
+		c.customerID,
+		c.customerName,
+		isDefault,
+		c.Globals.Config.Profiles,
+		ar,
+	)
+	if err != nil {
+		return err
+	}
+	c.Globals.Config.Profiles = ps
+	return nil
+}
+
+// processSwitchProfile handles updating a profile.
+func (c *RootCommand) processSwitchProfile(ar auth.AuthorizationResult, profileName string) error {
+	ps, err := editProfile(
+		profileName,
+		c.customerID,
+		c.customerName,
+		c.ProfileDefault,
+		c.Globals.Config.Profiles,
+		ar,
+	)
 	if err != nil {
 		return err
 	}
@@ -252,7 +368,7 @@ func (c *RootCommand) processUpdateProfile(ar auth.AuthorizationResult, profileN
 
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
-func createNewProfile(profileName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) config.Profiles {
+func createNewProfile(profileName, customerID, customerName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) config.Profiles {
 	now := time.Now().Unix()
 	if p == nil {
 		p = make(config.Profiles)
@@ -261,6 +377,8 @@ func createNewProfile(profileName string, makeDefault bool, p config.Profiles, a
 		AccessToken:         ar.Jwt.AccessToken,
 		AccessTokenCreated:  now,
 		AccessTokenTTL:      ar.Jwt.ExpiresIn,
+		CustomerID:          customerID,
+		CustomerName:        customerName,
 		Default:             makeDefault,
 		Email:               ar.Email,
 		RefreshToken:        ar.Jwt.RefreshToken,
@@ -276,13 +394,15 @@ func createNewProfile(profileName string, makeDefault bool, p config.Profiles, a
 //
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
-func editProfile(profileName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
+func editProfile(profileName, customerID, customerName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
 	ps, ok := profile.Edit(profileName, p, func(p *config.Profile) {
 		now := time.Now().Unix()
 		p.Default = makeDefault
 		p.AccessToken = ar.Jwt.AccessToken
 		p.AccessTokenCreated = now
 		p.AccessTokenTTL = ar.Jwt.ExpiresIn
+		p.CustomerID = customerID
+		p.CustomerName = customerName
 		p.Email = ar.Email
 		p.RefreshToken = ar.Jwt.RefreshToken
 		p.RefreshTokenCreated = now
