@@ -92,7 +92,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// that another session (from a different profile) doesn't cause unexpected
 	// errors for the user flow. This forces a re-auth.
 	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || ForceReAuth {
-		c.Globals.AuthServer.SetParam("prompt", "login")
+		c.Globals.AuthServer.SetParam("prompt", "login select_account")
 	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
