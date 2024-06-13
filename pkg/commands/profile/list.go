@@ -56,6 +56,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if p == nil {
 		text.Warning(out, profile.NoDefaults)
 	} else {
+		if c.Globals.Verbose() {
+			text.Break(out)
+		}
 		text.Info(out, "Default profile highlighted in red.\n\n")
 		display(name, p, out, text.BoldRed)
 	}
@@ -76,4 +79,8 @@ func display(k string, v *config.Profile, out io.Writer, style func(a ...any) st
 	text.Output(out, "%s: %s", style("Email"), v.Email)
 	text.Output(out, "%s: %s", style("Token"), v.Token)
 	text.Output(out, "%s: %t", style("SSO"), !auth.IsLongLivedToken(v))
+	if !auth.IsLongLivedToken(v) {
+		text.Output(out, "%s: %s", style("Customer ID"), v.CustomerID)
+		text.Output(out, "%s: %s", style("Customer Name"), v.CustomerName)
+	}
 }
