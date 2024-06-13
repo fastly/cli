@@ -262,7 +262,8 @@ func (c *RootCommand) processCustomer(ar auth.AuthorizationResult) error {
 	return nil
 }
 
-// CurrentCustomerResponse models the Fastly API response for the /verify endpoint.
+// CurrentCustomerResponse models the Fastly API response for the
+// /current_customer endpoint.
 type CurrentCustomerResponse struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
