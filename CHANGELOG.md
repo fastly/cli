@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v10.12.2](https://github.com/fastly/cli/releases/tag/v10.12.2) (2024-06-13)
+
+**Bug fixes:**
+
+- fix(sso): re-auth on profile switch + support MAUA [#1226](https://github.com/fastly/cli/pull/1226)
+
 ## [v10.12.1](https://github.com/fastly/cli/releases/tag/v10.12.1) (2024-06-10)
 
 **Enhancements:**
