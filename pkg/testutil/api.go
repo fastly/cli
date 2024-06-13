@@ -102,7 +102,7 @@ var WhoamiBasicResponse = whoami.VerifyResponse{
 	},
 }
 
-// CurrentCustomerClient is used by `whoami` and `sso` tests.
+// CurrentCustomerClient is used by `sso` tests.
 type CurrentCustomerClient sso.CurrentCustomerResponse
 
 // Do executes the HTTP request.
@@ -112,7 +112,7 @@ func (c CurrentCustomerClient) Do(*http.Request) (*http.Response, error) {
 	return rec.Result(), nil
 }
 
-// CurrentCustomerResponse is used by `whoami` and `sso` tests.
+// CurrentCustomerResponse is used by `sso` tests.
 var CurrentCustomerResponse = sso.CurrentCustomerResponse{
 	ID:   "abc",
 	Name: "Computer Company",
