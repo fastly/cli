@@ -32,6 +32,9 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 			return err
 		}
+		if c.Globals.Verbose() {
+			text.Break(out)
+		}
 		text.Success(out, "Profile '%s' deleted", c.profile)
 
 		if _, p := profile.Default(c.Globals.Config.Profiles); p == nil && len(c.Globals.Config.Profiles) > 0 {
