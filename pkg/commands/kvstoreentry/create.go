@@ -37,7 +37,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
 	c.CmdClause.Flag("dir-allow-hidden", "Allow hidden files (e.g. dot files) to be included (skipped by default)").BoolVar(&c.dirAllowHidden)
 	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
-	c.CmdClause.Flag("file", "Path to a file containing individual JSON objects separated by new-line delimiter").StringVar(&c.filePath)
+	c.CmdClause.Flag("file", "Path to a file containing individual JSON objects (e.g., {\"key\":\"...\",\"value\":\"base64_encoded_value\"}) separated by new-line delimiter").StringVar(&c.filePath)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').StringVar(&c.Input.Key)
 	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
