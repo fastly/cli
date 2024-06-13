@@ -226,6 +226,7 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 func (c *RootCommand) processCustomer(ar auth.AuthorizationResult) error {
 	debugMode, _ := strconv.ParseBool(c.Globals.Env.DebugMode)
 	apiEndpoint, _ := c.Globals.APIEndpoint()
+	// NOTE: The endpoint is documented but not implemented in go-fastly.
 	data, err := undocumented.Call(undocumented.CallOptions{
 		APIEndpoint: apiEndpoint,
 		HTTPClient:  c.Globals.HTTPClient,
@@ -238,9 +239,13 @@ func (c *RootCommand) processCustomer(ar auth.AuthorizationResult) error {
 				Key:   "User-Agent",
 				Value: useragent.Name,
 			},
+			{
+				Key:   "Fastly-Key",
+				Value: ar.SessionToken,
+			},
 		},
 		Method: http.MethodGet,
-		Path:   "/verify",
+		Path:   "/current_customer",
 		Token:  ar.SessionToken,
 		Debug:  debugMode,
 	})
@@ -249,25 +254,20 @@ func (c *RootCommand) processCustomer(ar auth.AuthorizationResult) error {
 		return fmt.Errorf("error executing verify API request: %w", err)
 	}
 
-	var response VerifyResponse
+	var response CurrentCustomerResponse
 	if err := json.Unmarshal(data, &response); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error decoding verify API response: %w", err)
 	}
 
-	c.customerID = response.Customer.ID
-	c.customerName = response.Customer.Name
+	c.customerID = response.ID
+	c.customerName = response.Name
 
 	return nil
 }
 
-// VerifyResponse models the Fastly API response for the /verify endpoint.
-type VerifyResponse struct {
-	Customer Customer `json:"customer"`
-}
-
-// Customer is part of the Fastly API response for the /verify endpoint.
-type Customer struct {
+// CurrentCustomerResponse models the Fastly API response for the /verify endpoint.
+type CurrentCustomerResponse struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
