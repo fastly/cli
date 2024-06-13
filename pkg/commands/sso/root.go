@@ -214,6 +214,8 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 		return c.ProfileCreateName, ProfileCreate
 	case c.InvokedFromProfileUpdate && c.ProfileUpdateName != "":
 		return c.ProfileUpdateName, ProfileUpdate
+	case c.InvokedFromProfileSwitch && c.ProfileSwitchName != "":
+		return c.ProfileSwitchName, ProfileSwitch
 	case currentDefaultProfile != "":
 		return currentDefaultProfile, ProfileUpdate
 	case newDefaultProfile != "":
@@ -362,6 +364,10 @@ func (c *RootCommand) processSwitchProfile(ar auth.AuthorizationResult, profileN
 	)
 	if err != nil {
 		return err
+	}
+	ps, ok := profile.SetDefault(profileName, ps)
+	if !ok {
+		return fmt.Errorf("failed to set '%s' to be the default profile", profileName)
 	}
 	c.Globals.Config.Profiles = ps
 	return nil
