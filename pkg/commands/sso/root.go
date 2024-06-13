@@ -239,10 +239,6 @@ func (c *RootCommand) processCustomer(ar auth.AuthorizationResult) error {
 				Key:   "User-Agent",
 				Value: useragent.Name,
 			},
-			{
-				Key:   "Fastly-Key",
-				Value: ar.SessionToken,
-			},
 		},
 		Method: http.MethodGet,
 		Path:   "/current_customer",
