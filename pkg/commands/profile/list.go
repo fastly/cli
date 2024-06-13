@@ -77,7 +77,7 @@ func display(k string, v *config.Profile, out io.Writer, style func(a ...any) st
 	text.Output(out, "%s: %s", style("Token"), v.Token)
 	text.Output(out, "%s: %t", style("SSO"), !auth.IsLongLivedToken(v))
 	if !auth.IsLongLivedToken(v) {
-		text.Output(out, "%s: %t", style("Customer ID"), v.CustomerID)
-		text.Output(out, "%s: %t", style("Customer Name"), v.CustomerName)
+		text.Output(out, "%s: %s", style("Customer ID"), v.CustomerID)
+		text.Output(out, "%s: %s", style("Customer Name"), v.CustomerName)
 	}
 }
