@@ -251,13 +251,13 @@ func (c *RootCommand) processCustomer(ar auth.AuthorizationResult) error {
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("error executing verify API request: %w", err)
+		return fmt.Errorf("error executing current_customer API request: %w", err)
 	}
 
 	var response CurrentCustomerResponse
 	if err := json.Unmarshal(data, &response); err != nil {
 		c.Globals.ErrLog.Add(err)
-		return fmt.Errorf("error decoding verify API response: %w", err)
+		return fmt.Errorf("error decoding current_customer API response: %w", err)
 	}
 
 	c.customerID = response.ID
