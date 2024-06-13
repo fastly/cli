@@ -108,10 +108,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// For creating/updating a profile we set `prompt` because we want to ensure
 	// that another session (from a different profile) doesn't cause unexpected
 	// errors for the user flow. This forces a re-auth.
-	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || ForceReAuth {
+	if c.InvokedFromProfileCreate || ForceReAuth {
 		c.Globals.AuthServer.SetParam("prompt", "login select_account")
 	}
-	if c.InvokedFromProfileSwitch {
+	if c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch {
 		c.Globals.AuthServer.SetParam("prompt", "login")
 		if c.ProfileSwitchEmail != "" {
 			c.Globals.AuthServer.SetParam("login_hint", c.ProfileSwitchEmail)
