@@ -113,8 +113,12 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 	if c.InvokedFromProfileSwitch {
 		c.Globals.AuthServer.SetParam("prompt", "login")
-		c.Globals.AuthServer.SetParam("login_hint", c.ProfileSwitchEmail)
-		c.Globals.AuthServer.SetParam("account_hint", c.ProfileSwitchCustomerID)
+		if c.ProfileSwitchEmail != "" {
+			c.Globals.AuthServer.SetParam("login_hint", c.ProfileSwitchEmail)
+		}
+		if c.ProfileSwitchCustomerID != "" {
+			c.Globals.AuthServer.SetParam("account_hint", c.ProfileSwitchCustomerID)
+		}
 	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
