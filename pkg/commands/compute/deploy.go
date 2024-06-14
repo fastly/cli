@@ -160,9 +160,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	if !c.Globals.Flags.NonInteractive {
-		text.Break(out)
-	}
+	text.Break(out)
 
 	fnActivateTrial, serviceID, err := c.Setup(out)
 	if err != nil {
