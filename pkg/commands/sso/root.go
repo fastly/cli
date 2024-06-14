@@ -54,6 +54,8 @@ type RootCommand struct {
 	ProfileSwitchEmail string
 	// ProfileSwitchCustomerID indicates the customer ID to reference in auth URL.
 	ProfileSwitchCustomerID string
+	// InvokedFromSSO is an override for anyone using the `fastly sso` directly.
+	InvokedFromSSO bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -108,10 +110,10 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	// For creating/updating a profile we set `prompt` because we want to ensure
 	// that another session (from a different profile) doesn't cause unexpected
 	// errors for the user flow. This forces a re-auth.
-	if c.InvokedFromProfileCreate || ForceReAuth {
+	switch {
+	case c.InvokedFromProfileCreate || ForceReAuth:
 		c.Globals.AuthServer.SetParam("prompt", "login select_account")
-	}
-	if c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch {
+	case c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch:
 		c.Globals.AuthServer.SetParam("prompt", "login")
 		if c.ProfileSwitchEmail != "" {
 			c.Globals.AuthServer.SetParam("login_hint", c.ProfileSwitchEmail)
@@ -119,6 +121,25 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		if c.ProfileSwitchCustomerID != "" {
 			c.Globals.AuthServer.SetParam("account_hint", c.ProfileSwitchCustomerID)
 		}
+	default:
+		// Handle `fastly sso` being invoked directly.
+		p := profile.Get(profileName, c.Globals.Config.Profiles)
+		if p == nil {
+			err := fmt.Errorf(profile.DoesNotExist, profileName)
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		c.Globals.AuthServer.SetParam("prompt", "login")
+		c.Globals.AuthServer.SetParam("login_hint", p.Email)
+		c.Globals.AuthServer.SetParam("account_hint", p.CustomerID)
+		// IMPORTANT: We must make the specified profile the default.
+		// If we don't, then the next command run will fail to check the token.
+		// Because the current profile will not be the active session.
+		// And we don't want to have to force the user to have re-auth again.
+		// Really, `fastly sso` should be a hidden command.
+		// And all users should use the `fastly profile ...` subcommands.
+		c.ProfileDefault = true
+		c.InvokedFromSSO = true
 	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
@@ -285,10 +306,16 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 	case ProfileCreate:
 		c.processCreateProfile(ar, profileName)
 	case ProfileUpdate:
-		err := c.processUpdateProfile(ar, profileName)
-		if err != nil {
-			return fmt.Errorf("failed to update profile: %w", err)
+		// If a user calls `fastly sso` directly then they can be incorrectly
+		// identified as needing the ProfileUpdate flow. So we check for that and
+		// fallthrough to the ProfileSwitch otherwise.
+		if !c.InvokedFromSSO {
+			err := c.processUpdateProfile(ar, profileName)
+			if err != nil {
+				return fmt.Errorf("failed to update profile: %w", err)
+			}
 		}
+		fallthrough
 	case ProfileSwitch:
 		err := c.processSwitchProfile(ar, profileName)
 		if err != nil {
