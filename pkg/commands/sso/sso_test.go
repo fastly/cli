@@ -87,7 +87,7 @@ func TestSSO(t *testing.T) {
 			TestScenario: testutil.TestScenario{
 				Args: args("sso"),
 				WantOutputs: []string{
-					"We're going to authenticate the 'user' profile.",
+					"We're going to authenticate the 'user' profile",
 					"We need to open your browser to authenticate you.",
 					"Session token (persisted to your local configuration): 123",
 				},
@@ -108,7 +108,7 @@ func TestSSO(t *testing.T) {
 			TestScenario: testutil.TestScenario{
 				Args: args("sso test_user"),
 				WantOutputs: []string{
-					"We're going to authenticate the 'test_user' profile.",
+					"We're going to authenticate the 'test_user' profile",
 					"We need to open your browser to authenticate you.",
 					"Session token (persisted to your local configuration): 123",
 				},

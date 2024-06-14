@@ -72,13 +72,58 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	profileName, _ := c.identifyProfileAndFlow()
 
+	// For creating/updating a profile we set `prompt` because we want to ensure
+	// that another session (from a different profile) doesn't cause unexpected
+	// errors for the user flow. This forces a re-auth.
+	switch {
+	case c.InvokedFromProfileCreate || ForceReAuth:
+		c.Globals.AuthServer.SetParam("prompt", "login select_account")
+	case c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch:
+		c.Globals.AuthServer.SetParam("prompt", "login")
+		if c.ProfileSwitchEmail != "" {
+			c.Globals.AuthServer.SetParam("login_hint", c.ProfileSwitchEmail)
+		}
+		if c.ProfileSwitchCustomerID != "" {
+			c.Globals.AuthServer.SetParam("account_hint", c.ProfileSwitchCustomerID)
+		}
+	default:
+		if c.profile != "" {
+			profileName = c.profile
+		}
+		// Handle `fastly sso` being invoked directly.
+		p := profile.Get(profileName, c.Globals.Config.Profiles)
+		if p == nil {
+			err := fmt.Errorf(profile.DoesNotExist, profileName)
+			c.Globals.ErrLog.Add(err)
+			return fsterr.RemediationError{
+				Inner:       err,
+				Remediation: fsterr.ProfileRemediation,
+			}
+		}
+		c.Globals.AuthServer.SetParam("prompt", "login")
+		c.Globals.AuthServer.SetParam("login_hint", p.Email)
+		c.Globals.AuthServer.SetParam("account_hint", p.CustomerID)
+		// IMPORTANT: We must make the specified profile the default.
+		// If we don't, then the next command run will fail to check the token.
+		// Because the current profile will not be the active session.
+		// And we don't want to have to force the user to have re-auth again.
+		// Really, `fastly sso` should be a hidden command.
+		// And all users should use the `fastly profile ...` subcommands.
+		c.ProfileDefault = true
+		c.InvokedFromSSO = true
+	}
+
 	// We need to prompt the user, so they know we're about to open their web
 	// browser, but we also need to handle the scenario where the `sso` command is
 	// invoked indirectly via ../../app/run.go as that package will have its own
 	// (similar) prompt before invoking this command. So to avoid a double prompt,
 	// the app package will set `SkipAuthPrompt: true`.
 	if !c.Globals.SkipAuthPrompt && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		msg := fmt.Sprintf("We're going to authenticate the '%s' profile", profileName)
+		var defaultMsg string
+		if c.InvokedFromSSO {
+			defaultMsg = " and make it the default"
+		}
+		msg := fmt.Sprintf("We're going to authenticate the '%s' profile%s", profileName, defaultMsg)
 		text.Important(out, "%s. We need to open your browser to authenticate you.", msg)
 		text.Break(out)
 		cont, err := text.AskYesNo(out, text.BoldYellow("Do you want to continue? [y/N]: "), in)
@@ -106,41 +151,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Info(out, "Starting a local server to handle the authentication flow.")
-
-	// For creating/updating a profile we set `prompt` because we want to ensure
-	// that another session (from a different profile) doesn't cause unexpected
-	// errors for the user flow. This forces a re-auth.
-	switch {
-	case c.InvokedFromProfileCreate || ForceReAuth:
-		c.Globals.AuthServer.SetParam("prompt", "login select_account")
-	case c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch:
-		c.Globals.AuthServer.SetParam("prompt", "login")
-		if c.ProfileSwitchEmail != "" {
-			c.Globals.AuthServer.SetParam("login_hint", c.ProfileSwitchEmail)
-		}
-		if c.ProfileSwitchCustomerID != "" {
-			c.Globals.AuthServer.SetParam("account_hint", c.ProfileSwitchCustomerID)
-		}
-	default:
-		// Handle `fastly sso` being invoked directly.
-		p := profile.Get(profileName, c.Globals.Config.Profiles)
-		if p == nil {
-			err := fmt.Errorf(profile.DoesNotExist, profileName)
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-		c.Globals.AuthServer.SetParam("prompt", "login")
-		c.Globals.AuthServer.SetParam("login_hint", p.Email)
-		c.Globals.AuthServer.SetParam("account_hint", p.CustomerID)
-		// IMPORTANT: We must make the specified profile the default.
-		// If we don't, then the next command run will fail to check the token.
-		// Because the current profile will not be the active session.
-		// And we don't want to have to force the user to have re-auth again.
-		// Really, `fastly sso` should be a hidden command.
-		// And all users should use the `fastly profile ...` subcommands.
-		c.ProfileDefault = true
-		c.InvokedFromSSO = true
-	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
 	if err != nil {
