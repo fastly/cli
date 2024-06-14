@@ -1,12 +1,12 @@
 package profile
 
 import (
-	"errors"
 	"fmt"
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/sso"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
@@ -38,7 +38,10 @@ func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
 	if p == nil {
 		err := fmt.Errorf(profile.DoesNotExist, c.profile)
 		c.Globals.ErrLog.Add(err)
-		return err
+		return fsterr.RemediationError{
+			Inner:       err,
+			Remediation: fsterr.ProfileRemediation,
+		}
 	}
 	if isSSOToken(p) {
 		// IMPORTANT: We need to set profile fields for `sso` command.
@@ -63,10 +66,12 @@ func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
 	// their Default field set to false.
 	ps, ok := profile.SetDefault(c.profile, c.Globals.Config.Profiles)
 	if !ok {
-		msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
-		err := errors.New(msg)
+		err := fmt.Errorf(profile.DoesNotExist, c.profile)
 		c.Globals.ErrLog.Add(err)
-		return err
+		return fsterr.RemediationError{
+			Inner:       err,
+			Remediation: fsterr.ProfileRemediation,
+		}
 	}
 	c.Globals.Config.Profiles = ps
 
