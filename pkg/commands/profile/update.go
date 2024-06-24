@@ -35,7 +35,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.R
 	c.CmdClause = parent.Command("update", "Update user profile")
 	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
-	c.CmdClause.Flag("sso", "Update profile to use an SSO-based token").Hidden().BoolVar(&c.sso)
+	c.CmdClause.Flag("sso", "Update profile to use an SSO-based token").BoolVar(&c.sso)
 	return &c
 }
 
@@ -44,6 +44,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	profileName, p, err := c.identifyProfile()
 	if err != nil {
 		return fmt.Errorf("failed to identify the profile to update: %w", err)
+	}
+	if c.Globals.Verbose() {
+		text.Break(out)
 	}
 	text.Info(out, "Profile being updated: '%s'.\n\n", profileName)
 

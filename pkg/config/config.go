@@ -148,6 +148,10 @@ type Profile struct {
 	AccessTokenCreated int64 `toml:"access_token_created" json:"access_token_created"`
 	// AccessTokenTTL indicates when the access token needs to be replaced.
 	AccessTokenTTL int `toml:"access_token_ttl" json:"access_token_ttl"`
+	// CustomerID is the customer ID associated with the profile.
+	CustomerID string `toml:"customer_id" json:"customer_id"`
+	// CustomerName is the customer name associated with the profile.
+	CustomerName string `toml:"customer_name" json:"customer_name"`
 	// Default indicates if the profile is the default profile to use.
 	Default bool `toml:"default" json:"default"`
 	// Email is the email address associated with the token.

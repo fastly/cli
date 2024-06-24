@@ -23,6 +23,7 @@ import (
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/commands"
 	"github.com/fastly/cli/pkg/commands/compute"
+	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/config"
@@ -302,7 +303,7 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// IMPORTANT: `--debug` is a built-in Kingpin flag so we must use `debug-mode`.
 	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&data.Flags.Debug)
 	// IMPORTANT: `--sso` causes a Kingpin runtime panic 🤦 so we use `enable-sso`.
-	app.Flag("enable-sso", "Enable Single-Sign On (SSO) for current profile execution (see also: 'fastly sso')").Hidden().BoolVar(&data.Flags.SSO)
+	app.Flag("enable-sso", "Enable Single-Sign On (SSO) for current profile execution (see also: 'fastly sso')").BoolVar(&data.Flags.SSO)
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&data.Flags.NonInteractive)
 	app.Flag("profile", "Switch account profile for single command execution (see also: 'fastly profile switch')").Short('o').StringVar(&data.Flags.Profile)
 	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&data.Flags.Quiet)
@@ -356,6 +357,12 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 		// Otherwise, for an existing SSO token, check its freshness.
 		reauth, err := checkAndRefreshSSOToken(profileData, profileName, data)
 		if err != nil {
+			// The following scenario is when the user wants to switch to another SSO
+			// profile that exists under a different auth session.
+			if errors.Is(err, auth.ErrInvalidGrant) {
+				sso.ForceReAuth = true
+				return ssoAuthentication("We can't refresh your token", cmds, data)
+			}
 			return token, tokenSource, fmt.Errorf("failed to check access/refresh token: %w", err)
 		}
 		if reauth {
@@ -394,6 +401,9 @@ func checkAndRefreshSSOToken(profileData *config.Profile, profileName string, da
 
 		updatedJWT, err := data.AuthServer.RefreshAccessToken(profileData.RefreshToken)
 		if err != nil {
+			if errors.Is(err, auth.ErrInvalidGrant) {
+				return false, err
+			}
 			return false, fmt.Errorf("failed to refresh access token: %w", err)
 		}
 
@@ -612,7 +622,7 @@ func commandCollectsData(command string) bool {
 // requires just the authentication server to be running.
 func commandRequiresAuthServer(command string) bool {
 	switch command {
-	case "profile create", "profile update":
+	case "profile create", "profile switch", "profile update":
 		return true
 	}
 	return false

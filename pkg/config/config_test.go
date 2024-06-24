@@ -233,6 +233,8 @@ func TestUseStatic(t *testing.T) {
 access_token = ""
 access_token_created = 0
 access_token_ttl = 0
+customer_id = ""
+customer_name = ""
 default = true
 email = "testing@fastly.com"
 refresh_token = ""

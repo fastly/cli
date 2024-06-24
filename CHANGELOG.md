@@ -1,5 +1,39 @@
 # CHANGELOG
 
+## [v10.12.3](https://github.com/fastly/cli/releases/tag/v10.12.3) (2024-06-14)
+
+**Bug fixes:**
+
+- fix(sso): correct the behaviour for direct sso invocation [#1230](https://github.com/fastly/cli/pull/1230)
+- fix(compute/deploy): dereference service number pointer [#1231](https://github.com/fastly/cli/pull/1231)
+- fix(sso): update output to reflect default profile behaviour [#1232](https://github.com/fastly/cli/pull/1232)
+
+## [v10.12.2](https://github.com/fastly/cli/releases/tag/v10.12.2) (2024-06-13)
+
+**Bug fixes:**
+
+- fix(sso): re-auth on profile switch + support MAUA [#1226](https://github.com/fastly/cli/pull/1226)
+
+## [v10.12.1](https://github.com/fastly/cli/releases/tag/v10.12.1) (2024-06-10)
+
+**Enhancements:**
+
+- expose SSO commands and flags [#1218](https://github.com/fastly/cli/pull/1218)
+
+## [v10.12.0](https://github.com/fastly/cli/releases/tag/v10.12.0) (2024-06-10)
+
+**Enhancements:**
+
+- feat(sso): support active session account switching [#1207](https://github.com/fastly/cli/pull/1207)
+
+## [v10.11.0](https://github.com/fastly/cli/releases/tag/v10.11.0) (2024-06-06)
+
+**Enhancements:**
+
+- feat(app): improve error messaging when Fastly servers are unresponsive [#1212](https://github.com/fastly/cli/pull/1212)
+- feat(compute): clone starter kit source with init --from=serviceID [#1213](https://github.com/fastly/cli/pull/1213)
+- Adds --cert-path argument to `tls-custom certificate update` command to pass in a path to a certificate file [#1214](https://github.com/fastly/cli/pull/1214)
+
 ## [v10.10.0](https://github.com/fastly/cli/releases/tag/v10.10.0) (2024-05-20)
 
 **Enhancements:**
