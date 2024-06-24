@@ -23,12 +23,18 @@ const (
 )
 
 func TestTLSCustomPrivateKeyCreate(t *testing.T) {
+	var content string
 	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Name:      "validate missing --key flag",
+			Name:      "validate missing --key and --key-path flags",
 			Args:      args("tls-custom private-key create --name example"),
-			WantError: "required flag --key not provided",
+			WantError: "neither --key-path or --key provided, one must be provided",
+		},
+		{
+			Name:      "validate using both --key and --key-path flags",
+			Args:      args("tls-custom private-key create --name example --key example --key-path foobar"),
+			WantError: "--key-path and --key provided, only one can be specified",
 		},
 		{
 			Name:      "validate missing --name flag",
@@ -39,6 +45,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 			Name: validateAPIError,
 			API: mock.API{
 				CreatePrivateKeyFn: func(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
+					content = i.Key
 					return nil, testutil.Err
 				},
 			},
@@ -49,6 +56,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 			Name: validateAPISuccess,
 			API: mock.API{
 				CreatePrivateKeyFn: func(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
+					content = i.Key
 					return &fastly.PrivateKey{
 						ID:   mockResponseID,
 						Name: i.Name,
@@ -57,6 +65,25 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 			},
 			Args:       args("tls-custom private-key create --key example --name example"),
 			WantOutput: "Created TLS Private Key 'example'",
+		},
+		{
+			Name: "validate custom key is submitted",
+			API: mock.API{
+				CreatePrivateKeyFn: func(i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
+					content = i.Key
+					return &fastly.PrivateKey{
+						ID:   mockResponseID,
+						Name: i.Name,
+					}, nil
+				},
+			},
+			Args:       args("tls-custom private-key create --name example --key-path ./testdata/testkey.pem"),
+			WantOutput: "Created TLS Private Key 'example'",
+		},
+		{
+			Name:      "validate invalid --key-path arg",
+			Args:      args("tls-custom private-key create --name example --key-path ............"),
+			WantError: "error reading key-path",
 		},
 	}
 
@@ -72,6 +99,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 			err := app.Run(testcase.Args, nil)
 			testutil.AssertErrorContains(t, err, testcase.WantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
+			testutil.AssertPathContentFlag("key-path", testcase.WantError, testcase.Args, "testkey.pem", content, t)
 		})
 	}
 }
