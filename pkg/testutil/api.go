@@ -8,6 +8,7 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/whoami"
 )
 
@@ -99,4 +100,20 @@ var WhoamiBasicResponse = whoami.VerifyResponse{
 		// no ExpiresAt
 		Scope: "global",
 	},
+}
+
+// CurrentCustomerClient is used by `sso` tests.
+type CurrentCustomerClient sso.CurrentCustomerResponse
+
+// Do executes the HTTP request.
+func (c CurrentCustomerClient) Do(*http.Request) (*http.Response, error) {
+	rec := httptest.NewRecorder()
+	_ = json.NewEncoder(rec).Encode(sso.CurrentCustomerResponse(c))
+	return rec.Result(), nil
+}
+
+// CurrentCustomerResponse is used by `sso` tests.
+var CurrentCustomerResponse = sso.CurrentCustomerResponse{
+	ID:   "abc",
+	Name: "Computer Company",
 }

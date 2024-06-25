@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [v10.12.3](https://github.com/fastly/cli/releases/tag/v10.12.3) (2024-06-14)
+
+**Bug fixes:**
+
+- fix(sso): correct the behaviour for direct sso invocation [#1230](https://github.com/fastly/cli/pull/1230)
+- fix(compute/deploy): dereference service number pointer [#1231](https://github.com/fastly/cli/pull/1231)
+- fix(sso): update output to reflect default profile behaviour [#1232](https://github.com/fastly/cli/pull/1232)
+
+## [v10.12.2](https://github.com/fastly/cli/releases/tag/v10.12.2) (2024-06-13)
+
+**Bug fixes:**
+
+- fix(sso): re-auth on profile switch + support MAUA [#1226](https://github.com/fastly/cli/pull/1226)
+
 ## [v10.12.1](https://github.com/fastly/cli/releases/tag/v10.12.1) (2024-06-10)
 
 **Enhancements:**

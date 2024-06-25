@@ -160,9 +160,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	if !c.Globals.Flags.NonInteractive {
-		text.Break(out)
-	}
+	text.Break(out)
 
 	fnActivateTrial, serviceID, err := c.Setup(out)
 	if err != nil {
@@ -204,7 +202,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		serviceVersion, err = c.ExistingServiceVersion(serviceID, out)
 		if err != nil {
 			if errors.Is(err, ErrPackageUnchanged) {
-				text.Info(out, "Skipping package deployment, local and service version are identical. (service %s, version %d) ", serviceID, serviceVersion.Number)
+				text.Info(out, "Skipping package deployment, local and service version are identical. (service %s, version %d) ", serviceID, fastly.ToValue(serviceVersion.Number))
 				return nil
 			}
 			return err
@@ -215,6 +213,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	var sr ServiceResources
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 
 	// NOTE: A 'domain' resource isn't strictly part of the [setup] config.
 	// It's part of the implementation so that we can utilise the same interface.
@@ -226,12 +225,11 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		PackageDomain:  c.Domain,
 		RetryLimit:     5,
 		ServiceID:      serviceID,
-		ServiceVersion: fastly.ToValue(serviceVersion.Number),
+		ServiceVersion: serviceVersionNumber,
 		Stdin:          in,
 		Stdout:         out,
 		Verbose:        c.Globals.Verbose(),
 	}
-	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 	if err = sr.domains.Validate(); err != nil {
 		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersionNumber)
 		return fmt.Errorf("error configuring service domains: %w", err)

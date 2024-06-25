@@ -1,11 +1,15 @@
 package sso
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
@@ -13,6 +17,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/pkg/useragent"
 )
 
 // ForceReAuth indicates we want to force a re-auth of the user's session.
@@ -24,6 +29,10 @@ var ForceReAuth = false
 type RootCommand struct {
 	argparser.Base
 	profile string
+
+	// The following fields are populated once authentication is complete.
+	customerID   string
+	customerName string
 
 	// IMPORTANT: The following fields are public to the `profile` subcommands.
 
@@ -37,6 +46,16 @@ type RootCommand struct {
 	InvokedFromProfileUpdate bool
 	// ProfileUpdateName indicates the profile name to update.
 	ProfileUpdateName string
+	// InvokedFromProfileSwitch indicates if we should switch a profile.
+	InvokedFromProfileSwitch bool
+	// ProfileSwitchName indicates the profile name to switch to.
+	ProfileSwitchName string
+	// ProfileSwitchEmail indicates the profile email to reference in auth URL.
+	ProfileSwitchEmail string
+	// ProfileSwitchCustomerID indicates the customer ID to reference in auth URL.
+	ProfileSwitchCustomerID string
+	// InvokedFromSSO is an override for anyone using the `fastly sso` directly.
+	InvokedFromSSO bool
 }
 
 // NewRootCommand returns a new command registered in the parent.
@@ -53,13 +72,58 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	profileName, _ := c.identifyProfileAndFlow()
 
+	// For creating/updating a profile we set `prompt` because we want to ensure
+	// that another session (from a different profile) doesn't cause unexpected
+	// errors for the user flow. This forces a re-auth.
+	switch {
+	case c.InvokedFromProfileCreate || ForceReAuth:
+		c.Globals.AuthServer.SetParam("prompt", "login select_account")
+	case c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch:
+		c.Globals.AuthServer.SetParam("prompt", "login")
+		if c.ProfileSwitchEmail != "" {
+			c.Globals.AuthServer.SetParam("login_hint", c.ProfileSwitchEmail)
+		}
+		if c.ProfileSwitchCustomerID != "" {
+			c.Globals.AuthServer.SetParam("account_hint", c.ProfileSwitchCustomerID)
+		}
+	default:
+		if c.profile != "" {
+			profileName = c.profile
+		}
+		// Handle `fastly sso` being invoked directly.
+		p := profile.Get(profileName, c.Globals.Config.Profiles)
+		if p == nil {
+			err := fmt.Errorf(profile.DoesNotExist, profileName)
+			c.Globals.ErrLog.Add(err)
+			return fsterr.RemediationError{
+				Inner:       err,
+				Remediation: fsterr.ProfileRemediation,
+			}
+		}
+		c.Globals.AuthServer.SetParam("prompt", "login")
+		c.Globals.AuthServer.SetParam("login_hint", p.Email)
+		c.Globals.AuthServer.SetParam("account_hint", p.CustomerID)
+		// IMPORTANT: We must make the specified profile the default.
+		// If we don't, then the next command run will fail to check the token.
+		// Because the current profile will not be the active session.
+		// And we don't want to have to force the user to have re-auth again.
+		// Really, `fastly sso` should be a hidden command.
+		// And all users should use the `fastly profile ...` subcommands.
+		c.ProfileDefault = true
+		c.InvokedFromSSO = true
+	}
+
 	// We need to prompt the user, so they know we're about to open their web
 	// browser, but we also need to handle the scenario where the `sso` command is
 	// invoked indirectly via ../../app/run.go as that package will have its own
 	// (similar) prompt before invoking this command. So to avoid a double prompt,
 	// the app package will set `SkipAuthPrompt: true`.
 	if !c.Globals.SkipAuthPrompt && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		msg := fmt.Sprintf("We're going to authenticate the '%s' profile", profileName)
+		var defaultMsg string
+		if c.InvokedFromSSO {
+			defaultMsg = " and make it the default"
+		}
+		msg := fmt.Sprintf("We're going to authenticate the '%s' profile%s", profileName, defaultMsg)
 		text.Important(out, "%s. We need to open your browser to authenticate you.", msg)
 		text.Break(out)
 		cont, err := text.AskYesNo(out, text.BoldYellow("Do you want to continue? [y/N]: "), in)
@@ -87,13 +151,6 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Info(out, "Starting a local server to handle the authentication flow.")
-
-	// For creating/updating a profile we set `prompt` because we want to ensure
-	// that another session (from a different profile) doesn't cause unexpected
-	// errors for the user flow. This forces a re-auth.
-	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || ForceReAuth {
-		c.Globals.AuthServer.SetParam("prompt", "login")
-	}
 
 	authorizationURL, err := c.Globals.AuthServer.AuthURL()
 	if err != nil {
@@ -123,6 +180,11 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 	}
 
+	err = c.processCustomer(ar)
+	if err != nil {
+		return fmt.Errorf("failed to use session token to get customer data: %w", err)
+	}
+
 	err = c.processProfiles(ar)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -130,7 +192,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	textFn := text.Success
-	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate {
+	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch {
 		textFn = text.Info
 	}
 	textFn(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
@@ -152,6 +214,10 @@ const (
 	// ProfileUpdate indicates we need to update a profile using details passed in
 	// either from the `sso` or `profile update` command.
 	ProfileUpdate
+
+	// ProfileSwitch indicates we need to re-authenticate and switch profiles.
+	// Triggered by user invoking `fastly profile switch` with an SSO-based profile.
+	ProfileSwitch
 )
 
 // identifyProfileAndFlow identifies the profile and the specific workflow.
@@ -179,6 +245,8 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 		return c.ProfileCreateName, ProfileCreate
 	case c.InvokedFromProfileUpdate && c.ProfileUpdateName != "":
 		return c.ProfileUpdateName, ProfileUpdate
+	case c.InvokedFromProfileSwitch && c.ProfileSwitchName != "":
+		return c.ProfileSwitchName, ProfileSwitch
 	case currentDefaultProfile != "":
 		return currentDefaultProfile, ProfileUpdate
 	case newDefaultProfile != "":
@@ -186,6 +254,52 @@ func (c *RootCommand) identifyProfileAndFlow() (profileName string, flow Profile
 	default:
 		return profile.DefaultName, ProfileCreate
 	}
+}
+
+func (c *RootCommand) processCustomer(ar auth.AuthorizationResult) error {
+	debugMode, _ := strconv.ParseBool(c.Globals.Env.DebugMode)
+	apiEndpoint, _ := c.Globals.APIEndpoint()
+	// NOTE: The endpoint is documented but not implemented in go-fastly.
+	data, err := undocumented.Call(undocumented.CallOptions{
+		APIEndpoint: apiEndpoint,
+		HTTPClient:  c.Globals.HTTPClient,
+		HTTPHeaders: []undocumented.HTTPHeader{
+			{
+				Key:   "Accept",
+				Value: "application/json",
+			},
+			{
+				Key:   "User-Agent",
+				Value: useragent.Name,
+			},
+		},
+		Method: http.MethodGet,
+		Path:   "/current_customer",
+		Token:  ar.SessionToken,
+		Debug:  debugMode,
+	})
+	if err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("error executing current_customer API request: %w", err)
+	}
+
+	var response CurrentCustomerResponse
+	if err := json.Unmarshal(data, &response); err != nil {
+		c.Globals.ErrLog.Add(err)
+		return fmt.Errorf("error decoding current_customer API response: %w", err)
+	}
+
+	c.customerID = response.ID
+	c.customerName = response.Name
+
+	return nil
+}
+
+// CurrentCustomerResponse models the Fastly API response for the
+// /current_customer endpoint.
+type CurrentCustomerResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 // processProfiles updates the relevant profile with the returned token data.
@@ -202,9 +316,20 @@ func (c *RootCommand) processProfiles(ar auth.AuthorizationResult) error {
 	case ProfileCreate:
 		c.processCreateProfile(ar, profileName)
 	case ProfileUpdate:
-		err := c.processUpdateProfile(ar, profileName)
+		// If a user calls `fastly sso` directly then they can be incorrectly
+		// identified as needing the ProfileUpdate flow. So we check for that and
+		// fallthrough to the ProfileSwitch otherwise.
+		if !c.InvokedFromSSO {
+			err := c.processUpdateProfile(ar, profileName)
+			if err != nil {
+				return fmt.Errorf("failed to update profile: %w", err)
+			}
+		}
+		fallthrough
+	case ProfileSwitch:
+		err := c.processSwitchProfile(ar, profileName)
 		if err != nil {
-			return fmt.Errorf("failed to update profile: %w", err)
+			return fmt.Errorf("failed to switch profile: %w", err)
 		}
 	}
 
@@ -221,7 +346,14 @@ func (c *RootCommand) processCreateProfile(ar auth.AuthorizationResult, profileN
 		isDefault = c.ProfileDefault
 	}
 
-	c.Globals.Config.Profiles = createNewProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
+	c.Globals.Config.Profiles = createNewProfile(
+		profileName,
+		c.customerID,
+		c.customerName,
+		isDefault,
+		c.Globals.Config.Profiles,
+		ar,
+	)
 
 	// If the user wants the newly created profile to be their new default, then
 	// we'll call Set for its side effect of resetting all other profiles to have
@@ -242,7 +374,14 @@ func (c *RootCommand) processUpdateProfile(ar auth.AuthorizationResult, profileN
 	if c.InvokedFromProfileUpdate {
 		isDefault = c.ProfileDefault
 	}
-	ps, err := editProfile(profileName, isDefault, c.Globals.Config.Profiles, ar)
+	ps, err := editProfile(
+		profileName,
+		c.customerID,
+		c.customerName,
+		isDefault,
+		c.Globals.Config.Profiles,
+		ar,
+	)
 	if err != nil {
 		return err
 	}
@@ -250,9 +389,30 @@ func (c *RootCommand) processUpdateProfile(ar auth.AuthorizationResult, profileN
 	return nil
 }
 
+// processSwitchProfile handles updating a profile.
+func (c *RootCommand) processSwitchProfile(ar auth.AuthorizationResult, profileName string) error {
+	ps, err := editProfile(
+		profileName,
+		c.customerID,
+		c.customerName,
+		c.ProfileDefault,
+		c.Globals.Config.Profiles,
+		ar,
+	)
+	if err != nil {
+		return err
+	}
+	ps, ok := profile.SetDefault(profileName, ps)
+	if !ok {
+		return fmt.Errorf("failed to set '%s' to be the default profile", profileName)
+	}
+	c.Globals.Config.Profiles = ps
+	return nil
+}
+
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
-func createNewProfile(profileName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) config.Profiles {
+func createNewProfile(profileName, customerID, customerName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) config.Profiles {
 	now := time.Now().Unix()
 	if p == nil {
 		p = make(config.Profiles)
@@ -261,6 +421,8 @@ func createNewProfile(profileName string, makeDefault bool, p config.Profiles, a
 		AccessToken:         ar.Jwt.AccessToken,
 		AccessTokenCreated:  now,
 		AccessTokenTTL:      ar.Jwt.ExpiresIn,
+		CustomerID:          customerID,
+		CustomerName:        customerName,
 		Default:             makeDefault,
 		Email:               ar.Email,
 		RefreshToken:        ar.Jwt.RefreshToken,
@@ -276,13 +438,15 @@ func createNewProfile(profileName string, makeDefault bool, p config.Profiles, a
 //
 // IMPORTANT: Mutates the config.Profiles map type.
 // We need to return the modified type so it can be safely reassigned.
-func editProfile(profileName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
+func editProfile(profileName, customerID, customerName string, makeDefault bool, p config.Profiles, ar auth.AuthorizationResult) (config.Profiles, error) {
 	ps, ok := profile.Edit(profileName, p, func(p *config.Profile) {
 		now := time.Now().Unix()
 		p.Default = makeDefault
 		p.AccessToken = ar.Jwt.AccessToken
 		p.AccessTokenCreated = now
 		p.AccessTokenTTL = ar.Jwt.ExpiresIn
+		p.CustomerID = customerID
+		p.CustomerName = customerName
 		p.Email = ar.Email
 		p.RefreshToken = ar.Jwt.RefreshToken
 		p.RefreshTokenCreated = now
