@@ -1165,7 +1165,7 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 		})
 		return serviceVersion, fsterr.RemediationError{
 			Inner:       fmt.Errorf("invalid service type: %s", serviceType),
-			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeAccessRemediation,
+			Remediation: "Ensure the provided Service ID is associated with a 'Compute' Fastly Service and not a 'CDN' Fastly service. " + fsterr.ComputeAccessRemediation,
 		}
 	}
 
