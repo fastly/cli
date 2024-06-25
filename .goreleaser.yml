@@ -1,5 +1,6 @@
 # https://goreleaser.com/customization/project/
 project_name: fastly
+version: 2
 
 # https://goreleaser.com/customization/release/
 release:
