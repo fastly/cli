@@ -1,4 +1,4 @@
-github.com/goreleaser/goreleaser@latest
+github.com/goreleaser/goreleaser/v2@latest
 github.com/mgechev/revive@latest
 github.com/securego/gosec/v2/cmd/gosec@latest
 honnef.co/go/tools/cmd/staticcheck@2023.1.7
