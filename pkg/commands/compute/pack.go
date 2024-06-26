@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -41,8 +42,13 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	filename := sanitize.BaseName(c.Globals.Manifest.File.Name)
+	if filename == "" {
+		filename = "package"
+	}
+
 	defer func(errLog fsterr.LogInterface) {
-		_ = os.RemoveAll("pkg/package")
+		_ = os.RemoveAll(fmt.Sprintf("pkg/%s", filename))
 		if err != nil {
 			errLog.Add(err)
 		}
@@ -52,7 +58,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	bin := "pkg/package/bin/main.wasm"
+	bin := fmt.Sprintf("pkg/%s/bin/main.wasm", filename)
 	bindir := filepath.Dir(bin)
 
 	err = filesystem.MakeDirectoryIfNotExists(bindir)
@@ -94,7 +100,39 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 				Remediation: "Run `fastly compute pack --path </path/to/wasm/binary>` to copy your wasm binary to the required location",
 			}
 		}
-		return nil
+
+		src = manifest.Filename
+		dst = fmt.Sprintf("pkg/%s/%s", filename, manifest.Filename)
+		if err := filesystem.CopyFile(src, dst); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Manifest (destination)": dst,
+				"Manifest (source)":      src,
+			})
+			return fmt.Errorf("error copying manifest to '%s': %w", dst, err)
+		}
+
+		tar := archiver.NewTarGz()
+		tar.OverwriteExisting = true
+		{
+			dir := fmt.Sprintf("pkg/%s", filename)
+			src := []string{dir}
+			dst := fmt.Sprintf("%s.tar.gz", dir)
+			if err = tar.Archive(src, dst); err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]any{
+					"Path (absolute)":             src,
+					"Wasm destination (absolute)": dst,
+				})
+				return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
+			}
+
+			if !filesystem.FileExists(bin) {
+				return fsterr.RemediationError{
+					Inner:       fmt.Errorf("no wasm binary found"),
+					Remediation: "Run `fastly compute pack --path </path/to/wasm/binary>` to copy your wasm binary to the required location",
+				}
+			}
+			return nil
+		}
 	})
 	if err != nil {
 		return err
@@ -116,7 +154,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	return spinner.Process("Creating package.tar.gz file", func(_ *text.SpinnerWrapper) error {
+	return spinner.Process(fmt.Sprintf("Creating %s.tar.gz file", filename), func(_ *text.SpinnerWrapper) error {
 		tar := archiver.NewTarGz()
 		tar.OverwriteExisting = true
 		{
