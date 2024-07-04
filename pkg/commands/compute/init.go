@@ -16,10 +16,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fastly/go-fastly/v9/fastly"
 	cp "github.com/otiai10/copy"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/file"
@@ -29,7 +31,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 var (
@@ -838,6 +839,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	if err != nil {
 		return err
 	}
+	text.Break(out)
 	msg := "Fetching package template"
 	spinner.Message(msg + "...")
 
@@ -911,9 +913,16 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		}
 	}
 
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPRequest(req)
+	}
 	res, err := c.Globals.HTTPClient.Do(req)
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPResponse(res)
+	}
+
 	if err != nil {
-		err = fmt.Errorf("failed to get package: %w", err)
+		err = fmt.Errorf("failed to get package '%s': %w", req.URL.String(), err)
 		c.Globals.ErrLog.Add(err)
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()
@@ -925,7 +934,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	defer res.Body.Close() // #nosec G307
 
 	if res.StatusCode != http.StatusOK {
-		err := fmt.Errorf("failed to get package: %s", res.Status)
+		err := fmt.Errorf("failed to get package '%s': %s", req.URL.String(), res.Status)
 		c.Globals.ErrLog.Add(err)
 		spinner.StopFailMessage(msg)
 		spinErr := spinner.StopFail()

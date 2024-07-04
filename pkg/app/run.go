@@ -115,14 +115,25 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 		return client, err
 	}
 
+	// Identify debug-mode flag early (before Kingpin parser has executed) so we
+	// can inform the github versioners that we're in debug mode.
+	var debugMode bool
+	for _, seg := range args {
+		if seg == "--debug-mode" {
+			debugMode = true
+		}
+	}
+
 	versioners := global.Versioners{
 		CLI: github.New(github.Opts{
+			DebugMode:  debugMode,
 			HTTPClient: httpClient,
 			Org:        "fastly",
 			Repo:       "cli",
 			Binary:     "fastly",
 		}),
 		Viceroy: github.New(github.Opts{
+			DebugMode:  debugMode,
 			HTTPClient: httpClient,
 			Org:        "fastly",
 			Repo:       "viceroy",
@@ -130,6 +141,7 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 			Version:    md.File.LocalServer.ViceroyVersion,
 		}),
 		WasmTools: github.New(github.Opts{
+			DebugMode:  debugMode,
 			HTTPClient: httpClient,
 			Org:        "bytecodealliance",
 			Repo:       "wasm-tools",

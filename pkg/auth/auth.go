@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strconv"
 	"strings"
@@ -19,6 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 )
 
@@ -144,19 +144,14 @@ func (s Server) GetJWT(authorizationCode string) (JWT, error) {
 	}
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
 
-	debug, _ := strconv.ParseBool(s.DebugMode)
-	if debug {
-		rc := req.Clone(context.Background())
-		rc.Header.Set("Fastly-Key", "REDACTED")
-		dump, _ := httputil.DumpRequest(rc, true)
-		fmt.Printf("GetJWT request dump:\n\n%#v\n\n", string(dump))
+	debugMode, _ := strconv.ParseBool(s.DebugMode)
+
+	if debugMode {
+		debug.DumpHTTPRequest(req)
 	}
-
 	res, err := http.DefaultClient.Do(req)
-
-	if debug && res != nil {
-		dump, _ := httputil.DumpResponse(res, true)
-		fmt.Printf("GetJWT response dump:\n\n%#v\n\n", string(dump))
+	if debugMode {
+		debug.DumpHTTPResponse(res)
 	}
 
 	if err != nil {
@@ -363,19 +358,13 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 	}
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
 
-	debug, _ := strconv.ParseBool(s.DebugMode)
-	if debug {
-		rc := req.Clone(context.Background())
-		rc.Header.Set("Fastly-Key", "REDACTED")
-		dump, _ := httputil.DumpRequest(rc, true)
-		fmt.Printf("RefreshAccessToken request dump:\n\n%#v\n\n", string(dump))
+	debugMode, _ := strconv.ParseBool(s.DebugMode)
+	if debugMode {
+		debug.DumpHTTPRequest(req)
 	}
-
 	res, err := http.DefaultClient.Do(req)
-
-	if debug && res != nil {
-		dump, _ := httputil.DumpResponse(res, true)
-		fmt.Printf("RefreshAccessToken response dump:\n\n%#v\n\n", string(dump))
+	if debugMode {
+		debug.DumpHTTPResponse(res)
 	}
 
 	if err != nil {

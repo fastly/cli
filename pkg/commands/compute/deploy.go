@@ -22,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/compute/setup"
+	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/internal/beacon"
@@ -1109,7 +1110,7 @@ func checkingServiceAvailability(
 			// We overwrite the `status` variable in the parent scope (defined in the
 			// return arguments list) so it can be used as part of both the timeout
 			// and success scenarios.
-			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient, c.StatusCheckCode)
+			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient, c.StatusCheckCode, c.Globals.Flags.Debug)
 			if err != nil {
 				err := fmt.Errorf("failed to ping service URL: %w", err)
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
@@ -1144,7 +1145,7 @@ func generateTimeout(d time.Duration) string {
 // pingServiceURL indicates if the service returned a non-5xx response (or
 // whatever the user defined with --status-check-code), which should help
 // signify if the service is generally available.
-func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatusCode int) (ok bool, status int, err error) {
+func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatusCode int, debugMode bool) (ok bool, status int, err error) {
 	req, err := http.NewRequest("GET", serviceURL, nil)
 	if err != nil {
 		return false, 0, err
@@ -1154,7 +1155,13 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatus
 	// G107 (CWE-88): Potential HTTP request made with variable url
 	// Disabling as we trust the source of the variable.
 	// #nosec
+	if debugMode {
+		debug.DumpHTTPRequest(req)
+	}
 	resp, err := httpClient.Do(req)
+	if debugMode {
+		debug.DumpHTTPResponse(resp)
+	}
 	if err != nil {
 		return false, 0, err
 	}

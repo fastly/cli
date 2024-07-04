@@ -3,16 +3,15 @@
 package undocumented
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/useragent"
 )
@@ -81,17 +80,11 @@ func Call(opts CallOptions) (data []byte, err error) {
 	}
 
 	if opts.Debug {
-		rc := req.Clone(context.Background())
-		rc.Header.Set("Fastly-Key", "REDACTED")
-		dump, _ := httputil.DumpRequest(rc, true)
-		fmt.Printf("undocumented.Call request dump:\n\n%#v\n\n", string(dump))
+		debug.DumpHTTPRequest(req)
 	}
-
 	res, err := opts.HTTPClient.Do(req)
-
-	if opts.Debug && res != nil {
-		dump, _ := httputil.DumpResponse(res, true)
-		fmt.Printf("undocumented.Call response dump:\n\n%#v\n\n", string(dump))
+	if opts.Debug {
+		debug.DumpHTTPResponse(res)
 	}
 
 	if err != nil {

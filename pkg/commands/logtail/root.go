@@ -21,6 +21,7 @@ import (
 	"github.com/tomnomnom/linkheader"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/debug"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -462,7 +463,13 @@ func (c *RootCommand) doReq(req *http.Request) (*http.Response, error) {
 		}
 	}()
 
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPRequest(req)
+	}
 	resp, err := c.hClient.Do(req)
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPResponse(resp)
+	}
 	return resp, err
 }
 
