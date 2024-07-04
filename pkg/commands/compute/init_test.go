@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
@@ -17,7 +19,6 @@ import (
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
-	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 func TestInit(t *testing.T) {
@@ -60,7 +61,7 @@ func TestInit(t *testing.T) {
 		{
 			name:      "broken endpoint",
 			args:      args("compute init --from https://example.com/i-dont-exist"),
-			wantError: "failed to get package: Not Found",
+			wantError: "failed to get package 'https://example.com/i-dont-exist': Not Found",
 			httpClientRes: []*http.Response{
 				{
 					Body:       io.NopCloser(strings.NewReader("")),
