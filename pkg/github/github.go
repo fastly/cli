@@ -372,7 +372,7 @@ func extractBinary(archive, binaryName, dst, assetBase string, nested bool) (bin
 	// Disabling as the file was not executable without it and we need all users
 	// to be able to execute the binary.
 	/* #nosec */
-	err = os.Chmod(extractedBinary, 0o777)
+	err = os.Chmod(extractedBinary, 0o755)
 	if err != nil {
 		return "", fmt.Errorf("failed to modify permissions on extracted binary: %w", err)
 	}
