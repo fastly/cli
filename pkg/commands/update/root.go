@@ -130,6 +130,15 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 				})
 				return fmt.Errorf("error 'copying' latest binary in place: %w (following an error 'moving': %w)", err, renameErr)
 			}
+
+			// G302 (CWE-276): Expect file permissions to be 0600 or less
+			// gosec flagged this:
+			// Disabling as the file was not executable without it and we need all users
+			// to be able to execute the binary.
+			/* #nosec */
+			if err := os.Chmod(currentBin, 0o755); err != nil {
+				return fmt.Errorf("failed to modify permissions on after 'copying' latest binary: %w", err)
+			}
 		}
 		return nil
 	})
