@@ -4,7 +4,7 @@ set -e
 
 cp ".fastly/config.toml" "pkg/config/config.toml"
 
-if ! command -v tomlq &> /dev/null
+if ! command -v tq &> /dev/null
 then
   cargo install tomlq
 fi
@@ -23,7 +23,7 @@ kits=(
 )
 
 function parse() {
-  tomlq -f "$k.toml" $1
+  tq -f "$k.toml" $1
 }
 
 function append() {
