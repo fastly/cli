@@ -135,9 +135,10 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 			// gosec flagged this:
 			// Disabling as the file was not executable without it and we need all users
 			// to be able to execute the binary.
-			/* #nosec */
-			if err := os.Chmod(currentBin, 0o755); err != nil {
-				return fmt.Errorf("failed to modify permissions on after 'copying' latest binary: %w", err)
+			// #nosec
+			err := os.Chmod(currentBin, 0o755)
+			if err != nil {
+				return fmt.Errorf("failed to modify permissions after 'copying' latest binary: %w", err)
 			}
 		}
 		return nil
