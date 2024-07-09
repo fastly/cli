@@ -15,6 +15,7 @@ import (
 	"github.com/mholt/archiver"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/debug"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
 )
 
@@ -47,6 +48,7 @@ func New(opts Opts) *Asset {
 
 	return &Asset{
 		binary:           binary,
+		debug:            opts.DebugMode,
 		external:         opts.External,
 		httpClient:       opts.HTTPClient,
 		nested:           opts.Nested,
@@ -60,6 +62,8 @@ func New(opts Opts) *Asset {
 type Opts struct {
 	// Binary is the name of the executable binary.
 	Binary string
+	// DebugMode indicates the user has set debug-mode.
+	DebugMode bool
 	// External indicates the repository is a non-Fastly repo.
 	// This means we need a custom metadata fetcher (i.e. dont use metadataURL).
 	External bool
@@ -83,6 +87,8 @@ type Opts struct {
 type Asset struct {
 	// binary is the name of the executable binary.
 	binary string
+	// debug indicates if the user is running in debug-mode.
+	debug bool
 	// external indicates the repository is a non-Fastly repo.
 	external bool
 	// httpClient is able to make HTTP requests.
@@ -145,7 +151,13 @@ func (g *Asset) Download(endpoint string) (bin string, err error) {
 	if g.httpClient == nil {
 		g.httpClient = http.DefaultClient
 	}
+	if g.debug {
+		debug.DumpHTTPRequest(req)
+	}
 	res, err := g.httpClient.Do(req)
+	if g.debug {
+		debug.DumpHTTPResponse(res)
+	}
 	if err != nil {
 		return "", fmt.Errorf("failed to request GitHub release asset: %w", err)
 	}
@@ -235,7 +247,13 @@ func (g *Asset) metadata() (m DevHubMetadata, err error) {
 	if g.httpClient == nil {
 		g.httpClient = http.DefaultClient
 	}
+	if g.debug {
+		debug.DumpHTTPRequest(req)
+	}
 	res, err := g.httpClient.Do(req)
+	if g.debug {
+		debug.DumpHTTPResponse(res)
+	}
 	if err != nil {
 		return m, fmt.Errorf("failed to request GitHub metadata: %w", err)
 	}
