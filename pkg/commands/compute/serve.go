@@ -476,6 +476,8 @@ func (c *ServeCommand) InstallViceroy(
 		// IMPORTANT: We declare separately so to shadow `err` from parent scope.
 		var latestVersion string
 
+		// NOTE: We won't stop the user because although we can't request the latest
+		// version of the tool, the user may have a local version already installed.
 		err = spinner.Process("Checking latest Viceroy release", func(_ *text.SpinnerWrapper) error {
 			latestVersion, err = c.ViceroyVersioner.LatestVersion()
 			if err != nil {
@@ -487,7 +489,7 @@ func (c *ServeCommand) InstallViceroy(
 			return nil
 		})
 		if err != nil {
-			return err
+			return nil // short-circuit the rest of this function
 		}
 
 		viceroyConfig := c.Globals.Config.Viceroy
