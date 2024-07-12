@@ -1,26 +1,28 @@
 package ${CLI_PACKAGE}_test
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v4/fastly"
+)
+
+const (
+	baseCommand = "${CLI_COMMAND}"
 )
 
 func TestCreate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("${CLI_COMMAND} create"),
+			Args:      "",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("${CLI_COMMAND} create --version 3"),
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -28,7 +30,7 @@ func TestCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("${CLI_COMMAND} create --service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -39,7 +41,7 @@ func TestCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("${CLI_COMMAND} create --service-id 123 --version 3"),
+			Args:      "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -52,7 +54,7 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("${CLI_COMMAND} create --service-id 123 --version 3"),
+			Args:       "--service-id 123 --version 3",
 			WantOutput: "Created <...> '456' (service: 123)",
 		},
 		{
@@ -67,34 +69,24 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("${CLI_COMMAND} create --autoclone --service-id 123 --version 1"),
+			Args:       "--autoclone --service-id 123 --version 1",
 			WantOutput: "Created <...> 'foo' (service: 123, version: 4)",
 		},
 	}
 
-	for _, testcase := range scenarios {
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
 }
 
 func TestDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("${CLI_API} delete"),
+			Args:      "",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("${CLI_COMMAND} delete --version 1"),
+			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -102,7 +94,7 @@ func TestDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("${CLI_API} delete ---service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -113,7 +105,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("${CLI_COMMAND} delete --service-id 123 --version 3"),
+			Args:      "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -124,7 +116,7 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("${CLI_COMMAND} delete --service-id 123 --version 3"),
+			Args:       "--service-id 123 --version 3",
 			WantOutput: "Deleted <...> '456' (service: 123)",
 		},
 		{
@@ -136,21 +128,12 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("${CLI_COMMAND} delete --autoclone --service-id 123 --version 1"),
+			Args:       "--autoclone --service-id 123 --version 1",
 			WantOutput: "Deleted <...> 'foo' (service: 123, version: 4)",
 		},
 	}
 
-	for _, testcase := range scenarios {
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
 }
 
 func TestDescribe(t *testing.T) {
@@ -158,12 +141,12 @@ func TestDescribe(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("${CLI_API} describe"),
+			Args:      "",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("${CLI_COMMAND} describe --version 3"),
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -174,7 +157,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("${CLI_COMMAND} describe --service-id 123 --version 3"),
+			Args:      "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -183,43 +166,24 @@ func TestDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				Get${CLI_API}Fn: get${CLI_API},
 			},
-			Args:       args("${CLI_COMMAND} describe --service-id 123 --version 3"),
-			WantOutput: "<...>",
-		},
-		{
-			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetVCLFn:       getVCL,
-			},
-			Args:       args("${CLI_API} describe --service-id 123 --version 1"),
+			Args:       "--service-id 123 --version 3",
 			WantOutput: "<...>",
 		},
 	}
 
-	for _, testcase := range scenarios {
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
 }
 
 func TestList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("${CLI_API} list"),
+			Args:      "",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("${CLI_COMMAND} list --version 3"),
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -230,7 +194,7 @@ func TestList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("${CLI_COMMAND} list --service-id 123 --version 3"),
+			Args:      "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -239,16 +203,7 @@ func TestList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				List${CLI_API}sFn: list${CLI_API}s,
 			},
-			Args:       args("${CLI_COMMAND} list --service-id 123 --version 3"),
-			WantOutput: "<...>",
-		},
-		{
-			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				List${CLI_API}sFn:     list${CLI_API}s,
-			},
-			Args:       args("${CLI_COMMAND} list --service-id 123 --version 1"),
+			Args:       "--service-id 123 --version 3",
 			WantOutput: "<...>",
 		},
 		{
@@ -257,39 +212,29 @@ func TestList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				List${CLI_API}sFn: list${CLI_API}s,
 			},
-			Args:       args("${CLI_COMMAND} list --acl-id 123 --service-id 123 --verbose"),
+			Args:       "--service-id 123 --version 3 --verbose",
 			WantOutput: "<...>",
 		},
 	}
 
-	for _, testcase := range scenarios {
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
 }
 
 func TestUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("${CLI_COMMAND} update --version 3"),
+			Args:      "--version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("${CLI_COMMAND} update --name foobar"),
+			Args:      "--name foobar",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("${CLI_COMMAND} update --name foobar --version 3"),
+			Args:      "--name foobar --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -297,7 +242,7 @@ func TestUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("${CLI_COMMAND} update --name foobar --service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -308,7 +253,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("${CLI_COMMAND} update --name foobar --service-id 123 --version 3"),
+			Args:      "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -323,21 +268,12 @@ func TestUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("${CLI_COMMAND} update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Args:       "--name foobar --new-name beepboop --service-id 123 --version 3",
 			WantOutput: "Updated <...> 'beepboop' (previously: 'foobar', service: 123, version: 3)",
 		},
 	}
 
-	for _, testcase := range scenarios {
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
 }
 
 func get${CLI_API}(i *fastly.Get${CLI_API}Input) (*fastly.${CLI_API}, error) {
