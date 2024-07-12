@@ -17,7 +17,6 @@ func TestCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      "",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
@@ -81,7 +80,6 @@ func TestDelete(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      "",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
@@ -141,7 +139,6 @@ func TestDescribe(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      "",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
@@ -178,7 +175,6 @@ func TestList(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      "",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
