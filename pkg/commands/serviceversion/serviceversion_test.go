@@ -1,325 +1,221 @@
 package serviceversion_test
 
 import (
-	"bytes"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
+const (
+	baseCommand = "service-version"
+)
+
 func TestVersionClone(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("service-version clone --version 1"),
-			wantError: "error reading service: no service ID found",
+			Name:      "validate missing --service-id flag",
+			Arg:       "--version 1",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args:      args("service-version clone --service-id 123"),
-			wantError: "error parsing arguments: required flag --version not provided",
+			Name:      "validate missing --version flag",
+			Arg:       "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("service-version clone --service-id 123 --version 1"),
-			api: mock.API{
+			Name: "validate successful clone",
+			Arg:  "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
-			wantOutput: "Cloned service 123 version 1 to version 4",
+			WantOutput: "Cloned service 123 version 1 to version 4",
 		},
 		{
-			args: args("service-version clone --service-id 456 --version 1"),
-			api: mock.API{
+			Name: "validate error will be passed through if cloning fails",
+			Arg:  "--service-id 456 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionError,
 			},
-			wantError: testutil.Err.Error(),
+			WantError: testutil.Err.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunScenarios(t, []string{baseCommand, "clone"}, scenarios)
 }
 
 func TestVersionList(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:       args("service-version list --service-id 123"),
-			api:        mock.API{ListVersionsFn: testutil.ListVersions},
-			wantOutput: listVersionsShortOutput,
+			Arg:        "--service-id 123",
+			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			WantOutput: listVersionsShortOutput,
 		},
 		{
-			args:       args("service-version list --service-id 123 --verbose"),
-			api:        mock.API{ListVersionsFn: testutil.ListVersions},
-			wantOutput: listVersionsVerboseOutput,
+			Arg:        "--service-id 123 --verbose",
+			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			WantOutput: listVersionsVerboseOutput,
 		},
 		{
-			args:       args("service-version list --service-id 123 -v"),
-			api:        mock.API{ListVersionsFn: testutil.ListVersions},
-			wantOutput: listVersionsVerboseOutput,
+			Arg:        "--service-id 123 -v",
+			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			WantOutput: listVersionsVerboseOutput,
 		},
 		{
-			args:       args("service-version --verbose list --service-id 123"),
-			api:        mock.API{ListVersionsFn: testutil.ListVersions},
-			wantOutput: listVersionsVerboseOutput,
+			Arg:        "--verbose --service-id 123",
+			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			WantOutput: listVersionsVerboseOutput,
 		},
 		{
-			args:       args("-v service-version list --service-id 123"),
-			api:        mock.API{ListVersionsFn: testutil.ListVersions},
-			wantOutput: listVersionsVerboseOutput,
+			Arg:        "-v --service-id 123",
+			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			WantOutput: listVersionsVerboseOutput,
 		},
 		{
-			args:      args("service-version list --service-id 123"),
-			api:       mock.API{ListVersionsFn: testutil.ListVersionsError},
-			wantError: testutil.Err.Error(),
+			Arg:       "--service-id 123",
+			API:       mock.API{ListVersionsFn: testutil.ListVersionsError},
+			WantError: testutil.Err.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+
+	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
 }
 
 func TestVersionUpdate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args: args("service-version update --service-id 123 --version 1 --comment foo --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --comment foo --autoclone",
+			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateVersionFn: updateVersionOK,
 			},
-			wantOutput: "Updated service 123 version 4",
+			WantOutput: "Updated service 123 version 4",
 		},
 		{
-			args: args("service-version update --service-id 123 --version 1 --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
-			wantError: "error parsing arguments: required flag --comment not provided",
+			WantError: "error parsing arguments: required flag --comment not provided",
 		},
 		{
-			args: args("service-version update --service-id 123 --version 1 --comment foo --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --comment foo --autoclone",
+			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateVersionFn: updateVersionError,
 			},
-			wantError: testutil.Err.Error(),
+			WantError: testutil.Err.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
 }
 
 func TestVersionActivate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("service-version activate --service-id 123"),
-			wantError: "error parsing arguments: required flag --version not provided",
+			Arg:       "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("service-version activate --service-id 123 --version 1 --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --autoclone",
+			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionError,
 			},
-			wantError: testutil.Err.Error(),
+			WantError: testutil.Err.Error(),
 		},
 		{
-			args: args("service-version activate --service-id 123 --version 1 --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --autoclone",
+			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionOK,
 			},
-			wantOutput: "Activated service 123 version 4",
+			WantOutput: "Activated service 123 version 4",
 		},
 		{
-			args: args("service-version activate --service-id 123 --version 3 --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 3 --autoclone",
+			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: activateVersionOK,
 			},
-			wantOutput: "Activated service 123 version 3",
+			WantOutput: "Activated service 123 version 3",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunScenarios(t, []string{baseCommand, "activate"}, scenarios)
 }
 
 func TestVersionDeactivate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("service-version deactivate --service-id 123"),
-			wantError: "error parsing arguments: required flag --version not provided",
+			Arg:       "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("service-version deactivate --service-id 123 --version 1"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
 			},
-			wantOutput: "Deactivated service 123 version 1",
+			WantOutput: "Deactivated service 123 version 1",
 		},
 		{
-			args: args("service-version deactivate --service-id 123 --version 3"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 3",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
 			},
-			wantOutput: "Deactivated service 123 version 3",
+			WantOutput: "Deactivated service 123 version 3",
 		},
 		{
-			args: args("service-version deactivate --service-id 123 --version 3"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 3",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionError,
 			},
-			wantError: testutil.Err.Error(),
+			WantError: testutil.Err.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunScenarios(t, []string{baseCommand, "deactivate"}, scenarios)
 }
 
 func TestVersionLock(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("service-version lock --service-id 123"),
-			wantError: "error parsing arguments: required flag --version not provided",
+			Arg:       "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("service-version lock --service-id 123 --version 1"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionOK,
 			},
-			wantOutput: "Locked service 123 version 1",
+			WantOutput: "Locked service 123 version 1",
 		},
 		{
-			args: args("service-version lock --service-id 123 --version 1"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionError,
 			},
-			wantError: testutil.Err.Error(),
+			WantError: testutil.Err.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunScenarios(t, []string{baseCommand, "lock"}, scenarios)
 }
 
 var listVersionsShortOutput = strings.TrimSpace(`
