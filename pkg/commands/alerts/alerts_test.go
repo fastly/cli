@@ -1,7 +1,6 @@
 package alerts_test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -31,72 +30,72 @@ func TestAlertsCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "ok all required",
-			Arg:  fmt.Sprintf("%s", createFlags.String()),
+			Arg:  createFlags.String(),
 			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name:      "no name",
-			Arg:       fmt.Sprintf("%s", createFlags.Remove("--name").String()),
+			Arg:       createFlags.Remove("--name").String(),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "no description",
-			Arg:       fmt.Sprintf("%s", createFlags.Remove("--description").String()),
+			Arg:       createFlags.Remove("--description").String(),
 			WantError: "error parsing arguments: required flag --description not provided",
 		},
 		{
 			Name:      "no metric",
-			Arg:       fmt.Sprintf("%s", createFlags.Remove("--metric").String()),
+			Arg:       createFlags.Remove("--metric").String(),
 			WantError: "error parsing arguments: required flag --metric not provided",
 		},
 		{
 			Name:      "no source",
-			Arg:       fmt.Sprintf("%s", createFlags.Remove("--source").String()),
+			Arg:       createFlags.Remove("--source").String(),
 			WantError: "error parsing arguments: required flag --source not provided",
 		},
 		{
 			Name:      "no type",
-			Arg:       fmt.Sprintf("%s", createFlags.Remove("--type").String()),
+			Arg:       createFlags.Remove("--type").String(),
 			WantError: "error parsing arguments: required flag --type not provided",
 		},
 		{
 			Name:      "no period",
-			Arg:       fmt.Sprintf("%s", createFlags.Remove("--period").String()),
+			Arg:       createFlags.Remove("--period").String(),
 			WantError: "error parsing arguments: required flag --period not provided",
 		},
 		{
 			Name:      "no threshold",
-			Arg:       fmt.Sprintf("%s", createFlags.Remove("--threshold").String()),
+			Arg:       createFlags.Remove("--threshold").String(),
 			WantError: "error parsing arguments: required flag --threshold not provided",
 		},
 		{
 			Name: "ok optional json",
-			Arg:  fmt.Sprintf("%s", createFlags.Add(flag{Flag: "--json"}).String()),
+			Arg:  createFlags.Add(flag{Flag: "--json"}).String(),
 			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional ignoreBelow",
-			Arg:  fmt.Sprintf("%s", createFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String()),
+			Arg:  createFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String(),
 			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional service-id",
-			Arg:  fmt.Sprintf("%s", createFlags.Add(flag{Flag: "--service-id", Value: "ABC"}).String()),
+			Arg:  createFlags.Add(flag{Flag: "--service-id", Value: "ABC"}).String(),
 			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional dimensions",
-			Arg: fmt.Sprintf("%s", createFlags.
+			Arg: createFlags.
 				Change(flag{Flag: "--source", Value: "origins"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly.com"}).
-				Add(flag{Flag: "--dimensions", Value: "fastly2.com"}).String()),
+				Add(flag{Flag: "--dimensions", Value: "fastly2.com"}).String(),
 			API: mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional integrations",
-			Arg: fmt.Sprintf("%s", createFlags.
+			Arg: createFlags.
 				Add(flag{Flag: "--integrations", Value: "ABC1"}).
-				Add(flag{Flag: "--integrations", Value: "ABC2"}).String()),
+				Add(flag{Flag: "--integrations", Value: "ABC2"}).String(),
 			API: mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 	}
@@ -121,70 +120,70 @@ func TestAlertsUpdate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "ok all required",
-			Arg:  fmt.Sprintf("%s", updateFlags.String()),
+			Arg:  updateFlags.String(),
 			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name:      "no id",
-			Arg:       fmt.Sprintf("%s", updateFlags.Remove("--id").String()),
+			Arg:       updateFlags.Remove("--id").String(),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name:      "no name",
-			Arg:       fmt.Sprintf("%s", updateFlags.Remove("--name").String()),
+			Arg:       updateFlags.Remove("--name").String(),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "no description",
-			Arg:       fmt.Sprintf("%s", updateFlags.Remove("--description").String()),
+			Arg:       updateFlags.Remove("--description").String(),
 			WantError: "error parsing arguments: required flag --description not provided",
 		},
 		{
 			Name:      "no metric",
-			Arg:       fmt.Sprintf("%s", updateFlags.Remove("--metric").String()),
+			Arg:       updateFlags.Remove("--metric").String(),
 			WantError: "error parsing arguments: required flag --metric not provided",
 		},
 		{
 			Name:      "no source",
-			Arg:       fmt.Sprintf("%s", updateFlags.Remove("--source").String()),
+			Arg:       updateFlags.Remove("--source").String(),
 			WantError: "error parsing arguments: required flag --source not provided",
 		},
 		{
 			Name:      "no type",
-			Arg:       fmt.Sprintf("%s", updateFlags.Remove("--type").String()),
+			Arg:       updateFlags.Remove("--type").String(),
 			WantError: "error parsing arguments: required flag --type not provided",
 		},
 		{
 			Name:      "no period",
-			Arg:       fmt.Sprintf("%s", updateFlags.Remove("--period").String()),
+			Arg:       updateFlags.Remove("--period").String(),
 			WantError: "error parsing arguments: required flag --period not provided",
 		},
 		{
 			Name:      "no threshold",
-			Arg:       fmt.Sprintf("%s", updateFlags.Remove("--threshold").String()),
+			Arg:       updateFlags.Remove("--threshold").String(),
 			WantError: "error parsing arguments: required flag --threshold not provided",
 		},
 		{
 			Name: "ok optional json",
-			Arg:  fmt.Sprintf("%s", updateFlags.Add(flag{Flag: "--json"}).String()),
+			Arg:  updateFlags.Add(flag{Flag: "--json"}).String(),
 			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional ignoreBelow",
-			Arg:  fmt.Sprintf("%s", updateFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String()),
+			Arg:  updateFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String(),
 			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional dimensions",
-			Arg: fmt.Sprintf("%s", updateFlags.
+			Arg: updateFlags.
 				Change(flag{Flag: "--source", Value: "origins"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly.com"}).
-				Add(flag{Flag: "--dimensions", Value: "fastly2.com"}).String()),
+				Add(flag{Flag: "--dimensions", Value: "fastly2.com"}).String(),
 			API: mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional integrations",
-			Arg:  fmt.Sprintf("%s", updateFlags.Add(flag{Flag: "--integrations", Value: "ABC1"}).Add(flag{Flag: "--integrations", Value: "ABC2"}).String()),
+			Arg:  updateFlags.Add(flag{Flag: "--integrations", Value: "ABC1"}).Add(flag{Flag: "--integrations", Value: "ABC2"}).String(),
 			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 	}
