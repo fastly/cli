@@ -1,34 +1,33 @@
 package acl_test
 
 import (
-	"bytes"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
+const (
+	baseCommand = "acl"
+)
+
 func TestACLCreate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl create --version 3"),
+			Arg:       "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl create --name foo"),
+			Arg:       "--name foo",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl create --name foo --version 3"),
+			Arg:       "--name foo --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -36,7 +35,7 @@ func TestACLCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("acl create --name foo --service-id 123 --version 1"),
+			Arg:       "--name foo --service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -47,7 +46,7 @@ func TestACLCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl create --name foo --service-id 123 --version 3"),
+			Arg:       "--name foo --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -63,7 +62,7 @@ func TestACLCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl create --name foo --service-id 123 --version 3"),
+			Arg:        "--name foo --service-id 123 --version 3",
 			WantOutput: "Created ACL 'foo' (id: 456, service: 123, version: 3)",
 		},
 		{
@@ -80,44 +79,29 @@ func TestACLCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl create --autoclone --name foo --service-id 123 --version 1"),
+			Arg:        "--autoclone --name foo --service-id 123 --version 1",
 			WantOutput: "Created ACL 'foo' (id: 456, service: 123, version: 4)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			t.Log(stdout.String())
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
 }
 
 func TestACLDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl delete --version 3"),
+			Arg:       "--version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl delete --name foobar"),
+			Arg:       "--name foobar",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl delete --name foobar --version 3"),
+			Arg:       "--name foobar --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -125,7 +109,7 @@ func TestACLDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("acl delete --name foobar --service-id 123 --version 1"),
+			Arg:       "--name foobar --service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -136,7 +120,7 @@ func TestACLDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("acl delete --name foobar --service-id 123 --version 3"),
+			Arg:       "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -147,7 +131,7 @@ func TestACLDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("acl delete --name foobar --service-id 123 --version 3"),
+			Arg:        "--name foobar --service-id 123 --version 3",
 			WantOutput: "Deleted ACL 'foobar' (service: 123, version: 3)",
 		},
 		{
@@ -159,43 +143,29 @@ func TestACLDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("acl delete --autoclone --name foo --service-id 123 --version 1"),
+			Arg:        "--autoclone --name foo --service-id 123 --version 1",
 			WantOutput: "Deleted ACL 'foo' (service: 123, version: 4)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
 }
 
 func TestACLDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl describe --version 3"),
+			Arg:       "--version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl describe --name foobar"),
+			Arg:       "--name foobar",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl describe --name foobar --version 3"),
+			Arg:       "--name foobar --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -206,7 +176,7 @@ func TestACLDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl describe --name foobar --service-id 123 --version 3"),
+			Arg:       "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -215,7 +185,7 @@ func TestACLDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetACLFn:       getACL,
 			},
-			Args:       args("acl describe --name foobar --service-id 123 --version 3"),
+			Arg:        "--name foobar --service-id 123 --version 3",
 			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -224,38 +194,23 @@ func TestACLDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetACLFn:       getACL,
 			},
-			Args:       args("acl describe --name foobar --service-id 123 --version 1"),
+			Arg:        "--name foobar --service-id 123 --version 1",
 			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
 }
 
 func TestACLList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl list"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl list --version 3"),
+			Arg:       "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -266,7 +221,7 @@ func TestACLList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl list --service-id 123 --version 3"),
+			Arg:       "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -275,7 +230,7 @@ func TestACLList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
-			Args:       args("acl list --service-id 123 --version 3"),
+			Arg:        "--service-id 123 --version 3",
 			WantOutput: "SERVICE ID  VERSION  NAME  ID\n123         3        foo   456\n123         3        bar   789\n",
 		},
 		{
@@ -284,7 +239,7 @@ func TestACLList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
-			Args:       args("acl list --service-id 123 --version 1"),
+			Arg:        "--service-id 123 --version 1",
 			WantOutput: "SERVICE ID  VERSION  NAME  ID\n123         1        foo   456\n123         1        bar   789\n",
 		},
 		{
@@ -293,48 +248,34 @@ func TestACLList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
-			Args:       args("acl list --service-id 123 --verbose --version 1"),
+			Arg:        "--service-id 123 --verbose --version 1",
 			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nID: 456\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nID: 789\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
 }
 
 func TestACLUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("acl update --new-name beepboop --version 3"),
+			Arg:       "--new-name beepboop --version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --new-name flag",
-			Args:      args("acl update --name foobar --version 3"),
+			Arg:       "--name foobar --version 3",
 			WantError: "error parsing arguments: required flag --new-name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("acl update --name foobar --new-name beepboop"),
+			Arg:       "--name foobar --new-name beepboop",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("acl update --name foobar --new-name beepboop --version 3"),
+			Arg:       "--name foobar --new-name beepboop --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -342,7 +283,7 @@ func TestACLUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("acl update --name foobar --new-name beepboop --service-id 123 --version 1"),
+			Arg:       "--name foobar --new-name beepboop --service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -353,7 +294,7 @@ func TestACLUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("acl update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Arg:       "--name foobar --new-name beepboop --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -369,7 +310,7 @@ func TestACLUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Arg:        "--name foobar --new-name beepboop --service-id 123 --version 3",
 			WantOutput: "Updated ACL 'beepboop' (previously: 'foobar', service: 123, version: 3)",
 		},
 		{
@@ -386,25 +327,12 @@ func TestACLUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("acl update --autoclone --name foobar --new-name beepboop --service-id 123 --version 1"),
+			Arg:        "--autoclone --name foobar --new-name beepboop --service-id 123 --version 1",
 			WantOutput: "Updated ACL 'beepboop' (previously: 'foobar', service: 123, version: 4)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
 }
 
 func getACL(i *fastly.GetACLInput) (*fastly.ACL, error) {

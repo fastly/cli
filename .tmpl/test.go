@@ -135,7 +135,6 @@ func TestDelete(t *testing.T) {
 }
 
 func TestDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",

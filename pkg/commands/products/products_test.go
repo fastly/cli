@@ -1,29 +1,27 @@
 package products_test
 
 import (
-	"bytes"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
+const (
+	baseCommand = "products"
+)
+
 func TestProductEnablement(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing Service ID",
-			Args:      args("products"),
 			WantError: "failed to identify Service ID: error reading service: no service ID found",
 		},
 		{
 			Name:      "validate invalid enable/disable flag combo",
-			Args:      args("products --enable fanout --disable fanout"),
+			Arg:       "--enable fanout --disable fanout",
 			WantError: "invalid flag combination: --enable and --disable",
 		},
 		{
@@ -33,7 +31,7 @@ func TestProductEnablement(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args: args("products --service-id 123"),
+			Arg: "--service-id 123",
 			WantOutput: `PRODUCT             ENABLED
 Brotli Compression  false
 Domain Inspector    false
@@ -50,7 +48,7 @@ Web Sockets         false
 					return nil, nil
 				},
 			},
-			Args: args("products --service-id 123"),
+			Arg: "--service-id 123",
 			WantOutput: `PRODUCT             ENABLED
 Brotli Compression  true
 Domain Inspector    true
@@ -62,12 +60,12 @@ Web Sockets         true
 		},
 		{
 			Name:      "validate flag parsing error for enabling product",
-			Args:      args("products --service-id 123 --enable foo"),
+			Arg:       "--service-id 123 --enable foo",
 			WantError: "error parsing arguments: enum value must be one of brotli_compression,domain_inspector,fanout,image_optimizer,origin_inspector,websockets, got 'foo'",
 		},
 		{
 			Name:      "validate flag parsing error for disabling product",
-			Args:      args("products --service-id 123 --disable foo"),
+			Arg:       "--service-id 123 --disable foo",
 			WantError: "error parsing arguments: enum value must be one of brotli_compression,domain_inspector,fanout,image_optimizer,origin_inspector,websockets, got 'foo'",
 		},
 		{
@@ -77,7 +75,7 @@ Web Sockets         true
 					return nil, nil
 				},
 			},
-			Args:       args("products --service-id 123 --enable brotli_compression"),
+			Arg:        "--service-id 123 --enable brotli_compression",
 			WantOutput: "SUCCESS: Successfully enabled product 'brotli_compression'",
 		},
 		{
@@ -87,12 +85,12 @@ Web Sockets         true
 					return nil
 				},
 			},
-			Args:       args("products --service-id 123 --disable brotli_compression"),
+			Arg:        "--service-id 123 --disable brotli_compression",
 			WantOutput: "SUCCESS: Successfully disabled product 'brotli_compression'",
 		},
 		{
 			Name:      "validate invalid json/verbose flag combo",
-			Args:      args("products --service-id 123 --json --verbose"),
+			Arg:       "--service-id 123 --json --verbose",
 			WantError: "invalid flag combination, --verbose and --json",
 		},
 		{
@@ -102,7 +100,7 @@ Web Sockets         true
 					return nil, testutil.Err
 				},
 			},
-			Args: args("products --service-id 123 --json"),
+			Arg: "--service-id 123 --json",
 			WantOutput: `{
   "brotli_compression": false,
   "domain_inspector": false,
@@ -119,7 +117,7 @@ Web Sockets         true
 					return nil, nil
 				},
 			},
-			Args: args("products --service-id 123 --json"),
+			Arg: "--service-id 123 --json",
 			WantOutput: `{
   "brotli_compression": true,
   "domain_inspector": true,
@@ -131,18 +129,5 @@ Web Sockets         true
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand}, scenarios)
 }
