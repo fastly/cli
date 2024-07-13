@@ -31,7 +31,12 @@ func RunScenarios(t *testing.T, command []string, scenarios []TestScenario) {
 	for _, testcase := range scenarios {
 		t.Run(testcase.Name, func(t *testing.T) {
 			var stdout bytes.Buffer
-			fullargs := slices.Concat(command, Args(testcase.Arg))
+			var fullargs []string
+			if len(testcase.Arg) > 0 {
+				fullargs = slices.Concat(command, Args(testcase.Arg))
+			} else {
+				fullargs = command
+			}
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts := MockGlobalData(fullargs, &stdout)
 				opts.APIClientFactory = mock.APIClient(testcase.API)

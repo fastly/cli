@@ -1,320 +1,224 @@
 package dictionary_test
 
 import (
-	"bytes"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
+const (
+	baseCommand = "dictionary"
+)
+
 func TestDictionaryDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("dictionary describe --version 1 --service-id 123"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Arg:       "--version 1 --service-id 123",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("dictionary describe --version 1 --service-id 123 --name dict-1"),
-			api: mock.API{
+			Arg: "--version 1 --service-id 123 --name dict-1",
+			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetDictionaryFn: describeDictionaryOK,
 			},
-			wantOutput: describeDictionaryOutput,
+			WantOutput: describeDictionaryOutput,
 		},
 		{
-			args: args("dictionary describe --version 1 --service-id 123 --name dict-1"),
-			api: mock.API{
+			Arg: "--version 1 --service-id 123 --name dict-1",
+			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetDictionaryFn: describeDictionaryOKDeleted,
 			},
-			wantOutput: describeDictionaryOutputDeleted,
+			WantOutput: describeDictionaryOutputDeleted,
 		},
 		{
-			args: args("dictionary describe --version 1 --service-id 123 --name dict-1 --verbose"),
-			api: mock.API{
+			Arg: "--version 1 --service-id 123 --name dict-1 --verbose",
+			API: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				GetDictionaryFn:       describeDictionaryOK,
 				GetDictionaryInfoFn:   getDictionaryInfoOK,
 				ListDictionaryItemsFn: listDictionaryItemsOK,
 			},
-			wantOutput: describeDictionaryOutputVerbose,
+			WantOutput: describeDictionaryOutputVerbose,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
 }
 
 func TestDictionaryCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("dictionary create --version 1"),
-			wantError: "error reading service: no service ID found",
+			Arg:       "--version 1",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),
-			api: mock.API{
+			Arg: "--version 1 --service-id 123 --name denylist --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryOK,
 			},
-			wantOutput: createDictionaryOutput,
+			WantOutput: createDictionaryOutput,
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only --autoclone"),
-			api: mock.API{
+			Arg: "--version 1 --service-id 123 --name denylist --write-only --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryOK,
 			},
-			wantOutput: createDictionaryOutputWriteOnly,
+			WantOutput: createDictionaryOutputWriteOnly,
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only fish --autoclone"),
-			api: mock.API{
+			Arg: "--version 1 --service-id 123 --name denylist --write-only fish --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
-			wantError: "error parsing arguments: unexpected 'fish'",
+			WantError: "error parsing arguments: unexpected 'fish'",
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),
-			api: mock.API{
+			Arg: "--version 1 --service-id 123 --name denylist --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryDuplicate,
 			},
-			wantError: "Duplicate record",
+			WantError: "Duplicate record",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
 }
 
 func TestDeleteDictionary(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("dictionary delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Arg:       "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("dictionary delete --service-id 123 --version 1 --name allowlist --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --name allowlist --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteDictionaryFn: deleteDictionaryOK,
 			},
-			wantOutput: deleteDictionaryOutput,
+			WantOutput: deleteDictionaryOutput,
 		},
 		{
-			args: args("dictionary delete --service-id 123 --version 1 --name allowlist --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --name allowlist --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteDictionaryFn: deleteDictionaryError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
 }
 
 func TestListDictionary(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args: args("dictionary list --version 1"),
-			api: mock.API{
+			Arg: "--version 1",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListDictionariesFn: listDictionariesOk,
 			},
-			wantError: "error reading service: no service ID found",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args:      args("dictionary list --service-id 123"),
-			wantError: "error parsing arguments: required flag --version not provided",
+			Arg:       "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("dictionary list --version 1 --service-id 123"),
-			api: mock.API{
+			Arg: "--version 1 --service-id 123",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListDictionariesFn: listDictionariesOk,
 			},
-			wantOutput: listDictionariesOutput,
+			WantOutput: listDictionariesOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
 }
 
 func TestUpdateDictionary(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.TestScenario{
 		{
-			args:      args("dictionary update --version 1 --name oldname --new-name newname"),
-			wantError: "error reading service: no service ID found",
+			Arg:       "--version 1 --name oldname --new-name newname",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args:      args("dictionary update --service-id 123 --name oldname --new-name newname"),
-			wantError: "error parsing arguments: required flag --version not provided",
+			Arg:       "--service-id 123 --name oldname --new-name newname",
+			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args:      args("dictionary update --service-id 123 --version 1 --new-name newname"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Arg:       "--service-id 123 --version 1 --new-name newname",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --name oldname --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
-			wantError: "error parsing arguments: required flag --new-name or --write-only not provided",
+			WantError: "error parsing arguments: required flag --new-name or --write-only not provided",
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
-			wantOutput: updateDictionaryNameOutput,
+			WantOutput: updateDictionaryNameOutput,
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --new-name dict-1 --write-only true --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --name oldname --new-name dict-1 --write-only true --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
-			wantOutput: updateDictionaryNameOutput,
+			WantOutput: updateDictionaryNameOutput,
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --write-only true --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --name oldname --write-only true --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryWriteOnlyOK,
 			},
-			wantOutput: updateDictionaryOutput,
+			WantOutput: updateDictionaryOutput,
 		},
 		{
-			args: args("dictionary update -v --service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone"),
-			api: mock.API{
+			Arg: "-v --service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
-			wantOutput: updateDictionaryOutputVerbose,
+			WantOutput: updateDictionaryOutputVerbose,
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone"),
-			api: mock.API{
+			Arg: "--service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			t.Log(stdout.String())
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
 }
 
 func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
