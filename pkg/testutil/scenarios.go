@@ -5,9 +5,12 @@ import (
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
+	"fmt"
 	"io"
 	"slices"
+	"strings"
 	"testing"
+	"time"
 )
 
 // TestScenario represents a standard test case to be validated.
@@ -19,6 +22,7 @@ type TestScenario struct {
 	DontWantOutput  string
 	DontWantOutputs []string
 	Name            string
+	Stdin           []string
 	WantError       string
 	WantOutput      string
 	WantOutputs     []string
@@ -29,24 +33,81 @@ type TestScenario struct {
 // slice passed in to construct the complete command to be executed.
 func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 	t.Run(scenario.Name, func(t *testing.T) {
-		var stdout bytes.Buffer
-		var fullargs []string
+		var (
+			err error
+			fullargs []string
+			stdout bytes.Buffer
+		)
+
 		if len(scenario.Arg) > 0 {
 			fullargs = slices.Concat(command, Args(scenario.Arg))
 		} else {
 			fullargs = command
 		}
-		app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-			opts := MockGlobalData(fullargs, &stdout)
-			opts.APIClientFactory = mock.APIClient(scenario.API)
-			return opts, nil
+
+		opts := MockGlobalData(fullargs, &stdout)
+		opts.APIClientFactory = mock.APIClient(scenario.API)
+
+		if len(scenario.Stdin) > 1 {
+			// To handle multiple prompt input from the user we need to do some
+			// coordination around io pipes to mimic the required user behaviour.
+			stdin, prompt := io.Pipe()
+			opts.Input = stdin
+
+			// Wait for user input and write it to the prompt
+			inputc := make(chan string)
+			go func() {
+				for input := range inputc {
+					fmt.Fprintln(prompt, input)
+				}
+			}()
+
+			// We need a channel so we wait for `run()` to complete
+			done := make(chan bool)
+
+			// Call `app.Run()` and wait for response
+			go func() {
+				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+					return opts, nil
+				}
+				err = app.Run(scenario.Args, nil)
+				done <- true
+			}()
+
+			// User provides input
+			//
+			// NOTE: Must provide as much input as is expected to be waited on by `run()`.
+			//       For example, if `run()` calls `input()` twice, then provide two messages.
+			//       Otherwise the select statement will trigger the timeout error.
+			for _, input := range scenario.Stdin {
+				inputc <- input
+			}
+
+			select {
+			case <-done:
+				// Wait for app.Run() to finish
+			case <-time.After(time.Second):
+				t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
+			}
+		} else {
+			stdin := ""
+			if len(scenario.Stdin) > 0 {
+				stdin = scenario.Stdin[0]
+			}
+			opts.Input = strings.NewReader(stdin)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return opts, nil
+			}
+			err = app.Run(fullargs, nil)
 		}
-		err := app.Run(fullargs, nil)
+
 		AssertErrorContains(t, err, scenario.WantError)
 		AssertStringContains(t, stdout.String(), scenario.WantOutput)
+
 		for _, want := range scenario.WantOutputs {
 			AssertStringContains(t, stdout.String(), want)
 		}
+
 		if len(scenario.DontWantOutput) > 0 {
 			AssertStringDoesntContain(t, stdout.String(), scenario.DontWantOutput)
 		}
