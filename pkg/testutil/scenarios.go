@@ -2,10 +2,11 @@ package testutil
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
-	"fmt"
 	"io"
 	"slices"
 	"strings"
@@ -19,6 +20,8 @@ type TestScenario struct {
 	Arg string
 	// will be removed once all users are using RunScenarios()
 	Args            []string
+	ConfigPath      string
+	ConfigFile      *config.File
 	DontWantOutput  string
 	DontWantOutputs []string
 	Name            string
@@ -34,9 +37,9 @@ type TestScenario struct {
 func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 	t.Run(scenario.Name, func(t *testing.T) {
 		var (
-			err error
+			err      error
 			fullargs []string
-			stdout bytes.Buffer
+			stdout   bytes.Buffer
 		)
 
 		if len(scenario.Arg) > 0 {
@@ -47,6 +50,14 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 
 		opts := MockGlobalData(fullargs, &stdout)
 		opts.APIClientFactory = mock.APIClient(scenario.API)
+
+		if len(scenario.ConfigPath) > 0 {
+			opts.ConfigPath = scenario.ConfigPath
+		}
+
+		if scenario.ConfigFile != nil {
+			opts.Config = *scenario.ConfigFile
+		}
 
 		if len(scenario.Stdin) > 1 {
 			// To handle multiple prompt input from the user we need to do some
