@@ -1,20 +1,19 @@
 package ratelimit_test
 
 import (
-	"bytes"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
+const (
+	baseCommand = "rate-limit"
+)
+
 func TestRateLimitCreate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate CreateERL API error",
@@ -24,7 +23,7 @@ func TestRateLimitCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("rate-limit create --name example --service-id 123 --version 3"),
+			Arg:       "--name example --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -38,29 +37,15 @@ func TestRateLimitCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:       args("rate-limit create --name example --service-id 123 --version 3"),
+			Arg:        "--name example --service-id 123 --version 3",
 			WantOutput: "Created rate limiter 'example' (123)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
 }
 
 func TestRateLimitDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate DeleteERL API error",
@@ -69,7 +54,7 @@ func TestRateLimitDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("rate-limit delete --id 123"),
+			Arg:       "--id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -79,29 +64,15 @@ func TestRateLimitDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("rate-limit delete --id 123"),
+			Arg:        "--id 123",
 			WantOutput: "SUCCESS: Deleted rate limiter '123'\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
 }
 
 func TestRateLimitDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate GetERL API error",
@@ -110,7 +81,7 @@ func TestRateLimitDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("rate-limit describe --id 123"),
+			Arg:       "--id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -127,29 +98,15 @@ func TestRateLimitDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("rate-limit describe --id 123"),
+			Arg:        "--id 123",
 			WantOutput: "\nAction: response\nClient Key: []\nFeature Revision: 0\nHTTP Methods: []\nID: 123\nLogger Type: \nName: example\nPenalty Box Duration: 20\nResponse: \nResponse Object Name: \nRPS Limit: 10\nService ID: \nURI Dictionary Name: \nVersion: 0\nWindowSize: 60\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
 }
 
 func TestRateLimitList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate ListERL API error",
@@ -159,7 +116,7 @@ func TestRateLimitList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("rate-limit list --service-id 123 --version 3"),
+			Arg:       "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -179,29 +136,15 @@ func TestRateLimitList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:       args("rate-limit list --service-id 123 --version 3"),
+			Arg:        "--service-id 123 --version 3",
 			WantOutput: "ID   NAME     ACTION    RPS LIMIT  WINDOW SIZE  PENALTY BOX DURATION\n123  example  response  10         60           20\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
 }
 
 func TesRateLimittUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate UpdateERL API error",
@@ -210,7 +153,7 @@ func TesRateLimittUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("rate-limit update --id 123 --name example"),
+			Arg:       "--id 123 --name example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -223,23 +166,10 @@ func TesRateLimittUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("rate-limit update --id 123 --name example"),
+			Arg:        "--id 123 --name example",
 			WantOutput: "Updated rate limiter 'example' (123)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
 }
