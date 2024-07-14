@@ -24,36 +24,43 @@ type TestScenario struct {
 	WantOutputs     []string
 }
 
+// RunScenario executes a TestScenario struct.
+// The Args field of the scenario is prepended with the content of the 'command'
+// slice passed in to construct the complete command to be executed.
+func RunScenario(t *testing.T, command []string, scenario TestScenario) {
+	t.Run(scenario.Name, func(t *testing.T) {
+		var stdout bytes.Buffer
+		var fullargs []string
+		if len(scenario.Arg) > 0 {
+			fullargs = slices.Concat(command, Args(scenario.Arg))
+		} else {
+			fullargs = command
+		}
+		app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+			opts := MockGlobalData(fullargs, &stdout)
+			opts.APIClientFactory = mock.APIClient(scenario.API)
+			return opts, nil
+		}
+		err := app.Run(fullargs, nil)
+		AssertErrorContains(t, err, scenario.WantError)
+		AssertStringContains(t, stdout.String(), scenario.WantOutput)
+		for _, want := range scenario.WantOutputs {
+			AssertStringContains(t, stdout.String(), want)
+		}
+		if len(scenario.DontWantOutput) > 0 {
+			AssertStringDoesntContain(t, stdout.String(), scenario.DontWantOutput)
+		}
+		for _, want := range scenario.DontWantOutputs {
+			AssertStringDoesntContain(t, stdout.String(), want)
+		}
+	})
+}
+
 // RunScenarios executes one (or more) TestScenario structs from the slice passed in.
 // The Args field of each scenario is prepended with the content of the 'command'
 // slice passed in to construct the complete command to be executed.
 func RunScenarios(t *testing.T, command []string, scenarios []TestScenario) {
-	for _, testcase := range scenarios {
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			var fullargs []string
-			if len(testcase.Arg) > 0 {
-				fullargs = slices.Concat(command, Args(testcase.Arg))
-			} else {
-				fullargs = command
-			}
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := MockGlobalData(fullargs, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(fullargs, nil)
-			AssertErrorContains(t, err, testcase.WantError)
-			AssertStringContains(t, stdout.String(), testcase.WantOutput)
-			for _, want := range testcase.WantOutputs {
-				AssertStringContains(t, stdout.String(), want)
-			}
-			if len(testcase.DontWantOutput) > 0 {
-				AssertStringDoesntContain(t, stdout.String(), testcase.DontWantOutput)
-			}
-			for _, want := range testcase.DontWantOutputs {
-				AssertStringDoesntContain(t, stdout.String(), want)
-			}
-		})
+	for _, scenario := range scenarios {
+		RunScenario(t, command, scenario)
 	}
 }
