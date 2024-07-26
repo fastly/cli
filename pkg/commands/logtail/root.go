@@ -448,10 +448,10 @@ func (c *RootCommand) printLogs(out io.Writer, logs []Log) {
 
 		for _, l := range filtered {
 			if c.cfg.printTimestamps {
-				fmt.Fprintf(out, "%s | %s\n", l.RequestStartFromRaw().UTC().Format(time.RFC3339), l.String())
-			} else {
-				fmt.Fprintln(out, l.String())
+				fmt.Fprint(out, l.RequestStartFromRaw().UTC().Format(time.RFC3339))
+				fmt.Fprint(out, " | ")
 			}
+			fmt.Fprintln(out, l.String())
 		}
 	}
 }
