@@ -63,6 +63,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	c.CmdClause.Flag("sort-buffer", "Duration of sort buffer for received logs").Default("1s").DurationVar(&c.cfg.sortBuffer)
 	c.CmdClause.Flag("search-padding", "Time beyond from/to to consider in searches").Default("2s").DurationVar(&c.cfg.searchPadding)
 	c.CmdClause.Flag("stream", "Output: stdout, stderr, both (default)").StringVar(&c.cfg.stream)
+	c.CmdClause.Flag("timestamps", "Print timestamps with logs").BoolVar(&c.cfg.printTimestamps)
 	return &c
 }
 
@@ -446,6 +447,10 @@ func (c *RootCommand) printLogs(out io.Writer, logs []Log) {
 		filtered := filterStream(c.cfg.stream, logs)
 
 		for _, l := range filtered {
+			if c.cfg.printTimestamps {
+				fmt.Fprint(out, l.RequestStartFromRaw().UTC().Format(time.RFC3339))
+				fmt.Fprint(out, " | ")
+			}
 			fmt.Fprintln(out, l.String())
 		}
 	}
@@ -485,6 +490,9 @@ type (
 
 		// to is when to get logs until.
 		to int64
+
+		// printTimestamps is whether to print timestamps with logs.
+		printTimestamps bool
 
 		// sortBuffer is how long to buffer logs from when the cli
 		// receives them to when the cli prints them. It will sort
