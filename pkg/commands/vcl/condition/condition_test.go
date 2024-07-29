@@ -1,29 +1,26 @@
 package condition_test
 
 import (
-	"bytes"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/vcl"
+	sub "github.com/fastly/cli/pkg/commands/vcl/condition"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestConditionCreate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("vcl condition create --version 1"),
+			Arg:       "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type REQUEST --autoclone"),
+			Arg: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -32,7 +29,7 @@ func TestConditionCreate(t *testing.T) {
 			WantOutput: "Created condition always_false (service 123 version 4)",
 		},
 		{
-			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type REQUEST --priority 10 --autoclone"),
+			Arg: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --priority 10 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -42,30 +39,17 @@ func TestConditionCreate(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestConditionDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("vcl condition delete --service-id 123 --version 1"),
+			Arg:       "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("vcl condition delete --service-id 123 --version 1 --name always_false --autoclone"),
+			Arg: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -74,7 +58,7 @@ func TestConditionDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("vcl condition delete --service-id 123 --version 1 --name always_false --autoclone"),
+			Arg: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -83,31 +67,18 @@ func TestConditionDelete(t *testing.T) {
 			WantOutput: "Deleted condition always_false (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestConditionUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("vcl condition update --service-id 123 --version 1 --new-name false_always --comment "),
+			Arg:       "--service-id 123 --version 1 --new-name false_always --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --autoclone"),
+			Arg: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -116,7 +87,7 @@ func TestConditionUpdate(t *testing.T) {
 			WantError: "error parsing arguments: must provide either --new-name, --statement, --type or --priority to update condition",
 		},
 		{
-			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --new-name false_always --autoclone"),
+			Arg: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -125,7 +96,7 @@ func TestConditionUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --new-name false_always --autoclone"),
+			Arg: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -134,31 +105,18 @@ func TestConditionUpdate(t *testing.T) {
 			WantOutput: "Updated condition false_always (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestConditionDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("vcl condition describe --service-id 123 --version 1"),
+			Arg:       "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("vcl condition describe --service-id 123 --version 1 --name always_false"),
+			Arg: "--service-id 123 --version 1 --name always_false",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionError,
@@ -166,7 +124,7 @@ func TestConditionDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("vcl condition describe --service-id 123 --version 1 --name always_false"),
+			Arg: "--service-id 123 --version 1 --name always_false",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionOK,
@@ -174,27 +132,14 @@ func TestConditionDescribe(t *testing.T) {
 			WantOutput: describeConditionOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestConditionList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args: args("vcl condition list --service-id 123 --version 1"),
+			Arg: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -202,7 +147,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsShortOutput,
 		},
 		{
-			Args: args("vcl condition list --service-id 123 --version 1 --verbose"),
+			Arg: "--service-id 123 --version 1 --verbose",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -210,7 +155,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("vcl condition list --service-id 123 --version 1 -v"),
+			Arg: "--service-id 123 --version 1 -v",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -218,7 +163,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("vcl condition --verbose list --service-id 123 --version 1"),
+			Arg: "--verbose --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -226,7 +171,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("-v vcl condition list --service-id 123 --version 1"),
+			Arg: "-v --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -234,7 +179,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("vcl condition list --service-id 123 --version 1"),
+			Arg: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsError,
@@ -242,20 +187,8 @@ func TestConditionList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 var describeConditionOutput = "\n" + strings.TrimSpace(`
