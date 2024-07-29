@@ -29,6 +29,15 @@ type TestScenario struct {
 	WantError       string
 	WantOutput      string
 	WantOutputs     []string
+	PathContentFlag *PathContentFlag
+}
+
+// PathContentFlag provides the details required to validate that a
+// flag value has been parsed correctly by the argument parser.
+type PathContentFlag struct {
+	Flag    string
+	Fixture string
+	Content func() string
 }
 
 // RunScenario executes a TestScenario struct.
@@ -124,6 +133,11 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 		}
 		for _, want := range scenario.DontWantOutputs {
 			AssertStringDoesntContain(t, stdout.String(), want)
+		}
+
+		if scenario.PathContentFlag != nil {
+			pcf := *scenario.PathContentFlag
+			AssertPathContentFlag(pcf.Flag, scenario.WantError, fullargs, pcf.Fixture, pcf.Content(), t)
 		}
 	})
 }
