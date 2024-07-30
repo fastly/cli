@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"io"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -30,6 +31,7 @@ type TestScenario struct {
 	WantOutput      string
 	WantOutputs     []string
 	PathContentFlag *PathContentFlag
+	SetEnv          *map[string]string
 }
 
 // PathContentFlag provides the details required to validate that a
@@ -66,6 +68,19 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 
 		if scenario.ConfigFile != nil {
 			opts.Config = *scenario.ConfigFile
+		}
+
+		if scenario.SetEnv != nil {
+			for key, value := range *scenario.SetEnv {
+				if err := os.Setenv(key, value); err != nil {
+					t.Fatal(err)
+				}
+				defer func() {
+					if err := os.Unsetenv(key); err != nil {
+						t.Fatal(err)
+					}
+				}()
+			}
 		}
 
 		if len(scenario.Stdin) > 1 {
