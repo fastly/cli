@@ -1,7 +1,6 @@
 package backend_test
 
 import (
-	"bytes"
 	"errors"
 	"io"
 	"net/http"
@@ -10,18 +9,16 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
+	root "github.com/fastly/cli/pkg/commands/backend"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestBackendCreate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend create --version 1"),
+			Arg:       "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		// The following test specifies a service version that's 'active', and
@@ -29,7 +26,7 @@ func TestBackendCreate(t *testing.T) {
 		// --autoclone flag and trying to add a backend to an activated service
 		// should cause an error.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com"),
+			Arg: "--service-id 123 --version 1 --address example.com --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
@@ -38,7 +35,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as the above but it appends --autoclone
 		// so we can be sure the backend creation error still occurs.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com --autoclone"),
+			Arg: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -49,7 +46,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as above but with an IP address for the
 		// --address flag instead of a hostname.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
+			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -63,7 +60,7 @@ func TestBackendCreate(t *testing.T) {
 		// NOTE: Added --port flag to validate that a nil pointer dereference is
 		// not triggered at runtime when parsing the arguments.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080"),
+			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -73,7 +70,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// We test that setting an invalid host override does not result in an error
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --override-host invalid-host-override --name www.test.com --autoclone --port 8080"),
+			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --override-host invalid-host-override --name www.test.com --autoclone --port 8080",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -83,7 +80,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// The following test validates that --service-name can replace --service-id
 		{
-			Args: args("backend create --service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
+			Arg: "--service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
@@ -105,7 +102,7 @@ func TestBackendCreate(t *testing.T) {
 		// --verbose so we may validate the expected output message regarding a
 		// missing port is displayed.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose"),
+			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -117,7 +114,7 @@ func TestBackendCreate(t *testing.T) {
 		// --verbose so we may validate a successful backend creation.
 		//
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8443 --use-ssl --verbose"),
+			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8443 --use-ssl --verbose",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -128,7 +125,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test specifies a service version that's 'inactive', and
 		// subsequently we expect it to be the same editable version.
 		{
-			Args: args("backend create --service-id 123 --version 3 --address 127.0.0.1 --name www.test.com"),
+			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
@@ -136,27 +133,13 @@ func TestBackendCreate(t *testing.T) {
 			WantOutput: "Created backend www.test.com (service 123 version 3)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestBackendList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args: args("backend list --service-id 123 --version 1 --json"),
+			Arg: "--service-id 123 --version 1 --json",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -164,7 +147,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsJSONOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 --json --verbose"),
+			Arg: "--service-id 123 --version 1 --json --verbose",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -172,7 +155,7 @@ func TestBackendList(t *testing.T) {
 			WantError: fsterr.ErrInvalidVerboseJSONCombo.Error(),
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1"),
+			Arg: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -180,7 +163,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsShortOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 --verbose"),
+			Arg: "--service-id 123 --version 1 --verbose",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -188,7 +171,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 -v"),
+			Arg: "--service-id 123 --version 1 -v",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -196,7 +179,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend --verbose list --service-id 123 --version 1"),
+			Arg: "--verbose --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -204,7 +187,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("-v backend list --service-id 123 --version 1"),
+			Arg: "-v --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -212,7 +195,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1"),
+			Arg: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsError,
@@ -220,33 +203,17 @@ func TestBackendList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			if testcase.WantError == "" {
-				testutil.AssertString(t, testcase.WantOutput, stdout.String())
-			}
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestBackendDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend describe --service-id 123 --version 1"),
+			Arg:       "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend describe --service-id 123 --version 1 --name www.test.com"),
+			Arg: "--service-id 123 --version 1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendError,
@@ -254,7 +221,7 @@ func TestBackendDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend describe --service-id 123 --version 1 --name www.test.com"),
+			Arg: "--service-id 123 --version 1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendOK,
@@ -262,31 +229,17 @@ func TestBackendDescribe(t *testing.T) {
 			WantOutput: describeBackendOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestBackendUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend update --service-id 123 --version 2 --new-name www.test.com --comment "),
+			Arg:       "--service-id 123 --version 2 --new-name www.test.com --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			Arg: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -296,7 +249,7 @@ func TestBackendUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone"),
+			Arg: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -306,31 +259,17 @@ func TestBackendUpdate(t *testing.T) {
 			WantOutput: "Updated backend www.example.com (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestBackendDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      args("backend delete --service-id 123 --version 1"),
+			Arg:       "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Arg: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -339,7 +278,7 @@ func TestBackendDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Arg: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -348,20 +287,7 @@ func TestBackendDelete(t *testing.T) {
 			WantOutput: "Deleted backend www.test.com (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")

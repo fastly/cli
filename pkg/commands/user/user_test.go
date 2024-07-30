@@ -1,21 +1,17 @@
 package user_test
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestUserCreate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate CreateUser API error",
@@ -24,7 +20,7 @@ func TestUserCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user create --login foo@example.com --name foobar"),
+			Arg:       "--login foo@example.com --name foobar",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -37,33 +33,18 @@ func TestUserCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("user create --login foo@example.com --name foobar"),
+			Arg:        "--login foo@example.com --name foobar",
 			WantOutput: "Created user 'foobar' (role: user)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestUserDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("user delete"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -73,7 +54,7 @@ func TestUserDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("user delete --id foo123"),
+			Arg:       "--id foo123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -83,33 +64,18 @@ func TestUserDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("user delete --id foo123"),
+			Arg:        "--id foo123",
 			WantOutput: "Deleted user (id: foo123)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestUserDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("user describe"),
 			WantError: "error parsing arguments: must provide --id flag",
 		},
 		{
@@ -119,7 +85,7 @@ func TestUserDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user describe --id 123"),
+			Arg:       "--id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -129,7 +95,7 @@ func TestUserDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user describe --current"),
+			Arg:       "--current",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -137,7 +103,7 @@ func TestUserDescribe(t *testing.T) {
 			API: mock.API{
 				GetUserFn: getUser,
 			},
-			Args:       args("user describe --id 123"),
+			Arg:        "--id 123",
 			WantOutput: describeUserOutput(),
 		},
 		{
@@ -145,33 +111,18 @@ func TestUserDescribe(t *testing.T) {
 			API: mock.API{
 				GetCurrentUserFn: getCurrentUser,
 			},
-			Args:       args("user describe --current"),
+			Arg:        "--current",
 			WantOutput: describeCurrentUserOutput(),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestUserList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --customer-id flag",
-			Args:      args("user list"),
 			WantError: "error reading customer ID: no customer ID found",
 		},
 		{
@@ -181,7 +132,7 @@ func TestUserList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user list --customer-id abc"),
+			Arg:       "--customer-id abc",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -189,7 +140,7 @@ func TestUserList(t *testing.T) {
 			API: mock.API{
 				ListCustomerUsersFn: listUsers,
 			},
-			Args:       args("user list --customer-id abc"),
+			Arg:        "--customer-id abc",
 			WantOutput: listOutput(),
 		},
 		{
@@ -197,48 +148,33 @@ func TestUserList(t *testing.T) {
 			API: mock.API{
 				ListCustomerUsersFn: listUsers,
 			},
-			Args:       args("user list --customer-id abc --verbose"),
+			Arg:        "--customer-id abc --verbose",
 			WantOutput: listVerboseOutput(),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestUserUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("user update"),
 			WantError: "error parsing arguments: must provide --id flag",
 		},
 		{
 			Name:      "validate missing --name and --role flags",
-			Args:      args("user update --id 123"),
+			Arg:       "--id 123",
 			WantError: "error parsing arguments: must provide either the --name or --role with the --id flag",
 		},
 		{
 			Name:      "validate missing --login flag with --password-reset",
-			Args:      args("user update --password-reset"),
+			Arg:       "--password-reset",
 			WantError: "error parsing arguments: must provide --login when requesting a password reset",
 		},
 		{
 			Name:      "validate invalid --role value",
-			Args:      args("user update --id 123 --role foobar"),
+			Arg:       "--id 123 --role foobar",
 			WantError: "error parsing arguments: enum value must be one of user,billing,engineer,superuser, got 'foobar'",
 		},
 		{
@@ -248,7 +184,7 @@ func TestUserUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("user update --id 123 --name foo"),
+			Arg:       "--id 123 --name foo",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -258,7 +194,7 @@ func TestUserUpdate(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("user update --id 123 --login foo@example.com --password-reset"),
+			Arg:       "--id 123 --login foo@example.com --password-reset",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -272,7 +208,7 @@ func TestUserUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("user update --id 123 --name foo --role engineer"),
+			Arg:        "--id 123 --name foo --role engineer",
 			WantOutput: "Updated user 'foo' (role: engineer)",
 		},
 		{
@@ -282,25 +218,12 @@ func TestUserUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("user update --id 123 --login foo@example.com --password-reset"),
+			Arg:        "--id 123 --login foo@example.com --password-reset",
 			WantOutput: "Reset user password (login: foo@example.com)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
