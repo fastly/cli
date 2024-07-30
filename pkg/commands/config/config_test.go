@@ -1,15 +1,11 @@
 package config_test
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/mock"
+	root "github.com/fastly/cli/pkg/commands/config"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -54,33 +50,19 @@ func TestConfig(t *testing.T) {
 		}()
 	}
 
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:       "validate config file content is displayed",
-			Args:       args("config"),
+			ConfigPath: configPath,
 			WantOutput: string(data),
 		},
 		{
 			Name:       "validate config location is displayed",
-			Args:       args("config --location"),
+			Arg:        "--location",
+			ConfigPath: configPath,
 			WantOutput: configPath,
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				opts.ConfigPath = configPath
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
 }
