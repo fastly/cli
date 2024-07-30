@@ -5,13 +5,12 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	root "github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const (
-	baseCommand = "products"
-)
+const ()
 
 func TestProductEnablement(t *testing.T) {
 	scenarios := []testutil.TestScenario{
@@ -129,5 +128,5 @@ Web Sockets         true
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
 }

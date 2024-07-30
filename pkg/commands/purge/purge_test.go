@@ -6,13 +6,12 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	root "github.com/fastly/cli/pkg/commands/purge"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const (
-	baseCommand = "purge"
-)
+const ()
 
 func TestPurgeAll(t *testing.T) {
 	scenarios := []testutil.TestScenario{
@@ -50,7 +49,7 @@ func TestPurgeAll(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
 }
 
 func TestPurgeKeys(t *testing.T) {
@@ -90,7 +89,7 @@ func TestPurgeKeys(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
 	assertKeys(keys, t)
 }
 
@@ -149,7 +148,7 @@ func TestPurgeKey(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
 }
 
 func TestPurgeURL(t *testing.T) {
@@ -192,5 +191,5 @@ func TestPurgeURL(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
 }

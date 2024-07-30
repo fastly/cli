@@ -5,13 +5,12 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	root "github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const (
-	baseCommand = "acl"
-)
+const ()
 
 func TestACLCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
@@ -84,7 +83,7 @@ func TestACLCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestACLDelete(t *testing.T) {
@@ -148,7 +147,7 @@ func TestACLDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestACLDescribe(t *testing.T) {
@@ -199,7 +198,7 @@ func TestACLDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestACLList(t *testing.T) {
@@ -253,7 +252,7 @@ func TestACLList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestACLUpdate(t *testing.T) {
@@ -332,7 +331,7 @@ func TestACLUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func getACL(i *fastly.GetACLInput) (*fastly.ACL, error) {
