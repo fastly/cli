@@ -8,13 +8,12 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	root "github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const (
-	baseCommand = "domain"
-)
+const ()
 
 func TestDomainCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
@@ -41,7 +40,7 @@ func TestDomainCreate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestDomainList(t *testing.T) {
@@ -95,7 +94,7 @@ func TestDomainList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestDomainDescribe(t *testing.T) {
@@ -121,7 +120,7 @@ func TestDomainDescribe(t *testing.T) {
 			WantOutput: describeDomainOutput,
 		},
 	}
-	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestDomainUpdate(t *testing.T) {
@@ -158,7 +157,7 @@ func TestDomainUpdate(t *testing.T) {
 			WantOutput: "Updated domain www.example.com (service 123 version 4)",
 		},
 	}
-	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestDomainDelete(t *testing.T) {
@@ -186,7 +185,7 @@ func TestDomainDelete(t *testing.T) {
 			WantOutput: "Deleted domain www.test.com (service 123 version 4)",
 		},
 	}
-	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestDomainValidate(t *testing.T) {
@@ -259,7 +258,7 @@ func TestDomainValidate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "validate"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "validate"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")

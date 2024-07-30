@@ -5,13 +5,12 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	root "github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const (
-	baseCommand = "ip-list"
-)
+const ()
 
 func TestAllIPs(t *testing.T) {
 	scenarios := []testutil.TestScenario{
@@ -30,5 +29,5 @@ func TestAllIPs(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
 }

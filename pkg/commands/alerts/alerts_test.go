@@ -5,14 +5,13 @@ import (
 	"testing"
 	"time"
 
+	root "github.com/fastly/cli/pkg/commands/alerts"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v9/fastly"
 )
 
-const (
-	baseCommand = "alerts"
-)
+const ()
 
 func TestAlertsCreate(t *testing.T) {
 	var createFlags = flagList{
@@ -100,7 +99,7 @@ func TestAlertsCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestAlertsUpdate(t *testing.T) {
@@ -188,7 +187,7 @@ func TestAlertsUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestAlertsDelete(t *testing.T) {
@@ -208,7 +207,7 @@ func TestAlertsDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestAlertsDescribe(t *testing.T) {
@@ -230,7 +229,7 @@ func TestAlertsDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestAlertsList(t *testing.T) {
@@ -310,7 +309,7 @@ func TestAlertsList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestAlertsHistoryList(t *testing.T) {
@@ -390,7 +389,7 @@ func TestAlertsHistoryList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "history"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "history"}, scenarios)
 }
 
 type flag struct {

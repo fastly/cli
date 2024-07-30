@@ -5,13 +5,12 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	root "github.com/fastly/cli/pkg/commands/ratelimit"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const (
-	baseCommand = "rate-limit"
-)
+const ()
 
 func TestRateLimitCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
@@ -42,7 +41,7 @@ func TestRateLimitCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestRateLimitDelete(t *testing.T) {
@@ -69,7 +68,7 @@ func TestRateLimitDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestRateLimitDescribe(t *testing.T) {
@@ -103,7 +102,7 @@ func TestRateLimitDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestRateLimitList(t *testing.T) {
@@ -141,7 +140,7 @@ func TestRateLimitList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TesRateLimittUpdate(t *testing.T) {
@@ -171,5 +170,5 @@ func TesRateLimittUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

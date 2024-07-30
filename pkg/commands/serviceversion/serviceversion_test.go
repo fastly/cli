@@ -6,13 +6,12 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	root "github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const (
-	baseCommand = "service-version"
-)
+const ()
 
 func TestVersionClone(t *testing.T) {
 	scenarios := []testutil.TestScenario{
@@ -46,7 +45,7 @@ func TestVersionClone(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "clone"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "clone"}, scenarios)
 }
 
 func TestVersionList(t *testing.T) {
@@ -83,7 +82,7 @@ func TestVersionList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestVersionUpdate(t *testing.T) {
@@ -116,7 +115,7 @@ func TestVersionUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestVersionActivate(t *testing.T) {
@@ -153,7 +152,7 @@ func TestVersionActivate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "activate"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "activate"}, scenarios)
 }
 
 func TestVersionDeactivate(t *testing.T) {
@@ -188,7 +187,7 @@ func TestVersionDeactivate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "deactivate"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "deactivate"}, scenarios)
 }
 
 func TestVersionLock(t *testing.T) {
@@ -215,7 +214,7 @@ func TestVersionLock(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "lock"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "lock"}, scenarios)
 }
 
 var listVersionsShortOutput = strings.TrimSpace(`

@@ -8,14 +8,13 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	root "github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const (
-	baseCommand = "profile"
-)
+const ()
 
 // Create temp environment to run test code within.
 func createTempEnvironment(t *testing.T) (string, string) {
@@ -99,7 +98,7 @@ func TestProfileCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestProfileDelete(t *testing.T) {
@@ -145,7 +144,7 @@ func TestProfileDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestProfileList(t *testing.T) {
@@ -304,7 +303,7 @@ func TestProfileList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestProfileSwitch(t *testing.T) {
@@ -355,7 +354,7 @@ func TestProfileSwitch(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "switch"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "switch"}, scenarios)
 }
 
 func TestProfileToken(t *testing.T) {
@@ -445,7 +444,7 @@ func TestProfileToken(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "token"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "token"}, scenarios)
 }
 
 func TestProfileUpdate(t *testing.T) {
@@ -505,7 +504,7 @@ func TestProfileUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func getToken() (*fastly.Token, error) {
