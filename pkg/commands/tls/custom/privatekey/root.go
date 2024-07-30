@@ -14,11 +14,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "private-key"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, globals *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("private-key", "Upload and manage private keys used to sign certificates")
+	c.CmdClause = parent.Command(CommandName, "Upload and manage private keys used to sign certificates")
 	return &c
 }
 

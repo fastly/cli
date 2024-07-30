@@ -14,11 +14,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "rate-limit"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("rate-limit", "Manipulate rate-limiters of the Fastly API and web interface")
+	c.CmdClause = parent.Command(CommandName, "Manipulate rate-limiters of the Fastly API and web interface")
 	return &c
 }
 

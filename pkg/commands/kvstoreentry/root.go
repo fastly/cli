@@ -17,11 +17,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "kv-store-entry"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(RootName, "Manipulate Fastly KV Store keys")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly KV Store keys")
 	return &c
 }
 

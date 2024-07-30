@@ -14,11 +14,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "kinesis"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("kinesis", "Manipulate a Kinesis logging endpoint for a specific Fastly service version")
+	c.CmdClause = parent.Command(CommandName, "Manipulate a Kinesis logging endpoint for a specific Fastly service version")
 	return &c
 }
 

@@ -14,11 +14,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "newrelic"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("newrelic", "Manipulate a NewRelic logging endpoint for a specific Fastly service version")
+	c.CmdClause = parent.Command(CommandName, "Manipulate a NewRelic logging endpoint for a specific Fastly service version")
 	return &c
 }
 

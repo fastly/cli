@@ -20,11 +20,14 @@ type RootCommand struct {
 	reset    bool
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "config"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("config", "Display the Fastly CLI configuration")
+	c.CmdClause = parent.Command(CommandName, "Display the Fastly CLI configuration")
 	c.CmdClause.Flag("location", "Print the location of the CLI configuration file").Short('l').BoolVar(&c.location)
 	c.CmdClause.Flag("reset", "Reset the config to a version compatible with the current CLI version").Short('r').BoolVar(&c.reset)
 	return &c

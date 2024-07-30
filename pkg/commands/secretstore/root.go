@@ -10,6 +10,9 @@ import (
 // RootNameStore is the base command name for secret store operations.
 const RootNameStore = "secret-store"
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "secret-store"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	c := RootCommand{
@@ -18,7 +21,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 		},
 	}
 
-	c.CmdClause = parent.Command(RootNameStore, "Manipulate Fastly Secret Stores")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly Secret Stores")
 
 	return &c
 }

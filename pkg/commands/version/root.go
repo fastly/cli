@@ -31,6 +31,9 @@ type RootCommand struct {
 	argparser.Base
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "version"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	c := RootCommand{
@@ -38,7 +41,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("version", "Display version information for the Fastly CLI")
+	c.CmdClause = parent.Command(CommandName, "Display version information for the Fastly CLI")
 	return &c
 }
 

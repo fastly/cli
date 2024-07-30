@@ -58,12 +58,15 @@ type RootCommand struct {
 	InvokedFromSSO bool
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "sso"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
 	// FIXME: Unhide this command once SSO is GA.
-	c.CmdClause = parent.Command("sso", "Single Sign-On authentication (defaults to current profile)")
+	c.CmdClause = parent.Command(CommandName, "Single Sign-On authentication (defaults to current profile)")
 	c.CmdClause.Arg("profile", "Profile to authenticate (i.e. create/update a token for)").Short('p').StringVar(&c.profile)
 	return &c
 }

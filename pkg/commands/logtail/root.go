@@ -41,11 +41,14 @@ type RootCommand struct {
 	token       string // TODO: this will go away when GET is in go-fastly
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "log-tail"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("log-tail", "Tail Compute logs")
+	c.CmdClause = parent.Command(CommandName, "Tail Compute logs")
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
