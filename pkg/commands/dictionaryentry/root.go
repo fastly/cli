@@ -14,11 +14,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "dictionary-entry"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("dictionary-entry", "Manipulate Fastly edge dictionary items")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly edge dictionary items")
 	return &c
 }
 

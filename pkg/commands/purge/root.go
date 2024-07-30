@@ -17,10 +17,13 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "purge"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.CmdClause = parent.Command("purge", "Invalidate objects in the Fastly cache")
+	c.CmdClause = parent.Command(CommandName, "Invalidate objects in the Fastly cache")
 	c.Globals = g
 
 	// Optional.

@@ -14,11 +14,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "sftp"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("sftp", "Manipulate Fastly service version SFTP logging endpoints")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version SFTP logging endpoints")
 	return &c
 }
 

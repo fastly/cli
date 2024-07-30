@@ -17,11 +17,14 @@ type RootCommand struct {
 	argparser.Base
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "pops"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("pops", "List Fastly datacenters")
+	c.CmdClause = parent.Command(CommandName, "List Fastly datacenters")
 	return &c
 }
 

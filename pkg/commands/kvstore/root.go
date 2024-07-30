@@ -17,11 +17,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "kv-store"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(RootName, "Manipulate Fastly KV Stores").Alias("object-store")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly KV Stores").Alias("object-store")
 	return &c
 }
 

@@ -14,11 +14,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "azureblob"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("azureblob", "Manipulate Fastly service version Azure Blob Storage logging endpoints")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version Azure Blob Storage logging endpoints")
 	return &c
 }
 

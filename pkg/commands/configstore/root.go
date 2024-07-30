@@ -10,6 +10,9 @@ import (
 // RootName is the base command name for config store operations.
 const RootName = "config-store"
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "config-store"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	c := RootCommand{
@@ -18,7 +21,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 		},
 	}
 
-	c.CmdClause = parent.Command(RootName, "Manipulate Fastly Config Stores")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly Config Stores")
 
 	return &c
 }

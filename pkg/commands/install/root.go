@@ -20,11 +20,14 @@ type RootCommand struct {
 	versionToInstall string
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "install"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("install", "Install the specified version of the CLI")
+	c.CmdClause = parent.Command(CommandName, "Install the specified version of the CLI")
 	c.CmdClause.Arg("version", "CLI release version to install (e.g. 10.8.0)").Required().StringVar(&c.versionToInstall)
 	return &c
 }

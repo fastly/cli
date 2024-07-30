@@ -34,11 +34,14 @@ var ProductEnablementOptions = []string{
 	"websockets",
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "products"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("products", "Enable, disable, and check the enablement status of products")
+	c.CmdClause = parent.Command(CommandName, "Enable, disable, and check the enablement status of products")
 
 	// Optional.
 	c.CmdClause.Flag("disable", "Disable product").HintOptions(ProductEnablementOptions...).EnumVar(&c.disableProduct, ProductEnablementOptions...)

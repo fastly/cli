@@ -14,11 +14,14 @@ type RootCommand struct {
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "auth-token"
+
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("auth-token", "Manage API tokens for Fastly service users")
+	c.CmdClause = parent.Command(CommandName, "Manage API tokens for Fastly service users")
 	return &c
 }
 
