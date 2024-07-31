@@ -1,15 +1,12 @@
 package config_test
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/tls/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -21,11 +18,9 @@ const (
 )
 
 func TestDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("tls-config describe"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -35,7 +30,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-config describe --id example"),
+			Arg:       "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -62,29 +57,15 @@ func TestDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-config describe --id example"),
+			Arg:        "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: validateAPIError,
@@ -93,7 +74,6 @@ func TestList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-config list"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -122,38 +102,24 @@ func TestList(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-config list --verbose"),
+			Arg:        "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --id flag",
-			Args:      args("tls-config update --name example"),
+			Arg:       "--name example",
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("tls-config update --id 123"),
+			Arg:       "--id 123",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -163,7 +129,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-config update --id example --name example"),
+			Arg:       "--id example --name example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -175,23 +141,10 @@ func TestUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-config update --id example --name example"),
+			Arg:        "--id example --name example",
 			WantOutput: fmt.Sprintf("Updated TLS Configuration '%s'", mockResponseID),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

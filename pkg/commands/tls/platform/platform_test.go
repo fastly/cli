@@ -1,15 +1,12 @@
 package platform_test
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/tls/platform"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -21,17 +18,16 @@ const (
 	mockResponseID        = "123"
 )
 
-func TestTLSPlatformCreate(t *testing.T) {
-	args := testutil.Args
+func TestTLSPlatformUpload(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --cert-blob flag",
-			Args:      args("tls-platform upload --intermediates-blob example"),
+			Arg:       "--intermediates-blob example",
 			WantError: "required flag --cert-blob not provided",
 		},
 		{
 			Name:      "validate missing --intermediates-blob flag",
-			Args:      args("tls-platform upload --cert-blob example"),
+			Arg:       "--cert-blob example",
 			WantError: "required flag --intermediates-blob not provided",
 		},
 		{
@@ -41,7 +37,7 @@ func TestTLSPlatformCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-platform upload --cert-blob example --intermediates-blob example"),
+			Arg:       "--cert-blob example --intermediates-blob example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -53,33 +49,18 @@ func TestTLSPlatformCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-platform upload --cert-blob example --intermediates-blob example"),
+			Arg:        "--cert-blob example --intermediates-blob example",
 			WantOutput: fmt.Sprintf("Uploaded TLS Bulk Certificate '%s'", mockResponseID),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "upload"}, scenarios)
 }
 
 func TestTLSPlatformDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-platform delete"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -89,7 +70,7 @@ func TestTLSPlatformDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("tls-platform delete --id example"),
+			Arg:       "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -99,33 +80,18 @@ func TestTLSPlatformDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("tls-platform delete --id example"),
+			Arg:        "--id example",
 			WantOutput: "Deleted TLS Bulk Certificate 'example'",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestTLSPlatformDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-platform describe"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -135,7 +101,7 @@ func TestTLSPlatformDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-platform describe --id example"),
+			Arg:       "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -151,29 +117,15 @@ func TestTLSPlatformDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-platform describe --id example"),
+			Arg:        "--id example",
 			WantOutput: "\nID: 123\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestTLSPlatformList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: validateAPIError,
@@ -182,7 +134,6 @@ func TestTLSPlatformList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-platform list"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -200,43 +151,29 @@ func TestTLSPlatformList(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-platform list --verbose"),
+			Arg:        "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestTLSPlatformUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-platform update --cert-blob example --intermediates-blob example"),
+			Arg:       "--cert-blob example --intermediates-blob example",
 			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --cert-blob flag",
-			Args:      args("tls-platform update --id example --intermediates-blob example"),
+			Arg:       "--id example --intermediates-blob example",
 			WantError: "required flag --cert-blob not provided",
 		},
 		{
 			Name:      "validate missing --intermediates-blob flag",
-			Args:      args("tls-platform update --id example --cert-blob example"),
+			Arg:       "--id example --cert-blob example",
 			WantError: "required flag --intermediates-blob not provided",
 		},
 		{
@@ -246,7 +183,7 @@ func TestTLSPlatformUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-platform update --id example --cert-blob example --intermediates-blob example"),
+			Arg:       "--id example --cert-blob example --intermediates-blob example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -258,23 +195,10 @@ func TestTLSPlatformUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-platform update --id example --cert-blob example --intermediates-blob example"),
+			Arg:        "--id example --cert-blob example --intermediates-blob example",
 			WantOutput: "Updated TLS Bulk Certificate '123'",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

@@ -1,24 +1,21 @@
 package newrelicotlp_test
 
 import (
-	"bytes"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/logging"
+	sub "github.com/fastly/cli/pkg/commands/logging/newrelicotlp"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestNewRelicOTLPCreate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelicotlp create --key abc --name foo --version 3"),
+			Arg:       "--key abc --name foo --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -26,7 +23,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("logging newrelicotlp create --key abc --name foo --service-id 123 --version 1"),
+			Arg:       "--key abc --name foo --service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -37,7 +34,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("logging newrelicotlp create --key abc --name foo --service-id 123 --version 3"),
+			Arg:       "--key abc --name foo --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -52,7 +49,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelicotlp create --key abc --name foo --service-id 123 --version 3"),
+			Arg:        "--key abc --name foo --service-id 123 --version 3",
 			WantOutput: "Created New Relic OTLP logging endpoint 'foo' (service: 123, version: 3)",
 		},
 		{
@@ -68,43 +65,29 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelicotlp create --autoclone --key abc --name foo --service-id 123 --version 1"),
+			Arg:        "--autoclone --key abc --name foo --service-id 123 --version 1",
 			WantOutput: "Created New Relic OTLP logging endpoint 'foo' (service: 123, version: 4)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestNewRelicOTLPDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("logging newrelicotlp delete --version 3"),
+			Arg:       "--version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelicotlp delete --name foobar"),
+			Arg:       "--name foobar",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelicotlp delete --name foobar --version 3"),
+			Arg:       "--name foobar --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -112,7 +95,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("logging newrelicotlp delete --name foobar --service-id 123 --version 1"),
+			Arg:       "--name foobar --service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -123,7 +106,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("logging newrelicotlp delete --name foobar --service-id 123 --version 3"),
+			Arg:       "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -134,7 +117,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("logging newrelicotlp delete --name foobar --service-id 123 --version 3"),
+			Arg:        "--name foobar --service-id 123 --version 3",
 			WantOutput: "Deleted New Relic OTLP logging endpoint 'foobar' (service: 123, version: 3)",
 		},
 		{
@@ -146,43 +129,29 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("logging newrelicotlp delete --autoclone --name foo --service-id 123 --version 1"),
+			Arg:        "--autoclone --name foo --service-id 123 --version 1",
 			WantOutput: "Deleted New Relic OTLP logging endpoint 'foo' (service: 123, version: 4)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestNewRelicDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("logging newrelicotlp describe --version 3"),
+			Arg:       "--version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelicotlp describe --name foobar"),
+			Arg:       "--name foobar",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelicotlp describe --name foobar --version 3"),
+			Arg:       "--name foobar --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -193,7 +162,7 @@ func TestNewRelicDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("logging newrelicotlp describe --name foobar --service-id 123 --version 3"),
+			Arg:       "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -202,7 +171,7 @@ func TestNewRelicDescribe(t *testing.T) {
 				ListVersionsFn:    testutil.ListVersions,
 				GetNewRelicOTLPFn: getNewRelic,
 			},
-			Args:       args("logging newrelicotlp describe --name foobar --service-id 123 --version 3"),
+			Arg:        "--name foobar --service-id 123 --version 3",
 			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nPlacement: \nRegion: \nResponse Condition: \nService ID: 123\nService Version: 3\nToken: abc\nURL: \nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -211,38 +180,23 @@ func TestNewRelicDescribe(t *testing.T) {
 				ListVersionsFn:    testutil.ListVersions,
 				GetNewRelicOTLPFn: getNewRelic,
 			},
-			Args:       args("logging newrelicotlp describe --name foobar --service-id 123 --version 1"),
+			Arg:        "--name foobar --service-id 123 --version 1",
 			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nPlacement: \nRegion: \nResponse Condition: \nService ID: 123\nService Version: 1\nToken: abc\nURL: \nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestNewRelicList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelicotlp list"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelicotlp list --version 3"),
+			Arg:       "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -253,7 +207,7 @@ func TestNewRelicList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("logging newrelicotlp list --service-id 123 --version 3"),
+			Arg:       "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -262,7 +216,7 @@ func TestNewRelicList(t *testing.T) {
 				ListVersionsFn:     testutil.ListVersions,
 				ListNewRelicOTLPFn: listNewRelic,
 			},
-			Args:       args("logging newrelicotlp list --service-id 123 --version 3"),
+			Arg:        "--service-id 123 --version 3",
 			WantOutput: "SERVICE ID  VERSION  NAME\n123         3        foo\n123         3        bar\n",
 		},
 		{
@@ -271,7 +225,7 @@ func TestNewRelicList(t *testing.T) {
 				ListVersionsFn:     testutil.ListVersions,
 				ListNewRelicOTLPFn: listNewRelic,
 			},
-			Args:       args("logging newrelicotlp list --service-id 123 --version 1"),
+			Arg:        "--service-id 123 --version 1",
 			WantOutput: "SERVICE ID  VERSION  NAME\n123         1        foo\n123         1        bar\n",
 		},
 		{
@@ -280,43 +234,29 @@ func TestNewRelicList(t *testing.T) {
 				ListVersionsFn:     testutil.ListVersions,
 				ListNewRelicOTLPFn: listNewRelic,
 			},
-			Args:       args("logging newrelicotlp list --service-id 123 --verbose --version 1"),
+			Arg:        "--service-id 123 --verbose --version 1",
 			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestNewRelicUpdate(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("logging newrelicotlp update --service-id 123 --version 3"),
+			Arg:       "--service-id 123 --version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("logging newrelicotlp update --name foobar --service-id 123"),
+			Arg:       "--name foobar --service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("logging newrelicotlp update --name foobar --version 3"),
+			Arg:       "--name foobar --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -324,7 +264,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("logging newrelicotlp update --name foobar --service-id 123 --version 1"),
+			Arg:       "--name foobar --service-id 123 --version 1",
 			WantError: "service version 1 is not editable",
 		},
 		{
@@ -335,7 +275,7 @@ func TestNewRelicUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("logging newrelicotlp update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Arg:       "--name foobar --new-name beepboop --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -350,7 +290,7 @@ func TestNewRelicUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelicotlp update --name foobar --new-name beepboop --service-id 123 --version 3"),
+			Arg:        "--name foobar --new-name beepboop --service-id 123 --version 3",
 			WantOutput: "Updated New Relic OTLP logging endpoint 'beepboop' (previously: foobar, service: 123, version: 3)",
 		},
 		{
@@ -366,25 +306,12 @@ func TestNewRelicUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("logging newrelicotlp update --autoclone --name foobar --new-name beepboop --service-id 123 --version 1"),
+			Arg:        "--autoclone --name foobar --new-name beepboop --service-id 123 --version 1",
 			WantOutput: "Updated New Relic OTLP logging endpoint 'beepboop' (previously: foobar, service: 123, version: 4)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func getNewRelic(i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
