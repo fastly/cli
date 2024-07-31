@@ -34,7 +34,7 @@ func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCo
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{

@@ -15,8 +15,8 @@ var (
 	FlagServiceIDDesc = "Service ID (falls back to FASTLY_SERVICE_ID, then fastly.toml)"
 	// FlagServiceName is the flag name.
 	FlagServiceName = "service-name"
-	// FlagServiceDesc is the flag description.
-	FlagServiceDesc = "The name of the service"
+	// FlagServiceNameDesc is the flag description.
+	FlagServiceNameDesc = "The name of the service"
 	// FlagVersionName is the flag name.
 	FlagVersionName = "version"
 	// FlagVersionDesc is the flag description.

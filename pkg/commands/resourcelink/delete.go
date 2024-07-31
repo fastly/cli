@@ -55,7 +55,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceName,
 		Action:      c.serviceName.Set,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
