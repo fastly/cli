@@ -156,7 +156,7 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 // NOTE: If Service Name is provided it overrides all other methods of
 // obtaining the Service ID.
 func ServiceID(serviceName OptionalServiceNameID, data manifest.Data, client api.Interface, li fsterr.LogInterface) (serviceID string, source manifest.Source, flag string, err error) {
-	flag = "--service-id"
+	flag = "--" + FlagServiceIDName
 	serviceID, source = data.ServiceID()
 
 	if serviceName.WasSet {
@@ -168,7 +168,7 @@ func ServiceID(serviceName OptionalServiceNameID, data manifest.Data, client api
 			return serviceID, source, flag, err
 		}
 
-		flag = "--service-name"
+		flag = "--" + FlagServiceName
 		serviceID, err = serviceName.Parse(client)
 		if err != nil {
 			if li != nil {
