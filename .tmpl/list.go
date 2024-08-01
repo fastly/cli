@@ -39,7 +39,7 @@ func NewListCommand(parent argparser.Registerer, globals *config.Data, data mani
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 

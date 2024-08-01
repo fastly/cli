@@ -58,7 +58,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)

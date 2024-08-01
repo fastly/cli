@@ -75,7 +75,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("topic", "The Google Cloud Pub/Sub topic to which logs will be published").Action(c.Topic.Set).StringVar(&c.Topic.Value)

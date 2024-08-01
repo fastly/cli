@@ -47,7 +47,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("value", "Dictionary item value").StringVar(&c.Input.ItemValue)

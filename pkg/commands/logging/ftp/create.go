@@ -85,7 +85,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("user", "The username for the server (can be anonymous)").Action(c.Username.Set).StringVar(&c.Username.Value)

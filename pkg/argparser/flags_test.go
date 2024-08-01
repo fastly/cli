@@ -3,6 +3,8 @@ package argparser_test
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,6 +13,7 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -313,6 +316,95 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 				if !strings.Contains(have, want) {
 					t.Errorf("wanted %s, have %s", want, have)
 				}
+			}
+		})
+	}
+}
+
+func TestServiceID(t *testing.T) {
+	cases := map[string]struct {
+		ServiceName   argparser.OptionalServiceNameID
+		Data          manifest.Data
+		API           mock.API
+		WantServiceID string
+		WantError     string
+		WantSource    manifest.Source
+		WantFlag      string
+	}{
+		"service-id flag": {
+			Data: manifest.Data{
+				Flag: manifest.Flag{ServiceID: "456"},
+			},
+			WantServiceID: "456",
+			WantSource:    manifest.SourceFlag,
+			WantFlag:      argparser.FlagServiceIDName,
+		},
+		"service ID in manifest": {
+			Data: manifest.Data{
+				File: manifest.File{ServiceID: "456"},
+			},
+			WantServiceID: "456",
+			WantSource:    manifest.SourceFile,
+		},
+		"service-name flag with service-id flag": {
+			ServiceName: argparser.OptionalServiceNameID{argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bar"}},
+			Data: manifest.Data{
+				Flag: manifest.Flag{ServiceID: "123"},
+			},
+			WantError: "cannot specify both service-id and service-name",
+		},
+		"service-name flag with service-id in file": {
+			ServiceName: argparser.OptionalServiceNameID{argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bar"}},
+			Data: manifest.Data{
+				File: manifest.File{ServiceID: "123"},
+			},
+			API: mock.API{
+				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[{"id": "456", "name": "bar"}]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
+				},
+			},
+			WantServiceID: "456",
+			WantSource:    manifest.SourceFlag,
+			WantFlag:      argparser.FlagServiceName,
+		},
+		"unknown service-name flag value": {
+			ServiceName: argparser.OptionalServiceNameID{argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bar"}},
+			Data:        manifest.Data{},
+			API: mock.API{
+				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[{"id": "456", "name": "beepboop"}]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
+				},
+			},
+			WantError: "error matching service name with available services",
+		},
+		"no information provided": {
+			Data:      manifest.Data{},
+			WantError: "error reading service: no service ID found",
+		},
+	}
+
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, c.Data, c.API, nil)
+			testutil.AssertErrorContains(t, err, c.WantError)
+			if err == nil {
+				testutil.AssertString(t, serviceID, c.WantServiceID)
+				testutil.AssertStringContains(t, flag, c.WantFlag)
+				testutil.AssertEqual(t, source, c.WantSource)
 			}
 		})
 	}

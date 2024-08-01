@@ -54,7 +54,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceName,
 		Action:      c.serviceName.Set,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 

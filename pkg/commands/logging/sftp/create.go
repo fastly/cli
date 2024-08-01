@@ -91,7 +91,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("ssh-known-hosts", "A list of host keys for all hosts we can connect to over SFTP").Action(c.SSHKnownHosts.Set).StringVar(&c.SSHKnownHosts.Value)

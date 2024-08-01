@@ -70,7 +70,7 @@ func NewPublishCommand(parent argparser.Registerer, g *global.Data, build *Build
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check to the root path").IntVar(&c.statusCheckCode)

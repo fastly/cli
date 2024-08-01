@@ -39,7 +39,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("soft", "A 'soft' purge marks affected objects as stale rather than making them inaccessible").BoolVar(&c.soft)

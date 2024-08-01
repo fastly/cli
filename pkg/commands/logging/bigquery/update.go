@@ -80,7 +80,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("table", "Your BigQuery table").Action(c.Table.Set).StringVar(&c.Table.Value)

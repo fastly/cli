@@ -77,7 +77,7 @@ func NewDeployCommand(parent argparser.Registerer, g *global.Data) *DeployComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{

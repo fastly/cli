@@ -153,30 +153,34 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 
 // ServiceID returns the Service ID and the source of that information.
 //
-// NOTE: If Service ID not provided then check if Service Name provided and use
-// that information to acquire the Service ID.
+// NOTE: If Service Name is provided it overrides all other methods of
+// obtaining the Service ID.
 func ServiceID(serviceName OptionalServiceNameID, data manifest.Data, client api.Interface, li fsterr.LogInterface) (serviceID string, source manifest.Source, flag string, err error) {
-	flag = "--service-id"
+	flag = "--" + FlagServiceIDName
 	serviceID, source = data.ServiceID()
 
-	if source == manifest.SourceUndefined {
-		if !serviceName.WasSet {
-			err = fsterr.ErrNoServiceID
+	if serviceName.WasSet {
+		if source == manifest.SourceFlag {
+			err = fmt.Errorf("cannot specify both %s and %s", FlagServiceIDName, FlagServiceName)
 			if li != nil {
 				li.Add(err)
 			}
 			return serviceID, source, flag, err
 		}
 
-		flag = "--service-name"
+		flag = "--" + FlagServiceName
 		serviceID, err = serviceName.Parse(client)
 		if err != nil {
 			if li != nil {
 				li.Add(err)
 			}
-		} else {
-			source = manifest.SourceFlag
+			return serviceID, source, flag, err
 		}
+		source = manifest.SourceFlag
+	}
+
+	if source == manifest.SourceUndefined {
+		err = fsterr.ErrNoServiceID
 	}
 
 	return serviceID, source, flag, err

@@ -50,7 +50,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
 		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("type", "The location in generated VCL where the snippet should be placed").Action(c.location.Set).HintOptions(Locations...).EnumVar(&c.location.Value, Locations...)
