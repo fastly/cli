@@ -1,14 +1,12 @@
 package privatekey_test
 
 import (
-	"bytes"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/tls/custom"
+	sub "github.com/fastly/cli/pkg/commands/tls/custom/privatekey"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -24,21 +22,20 @@ const (
 
 func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 	var content string
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --key and --key-path flags",
-			Args:      args("tls-custom private-key create --name example"),
+			Arg:       "--name example",
 			WantError: "neither --key-path or --key provided, one must be provided",
 		},
 		{
 			Name:      "validate using both --key and --key-path flags",
-			Args:      args("tls-custom private-key create --name example --key example --key-path foobar"),
+			Arg:       "--name example --key example --key-path foobar",
 			WantError: "--key-path and --key provided, only one can be specified",
 		},
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("tls-custom private-key create --key example"),
+			Arg:       "--key example",
 			WantError: "required flag --name not provided",
 		},
 		{
@@ -49,8 +46,9 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom private-key create --key example --name example"),
-			WantError: testutil.Err.Error(),
+			Arg:             "--key example --name example",
+			WantError:       testutil.Err.Error(),
+			PathContentFlag: &testutil.PathContentFlag{Flag: "key-path", Fixture: "testkey.pem", Content: func() string { return content }},
 		},
 		{
 			Name: validateAPISuccess,
@@ -63,8 +61,9 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom private-key create --key example --name example"),
-			WantOutput: "Created TLS Private Key 'example'",
+			Arg:             "--key example --name example",
+			WantOutput:      "Created TLS Private Key 'example'",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "key-path", Fixture: "testkey.pem", Content: func() string { return content }},
 		},
 		{
 			Name: "validate custom key is submitted",
@@ -77,39 +76,24 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom private-key create --name example --key-path ./testdata/testkey.pem"),
-			WantOutput: "Created TLS Private Key 'example'",
+			Arg:             "--name example --key-path ./testdata/testkey.pem",
+			WantOutput:      "Created TLS Private Key 'example'",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "key-path", Fixture: "testkey.pem", Content: func() string { return content }},
 		},
 		{
 			Name:      "validate invalid --key-path arg",
-			Args:      args("tls-custom private-key create --name example --key-path ............"),
+			Arg:       "--name example --key-path ............",
 			WantError: "error reading key-path",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-			testutil.AssertPathContentFlag("key-path", testcase.WantError, testcase.Args, "testkey.pem", content, t)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestTLSCustomPrivateKeyDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom private-key delete"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -119,7 +103,7 @@ func TestTLSCustomPrivateKeyDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("tls-custom private-key delete --id example"),
+			Arg:       "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -129,33 +113,18 @@ func TestTLSCustomPrivateKeyDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("tls-custom private-key delete --id example"),
+			Arg:        "--id example",
 			WantOutput: "Deleted TLS Private Key 'example'",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom private-key describe"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -165,7 +134,7 @@ func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom private-key describe --id example"),
+			Arg:       "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -183,29 +152,15 @@ func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom private-key describe --id example"),
+			Arg:        "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nName: example\nKey Length: 123\nKey Type: example\nPublic Key SHA1: example\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: false\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestTLSCustomPrivateKeyList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: validateAPIError,
@@ -214,7 +169,6 @@ func TestTLSCustomPrivateKeyList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom private-key list"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -234,23 +188,10 @@ func TestTLSCustomPrivateKeyList(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom private-key list --verbose"),
+			Arg:        "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nName: example\nKey Length: 123\nKey Type: example\nPublic Key SHA1: example\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: false\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }

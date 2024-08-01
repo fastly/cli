@@ -1,15 +1,13 @@
 package certificate_test
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/tls/custom"
+	sub "github.com/fastly/cli/pkg/commands/tls/custom/certificate"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -24,21 +22,19 @@ const (
 
 func TestTLSCustomCertCreate(t *testing.T) {
 	var content string
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      "validate missing --cert-blob and --cert-path flags",
-			Args:      args("tls-custom certificate create"),
 			WantError: "neither --cert-path or --cert-blob provided, one must be provided",
 		},
 		{
 			Name:      "validate specifying both --cert-blob and --cert-path flags",
-			Args:      args("tls-custom certificate create --cert-blob foo --cert-path bar"),
+			Arg:       "--cert-blob foo --cert-path bar",
 			WantError: "cert-path and cert-blob provided, only one can be specified",
 		},
 		{
 			Name:      "validate invalid --cert-path arg",
-			Args:      args("tls-custom certificate create --cert-path ............"),
+			Arg:       "--cert-path ............",
 			WantError: "error reading cert-path",
 		},
 		{
@@ -51,8 +47,9 @@ func TestTLSCustomCertCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom certificate create --cert-path ./testdata/certificate.crt"),
-			WantOutput: fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
+			Arg:             "--cert-path ./testdata/certificate.crt",
+			WantOutput:      fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
+			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 		{
 			Name: validateAPIError,
@@ -62,8 +59,9 @@ func TestTLSCustomCertCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom certificate create --cert-blob example"),
-			WantError: testutil.Err.Error(),
+			Arg:             "--cert-blob example",
+			WantError:       testutil.Err.Error(),
+			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 		{
 			Name: validateAPISuccess,
@@ -75,34 +73,19 @@ func TestTLSCustomCertCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom certificate create --cert-blob example"),
-			WantOutput: fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
+			Arg:             "--cert-blob example",
+			WantOutput:      fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
+			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-			testutil.AssertPathContentFlag("cert-path", testcase.WantError, testcase.Args, "certificate.crt", content, t)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestTLSCustomCertDelete(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom certificate delete"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -112,7 +95,7 @@ func TestTLSCustomCertDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("tls-custom certificate delete --id example"),
+			Arg:       "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -122,33 +105,18 @@ func TestTLSCustomCertDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("tls-custom certificate delete --id example"),
+			Arg:        "--id example",
 			WantOutput: "Deleted TLS Certificate 'example'",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestTLSCustomCertDescribe(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom certificate describe"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -158,7 +126,7 @@ func TestTLSCustomCertDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom certificate describe --id example"),
+			Arg:       "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -179,29 +147,15 @@ func TestTLSCustomCertDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom certificate describe --id example"),
+			Arg:        "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nIssued to: " + mockFieldValue + "\nIssuer: " + mockFieldValue + "\nName: " + mockFieldValue + "\nReplace: true\nSerial number: " + mockFieldValue + "\nSignature algorithm: " + mockFieldValue + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestTLSCustomCertList(t *testing.T) {
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name: validateAPIError,
@@ -210,7 +164,6 @@ func TestTLSCustomCertList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom certificate list"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -233,49 +186,35 @@ func TestTLSCustomCertList(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom certificate list --verbose"),
+			Arg:        "--verbose",
 			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nID: " + mockResponseID + "\nIssued to: " + mockFieldValue + "\nIssuer: " + mockFieldValue + "\nName: " + mockFieldValue + "\nReplace: true\nSerial number: " + mockFieldValue + "\nSignature algorithm: " + mockFieldValue + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestTLSCustomCertUpdate(t *testing.T) {
 	var content string
-	args := testutil.Args
 	scenarios := []testutil.TestScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom certificate update --cert-blob example"),
+			Arg:       "--cert-blob example",
 			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --cert-blob and --cert-path flags",
-			Args:      args("tls-custom certificate create"),
+			Arg:       "--id example",
 			WantError: "neither --cert-path or --cert-blob provided, one must be provided",
 		},
 		{
 			Name:      "validate specifying both --cert-blob and --cert-path flags",
-			Args:      args("tls-custom certificate create --cert-blob foo --cert-path bar"),
+			Arg:       "--id example --cert-blob foo --cert-path bar",
 			WantError: "cert-path and cert-blob provided, only one can be specified",
 		},
 		{
 			Name:      "validate invalid --cert-path arg",
-			Args:      args("tls-custom certificate create --cert-path ............"),
+			Arg:       "--id example --cert-path ............",
 			WantError: "error reading cert-path",
 		},
 		{
@@ -286,8 +225,9 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom certificate update --cert-blob example --id example"),
-			WantError: testutil.Err.Error(),
+			Arg:             "--cert-blob example --id example",
+			WantError:       testutil.Err.Error(),
+			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 		{
 			Name: validateAPISuccess,
@@ -299,8 +239,9 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom certificate update --cert-blob example --id example"),
-			WantOutput: fmt.Sprintf("Updated TLS Certificate '%s'", mockResponseID),
+			Arg:             "--cert-blob example --id example",
+			WantOutput:      fmt.Sprintf("Updated TLS Certificate '%s'", mockResponseID),
+			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 		{
 			Name: validateAPISuccess + " with --name for different output",
@@ -313,8 +254,9 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom certificate update --cert-blob example --id example --name example"),
-			WantOutput: "Updated TLS Certificate 'Updated' (previously: 'example')",
+			Arg:             "--cert-blob example --id example --name example",
+			WantOutput:      "Updated TLS Certificate 'Updated' (previously: 'example')",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 		{
 			Name: "validate custom cert is submitted",
@@ -326,24 +268,11 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom certificate update --id example --cert-path ./testdata/certificate.crt"),
-			WantOutput: "SUCCESS: Updated TLS Certificate '123'",
+			Arg:             "--id example --cert-path ./testdata/certificate.crt",
+			WantOutput:      "SUCCESS: Updated TLS Certificate '123'",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-			testutil.AssertPathContentFlag("cert-path", testcase.WantError, testcase.Args, "certificate.crt", content, t)
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
