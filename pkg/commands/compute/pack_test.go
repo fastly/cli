@@ -32,10 +32,10 @@ func TestPack(t *testing.T) {
 			wantOutput: []string{
 				"Copying wasm binary",
 				"Copying manifest",
-				"Creating package.tar.gz file",
+				"Creating mypackagename.tar.gz file",
 			},
 			expectedFiles: [][]string{
-				{"pkg", "package.tar.gz"},
+				{"pkg", "mypackagename.tar.gz"},
 			},
 		},
 		{
