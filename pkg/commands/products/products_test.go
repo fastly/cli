@@ -32,12 +32,12 @@ func TestProductEnablement(t *testing.T) {
 			},
 			Arg: "--service-id 123",
 			WantOutput: `PRODUCT             ENABLED
-Brotli Compression  false
-Domain Inspector    false
-Fanout              false
-Image Optimizer     false
-Origin Inspector    false
-Web Sockets         false
+brotli_compression  false
+domain_inspector    false
+fanout              false
+image_optimizer     false
+origin_inspector    false
+websockets          false
 `,
 		},
 		{
@@ -49,12 +49,12 @@ Web Sockets         false
 			},
 			Arg: "--service-id 123",
 			WantOutput: `PRODUCT             ENABLED
-Brotli Compression  true
-Domain Inspector    true
-Fanout              true
-Image Optimizer     true
-Origin Inspector    true
-Web Sockets         true
+brotli_compression  true
+domain_inspector    true
+fanout              true
+image_optimizer     true
+origin_inspector    true
+websockets          true
 `,
 		},
 		{

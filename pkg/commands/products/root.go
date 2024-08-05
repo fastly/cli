@@ -154,12 +154,12 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	t := text.NewTable(out)
 	t.AddHeader("PRODUCT", "ENABLED")
-	t.AddLine("Brotli Compression", ps.BrotliCompression)
-	t.AddLine("Domain Inspector", ps.DomainInspector)
-	t.AddLine("Fanout", ps.Fanout)
-	t.AddLine("Image Optimizer", ps.ImageOptimizer)
-	t.AddLine("Origin Inspector", ps.OriginInspector)
-	t.AddLine("Web Sockets", ps.WebSockets)
+	t.AddLine(fastly.ProductBrotliCompression, ps.BrotliCompression)
+	t.AddLine(fastly.ProductDomainInspector, ps.DomainInspector)
+	t.AddLine(fastly.ProductFanout, ps.Fanout)
+	t.AddLine(fastly.ProductImageOptimizer, ps.ImageOptimizer)
+	t.AddLine(fastly.ProductOriginInspector, ps.OriginInspector)
+	t.AddLine(fastly.ProductWebSockets, ps.WebSockets)
 	t.Print()
 	return nil
 }
