@@ -1,39 +1,39 @@
 {
-  "name": "@fastly/cli",
-  "version": "10.12.3",
-  "description": "Build, deploy and configure Fastly services from your terminal",
-  "type": "module",
-  "scripts": {
-    "version": "node ./update.js $npm_package_version"
-  },
-  "devDependencies": {
-    "decompress": "^4.2.1",
-    "decompress-targz": "^4.1.1"
-  },
-  "main": "index.js",
-  "engines": {
-    "node": ">=16"
-  },
-  "bin": {
-    "fastly": "./fastly.js"
-  },
-  "optionalDependencies": {
-    "@fastly/cli-darwin-arm64": "10.12.3",
-    "@fastly/cli-darwin-x64": "10.12.3",
-    "@fastly/cli-linux-386": "10.12.3",
-    "@fastly/cli-linux-arm64": "10.12.3",
-    "@fastly/cli-linux-x64": "10.12.3",
-    "@fastly/cli-win32-386": "10.12.3",
-    "@fastly/cli-win32-arm64": "10.12.3",
-    "@fastly/cli-win32-x64": "10.12.3"
-  },
-  "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/fastly/cli.git"
-  },
-  "bugs": {
-    "url": "https://github.com/fastly/cli/issues"
-  },
-  "homepage": "https://github.com/fastly/cli#readme"
+    "name": "@fastly/cli",
+    "version": "10.12.3",
+    "description": "Build, deploy and configure Fastly services from your terminal",
+    "type": "module",
+    "scripts": {
+        "version": "node ./update.js $npm_package_version"
+    },
+    "devDependencies": {
+        "decompress": "^4.2.1",
+        "decompress-targz": "^4.1.1"
+    },
+    "main": "index.js",
+    "engines": {
+        "node": ">=16"
+    },
+    "bin": {
+        "fastly": "./fastly.js"
+    },
+    "optionalDependencies": {
+        "@fastly/cli-darwin-arm64": "^v10.12.3",
+        "@fastly/cli-darwin-x32": "^v10.12.3",
+        "@fastly/cli-linux-arm64": "^v10.12.3",
+        "@fastly/cli-linux-x64": "^v10.12.3",
+        "@fastly/cli-linux-x32": "^v10.12.3",
+        "@fastly/cli-win32-arm64": "^v10.12.3",
+        "@fastly/cli-win32-x64": "^v10.12.3",
+        "@fastly/cli-win32-x32": "^v10.12.3"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/fastly/cli.git"
+    },
+    "bugs": {
+        "url": "https://github.com/fastly/cli/issues"
+    },
+    "homepage": "https://github.com/fastly/cli#readme"
 }

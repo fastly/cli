@@ -2,7 +2,7 @@
 
 import { fileURLToPath } from "node:url";
 import { dirname, join, parse } from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import decompress from "decompress";
 import decompressTargz from "decompress-targz";
 
@@ -18,7 +18,7 @@ let packages = {
     os: "darwin",
     cpu: "arm64",
   },
-  "cli-darwin-x64": {
+  "cli-darwin-x32": {
     releaseAsset: `fastly_${tag}_darwin-amd64.tar.gz`,
     binaryAsset: "fastly",
     description: "The macOS (Intel) binary for the Fastly CLI",
@@ -39,7 +39,7 @@ let packages = {
     os: "linux",
     cpu: "x64",
   },
-  "cli-linux-386": {
+  "cli-linux-x32": {
     releaseAsset: `fastly_${tag}_linux-386.tar.gz`,
     binaryAsset: "fastly",
     description: "The Linux (32-bit) binary for the Fastly CLI",
@@ -60,7 +60,7 @@ let packages = {
     os: "win32",
     cpu: "x64",
   },
-  "cli-win32-386": {
+  "cli-win32-x32": {
     releaseAsset: `fastly_${tag}_windows-386.tar.gz`,
     binaryAsset: "fastly.exe",
     description: "The Windows (32-bit) binary for the Fastly CLI",
@@ -130,6 +130,19 @@ for (const [packageName, info] of Object.entries(packages)) {
     filter: (file) => parse(file.path).base === info.binaryAsset,
   });
 }
+
+// Generate `optionalDependencies` section in the root package.json
+const rootPackageJsonPath = join(__dirname, "./package.json");
+let rootPackageJson = await readFile(rootPackageJsonPath, "utf8");
+rootPackageJson = JSON.parse(rootPackageJson);
+rootPackageJson["optionalDependencies"] = Object.keys(packages).reduce(
+  (acc, packageName) => {
+    acc[`@fastly/${packageName}`] = `^${tag}`;
+    return acc;
+  },
+  {}
+);
+await writeFile(rootPackageJsonPath, JSON.stringify(rootPackageJson, null, 4));
 
 function indexJs(binaryAsset) {
   return `
