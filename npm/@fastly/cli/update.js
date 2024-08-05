@@ -1,0 +1,163 @@
+#!/usr/bin/env node
+
+import { fileURLToPath } from "node:url";
+import { dirname, join, parse } from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
+import decompress from "decompress";
+import decompressTargz from "decompress-targz";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const input = process.argv.slice(2).at(0);
+const tag = input ? `v${input}` : "dev";
+
+let packages = {
+  "cli-darwin-arm64": {
+    releaseAsset: `fastly_${tag}_darwin-arm64.tar.gz`,
+    binaryAsset: "fastly",
+    description: "The macOS (M-series) binary for the Fastly CLI",
+    os: "darwin",
+    cpu: "arm64",
+  },
+  "cli-darwin-x64": {
+    releaseAsset: `fastly_${tag}_darwin-amd64.tar.gz`,
+    binaryAsset: "fastly",
+    description: "The macOS (Intel) binary for the Fastly CLI",
+    os: "darwin",
+    cpu: "x64",
+  },
+  "cli-linux-arm64": {
+    releaseAsset: `fastly_${tag}_linux-arm64.tar.gz`,
+    binaryAsset: "fastly",
+    description: "The Linux (arm64) binary for the Fastly CLI",
+    os: "linux",
+    cpu: "arm64",
+  },
+  "cli-linux-x64": {
+    releaseAsset: `fastly_${tag}_linux-amd64.tar.gz`,
+    binaryAsset: "fastly",
+    description: "The Linux (64-bit) binary for the Fastly CLI",
+    os: "linux",
+    cpu: "x64",
+  },
+  "cli-linux-386": {
+    releaseAsset: `fastly_${tag}_linux-386.tar.gz`,
+    binaryAsset: "fastly",
+    description: "The Linux (32-bit) binary for the Fastly CLI",
+    os: "linux",
+    cpu: "x32",
+  },
+  "cli-win32-arm64": {
+    releaseAsset: `fastly_${tag}_windows-arm64.tar.gz`,
+    binaryAsset: "fastly.exe",
+    description: "The Windows (arm64) binary for the Fastly CLI",
+    os: "win32",
+    cpu: "arm64",
+  },
+  "cli-win32-x64": {
+    releaseAsset: `fastly_${tag}_windows-amd64.tar.gz`,
+    binaryAsset: "fastly.exe",
+    description: "The Windows (64-bit) binary for the Fastly CLI",
+    os: "win32",
+    cpu: "x64",
+  },
+  "cli-win32-386": {
+    releaseAsset: `fastly_${tag}_windows-386.tar.gz`,
+    binaryAsset: "fastly.exe",
+    description: "The Windows (32-bit) binary for the Fastly CLI",
+    os: "win32",
+    cpu: "x32",
+  },
+};
+
+let response = await fetch(
+  `https://api.github.com/repos/fastly/cli/releases/tags/${tag}`
+);
+if (!response.ok) {
+  console.error(
+    `Response from https://api.github.com/repos/fastly/cli/releases/tags/${tag} was not ok`,
+    response
+  );
+  console.error(await response.text());
+  process.exit(1);
+}
+response = await response.json();
+const id = response.id;
+let assets = await fetch(
+  `https://api.github.com/repos/fastly/cli/releases/${id}/assets`
+);
+if (!assets.ok) {
+  console.error(
+    `Response from https://api.github.com/repos/fastly/cli/releases/${id}/assets was not ok`,
+    assets
+  );
+  console.error(await response.text());
+  process.exit(1);
+}
+assets = await assets.json();
+
+for (const [packageName, info] of Object.entries(packages)) {
+  const asset = assets.find((asset) => asset.name === info.releaseAsset);
+  if (!asset) {
+    console.error(
+      `Can't find an asset named ${info.releaseAsset} for the release https://github.com/fastly/cli/releases/tag/${tag}`
+    );
+    process.exit(1);
+  }
+  const packageDirectory = join(__dirname, "../", packageName.split("/").pop());
+  await mkdir(packageDirectory, { recursive: true });
+  await writeFile(
+    join(packageDirectory, "package.json"),
+    packageJson(packageName, tag, info.description, info.os, info.cpu)
+  );
+  await writeFile(
+    join(packageDirectory, "index.js"),
+    indexJs(info.binaryAsset)
+  );
+  const browser_download_url = asset.browser_download_url;
+  const archive = await fetch(browser_download_url);
+  if (!archive.ok) {
+    console.error(`Response from ${browser_download_url} was not ok`, archive);
+    console.error(await response.text());
+    process.exit(1);
+  }
+  let buf = await archive.arrayBuffer();
+
+  await decompress(Buffer.from(buf), packageDirectory, {
+    // Remove the leading directory from the extracted file.
+    strip: 1,
+    plugins: [decompressTargz()],
+    // Only extract the binary file and nothing else
+    filter: (file) => parse(file.path).base === info.binaryAsset,
+  });
+}
+
+function indexJs(binaryAsset) {
+  return `
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+const __dirname = dirname(fileURLToPath(import.meta.url))
+let location = join(__dirname, '${binaryAsset}')
+export default location
+`;
+}
+function packageJson(name, version, description, os, cpu) {
+  version = version.startsWith("v") ? version.replace("v", "") : version;
+  return JSON.stringify(
+    {
+      name: `@fastly/${name}`,
+      bin: {
+        [name]: "fastly",
+      },
+      type: "module",
+      version,
+      main: "index.js",
+      description,
+      license: "Apache-2.0",
+      preferUnplugged: false,
+      os: [os],
+      cpu: [cpu],
+    },
+    null,
+    4
+  );
+}
