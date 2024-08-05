@@ -2,7 +2,6 @@ package profile_test
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -14,54 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-// Create temp environment to run test code within.
-func createTempEnvironment(t *testing.T) (string, string) {
-	var data []byte
-
-	// Read the test config.toml data
-	path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	data, err = os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create a new test environment along with a test config.toml file.
-	rootdir := testutil.NewEnv(testutil.EnvOpts{
-		T: t,
-		Write: []testutil.FileIO{
-			{Src: string(data), Dst: "config.toml"},
-		},
-	})
-
-	if err := os.Chdir(rootdir); err != nil {
-		t.Fatal(err)
-	}
-
-	return filepath.Join(rootdir, "config.toml"), rootdir
-}
-
 func TestProfileCreate(t *testing.T) {
-	var configPath string
-
-	{
-		var rootdir string
-
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		configPath, rootdir = createTempEnvironment(t)
-		defer os.RemoveAll(rootdir)
-
-		defer func() {
-			_ = os.Chdir(wd)
-		}()
-	}
-
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate profile creation works",
@@ -70,8 +22,20 @@ func TestProfileCreate(t *testing.T) {
 				GetTokenSelfFn: getToken,
 				GetUserFn:      getUser,
 			},
-			ConfigPath: configPath,
-			Stdin:      []string{"some_token"},
+			Stdin: []string{"some_token"},
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			WantOutputs: []string{
 				"Fastly API token:",
 				"Validating token",
@@ -80,10 +44,21 @@ func TestProfileCreate(t *testing.T) {
 			},
 		},
 		{
-			Name:       "validate profile duplication",
-			Arg:        "foo",
-			WantError:  "profile 'foo' already exists",
-			ConfigPath: configPath,
+			Name: "validate profile duplication",
+			Arg:  "foo",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
@@ -93,6 +68,7 @@ func TestProfileCreate(t *testing.T) {
 					},
 				},
 			},
+			WantError: "profile 'foo' already exists",
 		},
 	}
 
@@ -100,30 +76,23 @@ func TestProfileCreate(t *testing.T) {
 }
 
 func TestProfileDelete(t *testing.T) {
-	var configPath string
-
-	{
-		var rootdir string
-
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		configPath, rootdir = createTempEnvironment(t)
-		defer os.RemoveAll(rootdir)
-
-		defer func() {
-			_ = os.Chdir(wd)
-		}()
-	}
-
 	scenarios := []testutil.TestScenario{
 		{
-			Name:       "validate profile deletion works",
-			Arg:        "foo",
-			WantOutput: "Profile 'foo' deleted",
-			ConfigPath: configPath,
+			Name: "validate profile deletion works",
+			Arg:  "foo",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
@@ -133,12 +102,25 @@ func TestProfileDelete(t *testing.T) {
 					},
 				},
 			},
+			WantOutput: "Profile 'foo' deleted",
 		},
 		{
-			Name:       "validate incorrect profile",
-			Arg:        "unknown",
-			ConfigPath: configPath,
-			WantError:  "the specified profile does not exist",
+			Name: "validate incorrect profile",
+			Arg:  "unknown",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			WantError: "the specified profile does not exist",
 		},
 	}
 
@@ -146,33 +128,22 @@ func TestProfileDelete(t *testing.T) {
 }
 
 func TestProfileList(t *testing.T) {
-	var configPath string
-
-	{
-		var rootdir string
-
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		configPath, rootdir = createTempEnvironment(t)
-		defer os.RemoveAll(rootdir)
-
-		defer func() {
-			_ = os.Chdir(wd)
-		}()
-	}
-
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate listing profiles works",
-			WantOutputs: []string{
-				"Default profile highlighted in red.",
-				"foo\n\nDefault: true\nEmail: foo@example.com\nToken: 123",
-				"bar\n\nDefault: false\nEmail: bar@example.com\nToken: 456",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
-			ConfigPath: configPath,
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
@@ -187,10 +158,27 @@ func TestProfileList(t *testing.T) {
 					},
 				},
 			},
+			WantOutputs: []string{
+				"Default profile highlighted in red.",
+				"foo\n\nDefault: true\nEmail: foo@example.com\nToken: 123",
+				"bar\n\nDefault: false\nEmail: bar@example.com\nToken: 456",
+			},
 		},
 		{
-			Name:       "validate no profiles defined",
-			ConfigPath: configPath,
+			Name: "validate no profiles defined",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			ConfigFile: &config.File{},
 			WantError:  "no profiles available",
 		},
@@ -200,43 +188,78 @@ func TestProfileList(t *testing.T) {
 		// are no profiles, then we notify the user no profiles exist.
 		{
 			Name: "validate no profiles available",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{},
+			},
 			WantOutputs: []string{
 				"No profiles defined. To create a profile, run",
 				"fastly profile create <name>",
 			},
-			ConfigPath: configPath,
-			ConfigFile: &config.File{
-				Profiles: config.Profiles{},
-			},
 		},
 		{
 			Name: "validate listing profiles displays warning if no default set",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: false,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
 			WantOutputs: []string{
 				"At least one account profile should be set as the 'default'.",
 				"foo\n\nDefault: false\nEmail: foo@example.com\nToken: 123",
 				"bar\n\nDefault: false\nEmail: bar@example.com\nToken: 456",
 			},
-			ConfigPath: configPath,
-			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: false,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
-					},
-				},
-			},
 		},
 		{
-			Name:       "validate listing profiles with --verbose and --json causes an error",
-			Arg:        "--verbose --json",
-			WantError:  "invalid flag combination, --verbose and --json",
-			ConfigPath: configPath,
+			Name: "validate listing profiles with --verbose and --json causes an error",
+			Arg:  "--verbose --json",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
@@ -251,10 +274,38 @@ func TestProfileList(t *testing.T) {
 					},
 				},
 			},
+			WantError: "invalid flag combination, --verbose and --json",
 		},
 		{
 			Name: "validate listing profiles with --json displays data correctly",
 			Arg:  "--json",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: false,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
 			WantOutput: `{
   "bar": {
     "access_token": "",
@@ -283,21 +334,6 @@ func TestProfileList(t *testing.T) {
     "token": "123"
   }
 }`,
-			ConfigPath: configPath,
-			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: false,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
-					},
-				},
-			},
 		},
 	}
 
@@ -305,36 +341,41 @@ func TestProfileList(t *testing.T) {
 }
 
 func TestProfileSwitch(t *testing.T) {
-	var configPath string
-
-	{
-		var rootdir string
-
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		configPath, rootdir = createTempEnvironment(t)
-		defer os.RemoveAll(rootdir)
-
-		defer func() {
-			_ = os.Chdir(wd)
-		}()
-	}
-
 	scenarios := []testutil.TestScenario{
 		{
-			Name:       "validate switching to unknown profile returns an error",
-			Arg:        "unknown",
-			ConfigPath: configPath,
-			WantError:  "the profile 'unknown' does not exist",
+			Name: "validate switching to unknown profile returns an error",
+			Arg:  "unknown",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			WantError: "the profile 'unknown' does not exist",
 		},
 		{
-			Name:       "validate switching profiles works",
-			Arg:        "bar",
-			WantOutput: "Profile switched to 'bar'",
-			ConfigPath: configPath,
+			Name: "validate switching profiles works",
+			Arg:  "bar",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
@@ -349,6 +390,7 @@ func TestProfileSwitch(t *testing.T) {
 					},
 				},
 			},
+			WantOutput: "Profile switched to 'bar'",
 		},
 	}
 
@@ -356,29 +398,54 @@ func TestProfileSwitch(t *testing.T) {
 }
 
 func TestProfileToken(t *testing.T) {
-	var configPath string
-
-	{
-		var rootdir string
-
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		configPath, rootdir = createTempEnvironment(t)
-		defer os.RemoveAll(rootdir)
-
-		defer func() {
-			_ = os.Chdir(wd)
-		}()
-	}
-
 	scenarios := []testutil.TestScenario{
 		{
-			Name:       "validate the active profile token is displayed by default",
+			Name: "validate the active profile token is displayed by default",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: true,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
 			WantOutput: "123",
-			ConfigPath: configPath,
+		},
+		{
+			Name: "validate token is displayed for the specified profile",
+			Arg:  "bar", // we choose a non-default profile
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
@@ -393,12 +460,24 @@ func TestProfileToken(t *testing.T) {
 					},
 				},
 			},
-		},
-		{
-			Name:       "validate token is displayed for the specified profile",
-			Arg:        "bar", // we choose a non-default profile
 			WantOutput: "456",
-			ConfigPath: configPath,
+		},
+		{
+			Name: "validate token is displayed for the specified profile using global --profile",
+			Arg:  "--profile bar", // we choose a non-default profile
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
@@ -413,32 +492,25 @@ func TestProfileToken(t *testing.T) {
 					},
 				},
 			},
-		},
-		{
-			Name:       "validate token is displayed for the specified profile using global --profile",
-			Arg:        "--profile bar", // we choose a non-default profile
 			WantOutput: "456",
-			ConfigPath: configPath,
-			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
-					},
-				},
-			},
 		},
 		{
-			Name:       "validate an unrecognised profile causes an error",
-			Arg:        "unknown",
-			WantError:  "profile 'unknown' does not exist",
-			ConfigPath: configPath,
+			Name: "validate an unrecognised profile causes an error",
+			Arg:  "unknown",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			WantError: "profile 'unknown' does not exist",
 		},
 	}
 
@@ -446,30 +518,24 @@ func TestProfileToken(t *testing.T) {
 }
 
 func TestProfileUpdate(t *testing.T) {
-	var configPath string
-
-	{
-		var rootdir string
-
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		configPath, rootdir = createTempEnvironment(t)
-		defer os.RemoveAll(rootdir)
-
-		defer func() {
-			_ = os.Chdir(wd)
-		}()
-	}
-
 	scenarios := []testutil.TestScenario{
 		{
-			Name:       "validate updating unknown profile returns an error",
-			Arg:        "unknown",
-			ConfigPath: configPath,
-			WantError:  "the profile 'unknown' does not exist",
+			Name: "validate updating unknown profile returns an error",
+			Arg:  "unknown",
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			WantError: "the profile 'unknown' does not exist",
 		},
 		{
 			Name: "validate updating profile works",
@@ -478,8 +544,19 @@ func TestProfileUpdate(t *testing.T) {
 				GetTokenSelfFn: getToken,
 				GetUserFn:      getUser,
 			},
-			WantOutput: "Profile 'bar' updated",
-			ConfigPath: configPath,
+			NewEnv: &testutil.NewEnvConfig{
+				EnvOpts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
@@ -499,6 +576,7 @@ func TestProfileUpdate(t *testing.T) {
 				"",  // we skip updating the token
 				"y", // we set the profile to be the default
 			},
+			WantOutput: "Profile 'bar' updated",
 		},
 	}
 
