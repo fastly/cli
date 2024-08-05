@@ -18,7 +18,7 @@ let packages = {
     os: "darwin",
     cpu: "arm64",
   },
-  "cli-darwin-x32": {
+  "cli-darwin-x64": {
     releaseAsset: `fastly_${tag}_darwin-amd64.tar.gz`,
     binaryAsset: "fastly",
     description: "The macOS (Intel) binary for the Fastly CLI",
