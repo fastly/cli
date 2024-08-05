@@ -17,16 +17,7 @@
     "bin": {
         "fastly": "./fastly.js"
     },
-    "optionalDependencies": {
-        "@fastly/cli-darwin-arm64": "^v10.12.3",
-        "@fastly/cli-darwin-x32": "^v10.12.3",
-        "@fastly/cli-linux-arm64": "^v10.12.3",
-        "@fastly/cli-linux-x64": "^v10.12.3",
-        "@fastly/cli-linux-x32": "^v10.12.3",
-        "@fastly/cli-win32-arm64": "^v10.12.3",
-        "@fastly/cli-win32-x64": "^v10.12.3",
-        "@fastly/cli-win32-x32": "^v10.12.3"
-    },
+    "optionalDependencies": {},
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
