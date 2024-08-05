@@ -186,6 +186,11 @@ func Exec(data *global.Data) error {
 		return err
 	}
 
+	// Check for --json flag early and set quiet mode if found.
+	if slices.Contains(data.Args, "--json") {
+		data.Flags.Quiet = true
+	}
+
 	// We short-circuit the execution for specific cases:
 	//
 	// - argparser.ArgsIsHelpJSON() == true
@@ -200,7 +205,7 @@ func Exec(data *global.Data) error {
 	}
 
 	metadataDisable, _ := strconv.ParseBool(data.Env.WasmMetadataDisable)
-	if !slices.Contains(data.Args, "--metadata-disable") && !metadataDisable && !data.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) {
+	if !slices.Contains(data.Args, "--metadata-disable") && !metadataDisable && !data.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) && !data.Flags.Quiet {
 		text.Important(data.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about what data is being collected, why, and how to disable it: https://www.fastly.com/documentation/reference/cli")
 		text.Break(data.Output)
 		data.Config.CLI.MetadataNoticeDisplayed = true
