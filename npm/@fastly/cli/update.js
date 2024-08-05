@@ -137,7 +137,7 @@ let rootPackageJson = await readFile(rootPackageJsonPath, "utf8");
 rootPackageJson = JSON.parse(rootPackageJson);
 rootPackageJson["optionalDependencies"] = Object.keys(packages).reduce(
   (acc, packageName) => {
-    acc[`@fastly/${packageName}`] = `=${tag}`;
+    acc[`@fastly/${packageName}`] = `=${tag.substring(1)}`;
     return acc;
   },
   {}
