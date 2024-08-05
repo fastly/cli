@@ -10,8 +10,6 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const ()
-
 func TestRateLimitCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{

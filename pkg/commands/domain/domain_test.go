@@ -13,8 +13,6 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const ()
-
 func TestDomainCreate(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{

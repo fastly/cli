@@ -14,8 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const ()
-
 // Create temp environment to run test code within.
 func createTempEnvironment(t *testing.T) (string, string) {
 	var data []byte
