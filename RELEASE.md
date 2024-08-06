@@ -18,11 +18,15 @@ Each release of the Fastly CLI will trigger the creation of a new version of the
 
 To see an example of the module layout, run...
 
+```sh
 $ npm install @fastly/cli-darwin-arm64 --verbose
+```
 
 Next, run...
 
+```sh
 $ ls node_modules/@fastly/cli-darwin-arm64
+```
 
 You should see a `fastly` executable binary as well as an `index.js` shim which allows the package to be imported as a module by other JavaScript projects.
 
