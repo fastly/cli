@@ -34,7 +34,7 @@ func TestMetadata(t *testing.T) {
 				},
 			},
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "metadata", "config.toml"),
@@ -67,7 +67,7 @@ func TestMetadata(t *testing.T) {
 		{
 			Arg: "--disable",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "metadata", "config.toml"),
@@ -100,7 +100,7 @@ func TestMetadata(t *testing.T) {
 		{
 			Arg: "--enable --disable-build",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "metadata", "config.toml"),
@@ -136,7 +136,7 @@ func TestMetadata(t *testing.T) {
 		{
 			Arg: "--disable --enable-machine",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "metadata", "config.toml"),

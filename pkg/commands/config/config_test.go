@@ -26,7 +26,7 @@ func TestConfig(t *testing.T) {
 		{
 			Name: "validate config file content is displayed",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Write: []testutil.FileIO{
 						{Src: string(data), Dst: "config.toml"},
 					},
@@ -41,7 +41,7 @@ func TestConfig(t *testing.T) {
 			Name: "validate config location is displayed",
 			Arg:  "--location",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Write: []testutil.FileIO{
 						{Src: string(data), Dst: "config.toml"},
 					},

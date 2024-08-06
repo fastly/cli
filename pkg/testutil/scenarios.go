@@ -76,7 +76,7 @@ type PathContentFlag struct {
 // environment, and optionally a function to run which accepts the
 // environment directory and can modify fields in the TestScenario
 type EnvConfig struct {
-	EnvOpts      *EnvOpts
+	Opts *EnvOpts
 	// EditScenario holds a function which will be called after
 	// the temporary environment has been created but before the
 	// scenario setup (and execution) begin; it can make any
@@ -114,8 +114,8 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 			}
 
 			// Create test environment
-			scenario.Env.EnvOpts.T = t
-			rootdir = NewEnv(*scenario.Env.EnvOpts)
+			scenario.Env.Opts.T = t
+			rootdir = NewEnv(*scenario.Env.Opts)
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.

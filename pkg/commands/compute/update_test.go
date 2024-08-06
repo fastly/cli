@@ -21,7 +21,7 @@ func TestUpdate(t *testing.T) {
 				UpdatePackageFn: updatePackageError,
 			},
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),
@@ -44,7 +44,7 @@ func TestUpdate(t *testing.T) {
 				UpdatePackageFn: updatePackageOk,
 			},
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),

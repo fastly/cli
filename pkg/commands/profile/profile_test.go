@@ -24,7 +24,7 @@ func TestProfileCreate(t *testing.T) {
 			},
 			Stdin: []string{"some_token"},
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -47,7 +47,7 @@ func TestProfileCreate(t *testing.T) {
 			Name: "validate profile duplication",
 			Arg:  "foo",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -81,7 +81,7 @@ func TestProfileDelete(t *testing.T) {
 			Name: "validate profile deletion works",
 			Arg:  "foo",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -108,7 +108,7 @@ func TestProfileDelete(t *testing.T) {
 			Name: "validate incorrect profile",
 			Arg:  "unknown",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -132,7 +132,7 @@ func TestProfileList(t *testing.T) {
 		{
 			Name: "validate listing profiles works",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -167,7 +167,7 @@ func TestProfileList(t *testing.T) {
 		{
 			Name: "validate no profiles defined",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -189,7 +189,7 @@ func TestProfileList(t *testing.T) {
 		{
 			Name: "validate no profiles available",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -212,7 +212,7 @@ func TestProfileList(t *testing.T) {
 		{
 			Name: "validate listing profiles displays warning if no default set",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -248,7 +248,7 @@ func TestProfileList(t *testing.T) {
 			Name: "validate listing profiles with --verbose and --json causes an error",
 			Arg:  "--verbose --json",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -280,7 +280,7 @@ func TestProfileList(t *testing.T) {
 			Name: "validate listing profiles with --json displays data correctly",
 			Arg:  "--json",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -346,7 +346,7 @@ func TestProfileSwitch(t *testing.T) {
 			Name: "validate switching to unknown profile returns an error",
 			Arg:  "unknown",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -364,7 +364,7 @@ func TestProfileSwitch(t *testing.T) {
 			Name: "validate switching profiles works",
 			Arg:  "bar",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -402,7 +402,7 @@ func TestProfileToken(t *testing.T) {
 		{
 			Name: "validate the active profile token is displayed by default",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -434,7 +434,7 @@ func TestProfileToken(t *testing.T) {
 			Name: "validate token is displayed for the specified profile",
 			Arg:  "bar", // we choose a non-default profile
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -466,7 +466,7 @@ func TestProfileToken(t *testing.T) {
 			Name: "validate token is displayed for the specified profile using global --profile",
 			Arg:  "--profile bar", // we choose a non-default profile
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -498,7 +498,7 @@ func TestProfileToken(t *testing.T) {
 			Name: "validate an unrecognised profile causes an error",
 			Arg:  "unknown",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -523,7 +523,7 @@ func TestProfileUpdate(t *testing.T) {
 			Name: "validate updating unknown profile returns an error",
 			Arg:  "unknown",
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
@@ -545,7 +545,7 @@ func TestProfileUpdate(t *testing.T) {
 				GetUserFn:      getUser,
 			},
 			Env: &testutil.EnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "config.toml"),
