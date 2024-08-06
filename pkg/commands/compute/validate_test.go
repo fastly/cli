@@ -13,7 +13,7 @@ func TestValidate(t *testing.T) {
 		{
 			Name: "success",
 			Arg:  "--package pkg/package.tar.gz",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{

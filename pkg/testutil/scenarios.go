@@ -16,36 +16,51 @@ import (
 )
 
 // TestScenario represents a standard test case to be validated.
+//
+// Most of the fields in this struct are optional; if they are not
+// provided RunScenario will not apply the behavior indicated for
+// those fields.
 type TestScenario struct {
+	// API is a mock API implementation which can be used by the
+	// command under test
 	API mock.API
+	// Arg is the input arguments for the command to execute (not
+	// including the command names themselves).
 	Arg string
-	// FIXME: remove once all users are using RunScenario() or RunScenarios()
+	// Args is the input arguments for the command to execute.
+	// DEPRECATED: Args will be removed once all users are using
+	// RunScenario() or RunScenarios().
 	Args []string
-	// this will be copied into global.Data.ConfigPath
+	// ConfigPath will be copied into global.Data.ConfigPath
 	ConfigPath string
-	// this will be copied into global.Data.ConfigFile
+	// ConfigFile will be copied into global.Data.ConfigFile
 	ConfigFile *config.File
-	// fail the scenario if this string appears in stdout
+	// DontWantOutput will cause the scenario to fail if the
+	// string appears in stdout
 	DontWantOutput string
-	// fail the scenario if any of these strings appear in stdout
+	// DontWantOutputs will cause the scenario to fail if any of
+	// the strings appear in stdout
 	DontWantOutputs []string
-	// scenario name (appears in output when tests are executed)
-	Name string
-	// if this is supplied, NewEnv will be used to create a temporary environment
-	// for the scenario
-	NewEnv          *NewEnvConfig
+	Env             *EnvConfig
+	// EnvVars contains environment variables which will be set
+	// during the execution of the scenario
+	EnvVars map[string]string
+	// Name appears in output when tests are executed
+	Name            string
 	PathContentFlag *PathContentFlag
-	// set one (or more) environment variables during the scenario's execution
-	SetEnv *map[string]string
-	// input to be read by the application
+	// Stdin contains input to be read by the application
 	Stdin []string
-	// this function can perform additional validation on the results of the scenario
-	Validator func(t *testing.T, scenario *TestScenario, opts *global.Data, err error, stdout bytes.Buffer)
-	// fail the scenario if this string does not appear in an Error
+	// Validator function can perform additional validation on the
+	// results of the scenario
+	Validator func(t *testing.T, scenario *TestScenario, opts *global.Data, stdout bytes.Buffer)
+	// WantError will cause the scenario to fail if this string
+	// does not appear in an Error
 	WantError string
-	// fail the scenario if this string does not appear in stdout
+	// WantOutput will cause the scenario to fail if this string
+	// does not appear in stdout
 	WantOutput string
-	// fail the scenario if any of these strings do not appear in stdout
+	// WantOutputs will cause the scenario to fail if any of the
+	// strings do not appear in stdout
 	WantOutputs []string
 }
 
@@ -57,11 +72,15 @@ type PathContentFlag struct {
 	Content func() string
 }
 
-// NewEnvConfig provides the details required to setup a temporary test
+// EnvConfig provides the details required to setup a temporary test
 // environment, and optionally a function to run which accepts the
 // environment directory and can modify fields in the TestScenario
-type NewEnvConfig struct {
+type EnvConfig struct {
 	EnvOpts      *EnvOpts
+	// EditScenario holds a function which will be called after
+	// the temporary environment has been created but before the
+	// scenario setup (and execution) begin; it can make any
+	// modifications to the TestScenario that are needed
 	EditScenario func(*TestScenario, string)
 }
 
@@ -86,7 +105,7 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 		opts := MockGlobalData(fullargs, &stdout)
 		opts.APIClientFactory = mock.APIClient(scenario.API)
 
-		if scenario.NewEnv != nil {
+		if scenario.Env != nil {
 			// We're going to chdir to a deploy environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
@@ -95,8 +114,8 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 			}
 
 			// Create test environment
-			scenario.NewEnv.EnvOpts.T = t
-			rootdir = NewEnv(*scenario.NewEnv.EnvOpts)
+			scenario.Env.EnvOpts.T = t
+			rootdir = NewEnv(*scenario.Env.EnvOpts)
 			defer os.RemoveAll(rootdir)
 
 			// Before running the test, chdir into the build environment.
@@ -109,8 +128,8 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 				_ = os.Chdir(pwd)
 			}()
 
-			if scenario.NewEnv.EditScenario != nil {
-				scenario.NewEnv.EditScenario(&scenario, rootdir)
+			if scenario.Env.EditScenario != nil {
+				scenario.Env.EditScenario(&scenario, rootdir)
 			}
 		}
 
@@ -122,8 +141,8 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 			opts.Config = *scenario.ConfigFile
 		}
 
-		if scenario.SetEnv != nil {
-			for key, value := range *scenario.SetEnv {
+		if scenario.EnvVars != nil {
+			for key, value := range scenario.EnvVars {
 				if err := os.Setenv(key, value); err != nil {
 					t.Fatal(err)
 				}
@@ -208,7 +227,7 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 		}
 
 		if scenario.Validator != nil {
-			scenario.Validator(t, &scenario, opts, err, stdout)
+			scenario.Validator(t, &scenario, opts, stdout)
 		}
 	})
 }

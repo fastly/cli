@@ -23,7 +23,7 @@ func TestProfileCreate(t *testing.T) {
 				GetUserFn:      getUser,
 			},
 			Stdin: []string{"some_token"},
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -46,7 +46,7 @@ func TestProfileCreate(t *testing.T) {
 		{
 			Name: "validate profile duplication",
 			Arg:  "foo",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -80,7 +80,7 @@ func TestProfileDelete(t *testing.T) {
 		{
 			Name: "validate profile deletion works",
 			Arg:  "foo",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -107,7 +107,7 @@ func TestProfileDelete(t *testing.T) {
 		{
 			Name: "validate incorrect profile",
 			Arg:  "unknown",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -131,7 +131,7 @@ func TestProfileList(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate listing profiles works",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -166,7 +166,7 @@ func TestProfileList(t *testing.T) {
 		},
 		{
 			Name: "validate no profiles defined",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -188,7 +188,7 @@ func TestProfileList(t *testing.T) {
 		// are no profiles, then we notify the user no profiles exist.
 		{
 			Name: "validate no profiles available",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -211,7 +211,7 @@ func TestProfileList(t *testing.T) {
 		},
 		{
 			Name: "validate listing profiles displays warning if no default set",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -247,7 +247,7 @@ func TestProfileList(t *testing.T) {
 		{
 			Name: "validate listing profiles with --verbose and --json causes an error",
 			Arg:  "--verbose --json",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -279,7 +279,7 @@ func TestProfileList(t *testing.T) {
 		{
 			Name: "validate listing profiles with --json displays data correctly",
 			Arg:  "--json",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -345,7 +345,7 @@ func TestProfileSwitch(t *testing.T) {
 		{
 			Name: "validate switching to unknown profile returns an error",
 			Arg:  "unknown",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -363,7 +363,7 @@ func TestProfileSwitch(t *testing.T) {
 		{
 			Name: "validate switching profiles works",
 			Arg:  "bar",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -401,7 +401,7 @@ func TestProfileToken(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{
 			Name: "validate the active profile token is displayed by default",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -433,7 +433,7 @@ func TestProfileToken(t *testing.T) {
 		{
 			Name: "validate token is displayed for the specified profile",
 			Arg:  "bar", // we choose a non-default profile
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -465,7 +465,7 @@ func TestProfileToken(t *testing.T) {
 		{
 			Name: "validate token is displayed for the specified profile using global --profile",
 			Arg:  "--profile bar", // we choose a non-default profile
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -497,7 +497,7 @@ func TestProfileToken(t *testing.T) {
 		{
 			Name: "validate an unrecognised profile causes an error",
 			Arg:  "unknown",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -522,7 +522,7 @@ func TestProfileUpdate(t *testing.T) {
 		{
 			Name: "validate updating unknown profile returns an error",
 			Arg:  "unknown",
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -544,7 +544,7 @@ func TestProfileUpdate(t *testing.T) {
 				GetTokenSelfFn: getToken,
 				GetUserFn:      getUser,
 			},
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{

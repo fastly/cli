@@ -20,7 +20,7 @@ func TestUpdate(t *testing.T) {
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageError,
 			},
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -43,7 +43,7 @@ func TestUpdate(t *testing.T) {
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageOk,
 			},
-			NewEnv: &testutil.NewEnvConfig{
+			Env: &testutil.EnvConfig{
 				EnvOpts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
