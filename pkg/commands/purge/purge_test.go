@@ -11,8 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const ()
-
 func TestPurgeAll(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{

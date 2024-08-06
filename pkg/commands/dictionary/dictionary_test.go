@@ -12,8 +12,6 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-const ()
-
 func TestDictionaryDescribe(t *testing.T) {
 	scenarios := []testutil.TestScenario{
 		{

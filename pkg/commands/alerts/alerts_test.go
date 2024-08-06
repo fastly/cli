@@ -11,8 +11,6 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 )
 
-const ()
-
 func TestAlertsCreate(t *testing.T) {
 	var createFlags = flagList{
 		Flags: []flag{

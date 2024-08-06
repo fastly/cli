@@ -19,19 +19,34 @@ import (
 type TestScenario struct {
 	API mock.API
 	Arg string
-	// will be removed once all users are using RunScenarios()
-	Args            []string
-	ConfigPath      string
-	ConfigFile      *config.File
-	DontWantOutput  string
+	// FIXME: remove once all users are using RunScenario() or RunScenarios()
+	Args []string
+	// this will be copied into global.Data.ConfigPath
+	ConfigPath string
+	// this will be copied into global.Data.ConfigFile
+	ConfigFile *config.File
+	// fail the scenario if this string appears in stdout
+	DontWantOutput string
+	// fail the scenario if any of these strings appear in stdout
 	DontWantOutputs []string
-	Name            string
-	Stdin           []string
-	WantError       string
-	WantOutput      string
-	WantOutputs     []string
+	// scenario name (appears in output when tests are executed)
+	Name string
+	// if this is supplied, NewEnv will be used to create a temporary environment
+	// for the scenario
+	NewEnv          *NewEnvConfig
 	PathContentFlag *PathContentFlag
-	SetEnv          *map[string]string
+	// set one (or more) environment variables during the scenario's execution
+	SetEnv *map[string]string
+	// input to be read by the application
+	Stdin []string
+	// this function can perform additional validation on the results of the scenario
+	Validator func(t *testing.T, scenario *TestScenario, opts *global.Data, err error, stdout bytes.Buffer)
+	// fail the scenario if this string does not appear in an Error
+	WantError string
+	// fail the scenario if this string does not appear in stdout
+	WantOutput string
+	// fail the scenario if any of these strings do not appear in stdout
+	WantOutputs []string
 }
 
 // PathContentFlag provides the details required to validate that a
@@ -42,14 +57,23 @@ type PathContentFlag struct {
 	Content func() string
 }
 
+// NewEnvConfig provides the details required to setup a temporary test
+// environment, and optionally a function to run which accepts the
+// environment directory and can modify fields in the TestScenario
+type NewEnvConfig struct {
+	EnvOpts      *EnvOpts
+	EditScenario func(*TestScenario, string)
+}
+
 // RunScenario executes a TestScenario struct.
-// The Args field of the scenario is prepended with the content of the 'command'
+// The Arg field of the scenario is prepended with the content of the 'command'
 // slice passed in to construct the complete command to be executed.
 func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 	t.Run(scenario.Name, func(t *testing.T) {
 		var (
 			err      error
 			fullargs []string
+			rootdir  string
 			stdout   bytes.Buffer
 		)
 
@@ -61,6 +85,34 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 
 		opts := MockGlobalData(fullargs, &stdout)
 		opts.APIClientFactory = mock.APIClient(scenario.API)
+
+		if scenario.NewEnv != nil {
+			// We're going to chdir to a deploy environment,
+			// so save the PWD to return to, afterwards.
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Create test environment
+			scenario.NewEnv.EnvOpts.T = t
+			rootdir = NewEnv(*scenario.NewEnv.EnvOpts)
+			defer os.RemoveAll(rootdir)
+
+			// Before running the test, chdir into the build environment.
+			// When we're done, chdir back to our original location.
+			// This is so we can reliably copy the testdata/ fixtures.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
+
+			if scenario.NewEnv.EditScenario != nil {
+				scenario.NewEnv.EditScenario(&scenario, rootdir)
+			}
+		}
 
 		if len(scenario.ConfigPath) > 0 {
 			opts.ConfigPath = scenario.ConfigPath
@@ -154,12 +206,14 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 			pcf := *scenario.PathContentFlag
 			AssertPathContentFlag(pcf.Flag, scenario.WantError, fullargs, pcf.Fixture, pcf.Content(), t)
 		}
+
+		if scenario.Validator != nil {
+			scenario.Validator(t, &scenario, opts, err, stdout)
+		}
 	})
 }
 
-// RunScenarios executes one (or more) TestScenario structs from the slice passed in.
-// The Args field of each scenario is prepended with the content of the 'command'
-// slice passed in to construct the complete command to be executed.
+// RunScenarios executes the TestScenario structs from the slice passed in.
 func RunScenarios(t *testing.T, command []string, scenarios []TestScenario) {
 	for _, scenario := range scenarios {
 		RunScenario(t, command, scenario)
