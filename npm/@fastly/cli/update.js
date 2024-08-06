@@ -10,64 +10,64 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const input = process.argv.slice(2).at(0);
 const tag = input ? `v${input}` : "dev";
 
-let packages = {
-  "cli-darwin-arm64": {
+let packages = [
+  {
     releaseAsset: `fastly_${tag}_darwin-arm64.tar.gz`,
     binaryAsset: "fastly",
     description: "The macOS (M-series) binary for the Fastly CLI",
     os: "darwin",
     cpu: "arm64",
   },
-  "cli-darwin-x64": {
+  {
     releaseAsset: `fastly_${tag}_darwin-amd64.tar.gz`,
     binaryAsset: "fastly",
     description: "The macOS (Intel) binary for the Fastly CLI",
     os: "darwin",
     cpu: "x64",
   },
-  "cli-linux-arm64": {
+  {
     releaseAsset: `fastly_${tag}_linux-arm64.tar.gz`,
     binaryAsset: "fastly",
     description: "The Linux (arm64) binary for the Fastly CLI",
     os: "linux",
     cpu: "arm64",
   },
-  "cli-linux-x64": {
+  {
     releaseAsset: `fastly_${tag}_linux-amd64.tar.gz`,
     binaryAsset: "fastly",
     description: "The Linux (64-bit) binary for the Fastly CLI",
     os: "linux",
     cpu: "x64",
   },
-  "cli-linux-x32": {
+  {
     releaseAsset: `fastly_${tag}_linux-386.tar.gz`,
     binaryAsset: "fastly",
     description: "The Linux (32-bit) binary for the Fastly CLI",
     os: "linux",
     cpu: "x32",
   },
-  "cli-win32-arm64": {
+  {
     releaseAsset: `fastly_${tag}_windows-arm64.tar.gz`,
     binaryAsset: "fastly.exe",
     description: "The Windows (arm64) binary for the Fastly CLI",
     os: "win32",
     cpu: "arm64",
   },
-  "cli-win32-x64": {
+  {
     releaseAsset: `fastly_${tag}_windows-amd64.tar.gz`,
     binaryAsset: "fastly.exe",
     description: "The Windows (64-bit) binary for the Fastly CLI",
     os: "win32",
     cpu: "x64",
   },
-  "cli-win32-x32": {
+  {
     releaseAsset: `fastly_${tag}_windows-386.tar.gz`,
     binaryAsset: "fastly.exe",
     description: "The Windows (32-bit) binary for the Fastly CLI",
     os: "win32",
     cpu: "x32",
   },
-};
+];
 
 let response = await fetch(
   `https://api.github.com/repos/fastly/cli/releases/tags/${tag}`
@@ -95,7 +95,10 @@ if (!assets.ok) {
 }
 assets = await assets.json();
 
-for (const [packageName, info] of Object.entries(packages)) {
+let generatedPackages = [];
+
+for (const info of packages) {
+  const packageName = `cli-${info.os}-${info.cpu}`;
   const asset = assets.find((asset) => asset.name === info.releaseAsset);
   if (!asset) {
     console.error(
@@ -113,6 +116,7 @@ for (const [packageName, info] of Object.entries(packages)) {
     join(packageDirectory, "index.js"),
     indexJs(info.binaryAsset)
   );
+  generatedPackages.push(packageName);
   const browser_download_url = asset.browser_download_url;
   const archive = await fetch(browser_download_url);
   if (!archive.ok) {
@@ -135,7 +139,7 @@ for (const [packageName, info] of Object.entries(packages)) {
 const rootPackageJsonPath = join(__dirname, "./package.json");
 let rootPackageJson = await readFile(rootPackageJsonPath, "utf8");
 rootPackageJson = JSON.parse(rootPackageJson);
-rootPackageJson["optionalDependencies"] = Object.keys(packages).reduce(
+rootPackageJson["optionalDependencies"] = generatedPackages.reduce(
   (acc, packageName) => {
     acc[`@fastly/${packageName}`] = `=${tag.substring(1)}`;
     return acc;
