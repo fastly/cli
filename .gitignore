@@ -70,3 +70,6 @@ pkg/config/config.toml
 # Ignore commitlint tool
 commitlint.config.js
 callvis.svg
+
+# Ignore generated npm packages
+npm/@fastly/cli-*/

@@ -12,6 +12,24 @@
 1. Copy/paste CHANGELOG into the [draft release](https://github.com/fastly/cli/releases).
 1. Publish draft release.
 
+## Creation of npm modules
+
+Each release of the Fastly CLI will trigger the creation of a new version of the `@fastly/cli` npm module, as well as multiple per-platform modules (e.g. `@fastly/cli-darwin-arm64`). The root module (`@fastly/cli`) depends on the platform-specific modules as `optionalDependencies` so that npm will only install the compatible platform-specific package.
+
+To see an example of the module layout, run...
+
+```sh
+$ npm install @fastly/cli-darwin-arm64 --verbose
+```
+
+Next, run...
+
+```sh
+$ ls node_modules/@fastly/cli-darwin-arm64
+```
+
+You should see a `fastly` executable binary as well as an `index.js` shim which allows the package to be imported as a module by other JavaScript projects.
+
 ## Footnotes
 
 1. <a name="note1"></a>We utilize [semantic versioning](https://semver.org/) and only include relevant/significant changes within the CHANGELOG (be sure to document changes to the app config if `config_version` has changed, and if any breaking interface changes are made to the fastly.toml manifest those should be documented on https://fastly.com/documentation/developers).
