@@ -13,8 +13,8 @@ func TestValidate(t *testing.T) {
 		{
 			Name: "success",
 			Arg:  "--package pkg/package.tar.gz",
-			NewEnv: &testutil.NewEnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),

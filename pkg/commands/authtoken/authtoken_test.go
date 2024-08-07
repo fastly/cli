@@ -213,7 +213,7 @@ func TestAuthTokenList(t *testing.T) {
 				ListCustomerTokensFn: listCustomerTokens,
 			},
 			WantOutput: listTokenOutputSummary(true),
-			SetEnv:     &map[string]string{"FASTLY_CUSTOMER_ID": "123"},
+			EnvVars:    map[string]string{"FASTLY_CUSTOMER_ID": "123"},
 		},
 		{
 			Name: "validate --verbose flag",

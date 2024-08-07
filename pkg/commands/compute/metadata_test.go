@@ -33,8 +33,8 @@ func TestMetadata(t *testing.T) {
 					Version: revision.SemVer(revision.AppVersion),
 				},
 			},
-			NewEnv: &testutil.NewEnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "metadata", "config.toml"),
@@ -47,7 +47,7 @@ func TestMetadata(t *testing.T) {
 				},
 			},
 			WantOutput: "SUCCESS: configuration updated",
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ error, _ bytes.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ bytes.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -66,8 +66,8 @@ func TestMetadata(t *testing.T) {
 		},
 		{
 			Arg: "--disable",
-			NewEnv: &testutil.NewEnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "metadata", "config.toml"),
@@ -80,7 +80,7 @@ func TestMetadata(t *testing.T) {
 				},
 			},
 			WantOutput: "SUCCESS: configuration updated",
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ error, _ bytes.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ bytes.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -99,8 +99,8 @@ func TestMetadata(t *testing.T) {
 		},
 		{
 			Arg: "--enable --disable-build",
-			NewEnv: &testutil.NewEnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "metadata", "config.toml"),
@@ -116,7 +116,7 @@ func TestMetadata(t *testing.T) {
 				"INFO: We will enable all metadata except for the specified `--disable-*` flags",
 				"SUCCESS: configuration updated",
 			},
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ error, _ bytes.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ bytes.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -135,8 +135,8 @@ func TestMetadata(t *testing.T) {
 		},
 		{
 			Arg: "--disable --enable-machine",
-			NewEnv: &testutil.NewEnvConfig{
-				EnvOpts: &testutil.EnvOpts{
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
 							Src: filepath.Join("testdata", "metadata", "config.toml"),
@@ -152,7 +152,7 @@ func TestMetadata(t *testing.T) {
 				"INFO: We will disable all metadata except for the specified `--enable-*` flags",
 				"SUCCESS: configuration updated",
 			},
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ error, _ bytes.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ bytes.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
