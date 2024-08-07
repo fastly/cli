@@ -377,6 +377,10 @@ var listBackendsJSONOutput = strings.TrimSpace(`
     "ServiceID": "123",
     "ServiceVersion": 1,
     "Shield": null,
+    "TCPKeepAliveEnable": null,
+    "TCPKeepAliveIntvl": null,
+    "TCPKeepAliveProbes": null,
+    "TCPKeepAliveTime": null,
     "UpdatedAt": null,
     "UseSSL": null,
     "Weight": null
@@ -412,6 +416,10 @@ var listBackendsJSONOutput = strings.TrimSpace(`
     "ServiceID": "123",
     "ServiceVersion": 1,
     "Shield": null,
+    "TCPKeepAliveEnable": null,
+    "TCPKeepAliveIntvl": null,
+    "TCPKeepAliveProbes": null,
+    "TCPKeepAliveTime": null,
     "UpdatedAt": null,
     "UseSSL": null,
     "Weight": null
@@ -456,6 +464,11 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		Min TLS version: ",
 	"		Max TLS version: ",
 	"		SSL ciphers: ",
+	"		HTTP KeepAlive Timeout: 0",
+	"		TCP KeepAlive Enabled:",
+	"		TCP KeepAlive Interval: 0",
+	"		TCP KeepAlive Probes: 0",
+	"		TCP KeepAlive Timeout: 0",
 	"	Backend 2/2",
 	"		Name: example.com",
 	"		Comment: example",
@@ -480,6 +493,11 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		Min TLS version: ",
 	"		Max TLS version: ",
 	"		SSL ciphers: ",
+	"		HTTP KeepAlive Timeout: 0",
+	"		TCP KeepAlive Enabled:",
+	"		TCP KeepAlive Interval: 0",
+	"		TCP KeepAlive Probes: 0",
+	"		TCP KeepAlive Timeout: 0",
 }, "\n") + "\n\n"
 
 func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
@@ -523,6 +541,11 @@ var describeBackendOutput = strings.Join([]string{
 	"Min TLS version: ",
 	"Max TLS version: ",
 	"SSL ciphers: ",
+	"HTTP KeepAlive Timeout: 0",
+	"TCP KeepAlive Enabled:",
+	"TCP KeepAlive Interval: 0",
+	"TCP KeepAlive Probes: 0",
+	"TCP KeepAlive Timeout: 0",
 }, "\n") + "\n"
 
 func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
