@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/thirdparty/optional"
 )
 
 // Command is an interface that abstracts over all of the concrete command
@@ -108,7 +109,14 @@ type OptionalFloat64 struct {
 // ServiceDetailsOpts provides data and behaviours required by the
 // ServiceDetails function.
 type ServiceDetailsOpts struct {
-	AllowActiveLocked  bool
+	// Active controls whether active serviceversions will be included in the result;
+	// if this is Empty, then the 'active' state of the version is ignored;
+	// otherwise, the 'active' state must match the value
+	Active optional.Optional[bool]
+	// Locked controls whether locked serviceversions will be included in the result;
+	// if this is Empty, then the 'locked' state of the version is ignored;
+	// otherwise, the 'locked' state must match the value
+	Locked             optional.Optional[bool]
 	AutoCloneFlag      OptionalAutoClone
 	APIClient          api.Interface
 	Manifest           manifest.Data
@@ -140,14 +148,41 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 		if err != nil {
 			return serviceID, currentVersion, err
 		}
-	} else if !opts.AllowActiveLocked && (fastly.ToValue(v.Active) || fastly.ToValue(v.Locked)) {
+		return serviceID, v, nil
+	}
+
+	failure := false
+	var failureState string
+
+	if active, present := opts.Active.Get(); present {
+		if active && !fastly.ToValue(v.Active) {
+			failure = true
+			failureState = "not active"
+		}
+		if !active && fastly.ToValue(v.Active) {
+			failure = true
+			failureState = "active"
+		}
+	}
+
+	if locked, present := opts.Locked.Get(); present {
+		if locked && !fastly.ToValue(v.Locked) {
+			failure = true
+			failureState = "not locked"
+		}
+		if !locked && fastly.ToValue(v.Locked) {
+			failure = true
+			failureState = "locked"
+		}
+	}
+
+	if failure {
 		err = fsterr.RemediationError{
-			Inner:       fmt.Errorf("service version %d is not editable", fastly.ToValue(v.Number)),
+			Inner:       fmt.Errorf("service version %d is %s", fastly.ToValue(v.Number), failureState),
 			Remediation: fsterr.AutoCloneRemediation,
 		}
 		return serviceID, v, err
 	}
-
 	return serviceID, v, nil
 }
 

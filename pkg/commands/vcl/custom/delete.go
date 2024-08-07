@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/thirdparty/optional"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -63,6 +64,8 @@ type DeleteCommand struct {
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

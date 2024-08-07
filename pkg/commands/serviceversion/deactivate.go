@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/thirdparty/optional"
 )
 
 // DeactivateCommand calls the Fastly API to deactivate a service version.
@@ -48,7 +49,7 @@ func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *Deactiva
 // Exec invokes the application logic for the command.
 func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+		Active:             optional.Of(true),
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,

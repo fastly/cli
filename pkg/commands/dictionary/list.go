@@ -62,7 +62,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,

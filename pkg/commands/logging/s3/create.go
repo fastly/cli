@@ -12,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/thirdparty/optional"
 )
 
 // CreateCommand calls the Fastly API to create an Amazon S3 logging endpoint.
@@ -263,6 +264,8 @@ func ValidateRedundancy(val string) (redundancy fastly.S3Redundancy, err error) 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

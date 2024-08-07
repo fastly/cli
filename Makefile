@@ -86,7 +86,7 @@ vet: config ## Run vet static analysis
 # Run linter.
 .PHONY: revive
 revive: ## Run linter (using revive)
-	revive ./...
+	revive ./{cmd,pkg}/...
 
 # Run security vulnerability checker.
 .PHONY: gosec

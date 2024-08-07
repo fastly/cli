@@ -199,6 +199,17 @@ func TestDeploy(t *testing.T) {
 			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
 		},
 		{
+			name: "service version is locked, clone version error",
+			args: args("compute deploy --service-id 123 --token 123 --version 2"),
+			api: mock.API{
+				CloneVersionFn:      testutil.CloneVersionError,
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListVersionsFn:      testutil.ListVersions,
+			},
+			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
+		},
+		{
 			name: "list domains error",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
