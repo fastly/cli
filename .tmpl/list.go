@@ -58,7 +58,6 @@ type ListCommand struct {
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
 		Client:             c.Globals.Client,
 		Manifest:           c.manifest,
 		Out:                out,

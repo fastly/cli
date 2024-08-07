@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/thirdparty/optional"
 )
 
 // LockCommand calls the Fastly API to lock a service version.
@@ -48,7 +49,7 @@ func NewLockCommand(parent argparser.Registerer, g *global.Data) *LockCommand {
 // Exec invokes the application logic for the command.
 func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+		Locked:             optional.Of(false),
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
