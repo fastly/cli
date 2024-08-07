@@ -129,7 +129,7 @@ func (c *DescribeCommand) print(out io.Writer, b *fastly.Backend) error {
 	fmt.Fprintf(out, "SSL ciphers: %v\n", fastly.ToValue(b.SSLCiphers))
 	fmt.Fprintf(out, "HTTP KeepAlive Timeout: %v\n", fastly.ToValue(b.KeepAliveTime))
 	if b.TCPKeepAliveEnable == nil {
-		fmt.Fprintf(out, "TCP KeepAlive Enabled:\n")
+		fmt.Fprintf(out, "TCP KeepAlive Enabled: unset\n")
 	} else {
 		fmt.Fprintf(out, "TCP KeepAlive Enabled: %v\n", fastly.ToValue(b.TCPKeepAliveEnable))
 	}
