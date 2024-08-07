@@ -218,14 +218,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		var tcpKaEnable bool
 
 		switch c.tcpKaEnable.Value {
-			case "true":
-				tcpKaEnable = true
-			case "false":
-				tcpKaEnable = false
-			default:
-				err := errors.New("'tcp-ka-enable' flag must be one of the following [true, false]")
-				c.Globals.ErrLog.Add(err)
-				return err
+		case "true":
+			tcpKaEnable = true
+		case "false":
+			tcpKaEnable = false
+		default:
+			err := errors.New("'tcp-ka-enable' flag must be one of the following [true, false]")
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
 
 		input.TCPKeepAliveEnable = &tcpKaEnable
