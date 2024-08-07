@@ -132,6 +132,31 @@ func TestBackendCreate(t *testing.T) {
 			},
 			WantOutput: "Created backend www.test.com (service 123 version 3)",
 		},
+		// The following tests verify parsing of the --tcp-ka-enable flag.
+		{
+			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=true",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 3)",
+		},
+		{
+			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=false",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 3)",
+		},
+		{
+			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=invalid",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
+		},
 	}
 	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
@@ -257,6 +282,37 @@ func TestBackendUpdate(t *testing.T) {
 				UpdateBackendFn: updateBackendOK,
 			},
 			WantOutput: "Updated backend www.example.com (service 123 version 4)",
+		},
+		// The following tests verify parsing of the --tcp-ka-enable flag.
+		{
+			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=true --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantOutput: "Updated backend  (service 123 version 4)",
+		},
+		{
+			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=false --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantOutput: "Updated backend  (service 123 version 4)",
+		},
+		{
+			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=invalid --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
 		},
 	}
 	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
