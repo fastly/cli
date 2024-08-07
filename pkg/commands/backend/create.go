@@ -1,13 +1,14 @@
 package backend
 
 import (
+	"errors"
 	"io"
 	"net"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -45,6 +46,11 @@ type CreateCommand struct {
 	sslClientCert       argparser.OptionalString
 	sslClientKey        argparser.OptionalString
 	sslSNIHostname      argparser.OptionalString
+	tcpKaEnable         argparser.OptionalString
+	tcpKaInterval       argparser.OptionalInt
+	tcpKaProbes         argparser.OptionalInt
+	tcpKaTime           argparser.OptionalInt
+	httpKaTime          argparser.OptionalInt
 	useSSL              argparser.OptionalBool
 	weight              argparser.OptionalInt
 }
@@ -107,6 +113,11 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("ssl-client-cert", "Client certificate attached to origin").Action(c.sslClientCert.Set).StringVar(&c.sslClientCert.Value)
 	c.CmdClause.Flag("ssl-client-key", "Client key attached to origin").Action(c.sslClientKey.Set).StringVar(&c.sslClientKey.Value)
 	c.CmdClause.Flag("ssl-sni-hostname", "Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all.").Action(c.sslSNIHostname.Set).StringVar(&c.sslSNIHostname.Value)
+	c.CmdClause.Flag("tcp-ka-enabled", "Enable TCP keepalive probes [true, false]").Action(c.tcpKaEnable.Set).StringVar(&c.tcpKaEnable.Value)
+	c.CmdClause.Flag("tcp-ka-interval", "Configure how long to wait between sending each TCP keepalive probe.").Action(c.tcpKaInterval.Set).IntVar(&c.tcpKaInterval.Value)
+	c.CmdClause.Flag("tcp-ka-probes", "Configure how many unacknowledged TCP keepalive probes to send before considering the connection dead.").Action(c.tcpKaProbes.Set).IntVar(&c.tcpKaProbes.Value)
+	c.CmdClause.Flag("tcp-ka-time", "Configure how long to wait after the last sent data before sending TCP keepalive probes.").Action(c.tcpKaTime.Set).IntVar(&c.tcpKaTime.Value)
+	c.CmdClause.Flag("http-ka-time", "Configure how long to keep idle HTTP keepalive connections in the connection pool.").Action(c.httpKaTime.Set).IntVar(&c.httpKaTime.Value)
 	c.CmdClause.Flag("use-ssl", "Whether or not to use SSL to reach the backend").Action(c.useSSL.Set).BoolVar(&c.useSSL.Value)
 	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.weight.Set).IntVar(&c.weight.Value)
 
@@ -127,7 +138,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
@@ -202,6 +213,34 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	if c.sslSNIHostname.WasSet {
 		input.SSLSNIHostname = &c.sslSNIHostname.Value
+	}
+	if c.tcpKaEnable.WasSet {
+		var tcpKaEnable bool
+
+		switch c.tcpKaEnable.Value {
+		case "true":
+			tcpKaEnable = true
+		case "false":
+			tcpKaEnable = false
+		default:
+			err := errors.New("'tcp-ka-enable' flag must be one of the following [true, false]")
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+
+		input.TCPKeepAliveEnable = &tcpKaEnable
+	}
+	if c.tcpKaInterval.WasSet {
+		input.TCPKeepAliveIntvl = &c.tcpKaInterval.Value
+	}
+	if c.tcpKaProbes.WasSet {
+		input.TCPKeepAliveProbes = &c.tcpKaProbes.Value
+	}
+	if c.tcpKaTime.WasSet {
+		input.TCPKeepAliveTime = &c.tcpKaTime.Value
+	}
+	if c.httpKaTime.WasSet {
+		input.KeepAliveTime = &c.httpKaTime.Value
 	}
 	if c.weight.WasSet {
 		input.Weight = &c.weight.Value

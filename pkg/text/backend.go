@@ -37,4 +37,13 @@ func PrintBackend(out io.Writer, prefix string, b *fastly.Backend) {
 	fmt.Fprintf(out, "Min TLS version: %v\n", fastly.ToValue(b.MinTLSVersion))
 	fmt.Fprintf(out, "Max TLS version: %v\n", fastly.ToValue(b.MaxTLSVersion))
 	fmt.Fprintf(out, "SSL ciphers: %v\n", fastly.ToValue(b.SSLCiphers))
+	fmt.Fprintf(out, "HTTP KeepAlive Timeout: %v\n", fastly.ToValue(b.KeepAliveTime))
+	if b.TCPKeepAliveEnable == nil {
+		fmt.Fprintf(out, "TCP KeepAlive Enabled: unset\n")
+	} else {
+		fmt.Fprintf(out, "TCP KeepAlive Enabled: %v\n", fastly.ToValue(b.TCPKeepAliveEnable))
+	}
+	fmt.Fprintf(out, "TCP KeepAlive Interval: %v\n", fastly.ToValue(b.TCPKeepAliveIntvl))
+	fmt.Fprintf(out, "TCP KeepAlive Probes: %v\n", fastly.ToValue(b.TCPKeepAliveProbes))
+	fmt.Fprintf(out, "TCP KeepAlive Timeout: %v\n", fastly.ToValue(b.TCPKeepAliveTime))
 }

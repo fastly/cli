@@ -132,6 +132,31 @@ func TestBackendCreate(t *testing.T) {
 			},
 			WantOutput: "Created backend www.test.com (service 123 version 3)",
 		},
+		// The following tests verify parsing of the --tcp-ka-enable flag.
+		{
+			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=true",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 3)",
+		},
+		{
+			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=false",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 3)",
+		},
+		{
+			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=invalid",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
+		},
 	}
 	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
@@ -258,6 +283,37 @@ func TestBackendUpdate(t *testing.T) {
 			},
 			WantOutput: "Updated backend www.example.com (service 123 version 4)",
 		},
+		// The following tests verify parsing of the --tcp-ka-enable flag.
+		{
+			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=true --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantOutput: "Updated backend  (service 123 version 4)",
+		},
+		{
+			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=false --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantOutput: "Updated backend  (service 123 version 4)",
+		},
+		{
+			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=invalid --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
+		},
 	}
 	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
@@ -377,6 +433,10 @@ var listBackendsJSONOutput = strings.TrimSpace(`
     "ServiceID": "123",
     "ServiceVersion": 1,
     "Shield": null,
+    "TCPKeepAliveEnable": null,
+    "TCPKeepAliveIntvl": null,
+    "TCPKeepAliveProbes": null,
+    "TCPKeepAliveTime": null,
     "UpdatedAt": null,
     "UseSSL": null,
     "Weight": null
@@ -412,6 +472,10 @@ var listBackendsJSONOutput = strings.TrimSpace(`
     "ServiceID": "123",
     "ServiceVersion": 1,
     "Shield": null,
+    "TCPKeepAliveEnable": null,
+    "TCPKeepAliveIntvl": null,
+    "TCPKeepAliveProbes": null,
+    "TCPKeepAliveTime": null,
     "UpdatedAt": null,
     "UseSSL": null,
     "Weight": null
@@ -456,6 +520,11 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		Min TLS version: ",
 	"		Max TLS version: ",
 	"		SSL ciphers: ",
+	"		HTTP KeepAlive Timeout: 0",
+	"		TCP KeepAlive Enabled: unset",
+	"		TCP KeepAlive Interval: 0",
+	"		TCP KeepAlive Probes: 0",
+	"		TCP KeepAlive Timeout: 0",
 	"	Backend 2/2",
 	"		Name: example.com",
 	"		Comment: example",
@@ -480,6 +549,11 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		Min TLS version: ",
 	"		Max TLS version: ",
 	"		SSL ciphers: ",
+	"		HTTP KeepAlive Timeout: 0",
+	"		TCP KeepAlive Enabled: unset",
+	"		TCP KeepAlive Interval: 0",
+	"		TCP KeepAlive Probes: 0",
+	"		TCP KeepAlive Timeout: 0",
 }, "\n") + "\n\n"
 
 func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
@@ -523,6 +597,11 @@ var describeBackendOutput = strings.Join([]string{
 	"Min TLS version: ",
 	"Max TLS version: ",
 	"SSL ciphers: ",
+	"HTTP KeepAlive Timeout: 0",
+	"TCP KeepAlive Enabled: unset",
+	"TCP KeepAlive Interval: 0",
+	"TCP KeepAlive Probes: 0",
+	"TCP KeepAlive Timeout: 0",
 }, "\n") + "\n"
 
 func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
