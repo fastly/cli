@@ -7,9 +7,6 @@ import (
 	"github.com/fastly/cli/pkg/global"
 )
 
-// RootName is the base command name for config store operations.
-const RootName = "config-store"
-
 // CommandName is the string to be used to invoke this command
 const CommandName = "config-store"
 
