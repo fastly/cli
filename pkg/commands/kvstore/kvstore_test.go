@@ -4,16 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"testing"
 	"time"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/kvstore"
+	root "github.com/fastly/cli/pkg/commands/kvstore"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
@@ -29,11 +26,10 @@ func TestCreateStoreCommand(t *testing.T) {
 
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      testutil.Args(kvstore.RootName + " create"),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --name %s", kvstore.RootName, storeName)),
+			Arg: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return nil, errors.New("invalid request")
@@ -42,7 +38,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --name %s", kvstore.RootName, storeName)),
+			Arg: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -54,7 +50,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Created KV Store '%s' (%s)", storeName, storeID),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --name %s --json", kvstore.RootName, storeName)),
+			Arg: fmt.Sprintf("--name %s --json", storeName),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -75,7 +71,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			// NOTE: The following tests only validate support for the --location flag.
 			// Location/region indicators are not exposed for us to validate.
-			Args: testutil.Args(fmt.Sprintf("%s create --name %s --location %s", kvstore.RootName, storeName, storeLocation)),
+			Arg: fmt.Sprintf("--name %s --location %s", storeName, storeLocation),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -89,7 +85,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			// NOTE: The following tests only validate support for the --location flag.
 			// Location/region indicators are not exposed for us to validate.
-			Args: testutil.Args(fmt.Sprintf("%s create --name %s --location %s --json", kvstore.RootName, storeName, storeLocation)),
+			Arg: fmt.Sprintf("--name %s --location %s --json", storeName, storeLocation),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -109,20 +105,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestDeleteStoreCommand(t *testing.T) {
@@ -131,11 +114,10 @@ func TestDeleteStoreCommand(t *testing.T) {
 
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      testutil.Args(kvstore.RootName + " delete"),
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Args: testutil.Args(kvstore.RootName + " delete --store-id DOES-NOT-EXIST"),
+			Arg: "--store-id DOES-NOT-EXIST",
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
@@ -147,7 +129,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			WantError: errStoreNotFound.Error(),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s", kvstore.RootName, storeID)),
+			Arg: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
@@ -159,7 +141,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Deleted KV Store '%s'\n", storeID),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --json", kvstore.RootName, storeID)),
+			Arg: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
@@ -172,23 +154,10 @@ func TestDeleteStoreCommand(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
-func TestDescribeStoreCommand(t *testing.T) {
+func TestGetStoreCommand(t *testing.T) {
 	const (
 		storeName = "test123"
 		storeID   = "store-id-123"
@@ -198,11 +167,10 @@ func TestDescribeStoreCommand(t *testing.T) {
 
 	scenarios := []testutil.TestScenario{
 		{
-			Args:      testutil.Args(kvstore.RootName + " get"),
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s get --store-id %s", kvstore.RootName, storeID)),
+			Arg: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return nil, errors.New("invalid request")
@@ -211,7 +179,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s get --store-id %s", kvstore.RootName, storeID)),
+			Arg: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -232,7 +200,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 			),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s get --store-id %s --json", kvstore.RootName, storeID)),
+			Arg: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -250,20 +218,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "get"}, scenarios)
 }
 
 func TestListStoresCommand(t *testing.T) {
@@ -283,16 +238,13 @@ func TestListStoresCommand(t *testing.T) {
 
 	scenarios := []testutil.TestScenario{
 		{
-			Args: testutil.Args(kvstore.RootName + " list"),
 			API: mock.API{
 				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return nil, nil
 				},
 			},
-			WantOutput: "",
 		},
 		{
-			Args: testutil.Args(kvstore.RootName + " list"),
 			API: mock.API{
 				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return nil, errors.New("unknown error")
@@ -301,7 +253,6 @@ func TestListStoresCommand(t *testing.T) {
 			WantError: "unknown error",
 		},
 		{
-			Args: testutil.Args(kvstore.RootName + " list"),
 			API: mock.API{
 				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return stores, nil
@@ -310,7 +261,7 @@ func TestListStoresCommand(t *testing.T) {
 			WantOutput: fmtStores(stores),
 		},
 		{
-			Args: testutil.Args(kvstore.RootName + " list --json"),
+			Arg: "--json",
 			API: mock.API{
 				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return stores, nil
@@ -320,20 +271,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.Args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.API)
-				return opts, nil
-			}
-			err := app.Run(testcase.Args, nil)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func fmtStore(ks *fastly.KVStore) string {

@@ -48,10 +48,12 @@ type TestScenario struct {
 	// Name appears in output when tests are executed
 	Name            string
 	PathContentFlag *PathContentFlag
+	// Setup function can perform additional setup before the scenario is run
+	Setup func(t *testing.T, scenario *TestScenario, opts *global.Data)
 	// Stdin contains input to be read by the application
 	Stdin []string
-	// Validator function can perform additional validation on the
-	// results of the scenario
+	// Validator function can perform additional validation on the results
+	// of the scenario
 	Validator func(t *testing.T, scenario *TestScenario, opts *global.Data, stdout bytes.Buffer)
 	// WantError will cause the scenario to fail if this string
 	// does not appear in an Error
@@ -152,6 +154,10 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 					}
 				}()
 			}
+		}
+
+		if scenario.Setup != nil {
+			scenario.Setup(t, &scenario, opts)
 		}
 
 		if len(scenario.Stdin) > 1 {
