@@ -10,7 +10,6 @@ require (
 	github.com/dustinkirkland/golang-petname v0.0.0-20231002161417-6a283f1aaaf2
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
 	github.com/fatih/color v1.17.0
-	github.com/frankban/quicktest v1.13.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/google/go-cmp v0.6.0
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -19,7 +18,6 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nicksnyder/go-i18n v1.10.3 // indirect
 	github.com/pelletier/go-toml v1.9.5
-	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
 	golang.org/x/sys v0.23.0 // indirect
@@ -30,7 +28,6 @@ require (
 	github.com/fastly/go-fastly/v9 v9.8.0
 	github.com/hashicorp/cap v0.7.0
 	github.com/kennygrant/sanitize v1.2.4
-	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/otiai10/copy v1.14.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
