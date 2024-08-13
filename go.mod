@@ -79,4 +79,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require 4d63.com/go-optional v0.2.0
+require 4d63.com/optional v0.2.0

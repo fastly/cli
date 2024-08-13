@@ -48,7 +48,6 @@ func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand 
 // Exec invokes the application logic for the command.
 func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,

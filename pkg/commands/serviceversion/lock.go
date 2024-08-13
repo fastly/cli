@@ -5,6 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	"4d63.com/optional"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -48,7 +49,7 @@ func NewLockCommand(parent argparser.Registerer, g *global.Data) *LockCommand {
 // Exec invokes the application logic for the command.
 func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+		Locked:             optional.Of(false),
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,

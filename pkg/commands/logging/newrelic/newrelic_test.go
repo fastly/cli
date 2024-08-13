@@ -19,12 +19,20 @@ func TestNewRelicCreate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--key abc --name foo --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--key abc --name foo --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate CreateNewRelic API error",
@@ -91,12 +99,20 @@ func TestNewRelicDelete(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--name foobar --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate DeleteNewRelic API error",
@@ -260,12 +276,20 @@ func TestNewRelicUpdate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--name foobar --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate UpdateNewRelic API error",

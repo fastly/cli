@@ -28,12 +28,20 @@ func TestACLCreate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--name foo --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--name foo --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate CreateACL API error",
@@ -102,12 +110,20 @@ func TestACLDelete(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--name foo --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate DeleteACL API error",
@@ -276,12 +292,20 @@ func TestACLUpdate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--name foobar --new-name beepboop --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			Arg:       "--name foo --new-name beepboop --service-id 123 --version 1",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--name foo --new-name beepboop --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate UpdateACL API error",
