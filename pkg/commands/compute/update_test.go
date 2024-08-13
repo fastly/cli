@@ -11,10 +11,10 @@ import (
 )
 
 func TestUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "package API error",
-			Arg:  "-s 123 --version 1 --package pkg/package.tar.gz --autoclone",
+			Args: "-s 123 --version 1 --package pkg/package.tar.gz --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -37,7 +37,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "success",
-			Arg:  "-s 123 --version 2 --package pkg/package.tar.gz --autoclone",
+			Args: "-s 123 --version 2 --package pkg/package.tar.gz --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -60,5 +60,5 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

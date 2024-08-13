@@ -16,7 +16,7 @@ import (
 )
 
 func TestDigitalOceanCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -67,7 +67,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 }
 
 func TestDigitalOceanList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -140,7 +140,7 @@ func TestDigitalOceanList(t *testing.T) {
 }
 
 func TestDigitalOceanDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -185,7 +185,7 @@ func TestDigitalOceanDescribe(t *testing.T) {
 }
 
 func TestDigitalOceanUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -232,7 +232,7 @@ func TestDigitalOceanUpdate(t *testing.T) {
 }
 
 func TestDigitalOceanDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

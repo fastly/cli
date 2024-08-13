@@ -11,7 +11,7 @@ import (
 )
 
 func TestRateLimitCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate CreateERL API error",
 			API: mock.API{
@@ -20,7 +20,7 @@ func TestRateLimitCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--name example --service-id 123 --version 3",
+			Args:      "--name example --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -34,16 +34,16 @@ func TestRateLimitCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:        "--name example --service-id 123 --version 3",
+			Args:       "--name example --service-id 123 --version 3",
 			WantOutput: "Created rate limiter 'example' (123)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestRateLimitDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate DeleteERL API error",
 			API: mock.API{
@@ -51,7 +51,7 @@ func TestRateLimitDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id 123",
+			Args:      "--id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -61,16 +61,16 @@ func TestRateLimitDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id 123",
+			Args:       "--id 123",
 			WantOutput: "SUCCESS: Deleted rate limiter '123'\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestRateLimitDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate GetERL API error",
 			API: mock.API{
@@ -78,7 +78,7 @@ func TestRateLimitDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id 123",
+			Args:      "--id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -95,16 +95,16 @@ func TestRateLimitDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id 123",
+			Args:       "--id 123",
 			WantOutput: "\nAction: response\nClient Key: []\nFeature Revision: 0\nHTTP Methods: []\nID: 123\nLogger Type: \nName: example\nPenalty Box Duration: 20\nResponse: \nResponse Object Name: \nRPS Limit: 10\nService ID: \nURI Dictionary Name: \nVersion: 0\nWindowSize: 60\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestRateLimitList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate ListERL API error",
 			API: mock.API{
@@ -113,7 +113,7 @@ func TestRateLimitList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--service-id 123 --version 3",
+			Args:      "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -133,16 +133,16 @@ func TestRateLimitList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:        "--service-id 123 --version 3",
+			Args:       "--service-id 123 --version 3",
 			WantOutput: "ID   NAME     ACTION    RPS LIMIT  WINDOW SIZE  PENALTY BOX DURATION\n123  example  response  10         60           20\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TesRateLimittUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate UpdateERL API error",
 			API: mock.API{
@@ -150,7 +150,7 @@ func TesRateLimittUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id 123 --name example",
+			Args:      "--id 123 --name example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -163,10 +163,10 @@ func TesRateLimittUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id 123 --name example",
+			Args:       "--id 123 --name example",
 			WantOutput: "Updated rate limiter 'example' (123)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

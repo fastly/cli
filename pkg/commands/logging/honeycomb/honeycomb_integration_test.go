@@ -16,7 +16,7 @@ import (
 )
 
 func TestHoneycombCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -59,7 +59,7 @@ func TestHoneycombCreate(t *testing.T) {
 }
 
 func TestHoneycombList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -132,7 +132,7 @@ func TestHoneycombList(t *testing.T) {
 }
 
 func TestHoneycombDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -177,7 +177,7 @@ func TestHoneycombDescribe(t *testing.T) {
 }
 
 func TestHoneycombUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -224,7 +224,7 @@ func TestHoneycombUpdate(t *testing.T) {
 }
 
 func TestHoneycombDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

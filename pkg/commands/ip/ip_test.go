@@ -11,7 +11,7 @@ import (
 )
 
 func TestAllIPs(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate listing IP addresses",
 			API: mock.API{
@@ -27,5 +27,5 @@ func TestAllIPs(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName}, scenarios)
 }

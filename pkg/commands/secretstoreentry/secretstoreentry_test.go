@@ -229,7 +229,7 @@ func TestCreateSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
+			args := testutil.SplitArgs(secretstoreentry.RootNameSecret + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 			if testcase.stdin != "" {
 				var stdin bytes.Buffer
@@ -330,7 +330,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
+			args := testutil.SplitArgs(secretstoreentry.RootNameSecret + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.DeleteSecretFn
@@ -437,7 +437,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
+			args := testutil.SplitArgs(secretstoreentry.RootNameSecret + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.GetSecretFn
@@ -525,7 +525,7 @@ func TestListSecretsCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(secretstoreentry.RootNameSecret + " " + testcase.args)
+			args := testutil.SplitArgs(secretstoreentry.RootNameSecret + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.ListSecretsFn

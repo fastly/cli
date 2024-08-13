@@ -16,7 +16,7 @@ import (
 )
 
 func TestDatadogCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -59,7 +59,7 @@ func TestDatadogCreate(t *testing.T) {
 }
 
 func TestDatadogList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -132,7 +132,7 @@ func TestDatadogList(t *testing.T) {
 }
 
 func TestDatadogDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -177,7 +177,7 @@ func TestDatadogDescribe(t *testing.T) {
 }
 
 func TestDatadogUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -224,7 +224,7 @@ func TestDatadogUpdate(t *testing.T) {
 }
 
 func TestDatadogDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

@@ -13,10 +13,10 @@ import (
 
 func TestVCLSnippetCreate(t *testing.T) {
 	var content string
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--content /path/to/snippet.vcl --name foo --type recv --version 3",
+			Args:      "--content /path/to/snippet.vcl --name foo --type recv --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -24,7 +24,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 1",
+			Args:      "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 1",
 			WantError: "service version 1 is active",
 		},
 		{
@@ -32,7 +32,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 2",
+			Args:      "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 2",
 			WantError: "service version 2 is locked",
 		},
 		{
@@ -43,7 +43,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 3",
+			Args:      "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -72,7 +72,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 3",
+			Args:            "--content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 3",
 			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
@@ -102,7 +102,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--content ./testdata/snippet.vcl --dynamic --name foo --service-id 123 --type recv --version 3",
+			Args:            "--content ./testdata/snippet.vcl --dynamic --name foo --service-id 123 --type recv --version 3",
 			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, snippet id: 123, type: recv, priority: 0)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
@@ -133,7 +133,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--content ./testdata/snippet.vcl --name foo --priority 1 --service-id 123 --type recv --version 3",
+			Args:            "--content ./testdata/snippet.vcl --name foo --priority 1 --service-id 123 --type recv --version 3",
 			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 1)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
@@ -164,7 +164,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 1",
+			Args:            "--autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 1",
 			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, snippet id: 123, type: recv, priority: 0)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
@@ -194,30 +194,30 @@ func TestVCLSnippetCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--content inline_vcl --name foo --service-id 123 --type recv --version 3",
+			Args:            "--content inline_vcl --name foo --service-id 123 --type recv --version 3",
 			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestVCLSnippetDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --name flag",
-			Arg:       "--version 3",
+			Args:      "--version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Arg:       "--name foobar",
+			Args:      "--name foobar",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--name foobar --version 3",
+			Args:      "--name foobar --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -225,7 +225,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--name foobar --service-id 123 --version 1",
+			Args:      "--name foobar --service-id 123 --version 1",
 			WantError: "service version 1 is active",
 		},
 		{
@@ -233,7 +233,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--name foobar --service-id 123 --version 2",
+			Args:      "--name foobar --service-id 123 --version 2",
 			WantError: "service version 2 is locked",
 		},
 		{
@@ -244,7 +244,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--name foobar --service-id 123 --version 3",
+			Args:      "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -255,7 +255,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--name foobar --service-id 123 --version 3",
+			Args:       "--name foobar --service-id 123 --version 3",
 			WantOutput: "Deleted VCL snippet 'foobar' (service: 123, version: 3)",
 		},
 		{
@@ -267,23 +267,23 @@ func TestVCLSnippetDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--autoclone --name foo --service-id 123 --version 1",
+			Args:       "--autoclone --name foo --service-id 123 --version 1",
 			WantOutput: "Deleted VCL snippet 'foo' (service: 123, version: 4)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestVCLSnippetDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--version 3",
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -291,7 +291,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--service-id 123 --version 3",
+			Args:      "--service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --name with a versioned VCL snippet",
 		},
 		{
@@ -299,7 +299,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--dynamic --service-id 123 --version 3",
+			Args:      "--dynamic --service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --snippet-id with a dynamic VCL snippet",
 		},
 		{
@@ -310,7 +310,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--name foobar --service-id 123 --version 3",
+			Args:      "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -319,7 +319,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetSnippetFn:   getSnippet,
 			},
-			Arg:        "--name foobar --service-id 123 --version 3",
+			Args:       "--name foobar --service-id 123 --version 3",
 			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nID: 456\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -328,7 +328,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetSnippetFn:   getSnippet,
 			},
-			Arg:        "--name foobar --service-id 123 --version 1",
+			Args:       "--name foobar --service-id 123 --version 1",
 			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nID: 456\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -337,23 +337,23 @@ func TestVCLSnippetDescribe(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				GetDynamicSnippetFn: getDynamicSnippet,
 			},
-			Arg:        "--dynamic --service-id 123 --snippet-id 456 --version 3",
+			Args:       "--dynamic --service-id 123 --snippet-id 456 --version 3",
 			WantOutput: "\nService ID: 123\nID: 456\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestVCLSnippetList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--version 3",
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -364,7 +364,7 @@ func TestVCLSnippetList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--service-id 123 --version 3",
+			Args:      "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -373,7 +373,7 @@ func TestVCLSnippetList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListSnippetsFn: listSnippets,
 			},
-			Arg:        "--service-id 123 --version 3",
+			Args:       "--service-id 123 --version 3",
 			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC  SNIPPET ID\n123         3        foo   true     abc\n123         3        bar   false    abc\n",
 		},
 		{
@@ -382,7 +382,7 @@ func TestVCLSnippetList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListSnippetsFn: listSnippets,
 			},
-			Arg:        "--service-id 123 --version 1",
+			Args:       "--service-id 123 --version 1",
 			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC  SNIPPET ID\n123         1        foo   true     abc\n123         1        bar   false    abc\n",
 		},
 		{
@@ -391,24 +391,24 @@ func TestVCLSnippetList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListSnippetsFn: listSnippets,
 			},
-			Arg:        "--service-id 123 --verbose --version 1",
+			Args:       "--service-id 123 --verbose --version 1",
 			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nID: abc\nPriority: 0\nDynamic: true\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nID: abc\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestVCLSnippetUpdate(t *testing.T) {
 	var content string
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--version 3",
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -416,7 +416,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "service version 1 is active",
 		},
 		{
@@ -424,7 +424,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--service-id 123 --version 2",
+			Args:      "--service-id 123 --version 2",
 			WantError: "service version 2 is locked",
 		},
 		{
@@ -432,7 +432,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--content inline_vcl --new-name bar --service-id 123 --type recv --version 3",
+			Args:      "--content inline_vcl --new-name bar --service-id 123 --type recv --version 3",
 			WantError: "error parsing arguments: must provide --name to update a versioned VCL snippet",
 		},
 		{
@@ -440,7 +440,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--content inline_vcl --dynamic --service-id 123 --version 3",
+			Args:      "--content inline_vcl --dynamic --service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet",
 		},
 		{
@@ -448,7 +448,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--content inline_vcl --new-name foobar --service-id 123 --snippet-id 456 --version 3",
+			Args:      "--content inline_vcl --new-name foobar --service-id 123 --snippet-id 456 --version 3",
 			WantError: "error parsing arguments: --snippet-id is not supported when updating a versioned VCL snippet",
 		},
 		{
@@ -456,7 +456,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Arg:       "--content inline_vcl --dynamic --new-name foobar --service-id 123 --snippet-id 456 --version 3",
+			Args:      "--content inline_vcl --dynamic --new-name foobar --service-id 123 --snippet-id 456 --version 3",
 			WantError: "error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet",
 		},
 		{
@@ -467,7 +467,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3",
+			Args:      "--content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -488,7 +488,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3",
+			Args:            "--content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3",
 			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 3, type: recv, priority: 100)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
@@ -507,7 +507,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--content inline_vcl --dynamic --service-id 123 --snippet-id 456 --version 3",
+			Args:            "--content inline_vcl --dynamic --service-id 123 --snippet-id 456 --version 3",
 			WantOutput:      "Updated dynamic VCL snippet '456' (service: 123)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
@@ -530,13 +530,13 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1",
+			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1",
 			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func getSnippet(i *fastly.GetSnippetInput) (*fastly.Snippet, error) {

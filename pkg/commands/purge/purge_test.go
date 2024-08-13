@@ -12,15 +12,15 @@ import (
 )
 
 func TestPurgeAll(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--all",
+			Args:      "--all",
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate --soft flag isn't usable",
-			Arg:       "--all --service-id 123 --soft",
+			Args:      "--all --service-id 123 --soft",
 			WantError: "purge-all requests cannot be done in soft mode (--soft) and will always immediately invalidate all cached content associated with the service",
 		},
 		{
@@ -30,7 +30,7 @@ func TestPurgeAll(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--all --service-id 123",
+			Args:      "--all --service-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -42,20 +42,20 @@ func TestPurgeAll(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--all --service-id 123",
+			Args:       "--all --service-id 123",
 			WantOutput: "Purge all status: ok",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName}, scenarios)
 }
 
 func TestPurgeKeys(t *testing.T) {
 	var keys []string
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--file ./testdata/keys",
+			Args:      "--file ./testdata/keys",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -65,7 +65,7 @@ func TestPurgeKeys(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--file ./testdata/keys --service-id 123",
+			Args:      "--file ./testdata/keys --service-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -82,12 +82,12 @@ func TestPurgeKeys(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--file ./testdata/keys --service-id 123",
+			Args:       "--file ./testdata/keys --service-id 123",
 			WantOutput: "KEY  ID\nbar  456\nbaz  789\nfoo  123\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName}, scenarios)
 	assertKeys(keys, t)
 }
 
@@ -102,10 +102,10 @@ func assertKeys(keys []string, t *testing.T) {
 }
 
 func TestPurgeKey(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--key foobar",
+			Args:      "--key foobar",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -115,7 +115,7 @@ func TestPurgeKey(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--key foobar --service-id 123",
+			Args:      "--key foobar --service-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -128,7 +128,7 @@ func TestPurgeKey(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--key foobar --service-id 123",
+			Args:       "--key foobar --service-id 123",
 			WantOutput: "Purged key: foobar (soft: false). Status: ok, ID: 123",
 		},
 		{
@@ -141,16 +141,16 @@ func TestPurgeKey(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--key foobar --service-id 123 --soft",
+			Args:       "--key foobar --service-id 123 --soft",
 			WantOutput: "Purged key: foobar (soft: true). Status: ok, ID: 123",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName}, scenarios)
 }
 
 func TestPurgeURL(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate Purge API error",
 			API: mock.API{
@@ -158,7 +158,7 @@ func TestPurgeURL(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--service-id 123 --url https://example.com",
+			Args:      "--service-id 123 --url https://example.com",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -171,7 +171,7 @@ func TestPurgeURL(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--service-id 123 --url https://example.com",
+			Args:       "--service-id 123 --url https://example.com",
 			WantOutput: "Purged URL: https://example.com (soft: false). Status: ok, ID: 123",
 		},
 		{
@@ -184,10 +184,10 @@ func TestPurgeURL(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--service-id 123 --soft --url https://example.com",
+			Args:       "--service-id 123 --soft --url https://example.com",
 			WantOutput: "Purged URL: https://example.com (soft: true). Status: ok, ID: 123",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName}, scenarios)
 }

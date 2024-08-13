@@ -14,7 +14,7 @@ const (
 )
 
 func TestCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -81,11 +81,11 @@ func TestCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{baseCommand, "create"}, scenarios)
 }
 
 func TestDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -147,11 +147,11 @@ func TestDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{baseCommand, "delete"}, scenarios)
 }
 
 func TestDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -183,11 +183,11 @@ func TestDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{baseCommand, "describe"}, scenarios)
 }
 
 func TestList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -228,11 +228,11 @@ func TestList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{baseCommand, "list"}, scenarios)
 }
 
 func TestUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -292,7 +292,7 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{baseCommand, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{baseCommand, "update"}, scenarios)
 }
 
 func get${CLI_API}(i *fastly.Get${CLI_API}Input) (*fastly.${CLI_API}, error) {

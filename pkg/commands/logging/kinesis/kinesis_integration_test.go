@@ -16,7 +16,7 @@ import (
 )
 
 func TestKinesisCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -101,7 +101,7 @@ func TestKinesisCreate(t *testing.T) {
 }
 
 func TestKinesisList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -174,7 +174,7 @@ func TestKinesisList(t *testing.T) {
 }
 
 func TestKinesisDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -219,7 +219,7 @@ func TestKinesisDescribe(t *testing.T) {
 }
 
 func TestKinesisUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -266,7 +266,7 @@ func TestKinesisUpdate(t *testing.T) {
 }
 
 func TestKinesisDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

@@ -16,7 +16,7 @@ import (
 )
 
 func TestKafkaCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -59,7 +59,7 @@ func TestKafkaCreate(t *testing.T) {
 }
 
 func TestKafkaList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -132,7 +132,7 @@ func TestKafkaList(t *testing.T) {
 }
 
 func TestKafkaDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -177,7 +177,7 @@ func TestKafkaDescribe(t *testing.T) {
 }
 
 func TestKafkaUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -233,7 +233,7 @@ func TestKafkaUpdate(t *testing.T) {
 }
 
 func TestKafkaDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

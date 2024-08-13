@@ -16,10 +16,10 @@ import (
 )
 
 func TestSSO(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		// 0. User cancels authentication prompt
 		{
-			Arg: "sso",
+			Args: "sso",
 			Stdin: []string{
 				"N", // when prompted to open a web browser to start authentication
 			},
@@ -27,11 +27,11 @@ func TestSSO(t *testing.T) {
 		},
 		// 1. Error opening web browser
 		{
-			Arg: "sso",
+			Args: "sso",
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data) {
+			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
 				opts.Opener = func(input string) error {
 					return errors.New("failed to open web browser")
 				}
@@ -40,11 +40,11 @@ func TestSSO(t *testing.T) {
 		},
 		// 2. Error processing OAuth flow (error encountered)
 		{
-			Arg: "sso",
+			Args: "sso",
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data) {
+			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -59,11 +59,11 @@ func TestSSO(t *testing.T) {
 		},
 		// 3. Error processing OAuth flow (empty SessionToken field)
 		{
-			Arg: "sso",
+			Args: "sso",
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data) {
+			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -78,11 +78,11 @@ func TestSSO(t *testing.T) {
 		},
 		// 4. Success processing OAuth flow
 		{
-			Arg: "sso",
+			Args: "sso",
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data) {
+			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -99,7 +99,7 @@ func TestSSO(t *testing.T) {
 				"We need to open your browser to authenticate you.",
 				"Session token (persisted to your local configuration): 123",
 			},
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -109,7 +109,7 @@ func TestSSO(t *testing.T) {
 		},
 		// 5. Success processing OAuth flow while setting specific profile (test_user)
 		{
-			Arg: "sso test_user",
+			Args: "sso test_user",
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"test_user": &config.Profile{
@@ -122,7 +122,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data) {
+			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -139,7 +139,7 @@ func TestSSO(t *testing.T) {
 				"We need to open your browser to authenticate you.",
 				"Session token (persisted to your local configuration): 123",
 			},
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["test_user"]
 				if userProfile.Token != expectedToken {
@@ -155,7 +155,7 @@ func TestSSO(t *testing.T) {
 		// We configure a non-SSO token so we can validate the INFO message.
 		// Otherwise no OAuth flow is happening here.
 		{
-			Arg: "pops",
+			Args: "pops",
 			API: mock.API{
 				AllDatacentersFn: func() ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
@@ -183,7 +183,7 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data) {
+			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
@@ -191,7 +191,7 @@ func TestSSO(t *testing.T) {
 				// "is not a Fastly SSO (Single Sign-On) generated token",
 				"{Latitude:1 Longtitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -205,7 +205,7 @@ func TestSSO(t *testing.T) {
 		// We don't respond "Y" to the prompt for reauthentication.
 		// But we've mocked the request to succeed still so it doesn't matter.
 		{
-			Arg: "whoami",
+			Args: "whoami",
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"user": &config.Profile{
@@ -216,12 +216,12 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data) {
+			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutput:     "Your access token has expired and so has your refresh token.",
 			DontWantOutput: "{Latitude:1 Longtitude:2 X:3 Y:4}",
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -233,7 +233,7 @@ func TestSSO(t *testing.T) {
 		// We set an SSO token that has expired.
 		// This allows us to validate the output messages.
 		{
-			Arg: "pops",
+			Args: "pops",
 			API: mock.API{
 				AllDatacentersFn: func() ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
@@ -265,7 +265,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data) {
+			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -283,7 +283,7 @@ func TestSSO(t *testing.T) {
 				"Session token (persisted to your local configuration): 123",
 				"{Latitude:1 Longtitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -297,5 +297,5 @@ func TestSSO(t *testing.T) {
 	// slice is empty here because the commands to be run are
 	// embedded in the scenarios (some scenarios run different
 	// commands)
-	testutil.RunScenarios(t, []string{}, scenarios)
+	testutil.RunCLIScenarios(t, []string{}, scenarios)
 }

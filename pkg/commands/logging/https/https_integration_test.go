@@ -16,7 +16,7 @@ import (
 )
 
 func TestHTTPSCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -59,7 +59,7 @@ func TestHTTPSCreate(t *testing.T) {
 }
 
 func TestHTTPSList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -132,7 +132,7 @@ func TestHTTPSList(t *testing.T) {
 }
 
 func TestHTTPSDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -177,7 +177,7 @@ func TestHTTPSDescribe(t *testing.T) {
 }
 
 func TestHTTPSUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -224,7 +224,7 @@ func TestHTTPSUpdate(t *testing.T) {
 }
 
 func TestHTTPSDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

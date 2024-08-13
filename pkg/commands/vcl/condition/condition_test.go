@@ -14,13 +14,13 @@ import (
 )
 
 func TestConditionCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--version 1",
+			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --autoclone",
+			Args: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -29,7 +29,7 @@ func TestConditionCreate(t *testing.T) {
 			WantOutput: "Created condition always_false (service 123 version 4)",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --priority 10 --autoclone",
+			Args: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --priority 10 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -39,17 +39,17 @@ func TestConditionCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestConditionDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false --autoclone",
+			Args: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -58,7 +58,7 @@ func TestConditionDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false --autoclone",
+			Args: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -68,17 +68,17 @@ func TestConditionDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestConditionUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123 --version 1 --new-name false_always --comment ",
+			Args:      "--service-id 123 --version 1 --new-name false_always --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false --autoclone",
+			Args: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -87,7 +87,7 @@ func TestConditionUpdate(t *testing.T) {
 			WantError: "error parsing arguments: must provide either --new-name, --statement, --type or --priority to update condition",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
+			Args: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -96,7 +96,7 @@ func TestConditionUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
+			Args: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -106,17 +106,17 @@ func TestConditionUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestConditionDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false",
+			Args: "--service-id 123 --version 1 --name always_false",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionError,
@@ -124,7 +124,7 @@ func TestConditionDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name always_false",
+			Args: "--service-id 123 --version 1 --name always_false",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionOK,
@@ -133,13 +133,13 @@ func TestConditionDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestConditionList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -147,7 +147,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsShortOutput,
 		},
 		{
-			Arg: "--service-id 123 --version 1 --verbose",
+			Args: "--service-id 123 --version 1 --verbose",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -155,7 +155,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Arg: "--service-id 123 --version 1 -v",
+			Args: "--service-id 123 --version 1 -v",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -163,7 +163,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Arg: "--verbose --service-id 123 --version 1",
+			Args: "--verbose --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -171,7 +171,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Arg: "-v --service-id 123 --version 1",
+			Args: "-v --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -179,7 +179,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsError,
@@ -188,7 +188,7 @@ func TestConditionList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 var describeConditionOutput = "\n" + strings.TrimSpace(`

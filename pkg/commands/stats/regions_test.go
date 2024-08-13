@@ -16,7 +16,7 @@ import (
 )
 
 func TestRegions(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

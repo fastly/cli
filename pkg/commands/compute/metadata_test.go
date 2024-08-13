@@ -24,9 +24,9 @@ func TestMetadata(t *testing.T) {
 		t.Error(err)
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg: "--enable",
+			Args: "--enable",
 			ConfigFile: &config.File{
 				ConfigVersion: staticConfig.ConfigVersion,
 				CLI: config.CLI{
@@ -42,12 +42,12 @@ func TestMetadata(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
 			WantOutput: "SUCCESS: configuration updated",
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -65,7 +65,7 @@ func TestMetadata(t *testing.T) {
 			},
 		},
 		{
-			Arg: "--disable",
+			Args: "--disable",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -75,12 +75,12 @@ func TestMetadata(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
 			WantOutput: "SUCCESS: configuration updated",
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -98,7 +98,7 @@ func TestMetadata(t *testing.T) {
 			},
 		},
 		{
-			Arg: "--enable --disable-build",
+			Args: "--enable --disable-build",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -108,7 +108,7 @@ func TestMetadata(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -116,7 +116,7 @@ func TestMetadata(t *testing.T) {
 				"INFO: We will enable all metadata except for the specified `--disable-*` flags",
 				"SUCCESS: configuration updated",
 			},
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -134,7 +134,7 @@ func TestMetadata(t *testing.T) {
 			},
 		},
 		{
-			Arg: "--disable --enable-machine",
+			Args: "--disable --enable-machine",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -144,7 +144,7 @@ func TestMetadata(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -152,7 +152,7 @@ func TestMetadata(t *testing.T) {
 				"INFO: We will disable all metadata except for the specified `--enable-*` flags",
 				"SUCCESS: configuration updated",
 			},
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -171,5 +171,5 @@ func TestMetadata(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "metadata"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "metadata"}, scenarios)
 }

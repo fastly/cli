@@ -16,7 +16,7 @@ import (
 )
 
 func TestGCSCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -76,7 +76,7 @@ func TestGCSCreate(t *testing.T) {
 }
 
 func TestGCSList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -149,7 +149,7 @@ func TestGCSList(t *testing.T) {
 }
 
 func TestGCSDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -194,7 +194,7 @@ func TestGCSDescribe(t *testing.T) {
 }
 
 func TestGCSUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -241,7 +241,7 @@ func TestGCSUpdate(t *testing.T) {
 }
 
 func TestGCSDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

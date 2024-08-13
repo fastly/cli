@@ -15,10 +15,10 @@ import (
 )
 
 func TestShellCompletion(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "bash shell complete",
-			Arg:  "--completion-script-bash",
+			Args: "--completion-script-bash",
 			WantOutput: `
 _fastly_bash_autocomplete() {
     local cur prev opts base
@@ -34,7 +34,7 @@ complete -F _fastly_bash_autocomplete fastly
 		},
 		{
 			Name: "zsh shell complete",
-			Arg:  "--completion-script-zsh",
+			Args: "--completion-script-zsh",
 			WantOutput: `
 #compdef fastly
 autoload -U compinit && compinit
@@ -56,7 +56,7 @@ complete -F _fastly_bash_autocomplete fastly
 		// FIXME: Put back `sso` GA.
 		{
 			Name: "shell evaluate completion options",
-			Arg:  "--completion-bash",
+			Args: "--completion-bash",
 			WantOutput: `help
 sso
 acl
@@ -126,9 +126,9 @@ whoami
 			}()
 
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				return testutil.MockGlobalData(testutil.Args(testcase.Arg), &stdout), nil
+				return testutil.MockGlobalData(testutil.SplitArgs(testcase.Args), &stdout), nil
 			}
-			err := app.Run(testutil.Args(testcase.Arg), nil)
+			err := app.Run(testutil.SplitArgs(testcase.Args), nil)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}

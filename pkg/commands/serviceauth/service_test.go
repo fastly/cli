@@ -16,7 +16,7 @@ import (
 )
 
 func TestServiceAuthCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -55,7 +55,7 @@ func TestServiceAuthCreate(t *testing.T) {
 }
 
 func TestServiceAuthList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -125,7 +125,7 @@ func TestServiceAuthList(t *testing.T) {
 }
 
 func TestServiceAuthDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -186,7 +186,7 @@ func TestServiceAuthDescribe(t *testing.T) {
 }
 
 func TestServiceAuthUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -229,7 +229,7 @@ func TestServiceAuthUpdate(t *testing.T) {
 }
 
 func TestServiceAuthDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

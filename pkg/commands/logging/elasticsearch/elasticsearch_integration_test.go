@@ -16,7 +16,7 @@ import (
 )
 
 func TestElasticsearchCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -59,7 +59,7 @@ func TestElasticsearchCreate(t *testing.T) {
 }
 
 func TestElasticsearchList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -132,7 +132,7 @@ func TestElasticsearchList(t *testing.T) {
 }
 
 func TestElasticsearchDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -177,7 +177,7 @@ func TestElasticsearchDescribe(t *testing.T) {
 }
 
 func TestElasticsearchUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -224,7 +224,7 @@ func TestElasticsearchUpdate(t *testing.T) {
 }
 
 func TestElasticsearchDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

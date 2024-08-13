@@ -12,7 +12,7 @@ import (
 )
 
 func TestAuthTokenCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --password flag",
 			WantError: "error parsing arguments: required flag --password not provided",
@@ -24,7 +24,7 @@ func TestAuthTokenCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--password secure --token 123",
+			Args:      "--password secure --token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -40,7 +40,7 @@ func TestAuthTokenCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--password secure --token 123",
+			Args:       "--password secure --token 123",
 			WantOutput: "Created token '123abc' (name: Example, id: 123, scope: foobar, expires: 2021-06-15 23:00:00 +0000 UTC)",
 		},
 		{
@@ -56,19 +56,19 @@ func TestAuthTokenCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--expires 2021-09-15T23:00:00Z --name Testing --password secure --scope purge_all --scope global:read --services a,b,c --token 123",
+			Args:       "--expires 2021-09-15T23:00:00Z --name Testing --password secure --scope purge_all --scope global:read --services a,b,c --token 123",
 			WantOutput: "Created token '123abc' (name: Testing, id: 123, scope: purge_all global:read, expires: 2021-09-15 23:00:00 +0000 UTC)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestAuthTokenDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing optional flags",
-			Arg:       "--token 123",
+			Args:      "--token 123",
 			WantError: "error parsing arguments: must provide either the --current, --file or --id flag",
 		},
 		{
@@ -78,7 +78,7 @@ func TestAuthTokenDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--current --token 123",
+			Args:      "--current --token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -88,7 +88,7 @@ func TestAuthTokenDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--file ./testdata/tokens --token 123",
+			Args:      "--file ./testdata/tokens --token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -98,7 +98,7 @@ func TestAuthTokenDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id 123 --token 123",
+			Args:      "--id 123 --token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -108,7 +108,7 @@ func TestAuthTokenDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--current --token 123",
+			Args:       "--current --token 123",
 			WantOutput: "Deleted current token",
 		},
 		{
@@ -118,7 +118,7 @@ func TestAuthTokenDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--file ./testdata/tokens --token 123",
+			Args:       "--file ./testdata/tokens --token 123",
 			WantOutput: "Deleted tokens",
 		},
 		{
@@ -128,7 +128,7 @@ func TestAuthTokenDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--file ./testdata/tokens --token 123 --verbose",
+			Args:       "--file ./testdata/tokens --token 123 --verbose",
 			WantOutput: fileTokensOutput(),
 		},
 		{
@@ -138,16 +138,16 @@ func TestAuthTokenDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id 123 --token 123",
+			Args:       "--id 123 --token 123",
 			WantOutput: "Deleted token '123'",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestAuthTokenDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate GetTokenSelf API error",
 			API: mock.API{
@@ -155,7 +155,7 @@ func TestAuthTokenDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--token 123",
+			Args:      "--token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -163,16 +163,16 @@ func TestAuthTokenDescribe(t *testing.T) {
 			API: mock.API{
 				GetTokenSelfFn: getToken,
 			},
-			Arg:        "--token 123",
+			Args:       "--token 123",
 			WantOutput: describeTokenOutput(),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestAuthTokenList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate ListTokens API error",
 			API: mock.API{
@@ -189,7 +189,7 @@ func TestAuthTokenList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--customer-id 123",
+			Args:      "--customer-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -204,7 +204,7 @@ func TestAuthTokenList(t *testing.T) {
 			API: mock.API{
 				ListCustomerTokensFn: listCustomerTokens,
 			},
-			Arg:        "--customer-id 123",
+			Args:       "--customer-id 123",
 			WantOutput: listTokenOutputSummary(false),
 		},
 		{
@@ -220,12 +220,12 @@ func TestAuthTokenList(t *testing.T) {
 			API: mock.API{
 				ListTokensFn: listTokens,
 			},
-			Arg:        "--verbose",
+			Args:       "--verbose",
 			WantOutput: listTokenOutputVerbose(),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func getToken() (*fastly.Token, error) {

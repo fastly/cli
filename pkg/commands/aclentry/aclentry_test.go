@@ -14,20 +14,20 @@ import (
 )
 
 func TestACLEntryCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --acl-id flag",
-			Arg:       "--ip 127.0.0.1",
+			Args:      "--ip 127.0.0.1",
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --ip flag",
-			Arg:       "--acl-id 123",
+			Args:      "--acl-id 123",
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--acl-id 123 --ip 127.0.0.1",
+			Args:      "--acl-id 123 --ip 127.0.0.1",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -37,7 +37,7 @@ func TestACLEntryCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--acl-id 123 --ip 127.0.0.1 --service-id 123",
+			Args:      "--acl-id 123 --ip 127.0.0.1 --service-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -52,7 +52,7 @@ func TestACLEntryCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--acl-id 123 --ip 127.0.0.1 --service-id 123",
+			Args:       "--acl-id 123 --ip 127.0.0.1 --service-id 123",
 			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, negated: false, service: 123)",
 		},
 		{
@@ -68,29 +68,29 @@ func TestACLEntryCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--acl-id 123 --ip 127.0.0.1 --negated --service-id 123",
+			Args:       "--acl-id 123 --ip 127.0.0.1 --negated --service-id 123",
 			WantOutput: "Created ACL entry '456' (ip: 127.0.0.1, negated: true, service: 123)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestACLEntryDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --acl-id flag",
-			Arg:       "--id 456",
+			Args:      "--id 456",
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --id flag",
-			Arg:       "--acl-id 123",
+			Args:      "--acl-id 123",
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--acl-id 123 --id 456",
+			Args:      "--acl-id 123 --id 456",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -100,7 +100,7 @@ func TestACLEntryDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--acl-id 123 --id 456 --service-id 123",
+			Args:      "--acl-id 123 --id 456 --service-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -110,29 +110,29 @@ func TestACLEntryDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--acl-id 123 --id 456 --service-id 123",
+			Args:       "--acl-id 123 --id 456 --service-id 123",
 			WantOutput: "Deleted ACL entry '456' (service: 123)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestACLEntryDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --acl-id flag",
-			Arg:       "--id 456",
+			Args:      "--id 456",
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --id flag",
-			Arg:       "--acl-id 123",
+			Args:      "--acl-id 123",
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--acl-id 123 --id 456",
+			Args:      "--acl-id 123 --id 456",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -142,7 +142,7 @@ func TestACLEntryDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--acl-id 123 --id 456 --service-id 123",
+			Args:      "--acl-id 123 --id 456 --service-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -150,23 +150,23 @@ func TestACLEntryDescribe(t *testing.T) {
 			API: mock.API{
 				GetACLEntryFn: getACLEntry,
 			},
-			Arg:        "--acl-id 123 --id 456 --service-id 123",
+			Args:       "--acl-id 123 --id 456 --service-id 123",
 			WantOutput: "\nService ID: 123\nACL ID: 123\nID: 456\nIP: 127.0.0.1\nSubnet: 0\nNegated: false\nComment: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestACLEntryList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --acl-id flag",
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--acl-id 123",
+			Args:      "--acl-id 123",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -181,7 +181,7 @@ func TestACLEntryList(t *testing.T) {
 					}, fastly.ListOpts{}, "/example")
 				},
 			},
-			Arg:       "--acl-id 123 --service-id 123",
+			Args:      "--acl-id 123 --service-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -223,7 +223,7 @@ func TestACLEntryList(t *testing.T) {
 					}, fastly.ListOpts{}, "/example")
 				},
 			},
-			Arg:        "--acl-id 123 --service-id 123",
+			Args:       "--acl-id 123 --service-id 123",
 			WantOutput: listACLEntriesOutput,
 		},
 		{
@@ -265,12 +265,12 @@ func TestACLEntryList(t *testing.T) {
 					}, fastly.ListOpts{}, "/example")
 				},
 			},
-			Arg:        "--acl-id 123 --per-page 1 --service-id 123 --verbose",
+			Args:       "--acl-id 123 --per-page 1 --service-id 123 --verbose",
 			WantOutput: listACLEntriesOutputVerbose,
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 var listACLEntriesOutput = `SERVICE ID  ID   IP         SUBNET  NEGATED
@@ -308,19 +308,19 @@ Deleted at: 2021-06-15 23:00:00 +0000 UTC
 `
 
 func TestACLEntryUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --acl-id flag",
 			WantError: "error parsing arguments: required flag --acl-id not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--acl-id 123",
+			Args:      "--acl-id 123",
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --id flag for single entry update",
-			Arg:       "--acl-id 123 --service-id 123",
+			Args:      "--acl-id 123 --service-id 123",
 			WantError: "no ID found",
 		},
 		{
@@ -330,7 +330,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--acl-id 123 --id 456 --service-id 123",
+			Args:      "--acl-id 123 --id 456 --service-id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -340,7 +340,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:       `--acl-id 123 --file {"foo":"bar"} --id 456 --service-id 123`,
+			Args:      `--acl-id 123 --file {"foo":"bar"} --id 456 --service-id 123`,
 			WantError: "missing 'entries'",
 		},
 		{
@@ -350,7 +350,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:       `--acl-id 123 --file {"entries":[]} --id 456 --service-id 123`,
+			Args:      `--acl-id 123 --file {"entries":[]} --id 456 --service-id 123`,
 			WantError: "missing 'entries'",
 		},
 		{
@@ -360,7 +360,7 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--acl-id 123 --file testdata/batch.json --id 456 --service-id 123",
+			Args:       "--acl-id 123 --file testdata/batch.json --id 456 --service-id 123",
 			WantOutput: "Updated 3 ACL entries (service: 123)",
 		},
 		// NOTE: When specifying JSON inline be sure not to have any spaces, and don't
@@ -374,12 +374,12 @@ func TestACLEntryUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        `--acl-id 123 --file {"entries":[{"op":"create","ip":"127.0.0.1","subnet":8},{"op":"update"},{"op":"upsert"}]} --id 456 --service-id 123`,
+			Args:       `--acl-id 123 --file {"entries":[{"op":"create","ip":"127.0.0.1","subnet":8},{"op":"update"},{"op":"upsert"}]} --id 456 --service-id 123`,
 			WantOutput: "Updated 3 ACL entries (service: 123)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func getACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {

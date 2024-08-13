@@ -22,19 +22,19 @@ const (
 
 func TestTLSCustomCertCreate(t *testing.T) {
 	var content string
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --cert-blob and --cert-path flags",
 			WantError: "neither --cert-path or --cert-blob provided, one must be provided",
 		},
 		{
 			Name:      "validate specifying both --cert-blob and --cert-path flags",
-			Arg:       "--cert-blob foo --cert-path bar",
+			Args:      "--cert-blob foo --cert-path bar",
 			WantError: "cert-path and cert-blob provided, only one can be specified",
 		},
 		{
 			Name:      "validate invalid --cert-path arg",
-			Arg:       "--cert-path ............",
+			Args:      "--cert-path ............",
 			WantError: "error reading cert-path",
 		},
 		{
@@ -47,7 +47,7 @@ func TestTLSCustomCertCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--cert-path ./testdata/certificate.crt",
+			Args:            "--cert-path ./testdata/certificate.crt",
 			WantOutput:      fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
 			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
@@ -59,7 +59,7 @@ func TestTLSCustomCertCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:             "--cert-blob example",
+			Args:            "--cert-blob example",
 			WantError:       testutil.Err.Error(),
 			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
@@ -73,17 +73,17 @@ func TestTLSCustomCertCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--cert-blob example",
+			Args:            "--cert-blob example",
 			WantOutput:      fmt.Sprintf("Created TLS Certificate '%s'", mockResponseID),
 			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestTLSCustomCertDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -95,7 +95,7 @@ func TestTLSCustomCertDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -105,16 +105,16 @@ func TestTLSCustomCertDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "Deleted TLS Certificate 'example'",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestTLSCustomCertDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -126,7 +126,7 @@ func TestTLSCustomCertDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -147,16 +147,16 @@ func TestTLSCustomCertDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nIssued to: " + mockFieldValue + "\nIssuer: " + mockFieldValue + "\nName: " + mockFieldValue + "\nReplace: true\nSerial number: " + mockFieldValue + "\nSignature algorithm: " + mockFieldValue + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestTLSCustomCertList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -186,35 +186,35 @@ func TestTLSCustomCertList(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--verbose",
+			Args:       "--verbose",
 			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nID: " + mockResponseID + "\nIssued to: " + mockFieldValue + "\nIssuer: " + mockFieldValue + "\nName: " + mockFieldValue + "\nReplace: true\nSerial number: " + mockFieldValue + "\nSignature algorithm: " + mockFieldValue + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestTLSCustomCertUpdate(t *testing.T) {
 	var content string
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Arg:       "--cert-blob example",
+			Args:      "--cert-blob example",
 			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --cert-blob and --cert-path flags",
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: "neither --cert-path or --cert-blob provided, one must be provided",
 		},
 		{
 			Name:      "validate specifying both --cert-blob and --cert-path flags",
-			Arg:       "--id example --cert-blob foo --cert-path bar",
+			Args:      "--id example --cert-blob foo --cert-path bar",
 			WantError: "cert-path and cert-blob provided, only one can be specified",
 		},
 		{
 			Name:      "validate invalid --cert-path arg",
-			Arg:       "--id example --cert-path ............",
+			Args:      "--id example --cert-path ............",
 			WantError: "error reading cert-path",
 		},
 		{
@@ -225,7 +225,7 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:             "--cert-blob example --id example",
+			Args:            "--cert-blob example --id example",
 			WantError:       testutil.Err.Error(),
 			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
@@ -239,7 +239,7 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--cert-blob example --id example",
+			Args:            "--cert-blob example --id example",
 			WantOutput:      fmt.Sprintf("Updated TLS Certificate '%s'", mockResponseID),
 			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
@@ -254,7 +254,7 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--cert-blob example --id example --name example",
+			Args:            "--cert-blob example --id example --name example",
 			WantOutput:      "Updated TLS Certificate 'Updated' (previously: 'example')",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
@@ -268,11 +268,11 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--id example --cert-path ./testdata/certificate.crt",
+			Args:            "--id example --cert-path ./testdata/certificate.crt",
 			WantOutput:      "SUCCESS: Updated TLS Certificate '123'",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "cert-path", Fixture: "certificate.crt", Content: func() string { return content }},
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }

@@ -21,15 +21,15 @@ const (
 )
 
 func TestTLSCustomActivationEnable(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Arg:       "--cert-id example",
+			Args:      "--cert-id example",
 			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      validateMissingIDFlag,
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: "required flag --cert-id not provided",
 		},
 		{
@@ -39,7 +39,7 @@ func TestTLSCustomActivationEnable(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--cert-id example --id example",
+			Args:      "--cert-id example --id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -54,16 +54,16 @@ func TestTLSCustomActivationEnable(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--cert-id example --id example",
+			Args:       "--cert-id example --id example",
 			WantOutput: fmt.Sprintf("Enabled TLS Activation '%s' (Certificate '%s')", mockResponseID, mockResponseCertID),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "enable"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "enable"}, scenarios)
 }
 
 func TestTLSCustomActivationDisable(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -75,7 +75,7 @@ func TestTLSCustomActivationDisable(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -85,16 +85,16 @@ func TestTLSCustomActivationDisable(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "Disabled TLS Activation 'example'",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "disable"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "disable"}, scenarios)
 }
 
 func TestTLSCustomActivationDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -106,7 +106,7 @@ func TestTLSCustomActivationDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -120,16 +120,16 @@ func TestTLSCustomActivationDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestTLSCustomActivationList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -152,24 +152,24 @@ func TestTLSCustomActivationList(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--verbose",
+			Args:       "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestTLSCustomActivationUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Arg:       "--cert-id example",
+			Args:      "--cert-id example",
 			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      validateMissingIDFlag,
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: "required flag --cert-id not provided",
 		},
 		{
@@ -179,7 +179,7 @@ func TestTLSCustomActivationUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--cert-id example --id example",
+			Args:      "--cert-id example --id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -194,10 +194,10 @@ func TestTLSCustomActivationUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--cert-id example --id example",
+			Args:       "--cert-id example --id example",
 			WantOutput: fmt.Sprintf("Updated TLS Activation Certificate '%s' (previously: 'example')", mockResponseCertID),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }

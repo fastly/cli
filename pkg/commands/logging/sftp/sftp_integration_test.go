@@ -16,7 +16,7 @@ import (
 )
 
 func TestSFTPCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -67,7 +67,7 @@ func TestSFTPCreate(t *testing.T) {
 }
 
 func TestSFTPList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -140,7 +140,7 @@ func TestSFTPList(t *testing.T) {
 }
 
 func TestSFTPDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -185,7 +185,7 @@ func TestSFTPDescribe(t *testing.T) {
 }
 
 func TestSFTPUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -232,7 +232,7 @@ func TestSFTPUpdate(t *testing.T) {
 }
 
 func TestSFTPDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

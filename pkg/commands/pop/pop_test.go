@@ -15,7 +15,7 @@ import (
 
 func TestAllDatacenters(t *testing.T) {
 	var stdout bytes.Buffer
-	args := testutil.Args("pops")
+	args := testutil.SplitArgs("pops")
 	api := mock.API{
 		AllDatacentersFn: func() ([]fastly.Datacenter, error) {
 			return []fastly.Datacenter{

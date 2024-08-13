@@ -22,13 +22,13 @@ func TestCreateCommand(t *testing.T) {
 		itemValue = "the-value"
 	)
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--key a-key --value a-value",
+			Args:      "--key a-key --value a-value",
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
 			API: mock.API{
 				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
 					return errors.New("invalid request")
@@ -37,7 +37,7 @@ func TestCreateCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
 			API: mock.API{
 				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
 					return nil
@@ -46,7 +46,7 @@ func TestCreateCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s --value %s --json", storeID, itemKey, itemValue),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --json", storeID, itemKey, itemValue),
 			API: mock.API{
 				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
 					return nil
@@ -55,7 +55,7 @@ func TestCreateCommand(t *testing.T) {
 			WantOutput: fstfmt.JSON(`{"id": %q, "key": %q}`, storeID, itemKey),
 		},
 		{
-			Arg:   fmt.Sprintf("--store-id %s --stdin", storeID),
+			Args:  fmt.Sprintf("--store-id %s --stdin", storeID),
 			Stdin: []string{`{"key":"example","value":"VkFMVUU="}`},
 			API: mock.API{
 				BatchModifyKVStoreKeyFn: func(_ *fastly.BatchModifyKVStoreKeyInput) error {
@@ -65,7 +65,7 @@ func TestCreateCommand(t *testing.T) {
 			WantOutput: "SUCCESS: Inserted keys into KV Store\n",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --file %s", storeID, filepath.Join("testdata", "data.json")),
+			Args: fmt.Sprintf("--store-id %s --file %s", storeID, filepath.Join("testdata", "data.json")),
 			API: mock.API{
 				BatchModifyKVStoreKeyFn: func(_ *fastly.BatchModifyKVStoreKeyInput) error {
 					return nil
@@ -74,7 +74,7 @@ func TestCreateCommand(t *testing.T) {
 			WantOutput: "SUCCESS: Inserted keys into KV Store\n",
 		},
 		{
-			Arg:   fmt.Sprintf("--store-id %s --dir %s", storeID, filepath.Join("testdata", "example")),
+			Args:  fmt.Sprintf("--store-id %s --dir %s", storeID, filepath.Join("testdata", "example")),
 			Stdin: []string{"y"},
 			API: mock.API{
 				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
@@ -84,7 +84,7 @@ func TestCreateCommand(t *testing.T) {
 			WantOutput: "SUCCESS: Inserted 1 keys into KV Store",
 		},
 		{
-			Arg:   fmt.Sprintf("--store-id %s --dir %s --dir-allow-hidden", storeID, filepath.Join("testdata", "example")),
+			Args:  fmt.Sprintf("--store-id %s --dir %s --dir-allow-hidden", storeID, filepath.Join("testdata", "example")),
 			Stdin: []string{"y"},
 			API: mock.API{
 				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
@@ -95,7 +95,7 @@ func TestCreateCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestDeleteCommand(t *testing.T) {
@@ -104,25 +104,25 @@ func TestDeleteCommand(t *testing.T) {
 		itemKey = "foo"
 	)
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--key a-key",
+			Args:      "--key a-key",
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Arg:       "--store-id " + storeID,
+			Args:      "--store-id " + storeID,
 			WantError: "invalid command, neither --all or --key provided",
 		},
 		{
-			Arg:       "--json --all --store-id " + storeID,
+			Args:      "--json --all --store-id " + storeID,
 			WantError: "invalid flag combination, --all and --json",
 		},
 		{
-			Arg:       "--key a-key --all --store-id " + storeID,
+			Args:      "--key a-key --all --store-id " + storeID,
 			WantError: "invalid flag combination, --all and --key",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				DeleteKVStoreKeyFn: func(_ *fastly.DeleteKVStoreKeyInput) error {
 					return errors.New("invalid request")
@@ -131,7 +131,7 @@ func TestDeleteCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				DeleteKVStoreKeyFn: func(_ *fastly.DeleteKVStoreKeyInput) error {
 					return nil
@@ -140,7 +140,7 @@ func TestDeleteCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Deleted key '%s' from KV Store '%s'", itemKey, storeID),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
+			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
 			API: mock.API{
 				DeleteKVStoreKeyFn: func(_ *fastly.DeleteKVStoreKeyInput) error {
 					return nil
@@ -149,7 +149,7 @@ func TestDeleteCommand(t *testing.T) {
 			WantOutput: fstfmt.JSON(`{"key": "%s", "store_id": "%s", "deleted": true}`, itemKey, storeID),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
+			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
 			API: mock.API{
 				NewListKVStoreKeysPaginatorFn: func(_ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
 					return &mockKVStoresEntriesPaginator{
@@ -164,7 +164,7 @@ func TestDeleteCommand(t *testing.T) {
 			WantOutput: "Deleting keys...",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
+			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
 			API: mock.API{
 				NewListKVStoreKeysPaginatorFn: func(_ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
 					return &mockKVStoresEntriesPaginator{
@@ -180,7 +180,7 @@ func TestDeleteCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestGetCommand(t *testing.T) {
@@ -190,13 +190,13 @@ func TestGetCommand(t *testing.T) {
 		itemValue = "a value"
 	)
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--key a-key",
+			Args:      "--key a-key",
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				GetKVStoreKeyFn: func(_ *fastly.GetKVStoreKeyInput) (string, error) {
 					return "", errors.New("invalid request")
@@ -205,7 +205,7 @@ func TestGetCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				GetKVStoreKeyFn: func(_ *fastly.GetKVStoreKeyInput) (string, error) {
 					return itemValue, nil
@@ -214,7 +214,7 @@ func TestGetCommand(t *testing.T) {
 			WantOutput: itemValue,
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
+			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
 			API: mock.API{
 				GetKVStoreKeyFn: func(_ *fastly.GetKVStoreKeyInput) (string, error) {
 					return itemValue, nil
@@ -224,7 +224,7 @@ func TestGetCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "get"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "get"}, scenarios)
 }
 
 func TestListCommand(t *testing.T) {
@@ -235,12 +235,12 @@ func TestListCommand(t *testing.T) {
 		testItems[i] = fmt.Sprintf("key-%02d", i)
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				ListKVStoreKeysFn: func(_ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return nil, errors.New("invalid request")
@@ -249,7 +249,7 @@ func TestListCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				ListKVStoreKeysFn: func(_ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return &fastly.ListKVStoreKeysResponse{Data: testItems}, nil
@@ -258,7 +258,7 @@ func TestListCommand(t *testing.T) {
 			WantOutput: strings.Join(testItems, "\n") + "\n",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --json", storeID),
+			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				ListKVStoreKeysFn: func(_ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return &fastly.ListKVStoreKeysResponse{Data: testItems}, nil
@@ -268,7 +268,7 @@ func TestListCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 type mockKVStoresEntriesPaginator struct {

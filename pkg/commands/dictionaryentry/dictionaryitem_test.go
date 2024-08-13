@@ -18,7 +18,7 @@ import (
 )
 
 func TestDictionaryItemDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -63,7 +63,7 @@ func TestDictionaryItemDescribe(t *testing.T) {
 }
 
 func TestDictionaryItemsList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -142,7 +142,7 @@ func TestDictionaryItemsList(t *testing.T) {
 }
 
 func TestDictionaryItemCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -182,7 +182,7 @@ func TestDictionaryItemCreate(t *testing.T) {
 }
 
 func TestDictionaryItemUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -261,7 +261,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 }
 
 func TestDictionaryItemDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

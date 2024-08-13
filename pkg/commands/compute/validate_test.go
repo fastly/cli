@@ -9,10 +9,10 @@ import (
 )
 
 func TestValidate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "success",
-			Arg:  "--package pkg/package.tar.gz",
+			Args: "--package pkg/package.tar.gz",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -28,5 +28,5 @@ func TestValidate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "validate"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "validate"}, scenarios)
 }

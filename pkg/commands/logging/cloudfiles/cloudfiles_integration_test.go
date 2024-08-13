@@ -16,7 +16,7 @@ import (
 )
 
 func TestCloudfilesCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -67,7 +67,7 @@ func TestCloudfilesCreate(t *testing.T) {
 }
 
 func TestCloudfilesList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -140,7 +140,7 @@ func TestCloudfilesList(t *testing.T) {
 }
 
 func TestCloudfilesDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -185,7 +185,7 @@ func TestCloudfilesDescribe(t *testing.T) {
 }
 
 func TestCloudfilesUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -232,7 +232,7 @@ func TestCloudfilesUpdate(t *testing.T) {
 }
 
 func TestCloudfilesDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

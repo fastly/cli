@@ -20,7 +20,7 @@ const (
 )
 
 func TestTLSSubscriptionCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --domain flag",
 			WantError: "required flag --domain not provided",
@@ -32,7 +32,7 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--domain example.com",
+			Args:      "--domain example.com",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -48,16 +48,16 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--domain example.com",
+			Args:       "--domain example.com",
 			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: %s, Common Name: example.com)", mockResponseID, certificateAuthority),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestTLSSubscriptionDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -69,7 +69,7 @@ func TestTLSSubscriptionDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -79,16 +79,16 @@ func TestTLSSubscriptionDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "Deleted TLS Subscription 'example' (force: false)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestTLSSubscriptionDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -100,7 +100,7 @@ func TestTLSSubscriptionDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -117,16 +117,16 @@ func TestTLSSubscriptionDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nCertificate Authority: " + certificateAuthority + "\nState: pending\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestTLSSubscriptionList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -152,16 +152,16 @@ func TestTLSSubscriptionList(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--verbose",
+			Args:       "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nCertificate Authority: " + certificateAuthority + "\nState: pending\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestTLSSubscriptionUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "required flag --id not provided",
@@ -173,7 +173,7 @@ func TestTLSSubscriptionUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -189,10 +189,10 @@ func TestTLSSubscriptionUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: fmt.Sprintf("Updated TLS Subscription '%s' (Authority: %s, Common Name: example.com)", mockResponseID, certificateAuthority),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

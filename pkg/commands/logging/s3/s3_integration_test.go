@@ -16,7 +16,7 @@ import (
 )
 
 func TestS3Create(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -117,7 +117,7 @@ func TestS3Create(t *testing.T) {
 }
 
 func TestS3List(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -190,7 +190,7 @@ func TestS3List(t *testing.T) {
 }
 
 func TestS3Describe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -235,7 +235,7 @@ func TestS3Describe(t *testing.T) {
 }
 
 func TestS3Update(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -291,7 +291,7 @@ func TestS3Update(t *testing.T) {
 }
 
 func TestS3Delete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

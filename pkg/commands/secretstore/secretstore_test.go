@@ -79,7 +79,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
+			args := testutil.SplitArgs(secretstore.RootNameStore + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.CreateSecretStoreFn
@@ -164,7 +164,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
+			args := testutil.SplitArgs(secretstore.RootNameStore + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.DeleteSecretStoreFn
@@ -254,7 +254,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
+			args := testutil.SplitArgs(secretstore.RootNameStore + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.GetSecretStoreFn
@@ -346,7 +346,7 @@ func TestListStoresCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(secretstore.RootNameStore + " " + testcase.args)
+			args := testutil.SplitArgs(secretstore.RootNameStore + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.ListSecretStoresFn

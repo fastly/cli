@@ -16,7 +16,7 @@ import (
 )
 
 func TestGooglePubSubCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -59,7 +59,7 @@ func TestGooglePubSubCreate(t *testing.T) {
 }
 
 func TestGooglePubSubList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -132,7 +132,7 @@ func TestGooglePubSubList(t *testing.T) {
 }
 
 func TestGooglePubSubDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -177,7 +177,7 @@ func TestGooglePubSubDescribe(t *testing.T) {
 }
 
 func TestGooglePubSubUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -224,7 +224,7 @@ func TestGooglePubSubUpdate(t *testing.T) {
 }
 
 func TestGooglePubSubDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

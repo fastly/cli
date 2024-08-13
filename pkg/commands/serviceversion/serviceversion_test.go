@@ -12,20 +12,20 @@ import (
 )
 
 func TestVersionClone(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --service-id flag",
-			Arg:       "--version 1",
+			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Arg:       "--service-id 123",
+			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name: "validate successful clone",
-			Arg:  "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -34,7 +34,7 @@ func TestVersionClone(t *testing.T) {
 		},
 		{
 			Name: "validate error will be passed through if cloning fails",
-			Arg:  "--service-id 456 --version 1",
+			Args: "--service-id 456 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionError,
@@ -43,50 +43,50 @@ func TestVersionClone(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "clone"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "clone"}, scenarios)
 }
 
 func TestVersionList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:        "--service-id 123",
+			Args:       "--service-id 123",
 			API:        mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsShortOutput,
 		},
 		{
-			Arg:        "--service-id 123 --verbose",
+			Args:       "--service-id 123 --verbose",
 			API:        mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsVerboseOutput,
 		},
 		{
-			Arg:        "--service-id 123 -v",
+			Args:       "--service-id 123 -v",
 			API:        mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsVerboseOutput,
 		},
 		{
-			Arg:        "--verbose --service-id 123",
+			Args:       "--verbose --service-id 123",
 			API:        mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsVerboseOutput,
 		},
 		{
-			Arg:        "-v --service-id 123",
+			Args:       "-v --service-id 123",
 			API:        mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsVerboseOutput,
 		},
 		{
-			Arg:       "--service-id 123",
+			Args:      "--service-id 123",
 			API:       mock.API{ListVersionsFn: testutil.ListVersionsError},
 			WantError: testutil.Err.Error(),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestVersionUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg: "--service-id 123 --version 1 --comment foo --autoclone",
+			Args: "--service-id 123 --version 1 --comment foo --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -95,7 +95,7 @@ func TestVersionUpdate(t *testing.T) {
 			WantOutput: "Updated service 123 version 4",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --autoclone",
+			Args: "--service-id 123 --version 1 --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -103,7 +103,7 @@ func TestVersionUpdate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --comment not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --comment foo --autoclone",
+			Args: "--service-id 123 --version 1 --comment foo --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -113,24 +113,24 @@ func TestVersionUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestVersionActivate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123",
+			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			WantError: "service version 1 is active",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --autoclone",
+			Args: "--service-id 123 --version 1 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -139,7 +139,7 @@ func TestVersionActivate(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			Arg: "--service-id 123 --version 1 --autoclone",
+			Args: "--service-id 123 --version 1 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -148,7 +148,7 @@ func TestVersionActivate(t *testing.T) {
 			WantOutput: "Activated service 123 version 4",
 		},
 		{
-			Arg: "--service-id 123 --version 2 --autoclone",
+			Args: "--service-id 123 --version 2 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -157,7 +157,7 @@ func TestVersionActivate(t *testing.T) {
 			WantOutput: "Activated service 123 version 4",
 		},
 		{
-			Arg: "--service-id 123 --version 3 --autoclone",
+			Args: "--service-id 123 --version 3 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: activateVersionOK,
@@ -166,17 +166,17 @@ func TestVersionActivate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "activate"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "activate"}, scenarios)
 }
 
 func TestVersionDeactivate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123",
+			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
@@ -184,7 +184,7 @@ func TestVersionDeactivate(t *testing.T) {
 			WantOutput: "Deactivated service 123 version 1",
 		},
 		{
-			Arg: "--service-id 123 --version 3",
+			Args: "--service-id 123 --version 3",
 			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
@@ -192,7 +192,7 @@ func TestVersionDeactivate(t *testing.T) {
 			WantError: "service version 3 is not active",
 		},
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionError,
@@ -201,17 +201,17 @@ func TestVersionDeactivate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "deactivate"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "deactivate"}, scenarios)
 }
 
 func TestVersionLock(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123",
+			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionOK,
@@ -219,7 +219,7 @@ func TestVersionLock(t *testing.T) {
 			WantOutput: "Locked service 123 version 1",
 		},
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionError,
@@ -228,7 +228,7 @@ func TestVersionLock(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "lock"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "lock"}, scenarios)
 }
 
 var listVersionsShortOutput = strings.TrimSpace(`

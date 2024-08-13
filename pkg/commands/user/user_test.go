@@ -12,7 +12,7 @@ import (
 )
 
 func TestUserCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate CreateUser API error",
 			API: mock.API{
@@ -20,7 +20,7 @@ func TestUserCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--login foo@example.com --name foobar",
+			Args:      "--login foo@example.com --name foobar",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -33,16 +33,16 @@ func TestUserCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--login foo@example.com --name foobar",
+			Args:       "--login foo@example.com --name foobar",
 			WantOutput: "Created user 'foobar' (role: user)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestUserDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -54,7 +54,7 @@ func TestUserDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id foo123",
+			Args:      "--id foo123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -64,16 +64,16 @@ func TestUserDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id foo123",
+			Args:       "--id foo123",
 			WantOutput: "Deleted user (id: foo123)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestUserDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: must provide --id flag",
@@ -85,7 +85,7 @@ func TestUserDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id 123",
+			Args:      "--id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -95,7 +95,7 @@ func TestUserDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--current",
+			Args:      "--current",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -103,7 +103,7 @@ func TestUserDescribe(t *testing.T) {
 			API: mock.API{
 				GetUserFn: getUser,
 			},
-			Arg:        "--id 123",
+			Args:       "--id 123",
 			WantOutput: describeUserOutput(),
 		},
 		{
@@ -111,16 +111,16 @@ func TestUserDescribe(t *testing.T) {
 			API: mock.API{
 				GetCurrentUserFn: getCurrentUser,
 			},
-			Arg:        "--current",
+			Args:       "--current",
 			WantOutput: describeCurrentUserOutput(),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestUserList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --customer-id flag",
 			WantError: "error reading customer ID: no customer ID found",
@@ -132,7 +132,7 @@ func TestUserList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--customer-id abc",
+			Args:      "--customer-id abc",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -140,7 +140,7 @@ func TestUserList(t *testing.T) {
 			API: mock.API{
 				ListCustomerUsersFn: listUsers,
 			},
-			Arg:        "--customer-id abc",
+			Args:       "--customer-id abc",
 			WantOutput: listOutput(),
 		},
 		{
@@ -148,33 +148,33 @@ func TestUserList(t *testing.T) {
 			API: mock.API{
 				ListCustomerUsersFn: listUsers,
 			},
-			Arg:        "--customer-id abc --verbose",
+			Args:       "--customer-id abc --verbose",
 			WantOutput: listVerboseOutput(),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestUserUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: must provide --id flag",
 		},
 		{
 			Name:      "validate missing --name and --role flags",
-			Arg:       "--id 123",
+			Args:      "--id 123",
 			WantError: "error parsing arguments: must provide either the --name or --role with the --id flag",
 		},
 		{
 			Name:      "validate missing --login flag with --password-reset",
-			Arg:       "--password-reset",
+			Args:      "--password-reset",
 			WantError: "error parsing arguments: must provide --login when requesting a password reset",
 		},
 		{
 			Name:      "validate invalid --role value",
-			Arg:       "--id 123 --role foobar",
+			Args:      "--id 123 --role foobar",
 			WantError: "error parsing arguments: enum value must be one of user,billing,engineer,superuser, got 'foobar'",
 		},
 		{
@@ -184,7 +184,7 @@ func TestUserUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id 123 --name foo",
+			Args:      "--id 123 --name foo",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -194,7 +194,7 @@ func TestUserUpdate(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id 123 --login foo@example.com --password-reset",
+			Args:      "--id 123 --login foo@example.com --password-reset",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -208,7 +208,7 @@ func TestUserUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id 123 --name foo --role engineer",
+			Args:       "--id 123 --name foo --role engineer",
 			WantOutput: "Updated user 'foo' (role: engineer)",
 		},
 		{
@@ -218,12 +218,12 @@ func TestUserUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id 123 --login foo@example.com --password-reset",
+			Args:       "--id 123 --login foo@example.com --password-reset",
 			WantOutput: "Reset user password (login: foo@example.com)",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func getUser(i *fastly.GetUserInput) (*fastly.User, error) {

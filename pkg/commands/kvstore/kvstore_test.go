@@ -24,12 +24,12 @@ func TestCreateStoreCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: fmt.Sprintf("--name %s", storeName),
+			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return nil, errors.New("invalid request")
@@ -38,7 +38,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--name %s", storeName),
+			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -50,7 +50,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Created KV Store '%s' (%s)", storeName, storeID),
 		},
 		{
-			Arg: fmt.Sprintf("--name %s --json", storeName),
+			Args: fmt.Sprintf("--name %s --json", storeName),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -71,7 +71,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			// NOTE: The following tests only validate support for the --location flag.
 			// Location/region indicators are not exposed for us to validate.
-			Arg: fmt.Sprintf("--name %s --location %s", storeName, storeLocation),
+			Args: fmt.Sprintf("--name %s --location %s", storeName, storeLocation),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -85,7 +85,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			// NOTE: The following tests only validate support for the --location flag.
 			// Location/region indicators are not exposed for us to validate.
-			Arg: fmt.Sprintf("--name %s --location %s --json", storeName, storeLocation),
+			Args: fmt.Sprintf("--name %s --location %s --json", storeName, storeLocation),
 			API: mock.API{
 				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -105,19 +105,19 @@ func TestCreateStoreCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestDeleteStoreCommand(t *testing.T) {
 	const storeID = "test123"
 	errStoreNotFound := errors.New("store not found")
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Arg: "--store-id DOES-NOT-EXIST",
+			Args: "--store-id DOES-NOT-EXIST",
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
@@ -129,7 +129,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			WantError: errStoreNotFound.Error(),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
@@ -141,7 +141,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Deleted KV Store '%s'\n", storeID),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --json", storeID),
+			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
@@ -154,7 +154,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestGetStoreCommand(t *testing.T) {
@@ -165,12 +165,12 @@ func TestGetStoreCommand(t *testing.T) {
 
 	now := time.Now()
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return nil, errors.New("invalid request")
@@ -179,7 +179,7 @@ func TestGetStoreCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -200,7 +200,7 @@ func TestGetStoreCommand(t *testing.T) {
 			),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --json", storeID),
+			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
@@ -218,7 +218,7 @@ func TestGetStoreCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "get"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "get"}, scenarios)
 }
 
 func TestListStoresCommand(t *testing.T) {
@@ -236,7 +236,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			API: mock.API{
 				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
@@ -261,7 +261,7 @@ func TestListStoresCommand(t *testing.T) {
 			WantOutput: fmtStores(stores),
 		},
 		{
-			Arg: "--json",
+			Args: "--json",
 			API: mock.API{
 				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return stores, nil
@@ -271,7 +271,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func fmtStore(ks *fastly.KVStore) string {

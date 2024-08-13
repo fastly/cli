@@ -21,7 +21,7 @@ import (
 )
 
 func TestServiceCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -76,7 +76,7 @@ func TestServiceCreate(t *testing.T) {
 }
 
 func TestServiceList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -219,7 +219,7 @@ func TestServiceList(t *testing.T) {
 }
 
 func TestServiceDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -279,7 +279,7 @@ func TestServiceDescribe(t *testing.T) {
 }
 
 func TestServiceSearch(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -323,7 +323,7 @@ func TestServiceSearch(t *testing.T) {
 }
 
 func TestServiceUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -391,7 +391,7 @@ func TestServiceUpdate(t *testing.T) {
 }
 
 func TestServiceDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	nonEmptyServiceID := regexp.MustCompile(`service_id = "[^"]+"`)
 
 	scenarios := []struct {
