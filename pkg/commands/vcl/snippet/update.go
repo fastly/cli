@@ -6,6 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	"4d63.com/optional"
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -77,8 +78,19 @@ type UpdateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
+	// in the normal case, we do not want to allow 'active' or 'locked' services to be updated,
+	// so we require those states to be 'false'
+	var allowActive = optional.Of(false)
+	var allowLocked = optional.Of(false)
+	if c.dynamic.WasSet && c.dynamic.Value {
+		// in this case, we will accept all states ('active' and 'inactive', 'locked' and 'unlocked'),
+		// so we mark the Optional[bool] fields as 'empty' and they will not be applied as filters
+		allowActive = optional.Empty[bool]()
+		allowLocked = optional.Empty[bool]()
+	}
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AllowActiveLocked:  c.dynamic.WasSet && c.dynamic.Value,
+		Active:             allowActive,
+		Locked:             allowLocked,
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,

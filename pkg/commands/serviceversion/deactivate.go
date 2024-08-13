@@ -5,6 +5,7 @@ import (
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
+	"4d63.com/optional"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -48,7 +49,7 @@ func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *Deactiva
 // Exec invokes the application logic for the command.
 func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+		Active:             optional.Of(true),
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,

@@ -123,6 +123,13 @@ func TestVersionActivate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
+			Arg: "--service-id 123 --version 1",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			WantError: "service version 1 is active",
+		},
+		{
 			Arg: "--service-id 123 --version 1 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
@@ -133,6 +140,15 @@ func TestVersionActivate(t *testing.T) {
 		},
 		{
 			Arg: "--service-id 123 --version 1 --autoclone",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				ActivateVersionFn: activateVersionOK,
+			},
+			WantOutput: "Activated service 123 version 4",
+		},
+		{
+			Arg: "--service-id 123 --version 2 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -173,10 +189,10 @@ func TestVersionDeactivate(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
 			},
-			WantOutput: "Deactivated service 123 version 3",
+			WantError: "service version 3 is not active",
 		},
 		{
-			Arg: "--service-id 123 --version 3",
+			Arg: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionError,

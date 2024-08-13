@@ -15,12 +15,20 @@ func TestVCLCustomCreate(t *testing.T) {
 	var content string
 	scenarios := []testutil.TestScenario{
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--content ./testdata/example.vcl --name foo --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--content ./testdata/example.vcl --name foo --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate CreateVCL API error",
@@ -178,12 +186,20 @@ func TestVCLCustomDelete(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--name foobar --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate DeleteVCL API error",
@@ -348,12 +364,20 @@ func TestVCLCustomUpdate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--name foobar --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate UpdateVCL API error",

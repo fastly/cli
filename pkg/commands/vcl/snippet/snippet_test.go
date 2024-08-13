@@ -20,12 +20,20 @@ func TestVCLSnippetCreate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate CreateSnippet API error",
@@ -213,12 +221,20 @@ func TestVCLSnippetDelete(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--name foobar --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate DeleteSnippet API error",
@@ -396,12 +412,20 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Arg:       "--service-id 123 --version 1",
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Arg:       "--service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate versioned snippet missing --name",

@@ -30,9 +30,31 @@ func TestBackendCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
 		},
-		// The following test is the same as the above but it appends --autoclone
+		// The following test specifies a service version that's 'locked', and
+		// subsequently we expect it to not be cloned as we don't provide the
+		// --autoclone flag and trying to add a backend to a locked service
+		// should cause an error.
+		{
+			Arg: "--service-id 123 --version 2 --address example.com --name www.test.com",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			WantError: "service version 2 is locked",
+		},
+		// The following test is the same as the 'active' test above but it appends --autoclone
+		// so we can be sure the backend creation error still occurs.
+		{
+			Arg: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				CreateBackendFn: createBackendError,
+			},
+			WantError: errTest.Error(),
+		},
+		// The following test is the same as the 'locked' test above but it appends --autoclone
 		// so we can be sure the backend creation error still occurs.
 		{
 			Arg: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
@@ -122,8 +144,8 @@ func TestBackendCreate(t *testing.T) {
 			},
 			WantOutput: "Created backend www.test.com (service 123 version 4)",
 		},
-		// The following test specifies a service version that's 'inactive', and
-		// subsequently we expect it to be the same editable version.
+		// The following test specifies a service version that's 'inactive' and not 'locked',
+		// and subsequently we expect it to be the same editable version.
 		{
 			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com",
 			API: mock.API{
