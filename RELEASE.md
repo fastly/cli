@@ -8,7 +8,7 @@
 1. Open a new PR to update CHANGELOG ([example](https://github.com/fastly/cli/pull/273))<sup>[1](#note1)</sup>.
 1. Merge CHANGELOG.
 1. Rebase latest remote main branch locally (`git pull --rebase origin main`).
-1. Tag a new release (`tag=vX.Y.Z && git tag -s $tag -m "$tag" && git push origin $tag`)<sup>[2](#note2)</sup>.
+1. Tag a new release (`tag=vX.Y.Z && git tag -s $tag -m $tag && git push $(git config branch.$(git symbolic-ref -q --short HEAD).remote) $tag`)<sup>[2](#note2)</sup>.
 1. Copy/paste CHANGELOG into the [draft release](https://github.com/fastly/cli/releases).
 1. Publish draft release.
 
