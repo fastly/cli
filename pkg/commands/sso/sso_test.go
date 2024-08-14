@@ -1,7 +1,6 @@
 package sso_test
 
 import (
-	"bytes"
 	"errors"
 	"testing"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 func TestSSO(t *testing.T) {
@@ -99,7 +99,7 @@ func TestSSO(t *testing.T) {
 				"We need to open your browser to authenticate you.",
 				"Session token (persisted to your local configuration): 123",
 			},
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout bytes.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -139,7 +139,7 @@ func TestSSO(t *testing.T) {
 				"We need to open your browser to authenticate you.",
 				"Session token (persisted to your local configuration): 123",
 			},
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout bytes.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["test_user"]
 				if userProfile.Token != expectedToken {
@@ -191,7 +191,7 @@ func TestSSO(t *testing.T) {
 				// "is not a Fastly SSO (Single Sign-On) generated token",
 				"{Latitude:1 Longtitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout bytes.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -221,7 +221,7 @@ func TestSSO(t *testing.T) {
 			},
 			WantOutput:     "Your access token has expired and so has your refresh token.",
 			DontWantOutput: "{Latitude:1 Longtitude:2 X:3 Y:4}",
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout bytes.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -283,7 +283,7 @@ func TestSSO(t *testing.T) {
 				"Session token (persisted to your local configuration): 123",
 				"{Latitude:1 Longtitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout bytes.Buffer) {
+			Validator: func(t *testing.T, scenario *testutil.TestScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
