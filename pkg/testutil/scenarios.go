@@ -1,12 +1,12 @@
 package testutil
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
+	"github.com/fastly/cli/pkg/threadsafe"
 	"io"
 	"os"
 	"slices"
@@ -54,7 +54,7 @@ type TestScenario struct {
 	Stdin []string
 	// Validator function can perform additional validation on the results
 	// of the scenario
-	Validator func(t *testing.T, scenario *TestScenario, opts *global.Data, stdout bytes.Buffer)
+	Validator func(t *testing.T, scenario *TestScenario, opts *global.Data, stdout *threadsafe.Buffer)
 	// WantError will cause the scenario to fail if this string
 	// does not appear in an Error
 	WantError string
@@ -95,7 +95,7 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 			err      error
 			fullargs []string
 			rootdir  string
-			stdout   bytes.Buffer
+			stdout   threadsafe.Buffer
 		)
 
 		if len(scenario.Arg) > 0 {
@@ -233,7 +233,7 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 		}
 
 		if scenario.Validator != nil {
-			scenario.Validator(t, &scenario, opts, stdout)
+			scenario.Validator(t, &scenario, opts, &stdout)
 		}
 	})
 }
