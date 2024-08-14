@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [v10.13.1](https://github.com/fastly/cli/releases/tag/v10.13.1) (2024-08-14)
+
+This release does not contain any code changes, but was made in order
+to trigger the new 'NPM release' workflow.
+
 ## [v10.13.0](https://github.com/fastly/cli/releases/tag/v10.13.0) (2024-08-14)
 
 **Enhancements:**
