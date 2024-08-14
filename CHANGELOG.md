@@ -1,5 +1,42 @@
 # CHANGELOG
 
+## [v10.13.0](https://github.com/fastly/cli/releases/tag/v10.13.0) (2024-08-14)
+
+**Enhancements:**
+
+- feat(tls): add optional `--key-path` parameter to `tls-custom private-key create` command [#1215](https://github.com/fastly/cli/pull/1215)
+- feat: add debug-mode around all network requests [#1239](https://github.com/fastly/cli/pull/1239)
+- logtail: add --timestamps flag [#1254](https://github.com/fastly/cli/pull/1254)
+- Distribute binaries via npm module [#1269](https://github.com/fastly/cli/pull/1269)
+- Enable quiet mode when `--json` flag is supplied [#1271](https://github.com/fastly/cli/pull/1271)
+- Support configuring connection keepalive parameters [#1275](https://github.com/fastly/cli/pull/1275)
+
+**Bug fixes:**
+
+- fix(update): Ensure that the CLI binary will be executable after an update [#1244](https://github.com/fastly/cli/pull/1244)
+- fix(service-version): Allow 'locked' services to be activated. [#1245](https://github.com/fastly/cli/pull/1245)
+- fix(compute/serve): don't fail the serve workflow if github errors [#1246](https://github.com/fastly/cli/pull/1246)
+- fix(all commands): --service-name flag should have priority. [#1264](https://github.com/fastly/cli/pull/1264)
+- fix(products): Display product names in API style [#1270](https://github.com/fastly/cli/pull/1270)
+
+**Dependencies:**
+
+- build(deps): bump goreleaser/goreleaser-action from 5 to 6 [#1220](https://github.com/fastly/cli/pull/1220)
+- build(deps): bump golang.org/x/text from 0.15.0 to 0.16.0 [#1222](https://github.com/fastly/cli/pull/1222)
+- build(deps): bump golang.org/x/mod from 0.17.0 to 0.18.0 [#1223](https://github.com/fastly/cli/pull/1223)
+- build(deps): bump golang.org/x/term from 0.20.0 to 0.21.0 [#1224](https://github.com/fastly/cli/pull/1224)
+- build(deps): bump golang.org/x/crypto from 0.23.0 to 0.24.0 [#1225](https://github.com/fastly/cli/pull/1225)
+- build(deps): bump github.com/fastly/go-fastly/v9 from 9.5.0 to 9.7.0 [#1235](https://github.com/fastly/cli/pull/1235)
+- build(deps): bump golang.org/x/term from 0.21.0 to 0.22.0 [#1240](https://github.com/fastly/cli/pull/1240)
+- build(deps): bump golang.org/x/crypto from 0.24.0 to 0.25.0 [#1241](https://github.com/fastly/cli/pull/1241)
+- build(deps): bump golang.org/x/mod from 0.18.0 to 0.19.0 [#1242](https://github.com/fastly/cli/pull/1242)
+- build(deps): 'tomlq' package now installs a 'tq' binary [#1243](https://github.com/fastly/cli/pull/1243)
+- build(deps): bump github.com/hashicorp/cap from 0.6.0 to 0.7.0 [#1272](https://github.com/fastly/cli/pull/1272)
+- build(deps): bump golang.org/x/mod from 0.19.0 to 0.20.0 [#1273](https://github.com/fastly/cli/pull/1273)
+- build(deps): bump golang.org/x/text from 0.16.0 to 0.17.0 [#1281](https://github.com/fastly/cli/pull/1281)
+- build(deps): bump golang.org/x/crypto from 0.25.0 to 0.26.0 [#1282](https://github.com/fastly/cli/pull/1282)
+- build(deps): bump golang.org/x/term from 0.22.0 to 0.23.0 [#1283](https://github.com/fastly/cli/pull/1283)
+
 ## [v10.12.3](https://github.com/fastly/cli/releases/tag/v10.12.3) (2024-06-14)
 
 **Bug fixes:**
