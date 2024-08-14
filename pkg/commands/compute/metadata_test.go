@@ -1,7 +1,6 @@
 package compute_test
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 func TestMetadata(t *testing.T) {
@@ -47,7 +47,7 @@ func TestMetadata(t *testing.T) {
 				},
 			},
 			WantOutput: "SUCCESS: configuration updated",
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ bytes.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -80,7 +80,7 @@ func TestMetadata(t *testing.T) {
 				},
 			},
 			WantOutput: "SUCCESS: configuration updated",
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ bytes.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -116,7 +116,7 @@ func TestMetadata(t *testing.T) {
 				"INFO: We will enable all metadata except for the specified `--disable-*` flags",
 				"SUCCESS: configuration updated",
 			},
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ bytes.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -152,7 +152,7 @@ func TestMetadata(t *testing.T) {
 				"INFO: We will disable all metadata except for the specified `--enable-*` flags",
 				"SUCCESS: configuration updated",
 			},
-			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ bytes.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.TestScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
