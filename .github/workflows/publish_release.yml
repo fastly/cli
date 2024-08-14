@@ -1,0 +1,22 @@
+name: NPM Release
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+jobs:
+  npm_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Fetch unshallow repo"
+        run: git fetch --prune --unshallow
+      - name: Update npm packages to latest version
+        working-directory: ./npm/@fastly/cli
+        run: npm install && npm version "${{ github.ref_name }}" --allow-same-version
+      - name: Publish npm packages
+        working-directory: ./npm/@fastly
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: for dir in *; do (echo $dir && cd $dir && npm publish); done
