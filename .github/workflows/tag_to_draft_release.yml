@@ -1,4 +1,4 @@
-name: Release
+name: Draft Release from Tag
 on:
   workflow_dispatch:
   push:
@@ -46,11 +46,3 @@ jobs:
           GOHOSTOS: ${{ env.GOHOSTOS }}
           GOHOSTARCH: ${{ env.GOHOSTARCH }}
           GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-      - name: Update npm packages to latest version
-        working-directory: ./npm/@fastly/cli
-        run: npm install && npm version "${{ github.ref_name }}" --allow-same-version
-      - name: Publish npm packages
-        working-directory: ./npm/@fastly
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: for dir in *; do (echo $dir && cd $dir && npm publish); done
