@@ -15,7 +15,7 @@
         "node": ">=16"
     },
     "bin": {
-        "fastly": "./fastly.js"
+        "fastly": "fastly.js"
     },
     "optionalDependencies": {},
     "license": "Apache-2.0",
