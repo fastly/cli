@@ -110,7 +110,7 @@ for (const info of packages) {
   await mkdir(packageDirectory, { recursive: true });
   await writeFile(
     join(packageDirectory, "package.json"),
-    packageJson(packageName, tag, info.description, info.os, info.cpu)
+    packageJson(packageName, tag, info.description, info.os, info.cpu, info.binaryAsset)
   );
   await writeFile(
     join(packageDirectory, "index.js"),
@@ -157,13 +157,15 @@ let location = join(__dirname, '${binaryAsset}')
 export default location
 `;
 }
-function packageJson(name, version, description, os, cpu) {
+function packageJson(name, version, description, os, cpu, binaryAsset) {
   version = version.startsWith("v") ? version.replace("v", "") : version;
   return JSON.stringify(
     {
       name: `@fastly/${name}`,
       bin: {
-        [name]: "fastly",
+        [name]: `${binaryAsset}`,
+      },
+      scripts: {
       },
       type: "module",
       version,
