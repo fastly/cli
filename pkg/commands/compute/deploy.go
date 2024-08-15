@@ -58,6 +58,7 @@ type DeployCommand struct {
 	StatusCheckOff     bool
 	StatusCheckPath    string
 	StatusCheckTimeout int
+	SkipChangeDir      bool // set by parent composite commands (e.g. serve, publish)
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
@@ -115,15 +116,18 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}()
 	c.manifestPath = filepath.Join(wd, manifestFilename)
 
-	projectDir, err := ChangeProjectDirectory(c.Dir)
-	if err != nil {
-		return err
-	}
-	if projectDir != "" {
-		if c.Globals.Verbose() {
-			text.Info(out, ProjectDirMsg, projectDir)
+	var projectDir string
+	if !c.SkipChangeDir {
+		projectDir, err = ChangeProjectDirectory(c.Dir)
+		if err != nil {
+			return err
 		}
-		c.manifestPath = filepath.Join(projectDir, manifestFilename)
+		if projectDir != "" {
+			if c.Globals.Verbose() {
+				text.Info(out, ProjectDirMsg, projectDir)
+			}
+			c.manifestPath = filepath.Join(projectDir, manifestFilename)
+		}
 	}
 
 	spinner, err := text.NewSpinner(out)
@@ -132,7 +136,14 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), func(_ *text.SpinnerWrapper) error {
-		if projectDir != "" || c.Env != "" {
+		// The check for c.SkipChangeDir here is because we might need to attempt
+		// another read of the manifest file. To explain: if we're skipping the
+		// change of directory, it means we were called from a composite command,
+		// which has already changed directory to one that contains the fastly.toml
+		// file. This means we should try reading the manifest file from the new
+		// location as the potential ReadError() would have been based on the
+		// initial directory the CLI was invoked from.
+		if c.SkipChangeDir || projectDir != "" || c.Env != "" {
 			err = c.Globals.Manifest.File.Read(c.manifestPath)
 		} else {
 			err = c.Globals.Manifest.File.ReadError()
