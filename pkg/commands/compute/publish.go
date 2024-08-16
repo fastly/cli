@@ -200,5 +200,8 @@ func (c *PublishCommand) Deploy(in io.Reader, out io.Writer) error {
 		c.deploy.StatusCheckTimeout = c.statusCheckTimeout
 	}
 	c.deploy.StatusCheckPath = c.statusCheckPath
+	if c.projectDir != "" {
+		c.build.SkipChangeDir = true // we've already changed directory
+	}
 	return c.deploy.Exec(in, out)
 }
