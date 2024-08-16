@@ -19,7 +19,7 @@ import (
 
 var argsPattern = regexp.MustCompile("`.+`")
 
-// Args is a simple wrapper function designed to accept a CLI command
+// SplitArgs is a simple wrapper function designed to accept a CLI command
 // (including flags) and return it as a slice for consumption by app.Run().
 //
 // NOTE: One test file (TestBigQueryCreate) passes RSA content inline into the
@@ -35,7 +35,7 @@ var argsPattern = regexp.MustCompile("`.+`")
 // surrounded by backticks with --- and then splits the resulting string by
 // spaces. Afterwards if there was a backtick matched, then we re-insert the
 // backticked content into the slice where --- is found.
-func Args(args string) []string {
+func SplitArgs(args string) []string {
 	var backtickMatch []string
 
 	if strings.Contains(args, "`") {

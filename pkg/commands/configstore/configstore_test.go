@@ -21,12 +21,12 @@ func TestCreateStoreCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: fmt.Sprintf("--name %s", storeName),
+			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
 				CreateConfigStoreFn: func(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return nil, errors.New("invalid request")
@@ -35,7 +35,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--name %s", storeName),
+			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
 				CreateConfigStoreFn: func(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
@@ -47,7 +47,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Created Config Store '%s' (%s)", storeName, storeID),
 		},
 		{
-			Arg: fmt.Sprintf("--name %s --json", storeName),
+			Args: fmt.Sprintf("--name %s --json", storeName),
 			API: mock.API{
 				CreateConfigStoreFn: func(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
@@ -67,19 +67,19 @@ func TestCreateStoreCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestDeleteStoreCommand(t *testing.T) {
 	const storeID = "test123"
 	errStoreNotFound := errors.New("store not found")
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Arg: "--store-id DOES-NOT-EXIST",
+			Args: "--store-id DOES-NOT-EXIST",
 			API: mock.API{
 				DeleteConfigStoreFn: func(i *fastly.DeleteConfigStoreInput) error {
 					if i.StoreID != storeID {
@@ -91,7 +91,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			WantError: errStoreNotFound.Error(),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				DeleteConfigStoreFn: func(i *fastly.DeleteConfigStoreInput) error {
 					if i.StoreID != storeID {
@@ -103,7 +103,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Deleted Config Store '%s'\n", storeID),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --json", storeID),
+			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				DeleteConfigStoreFn: func(i *fastly.DeleteConfigStoreInput) error {
 					if i.StoreID != storeID {
@@ -116,7 +116,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestGetStoreCommand(t *testing.T) {
@@ -127,12 +127,12 @@ func TestGetStoreCommand(t *testing.T) {
 
 	now := time.Now()
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				GetConfigStoreFn: func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 					return nil, errors.New("invalid request")
@@ -141,7 +141,7 @@ func TestGetStoreCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				GetConfigStoreFn: func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
@@ -161,7 +161,7 @@ func TestGetStoreCommand(t *testing.T) {
 			),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --metadata", storeID),
+			Args: fmt.Sprintf("--store-id %s --metadata", storeID),
 			API: mock.API{
 				GetConfigStoreFn: func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
@@ -188,7 +188,7 @@ func TestGetStoreCommand(t *testing.T) {
 			),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --json", storeID),
+			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				GetConfigStoreFn: func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
@@ -206,7 +206,7 @@ func TestGetStoreCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "get"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "get"}, scenarios)
 }
 
 func TestListStoresCommand(t *testing.T) {
@@ -222,7 +222,7 @@ func TestListStoresCommand(t *testing.T) {
 		{StoreID: storeID + "+1", Name: storeName + "+1", CreatedAt: &now},
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			API: mock.API{
 				ListConfigStoresFn: func(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
@@ -248,7 +248,7 @@ func TestListStoresCommand(t *testing.T) {
 			WantOutput: fmtStores(stores),
 		},
 		{
-			Arg: "--json",
+			Args: "--json",
 			API: mock.API{
 				ListConfigStoresFn: func(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return stores, nil
@@ -258,7 +258,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestListStoreServicesCommand(t *testing.T) {
@@ -272,9 +272,9 @@ func TestListStoreServicesCommand(t *testing.T) {
 		{ServiceID: fastly.ToPointer("abc2"), Name: fastly.ToPointer("test2"), Type: fastly.ToPointer("vcl")},
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				ListConfigStoreServicesFn: func(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
 					return nil, nil
@@ -283,7 +283,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 			WantOutput: fmtServices(nil),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				ListConfigStoreServicesFn: func(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
 					return nil, errors.New("unknown error")
@@ -292,7 +292,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 			WantError: "unknown error",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s", storeID),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				ListConfigStoreServicesFn: func(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
 					return services, nil
@@ -301,7 +301,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 			WantOutput: fmtServices(services),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --json", storeID),
+			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				ListConfigStoreServicesFn: func(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
 					return services, nil
@@ -311,7 +311,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list-services"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list-services"}, scenarios)
 }
 
 func TestUpdateStoreCommand(t *testing.T) {
@@ -321,13 +321,13 @@ func TestUpdateStoreCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       fmt.Sprintf("--store-id %s", storeID),
+			Args:      fmt.Sprintf("--store-id %s", storeID),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --name %s", storeID, storeName),
+			Args: fmt.Sprintf("--store-id %s --name %s", storeID, storeName),
 			API: mock.API{
 				UpdateConfigStoreFn: func(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return nil, errors.New("invalid request")
@@ -336,7 +336,7 @@ func TestUpdateStoreCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --name %s", storeID, storeName),
+			Args: fmt.Sprintf("--store-id %s --name %s", storeID, storeName),
 			API: mock.API{
 				UpdateConfigStoreFn: func(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
@@ -349,7 +349,7 @@ func TestUpdateStoreCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Updated Config Store '%s' (%s)", storeName, storeID),
 		},
 		{
-			Arg: fmt.Sprintf("--store-id %s --name %s --json", storeID, storeName),
+			Args: fmt.Sprintf("--store-id %s --name %s --json", storeID, storeName),
 			API: mock.API{
 				UpdateConfigStoreFn: func(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
@@ -369,5 +369,5 @@ func TestUpdateStoreCommand(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

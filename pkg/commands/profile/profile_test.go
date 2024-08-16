@@ -14,10 +14,10 @@ import (
 )
 
 func TestProfileCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate profile creation works",
-			Arg:  "foo",
+			Args: "foo",
 			API: mock.API{
 				GetTokenSelfFn: getToken,
 				GetUserFn:      getUser,
@@ -32,7 +32,7 @@ func TestProfileCreate(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -45,7 +45,7 @@ func TestProfileCreate(t *testing.T) {
 		},
 		{
 			Name: "validate profile duplication",
-			Arg:  "foo",
+			Args: "foo",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -55,7 +55,7 @@ func TestProfileCreate(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -72,14 +72,14 @@ func TestProfileCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestProfileDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate profile deletion works",
-			Arg:  "foo",
+			Args: "foo",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -89,7 +89,7 @@ func TestProfileDelete(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -106,7 +106,7 @@ func TestProfileDelete(t *testing.T) {
 		},
 		{
 			Name: "validate incorrect profile",
-			Arg:  "unknown",
+			Args: "unknown",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -116,7 +116,7 @@ func TestProfileDelete(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -124,11 +124,11 @@ func TestProfileDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestProfileList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate listing profiles works",
 			Env: &testutil.EnvConfig{
@@ -140,7 +140,7 @@ func TestProfileList(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -175,7 +175,7 @@ func TestProfileList(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -197,7 +197,7 @@ func TestProfileList(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -220,7 +220,7 @@ func TestProfileList(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -246,7 +246,7 @@ func TestProfileList(t *testing.T) {
 		},
 		{
 			Name: "validate listing profiles with --verbose and --json causes an error",
-			Arg:  "--verbose --json",
+			Args: "--verbose --json",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -256,7 +256,7 @@ func TestProfileList(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -278,7 +278,7 @@ func TestProfileList(t *testing.T) {
 		},
 		{
 			Name: "validate listing profiles with --json displays data correctly",
-			Arg:  "--json",
+			Args: "--json",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -288,7 +288,7 @@ func TestProfileList(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -337,14 +337,14 @@ func TestProfileList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestProfileSwitch(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate switching to unknown profile returns an error",
-			Arg:  "unknown",
+			Args: "unknown",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -354,7 +354,7 @@ func TestProfileSwitch(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -362,7 +362,7 @@ func TestProfileSwitch(t *testing.T) {
 		},
 		{
 			Name: "validate switching profiles works",
-			Arg:  "bar",
+			Args: "bar",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -372,7 +372,7 @@ func TestProfileSwitch(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -394,11 +394,11 @@ func TestProfileSwitch(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "switch"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "switch"}, scenarios)
 }
 
 func TestProfileToken(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate the active profile token is displayed by default",
 			Env: &testutil.EnvConfig{
@@ -410,7 +410,7 @@ func TestProfileToken(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -432,7 +432,7 @@ func TestProfileToken(t *testing.T) {
 		},
 		{
 			Name: "validate token is displayed for the specified profile",
-			Arg:  "bar", // we choose a non-default profile
+			Args: "bar", // we choose a non-default profile
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -442,7 +442,7 @@ func TestProfileToken(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -464,7 +464,7 @@ func TestProfileToken(t *testing.T) {
 		},
 		{
 			Name: "validate token is displayed for the specified profile using global --profile",
-			Arg:  "--profile bar", // we choose a non-default profile
+			Args: "--profile bar", // we choose a non-default profile
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -474,7 +474,7 @@ func TestProfileToken(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -496,7 +496,7 @@ func TestProfileToken(t *testing.T) {
 		},
 		{
 			Name: "validate an unrecognised profile causes an error",
-			Arg:  "unknown",
+			Args: "unknown",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -506,7 +506,7 @@ func TestProfileToken(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -514,14 +514,14 @@ func TestProfileToken(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "token"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "token"}, scenarios)
 }
 
 func TestProfileUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate updating unknown profile returns an error",
-			Arg:  "unknown",
+			Args: "unknown",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -531,7 +531,7 @@ func TestProfileUpdate(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -539,7 +539,7 @@ func TestProfileUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate updating profile works",
-			Arg:  "bar", // we choose a non-default profile
+			Args: "bar", // we choose a non-default profile
 			API: mock.API{
 				GetTokenSelfFn: getToken,
 				GetUserFn:      getUser,
@@ -553,7 +553,7 @@ func TestProfileUpdate(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.TestScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -580,7 +580,7 @@ func TestProfileUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func getToken() (*fastly.Token, error) {

@@ -18,7 +18,7 @@ const (
 )
 
 func TestDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -30,7 +30,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -57,16 +57,16 @@ func TestDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -102,24 +102,24 @@ func TestList(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--verbose",
+			Args:       "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nName: Foo\nDNS Record ID: 456\nDNS Record Type: Bar\nDNS Record Region: Baz\nBulk: true\nDefault: true\nHTTP Protocol: 1.1\nTLS Protocol: 1.3\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --id flag",
-			Arg:       "--name example",
+			Args:      "--name example",
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --name flag",
-			Arg:       "--id 123",
+			Args:      "--id 123",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -129,7 +129,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example --name example",
+			Args:      "--id example --name example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -141,10 +141,10 @@ func TestUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example --name example",
+			Args:       "--id example --name example",
 			WantOutput: fmt.Sprintf("Updated TLS Configuration '%s'", mockResponseID),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

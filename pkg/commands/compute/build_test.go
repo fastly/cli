@@ -25,7 +25,7 @@ func TestBuildRust(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	args := testutil.Args
+	args := testutil.SplitArgs
 
 	scenarios := []struct {
 		name                 string
@@ -258,7 +258,7 @@ func TestBuildGo(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	args := testutil.Args
+	args := testutil.SplitArgs
 
 	scenarios := []struct {
 		name                 string
@@ -451,7 +451,7 @@ func TestBuildJavaScript(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	args := testutil.Args
+	args := testutil.SplitArgs
 
 	scenarios := []struct {
 		name                 string
@@ -646,7 +646,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
 
-	args := testutil.Args
+	args := testutil.SplitArgs
 
 	scenarios := []struct {
 		name                 string
@@ -837,7 +837,7 @@ func TestBuildAssemblyScript(t *testing.T) {
 
 // NOTE: TestBuildOther also validates the post_build settings.
 func TestBuildOther(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")

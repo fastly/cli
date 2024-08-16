@@ -265,7 +265,7 @@ token = "foobar"`) {
 }
 
 type testInvalidConfigScenario struct {
-	testutil.TestScenario
+	testutil.CLIScenario
 
 	invalid      bool
 	staticConfig []byte

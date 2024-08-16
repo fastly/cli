@@ -16,7 +16,7 @@ import (
 )
 
 func TestHealthCheckCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -65,7 +65,7 @@ func TestHealthCheckCreate(t *testing.T) {
 }
 
 func TestHealthCheckList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -138,7 +138,7 @@ func TestHealthCheckList(t *testing.T) {
 }
 
 func TestHealthCheckDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -183,7 +183,7 @@ func TestHealthCheckDescribe(t *testing.T) {
 }
 
 func TestHealthCheckUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -238,7 +238,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 }
 
 func TestHealthCheckDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

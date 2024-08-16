@@ -13,7 +13,7 @@ import (
 )
 
 func TestNotify(t *testing.T) {
-	args := testutil.Args("compute deploy")
+	args := testutil.SplitArgs("compute deploy")
 	out := bytes.NewBuffer(nil)
 	g := testutil.MockGlobalData(args, out)
 	m := &mockHTTPClient{

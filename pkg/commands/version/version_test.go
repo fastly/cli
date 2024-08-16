@@ -74,7 +74,7 @@ func TestVersion(t *testing.T) {
 	}
 
 	var stdout bytes.Buffer
-	args := testutil.Args("version")
+	args := testutil.SplitArgs("version")
 	opts := testutil.MockGlobalData(args, &stdout)
 	opts.Versioners = global.Versioners{
 		Viceroy: github.New(github.Opts{

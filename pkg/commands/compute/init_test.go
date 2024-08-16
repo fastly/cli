@@ -22,7 +22,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	if os.Getenv("TEST_COMPUTE_INIT") == "" {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_INIT to run this test")
@@ -437,7 +437,7 @@ func TestInit_ExistingService(t *testing.T) {
 	}{
 		{
 			name: "when the service exists",
-			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
 			getServiceDetails: func(gsi *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				if gsi.ServiceID != *serviceID {
 					return nil, &fastly.HTTPError{
@@ -486,7 +486,7 @@ func TestInit_ExistingService(t *testing.T) {
 		},
 		{
 			name: "when the service doesn't exist",
-			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
 			getServiceDetails: func(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return nil, &fastly.HTTPError{
 					StatusCode: http.StatusNotFound,
@@ -500,7 +500,7 @@ func TestInit_ExistingService(t *testing.T) {
 		},
 		{
 			name: "service has no versions that include package metadata",
-			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
 			getServiceDetails: func(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID:     serviceID,
@@ -527,7 +527,7 @@ func TestInit_ExistingService(t *testing.T) {
 		},
 		{
 			name: "service is vcl",
-			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
 			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
@@ -539,14 +539,14 @@ func TestInit_ExistingService(t *testing.T) {
 		},
 		{
 			name:          "service id does not look like a Fastly ID",
-			args:          testutil.Args("compute init --from LsyQ2UXDGk6d4EN"),
+			args:          testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4EN"),
 			expectInError: "--from url seems invalid",
 			// Not a valid URL OR Service ID
 			suppresBeacon: true,
 		},
 		{
 			name: "service has a cloned_from value",
-			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
 			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
@@ -572,7 +572,7 @@ func TestInit_ExistingService(t *testing.T) {
 		},
 		{
 			name: "service has an unreachable cloned_from value",
-			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
 			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
@@ -598,7 +598,7 @@ func TestInit_ExistingService(t *testing.T) {
 		},
 		{
 			name: "service has active version greater than 1",
-			args: testutil.Args("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
 			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,

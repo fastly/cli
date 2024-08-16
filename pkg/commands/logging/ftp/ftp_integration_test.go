@@ -16,7 +16,7 @@ import (
 )
 
 func TestFTPCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -67,7 +67,7 @@ func TestFTPCreate(t *testing.T) {
 }
 
 func TestFTPList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -140,7 +140,7 @@ func TestFTPList(t *testing.T) {
 }
 
 func TestFTPDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -185,7 +185,7 @@ func TestFTPDescribe(t *testing.T) {
 }
 
 func TestFTPUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -232,7 +232,7 @@ func TestFTPUpdate(t *testing.T) {
 }
 
 func TestFTPDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

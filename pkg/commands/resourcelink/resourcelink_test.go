@@ -147,7 +147,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.CreateResourceFn
@@ -252,7 +252,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.DeleteResourceFn
@@ -349,7 +349,7 @@ Last edited (UTC): 2023-10-15 12:18`,
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.GetResourceFn
@@ -464,7 +464,7 @@ Resource Link 3/3
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.ListResourcesFn
@@ -602,7 +602,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			args := testutil.Args(resourcelink.RootName + " " + testcase.args)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
 			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.UpdateResourceFn

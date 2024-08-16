@@ -18,7 +18,7 @@ const (
 )
 
 func TestList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -40,10 +40,10 @@ func TestList(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--verbose",
+			Args:       "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nType: example\n\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }

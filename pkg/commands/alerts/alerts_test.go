@@ -24,65 +24,65 @@ func TestAlertsCreate(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "ok all required",
-			Arg:  createFlags.String(),
+			Args: createFlags.String(),
 			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name:      "no name",
-			Arg:       createFlags.Remove("--name").String(),
+			Args:      createFlags.Remove("--name").String(),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "no description",
-			Arg:       createFlags.Remove("--description").String(),
+			Args:      createFlags.Remove("--description").String(),
 			WantError: "error parsing arguments: required flag --description not provided",
 		},
 		{
 			Name:      "no metric",
-			Arg:       createFlags.Remove("--metric").String(),
+			Args:      createFlags.Remove("--metric").String(),
 			WantError: "error parsing arguments: required flag --metric not provided",
 		},
 		{
 			Name:      "no source",
-			Arg:       createFlags.Remove("--source").String(),
+			Args:      createFlags.Remove("--source").String(),
 			WantError: "error parsing arguments: required flag --source not provided",
 		},
 		{
 			Name:      "no type",
-			Arg:       createFlags.Remove("--type").String(),
+			Args:      createFlags.Remove("--type").String(),
 			WantError: "error parsing arguments: required flag --type not provided",
 		},
 		{
 			Name:      "no period",
-			Arg:       createFlags.Remove("--period").String(),
+			Args:      createFlags.Remove("--period").String(),
 			WantError: "error parsing arguments: required flag --period not provided",
 		},
 		{
 			Name:      "no threshold",
-			Arg:       createFlags.Remove("--threshold").String(),
+			Args:      createFlags.Remove("--threshold").String(),
 			WantError: "error parsing arguments: required flag --threshold not provided",
 		},
 		{
 			Name: "ok optional json",
-			Arg:  createFlags.Add(flag{Flag: "--json"}).String(),
+			Args: createFlags.Add(flag{Flag: "--json"}).String(),
 			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional ignoreBelow",
-			Arg:  createFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String(),
+			Args: createFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String(),
 			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional service-id",
-			Arg:  createFlags.Add(flag{Flag: "--service-id", Value: "ABC"}).String(),
+			Args: createFlags.Add(flag{Flag: "--service-id", Value: "ABC"}).String(),
 			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional dimensions",
-			Arg: createFlags.
+			Args: createFlags.
 				Change(flag{Flag: "--source", Value: "origins"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly.com"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly2.com"}).String(),
@@ -90,14 +90,14 @@ func TestAlertsCreate(t *testing.T) {
 		},
 		{
 			Name: "ok optional integrations",
-			Arg: createFlags.
+			Args: createFlags.
 				Add(flag{Flag: "--integrations", Value: "ABC1"}).
 				Add(flag{Flag: "--integrations", Value: "ABC2"}).String(),
 			API: mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestAlertsUpdate(t *testing.T) {
@@ -114,65 +114,65 @@ func TestAlertsUpdate(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "ok all required",
-			Arg:  updateFlags.String(),
+			Args: updateFlags.String(),
 			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name:      "no id",
-			Arg:       updateFlags.Remove("--id").String(),
+			Args:      updateFlags.Remove("--id").String(),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name:      "no name",
-			Arg:       updateFlags.Remove("--name").String(),
+			Args:      updateFlags.Remove("--name").String(),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "no description",
-			Arg:       updateFlags.Remove("--description").String(),
+			Args:      updateFlags.Remove("--description").String(),
 			WantError: "error parsing arguments: required flag --description not provided",
 		},
 		{
 			Name:      "no metric",
-			Arg:       updateFlags.Remove("--metric").String(),
+			Args:      updateFlags.Remove("--metric").String(),
 			WantError: "error parsing arguments: required flag --metric not provided",
 		},
 		{
 			Name:      "no source",
-			Arg:       updateFlags.Remove("--source").String(),
+			Args:      updateFlags.Remove("--source").String(),
 			WantError: "error parsing arguments: required flag --source not provided",
 		},
 		{
 			Name:      "no type",
-			Arg:       updateFlags.Remove("--type").String(),
+			Args:      updateFlags.Remove("--type").String(),
 			WantError: "error parsing arguments: required flag --type not provided",
 		},
 		{
 			Name:      "no period",
-			Arg:       updateFlags.Remove("--period").String(),
+			Args:      updateFlags.Remove("--period").String(),
 			WantError: "error parsing arguments: required flag --period not provided",
 		},
 		{
 			Name:      "no threshold",
-			Arg:       updateFlags.Remove("--threshold").String(),
+			Args:      updateFlags.Remove("--threshold").String(),
 			WantError: "error parsing arguments: required flag --threshold not provided",
 		},
 		{
 			Name: "ok optional json",
-			Arg:  updateFlags.Add(flag{Flag: "--json"}).String(),
+			Args: updateFlags.Add(flag{Flag: "--json"}).String(),
 			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional ignoreBelow",
-			Arg:  updateFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String(),
+			Args: updateFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String(),
 			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional dimensions",
-			Arg: updateFlags.
+			Args: updateFlags.
 				Change(flag{Flag: "--source", Value: "origins"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly.com"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly2.com"}).String(),
@@ -180,23 +180,23 @@ func TestAlertsUpdate(t *testing.T) {
 		},
 		{
 			Name: "ok optional integrations",
-			Arg:  updateFlags.Add(flag{Flag: "--integrations", Value: "ABC1"}).Add(flag{Flag: "--integrations", Value: "ABC2"}).String(),
+			Args: updateFlags.Add(flag{Flag: "--integrations", Value: "ABC1"}).Add(flag{Flag: "--integrations", Value: "ABC2"}).String(),
 			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestAlertsDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "no definition id",
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name: "ok",
-			Arg:  "--id ABC",
+			Args: "--id ABC",
 			API: mock.API{
 				DeleteAlertDefinitionFn: func(i *fastly.DeleteAlertDefinitionInput) error {
 					return nil
@@ -205,18 +205,18 @@ func TestAlertsDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestAlertsDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "no definition id",
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
 			Name: "ok",
-			Arg:  "--id ABC",
+			Args: "--id ABC",
 			API: mock.API{
 				GetAlertDefinitionFn: func(i *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error) {
 					response := &mockDefinition
@@ -227,11 +227,11 @@ func TestAlertsDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestAlertsList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:       "ok",
 			API:        mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
@@ -239,52 +239,52 @@ func TestAlertsList(t *testing.T) {
 		},
 		{
 			Name: "ok verbose",
-			Arg:  "-v",
+			Args: "-v",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok json",
-			Arg:  "-j",
+			Args: "-j",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok cursor",
-			Arg:  "--cursor ABC",
+			Args: "--cursor ABC",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok limit",
-			Arg:  "--limit 1",
+			Args: "--limit 1",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok definition name",
-			Arg:  "--name test",
+			Args: "--name test",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok sort name",
-			Arg:  "--sort name",
+			Args: "--sort name",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok sort updated_at",
-			Arg:  "--sort updated_at",
+			Args: "--sort updated_at",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok sort created_at asc",
-			Arg:  "--sort created_at --order asc",
+			Args: "--sort created_at --order asc",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok sort created_at desc",
-			Arg:  "--sort created_at --order desc",
+			Args: "--sort created_at --order desc",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok service id",
-			Arg:  "--service-id ABC",
+			Args: "--service-id ABC",
 			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
@@ -307,11 +307,11 @@ func TestAlertsList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestAlertsHistoryList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:       "ok",
 			API:        mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
@@ -319,52 +319,52 @@ func TestAlertsHistoryList(t *testing.T) {
 		},
 		{
 			Name: "ok verbose",
-			Arg:  "-v",
+			Args: "-v",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok json",
-			Arg:  "--json",
+			Args: "--json",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok cursor",
-			Arg:  "--cursor ABC",
+			Args: "--cursor ABC",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok limit",
-			Arg:  "--limit 1",
+			Args: "--limit 1",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok status",
-			Arg:  "--status active",
+			Args: "--status active",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok sort start",
-			Arg:  "--sort start",
+			Args: "--sort start",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok sort start asc",
-			Arg:  "--sort start --order asc",
+			Args: "--sort start --order asc",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok sort start desc",
-			Arg:  "--sort start --order desc",
+			Args: "--sort start --order desc",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok service id",
-			Arg:  "--service-id ABC",
+			Args: "--service-id ABC",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok definition id",
-			Arg:  "--definition-id ABC",
+			Args: "--definition-id ABC",
 			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
@@ -387,7 +387,7 @@ func TestAlertsHistoryList(t *testing.T) {
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "history"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "history"}, scenarios)
 }
 
 type flag struct {

@@ -19,15 +19,15 @@ const (
 )
 
 func TestTLSPlatformUpload(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --cert-blob flag",
-			Arg:       "--intermediates-blob example",
+			Args:      "--intermediates-blob example",
 			WantError: "required flag --cert-blob not provided",
 		},
 		{
 			Name:      "validate missing --intermediates-blob flag",
-			Arg:       "--cert-blob example",
+			Args:      "--cert-blob example",
 			WantError: "required flag --intermediates-blob not provided",
 		},
 		{
@@ -37,7 +37,7 @@ func TestTLSPlatformUpload(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--cert-blob example --intermediates-blob example",
+			Args:      "--cert-blob example --intermediates-blob example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -49,16 +49,16 @@ func TestTLSPlatformUpload(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--cert-blob example --intermediates-blob example",
+			Args:       "--cert-blob example --intermediates-blob example",
 			WantOutput: fmt.Sprintf("Uploaded TLS Bulk Certificate '%s'", mockResponseID),
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "upload"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "upload"}, scenarios)
 }
 
 func TestTLSPlatformDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -70,7 +70,7 @@ func TestTLSPlatformDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -80,16 +80,16 @@ func TestTLSPlatformDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "Deleted TLS Bulk Certificate 'example'",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestTLSPlatformDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -101,7 +101,7 @@ func TestTLSPlatformDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -117,16 +117,16 @@ func TestTLSPlatformDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "\nID: 123\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestTLSPlatformList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -151,29 +151,29 @@ func TestTLSPlatformList(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--verbose",
+			Args:       "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: true\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestTLSPlatformUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Arg:       "--cert-blob example --intermediates-blob example",
+			Args:      "--cert-blob example --intermediates-blob example",
 			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      "validate missing --cert-blob flag",
-			Arg:       "--id example --intermediates-blob example",
+			Args:      "--id example --intermediates-blob example",
 			WantError: "required flag --cert-blob not provided",
 		},
 		{
 			Name:      "validate missing --intermediates-blob flag",
-			Arg:       "--id example --cert-blob example",
+			Args:      "--id example --cert-blob example",
 			WantError: "required flag --intermediates-blob not provided",
 		},
 		{
@@ -183,7 +183,7 @@ func TestTLSPlatformUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example --cert-blob example --intermediates-blob example",
+			Args:      "--id example --cert-blob example --intermediates-blob example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -195,10 +195,10 @@ func TestTLSPlatformUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example --cert-blob example --intermediates-blob example",
+			Args:       "--id example --cert-blob example --intermediates-blob example",
 			WantOutput: "Updated TLS Bulk Certificate '123'",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

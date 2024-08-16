@@ -88,7 +88,7 @@ func TestDeploy(t *testing.T) {
 	}()
 
 	originalPackageSizeLimit := compute.MaxPackageSize
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		api            mock.API
 		args           []string
@@ -2213,7 +2213,7 @@ func TestDeploy_ActivateBeacon(t *testing.T) {
 	}()
 
 	stdout := threadsafe.Buffer{}
-	args := testutil.Args("compute deploy --auto-yes --non-interactive")
+	args := testutil.SplitArgs("compute deploy --auto-yes --non-interactive")
 	recordingHTTP := &mock.HTTPClient{
 		Responses: []*http.Response{
 			// the body is closed by beacon.Notify

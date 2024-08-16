@@ -17,7 +17,7 @@ import (
 )
 
 func TestScalyrCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -68,7 +68,7 @@ func TestScalyrCreate(t *testing.T) {
 }
 
 func TestScalyrList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -141,7 +141,7 @@ func TestScalyrList(t *testing.T) {
 }
 
 func TestScalyrDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -186,7 +186,7 @@ func TestScalyrDescribe(t *testing.T) {
 }
 
 func TestScalyrUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -233,7 +233,7 @@ func TestScalyrUpdate(t *testing.T) {
 }
 
 func TestScalyrDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

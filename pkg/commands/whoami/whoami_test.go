@@ -19,7 +19,7 @@ import (
 )
 
 func TestWhoami(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	for _, testcase := range []struct {
 		name       string
 		args       []string

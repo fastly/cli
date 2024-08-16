@@ -16,9 +16,9 @@ import (
 )
 
 func TestBackendCreate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--version 1",
+			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		// The following test specifies a service version that's 'active', and
@@ -26,7 +26,7 @@ func TestBackendCreate(t *testing.T) {
 		// --autoclone flag and trying to add a backend to an activated service
 		// should cause an error.
 		{
-			Arg: "--service-id 123 --version 1 --address example.com --name www.test.com",
+			Args: "--service-id 123 --version 1 --address example.com --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
@@ -37,7 +37,7 @@ func TestBackendCreate(t *testing.T) {
 		// --autoclone flag and trying to add a backend to a locked service
 		// should cause an error.
 		{
-			Arg: "--service-id 123 --version 2 --address example.com --name www.test.com",
+			Args: "--service-id 123 --version 2 --address example.com --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
@@ -46,7 +46,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as the 'active' test above but it appends --autoclone
 		// so we can be sure the backend creation error still occurs.
 		{
-			Arg: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
+			Args: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -57,7 +57,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as the 'locked' test above but it appends --autoclone
 		// so we can be sure the backend creation error still occurs.
 		{
-			Arg: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
+			Args: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -68,7 +68,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as above but with an IP address for the
 		// --address flag instead of a hostname.
 		{
-			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -82,7 +82,7 @@ func TestBackendCreate(t *testing.T) {
 		// NOTE: Added --port flag to validate that a nil pointer dereference is
 		// not triggered at runtime when parsing the arguments.
 		{
-			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080",
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -92,7 +92,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// We test that setting an invalid host override does not result in an error
 		{
-			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --override-host invalid-host-override --name www.test.com --autoclone --port 8080",
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --override-host invalid-host-override --name www.test.com --autoclone --port 8080",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -102,7 +102,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// The following test validates that --service-name can replace --service-id
 		{
-			Arg: "--service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
+			Args: "--service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
@@ -124,7 +124,7 @@ func TestBackendCreate(t *testing.T) {
 		// --verbose so we may validate the expected output message regarding a
 		// missing port is displayed.
 		{
-			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose",
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -136,7 +136,7 @@ func TestBackendCreate(t *testing.T) {
 		// --verbose so we may validate a successful backend creation.
 		//
 		{
-			Arg: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8443 --use-ssl --verbose",
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8443 --use-ssl --verbose",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -147,7 +147,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test specifies a service version that's 'inactive' and not 'locked',
 		// and subsequently we expect it to be the same editable version.
 		{
-			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com",
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
@@ -156,7 +156,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// The following tests verify parsing of the --tcp-ka-enable flag.
 		{
-			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=true",
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=true",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
@@ -164,7 +164,7 @@ func TestBackendCreate(t *testing.T) {
 			WantOutput: "Created backend www.test.com (service 123 version 3)",
 		},
 		{
-			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=false",
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=false",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
@@ -172,7 +172,7 @@ func TestBackendCreate(t *testing.T) {
 			WantOutput: "Created backend www.test.com (service 123 version 3)",
 		},
 		{
-			Arg: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=invalid",
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=invalid",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
@@ -180,13 +180,13 @@ func TestBackendCreate(t *testing.T) {
 			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
 		},
 	}
-	testutil.RunScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestBackendList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg: "--service-id 123 --version 1 --json",
+			Args: "--service-id 123 --version 1 --json",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -194,7 +194,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsJSONOutput,
 		},
 		{
-			Arg: "--service-id 123 --version 1 --json --verbose",
+			Args: "--service-id 123 --version 1 --json --verbose",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -202,7 +202,7 @@ func TestBackendList(t *testing.T) {
 			WantError: fsterr.ErrInvalidVerboseJSONCombo.Error(),
 		},
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -210,7 +210,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsShortOutput,
 		},
 		{
-			Arg: "--service-id 123 --version 1 --verbose",
+			Args: "--service-id 123 --version 1 --verbose",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -218,7 +218,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Arg: "--service-id 123 --version 1 -v",
+			Args: "--service-id 123 --version 1 -v",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -226,7 +226,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Arg: "--verbose --service-id 123 --version 1",
+			Args: "--verbose --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -234,7 +234,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Arg: "-v --service-id 123 --version 1",
+			Args: "-v --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -242,7 +242,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Arg: "--service-id 123 --version 1",
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsError,
@@ -250,17 +250,17 @@ func TestBackendList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestBackendDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com",
+			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendError,
@@ -268,7 +268,7 @@ func TestBackendDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com",
+			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendOK,
@@ -276,17 +276,17 @@ func TestBackendDescribe(t *testing.T) {
 			WantOutput: describeBackendOutput,
 		},
 	}
-	testutil.RunScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestBackendUpdate(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123 --version 2 --new-name www.test.com --comment ",
+			Args:      "--service-id 123 --version 2 --new-name www.test.com --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -296,7 +296,7 @@ func TestBackendUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone",
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -307,7 +307,7 @@ func TestBackendUpdate(t *testing.T) {
 		},
 		// The following tests verify parsing of the --tcp-ka-enable flag.
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=true --autoclone",
+			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=true --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -317,7 +317,7 @@ func TestBackendUpdate(t *testing.T) {
 			WantOutput: "Updated backend  (service 123 version 4)",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=false --autoclone",
+			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=false --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -327,7 +327,7 @@ func TestBackendUpdate(t *testing.T) {
 			WantOutput: "Updated backend  (service 123 version 4)",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=invalid --autoclone",
+			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=invalid --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -337,17 +337,17 @@ func TestBackendUpdate(t *testing.T) {
 			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
 		},
 	}
-	testutil.RunScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestBackendDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Arg:       "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com --autoclone",
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -356,7 +356,7 @@ func TestBackendDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Arg: "--service-id 123 --version 1 --name www.test.com --autoclone",
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -365,7 +365,7 @@ func TestBackendDelete(t *testing.T) {
 			WantOutput: "Deleted backend www.test.com (service 123 version 4)",
 		},
 	}
-	testutil.RunScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")

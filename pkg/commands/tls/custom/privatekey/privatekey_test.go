@@ -22,20 +22,20 @@ const (
 
 func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 	var content string
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --key and --key-path flags",
-			Arg:       "--name example",
+			Args:      "--name example",
 			WantError: "neither --key-path or --key provided, one must be provided",
 		},
 		{
 			Name:      "validate using both --key and --key-path flags",
-			Arg:       "--name example --key example --key-path foobar",
+			Args:      "--name example --key example --key-path foobar",
 			WantError: "--key-path and --key provided, only one can be specified",
 		},
 		{
 			Name:      "validate missing --name flag",
-			Arg:       "--key example",
+			Args:      "--key example",
 			WantError: "required flag --name not provided",
 		},
 		{
@@ -46,7 +46,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:             "--key example --name example",
+			Args:            "--key example --name example",
 			WantError:       testutil.Err.Error(),
 			PathContentFlag: &testutil.PathContentFlag{Flag: "key-path", Fixture: "testkey.pem", Content: func() string { return content }},
 		},
@@ -61,7 +61,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--key example --name example",
+			Args:            "--key example --name example",
 			WantOutput:      "Created TLS Private Key 'example'",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "key-path", Fixture: "testkey.pem", Content: func() string { return content }},
 		},
@@ -76,22 +76,22 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:             "--name example --key-path ./testdata/testkey.pem",
+			Args:            "--name example --key-path ./testdata/testkey.pem",
 			WantOutput:      "Created TLS Private Key 'example'",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "key-path", Fixture: "testkey.pem", Content: func() string { return content }},
 		},
 		{
 			Name:      "validate invalid --key-path arg",
-			Arg:       "--name example --key-path ............",
+			Args:      "--name example --key-path ............",
 			WantError: "error reading key-path",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestTLSCustomPrivateKeyDelete(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -103,7 +103,7 @@ func TestTLSCustomPrivateKeyDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -113,16 +113,16 @@ func TestTLSCustomPrivateKeyDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "Deleted TLS Private Key 'example'",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -134,7 +134,7 @@ func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Arg:       "--id example",
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -152,16 +152,16 @@ func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--id example",
+			Args:       "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nName: example\nKey Length: 123\nKey Type: example\nPublic Key SHA1: example\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: false\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestTLSCustomPrivateKeyList(t *testing.T) {
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -188,10 +188,10 @@ func TestTLSCustomPrivateKeyList(t *testing.T) {
 					}, nil
 				},
 			},
-			Arg:        "--verbose",
+			Args:       "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nName: example\nKey Length: 123\nKey Type: example\nPublic Key SHA1: example\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nReplace: false\n",
 		},
 	}
 
-	testutil.RunScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }

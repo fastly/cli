@@ -16,7 +16,7 @@ import (
 )
 
 func TestOpenstackCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -67,7 +67,7 @@ func TestOpenstackCreate(t *testing.T) {
 }
 
 func TestOpenstackList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -140,7 +140,7 @@ func TestOpenstackList(t *testing.T) {
 }
 
 func TestOpenstackDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -185,7 +185,7 @@ func TestOpenstackDescribe(t *testing.T) {
 }
 
 func TestOpenstackUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -232,7 +232,7 @@ func TestOpenstackUpdate(t *testing.T) {
 }
 
 func TestOpenstackDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API

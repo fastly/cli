@@ -15,22 +15,18 @@ import (
 	"time"
 )
 
-// TestScenario represents a standard test case to be validated.
+// CLIScenario represents a CLI test case to be validated.
 //
 // Most of the fields in this struct are optional; if they are not
-// provided RunScenario will not apply the behavior indicated for
+// provided RunCLIScenario will not apply the behavior indicated for
 // those fields.
-type TestScenario struct {
+type CLIScenario struct {
 	// API is a mock API implementation which can be used by the
 	// command under test
 	API mock.API
-	// Arg is the input arguments for the command to execute (not
+	// Args is the input arguments for the command to execute (not
 	// including the command names themselves).
-	Arg string
-	// Args is the input arguments for the command to execute.
-	// DEPRECATED: Args will be removed once all users are using
-	// RunScenario() or RunScenarios().
-	Args []string
+	Args string
 	// ConfigPath will be copied into global.Data.ConfigPath
 	ConfigPath string
 	// ConfigFile will be copied into global.Data.ConfigFile
@@ -49,12 +45,12 @@ type TestScenario struct {
 	Name            string
 	PathContentFlag *PathContentFlag
 	// Setup function can perform additional setup before the scenario is run
-	Setup func(t *testing.T, scenario *TestScenario, opts *global.Data)
+	Setup func(t *testing.T, scenario *CLIScenario, opts *global.Data)
 	// Stdin contains input to be read by the application
 	Stdin []string
 	// Validator function can perform additional validation on the results
 	// of the scenario
-	Validator func(t *testing.T, scenario *TestScenario, opts *global.Data, stdout *threadsafe.Buffer)
+	Validator func(t *testing.T, scenario *CLIScenario, opts *global.Data, stdout *threadsafe.Buffer)
 	// WantError will cause the scenario to fail if this string
 	// does not appear in an Error
 	WantError string
@@ -76,20 +72,20 @@ type PathContentFlag struct {
 
 // EnvConfig provides the details required to setup a temporary test
 // environment, and optionally a function to run which accepts the
-// environment directory and can modify fields in the TestScenario
+// environment directory and can modify fields in the CLIScenario
 type EnvConfig struct {
 	Opts *EnvOpts
 	// EditScenario holds a function which will be called after
 	// the temporary environment has been created but before the
 	// scenario setup (and execution) begin; it can make any
-	// modifications to the TestScenario that are needed
-	EditScenario func(*TestScenario, string)
+	// modifications to the CLIScenario that are needed
+	EditScenario func(*CLIScenario, string)
 }
 
-// RunScenario executes a TestScenario struct.
+// RunCLIScenario executes a CLIScenario struct.
 // The Arg field of the scenario is prepended with the content of the 'command'
 // slice passed in to construct the complete command to be executed.
-func RunScenario(t *testing.T, command []string, scenario TestScenario) {
+func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 	t.Run(scenario.Name, func(t *testing.T) {
 		var (
 			err      error
@@ -98,8 +94,8 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 			stdout   threadsafe.Buffer
 		)
 
-		if len(scenario.Arg) > 0 {
-			fullargs = slices.Concat(command, Args(scenario.Arg))
+		if len(scenario.Args) > 0 {
+			fullargs = slices.Concat(command, SplitArgs(scenario.Args))
 		} else {
 			fullargs = command
 		}
@@ -182,7 +178,7 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 					return opts, nil
 				}
-				err = app.Run(scenario.Args, nil)
+				err = app.Run(fullargs, nil)
 				done <- true
 			}()
 
@@ -238,9 +234,9 @@ func RunScenario(t *testing.T, command []string, scenario TestScenario) {
 	})
 }
 
-// RunScenarios executes the TestScenario structs from the slice passed in.
-func RunScenarios(t *testing.T, command []string, scenarios []TestScenario) {
+// RunCLIScenarios executes the CLIScenario structs from the slice passed in.
+func RunCLIScenarios(t *testing.T, command []string, scenarios []CLIScenario) {
 	for _, scenario := range scenarios {
-		RunScenario(t, command, scenario)
+		RunCLIScenario(t, command, scenario)
 	}
 }

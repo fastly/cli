@@ -16,7 +16,7 @@ import (
 )
 
 func TestBlobStorageCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -68,7 +68,7 @@ func TestBlobStorageCreate(t *testing.T) {
 }
 
 func TestBlobStorageList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -141,7 +141,7 @@ func TestBlobStorageList(t *testing.T) {
 }
 
 func TestBlobStorageDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -186,7 +186,7 @@ func TestBlobStorageDescribe(t *testing.T) {
 }
 
 func TestBlobStorageUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -233,7 +233,7 @@ func TestBlobStorageUpdate(t *testing.T) {
 }
 
 func TestBlobStorageDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
