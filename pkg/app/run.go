@@ -387,14 +387,6 @@ func processToken(cmds []argparser.Command, data *global.Data) (token string, to
 		}
 	case lookup.SourceUndefined:
 		// If there's no token available, then trigger SSO authentication flow.
-		//
-		// FIXME: Remove this conditional when SSO is GA.
-		// Once put back, it means "no token" == "automatic SSO".
-		// For now, a brand new CLI user will have to manually create long-lived
-		// tokens via the UI in order to use the Fastly CLI.
-		if data.Env.UseSSO != "1" && !data.Flags.SSO {
-			return "", tokenSource, nil
-		}
 		return ssoAuthentication("No API token could be found", cmds, data)
 	case lookup.SourceEnvironment, lookup.SourceFlag, lookup.SourceDefault:
 		// no-op
@@ -482,21 +474,19 @@ func checkAndRefreshSSOToken(profileData *config.Profile, profileName string, da
 // shouldSkipSSO identifies if a config is a pre-v5 config and, if it is,
 // informs the user how they can use the SSO flow. It checks if the SSO
 // environment variable (or flag) has been set and enables the SSO flow if so.
-func shouldSkipSSO(_ string, profileData *config.Profile, data *global.Data) bool {
+func shouldSkipSSO(profileName string, profileData *config.Profile, data *global.Data) bool {
 	if auth.IsLongLivedToken(profileData) {
 		// Skip SSO if user hasn't indicated they want to migrate.
-		return data.Env.UseSSO != "1" && !data.Flags.SSO
-		// FIXME: Put back messaging once SSO is GA.
-		// if data.Env.UseSSO == "1" || data.Flags.SSO {
-		// 	return false // don't skip SSO
-		// }
-		// if !data.Flags.Quiet {
-		// 	if data.Flags.Verbose {
-		// 		text.Break(data.Output)
-		// 	}
-		// 	text.Important(data.Output, "The Fastly API token used by the current '%s' profile is not a Fastly SSO (Single Sign-On) generated token. SSO-based tokens offer more security and convenience. To update your token, either set `FASTLY_USE_SSO=1` or pass `--enable-sso` before invoking the Fastly CLI. This will ensure the current profile is switched to using an SSO generated API token. Once the token has been switched over you no longer need to set `FASTLY_USE_SSO` for this profile (--token and FASTLY_API_TOKEN can still be used as overrides).\n\n", profileName)
-		// }
-		// return true // skip SSO
+		if data.Env.UseSSO == "1" || data.Flags.SSO {
+			return false // don't skip SSO
+		}
+		if !data.Flags.Quiet {
+			if data.Flags.Verbose {
+				text.Break(data.Output)
+			}
+			text.Important(data.Output, "The Fastly API token used by the current '%s' profile is not a Fastly SSO (Single Sign-On) generated token. SSO-based tokens offer more security and convenience. To update your token, either set `FASTLY_USE_SSO=1` or pass `--enable-sso` before invoking the Fastly CLI. This will ensure the current profile is switched to using an SSO generated API token. Once the token has been switched over you no longer need to set `FASTLY_USE_SSO` for this profile (--token and FASTLY_API_TOKEN can still be used as overrides).\n\n", profileName)
+		}
+		return true // skip SSO
 	}
 	return false // don't skip SSO
 }
