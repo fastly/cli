@@ -26,6 +26,7 @@ type RootCommand struct {
 
 // ProductEnablementOptions is a list of products that can be enabled/disabled.
 var ProductEnablementOptions = []string{
+	"bot_management",
 	"brotli_compression",
 	"domain_inspector",
 	"fanout",
@@ -112,6 +113,12 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	ps := ProductStatus{}
 
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
+		ProductID: fastly.ProductBotManagement,
+		ServiceID: serviceID,
+	}); err == nil {
+		ps.BotManagement = true
+	}
+	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
 		ProductID: fastly.ProductBrotliCompression,
 		ServiceID: serviceID,
 	}); err == nil {
@@ -154,6 +161,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	t := text.NewTable(out)
 	t.AddHeader("PRODUCT", "ENABLED")
+	t.AddLine(fastly.ProductBotManagement, ps.BotManagement)
 	t.AddLine(fastly.ProductBrotliCompression, ps.BrotliCompression)
 	t.AddLine(fastly.ProductDomainInspector, ps.DomainInspector)
 	t.AddLine(fastly.ProductFanout, ps.Fanout)
@@ -166,6 +174,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 func identifyProduct(product string) fastly.Product {
 	switch product {
+	case "bot_management":
+		return fastly.ProductBotManagement
 	case "brotli_compression":
 		return fastly.ProductBrotliCompression
 	case "domain_inspector":
@@ -185,6 +195,7 @@ func identifyProduct(product string) fastly.Product {
 
 // ProductStatus indicates the status for each product.
 type ProductStatus struct {
+	BotManagement     bool `json:"bot_management"`
 	BrotliCompression bool `json:"brotli_compression"`
 	DomainInspector   bool `json:"domain_inspector"`
 	Fanout            bool `json:"fanout"`
