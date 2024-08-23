@@ -19,4 +19,14 @@ try {
     If your platform is not supported, you can open an issue at https://github.com/fastly/cli/issues`);
 }
 
-execFileSync(location, process.argv.slice(2), { stdio: "inherit" });
+try {
+  execFileSync(location, process.argv.slice(2), { stdio: "inherit" });
+} catch(err) {
+  if (err.code) {
+    // Spawning child process failed
+    throw err;
+  }
+  if (err.status != null) {
+    process.exitCode = err.status;
+  }
+}
