@@ -4,6 +4,7 @@
     "description": "Build, deploy and configure Fastly services from your terminal",
     "type": "module",
     "scripts": {
+        "prepack": "cp ../../../README.md ../../../LICENSE ../../../SECURITY.md .",
         "version": "node ./update.js $npm_package_version"
     },
     "devDependencies": {
