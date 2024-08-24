@@ -15,20 +15,20 @@
 - [Shell auto-completion](https://www.fastly.com/documentation/reference/tools/cli#shell-auto-completion)
 - [Configuring](https://www.fastly.com/documentation/reference/tools/cli#configuring)
 - [Commands](https://www.fastly.com/documentation/reference/cli#command-groups)
-- [Development](DEVELOPMENT.md)
-- [Testing](TESTING.md)
-- [Documentation](DOCUMENTATION.md)
+- [Development](https://github.com/fastly/cli/blob/main/DEVELOPMENT.md)
+- [Testing](https://github.com/fastly/cli/blob/main/TESTING.md)
+- [Documentation](https://github.com/fastly/cli/blob/main/DOCUMENTATION.md)
 
 ## Contributing
 
-Refer to [CONTRIBUTING.md](./CONTRIBUTING.md)
+Refer to [CONTRIBUTING.md](https://github.com/fastly/cli/blob/main/CONTRIBUTING.md)
 
 ## Issues
 
 If you encounter any non-security-related bug or unexpected behavior, please [file an issue][bug]
 using the bug report template.
 
-Please also check the [CHANGELOG](./CHANGELOG.md) for any breaking-changes or migration guidance.
+Please also check the [CHANGELOG](https://github.com/fastly/cli/blob/main/CHANGELOG.md) for any breaking-changes or migration guidance.
 
 ### Security issues
 
