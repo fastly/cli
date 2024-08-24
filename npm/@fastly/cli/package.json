@@ -20,6 +20,16 @@
         "fastly": "fastly.js"
     },
     "optionalDependencies": {},
+    "files": [
+        "index.js",
+        "fastly.js",
+        "package-helpers.js",
+        "update.js",
+        "index.d.ts",
+        "README.md",
+        "LICENSE",
+        "SECURITY.md"
+    ],
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
