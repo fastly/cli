@@ -4,6 +4,7 @@
     "description": "Build, deploy and configure Fastly services from your terminal",
     "type": "module",
     "scripts": {
+        "prepack": "cp ../../../README.md ../../../LICENSE ../../../SECURITY.md .",
         "version": "node ./update.js $npm_package_version"
     },
     "devDependencies": {
@@ -19,6 +20,16 @@
         "fastly": "fastly.js"
     },
     "optionalDependencies": {},
+    "files": [
+        "index.js",
+        "fastly.js",
+        "package-helpers.js",
+        "update.js",
+        "index.d.ts",
+        "README.md",
+        "LICENSE",
+        "SECURITY.md"
+    ],
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
