@@ -187,7 +187,8 @@ func TestSSO(t *testing.T) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
-				"is not a Fastly SSO (Single Sign-On) generated token",
+				// FIXME: Put back messaging once SSO is GA.
+				// "is not a Fastly SSO (Single Sign-On) generated token",
 				"{Latitude:1 Longtitude:2 X:3 Y:4}",
 			},
 			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
