@@ -61,10 +61,11 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	if !c.sso {
-		text.Info(out, "When creating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To create an SSO-based token, pass the `--sso` flag: `fastly profile create --sso`.")
-		text.Break(out)
-	}
+	// FIXME: Put back messaging once SSO is GA.
+	// if !c.sso {
+	// 	text.Info(out, "When creating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To create an SSO-based token, pass the `--sso` flag: `fastly profile create --sso`.")
+	// 	text.Break(out)
+	// }
 
 	// The Default status of a new profile should always be true unless there is
 	// an existing profile already set to be the default. In the latter scenario
