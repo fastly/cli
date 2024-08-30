@@ -231,11 +231,106 @@ func TestVersionLock(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "lock"}, scenarios)
 }
 
+func TestVersionStage(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
+		{
+			Args:      "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: stageVersionOK,
+			},
+			WantError: "service version 1 is active",
+		},
+		{
+			Args: "--service-id 123 --version 2",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: stageVersionError,
+			},
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Args: "--service-id 123 --version 2",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: stageVersionOK,
+			},
+			WantOutput: "Staged service 123 version 2",
+		},
+		{
+			Args: "--service-id 123 --version 3",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: stageVersionOK,
+			},
+			WantOutput: "Staged service 123 version 3",
+		},
+		{
+			Args: "--service-id 123 --version 4",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: stageVersionOK,
+			},
+			WantOutput: "Staged service 123 version 4",
+		},
+	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "stage"}, scenarios)
+}
+
+func TestVersionUnstage(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
+		{
+			Args:      "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				DeactivateVersionFn: unstageVersionOK,
+			},
+			WantError: "service version 1 is not staged",
+		},
+		{
+			Args: "--service-id 123 --version 3",
+			API: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				DeactivateVersionFn: unstageVersionError,
+			},
+			WantError: "service version 3 is not staged",
+		},
+		{
+			Args: "--service-id 123 --version 4",
+			API: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				DeactivateVersionFn: unstageVersionError,
+			},
+			WantError: testutil.Err.Error(),
+		},
+		{
+			Args: "--service-id 123 --version 4",
+			API: mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				DeactivateVersionFn: unstageVersionOK,
+			},
+			WantOutput: "Unstaged service 123 version 4",
+		},
+	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "unstage"}, scenarios)
+}
+
 var listVersionsShortOutput = strings.TrimSpace(`
-NUMBER  ACTIVE  LAST EDITED (UTC)
-1       true    2000-01-01 01:00
-2       false   2000-01-02 01:00
-3       false   2000-01-03 01:00
+NUMBER  ACTIVE  STAGING  LAST EDITED (UTC)
+1       true    false    2000-01-01 01:00
+2       false   false    2000-01-02 01:00
+3       false   false    2000-01-03 01:00
+4       false   true     2000-01-04 01:00
 `) + "\n"
 
 var listVersionsVerboseOutput = strings.TrimSpace(`
@@ -244,23 +339,26 @@ Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
-Versions: 3
-	Version 1/3
+Versions: 4
+	Version 1/4
 		Number: 1
 		Service ID: 123
 		Active: true
 		Last edited (UTC): 2000-01-01 01:00
-	Version 2/3
+	Version 2/4
 		Number: 2
 		Service ID: 123
-		Active: false
 		Locked: true
 		Last edited (UTC): 2000-01-02 01:00
-	Version 3/3
+	Version 3/4
 		Number: 3
 		Service ID: 123
-		Active: false
 		Last edited (UTC): 2000-01-03 01:00
+	Version 4/4
+		Number: 4
+		Service ID: 123
+		Staging: true
+		Last edited (UTC): 2000-01-04 01:00
 `) + "\n\n"
 
 func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
@@ -305,6 +403,38 @@ func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, err
 }
 
 func deactivateVersionError(_ *fastly.DeactivateVersionInput) (*fastly.Version, error) {
+	return nil, testutil.Err
+}
+
+func stageVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		Number:    fastly.ToPointer(i.ServiceVersion),
+		ServiceID: fastly.ToPointer("123"),
+		Active:    fastly.ToPointer(true),
+		Deployed:  fastly.ToPointer(true),
+		Staging:   fastly.ToPointer(true),
+		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+	}, nil
+}
+
+func stageVersionError(_ *fastly.ActivateVersionInput) (*fastly.Version, error) {
+	return nil, testutil.Err
+}
+
+func unstageVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
+	return &fastly.Version{
+		Number:    fastly.ToPointer(i.ServiceVersion),
+		ServiceID: fastly.ToPointer("123"),
+		Active:    fastly.ToPointer(false),
+		Deployed:  fastly.ToPointer(true),
+		Staging:   fastly.ToPointer(false),
+		CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+	}, nil
+}
+
+func unstageVersionError(_ *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 

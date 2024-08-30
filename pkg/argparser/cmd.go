@@ -109,14 +109,18 @@ type OptionalFloat64 struct {
 // ServiceDetailsOpts provides data and behaviours required by the
 // ServiceDetails function.
 type ServiceDetailsOpts struct {
-	// Active controls whether active serviceversions will be included in the result;
+	// Active controls whether active service-versions will be included in the result;
 	// if this is Empty, then the 'active' state of the version is ignored;
 	// otherwise, the 'active' state must match the value
 	Active optional.Optional[bool]
-	// Locked controls whether locked serviceversions will be included in the result;
+	// Locked controls whether locked service-versions will be included in the result;
 	// if this is Empty, then the 'locked' state of the version is ignored;
 	// otherwise, the 'locked' state must match the value
-	Locked             optional.Optional[bool]
+	Locked optional.Optional[bool]
+	// Staging controls whether staging service-versions will be included in the result;
+	// if this is Empty, then the 'staging' state of the version is ignored;
+	// otherwise, the 'staging' state must match the value
+	Staging            optional.Optional[bool]
 	AutoCloneFlag      OptionalAutoClone
 	APIClient          api.Interface
 	Manifest           manifest.Data
@@ -173,6 +177,17 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 		if !locked && fastly.ToValue(v.Locked) {
 			failure = true
 			failureState = "locked"
+		}
+	}
+
+	if staging, present := opts.Staging.Get(); present {
+		if staging && !fastly.ToValue(v.Staging) {
+			failure = true
+			failureState = "not staged"
+		}
+		if !staging && fastly.ToValue(v.Staging) {
+			failure = true
+			failureState = "staged"
 		}
 	}
 

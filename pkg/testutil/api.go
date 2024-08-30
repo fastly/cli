@@ -17,7 +17,8 @@ var Err = errors.New("test error")
 
 // ListVersions returns a list of service versions in different states.
 //
-// The first element is active, the second is locked, the third is editable.
+// The first element is active, the second is locked, the third is
+// editable, the fourth is staged.
 //
 // NOTE: consult the entire test suite before adding any new entries to the
 // returned type as the tests currently use testutil.CloneVersionResult() as a
@@ -33,15 +34,19 @@ func ListVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 		{
 			ServiceID: fastly.ToPointer(i.ServiceID),
 			Number:    fastly.ToPointer(2),
-			Active:    fastly.ToPointer(false),
 			Locked:    fastly.ToPointer(true),
 			UpdatedAt: MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
 		},
 		{
 			ServiceID: fastly.ToPointer(i.ServiceID),
 			Number:    fastly.ToPointer(3),
-			Active:    fastly.ToPointer(false),
 			UpdatedAt: MustParseTimeRFC3339("2000-01-03T01:00:00Z"),
+		},
+		{
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(4),
+			Staging:   fastly.ToPointer(true),
+			UpdatedAt: MustParseTimeRFC3339("2000-01-04T01:00:00Z"),
 		},
 	}, nil
 }
