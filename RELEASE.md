@@ -14,7 +14,7 @@
 
 ## Creation of npm packages
 
-Each release of the Fastly CLI triggers a workflow in `.github/workflows/publish_release.yml` that results in the creation of a new version of the `@fastly/cli` npm package, as well as multiple packages each representing a supported platform/arch combo (e.g. `@fastly/cli-darwin-arm64`). These packages are given the same version number as the Fastly CLI release. The workflow then publishes the `@fastly/cli` package and the per-platform/arch packages to npm using the `NPM_TOKEN` secret in this repository. The per-platform/arch packages are generated on each release and not committed to source control.
+Each release of the Fastly CLI triggers a workflow in `.github/workflows/publish_release.yml` that results in the creation of a new version of the `@fastly/cli` npm package, as well as multiple packages each representing a supported platform/arch combo (e.g. `@fastly/cli-darwin-arm64`). These packages are given the same version number as the Fastly CLI release. The workflow then publishes the `@fastly/cli` package and the per-platform/arch packages to npmjs.com using the `NPM_TOKEN` secret in this repository. The per-platform/arch packages are generated on each release and not committed to source control.
 
 > [!NOTE]
 > The workflow step that performs `npm version` in the directory of the `@fastly/cli` package triggers the execution of the `version` script listed in its `package.json`. In turn, this script creates the per-platform/arch packages.
