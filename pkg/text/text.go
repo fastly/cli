@@ -59,6 +59,10 @@ func WrapIndent(s string, limit uint, indent uint) string {
 	wrapped := wordwrap.WrapString(s, limit)
 	var result []string
 	for _, line := range strings.Split(wrapped, "\n") {
+		// gosec G115 complains about this uint->int cast, but we
+		// know that it is safe here because the valid values
+		// for 'indent' are too small to cause an overflow
+		// #nosec G115
 		result = append(result, strings.Repeat(" ", int(indent))+line)
 	}
 	return strings.Join(result, "\n")
