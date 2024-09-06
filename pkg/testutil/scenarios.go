@@ -2,17 +2,18 @@ package testutil
 
 import (
 	"fmt"
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/config"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/mock"
-	"github.com/fastly/cli/pkg/threadsafe"
 	"io"
 	"os"
 	"slices"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/mock"
+	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 // CLIScenario represents a CLI test case to be validated.

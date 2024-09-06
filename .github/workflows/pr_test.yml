@@ -82,6 +82,9 @@ jobs:
       - name: "Security audit"
         run: make gosec
         shell: bash
+      - name: "Run go imports"
+        run: make imports
+        shell: bash
   test:
     needs: [config]
     strategy:

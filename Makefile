@@ -53,7 +53,7 @@ config:
 	@$(CONFIG_SCRIPT)
 
 .PHONY: all
-all: config dependencies tidy fmt vet staticcheck gosec semgrep test build install ## Run EVERYTHING!
+all: config dependencies tidy fmt vet staticcheck gosec semgrep imports test build install ## Run EVERYTHING!
 
 # Update CI tools used by ./.github/workflows/pr_test.yml
 .PHONY: dependencies
@@ -109,6 +109,12 @@ semgrep: ## Run semgrep
 .PHONY: staticcheck
 staticcheck: ## Run static analysis
 	staticcheck ./{cmd,pkg}/...
+
+# Run imports formatter.
+.PHONY: imports
+imports:
+	@echo goimports ./{cmd,pkg}
+	@eval "bash -c 'F=\$$(goimports -l ./{cmd,pkg}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
 
 .PHONY: golangci
 golangci: ## Run golangci-lint
