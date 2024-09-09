@@ -24,7 +24,8 @@ type StageCommand struct {
 func NewStageCommand(parent argparser.Registerer, g *global.Data) *StageCommand {
 	var c StageCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("stage", "Stage a Fastly service version")
+	// FIXME: unhide this command when appropriate
+	c.CmdClause = parent.Command("stage", "Stage a Fastly service version").Hidden()
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
