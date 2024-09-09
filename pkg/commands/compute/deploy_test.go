@@ -525,7 +525,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with path",
-			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version latest"),
+			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version 3"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
@@ -559,7 +559,7 @@ func TestDeploy(t *testing.T) {
 		// inside the given package tar.gz archive.
 		{
 			name: "success with path called from non project directory",
-			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version latest --verbose"),
+			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version 3 --verbose"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
@@ -591,7 +591,7 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with inactive version",
-			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version latest"),
+			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version 3"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,

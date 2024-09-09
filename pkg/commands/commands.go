@@ -399,6 +399,8 @@ func Define(
 	serviceVersionDeactivate := serviceversion.NewDeactivateCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionList := serviceversion.NewListCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionLock := serviceversion.NewLockCommand(serviceVersionCmdRoot.CmdClause, data)
+	serviceVersionStage := serviceversion.NewStageCommand(serviceVersionCmdRoot.CmdClause, data)
+	serviceVersionUnstage := serviceversion.NewUnstageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUpdate := serviceversion.NewUpdateCommand(serviceVersionCmdRoot.CmdClause, data)
 	statsCmdRoot := stats.NewRootCommand(app, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
@@ -768,6 +770,8 @@ func Define(
 		serviceVersionDeactivate,
 		serviceVersionList,
 		serviceVersionLock,
+		serviceVersionStage,
+		serviceVersionUnstage,
 		serviceVersionUpdate,
 		ssoCmdRoot,
 		statsCmdRoot,

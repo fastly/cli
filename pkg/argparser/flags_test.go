@@ -27,7 +27,7 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 	}{
 		"latest": {
 			flagValue:   "latest",
-			wantVersion: 3,
+			wantVersion: 4,
 		},
 		"active": {
 			flagValue:   "active",
@@ -48,8 +48,8 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 			wantVersion: 2,
 		},
 		"specific version ERR": {
-			flagValue:   "4",
-			errExpected: true, // there is no version 4
+			flagValue:   "5",
+			errExpected: true, // there is no version 5
 		},
 	}
 
@@ -89,7 +89,8 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 
 // listVersions returns a list of service versions in different states.
 //
-// The first element is active, the second is locked, the third is editable.
+// The first element is active, the second is locked, the third is
+// editable, the fourth is staged.
 func listVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
@@ -101,15 +102,19 @@ func listVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 		{
 			ServiceID: fastly.ToPointer(i.ServiceID),
 			Number:    fastly.ToPointer(2),
-			Active:    fastly.ToPointer(false),
 			Locked:    fastly.ToPointer(true),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
 		},
 		{
 			ServiceID: fastly.ToPointer(i.ServiceID),
 			Number:    fastly.ToPointer(3),
-			Active:    fastly.ToPointer(false),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-03T01:00:00Z"),
+		},
+		{
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(4),
+			Staging:   fastly.ToPointer(true),
+			UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-04T01:00:00Z"),
 		},
 	}, nil
 }
