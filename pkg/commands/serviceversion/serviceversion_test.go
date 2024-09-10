@@ -249,17 +249,17 @@ func TestVersionStage(t *testing.T) {
 			Args: "--service-id 123 --version 2",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: stageVersionOK,
+			},
+			WantError: "service version 2 is locked",
+		},
+		{
+			Args: "--service-id 123 --version 3",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: stageVersionError,
 			},
 			WantError: testutil.Err.Error(),
-		},
-		{
-			Args: "--service-id 123 --version 2",
-			API: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
-				ActivateVersionFn: stageVersionOK,
-			},
-			WantOutput: "Staged service 123 version 2",
 		},
 		{
 			Args: "--service-id 123 --version 3",
@@ -326,11 +326,11 @@ func TestVersionUnstage(t *testing.T) {
 }
 
 var listVersionsShortOutput = strings.TrimSpace(`
-NUMBER  ACTIVE  STAGING  LAST EDITED (UTC)
-1       true    false    2000-01-01 01:00
-2       false   false    2000-01-02 01:00
-3       false   false    2000-01-03 01:00
-4       false   true     2000-01-04 01:00
+NUMBER  ACTIVE  STAGED  LAST EDITED (UTC)
+1       true    false   2000-01-01 01:00
+2       false   false   2000-01-02 01:00
+3       false   false   2000-01-03 01:00
+4       false   true    2000-01-04 01:00
 `) + "\n"
 
 var listVersionsVerboseOutput = strings.TrimSpace(`
@@ -357,7 +357,7 @@ Versions: 4
 	Version 4/4
 		Number: 4
 		Service ID: 123
-		Staging: true
+		Staged: true
 		Last edited (UTC): 2000-01-04 01:00
 `) + "\n\n"
 

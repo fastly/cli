@@ -77,7 +77,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if !c.Globals.Verbose() {
 		tw := text.NewTable(out)
-		tw.AddHeader("NUMBER", "ACTIVE", "STAGING", "LAST EDITED (UTC)")
+		tw.AddHeader("NUMBER", "ACTIVE", "STAGED", "LAST EDITED (UTC)")
 		for _, version := range o {
 			tw.AddLine(
 				fastly.ToValue(version.Number),

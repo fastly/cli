@@ -541,7 +541,7 @@ Service 1/3
 			Active: false
 			Locked: false
 			Deployed: false
-			Staging: false
+			Staged: false
 			Testing: false
 			Created (UTC): 2021-06-15 23:00
 			Last edited (UTC): 2021-06-15 23:00
@@ -553,7 +553,7 @@ Service 1/3
 			Active: true
 			Locked: false
 			Deployed: true
-			Staging: false
+			Staged: false
 			Testing: false
 			Created (UTC): 2021-06-15 23:00
 			Last edited (UTC): 2021-06-15 23:00

@@ -51,6 +51,7 @@ func NewStageCommand(parent argparser.Registerer, g *global.Data) *StageCommand 
 func (c *StageCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
