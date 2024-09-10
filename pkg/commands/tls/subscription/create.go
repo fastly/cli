@@ -12,7 +12,7 @@ import (
 
 const emptyString = ""
 
-var certAuth = []string{"lets-encrypt", "globalsign"}
+var certAuth = []string{"certainly", "lets-encrypt", "globalsign"}
 
 // NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
@@ -24,7 +24,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("domain", "Domain(s) to add to the TLS certificates generated for the subscription (set flag once per domain)").Required().StringsVar(&c.domains)
 
 	// Optional.
-	c.CmdClause.Flag("cert-auth", "The entity that issues and certifies the TLS certificates for your subscription. Valid values are lets-encrypt or globalsign").HintOptions(certAuth...).EnumVar(&c.certAuth, certAuth...)
+	c.CmdClause.Flag("cert-auth", "The entity that issues and certifies the TLS certificates for your subscription. Valid values are certainly, lets-encrypt, and globalsign").HintOptions(certAuth...).EnumVar(&c.certAuth, certAuth...)
 	c.CmdClause.Flag("common-name", "The domain name associated with the subscription. Default to the first domain specified by --domain").StringVar(&c.commonName)
 	c.CmdClause.Flag("config", "Alphanumeric string identifying a TLS configuration").StringVar(&c.config)
 
