@@ -51,6 +51,62 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 			Args:       "--domain example.com",
 			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: %s, Common Name: example.com)", mockResponseID, certificateAuthority),
 		},
+		{
+			Name: "validate cert-auth == certainly",
+			API: mock.API{
+				CreateTLSSubscriptionFn: func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+					return &fastly.TLSSubscription{
+						ID:                   mockResponseID,
+						CertificateAuthority: i.CertificateAuthority,
+						CommonName:           i.Domains[0],
+					}, nil
+				},
+			},
+			Args:       "--domain example.com --cert-auth certainly",
+			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: certainly, Common Name: example.com)", mockResponseID),
+		},
+		{
+			Name: "validate cert-auth == lets-encrypt",
+			API: mock.API{
+				CreateTLSSubscriptionFn: func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+					return &fastly.TLSSubscription{
+						ID:                   mockResponseID,
+						CertificateAuthority: i.CertificateAuthority,
+						CommonName:           i.Domains[0],
+					}, nil
+				},
+			},
+			Args:       "--domain example.com --cert-auth lets-encrypt",
+			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: lets-encrypt, Common Name: example.com)", mockResponseID),
+		},
+		{
+			Name: "validate cert-auth == globalsign",
+			API: mock.API{
+				CreateTLSSubscriptionFn: func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+					return &fastly.TLSSubscription{
+						ID:                   mockResponseID,
+						CertificateAuthority: i.CertificateAuthority,
+						CommonName:           i.Domains[0],
+					}, nil
+				},
+			},
+			Args:       "--domain example.com --cert-auth globalsign",
+			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: globalsign, Common Name: example.com)", mockResponseID),
+		},
+		{
+			Name: "validate cert-auth is invalid",
+			API: mock.API{
+				CreateTLSSubscriptionFn: func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+					return &fastly.TLSSubscription{
+						ID:                   mockResponseID,
+						CertificateAuthority: i.CertificateAuthority,
+						CommonName:           i.Domains[0],
+					}, nil
+				},
+			},
+			Args:      "--domain example.com --cert-auth not-valid",
+			WantError: "enum value must be one of certainly,lets-encrypt,globalsign",
+		},
 	}
 
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
