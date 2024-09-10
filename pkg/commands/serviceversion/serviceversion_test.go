@@ -249,17 +249,17 @@ func TestVersionStage(t *testing.T) {
 			Args: "--service-id 123 --version 2",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
+				ActivateVersionFn: stageVersionOK,
+			},
+			WantError: "service version 2 is locked",
+		},
+		{
+			Args: "--service-id 123 --version 3",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: stageVersionError,
 			},
 			WantError: testutil.Err.Error(),
-		},
-		{
-			Args: "--service-id 123 --version 2",
-			API: mock.API{
-				ListVersionsFn:    testutil.ListVersions,
-				ActivateVersionFn: stageVersionOK,
-			},
-			WantOutput: "Staged service 123 version 2",
 		},
 		{
 			Args: "--service-id 123 --version 3",
