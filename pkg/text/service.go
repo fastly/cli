@@ -76,7 +76,7 @@ func PrintVersion(out io.Writer, indent string, v *fastly.Version) {
 		fmt.Fprintf(out, "Deployed: %v\n", fastly.ToValue(v.Deployed))
 	}
 	if v.Staging != nil {
-		fmt.Fprintf(out, "Staging: %v\n", fastly.ToValue(v.Staging))
+		fmt.Fprintf(out, "Staged: %v\n", fastly.ToValue(v.Staging))
 	}
 	if v.Testing != nil {
 		fmt.Fprintf(out, "Testing: %v\n", fastly.ToValue(v.Testing))

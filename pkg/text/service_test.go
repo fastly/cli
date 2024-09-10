@@ -69,7 +69,7 @@ func TestPrintVersion(t *testing.T) {
 				Staging:   fastly.ToPointer(true),
 				Testing:   fastly.ToPointer(false),
 			},
-			wantOutput: "Number: 1\nService ID: example\nActive: true\nLocked: true\nDeployed: true\nStaging: true\nTesting: false\n",
+			wantOutput: "Number: 1\nService ID: example\nActive: true\nLocked: true\nDeployed: true\nStaged: true\nTesting: false\n",
 		},
 		{
 			name:   "with",
@@ -83,7 +83,7 @@ func TestPrintVersion(t *testing.T) {
 				Staging:   fastly.ToPointer(true),
 				Testing:   fastly.ToPointer(false),
 			},
-			wantOutput: "\tNumber: 1\n\tService ID: example\n\tActive: true\n\tLocked: true\n\tDeployed: true\n\tStaging: true\n\tTesting: false\n",
+			wantOutput: "\tNumber: 1\n\tService ID: example\n\tActive: true\n\tLocked: true\n\tDeployed: true\n\tStaged: true\n\tTesting: false\n",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
