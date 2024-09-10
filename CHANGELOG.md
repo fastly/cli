@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## [v10.14.0](https://github.com/fastly/cli/releases/tag/v10.14.0) (2024-09-10)
+
+**Enhancements:**
+
+- feat(npm): Add TypeScript types to @fastly/cli [#1296](https://github.com/fastly/cli/pull/1296)
+- feat(products): Add support for Fastly Bot Management product. [#1300](https://github.com/fastly/cli/pull/1300)
+
+**Bug fixes:**
+
+- fix(compute/publish): Don't change directory twice during execution. [#1295](https://github.com/fastly/cli/pull/1295)
+- feat(npm): Properly handle error from npm-invoked cli [#1302](https://github.com/fastly/cli/pull/1302)
+
+**Dependencies:**
+
+- build(deps): bump github.com/Masterminds/semver/v3 from 3.2.1 to 3.3.0 [#1306](https://github.com/fastly/cli/pull/1306)
+- build(deps): bump golang.org/x/text from 0.17.0 to 0.18.0 [#1309](https://github.com/fastly/cli/pull/1309)
+- build(deps): bump golang.org/x/term from 0.23.0 to 0.24.0 [#1310](https://github.com/fastly/cli/pull/1310)
+- build(deps): bump golang.org/x/crypto from 0.26.0 to 0.27.0 [#1311](https://github.com/fastly/cli/pull/1311)
+- build(deps): bump golang.org/x/mod from 0.20.0 to 0.21.0 [#1312](https://github.com/fastly/cli/pull/1312)
+
 ## [v10.13.3](https://github.com/fastly/cli/releases/tag/v10.13.3) (2024-08-15)
 
 This release does not contain any code changes, but was made in order
