@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [v10.14.1](https://github.com/fastly/cli/releases/tag/v10.14.1) (2024-09-16)
+
+**Bug fixes:**
+
+- fix(tls/subscription): Recognise Certainly CA as an option when creating TLS subscriptions. [#1315](https://github.com/fastly/cli/pull/1315)
+
 ## [v10.14.0](https://github.com/fastly/cli/releases/tag/v10.14.0) (2024-09-10)
 
 **Enhancements:**
