@@ -35,6 +35,7 @@ brotli_compression  false
 domain_inspector    false
 fanout              false
 image_optimizer     false
+ngwaf               false
 origin_inspector    false
 websockets          false
 `,
@@ -53,6 +54,7 @@ brotli_compression  true
 domain_inspector    true
 fanout              true
 image_optimizer     true
+ngwaf               true
 origin_inspector    true
 websockets          true
 `,
@@ -60,12 +62,12 @@ websockets          true
 		{
 			Name:      "validate flag parsing error for enabling product",
 			Args:      "--service-id 123 --enable foo",
-			WantError: "error parsing arguments: enum value must be one of bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,origin_inspector,websockets, got 'foo'",
+			WantError: "error parsing arguments: enum value must be one of bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,ngwaf,origin_inspector,websockets, got 'foo'",
 		},
 		{
 			Name:      "validate flag parsing error for disabling product",
 			Args:      "--service-id 123 --disable foo",
-			WantError: "error parsing arguments: enum value must be one of bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,origin_inspector,websockets, got 'foo'",
+			WantError: "error parsing arguments: enum value must be one of bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,ngwaf,origin_inspector,websockets, got 'foo'",
 		},
 		{
 			Name: "validate success for enabling product",
@@ -106,6 +108,7 @@ websockets          true
   "domain_inspector": false,
   "fanout": false,
   "image_optimizer": false,
+  "ngwaf": false,
   "origin_inspector": false,
   "websockets": false
 }`,
@@ -124,6 +127,7 @@ websockets          true
   "domain_inspector": true,
   "fanout": true,
   "image_optimizer": true,
+  "ngwaf": true,
   "origin_inspector": true,
   "websockets": true
 }`,
