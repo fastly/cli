@@ -160,7 +160,7 @@ checksum:
 
 # https://goreleaser.com/customization/snapshots/
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 
 # https://goreleaser.com/customization/changelog/
 changelog:
