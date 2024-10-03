@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [v10.15.0](https://github.com/fastly/cli/releases/tag/v10.15.0) (2024-10-03)
+
+**Enhancements:**
+
+- feat(products): Add support for NGWAF product [#1322](https://github.com/fastly/cli/pull/1322)
+
+**Dependencies:**
+
+- build(deps): Upgrade to go-fastly 9.11.0. [#1322](https://github.com/fastly/cli/pull/1322)
+
 ## [v10.14.1](https://github.com/fastly/cli/releases/tag/v10.14.1) (2024-09-16)
 
 **Bug fixes:**
