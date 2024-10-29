@@ -118,6 +118,12 @@ type API struct {
 	UpdateGCSFn func(*fastly.UpdateGCSInput) (*fastly.GCS, error)
 	DeleteGCSFn func(*fastly.DeleteGCSInput) error
 
+	CreateGrafanaCloudLogsFn func(*fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	ListGrafanaCloudLogssFn  func(*fastly.ListGrafanaCloudLogssInput) ([]*fastly.GrafanaCloudLogs, error)
+	GetGrafanaCloudLogsFn    func(*fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	UpdateGrafanaCloudLogsFn func(*fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	DeleteGrafanaCloudLogsFn func(*fastly.DeleteGrafanaCloudLogsInput) error
+
 	CreateFTPFn func(*fastly.CreateFTPInput) (*fastly.FTP, error)
 	ListFTPsFn  func(*fastly.ListFTPsInput) ([]*fastly.FTP, error)
 	GetFTPFn    func(*fastly.GetFTPInput) (*fastly.FTP, error)
@@ -842,6 +848,31 @@ func (m API) UpdateGCS(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 // DeleteGCS implements Interface.
 func (m API) DeleteGCS(i *fastly.DeleteGCSInput) error {
 	return m.DeleteGCSFn(i)
+}
+
+// CreateGrafanaCloudLogs implements Interface.
+func (m API) CreateGrafanaCloudLogs(i *fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+	return m.CreateGrafanaCloudLogsFn(i)
+}
+
+// ListGrafanaCloudLogss implements Interface.
+func (m API) ListGrafanaCloudLogss(i *fastly.ListGrafanaCloudLogssInput) ([]*fastly.GrafanaCloudLogs, error) {
+	return m.ListGrafanaCloudLogssFn(i)
+}
+
+// GetGrafanaCloudLogs implements Interface.
+func (m API) GetGrafanaCloudLogs(i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+	return m.GetGrafanaCloudLogsFn(i)
+}
+
+// UpdateGrafanaCloudLogs implements Interface.
+func (m API) UpdateGrafanaCloudLogs(i *fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+	return m.UpdateGrafanaCloudLogsFn(i)
+}
+
+// DeleteGrafanaCloudLogs implements Interface.
+func (m API) DeleteGrafanaCloudLogs(i *fastly.DeleteGrafanaCloudLogsInput) error {
+	return m.DeleteGrafanaCloudLogsFn(i)
 }
 
 // CreateFTP implements Interface.

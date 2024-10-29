@@ -126,6 +126,12 @@ type Interface interface {
 	UpdateGCS(*fastly.UpdateGCSInput) (*fastly.GCS, error)
 	DeleteGCS(*fastly.DeleteGCSInput) error
 
+	CreateGrafanaCloudLogs(*fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	ListGrafanaCloudLogss(*fastly.ListGrafanaCloudLogssInput) ([]*fastly.GrafanaCloudLogs, error)
+	GetGrafanaCloudLogs(*fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	UpdateGrafanaCloudLogs(*fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	DeleteGrafanaCloudLogs(*fastly.DeleteGrafanaCloudLogsInput) error
+
 	CreateFTP(*fastly.CreateFTPInput) (*fastly.FTP, error)
 	ListFTPs(*fastly.ListFTPsInput) ([]*fastly.FTP, error)
 	GetFTP(*fastly.GetFTPInput) (*fastly.FTP, error)

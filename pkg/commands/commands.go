@@ -31,6 +31,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/ftp"
 	"github.com/fastly/cli/pkg/commands/logging/gcs"
 	"github.com/fastly/cli/pkg/commands/logging/googlepubsub"
+	"github.com/fastly/cli/pkg/commands/logging/grafanacloudlogs"
 	"github.com/fastly/cli/pkg/commands/logging/heroku"
 	"github.com/fastly/cli/pkg/commands/logging/honeycomb"
 	"github.com/fastly/cli/pkg/commands/logging/https"
@@ -246,6 +247,12 @@ func Define(
 	loggingGooglepubsubDescribe := googlepubsub.NewDescribeCommand(loggingGooglepubsubCmdRoot.CmdClause, data)
 	loggingGooglepubsubList := googlepubsub.NewListCommand(loggingGooglepubsubCmdRoot.CmdClause, data)
 	loggingGooglepubsubUpdate := googlepubsub.NewUpdateCommand(loggingGooglepubsubCmdRoot.CmdClause, data)
+	loggingGrafanacloudlogsCmdRoot := grafanacloudlogs.NewRootCommand(loggingCmdRoot.CmdClause, data)
+	loggingGrafanacloudlogsCreate := grafanacloudlogs.NewCreateCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	loggingGrafanacloudlogsDelete := grafanacloudlogs.NewDeleteCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	loggingGrafanacloudlogsDescribe := grafanacloudlogs.NewDescribeCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	loggingGrafanacloudlogsList := grafanacloudlogs.NewListCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	loggingGrafanacloudlogsUpdate := grafanacloudlogs.NewUpdateCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
 	loggingHerokuCmdRoot := heroku.NewRootCommand(loggingCmdRoot.CmdClause, data)
 	loggingHerokuCreate := heroku.NewCreateCommand(loggingHerokuCmdRoot.CmdClause, data)
 	loggingHerokuDelete := heroku.NewDeleteCommand(loggingHerokuCmdRoot.CmdClause, data)
@@ -619,6 +626,12 @@ func Define(
 		loggingGooglepubsubDescribe,
 		loggingGooglepubsubList,
 		loggingGooglepubsubUpdate,
+		loggingGrafanacloudlogsCmdRoot,
+		loggingGrafanacloudlogsCreate,
+		loggingGrafanacloudlogsDelete,
+		loggingGrafanacloudlogsDescribe,
+		loggingGrafanacloudlogsList,
+		loggingGrafanacloudlogsUpdate,
 		loggingHerokuCmdRoot,
 		loggingHerokuCreate,
 		loggingHerokuDelete,
