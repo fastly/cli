@@ -10,7 +10,7 @@ require (
 	github.com/dustinkirkland/golang-petname v0.0.0-20231002161417-6a283f1aaaf2
 	github.com/fastly/kingpin v2.1.12-0.20191105091915-95d230a53780+incompatible
 	github.com/fatih/color v1.18.0
-	github.com/fsnotify/fsnotify v1.7.0
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/google/go-cmp v0.6.0
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mholt/archiver/v3 v3.5.1
