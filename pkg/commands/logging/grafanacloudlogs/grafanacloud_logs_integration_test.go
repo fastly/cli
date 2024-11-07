@@ -68,48 +68,48 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 		{
 			args: args("logging grafanacloudlogs list --service-id 123 --version 1"),
 			api: mock.API{
-				ListVersionsFn:          testutil.ListVersions,
-				ListGrafanaCloudLogssFn: listGrafanaCloudLogsOK,
+				ListVersionsFn:         testutil.ListVersions,
+				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
-			wantOutput: listGrafanaCloudLogssShortOutput,
+			wantOutput: listGrafanaCloudLogsShortOutput,
 		},
 		{
 			args: args("logging grafanacloudlogs list --service-id 123 --version 1 --verbose"),
 			api: mock.API{
-				ListVersionsFn:          testutil.ListVersions,
-				ListGrafanaCloudLogssFn: listGrafanaCloudLogsOK,
+				ListVersionsFn:         testutil.ListVersions,
+				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
-			wantOutput: listGrafanaCloudLogssVerboseOutput,
+			wantOutput: listGrafanaCloudLogsVerboseOutput,
 		},
 		{
 			args: args("logging grafanacloudlogs list --service-id 123 --version 1 -v"),
 			api: mock.API{
-				ListVersionsFn:          testutil.ListVersions,
-				ListGrafanaCloudLogssFn: listGrafanaCloudLogsOK,
+				ListVersionsFn:         testutil.ListVersions,
+				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
-			wantOutput: listGrafanaCloudLogssVerboseOutput,
+			wantOutput: listGrafanaCloudLogsVerboseOutput,
 		},
 		{
 			args: args("logging grafanacloudlogs --verbose list --service-id 123 --version 1"),
 			api: mock.API{
-				ListVersionsFn:          testutil.ListVersions,
-				ListGrafanaCloudLogssFn: listGrafanaCloudLogsOK,
+				ListVersionsFn:         testutil.ListVersions,
+				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
-			wantOutput: listGrafanaCloudLogssVerboseOutput,
+			wantOutput: listGrafanaCloudLogsVerboseOutput,
 		},
 		{
 			args: args("logging -v grafanacloudlogs list --service-id 123 --version 1"),
 			api: mock.API{
-				ListVersionsFn:          testutil.ListVersions,
-				ListGrafanaCloudLogssFn: listGrafanaCloudLogsOK,
+				ListVersionsFn:         testutil.ListVersions,
+				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
-			wantOutput: listGrafanaCloudLogssVerboseOutput,
+			wantOutput: listGrafanaCloudLogsVerboseOutput,
 		},
 		{
 			args: args("logging grafanacloudlogs list --service-id 123 --version 1"),
 			api: mock.API{
-				ListVersionsFn:          testutil.ListVersions,
-				ListGrafanaCloudLogssFn: listGrafanaCloudLogssError,
+				ListVersionsFn:         testutil.ListVersions,
+				ListGrafanaCloudLogsFn: listGrafanaCloudLogsError,
 			},
 			wantError: errTest.Error(),
 		},
@@ -283,7 +283,7 @@ func createGrafanaCloudLogsError(_ *fastly.CreateGrafanaCloudLogsInput) (*fastly
 	return nil, errTest
 }
 
-func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogssInput) ([]*fastly.GrafanaCloudLogs, error) {
+func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
 	return []*fastly.GrafanaCloudLogs{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -316,17 +316,17 @@ func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogssInput) ([]*fastly.Gra
 	}, nil
 }
 
-func listGrafanaCloudLogssError(_ *fastly.ListGrafanaCloudLogssInput) ([]*fastly.GrafanaCloudLogs, error) {
+func listGrafanaCloudLogsError(_ *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
 	return nil, errTest
 }
 
-var listGrafanaCloudLogssShortOutput = strings.TrimSpace(`
+var listGrafanaCloudLogsShortOutput = strings.TrimSpace(`
 SERVICE  VERSION  NAME
 123      1        logs
 123      1        analytics
 `) + "\n"
 
-var listGrafanaCloudLogssVerboseOutput = strings.TrimSpace(`
+var listGrafanaCloudLogsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
 Fastly API token provided via config file (profile: user)
 

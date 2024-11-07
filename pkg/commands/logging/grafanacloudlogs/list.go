@@ -17,7 +17,7 @@ type ListCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	Input          fastly.ListGrafanaCloudLogssInput
+	Input          fastly.ListGrafanaCloudLogsInput
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
 }
@@ -81,7 +81,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	o, err := c.Globals.APIClient.ListGrafanaCloudLogss(&c.Input)
+	o, err := c.Globals.APIClient.ListGrafanaCloudLogs(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

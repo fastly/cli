@@ -119,7 +119,7 @@ type API struct {
 	DeleteGCSFn func(*fastly.DeleteGCSInput) error
 
 	CreateGrafanaCloudLogsFn func(*fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
-	ListGrafanaCloudLogssFn  func(*fastly.ListGrafanaCloudLogssInput) ([]*fastly.GrafanaCloudLogs, error)
+	ListGrafanaCloudLogsFn   func(*fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error)
 	GetGrafanaCloudLogsFn    func(*fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
 	UpdateGrafanaCloudLogsFn func(*fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
 	DeleteGrafanaCloudLogsFn func(*fastly.DeleteGrafanaCloudLogsInput) error
@@ -855,9 +855,9 @@ func (m API) CreateGrafanaCloudLogs(i *fastly.CreateGrafanaCloudLogsInput) (*fas
 	return m.CreateGrafanaCloudLogsFn(i)
 }
 
-// ListGrafanaCloudLogss implements Interface.
-func (m API) ListGrafanaCloudLogss(i *fastly.ListGrafanaCloudLogssInput) ([]*fastly.GrafanaCloudLogs, error) {
-	return m.ListGrafanaCloudLogssFn(i)
+// ListGrafanaCloudLogs implements Interface.
+func (m API) ListGrafanaCloudLogs(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
+	return m.ListGrafanaCloudLogsFn(i)
 }
 
 // GetGrafanaCloudLogs implements Interface.

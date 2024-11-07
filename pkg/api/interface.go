@@ -127,7 +127,7 @@ type Interface interface {
 	DeleteGCS(*fastly.DeleteGCSInput) error
 
 	CreateGrafanaCloudLogs(*fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
-	ListGrafanaCloudLogss(*fastly.ListGrafanaCloudLogssInput) ([]*fastly.GrafanaCloudLogs, error)
+	ListGrafanaCloudLogs(*fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error)
 	GetGrafanaCloudLogs(*fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
 	UpdateGrafanaCloudLogs(*fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
 	DeleteGrafanaCloudLogs(*fastly.DeleteGrafanaCloudLogsInput) error
