@@ -31,7 +31,7 @@ func NewTokenCommand(parent argparser.Registerer, g *global.Data) *TokenCommand 
 
 // By default tokens must be valid for at least 5 minutes to be
 // considered valid.
-const defaultTokenTTL int64 = 5 * 60
+const defaultTokenTTL time.Duration = 5 * time.Minute
 
 // Exec implements the command interface.
 func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
@@ -74,11 +74,11 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 }
 
-func checkTokenValidity(profileName string, p *config.Profile, ttl int64) (err error) {
+func checkTokenValidity(profileName string, p *config.Profile, ttl time.Duration) (err error) {
 	var msg string
 	expiry := time.Unix(p.RefreshTokenCreated, 0).Add(time.Duration(p.RefreshTokenTTL) * time.Second)
 
-	if expiry.After(time.Now().Add(time.Duration(ttl) * time.Second)) {
+	if expiry.After(time.Now().Add(ttl)) {
 		return nil
 	} else if expiry.Before(time.Now()) {
 		msg = fmt.Sprintf(profile.TokenExpired, profileName, expiry.UTC().Format(fsttime.Format))
