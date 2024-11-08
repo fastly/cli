@@ -584,6 +584,64 @@ func TestProfileToken(t *testing.T) {
 			},
 			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", now.Add(time.Duration(30)*time.Second).UTC().Format(fsttime.Format)),
 		},
+		{
+			Name: "validate that a soon-to-expire token with a non-default TTL does not generate an error",
+			Args: "--ttl 30s",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     60,
+					},
+				},
+			},
+			WantOutput: "123",
+		},
+		{
+			Name: "validate that a token with a long non-default TTL generates an error",
+			Args: "--ttl 1800s",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     1200,
+					},
+				},
+			},
+			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", now.Add(time.Duration(1200)*time.Second).UTC().Format(fsttime.Format)),
+		},
 	}
 
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "token"}, scenarios)
