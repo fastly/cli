@@ -13,6 +13,12 @@ const DoesNotExist = "the profile '%s' does not exist"
 // NoDefaults describes an output warning message.
 const NoDefaults = "At least one account profile should be set as the 'default'. Run `fastly profile update <NAME>` and ensure the profile is set to be the default."
 
+// TokenExpired is a token expiration error message.
+const TokenExpired = "the token in profile '%s' expired at '%s'"
+
+// TokenWillExpire is a token expiration error message.
+const TokenWillExpire = "the token in profile '%s' will expire at '%s'"
+
 // Exist reports whether the given profile exists.
 func Exist(name string, p config.Profiles) bool {
 	for k := range p {

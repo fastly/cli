@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+	fsttime "github.com/fastly/cli/pkg/time"
 )
 
 func TestProfileCreate(t *testing.T) {
@@ -398,6 +400,8 @@ func TestProfileSwitch(t *testing.T) {
 }
 
 func TestProfileToken(t *testing.T) {
+	now := time.Now()
+
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate the active profile token is displayed by default",
@@ -417,14 +421,18 @@ func TestProfileToken(t *testing.T) {
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     600,
 					},
 					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+						Default:             false,
+						Email:               "bar@example.com",
+						Token:               "456",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     600,
 					},
 				},
 			},
@@ -449,14 +457,18 @@ func TestProfileToken(t *testing.T) {
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     600,
 					},
 					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+						Default:             false,
+						Email:               "bar@example.com",
+						Token:               "456",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     600,
 					},
 				},
 			},
@@ -481,14 +493,18 @@ func TestProfileToken(t *testing.T) {
 			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     600,
 					},
 					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+						Default:             false,
+						Email:               "bar@example.com",
+						Token:               "456",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     600,
 					},
 				},
 			},
@@ -511,6 +527,62 @@ func TestProfileToken(t *testing.T) {
 				},
 			},
 			WantError: "profile 'unknown' does not exist",
+		},
+		{
+			Name: "validate that an expired token generates an error",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Add(time.Duration(-1200) * time.Second).Unix(),
+						RefreshTokenTTL:     600,
+					},
+				},
+			},
+			WantError: fmt.Sprintf("the token in profile 'foo' expired at '%s'", now.Add(time.Duration(-600)*time.Second).UTC().Format(fsttime.Format)),
+		},
+		{
+			Name: "validate that a soon-to-expire token generates an error",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     30,
+					},
+				},
+			},
+			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", now.Add(time.Duration(30)*time.Second).UTC().Format(fsttime.Format)),
 		},
 	}
 
