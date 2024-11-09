@@ -77,6 +77,12 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 }
 
 func checkTokenValidity(profileName string, p *config.Profile, ttl time.Duration) (err error) {
+	// if the token in the profile was not obtained via OIDC,
+	// there is no expiration information available
+	if p.RefreshTokenCreated == 0 {
+		return nil
+	}
+
 	var msg string
 	expiry := time.Unix(p.RefreshTokenCreated, 0).Add(time.Duration(p.RefreshTokenTTL) * time.Second)
 
