@@ -31,6 +31,7 @@ var ProductEnablementOptions = []string{
 	"domain_inspector",
 	"fanout",
 	"image_optimizer",
+	"log_explorer_insights",
 	"origin_inspector",
 	"websockets",
 }
@@ -143,6 +144,12 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		ps.ImageOptimizer = true
 	}
 	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
+		ProductID: fastly.ProductLogExplorerInsights,
+		ServiceID: serviceID,
+	}); err == nil {
+		ps.LogExplorerInsights = true
+	}
+	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
 		ProductID: fastly.ProductOriginInspector,
 		ServiceID: serviceID,
 	}); err == nil {
@@ -166,6 +173,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	t.AddLine(fastly.ProductDomainInspector, ps.DomainInspector)
 	t.AddLine(fastly.ProductFanout, ps.Fanout)
 	t.AddLine(fastly.ProductImageOptimizer, ps.ImageOptimizer)
+	t.AddLine(fastly.ProductLogExplorerInsights, ps.LogExplorerInsights)
 	t.AddLine(fastly.ProductOriginInspector, ps.OriginInspector)
 	t.AddLine(fastly.ProductWebSockets, ps.WebSockets)
 	t.Print()
@@ -184,6 +192,8 @@ func identifyProduct(product string) fastly.Product {
 		return fastly.ProductFanout
 	case "image_optimizer":
 		return fastly.ProductImageOptimizer
+	case "log_explorer_insights":
+		return fastly.ProductLogExplorerInsights
 	case "origin_inspector":
 		return fastly.ProductOriginInspector
 	case "websockets":
@@ -195,11 +205,12 @@ func identifyProduct(product string) fastly.Product {
 
 // ProductStatus indicates the status for each product.
 type ProductStatus struct {
-	BotManagement     bool `json:"bot_management"`
-	BrotliCompression bool `json:"brotli_compression"`
-	DomainInspector   bool `json:"domain_inspector"`
-	Fanout            bool `json:"fanout"`
-	ImageOptimizer    bool `json:"image_optimizer"`
-	OriginInspector   bool `json:"origin_inspector"`
-	WebSockets        bool `json:"websockets"`
+	BotManagement       bool `json:"bot_management"`
+	BrotliCompression   bool `json:"brotli_compression"`
+	DomainInspector     bool `json:"domain_inspector"`
+	Fanout              bool `json:"fanout"`
+	ImageOptimizer      bool `json:"image_optimizer"`
+	LogExplorerInsights bool `json:"log_explorer_insights"`
+	OriginInspector     bool `json:"origin_inspector"`
+	WebSockets          bool `json:"websockets"`
 }
