@@ -166,7 +166,7 @@ var InvalidStaticConfigRemediation = strings.Join([]string{
 	"https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md",
 }, " ")
 
-// TokenExpirationRemediation indicates that a stored token has expired.
+// TokenExpirationRemediation indicates that a stored OIDC token has expired.
 var TokenExpirationRemediation = strings.Join([]string{
-	"Run 'fastly --profile <NAME> update' to refresh the token.",
+	"Run 'fastly --profile <NAME> sso' to refresh the token.",
 }, " ")

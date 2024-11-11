@@ -17,7 +17,8 @@ import (
 // TokenCommand represents a Kingpin command.
 type TokenCommand struct {
 	argparser.Base
-	profile string
+	profile  string
+	tokenTTL time.Duration
 }
 
 // NewTokenCommand returns a new command registered in the parent.
@@ -26,6 +27,7 @@ func NewTokenCommand(parent argparser.Registerer, g *global.Data) *TokenCommand 
 	c.Globals = g
 	c.CmdClause = parent.Command("token", "Print API token (defaults to the 'active' profile)")
 	c.CmdClause.Arg("profile", "Print API token for the named profile").Short('p').StringVar(&c.profile)
+	c.CmdClause.Flag("ttl", "Amount of time for which the token must be valid (in seconds 's', minutes 'm', or hours 'h')").Default(defaultTokenTTL.String()).DurationVar(&c.tokenTTL)
 	return &c
 }
 
@@ -47,7 +49,7 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 
 	if name != "" {
 		if p := profile.Get(name, c.Globals.Config.Profiles); p != nil {
-			if err = checkTokenValidity(name, p, defaultTokenTTL); err != nil {
+			if err = checkTokenValidity(name, p, c.tokenTTL); err != nil {
 				return err
 			}
 			text.Output(out, p.Token)
@@ -62,7 +64,7 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 
 	// If no 'profile' arg or global --profile, then we'll use 'active' profile.
 	if name, p := profile.Default(c.Globals.Config.Profiles); p != nil {
-		if err = checkTokenValidity(name, p, defaultTokenTTL); err != nil {
+		if err = checkTokenValidity(name, p, c.tokenTTL); err != nil {
 			return err
 		}
 		text.Output(out, p.Token)
@@ -75,6 +77,12 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 }
 
 func checkTokenValidity(profileName string, p *config.Profile, ttl time.Duration) (err error) {
+	// if the token in the profile was not obtained via OIDC,
+	// there is no expiration information available
+	if p.RefreshTokenCreated == 0 {
+		return nil
+	}
+
 	var msg string
 	expiry := time.Unix(p.RefreshTokenCreated, 0).Add(time.Duration(p.RefreshTokenTTL) * time.Second)
 
