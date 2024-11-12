@@ -1,7 +1,7 @@
 package profile
 
 import (
-	"fmt"
+	"errors"
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -41,7 +41,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Config.Profiles == nil {
 		msg := "no profiles available"
 		return fsterr.RemediationError{
-			Inner:       fmt.Errorf(msg),
+			Inner:       errors.New(msg),
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}

@@ -2,4 +2,4 @@ github.com/goreleaser/goreleaser/v2@latest
 github.com/mgechev/revive@latest
 github.com/securego/gosec/v2/cmd/gosec@latest
 golang.org/x/tools/cmd/goimports@latest
-honnef.co/go/tools/cmd/staticcheck@2023.1.7
+honnef.co/go/tools/cmd/staticcheck@latest

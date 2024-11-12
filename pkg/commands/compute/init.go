@@ -820,12 +820,12 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 		}
 		if option, err := strconv.Atoi(input); err == nil {
 			if option > len(templates) {
-				return fmt.Errorf(msg)
+				return errors.New(msg)
 			}
 			return nil
 		}
 		if !gitRepositoryRegEx.MatchString(input) {
-			return fmt.Errorf(msg)
+			return errors.New(msg)
 		}
 		return nil
 	}

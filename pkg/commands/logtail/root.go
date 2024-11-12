@@ -652,11 +652,11 @@ func findIdxBySeq(logs []Log, seq int) int {
 // highSequence returns the highest SequenceNum
 // in a slice of logs.
 func highSequence(logs []Log) int {
-	var max int
+	var maximum int
 	for _, l := range logs {
-		if l.SequenceNum > max {
-			max = l.SequenceNum
+		if l.SequenceNum > maximum {
+			maximum = l.SequenceNum
 		}
 	}
-	return max
+	return maximum
 }
