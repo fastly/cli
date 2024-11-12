@@ -57,7 +57,7 @@ func SimplifyFastlyError(httpError fastly.HTTPError) error {
 		if detail := httpError.Errors[0].Detail; detail != "" {
 			s += fmt.Sprintf(" (%s)", detail)
 		}
-		return fmt.Errorf(s)
+		return errors.New(s)
 
 	default:
 		return fmt.Errorf(

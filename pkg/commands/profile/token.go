@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -57,7 +58,7 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		}
 		msg := fmt.Sprintf(profile.DoesNotExist, name)
 		return fsterr.RemediationError{
-			Inner:       fmt.Errorf(msg),
+			Inner:       errors.New(msg),
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}
@@ -71,7 +72,7 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return nil
 	}
 	return fsterr.RemediationError{
-		Inner:       fmt.Errorf("no profiles available"),
+		Inner:       errors.New("no profiles available"),
 		Remediation: fsterr.ProfileRemediation,
 	}
 }
@@ -95,7 +96,7 @@ func checkTokenValidity(profileName string, p *config.Profile, ttl time.Duration
 	}
 
 	return fsterr.RemediationError{
-		Inner:       fmt.Errorf(msg),
+		Inner:       errors.New(msg),
 		Remediation: fsterr.TokenExpirationRemediation,
 	}
 }
