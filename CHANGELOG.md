@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## [v10.16.0](https://github.com/fastly/cli/releases/tag/v10.16.0) (2024-11-12)
+
+**Enhancements:**
+
+- Publish to GitHub packages in addition to npmjs [#1330](https://github.com/fastly/cli/pull/1330)
+- feat(logging): Add support for Grafana Cloud Logs. [#1333](https://github.com/fastly/cli/pull/1333)
+- feat(profile/token): Allow user to specify how long token must be valid. [#1340](https://github.com/fastly/cli/pull/1340)
+- feat(products): Add support for Log Explorer & Insights. [#1341](https://github.com/fastly/cli/pull/1341)
+
+**Bug fixes:**
+
+- breaking(products): Remove support for NGWAF product. [#1338](https://github.com/fastly/cli/pull/1338)
+- fix(profile/token): 'profile token' command must check the validity of the stored token. [#1339](https://github.com/fastly/cli/pull/1339)
+- fix(lint): Update staticcheck and fix identified problems. [#1346](https://github.com/fastly/cli/pull/1346)
+
+**Dependencies:**
+
+- build(deps): bump golang.org/x/term from 0.24.0 to 0.25.0 [#1324](https://github.com/fastly/cli/pull/1324)
+- build(deps): bump golang.org/x/crypto from 0.27.0 to 0.28.0 [#1325](https://github.com/fastly/cli/pull/1325)
+- build(deps): bump github.com/fatih/color from 1.17.0 to 1.18.0 [#1331](https://github.com/fastly/cli/pull/1331)
+- build(deps): bump github.com/fsnotify/fsnotify from 1.7.0 to 1.8.0 [#1334](https://github.com/fastly/cli/pull/1334)
+- build(deps): Update to go-fastly v9.12.0. [#1337](https://github.com/fastly/cli/pull/1337)
+- build(deps): bump golang.org/x/term from 0.25.0 to 0.26.0 [#1342](https://github.com/fastly/cli/pull/1342)
+- build(deps): bump golang.org/x/crypto from 0.28.0 to 0.29.0 [#1343](https://github.com/fastly/cli/pull/1343)
+- build(deps): bump golang.org/x/text from 0.19.0 to 0.20.0 [#1344](https://github.com/fastly/cli/pull/1344)
+- build(deps): bump golang.org/x/mod from 0.21.0 to 0.22.0 [#1345](https://github.com/fastly/cli/pull/1345)
+
 ## [v10.15.0](https://github.com/fastly/cli/releases/tag/v10.15.0) (2024-10-03)
 
 **Enhancements:**
