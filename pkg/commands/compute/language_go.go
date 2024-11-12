@@ -2,6 +2,7 @@ package compute
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -315,7 +316,8 @@ func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
 		return
 	}
 
-	if !c.Check(v) {
-		text.Warning(g.output, "The %s version '%s' didn't meet the constraint '%s'\n\n", toolchain, version, constraint)
+	valid, errs := c.Validate(v)
+	if !valid {
+		text.Warning(g.output, "The %s version requirement was not satisfied: %s", toolchain, errors.Join(errs...))
 	}
 }
