@@ -944,7 +944,23 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		return err
 	}
 
-	filename := filepath.Base(c.CloneFrom)
+	tempdir, err := tempDir("package-init-download")
+	if err != nil {
+		err = fmt.Errorf("error creating temporary path for package template download: %w", err)
+		c.Globals.ErrLog.Add(err)
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		}
+		return err
+	}
+	defer os.RemoveAll(tempdir)
+
+	filename := filepath.Join(
+		tempdir,
+		filepath.Base(c.CloneFrom),
+	)
 	ext := filepath.Ext(filename)
 
 	// gosec flagged this:
@@ -963,16 +979,6 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		}
 		return err
 	}
-	defer func() {
-		// NOTE: Later on we rename the file to include an extension and the
-		// following call to os.Remove works still because the `filename` variable
-		// that is still in scope is also updated to include the extension.
-		err := os.Remove(filename)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			text.Info(out, "We were unable to clean-up the local %s file (it can be safely removed)", filename)
-		}
-	}()
 
 	_, err = io.Copy(f, res.Body)
 	if err != nil {
