@@ -151,6 +151,28 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
+			name: "with --from set to starter kit repository when dir with same name exists in pwd",
+			args: args("compute init --auto-yes --from https://github.com/fastly/compute-starter-kit-rust-default"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						},
+					},
+				},
+			},
+			wantOutput: []string{
+				"Fetching package template",
+				"Reading fastly.toml",
+				"SUCCESS: Initialized package",
+			},
+			setupSteps: func() error {
+				return os.MkdirAll("compute-starter-kit-rust-default", 0755)
+			},
+		},
+		{
 			name: "with --from set to starter kit repository with .git extension and branch",
 			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default.git --branch main"),
 			configFile: config.File{
@@ -170,6 +192,28 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
+			name: "with --from set to starter kit repository with .git extension and branch when dir with same name exists in pwd",
+			args: args("compute init --auto-yes --from https://github.com/fastly/compute-starter-kit-rust-default.git --branch main"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						},
+					},
+				},
+			},
+			wantOutput: []string{
+				"Fetching package template",
+				"Reading fastly.toml",
+				"SUCCESS: Initialized package",
+			},
+			setupSteps: func() error {
+				return os.MkdirAll("compute-starter-kit-rust-default.git", 0755)
+			},
+		},
+		{
 			name: "with --from set to zip archive",
 			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default/archive/refs/heads/main.zip"),
 			configFile: config.File{
@@ -186,6 +230,32 @@ func TestInit(t *testing.T) {
 				"Fetching package template",
 				"Reading fastly.toml",
 				"SUCCESS: Initialized package",
+			},
+		},
+		{
+			name: "with --from set to zip archive when file with same name exists in pwd",
+			args: args("compute init --auto-yes --from https://github.com/fastly/compute-starter-kit-rust-default/archive/refs/heads/main.zip"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					Rust: []config.StarterKit{
+						{
+							Name: "Default",
+							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
+						},
+					},
+				},
+			},
+			wantOutput: []string{
+				"Fetching package template",
+				"Reading fastly.toml",
+				"SUCCESS: Initialized package",
+			},
+			setupSteps: func() error {
+				file, err := os.Create("main.zip")
+				if file != nil {
+					defer file.Close()
+				}
+				return err
 			},
 		},
 		{
