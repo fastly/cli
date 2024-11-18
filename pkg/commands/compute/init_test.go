@@ -57,6 +57,7 @@ func TestInit(t *testing.T) {
 		manifestIncludes string
 		manifestPath     string
 		stdin            string
+		setupSteps       func() error
 	}{
 		{
 			name:      "broken endpoint",
@@ -374,6 +375,14 @@ func TestInit(t *testing.T) {
 			defer func() {
 				_ = os.Chdir(pwd)
 			}()
+
+			// Before running the test, run some steps to initialize the environment.
+			if testcase.setupSteps != nil {
+				err := testcase.setupSteps()
+				if err != nil {
+					panic(err)
+				}
+			}
 
 			var stdout bytes.Buffer
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
