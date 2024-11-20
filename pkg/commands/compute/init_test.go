@@ -251,7 +251,8 @@ func TestInit(t *testing.T) {
 				"SUCCESS: Initialized package",
 			},
 			setupSteps: func() error {
-				if file, err := os.Create("main.zip"); file != nil {
+				file, err := os.Create("main.zip")
+				if file != nil {
 					defer file.Close()
 				}
 				return err
