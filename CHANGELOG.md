@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [v10.17.0](https://github.com/fastly/cli/releases/tag/v10.17.0) (2024-11-20)
+
+**Enhancements:**
+
+- feat(compute/build): Support 'upper bound' constraints on Rust versions. [#1350](https://github.com/fastly/cli/pull/1350)
+
+**Bug fixes:**
+
+- fix(compute/init): Init no longer fails if directory of same name as starter kit exists in current directory [#1349](https://github.com/fastly/cli/pull/1349)
+
 ## [v10.16.0](https://github.com/fastly/cli/releases/tag/v10.16.0) (2024-11-12)
 
 **Enhancements:**
