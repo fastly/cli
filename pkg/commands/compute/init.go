@@ -476,8 +476,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				}
 				spinner.Message(msg + "...")
 				spinner.StopFailMessage(msg)
-				spinErr = spinner.StopFail()
-				if spinErr != nil {
+				if spinErr := spinner.StopFail(); spinErr != nil {
 					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
@@ -848,8 +847,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	if fi, err := os.Stat(c.CloneFrom); err == nil && fi.IsDir() {
 		if err := cp.Copy(c.CloneFrom, c.dir); err != nil {
 			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
+			if spinErr := spinner.StopFail(); spinErr != nil {
 				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
@@ -863,8 +861,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	u, err := url.Parse(c.CloneFrom)
 	if err != nil {
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
+		if spinErr := spinner.StopFail(); spinErr != nil {
 			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return fmt.Errorf("could not read --from URL: %w", err)
@@ -874,8 +871,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	// empty and the string ends up in u.Path.
 	if u.Host == "" && u.Scheme == "" {
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
+		if spinErr := spinner.StopFail(); spinErr != nil {
 			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return fmt.Errorf("--from url seems invalid: %s", c.CloneFrom)
@@ -889,8 +885,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		if gitRepositoryRegEx.MatchString(c.CloneFrom) {
 			if err := c.ClonePackageFromEndpoint(c.CloneFrom, branch, tag); err != nil {
 				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
+				if spinErr := spinner.StopFail(); spinErr != nil {
 					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return err
@@ -900,8 +895,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		}
 
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
+		if spinErr := spinner.StopFail(); spinErr != nil {
 			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
@@ -925,8 +919,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		err = fmt.Errorf("failed to get package '%s': %w", req.URL.String(), err)
 		c.Globals.ErrLog.Add(err)
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
+		if spinErr := spinner.StopFail(); spinErr != nil {
 			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
@@ -937,14 +930,28 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		err := fmt.Errorf("failed to get package '%s': %s", req.URL.String(), res.Status)
 		c.Globals.ErrLog.Add(err)
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
+		if spinErr := spinner.StopFail(); spinErr != nil {
 			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
 
-	filename := filepath.Base(c.CloneFrom)
+	tempdir, err := tempDir("package-init-download")
+	if err != nil {
+		err = fmt.Errorf("error creating temporary path for package template download: %w", err)
+		c.Globals.ErrLog.Add(err)
+		spinner.StopFailMessage(msg)
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		}
+		return err
+	}
+	defer os.RemoveAll(tempdir)
+
+	filename := filepath.Join(
+		tempdir,
+		filepath.Base(c.CloneFrom),
+	)
 	ext := filepath.Ext(filename)
 
 	// gosec flagged this:
@@ -957,30 +964,18 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		err = fmt.Errorf("failed to create local %s archive: %w", filename, err)
 		c.Globals.ErrLog.Add(err)
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
+		if spinErr := spinner.StopFail(); spinErr != nil {
 			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
-	defer func() {
-		// NOTE: Later on we rename the file to include an extension and the
-		// following call to os.Remove works still because the `filename` variable
-		// that is still in scope is also updated to include the extension.
-		err := os.Remove(filename)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			text.Info(out, "We were unable to clean-up the local %s file (it can be safely removed)", filename)
-		}
-	}()
 
 	_, err = io.Copy(f, res.Body)
 	if err != nil {
 		err = fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
 		c.Globals.ErrLog.Add(err)
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
+		if spinErr := spinner.StopFail(); spinErr != nil {
 			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
@@ -1028,8 +1023,7 @@ mimes:
 			if err != nil {
 				c.Globals.ErrLog.Add(err)
 				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
+				if spinErr := spinner.StopFail(); spinErr != nil {
 					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return err
@@ -1045,8 +1039,7 @@ mimes:
 			err = fmt.Errorf("failed to extract %s archive content: %w", filename, err)
 			c.Globals.ErrLog.Add(err)
 			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
+			if spinErr := spinner.StopFail(); spinErr != nil {
 				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
@@ -1058,8 +1051,7 @@ mimes:
 
 	if err := c.ClonePackageFromEndpoint(c.CloneFrom, branch, tag); err != nil {
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
+		if spinErr := spinner.StopFail(); spinErr != nil {
 			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
