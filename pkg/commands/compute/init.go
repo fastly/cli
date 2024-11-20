@@ -944,7 +944,8 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		return err
 	}
 
-	if tempdir, err := tempDir("package-init-download"); err != nil {
+	tempdir, err := tempDir("package-init-download")
+	if err != nil {
 		err = fmt.Errorf("error creating temporary path for package template download: %w", err)
 		c.Globals.ErrLog.Add(err)
 		spinner.StopFailMessage(msg)
