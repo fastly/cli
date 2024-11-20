@@ -3,6 +3,7 @@ package compute
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -157,7 +158,10 @@ func (r *Rust) Build() error {
 		text.Info(r.output, "No [scripts.build] found in %s. The following default build command for Rust will be used: `%s`\n\n", r.manifestFilename, r.build)
 	}
 
-	version := r.toolchainConstraint()
+	version, err := r.toolchainConstraint()
+	if err != nil {
+		return err
+	}
 
 	if version != nil {
 		err := r.checkCargoConfigFileName(version)
@@ -296,12 +300,8 @@ func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 	return nil
 }
 
-// toolchainConstraint warns the user if the required constraint is not met.
-//
-// NOTE: We don't stop the build as their toolchain may compile successfully.
-// The warning is to help a user know something isn't quite right and gives them
-// the opportunity to do something about it if they choose.
-func (r *Rust) toolchainConstraint() *semver.Version {
+// toolchainConstraint generates an error if the toolchain constraint is not met.
+func (r *Rust) toolchainConstraint() (*semver.Version, error) {
 	if r.verbose {
 		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'.\n\n", r.config.ToolchainConstraint)
 	}
@@ -318,31 +318,47 @@ func (r *Rust) toolchainConstraint() *semver.Version {
 	stdout, err := cmd.Output()
 	output := string(stdout)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	versionPattern := regexp.MustCompile(`cargo (?P<version>\d[^\s]+)`)
 	match := versionPattern.FindStringSubmatch(output)
 	if len(match) < 2 { // We expect a pattern with one capture group.
-		return nil
+		return nil, fmt.Errorf("unable to obtain a version number from the 'cargo' command")
 	}
 	version := match[1]
 
 	v, err := semver.NewVersion(version)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("the version string '%s' reported by the 'cargo' command is not a valid version number", version)
 	}
 
 	c, err := semver.NewConstraint(r.config.ToolchainConstraint)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("the 'toolchain_constraint' value '%s' (from the config.toml file) is not a valid version constraint", r.config.ToolchainConstraint)
 	}
 
-	if !c.Check(v) {
-		text.Warning(r.output, "The Rust version '%s' didn't meet the constraint '%s'\n\n", version, r.config.ToolchainConstraint)
+	valid, errs := c.Validate(v)
+	if !valid {
+		err = nil
+		for _, e := range errs {
+			// if an 'upper bound' constraint was
+			// violated, generate an error message
+			// specific to that situation
+			if strings.Contains(e.Error(), "is greater than") {
+				err = fmt.Errorf("version '%s' of Rust has not been validated for use with Fastly Compute", v)
+			}
+		}
+		if err == nil {
+			err = fmt.Errorf("the Rust version requirement was not satisfied: '%w'", errors.Join(errs...))
+		}
+		return nil, fsterr.RemediationError{
+			Inner:       err,
+			Remediation: "Consult the Rust guide for Compute at https://www.fastly.com/documentation/guides/compute/rust/ for more information.",
+		}
 	}
 
-	return v
+	return v, nil
 }
 
 func (r *Rust) checkCargoConfigFileName(rustVersion *semver.Version) error {
