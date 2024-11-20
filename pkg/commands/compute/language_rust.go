@@ -340,15 +340,22 @@ func (r *Rust) toolchainConstraint() (*semver.Version, error) {
 
 	valid, errs := c.Validate(v)
 	if !valid {
-		for _, err = range errs {
+		err = nil
+		for _, e := range errs {
 			// if an 'upper bound' constraint was
 			// violated, generate an error message
 			// specific to that situation
-			if strings.Contains(err.Error(), "is greater than") {
-				return nil, fmt.Errorf("version '%s' of Rust has not been validated for use with Fastly Compute", v)
+			if strings.Contains(e.Error(), "is greater than") {
+				err = fmt.Errorf("version '%s' of Rust has not been validated for use with Fastly Compute", v)
 			}
 		}
-		return nil, fmt.Errorf("the Rust version requirement was not satisfied: '%w'", errors.Join(errs...))
+		if err == nil {
+			err = fmt.Errorf("the Rust version requirement was not satisfied: '%w'", errors.Join(errs...))
+		}
+		return nil, fsterr.RemediationError{
+			Inner:       err,
+			Remediation: "Consult the Rust guide for Compute at https://www.fastly.com/documentation/guides/compute/rust/ for more information.",
+		}
 	}
 
 	return v, nil
