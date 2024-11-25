@@ -3,7 +3,7 @@ module github.com/fastly/cli
 go 1.22.0
 
 require (
-	github.com/Masterminds/semver/v3 v3.3.0
+	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/alecthomas/units v0.0.0-20231202071711-9a357b53e9c9 // indirect
 	github.com/bep/debounce v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
