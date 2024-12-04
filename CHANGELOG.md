@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [v10.17.1](https://github.com/fastly/cli/releases/tag/v10.17.1) (2024-12-04)
+
+**Bug fixes:**
+
+- fix(sso): Ensure that only one authentication cycle is started. [#1355](https://github.com/fastly/cli/pull/1355)
+
+**Dependencies:**
+
+- build(deps): bump github.com/Masterminds/semver/v3 from 3.3.0 to 3.3.1 [#1352](https://github.com/fastly/cli/pull/1352)
+
 ## [v10.17.0](https://github.com/fastly/cli/releases/tag/v10.17.0) (2024-11-20)
 
 **Enhancements:**
