@@ -639,7 +639,7 @@ func commandCollectsData(command string) bool {
 // requires just the authentication server to be running.
 func commandRequiresAuthServer(command string) bool {
 	switch command {
-	case "profile create", "profile switch", "profile update":
+	case "profile create", "profile switch", "profile update", "sso":
 		return true
 	}
 	return false
@@ -660,7 +660,7 @@ func commandRequiresToken(command argparser.Command) bool {
 	}
 	commandName = strings.Split(commandName, " ")[0]
 	switch commandName {
-	case "config", "profile", "update", "version":
+	case "config", "profile", "sso", "update", "version":
 		return false
 	}
 	return true
