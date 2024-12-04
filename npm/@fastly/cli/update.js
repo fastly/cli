@@ -74,6 +74,7 @@ let response = await fetch(
 );
 if (!response.ok) {
   console.error(
+    '%s %o',
     `Response from https://api.github.com/repos/fastly/cli/releases/tags/${tag} was not ok`,
     response
   );
@@ -87,6 +88,7 @@ let assets = await fetch(
 );
 if (!assets.ok) {
   console.error(
+    '%s %o',
     `Response from https://api.github.com/repos/fastly/cli/releases/${id}/assets was not ok`,
     assets
   );
@@ -120,7 +122,11 @@ for (const info of packages) {
   const browser_download_url = asset.browser_download_url;
   const archive = await fetch(browser_download_url);
   if (!archive.ok) {
-    console.error(`Response from ${browser_download_url} was not ok`, archive);
+    console.error(
+      '%s %o',
+      `Response from ${browser_download_url} was not ok`,
+      archive
+    );
     console.error(await response.text());
     process.exit(1);
   }
