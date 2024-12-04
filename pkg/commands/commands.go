@@ -13,6 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/config"
 	"github.com/fastly/cli/pkg/commands/configstore"
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
+	"github.com/fastly/cli/pkg/commands/dashboard"
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
@@ -154,6 +155,12 @@ func Define(
 	configstoreentryDescribe := configstoreentry.NewDescribeCommand(configstoreentryCmdRoot.CmdClause, data)
 	configstoreentryList := configstoreentry.NewListCommand(configstoreentryCmdRoot.CmdClause, data)
 	configstoreentryUpdate := configstoreentry.NewUpdateCommand(configstoreentryCmdRoot.CmdClause, data)
+	dashboardCmdRoot := dashboard.NewRootCommand(app, data)
+	dashboardList := dashboard.NewListCommand(dashboardCmdRoot.CmdClause, data)
+	dashboardCreate := dashboard.NewCreateCommand(dashboardCmdRoot.CmdClause, data)
+	dashboardDescribe := dashboard.NewDescribeCommand(dashboardCmdRoot.CmdClause, data)
+	dashboardUpdate := dashboard.NewUpdateCommand(dashboardCmdRoot.CmdClause, data)
+	dashboardDelete := dashboard.NewDeleteCommand(dashboardCmdRoot.CmdClause, data)
 	dictionaryCmdRoot := dictionary.NewRootCommand(app, data)
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, data)
@@ -535,6 +542,12 @@ func Define(
 		configstoreentryDescribe,
 		configstoreentryList,
 		configstoreentryUpdate,
+		dashboardCmdRoot,
+		dashboardList,
+		dashboardCreate,
+		dashboardDescribe,
+		dashboardUpdate,
+		dashboardDelete,
 		dictionaryCmdRoot,
 		dictionaryCreate,
 		dictionaryDelete,
