@@ -6,7 +6,9 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -16,9 +18,11 @@ func NewCreateCommand(parent argparser.Registerer, globals *global.Data) *Create
 	c.Globals = globals
 
 	// Required flags
+	c.CmdClause.Flag("name", "A human-readable name for the dashboard").Short('n').Required().StringVar(&c.name) // --name
 
 	// Optional flags
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	c.RegisterFlagBool(c.JSONFlag())                                                                                                  // --json
+	c.CmdClause.Flag("description", "A short description of the dashboard").Action(c.description.Set).StringVar(&c.description.Value) // --description
 
 	return &c
 }
@@ -27,17 +31,43 @@ func NewCreateCommand(parent argparser.Registerer, globals *global.Data) *Create
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
+
+	name        string
+	description argparser.OptionalString
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	// text.Success(out, "Created <...> '%s' (service: %s, version: %d)", r.<...>, r.ServiceID, r.ServiceVersion)
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
+	input := c.constructInput()
+	dashboard, err := c.Globals.APIClient.CreateObservabilityCustomDashboard(input)
+	if err != nil {
+		return err
+	}
+
+	text.Success(out, `Created Custom Dashboard "%s" (id: %s)`, dashboard.Name, dashboard.ID)
+	dashboards := []*fastly.ObservabilityCustomDashboard{dashboard}
+	if c.Globals.Verbose() {
+		printVerbose(out, dashboards)
+	} else {
+		printSummary(out, dashboards)
+	}
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) constructInput() *fastly.CreateObservabilityCustomDashboardInput {
-	var input fastly.CreateObservabilityCustomDashboardInput
+	input := fastly.CreateObservabilityCustomDashboardInput{
+		Name:  c.name,
+		Items: []fastly.DashboardItem{},
+	}
+
+	if c.description.WasSet {
+		input.Description = &c.description.Value
+	}
 
 	return &input
 }
