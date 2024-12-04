@@ -92,7 +92,7 @@ if (!assets.ok) {
     `Response from https://api.github.com/repos/fastly/cli/releases/${id}/assets was not ok`,
     assets
   );
-  console.error(await response.text());
+  console.error(await assets.text());
   process.exit(1);
 }
 assets = await assets.json();
