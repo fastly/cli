@@ -398,6 +398,12 @@ type API struct {
 	DeleteAlertDefinitionFn func(i *fastly.DeleteAlertDefinitionInput) error
 	TestAlertDefinitionFn   func(i *fastly.TestAlertDefinitionInput) error
 	ListAlertHistoryFn      func(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error)
+
+	ListObservabilityCustomDashboardsFn      func(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ObservabilityCustomDashboard, error)
+	CreateObservabilityCustomDashboardFn     func(i *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
+	GetObservabilityCustomDashboardFn        func(i *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
+	UpdateObservabilityCustomDashboardFn     func(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
+	DeleteObservabilityCustomDashboardFn     func(i *fastly.DeleteObservabilityCustomDashboardInput) error
 }
 
 // AllDatacenters implements Interface.
@@ -2023,4 +2029,29 @@ func (m API) TestAlertDefinition(i *fastly.TestAlertDefinitionInput) error {
 // ListAlertHistory implements Interface.
 func (m API) ListAlertHistory(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
 	return m.ListAlertHistoryFn(i)
+}
+
+// CreateObservabilityCustomDashboard implements Interface.
+func (m API) CreateObservabilityCustomDashboard(i *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+	return m.CreateObservabilityCustomDashboardFn(i)
+}
+
+// DeleteObservabilityCustomDashboard implements Interface.
+func (m API) DeleteObservabilityCustomDashboard(i *fastly.DeleteObservabilityCustomDashboardInput) error {
+	return m.DeleteObservabilityCustomDashboardFn(i)
+}
+
+// GetObservabilityCustomDashboard implements Interface.
+func (m API) GetObservabilityCustomDashboard(i *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+	return m.GetObservabilityCustomDashboardFn(i)
+}
+
+// ListObservabilityCustomDashboards implements Interface.
+func (m API) ListObservabilityCustomDashboards(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ObservabilityCustomDashboard, error) {
+	return m.ListObservabilityCustomDashboardsFn(i)
+}
+
+// UpdateObservabilityCustomDashboard implements Interface.
+func (m API) UpdateObservabilityCustomDashboard(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+	return m.UpdateObservabilityCustomDashboardFn(i)
 }
