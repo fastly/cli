@@ -17,6 +17,7 @@ func NewDescribeCommand(parent argparser.Registerer, globals *global.Data) *Desc
 	c.Globals = globals
 
 	// Required flags
+	c.CmdClause.Flag("id", "Alphanumeric string identifying a Dashboard").Required().StringVar(&c.dashboardID)
 
 	// Optional flags
 	c.RegisterFlagBool(c.JSONFlag())
@@ -27,6 +28,8 @@ func NewDescribeCommand(parent argparser.Registerer, globals *global.Data) *Desc
 type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
+
+	dashboardID string
 }
 
 // Exec invokes the application logic for the command.
@@ -35,12 +38,26 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
+	input := c.constructInput()
+	dashboard, err := c.Globals.APIClient.GetObservabilityCustomDashboard(input)
+	if err != nil {
+		return err
+	}
+
+	if ok, err := c.WriteJSON(out, dashboard); ok {
+		return err
+	}
+
+	dashboards := []*fastly.ObservabilityCustomDashboard{dashboard}
+	printVerbose(out, dashboards)
 	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *DescribeCommand) constructInput() *fastly.GetObservabilityCustomDashboardInput {
 	var input fastly.GetObservabilityCustomDashboardInput
+
+	input.ID = &c.dashboardID
 
 	return &input
 }
