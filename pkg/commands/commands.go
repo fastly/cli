@@ -163,6 +163,7 @@ func Define(
 	dashboardUpdate := dashboard.NewUpdateCommand(dashboardCmdRoot.CmdClause, data)
 	dashboardDelete := dashboard.NewDeleteCommand(dashboardCmdRoot.CmdClause, data)
 	dashboardItemCmdRoot := dashboardItem.NewRootCommand(dashboardCmdRoot.CmdClause, data)
+	dashboardItemCreate := dashboardItem.NewCreateCommand(dashboardItemCmdRoot.CmdClause, data)
 	dictionaryCmdRoot := dictionary.NewRootCommand(app, data)
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, data)
@@ -551,6 +552,7 @@ func Define(
 		dashboardUpdate,
 		dashboardDelete,
 		dashboardItemCmdRoot,
+		dashboardItemCreate,
 		dictionaryCmdRoot,
 		dictionaryCreate,
 		dictionaryDelete,
