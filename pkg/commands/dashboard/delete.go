@@ -6,6 +6,7 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -19,21 +20,41 @@ func NewDeleteCommand(parent argparser.Registerer, globals *global.Data) *Delete
 	// Required flags
 	c.CmdClause.Flag("id", "Alphanumeric string identifying a Dashboard").Required().StringVar(&c.dashboardID)
 
+	// Optional.
+	c.RegisterFlagBool(c.JSONFlag()) // --json
+
 	return &c
 }
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
 	argparser.Base
+	argparser.JSONOutput
 
 	dashboardID string
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	input := c.constructInput()
 	err := c.Globals.APIClient.DeleteObservabilityCustomDashboard(input)
 	if err != nil {
+		return err
+	}
+
+	if c.JSONOutput.Enabled {
+		o := struct {
+			ID      string `json:"dashboard_id"`
+			Deleted bool   `json:"deleted"`
+		}{
+			c.dashboardID,
+			true,
+		}
+		_, err := c.WriteJSON(out, o)
 		return err
 	}
 

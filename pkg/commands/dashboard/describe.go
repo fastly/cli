@@ -50,6 +50,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	dashboards := []*fastly.ObservabilityCustomDashboard{dashboard}
+	// Summary isn't useful for a single dashboard, so print verbose by default
 	common.PrintVerbose(out, dashboards)
 	return nil
 }
