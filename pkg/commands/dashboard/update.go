@@ -6,6 +6,7 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/dashboard/common"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -53,9 +54,9 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	text.Success(out, `Updated Custom Dashboard "%s" (id: %s)`, dashboard.Name, dashboard.ID)
 	dashboards := []*fastly.ObservabilityCustomDashboard{dashboard}
 	if c.Globals.Verbose() {
-		printVerbose(out, dashboards)
+		common.PrintVerbose(out, dashboards)
 	} else {
-		printSummary(out, dashboards)
+		common.PrintSummary(out, dashboards)
 	}
 	return nil
 }
