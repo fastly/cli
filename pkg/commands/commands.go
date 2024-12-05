@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/configstore"
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	"github.com/fastly/cli/pkg/commands/dashboard"
+	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
@@ -161,6 +162,7 @@ func Define(
 	dashboardDescribe := dashboard.NewDescribeCommand(dashboardCmdRoot.CmdClause, data)
 	dashboardUpdate := dashboard.NewUpdateCommand(dashboardCmdRoot.CmdClause, data)
 	dashboardDelete := dashboard.NewDeleteCommand(dashboardCmdRoot.CmdClause, data)
+	dashboardItemCmdRoot := dashboardItem.NewRootCommand(dashboardCmdRoot.CmdClause, data)
 	dictionaryCmdRoot := dictionary.NewRootCommand(app, data)
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, data)
@@ -548,6 +550,7 @@ func Define(
 		dashboardDescribe,
 		dashboardUpdate,
 		dashboardDelete,
+		dashboardItemCmdRoot,
 		dictionaryCmdRoot,
 		dictionaryCreate,
 		dictionaryDelete,

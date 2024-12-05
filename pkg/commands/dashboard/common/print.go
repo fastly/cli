@@ -1,4 +1,4 @@
-package dashboard
+package common
 
 import (
 	"fmt"
@@ -10,9 +10,9 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// printSummary displays the information returned from the API in a summarised
+// PrintSummary displays the information returned from the API in a summarised
 // format.
-func printSummary(out io.Writer, ds []*fastly.ObservabilityCustomDashboard) {
+func PrintSummary(out io.Writer, ds []*fastly.ObservabilityCustomDashboard) {
 	t := text.NewTable(out)
 	t.AddHeader("DASHBOARD ID", "NAME", "DESCRIPTION", "# ITEMS")
 	for _, d := range ds {
@@ -26,16 +26,16 @@ func printSummary(out io.Writer, ds []*fastly.ObservabilityCustomDashboard) {
 	t.Print()
 }
 
-// printVerbose displays the information returned from the API in a verbose
+// PrintVerbose displays the information returned from the API in a verbose
 // format.
-func printVerbose(out io.Writer, ds []*fastly.ObservabilityCustomDashboard) {
+func PrintVerbose(out io.Writer, ds []*fastly.ObservabilityCustomDashboard) {
 	for _, d := range ds {
-		printDashboard(out, 0, d)
+		PrintDashboard(out, 0, d)
 		fmt.Fprintf(out, "\n")
 	}
 }
 
-func printDashboard(out io.Writer, indent uint, dashboard *fastly.ObservabilityCustomDashboard) {
+func PrintDashboard(out io.Writer, indent uint, dashboard *fastly.ObservabilityCustomDashboard) {
 	indentStep := uint(4)
 	level := indent
 	text.Indent(out, level, "Name: %s", dashboard.Name)
@@ -46,7 +46,7 @@ func printDashboard(out io.Writer, indent uint, dashboard *fastly.ObservabilityC
 	for i, di := range dashboard.Items {
 		text.Indent(out, level, "[%d]:", i)
 		level += indentStep
-		printItem(out, level, &di)
+		PrintItem(out, level, &di)
 		level -= indentStep
 	}
 	level -= indentStep
@@ -59,7 +59,7 @@ func printDashboard(out io.Writer, indent uint, dashboard *fastly.ObservabilityC
 	text.Indent(out, level, "Updated by: %s", dashboard.UpdatedBy)
 }
 
-func printItem(out io.Writer, indent uint, item *fastly.DashboardItem) {
+func PrintItem(out io.Writer, indent uint, item *fastly.DashboardItem) {
 	indentStep := uint(4)
 	level := indent
 	if item != nil {

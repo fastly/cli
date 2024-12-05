@@ -404,6 +404,10 @@ type API struct {
 	GetObservabilityCustomDashboardFn        func(i *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	UpdateObservabilityCustomDashboardFn     func(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	DeleteObservabilityCustomDashboardFn     func(i *fastly.DeleteObservabilityCustomDashboardInput) error
+	CreateObservabilityCustomDashboardItemFn func(i *fastly.DashboardItem) (*fastly.ObservabilityCustomDashboard, error)
+	GetObservabilityCustomDashboardItemFn    func(dashboardID, itemID string) (*fastly.ObservabilityCustomDashboard, error)
+	UpdateObservabilityCustomDashboardItemFn func(i *fastly.DashboardItem) (*fastly.ObservabilityCustomDashboard, error)
+	DeleteObservabilityCustomDashboardItemFn func(dashboardID, itemID string) (*fastly.ObservabilityCustomDashboard, error)
 }
 
 // AllDatacenters implements Interface.
@@ -2054,4 +2058,24 @@ func (m API) ListObservabilityCustomDashboards(i *fastly.ListObservabilityCustom
 // UpdateObservabilityCustomDashboard implements Interface.
 func (m API) UpdateObservabilityCustomDashboard(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 	return m.UpdateObservabilityCustomDashboardFn(i)
+}
+
+// CreateObservabilityCustomDashboard implements Interface.
+func (m API) CreateObservabilityCustomDashboardItem(i *fastly.DashboardItem) (*fastly.ObservabilityCustomDashboard, error) {
+	return m.CreateObservabilityCustomDashboardItemFn(i)
+}
+
+// DeleteObservabilityCustomDashboard implements Interface.
+func (m API) DeleteObservabilityCustomDashboardItem(dashboardID, itemID string) (*fastly.ObservabilityCustomDashboard, error) {
+	return m.DeleteObservabilityCustomDashboardItemFn(dashboardID, itemID)
+}
+
+// GetObservabilityCustomDashboard implements Interface.
+func (m API) GetObservabilityCustomDashboardItem(dashboardID, itemID string) (*fastly.ObservabilityCustomDashboard, error) {
+	return m.GetObservabilityCustomDashboardItemFn(dashboardID, itemID)
+}
+
+// UpdateObservabilityCustomDashboard implements Interface.
+func (m API) UpdateObservabilityCustomDashboardItem(i *fastly.DashboardItem) (*fastly.ObservabilityCustomDashboard, error) {
+	return m.UpdateObservabilityCustomDashboardItemFn(i)
 }

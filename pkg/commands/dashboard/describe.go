@@ -6,6 +6,7 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/dashboard/common"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
@@ -49,7 +50,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	dashboards := []*fastly.ObservabilityCustomDashboard{dashboard}
-	printVerbose(out, dashboards)
+	common.PrintVerbose(out, dashboards)
 	return nil
 }
 

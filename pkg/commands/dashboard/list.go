@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/dashboard/common"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -67,9 +68,9 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 
 		if c.Globals.Verbose() {
-			printVerbose(out, dashboardsPtr)
+			common.PrintVerbose(out, dashboardsPtr)
 		} else {
-			printSummary(out, dashboardsPtr)
+			common.PrintSummary(out, dashboardsPtr)
 		}
 
 		if dashboards != nil && dashboards.Meta.NextCursor != "" {
