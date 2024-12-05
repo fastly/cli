@@ -49,6 +49,10 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
+	if ok, err := c.WriteJSON(out, dashboard); ok {
+		return err
+	}
+
 	text.Success(out, `Created Custom Dashboard "%s" (id: %s)`, dashboard.Name, dashboard.ID)
 	dashboards := []*fastly.ObservabilityCustomDashboard{dashboard}
 	if c.Globals.Verbose() {
