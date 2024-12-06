@@ -12,7 +12,7 @@ import (
 
 // PrintSummary displays the information returned from the API in a summarised
 // format.
-func PrintSummary(out io.Writer, ds []*fastly.ObservabilityCustomDashboard) {
+func PrintSummary(out io.Writer, ds []fastly.ObservabilityCustomDashboard) {
 	t := text.NewTable(out)
 	t.AddHeader("DASHBOARD ID", "NAME", "DESCRIPTION", "# ITEMS")
 	for _, d := range ds {
@@ -28,9 +28,9 @@ func PrintSummary(out io.Writer, ds []*fastly.ObservabilityCustomDashboard) {
 
 // PrintVerbose displays the information returned from the API in a verbose
 // format.
-func PrintVerbose(out io.Writer, ds []*fastly.ObservabilityCustomDashboard) {
+func PrintVerbose(out io.Writer, ds []fastly.ObservabilityCustomDashboard) {
 	for _, d := range ds {
-		PrintDashboard(out, 0, d)
+		PrintDashboard(out, 0, &d)
 		fmt.Fprintf(out, "\n")
 	}
 }
