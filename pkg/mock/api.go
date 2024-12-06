@@ -399,7 +399,7 @@ type API struct {
 	TestAlertDefinitionFn   func(i *fastly.TestAlertDefinitionInput) error
 	ListAlertHistoryFn      func(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error)
 
-	ListObservabilityCustomDashboardsFn      func(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ObservabilityCustomDashboard, error)
+	ListObservabilityCustomDashboardsFn      func(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ListDashboardsResponse, error)
 	CreateObservabilityCustomDashboardFn     func(i *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	GetObservabilityCustomDashboardFn        func(i *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	UpdateObservabilityCustomDashboardFn     func(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
@@ -2051,7 +2051,7 @@ func (m API) GetObservabilityCustomDashboard(i *fastly.GetObservabilityCustomDas
 }
 
 // ListObservabilityCustomDashboards implements Interface.
-func (m API) ListObservabilityCustomDashboards(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ObservabilityCustomDashboard, error) {
+func (m API) ListObservabilityCustomDashboards(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ListDashboardsResponse, error) {
 	return m.ListObservabilityCustomDashboardsFn(i)
 }
 
