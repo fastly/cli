@@ -85,9 +85,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	// text.Success(out, `Added %d items to Custom Dashboard "%s" (id: %s)`, len(*input.Items), d.Name, d.ID)
-	dashboards := []*fastly.ObservabilityCustomDashboard{d}
-	// Summary isn't useful for a single dashboard, so print verbose by default
-	common.PrintVerbose(out, dashboards)
+	common.PrintDashboard(out, 0, d)
 	return nil
 }
 

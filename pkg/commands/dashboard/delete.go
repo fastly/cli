@@ -58,7 +58,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted custom dashboard '%s'", fastly.ToValue(input.ID))
+	text.Success(out, `Deleted Custom Dashboard %s`, fastly.ToValue(input.ID))
 	return nil
 }
 

@@ -51,36 +51,41 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
+	var dashboards []fastly.ObservabilityCustomDashboard
+	loadAllPages := c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
+
 	for {
-		dashboards, err := c.Globals.APIClient.ListObservabilityCustomDashboards(input)
+		o, err := c.Globals.APIClient.ListObservabilityCustomDashboards(input)
 		if err != nil {
 			return err
 		}
 
-		if ok, err := c.WriteJSON(out, dashboards); ok {
-			// No pagination prompt w/ JSON output.
-			return err
-		}
+		if o != nil {
+			dashboards = append(dashboards, o.Data...)
 
-		dashboardsPtr := make([]*fastly.ObservabilityCustomDashboard, len(dashboards.Data))
-		for i := range dashboards.Data {
-			dashboardsPtr[i] = &dashboards.Data[i]
-		}
+			if loadAllPages {
+				if o.Meta.NextCursor != "" {
+					input.Cursor = &o.Meta.NextCursor
+					continue
+				}
+				break
+			}
 
-		if c.Globals.Verbose() {
-			common.PrintVerbose(out, dashboardsPtr)
-		} else {
-			common.PrintSummary(out, dashboardsPtr)
-		}
+			if c.Globals.Verbose() {
+				common.PrintVerbose(out, dashboards)
+			} else {
+				common.PrintSummary(out, dashboards)
+			}
 
-		if dashboards != nil && dashboards.Meta.NextCursor != "" {
-			if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
-				printNext, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
+			if o.Meta.NextCursor != "" && text.IsTTY(out) {
+				text.Break(out)
+				printNextPage, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
 				if err != nil {
 					return err
 				}
-				if printNext {
-					input.Cursor = &dashboards.Meta.NextCursor
+				if printNextPage {
+					dashboards = []fastly.ObservabilityCustomDashboard{}
+					input.Cursor = &o.Meta.NextCursor
 					continue
 				}
 			}
@@ -88,6 +93,20 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 		return nil
 	}
+
+	if ok, err := c.WriteJSON(out, dashboards); ok {
+		// No pagination prompt w/ JSON output.
+		return err
+	} else {
+		// Only print output here if we've not already printed JSON.
+		if c.Globals.Verbose() {
+			common.PrintVerbose(out, dashboards)
+		} else {
+			common.PrintSummary(out, dashboards)
+		}
+	}
+
+	return nil
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.

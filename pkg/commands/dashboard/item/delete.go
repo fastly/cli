@@ -84,9 +84,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	} else {
 		text.Warning(out, "dashboard (%s) has no item with ID (%s)", d.ID, c.itemID)
 	}
-	dashboards := []*fastly.ObservabilityCustomDashboard{d}
-	// Summary isn't useful for a single dashboard, so print verbose by default
-	common.PrintVerbose(out, dashboards)
+	common.PrintDashboard(out, 0, d)
 	return nil
 }
 
