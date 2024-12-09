@@ -79,3 +79,5 @@ require (
 )
 
 require 4d63.com/optional v0.2.0
+
+replace github.com/fastly/go-fastly/v9 => github.com/kpfleming/go-fastly/v9 v9.12.1-0.20241217164724-8f6ebe66851a
