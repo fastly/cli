@@ -68,6 +68,7 @@ compute
 config
 config-store
 config-store-entry
+dashboard
 dictionary
 dictionary-entry
 domain
