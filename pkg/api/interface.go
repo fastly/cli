@@ -406,6 +406,12 @@ type Interface interface {
 	DeleteAlertDefinition(i *fastly.DeleteAlertDefinitionInput) error
 	TestAlertDefinition(i *fastly.TestAlertDefinitionInput) error
 	ListAlertHistory(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error)
+
+	ListObservabilityCustomDashboards(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ListDashboardsResponse, error)
+	CreateObservabilityCustomDashboard(i *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
+	GetObservabilityCustomDashboard(i *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
+	UpdateObservabilityCustomDashboard(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
+	DeleteObservabilityCustomDashboard(i *fastly.DeleteObservabilityCustomDashboardInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
