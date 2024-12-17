@@ -51,6 +51,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/pop"
+	"github.com/fastly/cli/pkg/commands/product"
+	"github.com/fastly/cli/pkg/commands/product/bot_management"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/purge"
@@ -356,6 +358,11 @@ func Define(
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, data)
 	popCmdRoot := pop.NewRootCommand(app, data)
+	productCmdRoot := product.NewRootCommand(app, data)
+	productBotManagementCmdRoot := bot_management.NewRootCommand(productCmdRoot.CmdClause, data)
+	productBotManagementDisable := bot_management.NewDisableCommand(productBotManagementCmdRoot.CmdClause, data)
+	productBotManagementEnable := bot_management.NewEnableCommand(productBotManagementCmdRoot.CmdClause, data)
+	productBotManagementStatus := bot_management.NewStatusCommand(productBotManagementCmdRoot.CmdClause, data)
 	productsCmdRoot := products.NewRootCommand(app, data)
 	profileCmdRoot := profile.NewRootCommand(app, data)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
@@ -735,6 +742,11 @@ func Define(
 		loggingSyslogList,
 		loggingSyslogUpdate,
 		popCmdRoot,
+		productCmdRoot,
+		productBotManagementCmdRoot,
+		productBotManagementDisable,
+		productBotManagementEnable,
+		productBotManagementStatus,
 		productsCmdRoot,
 		profileCmdRoot,
 		profileCreate,
