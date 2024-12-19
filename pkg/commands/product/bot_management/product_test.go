@@ -38,7 +38,7 @@ func TestProductEnablement(t *testing.T) {
 		{
 			Name: "validate success for enabling product",
 			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
-				sub.EnableFn = func(_ api.Interface, _ string) (*bot_management.EnableOutput, error) {
+				sub.EnablementHooks.EnableFn = func(_ api.Interface, _ string) (*bot_management.EnableOutput, error) {
 					return nil, nil
 				}
 			},
@@ -48,7 +48,7 @@ func TestProductEnablement(t *testing.T) {
 		{
 			Name: "validate failure for enabling product",
 			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
-				sub.EnableFn = func(_ api.Interface, _ string) (*bot_management.EnableOutput, error) {
+				sub.EnablementHooks.EnableFn = func(_ api.Interface, _ string) (*bot_management.EnableOutput, error) {
 					return nil, testutil.Err
 				}
 			},
