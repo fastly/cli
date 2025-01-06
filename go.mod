@@ -26,7 +26,7 @@ require (
 
 require (
 	github.com/fastly/go-fastly/v9 v9.12.0
-	github.com/hashicorp/cap v0.7.0
+	github.com/hashicorp/cap v0.8.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/otiai10/copy v1.14.1
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
