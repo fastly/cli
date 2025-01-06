@@ -28,7 +28,7 @@ require (
 	github.com/fastly/go-fastly/v9 v9.12.0
 	github.com/hashicorp/cap v0.7.0
 	github.com/kennygrant/sanitize v1.2.4
-	github.com/otiai10/copy v1.14.0
+	github.com/otiai10/copy v1.14.1
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/theckman/yacspin v0.13.12
@@ -40,6 +40,7 @@ require (
 require (
 	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
+	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
