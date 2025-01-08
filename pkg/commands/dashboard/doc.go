@@ -1,2 +1,2 @@
-// Package dashboard contains commands to <...>.
+// Package dashboard contains commands to manage custom Observability Dashboards.
 package dashboard

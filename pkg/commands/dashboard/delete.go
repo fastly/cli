@@ -18,7 +18,7 @@ func NewDeleteCommand(parent argparser.Registerer, globals *global.Data) *Delete
 	c.Globals = globals
 
 	// Required flags
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a Dashboard").Required().StringVar(&c.dashboardID)
+	c.CmdClause.Flag("id", "ID of the Dashboard to delete").Required().StringVar(&c.dashboardID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -35,7 +35,7 @@ type DeleteCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

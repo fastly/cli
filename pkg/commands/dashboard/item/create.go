@@ -19,7 +19,7 @@ func NewCreateCommand(parent argparser.Registerer, globals *global.Data) *Create
 	c.Globals = globals
 
 	// Required flags
-	c.CmdClause.Flag("dashboard-id", "Alphanumeric string identifying a Dashboard").Required().StringVar(&c.dashboardID)
+	c.CmdClause.Flag("dashboard-id", "ID of the Dashboard to contain the item").Required().StringVar(&c.dashboardID)
 	c.CmdClause.Flag("title", "A human-readable title for the dashboard item").Required().StringVar(&c.title)
 	c.CmdClause.Flag("subtitle", "A human-readable subtitle for the dashboard item. Often a description of the visualization").Required().StringVar(&c.subtitle)
 	c.CmdClause.Flag("source-type", "The source of the data to display").Required().HintOptions(sourceTypes...).EnumVar(&c.sourceType, sourceTypes...)
@@ -57,7 +57,7 @@ type CreateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

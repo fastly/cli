@@ -18,7 +18,7 @@ func NewUpdateCommand(parent argparser.Registerer, globals *global.Data) *Update
 	c.Globals = globals
 
 	// Required flags
-	c.CmdClause.Flag("id", "Alphanumeric string identifying a Dashboard").Required().StringVar(&c.dashboardID)
+	c.CmdClause.Flag("id", "ID of the Dashboard to update").Required().StringVar(&c.dashboardID)
 
 	// Optional flags
 	c.RegisterFlagBool(c.JSONFlag())                                                                                                  // --json
@@ -39,7 +39,7 @@ type UpdateCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

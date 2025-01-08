@@ -19,8 +19,8 @@ func NewDescribeCommand(parent argparser.Registerer, globals *global.Data) *Desc
 	c.Globals = globals
 
 	// Required flags
-	c.CmdClause.Flag("dashboard-id", "Alphanumeric string identifying a Dashboard").Required().StringVar(&c.dashboardID) // --dashboard-id
-	c.CmdClause.Flag("item-id", "Alphanumeric string identifying a Dashboard Item").Required().StringVar(&c.itemID)      // --item-id
+	c.CmdClause.Flag("dashboard-id", "ID of the Dashboard containing the item").Required().StringVar(&c.dashboardID) // --dashboard-id
+	c.CmdClause.Flag("item-id", "ID of the Item to be described").Required().StringVar(&c.itemID)      // --item-id
 
 	// Optional flags
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -39,7 +39,7 @@ type DescribeCommand struct {
 }
 
 // Exec invokes the application logic for the command.
-func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
+func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
