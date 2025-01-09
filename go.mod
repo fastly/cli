@@ -38,11 +38,12 @@ require (
 )
 
 require (
+	github.com/dnaeon/go-vcr v1.2.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
-	github.com/stretchr/testify v1.9.0 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
@@ -78,3 +79,5 @@ require (
 )
 
 require 4d63.com/optional v0.2.0
+
+replace github.com/fastly/go-fastly/v9 => github.com/kpfleming/go-fastly/v9 v9.12.1-0.20241217164724-8f6ebe66851a
