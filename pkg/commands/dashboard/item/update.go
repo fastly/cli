@@ -8,7 +8,6 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/dashboard/common"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
@@ -29,7 +28,7 @@ func NewUpdateCommand(parent argparser.Registerer, globals *global.Data) *Update
 	c.CmdClause.Flag("subtitle", "A human-readable subtitle for the dashboard item. Often a description of the visualization").Action(c.subtitle.Set).StringVar(&c.subtitle.Value)                                                 // --subtitle
 	c.CmdClause.Flag("span", `The number of columns for the dashboard item to span. Dashboards are rendered on a 12-column grid on "desktop" screen sizes`).Action(c.span.Set).IntVar(&c.span.Value)                               // --span
 	c.CmdClause.Flag("source-type", "The source of the data to display").Action(c.sourceType.Set).HintOptions(sourceTypes...).EnumVar(&c.sourceType.Value, sourceTypes...)                                                         // --source-type
-	c.CmdClause.Flag("metrics", "The metrics to visualize. Valid options depend on the selected data source (set flag once per Metric)").Action(c.metrics.Set).StringsVar(&c.metrics.Value)                                        // --metrics
+	c.CmdClause.Flag("metric", "The metrics to visualize. Valid options depend on the selected data source. Set flag multiple times to include multiple metrics").Action(c.metrics.Set).StringsVar(&c.metrics.Value)               // --metrics
 	c.CmdClause.Flag("visualization-type", `The type of visualization to display. Currently, only "chart" is supported`).Action(c.vizType.Set).HintOptions(visualizationTypes...).EnumVar(&c.vizType.Value, visualizationTypes...) // --visualization-type
 	c.CmdClause.Flag("calculation-method", "The aggregation function to apply to the dataset").Action(c.calculationMethod.Set).HintOptions(calculationMethods...).EnumVar(&c.calculationMethod.Value, calculationMethods...)       // --calculation-method
 	c.CmdClause.Flag("format", "The units to use to format the data").Action(c.format.Set).HintOptions(formats...).EnumVar(&c.format.Value, formats...)                                                                            // --format
@@ -84,8 +83,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	// text.Success(out, `Added %d items to Custom Dashboard "%s" (id: %s)`, len(*input.Items), d.Name, d.ID)
-	common.PrintDashboard(out, 0, d)
 	return nil
 }
 

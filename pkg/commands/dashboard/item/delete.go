@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/dashboard/common"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -84,7 +83,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	} else {
 		text.Warning(out, "dashboard (%s) has no item with ID (%s)", d.ID, c.itemID)
 	}
-	common.PrintDashboard(out, 0, d)
 	return nil
 }
 

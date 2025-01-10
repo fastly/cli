@@ -101,7 +101,7 @@ func TestCreate(t *testing.T) {
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
-			Args:       fmt.Sprintf("%s --metrics %s", allRequiredFlags, "responses"),
+			Args:       allRequiredFlags + " --metrics responses",
 			WantOutput: "Metrics: requests, responses",
 		},
 		{

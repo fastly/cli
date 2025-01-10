@@ -97,13 +97,13 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if ok, err := c.WriteJSON(out, dashboards); ok {
 		// No pagination prompt w/ JSON output.
 		return err
+	}
+
+	// Only print output here if we've not already printed JSON.
+	if c.Globals.Verbose() {
+		common.PrintVerbose(out, dashboards)
 	} else {
-		// Only print output here if we've not already printed JSON.
-		if c.Globals.Verbose() {
-			common.PrintVerbose(out, dashboards)
-		} else {
-			common.PrintSummary(out, dashboards)
-		}
+		common.PrintSummary(out, dashboards)
 	}
 
 	return nil

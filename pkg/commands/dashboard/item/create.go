@@ -23,14 +23,14 @@ func NewCreateCommand(parent argparser.Registerer, globals *global.Data) *Create
 	c.CmdClause.Flag("title", "A human-readable title for the dashboard item").Required().StringVar(&c.title)
 	c.CmdClause.Flag("subtitle", "A human-readable subtitle for the dashboard item. Often a description of the visualization").Required().StringVar(&c.subtitle)
 	c.CmdClause.Flag("source-type", "The source of the data to display").Required().HintOptions(sourceTypes...).EnumVar(&c.sourceType, sourceTypes...)
-	c.CmdClause.Flag("metrics", "The metrics to visualize. Valid options depend on the selected data source (set flag once per Metric)").Required().StringsVar(&c.metrics)
+	c.CmdClause.Flag("metric", "The metrics to visualize. Valid options depend on the selected data source. Set flag multiple times to include multiple metrics").Required().StringsVar(&c.metrics)
 	c.CmdClause.Flag("plot-type", "The type of chart to display").Required().HintOptions(plotTypes...).EnumVar(&c.plotType, plotTypes...)
 
 	// Optional flags
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("visualization-type", `The type of visualization to display. Currently, only "chart" is supported`).Default("chart").HintOptions(visualizationTypes...).EnumVar(&c.vizType, visualizationTypes...)
 	c.CmdClause.Flag("calculation-method", "The aggregation function to apply to the dataset").Action(c.calculationMethod.Set).HintOptions(calculationMethods...).EnumVar(&c.calculationMethod.Value, calculationMethods...) // --calculation-method
-	c.CmdClause.Flag("format", "foo").Action(c.format.Set).HintOptions(formats...).EnumVar(&c.format.Value, formats...)                                                                                                      // --format
+	c.CmdClause.Flag("format", "The units to use to format the data").Action(c.format.Set).HintOptions(formats...).EnumVar(&c.format.Value, formats...)                                                                      // --format
 	c.CmdClause.Flag("span", `The number of columns for the dashboard item to span. Dashboards are rendered on a 12-column grid on "desktop" screen sizes`).Default("4").Uint8Var(&c.span)
 
 	return &c
