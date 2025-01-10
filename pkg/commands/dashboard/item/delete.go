@@ -20,7 +20,7 @@ func NewDeleteCommand(parent argparser.Registerer, globals *global.Data) *Delete
 
 	// Required flags
 	c.CmdClause.Flag("dashboard-id", "ID of the Dashboard containing the item").Required().StringVar(&c.dashboardID) // --dashboard-id
-	c.CmdClause.Flag("item-id", "ID of the Item to be deleted").Required().StringVar(&c.itemID)      // --item-id
+	c.CmdClause.Flag("item-id", "ID of the Item to be deleted").Required().StringVar(&c.itemID)                      // --item-id
 
 	// Optional flags
 	c.RegisterFlagBool(c.JSONFlag()) // --json

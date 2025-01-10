@@ -20,7 +20,7 @@ func NewUpdateCommand(parent argparser.Registerer, globals *global.Data) *Update
 
 	// Required flags
 	c.CmdClause.Flag("dashboard-id", "ID of the Dashboard containing the item").Required().StringVar(&c.dashboardID) // --dashboard-id
-	c.CmdClause.Flag("item-id", "ID of the Item to be updated").Required().StringVar(&c.itemID)      // --item-id
+	c.CmdClause.Flag("item-id", "ID of the Item to be updated").Required().StringVar(&c.itemID)                      // --item-id
 
 	// Optional flags
 	c.RegisterFlagBool(c.JSONFlag())                                                                                                                                                                                               // --json
