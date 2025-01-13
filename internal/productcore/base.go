@@ -48,13 +48,13 @@ type EnablementStatus struct {
 // used by unit tests to provide mock behaviors
 type EnablementHookFuncs[O any] struct {
 	DisableFunc func(api.Interface, string) error
-	EnableFunc func(api.Interface, string) (O, error)
-	GetFunc func(api.Interface, string) (O, error)
+	EnableFunc  func(api.Interface, string) (O, error)
+	GetFunc     func(api.Interface, string) (O, error)
 }
 
 // ConfigurationHookFuncs is a structure of dependency-injection
 // points used by unit tests to provide mock behaviors
 type ConfigurationHookFuncs[O, I any] struct {
-	GetConfigurationFunc func(api.Interface, string) (O, error)
+	GetConfigurationFunc    func(api.Interface, string) (O, error)
 	UpdateConfigurationFunc func(api.Interface, string, I) (O, error)
 }
