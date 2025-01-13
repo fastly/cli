@@ -1,7 +1,7 @@
 FROM rust:latest
 LABEL maintainer="Fastly OSS <oss@fastly.com>"
 
-ENV RUST_TOOLCHAIN=stable
+ENV RUST_TOOLCHAIN=1.83.0
 RUN rustup toolchain install ${RUST_TOOLCHAIN} \
   && rustup target add wasm32-wasi --toolchain ${RUST_TOOLCHAIN} \
   && apt-get update && apt-get install -y curl jq && apt-get -y clean && rm -rf /var/lib/apt/lists/* \
