@@ -12,10 +12,10 @@ import (
 )
 
 type TestEnablementInput[O any] struct {
-	T *testing.T
-	Commands []string
+	T           *testing.T
+	Commands    []string
 	ProductName string
-	Hooks *productcore.EnablementHookFuncs[O]
+	Hooks       *productcore.EnablementHookFuncs[O]
 }
 
 func TestEnablement[O any](i TestEnablementInput[O]) {
@@ -137,7 +137,7 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 				i.Hooks.GetFunc = func(_ api.Interface, _ string) (o O, err error) {
 					// The API returns a 'Bad Request' error when the
 					// product has not been enabled on the service
-					err =  &fastly.HTTPError{StatusCode: 400}
+					err = &fastly.HTTPError{StatusCode: 400}
 					return
 				}
 			},
@@ -150,7 +150,7 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 				i.Hooks.GetFunc = func(_ api.Interface, _ string) (o O, err error) {
 					// The API returns a 'Bad Request' error when the
 					// product has not been enabled on the service
-					err =  &fastly.HTTPError{StatusCode: 400}
+					err = &fastly.HTTPError{StatusCode: 400}
 					return
 				}
 			},
