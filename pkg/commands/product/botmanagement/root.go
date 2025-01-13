@@ -1,4 +1,4 @@
-package bot_management
+package botmanagement
 
 import (
 	"io"
