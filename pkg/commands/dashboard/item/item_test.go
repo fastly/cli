@@ -63,45 +63,45 @@ var (
 )
 
 func TestCreate(t *testing.T) {
-	allRequiredFlags := fmt.Sprintf("--dashboard-id %s --title %s --subtitle %s --source-type %s --metrics %s --plot-type %s", dashboardID, title, subtitle, sourceType, metrics, plotType)
+	allRequiredFlags := fmt.Sprintf("--dashboard-id %s --title %s --subtitle %s --source-type %s --metric %s --plot-type %s", dashboardID, title, subtitle, sourceType, metrics, plotType)
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --dashboard-id flag",
-			Args:      fmt.Sprintf("--title %s --subtitle %s --source-type %s --metrics %s --plot-type %s", title, subtitle, sourceType, metrics, plotType),
+			Args:      fmt.Sprintf("--title %s --subtitle %s --source-type %s --metric %s --plot-type %s", title, subtitle, sourceType, metrics, plotType),
 			WantError: "error parsing arguments: required flag --dashboard-id not provided",
 		},
 		{
 			Name:      "validate missing --title flag",
-			Args:      fmt.Sprintf("--dashboard-id %s --subtitle %s --source-type %s --metrics %s --plot-type %s", dashboardID, subtitle, sourceType, metrics, plotType),
+			Args:      fmt.Sprintf("--dashboard-id %s --subtitle %s --source-type %s --metric %s --plot-type %s", dashboardID, subtitle, sourceType, metrics, plotType),
 			WantError: "error parsing arguments: required flag --title not provided",
 		},
 		{
 			Name:      "validate missing --subtitle flag",
-			Args:      fmt.Sprintf("--dashboard-id %s --title %s --source-type %s --metrics %s --plot-type %s", dashboardID, title, sourceType, metrics, plotType),
+			Args:      fmt.Sprintf("--dashboard-id %s --title %s --source-type %s --metric %s --plot-type %s", dashboardID, title, sourceType, metrics, plotType),
 			WantError: "error parsing arguments: required flag --subtitle not provided",
 		},
 		{
 			Name:      "validate missing --source-type flag",
-			Args:      fmt.Sprintf("--dashboard-id %s --title %s --subtitle %s --metrics %s --plot-type %s", dashboardID, title, subtitle, metrics, plotType),
+			Args:      fmt.Sprintf("--dashboard-id %s --title %s --subtitle %s --metric %s --plot-type %s", dashboardID, title, subtitle, metrics, plotType),
 			WantError: "error parsing arguments: required flag --source-type not provided",
 		},
 		{
-			Name:      "validate missing --metrics flag",
+			Name:      "validate missing --metric flag",
 			Args:      fmt.Sprintf("--dashboard-id %s --title %s --subtitle %s --source-type %s --plot-type %s", dashboardID, title, subtitle, sourceType, plotType),
-			WantError: "error parsing arguments: required flag --metrics not provided",
+			WantError: "error parsing arguments: required flag --metric not provided",
 		},
 		{
 			Name:      "validate missing --plot-type flag",
-			Args:      fmt.Sprintf("--dashboard-id %s --title %s --subtitle %s --source-type %s --metrics %s", dashboardID, title, subtitle, sourceType, metrics),
+			Args:      fmt.Sprintf("--dashboard-id %s --title %s --subtitle %s --source-type %s --metric %s", dashboardID, title, subtitle, sourceType, metrics),
 			WantError: "error parsing arguments: required flag --plot-type not provided",
 		},
 		{
-			Name: "validate multiple --metrics flag",
+			Name: "validate multiple --metric flag",
 			API: mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
-			Args:       allRequiredFlags + " --metrics responses",
+			Args:       allRequiredFlags + " --metric responses",
 			WantOutput: "Metrics: requests, responses",
 		},
 		{
@@ -182,7 +182,7 @@ func TestDescribe(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	allRequiredFlags := fmt.Sprintf("--dashboard-id %s --item-id %s", dashboardID, itemID)
+	allRequiredFlags := fmt.Sprintf("--dashboard-id %s --item-id %s --json", dashboardID, itemID)
 
 	scenarios := []testutil.CLIScenario{
 		{
@@ -201,8 +201,28 @@ func TestUpdate(t *testing.T) {
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
-			Args:       allRequiredFlags,
-			WantOutput: "Name: Foo\nDescription: Testing...\nItems:\n    [0]:\n        ID: bleepblorp\n        Title: Title\n        Subtitle: Subtitle\n        Span: 8\n        Data Source:\n            Type: stats.edge\n            Metrics: requests\n        Visualization:\n            Type: chart\n            Plot Type: line\n            Calculation Method: latest\n            Format: requests\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n",
+			Args: allRequiredFlags,
+			WantOutputs: []string{
+				`"name":`, "Foo",
+				`"description":`, "Testing...",
+				`"items":`,
+				`"id":`, "bleepblorp",
+				`"title":`, "Title",
+				`"subtitle":`, "Subtitle",
+				`"span":`, "8",
+				`"data_source":`,
+				`"type":`, "stats.edge",
+				`"metrics":`, "requests",
+				`"visualization":`,
+				`"type":`, "chart",
+				`"plot_type":`, "line",
+				`"calculation_method":`, "latest",
+				`"format":`, "requests",
+				`"created_at":`, "2021-06-15T23:00:00Z",
+				`"updated_at":`, "2021-06-15T23:00:00Z",
+				`"created_by":`, "test-user",
+				`"updated_by":`, "test-user",
+			},
 		},
 		{
 			Name: "validate optional --title flag",
@@ -211,7 +231,7 @@ func TestUpdate(t *testing.T) {
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
 			Args:       fmt.Sprintf("%s --title %s", allRequiredFlags, "NewTitle"),
-			WantOutput: "Title: NewTitle",
+			WantOutput: `"title": "NewTitle"`,
 		},
 		{
 			Name: "validate optional --subtitle flag",
@@ -220,7 +240,7 @@ func TestUpdate(t *testing.T) {
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
 			Args:       fmt.Sprintf("%s --subtitle %s", allRequiredFlags, "NewSubtitle"),
-			WantOutput: "Subtitle: NewSubtitle",
+			WantOutput: `"subtitle": "NewSubtitle"`,
 		},
 		{
 			Name: "validate optional --span flag",
@@ -229,7 +249,7 @@ func TestUpdate(t *testing.T) {
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
 			Args:       fmt.Sprintf("%s --span %d", allRequiredFlags, 12),
-			WantOutput: "Span: 12",
+			WantOutput: `"span": 12`,
 		},
 		{
 			Name: "validate optional --source-type flag",
@@ -238,25 +258,30 @@ func TestUpdate(t *testing.T) {
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
 			Args:       fmt.Sprintf("%s --source-type %s", allRequiredFlags, "stats.domain"),
-			WantOutput: "Type: stats.domain",
+			WantOutput: `"type": "stats.domain"`,
 		},
 		{
-			Name: "validate optional --metrics flag",
+			Name: "validate optional --metric flag",
 			API: mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
-			Args:       fmt.Sprintf("%s --metrics %s", allRequiredFlags, "status_4xx"),
-			WantOutput: "Metrics: status_4xx",
+			Args:        fmt.Sprintf("%s --metric %s", allRequiredFlags, "status_4xx"),
+			WantOutputs: []string{"metrics", "status_4xx"},
 		},
 		{
-			Name: "validate multiple --metrics flag",
+			Name: "validate multiple --metric flag",
 			API: mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
-			Args:       fmt.Sprintf("%s --metrics %s --metrics %s --metrics %s", allRequiredFlags, "status_2xx", "status_4xx", "status_5xx"),
-			WantOutput: "Metrics: status_2xx, status_4xx, status_5xx",
+			Args: fmt.Sprintf("%s --metric %s --metric %s --metric %s", allRequiredFlags, "status_2xx", "status_4xx", "status_5xx"),
+			WantOutputs: []string{
+				"metrics",
+				"status_2xx",
+				"status_4xx",
+				"status_5xx",
+			},
 		},
 		{
 			Name: "validate optional --calculation-method flag",
@@ -265,7 +290,7 @@ func TestUpdate(t *testing.T) {
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
 			Args:       fmt.Sprintf("%s --calculation-method %s", allRequiredFlags, "avg"),
-			WantOutput: "Calculation Method: avg",
+			WantOutput: `"calculation_method": "avg"`,
 		},
 		{
 			Name: "validate optional --format flag",
@@ -274,7 +299,7 @@ func TestUpdate(t *testing.T) {
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
 			Args:       fmt.Sprintf("%s --format %s", allRequiredFlags, "ratio"),
-			WantOutput: "Format: ratio",
+			WantOutput: `"format": "ratio"`,
 		},
 		{
 			Name: "validate optional --plot-type flag",
@@ -283,7 +308,7 @@ func TestUpdate(t *testing.T) {
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
 			Args:       fmt.Sprintf("%s --plot-type %s", allRequiredFlags, "single-metric"),
-			WantOutput: "Plot Type: single-metric",
+			WantOutput: `"plot_type": "single-metric"`,
 		},
 	}
 
