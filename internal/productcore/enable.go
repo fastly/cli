@@ -16,11 +16,11 @@ type Enable[O any] struct {
 }
 
 // Init prepares the structure for use by the CLI core.
-func (cmd *Enable[O]) Init(parent argparser.Registerer, g *global.Data, productName string, hooks *EnablementHookFuncs[O]) {
+func (cmd *Enable[O]) Init(parent argparser.Registerer, g *global.Data, productID, productName string, hooks *EnablementHookFuncs[O]) {
 	cmd.CmdClause = parent.Command("enable", "Enable the "+productName+" product")
 	cmd.hooks = hooks
 
-	cmd.Base.Init(parent, g, productName)
+	cmd.Base.Init(parent, g, productID, productName)
 }
 
 // Exec executes the enablement operation.
@@ -45,7 +45,7 @@ func (cmd *Enable[O]) Exec(out io.Writer) error {
 		return err
 	}
 
-	if ok, err := cmd.WriteJSON(out, EnablementStatus{Enabled: true}); ok {
+	if ok, err := cmd.WriteJSON(out, EnablementStatus{ProductID: cmd.ProductID, Enabled: true}); ok {
 		return err
 	}
 
