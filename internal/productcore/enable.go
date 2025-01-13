@@ -12,6 +12,9 @@ import (
 // Enable is a base type for all 'enable' commands.
 type Enable[O any] struct {
 	Base
+	// hooks is a pointer to an EnablementHookFuncs structure so
+	// that tests can modify the contents of the structure after
+	// this structure has been initialized
 	hooks *EnablementHookFuncs[O]
 }
 
