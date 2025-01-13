@@ -53,7 +53,7 @@ type EnablementHookFuncs[O any] struct {
 }
 
 // ConfigurationHookFuncs is a structure of dependency-injection
-// points by unit tests to provide mock behaviors
+// points used by unit tests to provide mock behaviors
 type ConfigurationHookFuncs[O, I any] struct {
 	GetConfigurationFunc func(api.Interface, string) (O, error)
 	UpdateConfigurationFunc func(api.Interface, string, I) (O, error)
