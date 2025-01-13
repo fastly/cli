@@ -18,11 +18,11 @@ type Status[O any] struct {
 }
 
 // Init prepares the structure for use by the CLI core.
-func (cmd *Status[O]) Init(parent argparser.Registerer, g *global.Data, productName string, hooks *EnablementHookFuncs[O]) {
+func (cmd *Status[O]) Init(parent argparser.Registerer, g *global.Data, productID, productName string, hooks *EnablementHookFuncs[O]) {
 	cmd.CmdClause = parent.Command("status", "Get the enablement status of the "+productName+" product")
 	cmd.hooks = hooks
 
-	cmd.Base.Init(parent, g, productName)
+	cmd.Base.Init(parent, g, productID, productName)
 }
 
 // Exec executes the status operation.
@@ -41,7 +41,7 @@ func (cmd *Status[O]) Exec(out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	s := EnablementStatus{}
+	s := EnablementStatus{ProductID: cmd.ProductID}
 	state := "disabled"
 
 	_, err = cmd.hooks.GetFunc(cmd.Globals.APIClient, serviceID)

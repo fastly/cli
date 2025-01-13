@@ -14,12 +14,14 @@ type Base struct {
 	Manifest manifest.Data
 
 	ServiceName argparser.OptionalServiceNameID
+	ProductID   string
 	ProductName string
 }
 
 // Init prepares the structure for use by the CLI core.
-func (cmd *Base) Init(parent argparser.Registerer, g *global.Data, productName string) {
+func (cmd *Base) Init(parent argparser.Registerer, g *global.Data, productID, productName string) {
 	cmd.Globals = g
+	cmd.ProductID = productID
 	cmd.ProductName = productName
 
 	// Optional flags.
@@ -41,7 +43,8 @@ func (cmd *Base) Init(parent argparser.Registerer, g *global.Data, productName s
 // EnablementStatus is a structure used to generate JSON output from
 // the enablement-related commands
 type EnablementStatus struct {
-	Enabled bool `json:"enabled"`
+	ProductID string `json:"product_id"`
+	Enabled   bool   `json:"enabled"`
 }
 
 // EnablementHookFuncs is a structure of dependency-injection points

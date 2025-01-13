@@ -11,13 +11,17 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
+// TestEnablementInput supplies the details required for
+// TestEnablement to execute a series of test scenarios.
 type TestEnablementInput[O any] struct {
 	T           *testing.T
 	Commands    []string
+	ProductID   string
 	ProductName string
 	Hooks       *productcore.EnablementHookFuncs[O]
 }
 
+// TestEnablement executes the test scenarios common to all products.
 func TestEnablement[O any](i TestEnablementInput[O]) {
 	scenarios := []testutil.CLIScenario{
 		{
@@ -52,7 +56,7 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 		},
 		{
 			Name: "validate text output success for enabling product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.EnableFunc = func(_ api.Interface, _ string) (o O, err error) {
 					return
 				}
@@ -62,17 +66,17 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 		},
 		{
 			Name: "validate JSON output success for enabling product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.EnableFunc = func(_ api.Interface, _ string) (o O, err error) {
 					return
 				}
 			},
 			Args:       "enable --service-id 123 --json",
-			WantOutput: "{\n  \"enabled\": true\n}",
+			WantOutput: "{\n  \"product_id\": \"" + i.ProductID + "\",\n  \"enabled\": true\n}",
 		},
 		{
 			Name: "validate failure for enabling product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.EnableFunc = func(_ api.Interface, _ string) (o O, err error) {
 					err = testutil.Err
 					return
@@ -83,7 +87,7 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 		},
 		{
 			Name: "validate text output success for disabling product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.DisableFunc = func(_ api.Interface, _ string) error {
 					return nil
 				}
@@ -93,17 +97,17 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 		},
 		{
 			Name: "validate JSON output success for disabling product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.DisableFunc = func(_ api.Interface, _ string) error {
 					return nil
 				}
 			},
 			Args:       "disable --service-id 123 --json",
-			WantOutput: "{\n  \"enabled\": false\n}",
+			WantOutput: "{\n  \"product_id\": \"" + i.ProductID + "\",\n  \"enabled\": false\n}",
 		},
 		{
 			Name: "validate failure for disabling product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.DisableFunc = func(_ api.Interface, _ string) error {
 					return testutil.Err
 				}
@@ -113,7 +117,7 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 		},
 		{
 			Name: "validate text status output for enabled product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.GetFunc = func(_ api.Interface, _ string) (o O, err error) {
 					return
 				}
@@ -123,17 +127,17 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 		},
 		{
 			Name: "validate JSON status output for enabled product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.GetFunc = func(_ api.Interface, _ string) (o O, err error) {
 					return
 				}
 			},
 			Args:       "status --service-id 123 --json",
-			WantOutput: "{\n  \"enabled\": true\n}",
+			WantOutput: "{\n  \"product_id\": \"" + i.ProductID + "\",\n  \"enabled\": true\n}",
 		},
 		{
 			Name: "validate text status output for disabled product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.GetFunc = func(_ api.Interface, _ string) (o O, err error) {
 					// The API returns a 'Bad Request' error when the
 					// product has not been enabled on the service
@@ -146,7 +150,7 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 		},
 		{
 			Name: "validate JSON status output for disabled product",
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, _ *global.Data) {
 				i.Hooks.GetFunc = func(_ api.Interface, _ string) (o O, err error) {
 					// The API returns a 'Bad Request' error when the
 					// product has not been enabled on the service
@@ -155,7 +159,7 @@ func TestEnablement[O any](i TestEnablementInput[O]) {
 				}
 			},
 			Args:       "status --service-id 123 --json",
-			WantOutput: "{\n  \"enabled\": false\n}",
+			WantOutput: "{\n  \"product_id\": \"" + i.ProductID + "\",\n  \"enabled\": false\n}",
 		},
 	}
 

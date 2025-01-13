@@ -1,9 +1,9 @@
-package botmanagement
+package websockets
 
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v9/fastly/products/botmanagement"
+	"github.com/fastly/go-fastly/v9/fastly/products/websockets"
 
 	"github.com/fastly/cli/internal/productcore"
 	"github.com/fastly/cli/pkg/argparser"
@@ -12,13 +12,13 @@ import (
 
 // StatusCommand calls the Fastly API to get the enablement status of the product.
 type StatusCommand struct {
-	productcore.Status[*botmanagement.EnableOutput]
+	productcore.Status[*websockets.EnableOutput]
 }
 
 // NewStatusCommand returns a usable command registered under the parent.
 func NewStatusCommand(parent argparser.Registerer, g *global.Data) *StatusCommand {
 	c := StatusCommand{}
-	c.Init(parent, g, botmanagement.ProductID, botmanagement.ProductName, &EnablementHooks)
+	c.Init(parent, g, websockets.ProductID, websockets.ProductName, &EnablementHooks)
 	return &c
 }
 

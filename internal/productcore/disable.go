@@ -17,11 +17,11 @@ type Disable[O any] struct {
 }
 
 // Init prepares the structure for use by the CLI core.
-func (cmd *Disable[O]) Init(parent argparser.Registerer, g *global.Data, productName string, hooks *EnablementHookFuncs[O]) {
+func (cmd *Disable[O]) Init(parent argparser.Registerer, g *global.Data, productID, productName string, hooks *EnablementHookFuncs[O]) {
 	cmd.CmdClause = parent.Command("disable", "Disable the "+productName+" product")
 	cmd.hooks = hooks
 
-	cmd.Base.Init(parent, g, productName)
+	cmd.Base.Init(parent, g, productID, productName)
 }
 
 // Exec executes the disablement operation.
@@ -46,7 +46,7 @@ func (cmd *Disable[O]) Exec(out io.Writer) error {
 		return err
 	}
 
-	if ok, err := cmd.WriteJSON(out, EnablementStatus{Enabled: false}); ok {
+	if ok, err := cmd.WriteJSON(out, EnablementStatus{ProductID: cmd.ProductID, Enabled: false}); ok {
 		return err
 	}
 

@@ -1,9 +1,9 @@
-package botmanagement
+package logexplorerinsights
 
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v9/fastly/products/botmanagement"
+	"github.com/fastly/go-fastly/v9/fastly/products/logexplorerinsights"
 
 	"github.com/fastly/cli/internal/productcore"
 	"github.com/fastly/cli/pkg/argparser"
@@ -12,13 +12,13 @@ import (
 
 // DisableCommand calls the Fastly API to disable the product.
 type DisableCommand struct {
-	productcore.Disable[*botmanagement.EnableOutput]
+	productcore.Disable[*logexplorerinsights.EnableOutput]
 }
 
 // NewDisableCommand returns a usable command registered under the parent.
 func NewDisableCommand(parent argparser.Registerer, g *global.Data) *DisableCommand {
 	c := DisableCommand{}
-	c.Init(parent, g, botmanagement.ProductID, botmanagement.ProductName, &EnablementHooks)
+	c.Init(parent, g, logexplorerinsights.ProductID, logexplorerinsights.ProductName, &EnablementHooks)
 	return &c
 }
 

@@ -9,10 +9,11 @@ import (
 	"github.com/fastly/go-fastly/v9/fastly/products/botmanagement"
 )
 
-func TestProductEnablement(t *testing.T) {
+func TestBotManagementEnablement(t *testing.T) {
 	productcore_test.TestEnablement(productcore_test.TestEnablementInput[*botmanagement.EnableOutput]{
 		T:           t,
 		Commands:    []string{root.CommandName, sub.CommandName},
+		ProductID:   botmanagement.ProductID,
 		ProductName: botmanagement.ProductName,
 		Hooks:       &sub.EnablementHooks,
 	})
