@@ -1,9 +1,9 @@
-package botmanagement
+package fanout
 
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v9/fastly/products/botmanagement"
+	"github.com/fastly/go-fastly/v9/fastly/products/fanout"
 
 	"github.com/fastly/cli/internal/productcore"
 	"github.com/fastly/cli/pkg/argparser"
@@ -12,13 +12,13 @@ import (
 
 // DisableCommand calls the Fastly API to disable the product.
 type DisableCommand struct {
-	productcore.Disable[*botmanagement.EnableOutput]
+	productcore.Disable[*fanout.EnableOutput]
 }
 
 // NewDisableCommand returns a usable command registered under the parent.
 func NewDisableCommand(parent argparser.Registerer, g *global.Data) *DisableCommand {
 	c := DisableCommand{}
-	c.Init(parent, g, botmanagement.ProductID, botmanagement.ProductName, &EnablementHooks)
+	c.Init(parent, g, fanout.ProductID, fanout.ProductName, &EnablementHooks)
 	return &c
 }
 
