@@ -2,8 +2,9 @@ package productcore
 
 import (
 	"io"
-	fsterr "github.com/fastly/cli/pkg/errors"
+
 	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )

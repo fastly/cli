@@ -1,13 +1,14 @@
 package productcore
 
 import (
-	"io"
 	"errors"
-	"github.com/fastly/go-fastly/v9/fastly"
-	fsterr "github.com/fastly/cli/pkg/errors"
+	"io"
+
 	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 // Status is a base type for all 'status' commands.

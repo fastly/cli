@@ -23,10 +23,11 @@ ifeq ($(OS), Windows_NT)
 	.SHELLFLAGS = /c
 	GO_FILES = $(shell where /r pkg *.go)
 	GO_FILES += $(shell where /r cmd *.go)
+	GO_FILES += $(shell where /r internal *.go)
 	CONFIG_SCRIPT = scripts\config.sh
 	CONFIG_FILE = pkg\config\config.toml
 else
-	GO_FILES = $(shell find cmd pkg -type f -name '*.go')
+	GO_FILES = $(shell find cmd pkg internal -type f -name '*.go')
 	CONFIG_SCRIPT = ./scripts/config.sh
 	CONFIG_FILE = pkg/config/config.toml
 endif
@@ -75,13 +76,13 @@ tidy:
 # Run formatter.
 .PHONY: fmt
 fmt:
-	@echo gofmt -l ./{cmd,pkg}
-	@eval "bash -c 'F=\$$(gofmt -l ./{cmd,pkg}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
+	@echo gofmt -l ./{cmd,pkg,internal}
+	@eval "bash -c 'F=\$$(gofmt -l ./{cmd,pkg,internal}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
 
 # Run static analysis.
 .PHONY: vet
 vet: config ## Run vet static analysis
-	$(GO_BIN) vet ./{cmd,pkg}/...
+	$(GO_BIN) vet ./{cmd,pkg,internal}/...
 
 # Run linter.
 .PHONY: revive
@@ -91,7 +92,7 @@ revive: ## Run linter (using revive)
 # Run security vulnerability checker.
 .PHONY: gosec
 gosec: ## Run security vulnerability checker
-	gosec -quiet -exclude=G104 ./{cmd,pkg}/...
+	gosec -quiet -exclude=G104 ./{cmd,pkg,internal}/...
 
 nilaway: ## Run nilaway
 	@nilaway ./...
@@ -108,13 +109,13 @@ semgrep: ## Run semgrep
 # To ignore lines use: //lint:ignore <CODE> <REASON>
 .PHONY: staticcheck
 staticcheck: ## Run static analysis
-	staticcheck ./{cmd,pkg}/...
+	staticcheck ./{cmd,pkg,internal}/...
 
 # Run imports formatter.
 .PHONY: imports
 imports:
-	@echo goimports ./{cmd,pkg}
-	@eval "bash -c 'F=\$$(goimports -l ./{cmd,pkg}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
+	@echo goimports ./{cmd,pkg,internal}
+	@eval "bash -c 'F=\$$(goimports -l ./{cmd,pkg,internal}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
 
 .PHONY: golangci
 golangci: ## Run golangci-lint
