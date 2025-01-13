@@ -10,6 +10,7 @@ import (
 // Base is a base type for all product commands.
 type Base struct {
 	argparser.Base
+	argparser.JSONOutput
 	Manifest manifest.Data
 
 	ServiceName argparser.OptionalServiceNameID
@@ -34,15 +35,26 @@ func (cmd *Base) Init(parent argparser.Registerer, g *global.Data, productName s
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &cmd.ServiceName.Value,
 	})
+	cmd.RegisterFlagBool(cmd.JSONFlag()) // --json
 }
 
-type EnablementHookFns[O any] struct {
-	DisableFn func(api.Interface, string) error
-	EnableFn func(api.Interface, string) (O, error)
-	GetFn func(api.Interface, string) (O, error)
+// EnablementStatus is a structure used to generate JSON output from
+// the enablement-related commands
+type EnablementStatus struct {
+	Enabled bool `json:"enabled"`
 }
 
-type ConfigurationHookFns[O, I any] struct {
-	GetConfigurationFn func(api.Interface, string) (O, error)
-	UpdateConfigurationFn func(api.Interface, string, I) (O, error)
+// EnablementHookFuncs is a structure of dependency-injection points
+// used by unit tests to provide mock behaviors
+type EnablementHookFuncs[O any] struct {
+	DisableFunc func(api.Interface, string) error
+	EnableFunc func(api.Interface, string) (O, error)
+	GetFunc func(api.Interface, string) (O, error)
+}
+
+// ConfigurationHookFuncs is a structure of dependency-injection
+// points by unit tests to provide mock behaviors
+type ConfigurationHookFuncs[O, I any] struct {
+	GetConfigurationFunc func(api.Interface, string) (O, error)
+	UpdateConfigurationFunc func(api.Interface, string, I) (O, error)
 }

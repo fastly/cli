@@ -2,30 +2,33 @@ package productcore
 
 import (
 	"io"
-	"github.com/fastly/cli/pkg/api"
+	fsterr "github.com/fastly/cli/pkg/errors"
+
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DisableFn is the type of the function that will be used to perform
-// the disablement.
-type DisableFn func(api.Interface, string) error
-
 // Disable is a base type for all 'disable' commands.
-type Disable struct {
+type Disable[O any] struct {
 	Base
+	hooks *EnablementHookFuncs[O]
 }
 
 // Init prepares the structure for use by the CLI core.
-func (cmd *Disable) Init(parent argparser.Registerer, g *global.Data, productName string) {
+func (cmd *Disable[O]) Init(parent argparser.Registerer, g *global.Data, productName string, hooks *EnablementHookFuncs[O]) {
 	cmd.CmdClause = parent.Command("disable", "Disable the "+productName+" product")
+	cmd.hooks = hooks
 
 	cmd.Base.Init(parent, g, productName)
 }
 
 // Exec executes the disablement operation.
-func (cmd *Disable) Exec(out io.Writer, op DisableFn) error {
+func (cmd *Disable[O]) Exec(out io.Writer) error {
+	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	serviceID, source, flag, err := argparser.ServiceID(cmd.ServiceName, *cmd.Globals.Manifest, cmd.Globals.APIClient, cmd.Globals.ErrLog)
 	if err != nil {
 		cmd.Globals.ErrLog.Add(err)
@@ -36,14 +39,18 @@ func (cmd *Disable) Exec(out io.Writer, op DisableFn) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	err = op(cmd.Globals.APIClient, serviceID)
+	err = cmd.hooks.DisableFunc(cmd.Globals.APIClient, serviceID)
 	if err != nil {
 		cmd.Globals.ErrLog.Add(err)
 		return err
 	}
 
+	if ok, err := cmd.WriteJSON(out, EnablementStatus{Enabled: false}); ok {
+		return err
+	}
+
 	text.Success(out,
-		"Disabled "+cmd.ProductName+" on service %s", serviceID)
+		"Disabled %s on service %s", cmd.ProductName, serviceID)
 
 	return nil
 }

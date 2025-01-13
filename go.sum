@@ -65,8 +65,8 @@ github.com/klauspost/cpuid v1.2.0/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgo
 github.com/klauspost/pgzip v1.2.5/go.mod h1:Ch1tH69qFZu15pkjo5kYi6mth2Zzwzt50oCQKQE9RUs=
 github.com/klauspost/pgzip v1.2.6 h1:8RXeL5crjEUFnR2/Sn6GJNWtSQ3Dk8pq4CL3jvdDyjU=
 github.com/klauspost/pgzip v1.2.6/go.mod h1:Ch1tH69qFZu15pkjo5kYi6mth2Zzwzt50oCQKQE9RUs=
-github.com/kpfleming/go-fastly/v9 v9.12.1-0.20241217164724-8f6ebe66851a h1:4NkDjmddTs2qY+41phkmIqV07XX4vDUZhLuOfZJtcXo=
-github.com/kpfleming/go-fastly/v9 v9.12.1-0.20241217164724-8f6ebe66851a/go.mod h1:rB3T7CBBYBw+/W4rpzmZPev8BbARin6vriirVCY0yaw=
+github.com/kpfleming/go-fastly/v9 v9.12.1-0.20250113130142-b6a3af55bc44 h1:YdOuOWFVfUN3V3pv3MXE11PTh5A9Emh3NlW8qg2dLJk=
+github.com/kpfleming/go-fastly/v9 v9.12.1-0.20250113130142-b6a3af55bc44/go.mod h1:rB3T7CBBYBw+/W4rpzmZPev8BbARin6vriirVCY0yaw=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
