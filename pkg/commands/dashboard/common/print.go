@@ -1,3 +1,4 @@
+// Package common contains functions used by both dashboard and dashboard/item packages
 package common
 
 import (
@@ -35,6 +36,8 @@ func PrintVerbose(out io.Writer, ds []fastly.ObservabilityCustomDashboard) {
 	}
 }
 
+// PrintDashboard displays the Dashboard returned from the API in a human-
+// readable format.
 func PrintDashboard(out io.Writer, indent uint, dashboard *fastly.ObservabilityCustomDashboard) {
 	indentStep := uint(4)
 	level := indent
@@ -59,6 +62,7 @@ func PrintDashboard(out io.Writer, indent uint, dashboard *fastly.ObservabilityC
 	text.Indent(out, level, "Updated by: %s", dashboard.UpdatedBy)
 }
 
+// PrintItem displays a single DashboardItem in a human-readable format.
 func PrintItem(out io.Writer, indent uint, item *fastly.DashboardItem) {
 	indentStep := uint(4)
 	level := indent
