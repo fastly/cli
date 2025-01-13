@@ -14,6 +14,9 @@ import (
 // Status is a base type for all 'status' commands.
 type Status[O any] struct {
 	Base
+	// hooks is a pointer to an EnablementHookFuncs structure so
+	// that tests can modify the contents of the structure after
+	// this structure has been initialized
 	hooks *EnablementHookFuncs[O]
 }
 
