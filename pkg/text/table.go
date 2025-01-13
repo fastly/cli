@@ -18,7 +18,7 @@ type Table struct {
 	writer *tabwriter.Writer
 }
 
-// NewTable contructs a new Table.
+// NewTable constructs a new Table.
 func NewTable(w io.Writer) *Table {
 	return &Table{
 		writer: tabwriter.NewWriter(w, 0, 2, 2, ' ', 0),
@@ -29,12 +29,12 @@ func NewTable(w io.Writer) *Table {
 func (t *Table) AddLine(args ...any) {
 	var b strings.Builder
 	for i := range args {
-		b.WriteString(lineStyle(`%v`))
+		_, _ = b.WriteString(lineStyle(`%v`))
 		if i+1 != len(args) {
-			b.WriteString("\t")
+			_, _ = b.WriteString("\t")
 		}
 	}
-	b.WriteString("\n")
+	_, _ = b.WriteString("\n")
 	fmt.Fprintf(t.writer, b.String(), args...)
 }
 
@@ -42,16 +42,16 @@ func (t *Table) AddLine(args ...any) {
 func (t *Table) AddHeader(args ...any) {
 	var b strings.Builder
 	for i := range args {
-		b.WriteString(headerStyle(`%s`))
+		_, _ = b.WriteString(headerStyle(`%s`))
 		if i+1 != len(args) {
-			b.WriteString("\t")
+			_, _ = b.WriteString("\t")
 		}
 	}
-	b.WriteString("\n")
+	_, _ = b.WriteString("\n")
 	fmt.Fprintf(t.writer, b.String(), args...)
 }
 
 // Print writes the table to the writer.
 func (t *Table) Print() {
-	t.writer.Flush()
+	_ = t.writer.Flush()
 }

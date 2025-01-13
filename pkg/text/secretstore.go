@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/segmentio/textio"
 )
 
@@ -15,7 +15,7 @@ func PrintSecretStoresTbl(out io.Writer, stores []fastly.SecretStore) {
 	tbl.AddHeader("Name", "ID")
 
 	for _, store := range stores {
-		tbl.AddLine(store.Name, store.ID)
+		tbl.AddLine(store.Name, store.StoreID)
 	}
 	tbl.Print()
 }
@@ -47,7 +47,7 @@ func PrintSecretStore(out io.Writer, prefix string, s *fastly.SecretStore) {
 	out = textio.NewPrefixWriter(out, prefix)
 
 	fmt.Fprintf(out, "Name: %s\n", s.Name)
-	fmt.Fprintf(out, "ID: %s\n", s.ID)
+	fmt.Fprintf(out, "ID: %s\n", s.StoreID)
 }
 
 // PrintSecret displays store data.

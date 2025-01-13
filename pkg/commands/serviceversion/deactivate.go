@@ -3,44 +3,43 @@ package serviceversion
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DeactivateCommand calls the Fastly API to deactivate a service version.
 type DeactivateCommand struct {
-	cmd.Base
-	manifest       manifest.Data
+	argparser.Base
 	Input          fastly.DeactivateVersionInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewDeactivateCommand returns a usable command registered under the parent.
-func NewDeactivateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeactivateCommand {
+func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *DeactivateCommand {
 	var c DeactivateCommand
 	c.Globals = g
-	c.manifest = m
 	c.CmdClause = parent.Command("deactivate", "Deactivate a Fastly service version")
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
@@ -49,10 +48,10 @@ func NewDeactivateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data
 
 // Exec invokes the application logic for the command.
 func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(true),
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -67,17 +66,17 @@ func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	ver, err := c.Globals.APIClient.DeactivateVersion(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Deactivated service %s version %d", ver.ServiceID, c.Input.ServiceVersion)
+	text.Success(out, "Deactivated service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
 	return nil
 }

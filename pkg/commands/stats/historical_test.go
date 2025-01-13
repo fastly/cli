@@ -3,17 +3,20 @@ package stats_test
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestHistorical(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -40,9 +43,12 @@ func TestHistorical(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -81,7 +87,7 @@ Requests:                                        0
 var historicalJSONOK = `{"start_time":0}
 `
 
-func getStatsJSONOK(i *fastly.GetStatsInput, o any) error {
+func getStatsJSONOK(_ *fastly.GetStatsInput, o any) error {
 	msg := []byte(`
 {
   "status": "success",
@@ -98,6 +104,6 @@ func getStatsJSONOK(i *fastly.GetStatsInput, o any) error {
 	return json.Unmarshal(msg, o)
 }
 
-func getStatsJSONError(i *fastly.GetStatsInput, o any) error {
+func getStatsJSONError(_ *fastly.GetStatsInput, _ any) error {
 	return errTest
 }

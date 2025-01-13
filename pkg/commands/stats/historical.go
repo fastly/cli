@@ -5,49 +5,49 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 )
 
 const statusSuccess = "success"
 
 // HistoricalCommand exposes the Historical Stats API.
 type HistoricalCommand struct {
-	cmd.Base
-	manifest manifest.Data
+	argparser.Base
 
-	Input       fastly.GetStatsInput
+	by          string
 	formatFlag  string
-	serviceName cmd.OptionalServiceNameID
+	from        string
+	region      string
+	serviceName argparser.OptionalServiceNameID
+	to          string
 }
 
 // NewHistoricalCommand is the "stats historical" subcommand.
-func NewHistoricalCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *HistoricalCommand {
+func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *HistoricalCommand {
 	var c HistoricalCommand
 	c.Globals = g
-	c.manifest = m
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
-	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.Input.From)
-	c.CmdClause.Flag("to", "To time").StringVar(&c.Input.To)
-	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.Input.By, "minute", "hour", "day")
-	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.Input.Region)
+	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.from)
+	c.CmdClause.Flag("to", "To time").StringVar(&c.to)
+	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
+	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.region)
 
 	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
 
@@ -56,18 +56,32 @@ func NewHistoricalCommand(parent cmd.Registerer, g *global.Data, m manifest.Data
 
 // Exec implements the command interface.
 func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	c.Input.Service = serviceID
+	input := fastly.GetStatsInput{
+		Service: fastly.ToPointer(serviceID),
+	}
+	if c.by != "" {
+		input.By = &c.by
+	}
+	if c.from != "" {
+		input.From = &c.from
+	}
+	if c.region != "" {
+		input.Region = &c.region
+	}
+	if c.to != "" {
+		input.To = &c.to
+	}
 
 	var envelope statsResponse
-	err = c.Globals.APIClient.GetStatsJSON(&c.Input, &envelope)
+	err = c.Globals.APIClient.GetStatsJSON(&input, &envelope)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,

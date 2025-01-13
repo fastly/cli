@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/cloudfiles"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -12,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateCloudfilesInput(t *testing.T) {
@@ -28,10 +29,10 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			want: &fastly.CreateCloudfilesInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				User:           fastly.String("user"),
-				AccessKey:      fastly.String("key"),
-				BucketName:     fastly.String("bucket"),
+				Name:           fastly.ToPointer("log"),
+				User:           fastly.ToPointer("user"),
+				AccessKey:      fastly.ToPointer("key"),
+				BucketName:     fastly.ToPointer("bucket"),
 			},
 		},
 		{
@@ -40,21 +41,21 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			want: &fastly.CreateCloudfilesInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				User:              fastly.String("user"),
-				AccessKey:         fastly.String("key"),
-				BucketName:        fastly.String("bucket"),
-				Path:              fastly.String("/logs"),
-				Region:            fastly.String("abc"),
-				Placement:         fastly.String("none"),
-				Period:            fastly.Int(3600),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				MessageType:       fastly.String("classic"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				PublicKey:         fastly.String(pgpPublicKey()),
-				CompressionCodec:  fastly.String("zstd"),
+				Name:              fastly.ToPointer("log"),
+				User:              fastly.ToPointer("user"),
+				AccessKey:         fastly.ToPointer("key"),
+				BucketName:        fastly.ToPointer("bucket"),
+				Path:              fastly.ToPointer("/logs"),
+				Region:            fastly.ToPointer("abc"),
+				Placement:         fastly.ToPointer("none"),
+				Period:            fastly.ToPointer(3600),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				MessageType:       fastly.ToPointer("classic"),
+				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+				PublicKey:         fastly.ToPointer(pgpPublicKey()),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -69,7 +70,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -88,7 +89,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -130,22 +131,22 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				AccessKey:         fastly.String("new2"),
-				BucketName:        fastly.String("new3"),
-				Path:              fastly.String("new4"),
-				Region:            fastly.String("new5"),
-				Placement:         fastly.String("new6"),
-				Period:            fastly.Int(3601),
-				GzipLevel:         fastly.Int(0),
-				Format:            fastly.String("new7"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new8"),
-				MessageType:       fastly.String("new9"),
-				TimestampFormat:   fastly.String("new10"),
-				PublicKey:         fastly.String("new11"),
-				User:              fastly.String("new12"),
-				CompressionCodec:  fastly.String("new13"),
+				NewName:           fastly.ToPointer("new1"),
+				AccessKey:         fastly.ToPointer("new2"),
+				BucketName:        fastly.ToPointer("new3"),
+				Path:              fastly.ToPointer("new4"),
+				Region:            fastly.ToPointer("new5"),
+				Placement:         fastly.ToPointer("new6"),
+				Period:            fastly.ToPointer(3601),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
+				MessageType:       fastly.ToPointer("new9"),
+				TimestampFormat:   fastly.ToPointer("new10"),
+				PublicKey:         fastly.ToPointer("new11"),
+				User:              fastly.ToPointer("new12"),
+				CompressionCodec:  fastly.ToPointer("new13"),
 			},
 		},
 		{
@@ -164,7 +165,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -183,7 +184,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -202,10 +203,10 @@ func createCommandRequired() *cloudfiles.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &cloudfiles.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -213,21 +214,21 @@ func createCommandRequired() *cloudfiles.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		AccessKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "key"},
-		BucketName:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		User:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		AccessKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "key"},
+		BucketName:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bucket"},
 	}
 }
 
@@ -242,10 +243,10 @@ func createCommandAll() *cloudfiles.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &cloudfiles.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -253,32 +254,32 @@ func createCommandAll() *cloudfiles.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "key"},
-		BucketName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "bucket"},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/logs"},
-		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "abc"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: pgpPublicKey()},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		AccessKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "key"},
+		BucketName:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bucket"},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "/logs"},
+		Region:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "abc"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3600},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: pgpPublicKey()},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -298,7 +299,7 @@ func updateCommandNoUpdate() *cloudfiles.UpdateCommand {
 	}
 
 	return &cloudfiles.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -306,12 +307,12 @@ func updateCommandNoUpdate() *cloudfiles.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -331,7 +332,7 @@ func updateCommandAll() *cloudfiles.UpdateCommand {
 	}
 
 	return &cloudfiles.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -339,34 +340,34 @@ func updateCommandAll() *cloudfiles.UpdateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
 		EndpointName:      "log",
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		AccessKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		BucketName:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		Region:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 0},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		AccessKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		BucketName:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		Region:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3601},
+		GzipLevel:         argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 0},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
 	}
 }
 

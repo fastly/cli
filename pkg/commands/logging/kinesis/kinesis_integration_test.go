@@ -3,17 +3,20 @@ package kinesis_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestKinesisCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -85,9 +88,12 @@ func TestKinesisCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -95,7 +101,7 @@ func TestKinesisCreate(t *testing.T) {
 }
 
 func TestKinesisList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +161,12 @@ func TestKinesisList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +174,7 @@ func TestKinesisList(t *testing.T) {
 }
 
 func TestKinesisDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -197,9 +206,12 @@ func TestKinesisDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -207,7 +219,7 @@ func TestKinesisDescribe(t *testing.T) {
 }
 
 func TestKinesisUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -241,9 +253,12 @@ func TestKinesisUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -251,7 +266,7 @@ func TestKinesisUpdate(t *testing.T) {
 }
 
 func TestKinesisDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -285,9 +300,12 @@ func TestKinesisDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -298,48 +316,48 @@ var errTest = errors.New("fixture error")
 
 func createKinesisOK(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
-func createKinesisError(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
+func createKinesisError(_ *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
 func listKinesesOK(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	return []*fastly.Kinesis{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			StreamName:        "my-logs",
-			AccessKey:         "1234",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Region:            "us-east-1",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			StreamName:        fastly.ToPointer("my-logs"),
+			AccessKey:         fastly.ToPointer("1234"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Region:            fastly.ToPointer("us-east-1"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			StreamName:        "analytics",
-			AccessKey:         "1234",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Region:            "us-east-1",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			StreamName:        fastly.ToPointer("analytics"),
+			AccessKey:         fastly.ToPointer("1234"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Region:            fastly.ToPointer("us-east-1"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
 
-func listKinesesError(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
+func listKinesesError(_ *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
@@ -350,8 +368,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listKinesesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -384,21 +402,21 @@ Version: 1
 
 func getKinesisOK(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		StreamName:        "my-logs",
-		AccessKey:         "1234",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Region:            "us-east-1",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		StreamName:        fastly.ToPointer("my-logs"),
+		AccessKey:         fastly.ToPointer("1234"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Region:            fastly.ToPointer("us-east-1"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func getKinesisError(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
+func getKinesisError(_ *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
@@ -418,28 +436,28 @@ Version: 1
 
 func updateKinesisOK(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		StreamName:        "my-logs",
-		AccessKey:         "1234",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Region:            "us-west-1",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		StreamName:        fastly.ToPointer("my-logs"),
+		AccessKey:         fastly.ToPointer("1234"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Region:            fastly.ToPointer("us-west-1"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func updateKinesisError(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
+func updateKinesisError(_ *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
-func deleteKinesisOK(i *fastly.DeleteKinesisInput) error {
+func deleteKinesisOK(_ *fastly.DeleteKinesisInput) error {
 	return nil
 }
 
-func deleteKinesisError(i *fastly.DeleteKinesisInput) error {
+func deleteKinesisError(_ *fastly.DeleteKinesisInput) error {
 	return errTest
 }

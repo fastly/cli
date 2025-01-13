@@ -3,20 +3,19 @@ package aclentry
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Add an ACL entry to an ACL").Alias("add")
 
@@ -27,16 +26,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("comment", "A freeform descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
 	c.CmdClause.Flag("ip", "An IP address").Action(c.ip.Set).StringVar(&c.ip.Value)
 	c.CmdClause.Flag("negated", "Whether to negate the match").Action(c.negated.Set).BoolVar(&c.negated.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("subnet", "Number of bits for the subnet mask applied to the IP address").Action(c.subnet.Set).IntVar(&c.subnet.Value)
@@ -46,25 +45,24 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 
 	aclID       string
-	comment     cmd.OptionalString
-	ip          cmd.OptionalString
-	manifest    manifest.Data
-	negated     cmd.OptionalBool
-	serviceName cmd.OptionalServiceNameID
-	subnet      cmd.OptionalInt
+	comment     argparser.OptionalString
+	ip          argparser.OptionalString
+	negated     argparser.OptionalBool
+	serviceName argparser.OptionalServiceNameID
+	subnet      argparser.OptionalInt
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	input := c.constructInput(serviceID)
@@ -77,7 +75,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created ACL entry '%s' (ip: %s, negated: %t, service: %s)", a.ID, a.IP, a.Negated, a.ServiceID)
+	text.Success(out, "Created ACL entry '%s' (ip: %s, negated: %t, service: %s)", fastly.ToValue(a.EntryID), fastly.ToValue(a.IP), fastly.ToValue(a.Negated), fastly.ToValue(a.ServiceID))
 	return nil
 }
 
@@ -94,7 +92,7 @@ func (c *CreateCommand) constructInput(serviceID string) *fastly.CreateACLEntryI
 		input.Comment = &c.comment.Value
 	}
 	if c.negated.WasSet {
-		input.Negated = fastly.CBool(c.negated.Value)
+		input.Negated = fastly.ToPointer(fastly.Compatibool(c.negated.Value))
 	}
 	if c.subnet.WasSet {
 		input.Subnet = &c.subnet.Value

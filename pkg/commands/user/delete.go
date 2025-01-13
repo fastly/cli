@@ -3,40 +3,31 @@ package user
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, globals *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, globals *global.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.CmdClause = parent.Command("delete", "Delete a user of the Fastly API and web interface").Alias("remove")
 	c.Globals = globals
-	c.manifest = m
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").Required().StringVar(&c.id)
 	return &c
 }
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
-	cmd.Base
+	argparser.Base
 
-	id       string
-	manifest manifest.Data
+	id string
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	input := c.constructInput()
 
 	err := c.Globals.APIClient.DeleteUser(input)
@@ -54,8 +45,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *DeleteCommand) constructInput() *fastly.DeleteUserInput {
 	var input fastly.DeleteUserInput
-
-	input.ID = c.id
-
+	input.UserID = c.id
 	return &input
 }

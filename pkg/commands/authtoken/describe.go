@@ -5,21 +5,19 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	c := DescribeCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Get the current API token").Alias("get")
 
@@ -29,18 +27,12 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
-
-	manifest manifest.Data
+	argparser.Base
+	argparser.JSONOutput
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -59,22 +51,22 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 // print displays the information returned from the API.
-func (c *DescribeCommand) print(out io.Writer, r *fastly.Token) error {
-	fmt.Fprintf(out, "\nID: %s\n", r.ID)
-	fmt.Fprintf(out, "Name: %s\n", r.Name)
-	fmt.Fprintf(out, "User ID: %s\n", r.UserID)
-	fmt.Fprintf(out, "Services: %s\n", strings.Join(r.Services, ", "))
-	fmt.Fprintf(out, "Scope: %s\n", r.Scope)
-	fmt.Fprintf(out, "IP: %s\n\n", r.IP)
+func (c *DescribeCommand) print(out io.Writer, t *fastly.Token) error {
+	fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(t.TokenID))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(t.Name))
+	fmt.Fprintf(out, "User ID: %s\n", fastly.ToValue(t.UserID))
+	fmt.Fprintf(out, "Services: %s\n", strings.Join(t.Services, ", "))
+	fmt.Fprintf(out, "Scope: %s\n", fastly.ToValue(t.Scope))
+	fmt.Fprintf(out, "IP: %s\n\n", fastly.ToValue(t.IP))
 
-	if r.CreatedAt != nil {
-		fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)
+	if t.CreatedAt != nil {
+		fmt.Fprintf(out, "Created at: %s\n", t.CreatedAt)
 	}
-	if r.LastUsedAt != nil {
-		fmt.Fprintf(out, "Last used at: %s\n", r.LastUsedAt)
+	if t.LastUsedAt != nil {
+		fmt.Fprintf(out, "Last used at: %s\n", t.LastUsedAt)
 	}
-	if r.ExpiresAt != nil {
-		fmt.Fprintf(out, "Expires at: %s\n", r.ExpiresAt)
+	if t.ExpiresAt != nil {
+		fmt.Fprintf(out, "Expires at: %s\n", t.ExpiresAt)
 	}
 	return nil
 }

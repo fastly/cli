@@ -3,17 +3,20 @@ package digitalocean_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestDigitalOceanCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -51,9 +54,12 @@ func TestDigitalOceanCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -61,7 +67,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 }
 
 func TestDigitalOceanList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -121,9 +127,12 @@ func TestDigitalOceanList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -131,7 +140,7 @@ func TestDigitalOceanList(t *testing.T) {
 }
 
 func TestDigitalOceanDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -163,9 +172,12 @@ func TestDigitalOceanDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -173,7 +185,7 @@ func TestDigitalOceanDescribe(t *testing.T) {
 }
 
 func TestDigitalOceanUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -207,9 +219,12 @@ func TestDigitalOceanUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -217,7 +232,7 @@ func TestDigitalOceanUpdate(t *testing.T) {
 }
 
 func TestDigitalOceanDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -251,9 +266,12 @@ func TestDigitalOceanDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -264,65 +282,65 @@ var errTest = errors.New("fixture error")
 
 func createDigitalOceanOK(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	s := fastly.DigitalOcean{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
-	if *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
 	return &s, nil
 }
 
-func createDigitalOceanError(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func createDigitalOceanError(_ *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
 func listDigitalOceansOK(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
 	return []*fastly.DigitalOcean{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			BucketName:        "my-logs",
-			Domain:            "https://digitalocean.us-east-1.amazonaws.com",
-			AccessKey:         "1234",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Path:              "logs/",
-			Period:            3600,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			MessageType:       "classic",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			PublicKey:         pgpPublicKey(),
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			BucketName:        fastly.ToPointer("my-logs"),
+			Domain:            fastly.ToPointer("https://digitalocean.us-east-1.amazonaws.com"),
+			AccessKey:         fastly.ToPointer("1234"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(3600),
+			GzipLevel:         fastly.ToPointer(9),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			MessageType:       fastly.ToPointer("classic"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			BucketName:        "analytics",
-			AccessKey:         "1234",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Domain:            "https://digitalocean.us-east-2.amazonaws.com",
-			Path:              "logs/",
-			Period:            86400,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			PublicKey:         pgpPublicKey(),
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			BucketName:        fastly.ToPointer("analytics"),
+			AccessKey:         fastly.ToPointer("1234"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Domain:            fastly.ToPointer("https://digitalocean.us-east-2.amazonaws.com"),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(86400),
+			GzipLevel:         fastly.ToPointer(9),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		},
 	}, nil
 }
 
-func listDigitalOceansError(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
+func listDigitalOceansError(_ *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
@@ -333,8 +351,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listDigitalOceansVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -379,27 +397,27 @@ Version: 1
 
 func getDigitalOceanOK(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return &fastly.DigitalOcean{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		BucketName:        "my-logs",
-		Domain:            "https://digitalocean.us-east-1.amazonaws.com",
-		AccessKey:         "1234",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		PublicKey:         pgpPublicKey(),
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		BucketName:        fastly.ToPointer("my-logs"),
+		Domain:            fastly.ToPointer("https://digitalocean.us-east-1.amazonaws.com"),
+		AccessKey:         fastly.ToPointer("1234"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(9),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 	}, nil
 }
 
-func getDigitalOceanError(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func getDigitalOceanError(_ *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
@@ -425,35 +443,35 @@ Version: 1
 
 func updateDigitalOceanOK(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return &fastly.DigitalOcean{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		BucketName:        "my-logs",
-		Domain:            "https://digitalocean.us-east-1.amazonaws.com",
-		AccessKey:         "1234",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		PublicKey:         pgpPublicKey(),
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		BucketName:        fastly.ToPointer("my-logs"),
+		Domain:            fastly.ToPointer("https://digitalocean.us-east-1.amazonaws.com"),
+		AccessKey:         fastly.ToPointer("1234"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(9),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 	}, nil
 }
 
-func updateDigitalOceanError(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func updateDigitalOceanError(_ *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
-func deleteDigitalOceanOK(i *fastly.DeleteDigitalOceanInput) error {
+func deleteDigitalOceanOK(_ *fastly.DeleteDigitalOceanInput) error {
 	return nil
 }
 
-func deleteDigitalOceanError(i *fastly.DeleteDigitalOceanInput) error {
+func deleteDigitalOceanError(_ *fastly.DeleteDigitalOceanInput) error {
 	return errTest
 }
 

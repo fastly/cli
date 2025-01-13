@@ -3,17 +3,20 @@ package azureblob_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestBlobStorageCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -52,9 +55,12 @@ func TestBlobStorageCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -62,7 +68,7 @@ func TestBlobStorageCreate(t *testing.T) {
 }
 
 func TestBlobStorageList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -122,9 +128,12 @@ func TestBlobStorageList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -132,7 +141,7 @@ func TestBlobStorageList(t *testing.T) {
 }
 
 func TestBlobStorageDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -164,9 +173,12 @@ func TestBlobStorageDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -174,7 +186,7 @@ func TestBlobStorageDescribe(t *testing.T) {
 }
 
 func TestBlobStorageUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -208,9 +220,12 @@ func TestBlobStorageUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -218,7 +233,7 @@ func TestBlobStorageUpdate(t *testing.T) {
 }
 
 func TestBlobStorageDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -252,9 +267,12 @@ func TestBlobStorageDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -265,73 +283,73 @@ var errTest = errors.New("fixture error")
 
 func createBlobStorageOK(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
 	s := fastly.BlobStorage{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Path:              "/logs",
-		AccountName:       "account",
-		Container:         "container",
-		SASToken:          "token",
-		Period:            3600,
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		PublicKey:         pgpPublicKey(),
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Path:              fastly.ToPointer("/logs"),
+		AccountName:       fastly.ToPointer("account"),
+		Container:         fastly.ToPointer("container"),
+		SASToken:          fastly.ToPointer("token"),
+		Period:            fastly.ToPointer(3600),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		Placement:         fastly.ToPointer("none"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}
 
 	return &s, nil
 }
 
-func createBlobStorageError(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
+func createBlobStorageError(_ *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
 func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
 	return []*fastly.BlobStorage{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Path:              "/logs",
-			AccountName:       "account",
-			Container:         "container",
-			SASToken:          "token",
-			Period:            3600,
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			PublicKey:         pgpPublicKey(),
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Path:              fastly.ToPointer("/logs"),
+			AccountName:       fastly.ToPointer("account"),
+			Container:         fastly.ToPointer("container"),
+			SASToken:          fastly.ToPointer("token"),
+			Period:            fastly.ToPointer(3600),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			Placement:         fastly.ToPointer("none"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			AccountName:       "account",
-			Container:         "analytics",
-			SASToken:          "token",
-			Path:              "/logs",
-			Period:            86400,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			PublicKey:         pgpPublicKey(),
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			AccountName:       fastly.ToPointer("account"),
+			Container:         fastly.ToPointer("analytics"),
+			SASToken:          fastly.ToPointer("token"),
+			Path:              fastly.ToPointer("/logs"),
+			Period:            fastly.ToPointer(86400),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
 
-func listBlobStoragesError(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
+func listBlobStoragesError(_ *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
@@ -342,8 +360,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listBlobStoragesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -390,27 +408,27 @@ Version: 1
 
 func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
 	return &fastly.BlobStorage{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Container:         "container",
-		AccountName:       "account",
-		SASToken:          "token",
-		Path:              "/logs",
-		Period:            3600,
-		GzipLevel:         0,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		PublicKey:         pgpPublicKey(),
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Container:         fastly.ToPointer("container"),
+		AccountName:       fastly.ToPointer("account"),
+		SASToken:          fastly.ToPointer("token"),
+		Path:              fastly.ToPointer("/logs"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(0),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func getBlobStorageError(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
+func getBlobStorageError(_ *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
@@ -437,34 +455,34 @@ Version: 1
 
 func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return &fastly.BlobStorage{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Container:         "container",
-		AccountName:       "account",
-		SASToken:          "token",
-		Path:              "/logs",
-		Period:            3600,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		PublicKey:         pgpPublicKey(),
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Container:         fastly.ToPointer("container"),
+		AccountName:       fastly.ToPointer("account"),
+		SASToken:          fastly.ToPointer("token"),
+		Path:              fastly.ToPointer("/logs"),
+		Period:            fastly.ToPointer(3600),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func updateBlobStorageError(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
+func updateBlobStorageError(_ *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
-func deleteBlobStorageOK(i *fastly.DeleteBlobStorageInput) error {
+func deleteBlobStorageOK(_ *fastly.DeleteBlobStorageInput) error {
 	return nil
 }
 
-func deleteBlobStorageError(i *fastly.DeleteBlobStorageInput) error {
+func deleteBlobStorageError(_ *fastly.DeleteBlobStorageInput) error {
 	return errTest
 }
 

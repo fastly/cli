@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
@@ -12,13 +12,13 @@ import (
 
 // DeleteCommand represents a Kingpin command.
 type DeleteCommand struct {
-	cmd.Base
+	argparser.Base
 
 	profile string
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("delete", "Delete user profile")
@@ -32,9 +32,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 			return err
 		}
+		if c.Globals.Verbose() {
+			text.Break(out)
+		}
 		text.Success(out, "Profile '%s' deleted", c.profile)
 
-		if p, _ := profile.Default(c.Globals.Config.Profiles); p == "" && len(c.Globals.Config.Profiles) > 0 {
+		if _, p := profile.Default(c.Globals.Config.Profiles); p == nil && len(c.Globals.Config.Profiles) > 0 {
+			text.Break(out)
 			text.Warning(out, profile.NoDefaults)
 		}
 		return nil

@@ -3,21 +3,18 @@ package ratelimit
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, globals *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, globals *global.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.CmdClause = parent.Command("delete", "Delete a rate limiter by its ID").Alias("remove")
 	c.Globals = globals
-	c.manifest = m
 
 	// Required.
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the rate limiter").Required().StringVar(&c.id)
@@ -27,19 +24,13 @@ func NewDeleteCommand(parent cmd.Registerer, globals *global.Data, m manifest.Da
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
-	cmd.Base
+	argparser.Base
 
-	id       string
-	manifest manifest.Data
+	id string
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	input := c.constructInput()
 
 	err := c.Globals.APIClient.DeleteERL(input)
@@ -50,7 +41,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Deleted rate limter '%s'", c.id)
+	text.Success(out, "Deleted rate limiter '%s'", c.id)
 	return nil
 }
 

@@ -17,18 +17,19 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/tomnomnom/linkheader"
+
+	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/debug"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 
 	Input       fastly.CreateManagedLoggingInput
 	batchCh     chan Batch // send batches to output loop
@@ -36,27 +37,28 @@ type RootCommand struct {
 	dieCh       chan struct{} // channel to end output/printing
 	doneCh      chan struct{} // channel to signal we've reached the end of the run
 	hClient     *http.Client  // TODO: this will go away when GET is in go-fastly
-	manifest    manifest.Data
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 	token       string // TODO: this will go away when GET is in go-fastly
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "log-tail"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.manifest = m
-	c.CmdClause = parent.Command("log-tail", "Tail Compute@Edge logs")
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.CmdClause = parent.Command(CommandName, "Tail Compute logs")
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("from", "From time, in Unix seconds").Int64Var(&c.cfg.from)
@@ -64,23 +66,24 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Roo
 	c.CmdClause.Flag("sort-buffer", "Duration of sort buffer for received logs").Default("1s").DurationVar(&c.cfg.sortBuffer)
 	c.CmdClause.Flag("search-padding", "Time beyond from/to to consider in searches").Default("2s").DurationVar(&c.cfg.searchPadding)
 	c.CmdClause.Flag("stream", "Output: stdout, stderr, both (default)").StringVar(&c.cfg.stream)
+	c.CmdClause.Flag("timestamps", "Print timestamps with logs").BoolVar(&c.cfg.printTimestamps)
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.Input.ServiceID = serviceID
 
 	c.Input.Kind = fastly.ManagedLoggingInstanceOutput
-	endpoint, _ := c.Globals.Endpoint()
+	endpoint, _ := c.Globals.APIEndpoint()
 	c.cfg.path = fmt.Sprintf("%s/service/%s/log_stream/managed/instance_output", endpoint, c.Input.ServiceID)
 
 	c.dieCh = make(chan struct{})
@@ -100,6 +103,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	failure := make(chan error)
 	sigs := make(chan os.Signal, 2)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
@@ -107,10 +111,19 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	go c.outputLoop(out)
 
 	// Start tailing the logs.
-	go c.tail(out)
+	go func() {
+		failure <- c.tail(out)
+	}()
 
-	<-sigs
-	close(c.dieCh)
+	select {
+	case asyncErr := <-failure:
+		close(c.dieCh)
+		return asyncErr
+	case <-c.doneCh:
+		return nil
+	case <-sigs:
+		close(c.dieCh)
+	}
 
 	return nil
 }
@@ -118,13 +131,16 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 // Tail starts the virtual tail process. Tail fetches data from the eventbuffer
 // API. It hands off the requested logs to the outputloop for the actual
 // printing.
-func (c *RootCommand) tail(out io.Writer) {
+func (c *RootCommand) tail(out io.Writer) error {
 	// Start this with --from and --to if set.
 	curWindow := c.cfg.from
 	toWindow := c.cfg.to
 
 	// Start the loop with an initial address to query.
-	path := makeNewPath(out, c.cfg.path, curWindow, "")
+	path, err := makeNewPath(c.cfg.path, curWindow, "")
+	if err != nil {
+		return err
+	}
 
 	// lastBatchID keeps the last successfully read Batch.ID in case we need
 	// re-request on failure.
@@ -144,16 +160,14 @@ func (c *RootCommand) tail(out io.Writer) {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"GET": path,
 			})
-			text.Error(out, "unable to create new request: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("unable to create new request: %w", err)
 		}
 		req.Header.Add("Fastly-Key", c.token)
 
 		resp, err := c.doReq(req)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
-			text.Error(out, "unable to execute request: %v", err)
-			os.Exit(1)
+			return fmt.Errorf("unable to execute request: %w", err)
 		}
 
 		// Check that our request was successful. If the server is
@@ -163,8 +177,7 @@ func (c *RootCommand) tail(out io.Writer) {
 			// not valid, give them an error stating this and exit.
 			if resp.StatusCode == http.StatusNotFound &&
 				c.cfg.from != 0 {
-				text.Error(out, "specified 'from' time %d not found, either too far in the past or future", c.cfg.from)
-				os.Exit(1)
+				return fmt.Errorf("specified 'from' time %d not found, either too far in the past or future", c.cfg.from)
 			}
 
 			// In an effort to clean up the output, do not print on
@@ -175,7 +188,7 @@ func (c *RootCommand) tail(out io.Writer) {
 
 			// Reuse the connection for the retry, or cleanup in the
 			// case of Exit.
-			io.Copy(io.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			err := resp.Body.Close()
 			if err != nil {
 				c.Globals.ErrLog.Add(err)
@@ -189,8 +202,7 @@ func (c *RootCommand) tail(out io.Writer) {
 			}
 
 			// Failing at this point is unrecoverable.
-			text.Error(out, "unrecoverable error, response code: %d", resp.StatusCode)
-			os.Exit(1)
+			return fmt.Errorf("unrecoverable error, response code: %d", resp.StatusCode)
 		}
 
 		// Read and parse response, send batches to the output loop.
@@ -212,7 +224,10 @@ func (c *RootCommand) tail(out io.Writer) {
 				// We can't parse the response, attempt to
 				// re-request from the last window & batch.
 				text.Warning(out, "unable to parse response body: %v", err)
-				path = makeNewPath(out, path, curWindow, lastBatchID)
+				path, err = makeNewPath(path, curWindow, lastBatchID)
+				if err != nil {
+					return err
+				}
 				continue
 			}
 
@@ -241,7 +256,10 @@ func (c *RootCommand) tail(out io.Writer) {
 
 			// Something happened in the scanner, re-request the
 			// current batchID.
-			path = makeNewPath(out, path, curWindow, lastBatchID)
+			path, err = makeNewPath(path, curWindow, lastBatchID)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -258,8 +276,12 @@ func (c *RootCommand) tail(out io.Writer) {
 		// We do NOT want to specify a batchID, as this
 		// request was successful.
 		lastBatchID = ""
-		path = makeNewPath(out, path, curWindow, lastBatchID)
+		path, err = makeNewPath(path, curWindow, lastBatchID)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // adjustTimes adjusts the passed in from and to flags based on the
@@ -268,12 +290,12 @@ func (c *RootCommand) adjustTimes() {
 	if c.cfg.from != 0 {
 		// Adjust from based on search padding, we want to
 		// look back further.
-		c.cfg.from = c.cfg.from - int64(c.cfg.searchPadding.Seconds())
+		c.cfg.from -= int64(c.cfg.searchPadding.Seconds())
 	}
 
 	if c.cfg.to != 0 {
 		// Adjust to based on search padding, we want look forward more.
-		c.cfg.to = c.cfg.to + int64(c.cfg.searchPadding.Seconds())
+		c.cfg.to += int64(c.cfg.searchPadding.Seconds())
 	}
 }
 
@@ -285,7 +307,7 @@ func (c *RootCommand) enableManagedLogging(out io.Writer) error {
 		return err
 	}
 
-	text.Info(out, "Managed logging enabled on service %s", c.Input.ServiceID)
+	text.Info(out, "Managed logging enabled on service %s\n\n", c.Input.ServiceID)
 	return nil
 }
 
@@ -345,15 +367,14 @@ func (c *RootCommand) outputLoop(out io.Writer) {
 						return reqLogs.logs[i].SequenceNum < reqLogs.logs[j].SequenceNum
 					})
 
-				// Check to see if we already have a timer
-				// running or if the current high sequence is
-				// higher than the one with the timer.
-				// The timer will always be running on the head
-				// of the slice.
-				recv := reqLogs.receives
-
+				// Check to see if we already have a timer running or if the current
+				// high sequence is higher than the one with the timer.
+				// The timer will always be running on the head of the slice.
 				// In either case append to the receives slice.
+				recv := reqLogs.receives
 				if len(recv) == 0 || recv[0].highSeq < highSeq {
+					// NOTE: gocritic will warn about appendAssign but we ignore it.
+					// Because if we try to address it the code fails to work at runtime.
 					reqLogs.receives = append(recv, receive{
 						when:    time.Now(),
 						highSeq: highSeq,
@@ -418,9 +439,6 @@ func (c *RootCommand) outputLoop(out io.Writer) {
 			// Set the new log and receive info back to the
 			// logmap for this RequestID.
 			logmap[reqID] = reqLogs
-
-		case <-c.doneCh:
-			os.Exit(0)
 		}
 	}
 }
@@ -432,6 +450,10 @@ func (c *RootCommand) printLogs(out io.Writer, logs []Log) {
 		filtered := filterStream(c.cfg.stream, logs)
 
 		for _, l := range filtered {
+			if c.cfg.printTimestamps {
+				fmt.Fprint(out, l.RequestStartFromRaw().UTC().Format(time.RFC3339))
+				fmt.Fprint(out, " | ")
+			}
 			fmt.Fprintln(out, l.String())
 		}
 	}
@@ -449,7 +471,13 @@ func (c *RootCommand) doReq(req *http.Request) (*http.Response, error) {
 		}
 	}()
 
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPRequest(req)
+	}
 	resp, err := c.hClient.Do(req)
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPResponse(resp)
+	}
 	return resp, err
 }
 
@@ -466,6 +494,9 @@ type (
 		// to is when to get logs until.
 		to int64
 
+		// printTimestamps is whether to print timestamps with logs.
+		printTimestamps bool
+
 		// sortBuffer is how long to buffer logs from when the cli
 		// receives them to when the cli prints them. It will sort
 		// by RequestID for that buffer period.
@@ -480,7 +511,7 @@ type (
 		stream string
 	}
 
-	// Log defines the message envelope that compute@edge (C@E) wraps the
+	// Log defines the message envelope that the Compute platform wraps the
 	// user messages in.
 	Log struct {
 		// SequenceNum is the message sequence number used to reorder
@@ -489,7 +520,7 @@ type (
 		// RequestTime is the time in microseconds when the request
 		// was received.
 		RequestStart int64 `json:"request_start_us"`
-		// Stream is the C@E stream, either stdout or stderr.
+		// Stream is the Compute stream, either stdout or stderr.
 		Stream string `json:"stream"`
 		// RequestID is a UUID representing individual requests to the
 		// particular Wasm service.
@@ -525,13 +556,10 @@ func (l *Log) String() string {
 
 // makeNewPath generates a new request path based on current
 // path, window, and batchID.
-func makeNewPath(out io.Writer, path string, window int64, batchID string) string {
+func makeNewPath(path string, window int64, batchID string) (string, error) {
 	basePath, err := url.Parse(path)
 	if err != nil {
-		// No reasonable way to carry on from an error at this point
-		// and it should never happen, so error & exit.
-		text.Error(out, "error generating request URL: %v", err)
-		os.Exit(1)
+		return "", fmt.Errorf("error generating request URL: %w", err)
 	}
 
 	// Unset anything in the query parameters that might already exist.
@@ -547,10 +575,10 @@ func makeNewPath(out io.Writer, path string, window int64, batchID string) strin
 	}
 
 	basePath.RawQuery = q.Encode()
-	return basePath.String()
+	return basePath.String(), nil
 }
 
-// splitByReqID splits slices of logs based on RequestID,
+// splitByReqID splits slices of logs based on RequestID.
 func splitByReqID(in []Log) map[string][]Log {
 	out := make(map[string][]Log)
 	for _, l := range in {
@@ -624,11 +652,11 @@ func findIdxBySeq(logs []Log, seq int) int {
 // highSequence returns the highest SequenceNum
 // in a slice of logs.
 func highSequence(logs []Log) int {
-	var max int
+	var maximum int
 	for _, l := range logs {
-		if l.SequenceNum > max {
-			max = l.SequenceNum
+		if l.SequenceNum > maximum {
+			maximum = l.SequenceNum
 		}
 	}
-	return max
+	return maximum
 }

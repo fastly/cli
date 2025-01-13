@@ -4,44 +4,43 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List all of the New Relic Logs logging objects for a particular service and version")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
@@ -50,12 +49,11 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest       manifest.Data
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // Exec invokes the application logic for the command.
@@ -64,10 +62,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -81,7 +78,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input := c.constructInput(serviceID, serviceVersion.Number)
+	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
 	o, err := c.Globals.APIClient.ListNewRelic(input)
 	if err != nil {
@@ -97,7 +94,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Verbose() {
-		c.printVerbose(out, serviceVersion.Number, o)
+		c.printVerbose(out, fastly.ToValue(serviceVersion.Number), o)
 	} else {
 		err = c.printSummary(out, o)
 		if err != nil {
@@ -123,13 +120,13 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, ls []*fast
 	fmt.Fprintf(out, "Service Version: %d\n", serviceVersion)
 
 	for _, l := range ls {
-		fmt.Fprintf(out, "\nName: %s\n", l.Name)
-		fmt.Fprintf(out, "\nToken: %s\n", l.Token)
-		fmt.Fprintf(out, "\nFormat: %s\n", l.Format)
-		fmt.Fprintf(out, "\nFormat Version: %d\n", l.FormatVersion)
-		fmt.Fprintf(out, "\nPlacement: %s\n", l.Placement)
-		fmt.Fprintf(out, "\nRegion: %s\n", l.Region)
-		fmt.Fprintf(out, "\nResponse Condition: %s\n\n", l.ResponseCondition)
+		fmt.Fprintf(out, "\nName: %s\n", fastly.ToValue(l.Name))
+		fmt.Fprintf(out, "\nToken: %s\n", fastly.ToValue(l.Token))
+		fmt.Fprintf(out, "\nFormat: %s\n", fastly.ToValue(l.Format))
+		fmt.Fprintf(out, "\nFormat Version: %d\n", fastly.ToValue(l.FormatVersion))
+		fmt.Fprintf(out, "\nPlacement: %s\n", fastly.ToValue(l.Placement))
+		fmt.Fprintf(out, "\nRegion: %s\n", fastly.ToValue(l.Region))
+		fmt.Fprintf(out, "\nResponse Condition: %s\n\n", fastly.ToValue(l.ResponseCondition))
 
 		if l.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", l.CreatedAt)
@@ -149,7 +146,11 @@ func (c *ListCommand) printSummary(out io.Writer, nrs []*fastly.NewRelic) error 
 	t := text.NewTable(out)
 	t.AddHeader("SERVICE ID", "VERSION", "NAME")
 	for _, nr := range nrs {
-		t.AddLine(nr.ServiceID, nr.ServiceVersion, nr.Name)
+		t.AddLine(
+			fastly.ToValue(nr.ServiceID),
+			fastly.ToValue(nr.ServiceVersion),
+			fastly.ToValue(nr.Name),
+		)
 	}
 	t.Print()
 	return nil

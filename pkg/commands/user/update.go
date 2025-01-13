@@ -4,21 +4,18 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	var c UpdateCommand
 	c.CmdClause = parent.Command("update", "Update a user of the Fastly API and web interface")
 	c.Globals = g
-	c.manifest = m
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
 	c.CmdClause.Flag("login", "The login associated with the user (typically, an email address)").StringVar(&c.login)
 	c.CmdClause.Flag("name", "The real life name of the user").StringVar(&c.name)
@@ -30,23 +27,17 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 
-	id       string
-	login    string
-	manifest manifest.Data
-	name     string
-	reset    bool
-	role     string
+	id    string
+	login string
+	name  string
+	reset bool
+	role  string
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	if c.reset {
 		input, err := c.constructInputReset()
 		if err != nil {
@@ -75,7 +66,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated user '%s' (role: %s)", r.Name, r.Role)
+	text.Success(out, "Updated user '%s' (role: %s)", fastly.ToValue(r.Name), fastly.ToValue(r.Role))
 	return nil
 }
 
@@ -86,7 +77,7 @@ func (c *UpdateCommand) constructInput() (*fastly.UpdateUserInput, error) {
 	if c.id == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --id flag")
 	}
-	input.ID = c.id
+	input.UserID = c.id
 
 	if c.name == "" && c.role == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide either the --name or --role with the --id flag")

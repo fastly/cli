@@ -3,22 +3,20 @@ package secretstore
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("create", "Create a new secret store")
@@ -34,11 +32,10 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	Input    fastly.CreateSecretStoreInput
-	manifest manifest.Data
+	Input fastly.CreateSecretStoreInput
 }
 
 // Exec invokes the application logic for the command.
@@ -57,7 +54,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created Secret Store '%s' (%s)", o.Name, o.ID)
+	text.Success(out, "Created Secret Store '%s' (%s)", o.Name, o.StoreID)
 
 	return nil
 }

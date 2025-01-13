@@ -3,29 +3,28 @@ package subscription
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const emptyString = ""
 
-var certAuth = []string{"lets-encrypt", "globalsign"}
+var certAuth = []string{"certainly", "lets-encrypt", "globalsign"}
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	var c CreateCommand
 	c.CmdClause = parent.Command("create", "Create a new TLS subscription").Alias("add")
 	c.Globals = g
-	c.manifest = m
 
 	// Required.
 	c.CmdClause.Flag("domain", "Domain(s) to add to the TLS certificates generated for the subscription (set flag once per domain)").Required().StringsVar(&c.domains)
 
 	// Optional.
-	c.CmdClause.Flag("cert-auth", "The entity that issues and certifies the TLS certificates for your subscription. Valid values are lets-encrypt or globalsign").HintOptions(certAuth...).EnumVar(&c.certAuth, certAuth...)
+	c.CmdClause.Flag("cert-auth", "The entity that issues and certifies the TLS certificates for your subscription. Valid values are certainly, lets-encrypt, and globalsign").HintOptions(certAuth...).EnumVar(&c.certAuth, certAuth...)
 	c.CmdClause.Flag("common-name", "The domain name associated with the subscription. Default to the first domain specified by --domain").StringVar(&c.commonName)
 	c.CmdClause.Flag("config", "Alphanumeric string identifying a TLS configuration").StringVar(&c.config)
 
@@ -34,13 +33,12 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 
 	certAuth   string
 	commonName string
 	config     string
 	domains    []string
-	manifest   manifest.Data
 }
 
 // Exec invokes the application logic for the command.

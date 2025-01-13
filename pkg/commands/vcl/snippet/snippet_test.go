@@ -1,32 +1,39 @@
 package snippet_test
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
+	root "github.com/fastly/cli/pkg/commands/vcl"
+	sub "github.com/fastly/cli/pkg/commands/vcl/snippet"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestVCLSnippetCreate(t *testing.T) {
 	var content string
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl snippet create --content /path/to/snippet.vcl --name foo --type recv --version 3"),
+			Args:      "--content /path/to/snippet.vcl --name foo --type recv --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet create --content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 1"),
-			WantError: "service version 1 is not editable",
+			Args:      "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 1",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate CreateSnippet API error",
@@ -36,7 +43,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("vcl snippet create --content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 3"),
+			Args:      "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -47,26 +54,27 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.Int(0)
+						i.Dynamic = fastly.ToPointer(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.Snippet{
-						Content:        *i.Content,
-						Dynamic:        *i.Dynamic,
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-						ID:             "123",
+						Content:        i.Content,
+						Dynamic:        i.Dynamic,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						SnippetID:      fastly.ToPointer("123"),
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			Args:            "--content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 3",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
 			Name: "validate CreateSnippet API success for dynamic Snippet",
@@ -76,26 +84,27 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.Int(0)
+						i.Dynamic = fastly.ToPointer(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.Snippet{
-						Content:        *i.Content,
-						Dynamic:        *i.Dynamic,
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-						ID:             "123",
+						Content:        i.Content,
+						Dynamic:        i.Dynamic,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						SnippetID:      fastly.ToPointer("123"),
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --dynamic --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, snippet id: 123, type: recv, priority: 0)",
+			Args:            "--content ./testdata/snippet.vcl --dynamic --name foo --service-id 123 --type recv --version 3",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, snippet id: 123, type: recv, priority: 0)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
 			Name: "validate Priority set",
@@ -105,27 +114,28 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.Int(0)
+						i.Dynamic = fastly.ToPointer(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.Snippet{
-						Content:        *i.Content,
-						Dynamic:        *i.Dynamic,
-						Name:           *i.Name,
-						Priority:       *i.Priority,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-						ID:             "123",
+						Content:        i.Content,
+						Dynamic:        i.Dynamic,
+						Name:           i.Name,
+						Priority:       i.Priority,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						SnippetID:      fastly.ToPointer("123"),
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet create --content ./testdata/snippet.vcl --name foo --priority 1 --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 1)",
+			Args:            "--content ./testdata/snippet.vcl --name foo --priority 1 --service-id 123 --type recv --version 3",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 1)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
@@ -136,26 +146,27 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.Int(0)
+						i.Dynamic = fastly.ToPointer(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.Snippet{
-						Content:        *i.Content,
-						Dynamic:        *i.Dynamic,
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-						ID:             "123",
+						Content:        i.Content,
+						Dynamic:        i.Dynamic,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						SnippetID:      fastly.ToPointer("123"),
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet create --autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 1"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			Args:            "--autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 1",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
 			Name: "validate CreateSnippet API success with inline Snippet content",
@@ -165,69 +176,65 @@ func TestVCLSnippetCreate(t *testing.T) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
-						i.Content = fastly.String("")
+						i.Content = fastly.ToPointer("")
 					}
 					if i.Dynamic == nil {
-						i.Dynamic = fastly.Int(0)
+						i.Dynamic = fastly.ToPointer(0)
 					}
 					if i.Name == nil {
-						i.Name = fastly.String("")
+						i.Name = fastly.ToPointer("")
 					}
 					return &fastly.Snippet{
-						Content:        *i.Content,
-						Dynamic:        *i.Dynamic,
-						Name:           *i.Name,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-						ID:             "123",
+						Content:        i.Content,
+						Dynamic:        i.Dynamic,
+						Name:           i.Name,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						SnippetID:      fastly.ToPointer("123"),
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet create --content inline_vcl --name foo --service-id 123 --type recv --version 3"),
-			WantOutput: "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			Args:            "--content inline_vcl --name foo --service-id 123 --type recv --version 3",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			t.Log(stdout.String())
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, testutil.StripNewLines(stdout.String()), testcase.WantOutput)
-			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestVCLSnippetDelete(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --name flag",
-			Args:      args("vcl snippet delete --version 3"),
+			Args:      "--version 3",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl snippet delete --name foobar"),
+			Args:      "--name foobar",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl snippet delete --name foobar --version 3"),
+			Args:      "--name foobar --version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet delete --name foobar --service-id 123 --version 1"),
-			WantError: "service version 1 is not editable",
+			Args:      "--name foobar --service-id 123 --version 1",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      "--name foobar --service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate DeleteSnippet API error",
@@ -237,7 +244,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("vcl snippet delete --name foobar --service-id 123 --version 3"),
+			Args:      "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -248,7 +255,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("vcl snippet delete --name foobar --service-id 123 --version 3"),
+			Args:       "--name foobar --service-id 123 --version 3",
 			WantOutput: "Deleted VCL snippet 'foobar' (service: 123, version: 3)",
 		},
 		{
@@ -260,35 +267,23 @@ func TestVCLSnippetDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("vcl snippet delete --autoclone --name foo --service-id 123 --version 1"),
+			Args:       "--autoclone --name foo --service-id 123 --version 1",
 			WantOutput: "Deleted VCL snippet 'foo' (service: 123, version: 4)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestVCLSnippetDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl snippet describe"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl snippet describe --version 3"),
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -296,7 +291,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet describe --service-id 123 --version 3"),
+			Args:      "--service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --name with a versioned VCL snippet",
 		},
 		{
@@ -304,7 +299,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet describe --dynamic --service-id 123 --version 3"),
+			Args:      "--dynamic --service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --snippet-id with a dynamic VCL snippet",
 		},
 		{
@@ -315,7 +310,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("vcl snippet describe --name foobar --service-id 123 --version 3"),
+			Args:      "--name foobar --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -324,7 +319,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetSnippetFn:   getSnippet,
 			},
-			Args:       args("vcl snippet describe --name foobar --service-id 123 --version 3"),
+			Args:       "--name foobar --service-id 123 --version 3",
 			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nID: 456\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -333,7 +328,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				GetSnippetFn:   getSnippet,
 			},
-			Args:       args("vcl snippet describe --name foobar --service-id 123 --version 1"),
+			Args:       "--name foobar --service-id 123 --version 1",
 			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nID: 456\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
@@ -342,35 +337,23 @@ func TestVCLSnippetDescribe(t *testing.T) {
 				ListVersionsFn:      testutil.ListVersions,
 				GetDynamicSnippetFn: getDynamicSnippet,
 			},
-			Args:       args("vcl snippet describe --dynamic --service-id 123 --snippet-id 456 --version 3"),
+			Args:       "--dynamic --service-id 123 --snippet-id 456 --version 3",
 			WantOutput: "\nService ID: 123\nID: 456\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestVCLSnippetList(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl snippet list"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl snippet list --version 3"),
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -381,7 +364,7 @@ func TestVCLSnippetList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("vcl snippet list --service-id 123 --version 3"),
+			Args:      "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -390,7 +373,7 @@ func TestVCLSnippetList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListSnippetsFn: listSnippets,
 			},
-			Args:       args("vcl snippet list --service-id 123 --version 3"),
+			Args:       "--service-id 123 --version 3",
 			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC  SNIPPET ID\n123         3        foo   true     abc\n123         3        bar   false    abc\n",
 		},
 		{
@@ -399,7 +382,7 @@ func TestVCLSnippetList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListSnippetsFn: listSnippets,
 			},
-			Args:       args("vcl snippet list --service-id 123 --version 1"),
+			Args:       "--service-id 123 --version 1",
 			WantOutput: "SERVICE ID  VERSION  NAME  DYNAMIC  SNIPPET ID\n123         1        foo   true     abc\n123         1        bar   false    abc\n",
 		},
 		{
@@ -408,52 +391,48 @@ func TestVCLSnippetList(t *testing.T) {
 				ListVersionsFn: testutil.ListVersions,
 				ListSnippetsFn: listSnippets,
 			},
-			Args:       args("vcl snippet list --service-id 123 --verbose --version 1"),
-			WantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nID: abc\nPriority: 0\nDynamic: true\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nID: abc\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			Args:       "--service-id 123 --verbose --version 1",
+			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nID: abc\nPriority: 0\nDynamic: true\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nID: abc\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestVCLSnippetUpdate(t *testing.T) {
 	var content string
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("vcl snippet update"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("vcl snippet update --version 3"),
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Name: "validate missing --autoclone flag",
+			Name: "validate missing --autoclone flag with 'active' service",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet update --service-id 123 --version 1"),
-			WantError: "service version 1 is not editable",
+			Args:      "--service-id 123 --version 1",
+			WantError: "service version 1 is active",
+		},
+		{
+			Name: "validate missing --autoclone flag with 'locked' service",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      "--service-id 123 --version 2",
+			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate versioned snippet missing --name",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet update --content inline_vcl --new-name bar --service-id 123 --type recv --version 3"),
+			Args:      "--content inline_vcl --new-name bar --service-id 123 --type recv --version 3",
 			WantError: "error parsing arguments: must provide --name to update a versioned VCL snippet",
 		},
 		{
@@ -461,7 +440,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet update --content inline_vcl --dynamic --service-id 123 --version 3"),
+			Args:      "--content inline_vcl --dynamic --service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet",
 		},
 		{
@@ -469,7 +448,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet update --content inline_vcl --new-name foobar --service-id 123 --snippet-id 456 --version 3"),
+			Args:      "--content inline_vcl --new-name foobar --service-id 123 --snippet-id 456 --version 3",
 			WantError: "error parsing arguments: --snippet-id is not supported when updating a versioned VCL snippet",
 		},
 		{
@@ -477,7 +456,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("vcl snippet update --content inline_vcl --dynamic --new-name foobar --service-id 123 --snippet-id 456 --version 3"),
+			Args:      "--content inline_vcl --dynamic --new-name foobar --service-id 123 --snippet-id 456 --version 3",
 			WantError: "error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet",
 		},
 		{
@@ -488,7 +467,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("vcl snippet update --content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3"),
+			Args:      "--content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -500,17 +479,18 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					content = *i.Content
 
 					return &fastly.Snippet{
-						Content:        *i.Content,
-						Name:           *i.NewName,
-						Priority:       100,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-						Type:           *i.Type,
+						Content:        i.Content,
+						Name:           i.NewName,
+						Priority:       fastly.ToPointer(100),
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						Type:           i.Type,
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet update --content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3"),
-			WantOutput: "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 3, type: recv, priority: 100)",
+			Args:            "--content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3",
+			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 3, type: recv, priority: 100)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
 			Name: "validate UpdateDynamicSnippet API success",
@@ -521,14 +501,15 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					content = *i.Content
 
 					return &fastly.DynamicSnippet{
-						Content:   *i.Content,
-						ID:        i.ID,
-						ServiceID: i.ServiceID,
+						Content:   i.Content,
+						SnippetID: fastly.ToPointer(i.SnippetID),
+						ServiceID: fastly.ToPointer(i.ServiceID),
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet update --content inline_vcl --dynamic --service-id 123 --snippet-id 456 --version 3"),
-			WantOutput: "Updated dynamic VCL snippet '456' (service: 123)",
+			Args:            "--content inline_vcl --dynamic --service-id 123 --snippet-id 456 --version 3",
+			WantOutput:      "Updated dynamic VCL snippet '456' (service: 123)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
@@ -540,46 +521,36 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					content = *i.Content
 
 					return &fastly.Snippet{
-						Content:        *i.Content,
-						Name:           *i.NewName,
-						Priority:       *i.Priority,
-						ServiceID:      i.ServiceID,
-						ServiceVersion: i.ServiceVersion,
-						Type:           *i.Type,
+						Content:        i.Content,
+						Name:           i.NewName,
+						Priority:       i.Priority,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						Type:           i.Type,
 					}, nil
 				},
 			},
-			Args:       args("vcl snippet update --autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1"),
-			WantOutput: "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
+			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1",
+			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, testutil.StripNewLines(stdout.String()), testcase.WantOutput)
-			testutil.AssertPathContentFlag("content", testcase.WantError, testcase.Args, "snippet.vcl", content, t)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func getSnippet(i *fastly.GetSnippetInput) (*fastly.Snippet, error) {
 	t := testutil.Date
 
 	return &fastly.Snippet{
-		Content:        "# some vcl content",
-		Dynamic:        0,
-		ID:             "456",
-		Name:           i.Name,
-		Priority:       0,
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Type:           "recv",
+		Content:        fastly.ToPointer("# some vcl content"),
+		Dynamic:        fastly.ToPointer(0),
+		SnippetID:      fastly.ToPointer("456"),
+		Name:           fastly.ToPointer(i.Name),
+		Priority:       fastly.ToPointer(0),
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Type:           fastly.ToPointer(fastly.SnippetTypeRecv),
 
 		CreatedAt: &t,
 		DeletedAt: &t,
@@ -591,9 +562,9 @@ func getDynamicSnippet(i *fastly.GetDynamicSnippetInput) (*fastly.DynamicSnippet
 	t := testutil.Date
 
 	return &fastly.DynamicSnippet{
-		Content:   "# some vcl content",
-		ID:        i.ID,
-		ServiceID: i.ServiceID,
+		Content:   fastly.ToPointer("# some vcl content"),
+		SnippetID: fastly.ToPointer(i.SnippetID),
+		ServiceID: fastly.ToPointer(i.ServiceID),
 
 		CreatedAt: &t,
 		UpdatedAt: &t,
@@ -604,28 +575,28 @@ func listSnippets(i *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
 	t := testutil.Date
 	vs := []*fastly.Snippet{
 		{
-			Content:        "# some vcl content",
-			Dynamic:        1,
-			ID:             "abc",
-			Name:           "foo",
-			Priority:       0,
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Type:           "recv",
+			Content:        fastly.ToPointer("# some vcl content"),
+			Dynamic:        fastly.ToPointer(1),
+			SnippetID:      fastly.ToPointer("abc"),
+			Name:           fastly.ToPointer("foo"),
+			Priority:       fastly.ToPointer(0),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Type:           fastly.ToPointer(fastly.SnippetTypeRecv),
 
 			CreatedAt: &t,
 			DeletedAt: &t,
 			UpdatedAt: &t,
 		},
 		{
-			Content:        "# some vcl content",
-			Dynamic:        0,
-			ID:             "abc",
-			Name:           "bar",
-			Priority:       0,
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Type:           "recv",
+			Content:        fastly.ToPointer("# some vcl content"),
+			Dynamic:        fastly.ToPointer(0),
+			SnippetID:      fastly.ToPointer("abc"),
+			Name:           fastly.ToPointer("bar"),
+			Priority:       fastly.ToPointer(0),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Type:           fastly.ToPointer(fastly.SnippetTypeRecv),
 
 			CreatedAt: &t,
 			DeletedAt: &t,

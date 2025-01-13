@@ -49,7 +49,7 @@ func TestLogPersist(t *testing.T) {
 			Copy: []testutil.FileIO{
 				{
 					Src: filepath.Join("testdata", "errors-expected.log"),
-					Dst: filepath.Join("errors-expected.log"),
+					Dst: "errors-expected.log",
 				},
 			},
 		})
@@ -59,10 +59,14 @@ func TestLogPersist(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
-	errors.Now = func() (t time.Time) { return }
+	errors.Now = func() (t time.Time) {
+		return t
+	}
 
 	le := new(errors.LogEntries)
 	le.Add(fmt.Errorf("foo"))
@@ -154,7 +158,7 @@ func TestLogPersistLogRotation(t *testing.T) {
 			Copy: []testutil.FileIO{
 				{
 					Src: filepath.Join("testdata", "errors-expected-rotation.log"),
-					Dst: filepath.Join("errors-expected-rotation.log"),
+					Dst: "errors-expected-rotation.log",
 				},
 			},
 		})
@@ -164,10 +168,14 @@ func TestLogPersistLogRotation(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
-	errors.Now = func() (t time.Time) { return }
+	errors.Now = func() (t time.Time) {
+		return t
+	}
 	errors.FileRotationSize = fi.Size()
 
 	le := new(errors.LogEntries)

@@ -4,71 +4,72 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update a Kafka logging endpoint.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	EndpointName   string // Can't shadow argparser.Base method Name().
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         cmd.OptionalAutoClone
-	NewName           cmd.OptionalString
-	Index             cmd.OptionalString
-	Topic             cmd.OptionalString
-	Brokers           cmd.OptionalString
-	UseTLS            cmd.OptionalBool
-	CompressionCodec  cmd.OptionalString
-	RequiredACKs      cmd.OptionalString
-	TLSCACert         cmd.OptionalString
-	TLSClientCert     cmd.OptionalString
-	TLSClientKey      cmd.OptionalString
-	TLSHostname       cmd.OptionalString
-	Format            cmd.OptionalString
-	FormatVersion     cmd.OptionalInt
-	Placement         cmd.OptionalString
-	ResponseCondition cmd.OptionalString
-	ParseLogKeyvals   cmd.OptionalBool
-	RequestMaxBytes   cmd.OptionalInt
-	UseSASL           cmd.OptionalBool
-	AuthMethod        cmd.OptionalString
-	User              cmd.OptionalString
-	Password          cmd.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	NewName           argparser.OptionalString
+	Index             argparser.OptionalString
+	Topic             argparser.OptionalString
+	Brokers           argparser.OptionalString
+	UseTLS            argparser.OptionalBool
+	CompressionCodec  argparser.OptionalString
+	RequiredACKs      argparser.OptionalString
+	TLSCACert         argparser.OptionalString
+	TLSClientCert     argparser.OptionalString
+	TLSClientKey      argparser.OptionalString
+	TLSHostname       argparser.OptionalString
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	Placement         argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	ParseLogKeyvals   argparser.OptionalBool
+	RequestMaxBytes   argparser.OptionalInt
+	UseSASL           argparser.OptionalBool
+	AuthMethod        argparser.OptionalString
+	User              argparser.OptionalString
+	Password          argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		Manifest: m,
 	}
 	c.CmdClause = parent.Command("update", "Update a Kafka logging endpoint on a Fastly service version")
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the Kafka logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -84,16 +85,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("required-acks", "The Number of acknowledgements a leader must receive before a write is considered successful. One of: 1 (default) One server needs to respond. 0	No servers need to respond. -1	Wait for all in-sync replicas to respond").Action(c.RequiredACKs.Set).StringVar(&c.RequiredACKs.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.Manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	common.TLSCACert(c.CmdClause, &c.TLSCACert)
@@ -144,7 +145,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.UseTLS.WasSet {
-		input.UseTLS = fastly.CBool(c.UseTLS.Value)
+		input.UseTLS = fastly.ToPointer(fastly.Compatibool(c.UseTLS.Value))
 	}
 
 	if c.TLSCACert.WasSet {
@@ -180,7 +181,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.ParseLogKeyvals.WasSet {
-		input.ParseLogKeyvals = fastly.CBool(c.ParseLogKeyvals.Value)
+		input.ParseLogKeyvals = fastly.ToPointer(fastly.Compatibool(c.ParseLogKeyvals.Value))
 	}
 
 	if c.RequestMaxBytes.WasSet {
@@ -188,9 +189,9 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.UseSASL.WasSet && !c.UseSASL.Value {
-		input.AuthMethod = fastly.String("")
-		input.User = fastly.String("")
-		input.Password = fastly.String("")
+		input.AuthMethod = fastly.ToPointer("")
+		input.User = fastly.ToPointer("")
+		input.Password = fastly.ToPointer("")
 	}
 
 	if c.AuthMethod.WasSet {
@@ -210,10 +211,12 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.Manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.ServiceVersion,
@@ -227,7 +230,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -239,6 +242,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Kafka logging endpoint %s (service %s version %d)", kafka.Name, kafka.ServiceID, kafka.ServiceVersion)
+	text.Success(out,
+		"Updated Kafka logging endpoint %s (service %s version %d)",
+		fastly.ToValue(kafka.Name),
+		fastly.ToValue(kafka.ServiceID),
+		fastly.ToValue(kafka.ServiceVersion),
+	)
 	return nil
 }

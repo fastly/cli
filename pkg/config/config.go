@@ -59,31 +59,56 @@ type LegacyUser struct {
 
 // Fastly represents fastly specific configuration.
 type Fastly struct {
-	APIEndpoint string `toml:"api_endpoint"`
+	APIEndpoint     string `toml:"api_endpoint"`
+	AccountEndpoint string `toml:"account_endpoint"`
+}
+
+// WasmMetadata represents what metadata will be collected.
+type WasmMetadata struct {
+	// BuildInfo represents information regarding the time taken for builds and
+	// compilation processes, helping us identify bottlenecks and optimize
+	// performance (enable/disable).
+	BuildInfo string `toml:"build_info"`
+	// MachineInfo represents general, non-identifying system specifications (CPU,
+	// RAM, operating system) to better understand the hardware landscape our CLI
+	// operates in (enable/disable).
+	MachineInfo string `toml:"machine_info"`
+	// PackageInfo represents packages and libraries utilized by your source code,
+	// enabling us to prioritize support for the most commonly used components
+	// (enable/disable).
+	PackageInfo string `toml:"package_info"`
+	// ScriptInfo represents the [scripts] section from the fastly.toml manifest.
+	ScriptInfo string `toml:"script_info"`
 }
 
 // CLI represents CLI specific configuration.
 type CLI struct {
+	// MetadataNoticeDisplayed indicates if the user has been notified of the
+	// metadata behaviours being enabled by default and how they can opt-out.
+	MetadataNoticeDisplayed bool `toml:"metadata_notice_displayed"`
+	// Version indicates the CLI configuration version.
+	// It is updated each time a change is made to the config structure.
 	Version string `toml:"version"`
 }
 
-// Viceroy represents viceroy specific configuration.
-type Viceroy struct {
-	// LastChecked is when the version of Viceroy was last checked.
+// Versioner represents GitHub assets configuration.
+// e.g. viceroy, wasm-tools etc.
+type Versioner struct {
+	// LastChecked is when the asset version was last checked.
 	LastChecked string `toml:"last_checked"`
-	// LatestVersion is the latest Viceroy version at the time it is set.
+	// LatestVersion is the latest asset version at the time it is set.
 	LatestVersion string `toml:"latest_version"`
-	// TTL is how long the CLI waits before considering the version stale.
+	// TTL is how long the CLI waits before considering the asset version stale.
 	TTL string `toml:"ttl"`
 }
 
-// Language represents C@E language specific configuration.
+// Language represents Compute language specific configuration.
 type Language struct {
 	Go   Go   `toml:"go"`
 	Rust Rust `toml:"rust"`
 }
 
-// Go represents Go C@E language specific configuration.
+// Go represents Go Compute language specific configuration.
 type Go struct {
 	// TinyGoConstraint is the `tinygo` version that we support.
 	TinyGoConstraint string `toml:"tinygo_constraint"`
@@ -102,7 +127,7 @@ type Go struct {
 	ToolchainConstraintTinyGo string `toml:"toolchain_constraint_tinygo"`
 }
 
-// Rust represents Rust C@E language specific configuration.
+// Rust represents Rust Compute language specific configuration.
 type Rust struct {
 	// ToolchainConstraint is the `rustup` toolchain constraint for the compiler
 	// that we support (a range is expected, e.g. >= 1.49.0 < 2.0.0).
@@ -117,9 +142,28 @@ type Profiles map[string]*Profile
 
 // Profile represents a specific profile account.
 type Profile struct {
-	Default bool   `toml:"default" json:"default"`
-	Email   string `toml:"email" json:"email"`
-	Token   string `toml:"token" json:"token"`
+	// AccessToken is used to acquire an API token.
+	AccessToken string `toml:"access_token" json:"access_token"`
+	// AccessTokenCreated indicates when the access token was created.
+	AccessTokenCreated int64 `toml:"access_token_created" json:"access_token_created"`
+	// AccessTokenTTL indicates when the access token needs to be replaced.
+	AccessTokenTTL int `toml:"access_token_ttl" json:"access_token_ttl"`
+	// CustomerID is the customer ID associated with the profile.
+	CustomerID string `toml:"customer_id" json:"customer_id"`
+	// CustomerName is the customer name associated with the profile.
+	CustomerName string `toml:"customer_name" json:"customer_name"`
+	// Default indicates if the profile is the default profile to use.
+	Default bool `toml:"default" json:"default"`
+	// Email is the email address associated with the token.
+	Email string `toml:"email" json:"email"`
+	// RefreshToken is used to acquire a new access token when it expires.
+	RefreshToken string `toml:"refresh_token" json:"refresh_token"`
+	// RefreshTokenCreated indicates when the refresh token was created.
+	RefreshTokenCreated int64 `toml:"refresh_token_created" json:"refresh_token_created"`
+	// RefreshTokenTTL indicates when the refresh token needs to be replaced.
+	RefreshTokenTTL int `toml:"refresh_token_ttl" json:"refresh_token_ttl"`
+	// Token is a temporary token used to interact with the Fastly API.
+	Token string `toml:"token" json:"token"`
 }
 
 // StarterKitLanguages represents language specific starter kits.
@@ -148,13 +192,24 @@ func ensureConfigDirExists(path string) error {
 
 // File represents our application toml configuration.
 type File struct {
-	CLI           CLI                 `toml:"cli"`
-	ConfigVersion int                 `toml:"config_version"`
-	Fastly        Fastly              `toml:"fastly"`
-	Language      Language            `toml:"language"`
-	Profiles      Profiles            `toml:"profile"`
-	StarterKits   StarterKitLanguages `toml:"starter-kits"`
-	Viceroy       Viceroy             `toml:"viceroy"`
+	// CLI represents CLI specific configuration.
+	CLI CLI `toml:"cli"`
+	// ConfigVersion is the version of the config.
+	ConfigVersion int `toml:"config_version"`
+	// Fastly represents fastly specific configuration.
+	Fastly Fastly `toml:"fastly"`
+	// Language represents C@E language specific configuration.
+	Language Language `toml:"language"`
+	// Profiles represents multiple profile accounts.
+	Profiles Profiles `toml:"profile"`
+	// StarterKitLanguages represents language specific starter kits.
+	StarterKits StarterKitLanguages `toml:"starter-kits"`
+	// Viceroy represents viceroy specific configuration.
+	Viceroy Versioner `toml:"viceroy"`
+	// WasmMetadata represents what metadata will be collected.
+	WasmMetadata WasmMetadata `toml:"wasm-metadata"`
+	// WasmTools represents wasm-tools specific configuration.
+	WasmTools Versioner `toml:"wasm-tools"`
 
 	// We store off a possible legacy configuration so that we can later extract
 	// the relevant email and token values that may pre-exist.
@@ -178,11 +233,13 @@ type File struct {
 }
 
 // SetAutoYes sets the associated flag value.
+// This controls how the interactive prompts are handled.
 func (f *File) SetAutoYes(v bool) {
 	f.autoYes = v
 }
 
 // SetNonInteractive sets the associated flag value.
+// This controls how the interactive prompts are handled.
 func (f *File) SetNonInteractive(v bool) {
 	f.nonInteractive = v
 }
@@ -326,10 +383,7 @@ func (f *File) NeedsUpdating(data []byte, out io.Writer, errLog fsterr.LogInterf
 		// If the ConfigVersion doesn't match, then this suggests a breaking change
 		// divergence in either the user's config or the CLI's config.
 		if verbose {
-			text.Output(out, `
-				Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version.
-				Your configuration will be migrated to a compatible configuration format.
-			`)
+			text.Output(out, "Found your local configuration file (required to use the CLI) to be incompatible with the current CLI version. Your configuration will be migrated to a compatible configuration format.")
 			text.Break(out)
 		}
 		return true
@@ -394,14 +448,31 @@ func (f *File) Write(path string) error {
 // Environment represents all of the configuration parameters that can come
 // from environment variables.
 type Environment struct {
-	Token    string
-	Endpoint string
+	// AccountEndpoint is the env var we look in for the Accounts endpoint.
+	AccountEndpoint string
+	// APIEndpoint is the API endpoint to call.
+	APIEndpoint string
+	// APIToken is the env var we look in for the Fastly API token.
+	APIToken string
+	// DebugMode indicates to the CLI it can display debug information.
+	DebugMode string
+	// UseSSO indicates if user wants to use SSO/OAuth token flow.
+	// 1: enabled, 0: disabled.
+	UseSSO string
+	// WasmMetadataDisable is the env var we look in to disable all data
+	// collection related to a Wasm binary.
+	// Set to "true" to disable all forms of data collection.
+	WasmMetadataDisable string
 }
 
 // Read populates the fields from the provided environment.
 func (e *Environment) Read(state map[string]string) {
-	e.Token = state[env.Token]
-	e.Endpoint = state[env.Endpoint]
+	e.AccountEndpoint = state[env.AccountEndpoint]
+	e.APIEndpoint = state[env.APIEndpoint]
+	e.APIToken = state[env.APIToken]
+	e.DebugMode = state[env.DebugMode]
+	e.UseSSO = state[env.UseSSO]
+	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }
 
 // invalidStaticConfigErr generates an error to alert the user to an issue with

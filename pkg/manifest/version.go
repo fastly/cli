@@ -9,7 +9,7 @@ import (
 )
 
 // Version represents the currently supported schema for the fastly.toml
-// manifest file that determines the configuration for a compute@edge service.
+// manifest file that determines the configuration for a Compute service.
 //
 // NOTE: the File object has a field called ManifestVersion which this type is
 // assigned. The reason we don't name this type ManifestVersion is to appease

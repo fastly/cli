@@ -12,7 +12,7 @@ FILE:
 /pkg/errors/log_test.go
 
 LINE:
-68
+72
 
 
 TIMESTAMP:
@@ -25,7 +25,7 @@ FILE:
 /pkg/errors/log_test.go
 
 LINE:
-69
+73
 
 
 TIMESTAMP:
@@ -38,7 +38,7 @@ FILE:
 /pkg/errors/log_test.go
 
 LINE:
-70
+74
 
 
 TIMESTAMP:
@@ -51,7 +51,7 @@ FILE:
 /pkg/errors/log_test.go
 
 LINE:
-76
+80
 
   beep: boop
 
@@ -75,7 +75,7 @@ FILE:
 /pkg/errors/log_test.go
 
 LINE:
-68
+72
 
 
 TIMESTAMP:
@@ -88,7 +88,7 @@ FILE:
 /pkg/errors/log_test.go
 
 LINE:
-69
+73
 
 
 TIMESTAMP:
@@ -101,7 +101,7 @@ FILE:
 /pkg/errors/log_test.go
 
 LINE:
-70
+74
 
 
 TIMESTAMP:
@@ -114,7 +114,7 @@ FILE:
 /pkg/errors/log_test.go
 
 LINE:
-76
+80
 
 
   beep: boop

@@ -3,15 +3,18 @@ package resourcelink_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/resourcelink"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateServiceResourceCommand(t *testing.T) {
@@ -43,7 +46,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 			args: "create --resource-id abc --service-id 123 --version 42",
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: 42}}, nil
+					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				CreateResourceFn: func(i *fastly.CreateResourceInput) (*fastly.Resource, error) {
 					if got, want := *i.ResourceID, "abc"; got != want {
@@ -57,11 +60,11 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             "rand-id",
-						Name:           "the-name",
-						ResourceID:     "abc",
-						ServiceID:      "123",
-						ServiceVersion: "42",
+						LinkID:         fastly.ToPointer("rand-id"),
+						Name:           fastly.ToPointer("the-name"),
+						ResourceID:     fastly.ToPointer("abc"),
+						ServiceID:      fastly.ToPointer("123"),
+						ServiceVersion: fastly.ToPointer(42),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -75,7 +78,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 			args: "create --resource-id abc --service-id 123 --version 42 --name testing",
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: 42}}, nil
+					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				CreateResourceFn: func(i *fastly.CreateResourceInput) (*fastly.Resource, error) {
 					if got, want := *i.ResourceID, "abc"; got != want {
@@ -89,11 +92,11 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             "rand-id",
-						Name:           "a-name",
-						ResourceID:     "abc",
-						ServiceID:      "123",
-						ServiceVersion: "42",
+						LinkID:         fastly.ToPointer("rand-id"),
+						Name:           fastly.ToPointer("a-name"),
+						ResourceID:     fastly.ToPointer("abc"),
+						ServiceID:      fastly.ToPointer("123"),
+						ServiceVersion: fastly.ToPointer(42),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -108,10 +111,10 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
-					return []*fastly.Version{{Active: true, Number: 42}}, nil
+					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil
 				},
 				CloneVersionFn: func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-					return &fastly.Version{Number: 43}, nil
+					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
 				},
 				CreateResourceFn: func(i *fastly.CreateResourceInput) (*fastly.Resource, error) {
 					if got, want := *i.ResourceID, "abc"; got != want {
@@ -125,11 +128,11 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             "rand-id",
-						Name:           "cloned",
-						ResourceID:     "abc",
-						ServiceID:      "123",
-						ServiceVersion: "43", // Cloned version.
+						LinkID:         fastly.ToPointer("rand-id"),
+						Name:           fastly.ToPointer("cloned"),
+						ResourceID:     fastly.ToPointer("abc"),
+						ServiceID:      fastly.ToPointer("123"),
+						ServiceVersion: fastly.ToPointer(43), // Cloned version.
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -144,7 +147,8 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.CreateResourceFn
 			var apiInvoked bool
@@ -153,9 +157,11 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.TrimSpace(stdout.String()))
@@ -195,10 +201,10 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 			args: "delete --service-id 123 --version 42 --id LINKID",
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: 42}}, nil
+					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				DeleteResourceFn: func(i *fastly.DeleteResourceInput) error {
-					if got, want := i.ID, "LINKID"; got != want {
+					if got, want := i.ResourceID, "LINKID"; got != want {
 						return fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
@@ -219,13 +225,13 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
-					return []*fastly.Version{{Active: true, Number: 42}}, nil
+					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil
 				},
 				CloneVersionFn: func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-					return &fastly.Version{Number: 43}, nil
+					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
 				},
 				DeleteResourceFn: func(i *fastly.DeleteResourceInput) error {
-					if got, want := i.ID, "LINKID"; got != want {
+					if got, want := i.ResourceID, "LINKID"; got != want {
 						return fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
@@ -246,7 +252,8 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.DeleteResourceFn
 			var apiInvoked bool
@@ -255,9 +262,11 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.TrimSpace(stdout.String()))
@@ -297,10 +306,10 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 			args: "describe --service-id 123 --version 42 --id LINKID",
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: 42}}, nil
+					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				GetResourceFn: func(i *fastly.GetResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ID, "LINKID"; got != want {
+					if got, want := i.ResourceID, "LINKID"; got != want {
 						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := i.ServiceID, "123"; got != want {
@@ -311,12 +320,12 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Unix(1697372322, 0)
 					return &fastly.Resource{
-						ID:             "LINKID",
-						ResourceID:     "abc",
-						ResourceType:   "secret-store",
-						Name:           "test-name",
-						ServiceID:      "123",
-						ServiceVersion: "42",
+						LinkID:         fastly.ToPointer("LINKID"),
+						ResourceID:     fastly.ToPointer("abc"),
+						ResourceType:   fastly.ToPointer("secret-store"),
+						Name:           fastly.ToPointer("test-name"),
+						ServiceID:      fastly.ToPointer("123"),
+						ServiceVersion: fastly.ToPointer(42),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -340,7 +349,8 @@ Last edited (UTC): 2023-10-15 12:18`,
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.GetResourceFn
 			var apiInvoked bool
@@ -349,9 +359,11 @@ Last edited (UTC): 2023-10-15 12:18`,
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.TrimSpace(stdout.String()))
@@ -386,7 +398,7 @@ func TestListServiceResourceCommand(t *testing.T) {
 			args: "list --service-id 123 --version 42",
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: 42}}, nil
+					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				ListResourcesFn: func(i *fastly.ListResourcesInput) ([]*fastly.Resource, error) {
 					if got, want := i.ServiceID, "123"; got != want {
@@ -400,12 +412,12 @@ func TestListServiceResourceCommand(t *testing.T) {
 					resources := make([]*fastly.Resource, 3)
 					for i := range resources {
 						resources[i] = &fastly.Resource{
-							ID:             fmt.Sprintf("LINKID-%02d", i),
-							ResourceID:     "abc",
-							ResourceType:   "secret-store",
-							Name:           "test-name",
-							ServiceID:      "123",
-							ServiceVersion: "42",
+							LinkID:         fastly.ToPointer(fmt.Sprintf("LINKID-%02d", i)),
+							ResourceID:     fastly.ToPointer("abc"),
+							ResourceType:   fastly.ToPointer("secret-store"),
+							Name:           fastly.ToPointer("test-name"),
+							ServiceID:      fastly.ToPointer("123"),
+							ServiceVersion: fastly.ToPointer(42),
 							CreatedAt:      &now,
 							UpdatedAt:      &now,
 						}
@@ -452,7 +464,8 @@ Resource Link 3/3
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.ListResourcesFn
 			var apiInvoked bool
@@ -461,9 +474,11 @@ Resource Link 3/3
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.ReplaceAll(strings.TrimSpace(stdout.String()), "\t", "  "))
@@ -508,10 +523,10 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 			args: "update --id LINK-ID --name new-name --service-id 123 --version 42",
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: 42}}, nil
+					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
 				UpdateResourceFn: func(i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ID, "LINK-ID"; got != want {
+					if got, want := i.ResourceID, "LINK-ID"; got != want {
 						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := *i.Name, "new-name"; got != want {
@@ -526,12 +541,12 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             "LINK-ID",
-						ResourceID:     "abc",
-						ResourceType:   "secret-store",
-						Name:           "new-name",
-						ServiceID:      "123",
-						ServiceVersion: "42",
+						LinkID:         fastly.ToPointer("LINK-ID"),
+						ResourceID:     fastly.ToPointer("abc"),
+						ResourceType:   fastly.ToPointer("secret-store"),
+						Name:           fastly.ToPointer("new-name"),
+						ServiceID:      fastly.ToPointer("123"),
+						ServiceVersion: fastly.ToPointer(42),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -546,13 +561,13 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 			api: mock.API{
 				ListVersionsFn: func(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
-					return []*fastly.Version{{Active: true, Number: 42}}, nil
+					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil
 				},
 				CloneVersionFn: func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-					return &fastly.Version{Number: 43}, nil
+					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
 				},
 				UpdateResourceFn: func(i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
-					if got, want := i.ID, "LINK-ID"; got != want {
+					if got, want := i.ResourceID, "LINK-ID"; got != want {
 						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
 					}
 					if got, want := *i.Name, "new-name"; got != want {
@@ -567,12 +582,12 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 
 					now := time.Now()
 					return &fastly.Resource{
-						ID:             "LINK-ID",
-						ResourceID:     "abc",
-						ResourceType:   "secret-store",
-						Name:           "new-name",
-						ServiceID:      "123",
-						ServiceVersion: "43",
+						LinkID:         fastly.ToPointer("LINK-ID"),
+						ResourceID:     fastly.ToPointer("abc"),
+						ResourceType:   fastly.ToPointer("secret-store"),
+						Name:           fastly.ToPointer("new-name"),
+						ServiceID:      fastly.ToPointer("123"),
+						ServiceVersion: fastly.ToPointer(43),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -587,7 +602,8 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(resourcelink.RootName+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(resourcelink.RootName + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.UpdateResourceFn
 			var apiInvoked bool
@@ -596,9 +612,11 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, strings.TrimSpace(stdout.String()))

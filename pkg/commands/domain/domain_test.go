@@ -1,28 +1,26 @@
 package domain_test
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
-	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	root "github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestDomainCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("domain create --version 1"),
+			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -31,7 +29,7 @@ func TestDomainCreate(t *testing.T) {
 			WantOutput: "Created domain www.test.com (service 123 version 4)",
 		},
 		{
-			Args: args("domain create --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -40,24 +38,13 @@ func TestDomainCreate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestDomainList(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args: args("domain list --service-id 123 --version 1"),
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -65,7 +52,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsShortOutput,
 		},
 		{
-			Args: args("domain list --service-id 123 --version 1 --verbose"),
+			Args: "--service-id 123 --version 1 --verbose",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -73,7 +60,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			Args: args("domain list --service-id 123 --version 1 -v"),
+			Args: "--service-id 123 --version 1 -v",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -81,7 +68,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			Args: args("domain --verbose list --service-id 123 --version 1"),
+			Args: "--verbose --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -89,7 +76,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			Args: args("-v domain list --service-id 123 --version 1"),
+			Args: "-v --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
@@ -97,7 +84,7 @@ func TestDomainList(t *testing.T) {
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
-			Args: args("domain list --service-id 123 --version 1"),
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsError,
@@ -105,28 +92,17 @@ func TestDomainList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestDomainDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("domain describe --service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
+			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainError,
@@ -134,7 +110,7 @@ func TestDomainDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("domain describe --service-id 123 --version 1 --name www.test.com"),
+			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainOK,
@@ -142,28 +118,17 @@ func TestDomainDescribe(t *testing.T) {
 			WantOutput: describeDomainOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestDomainUpdate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("domain update --service-id 123 --version 1 --new-name www.test.com --comment "),
+			Args:      "--service-id 123 --version 1 --new-name www.test.com --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("domain update --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -172,7 +137,7 @@ func TestDomainUpdate(t *testing.T) {
 			WantError: "error parsing arguments: must provide either --new-name or --comment to update domain",
 		},
 		{
-			Args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -181,7 +146,7 @@ func TestDomainUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("domain update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -190,28 +155,17 @@ func TestDomainUpdate(t *testing.T) {
 			WantOutput: "Updated domain www.example.com (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestDomainDelete(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("domain delete --service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -220,7 +174,7 @@ func TestDomainDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("domain delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -229,35 +183,18 @@ func TestDomainDelete(t *testing.T) {
 			WantOutput: "Deleted domain www.test.com (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestDomainValidate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --version flag",
-			Args:      args("domain validate"),
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			Name:      "validate missing --token flag",
-			Args:      args("domain validate --version 3"),
-			WantError: fsterr.ErrNoToken.Inner.Error(),
-		},
-		{
 			Name:      "validate missing --service-id flag",
-			Args:      args("domain validate --token 123 --version 3"),
+			Args:      "--version 3",
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -265,7 +202,7 @@ func TestDomainValidate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("domain validate --service-id 123 --token 123 --version 3"),
+			Args:      "--service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --name flag",
 		},
 		{
@@ -276,7 +213,7 @@ func TestDomainValidate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("domain validate --name foo.example.com --service-id 123 --token 123 --version 3"),
+			Args:      "--name foo.example.com --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -287,7 +224,7 @@ func TestDomainValidate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("domain validate --all --service-id 123 --token 123 --version 3"),
+			Args:      "--all --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -296,7 +233,7 @@ func TestDomainValidate(t *testing.T) {
 				ListVersionsFn:   testutil.ListVersions,
 				ValidateDomainFn: validateDomain,
 			},
-			Args:       args("domain validate --name foo.example.com --service-id 123 --token 123 --version 3"),
+			Args:       "--name foo.example.com --service-id 123 --version 3",
 			WantOutput: validateAPISuccess(3),
 		},
 		{
@@ -305,7 +242,7 @@ func TestDomainValidate(t *testing.T) {
 				ListVersionsFn:       testutil.ListVersions,
 				ValidateAllDomainsFn: validateAllDomains,
 			},
-			Args:       args("domain validate --all --service-id 123 --token 123 --version 3"),
+			Args:       "--all --service-id 123 --version 3",
 			WantOutput: validateAllAPISuccess(),
 		},
 		{
@@ -314,56 +251,46 @@ func TestDomainValidate(t *testing.T) {
 				ListVersionsFn:   testutil.ListVersions,
 				ValidateDomainFn: validateDomain,
 			},
-			Args:       args("domain validate --name foo.example.com --service-id 123 --token 123 --version 1"),
+			Args:       "--name foo.example.com --service-id 123 --version 1",
 			WantOutput: validateAPISuccess(1),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "validate"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")
 
 func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
-func createDomainError(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
+func createDomainError(_ *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
 func listDomainsOK(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "www.test.com",
-			Comment:        "test",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("www.test.com"),
+			Comment:        fastly.ToPointer("test"),
 		},
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "www.example.com",
-			Comment:        "example",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("www.example.com"),
+			Comment:        fastly.ToPointer("example"),
 		},
 	}, nil
 }
 
-func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsError(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, errTest
 }
 
@@ -374,8 +301,8 @@ SERVICE  VERSION  NAME             COMMENT
 `) + "\n"
 
 var listDomainsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -390,14 +317,14 @@ Version: 1
 
 func getDomainOK(i *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Comment:        "test",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer(i.Name),
+		Comment:        fastly.ToPointer("test"),
 	}, nil
 }
 
-func getDomainError(i *fastly.GetDomainInput) (*fastly.Domain, error) {
+func getDomainError(_ *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
@@ -410,55 +337,55 @@ Comment: test
 
 func updateDomainOK(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.NewName,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.NewName,
 	}, nil
 }
 
-func updateDomainError(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
+func updateDomainError(_ *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
-func deleteDomainOK(i *fastly.DeleteDomainInput) error {
+func deleteDomainOK(_ *fastly.DeleteDomainInput) error {
 	return nil
 }
 
-func deleteDomainError(i *fastly.DeleteDomainInput) error {
+func deleteDomainError(_ *fastly.DeleteDomainInput) error {
 	return errTest
 }
 
 func validateDomain(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
 	return &fastly.DomainValidationResult{
-		Metadata: fastly.DomainMetadata{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           i.Name,
+		Metadata: &fastly.DomainMetadata{
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer(i.Name),
 		},
-		CName: "foo",
-		Valid: true,
+		CName: fastly.ToPointer("foo"),
+		Valid: fastly.ToPointer(true),
 	}, nil
 }
 
 func validateAllDomains(i *fastly.ValidateAllDomainsInput) (results []*fastly.DomainValidationResult, err error) {
 	return []*fastly.DomainValidationResult{
 		{
-			Metadata: fastly.DomainMetadata{
-				ServiceID:      i.ServiceID,
-				ServiceVersion: i.ServiceVersion,
-				Name:           "foo.example.com",
+			Metadata: &fastly.DomainMetadata{
+				ServiceID:      fastly.ToPointer(i.ServiceID),
+				ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+				Name:           fastly.ToPointer("foo.example.com"),
 			},
-			CName: "foo",
-			Valid: true,
+			CName: fastly.ToPointer("foo"),
+			Valid: fastly.ToPointer(true),
 		},
 		{
-			Metadata: fastly.DomainMetadata{
-				ServiceID:      i.ServiceID,
-				ServiceVersion: i.ServiceVersion,
-				Name:           "bar.example.com",
+			Metadata: &fastly.DomainMetadata{
+				ServiceID:      fastly.ToPointer(i.ServiceID),
+				ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+				Name:           fastly.ToPointer("bar.example.com"),
 			},
-			CName: "bar",
-			Valid: true,
+			CName: fastly.ToPointer("bar"),
+			Valid: fastly.ToPointer(true),
 		},
 	}, nil
 }

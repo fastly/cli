@@ -3,17 +3,20 @@ package healthcheck_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestHealthCheckCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -49,9 +52,12 @@ func TestHealthCheckCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -59,7 +65,7 @@ func TestHealthCheckCreate(t *testing.T) {
 }
 
 func TestHealthCheckList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -119,9 +125,12 @@ func TestHealthCheckList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -129,7 +138,7 @@ func TestHealthCheckList(t *testing.T) {
 }
 
 func TestHealthCheckDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -161,9 +170,12 @@ func TestHealthCheckDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -171,7 +183,7 @@ func TestHealthCheckDescribe(t *testing.T) {
 }
 
 func TestHealthCheckUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -213,9 +225,12 @@ func TestHealthCheckUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -223,7 +238,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 }
 
 func TestHealthCheckDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -257,9 +272,12 @@ func TestHealthCheckDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -270,42 +288,42 @@ var errTest = errors.New("fixture error")
 
 func createHealthCheckOK(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
-		Host:           "www.test.com",
-		Path:           "/health",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
+		Host:           fastly.ToPointer("www.test.com"),
+		Path:           fastly.ToPointer("/health"),
 	}, nil
 }
 
-func createHealthCheckError(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
+func createHealthCheckError(_ *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
 func listHealthChecksOK(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
 	return []*fastly.HealthCheck{
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "test",
-			Comment:        "test",
-			Method:         "HEAD",
-			Host:           "www.test.com",
-			Path:           "/health",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("test"),
+			Comment:        fastly.ToPointer("test"),
+			Method:         fastly.ToPointer("HEAD"),
+			Host:           fastly.ToPointer("www.test.com"),
+			Path:           fastly.ToPointer("/health"),
 		},
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "example",
-			Comment:        "example",
-			Method:         "HEAD",
-			Host:           "www.example.com",
-			Path:           "/health",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("example"),
+			Comment:        fastly.ToPointer("example"),
+			Method:         fastly.ToPointer("HEAD"),
+			Host:           fastly.ToPointer("www.example.com"),
+			Path:           fastly.ToPointer("/health"),
 		},
 	}, nil
 }
 
-func listHealthChecksError(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
+func listHealthChecksError(_ *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
@@ -316,8 +334,8 @@ SERVICE  VERSION  NAME     METHOD  HOST             PATH
 `) + "\n"
 
 var listHealthChecksVerboseOutput = strings.Join([]string{
-	"Fastly API token not provided",
 	"Fastly API endpoint: https://api.fastly.com",
+	"Fastly API token provided via config file (profile: user)",
 	"",
 	"Service ID (via --service-id): 123",
 	"",
@@ -352,17 +370,17 @@ var listHealthChecksVerboseOutput = strings.Join([]string{
 
 func getHealthCheckOK(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           "test",
-		Method:         "HEAD",
-		Host:           "www.test.com",
-		Path:           "/healthcheck",
-		Comment:        "test",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer("test"),
+		Method:         fastly.ToPointer("HEAD"),
+		Host:           fastly.ToPointer("www.test.com"),
+		Path:           fastly.ToPointer("/healthcheck"),
+		Comment:        fastly.ToPointer("test"),
 	}, nil
 }
 
-func getHealthCheckError(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
+func getHealthCheckError(_ *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
@@ -385,20 +403,20 @@ var describeHealthCheckOutput = "\n" + strings.Join([]string{
 
 func updateHealthCheckOK(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.NewName,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.NewName,
 	}, nil
 }
 
-func updateHealthCheckError(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
+func updateHealthCheckError(_ *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
-func deleteHealthCheckOK(i *fastly.DeleteHealthCheckInput) error {
+func deleteHealthCheckOK(_ *fastly.DeleteHealthCheckInput) error {
 	return nil
 }
 
-func deleteHealthCheckError(i *fastly.DeleteHealthCheckInput) error {
+func deleteHealthCheckError(_ *fastly.DeleteHealthCheckInput) error {
 	return errTest
 }

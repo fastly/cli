@@ -3,34 +3,33 @@ package configstoreentry
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	c := DescribeCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("describe", "Retrieve a single config store item").Alias("get")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "key",
 		Short:       'k',
 		Description: "Item name",
 		Dst:         &c.input.Key,
 		Required:    true,
 	})
-	c.RegisterFlag(cmd.StoreIDFlag(&c.input.StoreID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -40,11 +39,9 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
-
-	input    fastly.GetConfigStoreItemInput
-	manifest manifest.Data
+	argparser.Base
+	argparser.JSONOutput
+	input fastly.GetConfigStoreItemInput
 }
 
 // Exec invokes the application logic for the command.

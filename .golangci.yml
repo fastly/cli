@@ -1,0 +1,169 @@
+# https://golangci-lint.run/usage/configuration/
+
+issues:
+  max-per-linter: 0
+  max-same-issues: 0
+run:
+  allow-parallel-runners: true
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - durationcheck
+    - errcheck
+    - exhaustive
+    - exportloopref
+    - forcetypeassert
+    - gocritic
+    - godot
+    - gofumpt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - makezero
+    - misspell
+    - nilerr
+    - predeclared
+    - revive
+    - staticcheck
+    - tenv
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - vet
+linters-settings:
+  revive:
+    enableAllRules: true
+    rules:
+      - name: "add-constant"
+        severity: "warning"
+        arguments:
+          - maxLitCount: "10"
+            allowInts: "0,1,2,3,4,5"
+        disabled: true # most of the time it's fine, and the performance isn't a concern
+      - name: "argument-limit"
+        severity: "warning"
+        arguments: [6]
+      - name: "atomic"
+        severity: "warning"
+      - name: "bare-return"
+        severity: "warning"
+      - name: "bool-literal-in-expr"
+        severity: "warning"
+      - name: "confusing-naming"
+        severity: "warning"
+      - name: "confusing-results"
+        severity: "warning"
+      - name: "constant-logical-expr"
+        severity: "error"
+      - name: "context-as-argument"
+        severity: "error"
+      - name: "context-keys-type"
+        severity: "error"
+      - name: "deep-exit"
+        severity: "warning"
+      - name: "defer"
+        severity: "warning"
+      - name: "early-return"
+        severity: "warning"
+      - name: "empty-block"
+        severity: "error"
+      - name: "empty-lines"
+        severity: "warning"
+      - name: "error-naming"
+        severity: "error"
+      - name: "error-return"
+        severity: "error"
+      - name: "error-strings"
+        severity: "error"
+      - name: "errorf"
+        severity: "warning"
+      - name: "exported"
+        severity: "error"
+      - name: "flag-parameter"
+        severity: "warning"
+      - name: "function-result-limit"
+        severity: "warning"
+        arguments: [4]
+      - name: "function-length"
+        severity: "warning"
+        arguments: [50, 0]
+      - name: "get-return"
+        severity: "error"
+      - name: "identical-branches"
+        severity: "error"
+      - name: "if-return"
+        severity: "warning"
+      - name: "increment-decrement"
+        severity: "error"
+      - name: "indent-error-flow"
+        severity: "warning"
+      - name: "import-shadowing"
+        severity: "warning"
+      - name: "modifies-parameter"
+        severity: "warning"
+      - name: "modifies-value-receiver"
+        severity: "warning"
+      - name: "nested-structs"
+        severity: "warning"
+      - name: "optimize-operands-order"
+        severity: "warning"
+      - name: "package-comments"
+        severity: "warning"
+      - name: "range"
+        severity: "warning"
+      - name: "range-val-in-closure"
+        severity: "warning"
+      - name: "range-val-address"
+        severity: "warning"
+      - name: "receiver-naming"
+        severity: "warning"
+      - name: "redefines-builtin-id"
+        severity: "error"
+      - name: "string-of-int"
+        severity: "warning"
+      - name: "struct-tag"
+        severity: "warning"
+      - name: "superfluous-else"
+        severity: "warning"
+      - name: "time-equal"
+        severity: "warning"
+      - name: "time-naming"
+        severity: "warning"
+      - name: "var-declaration"
+        severity: "warning"
+      - name: "var-naming"
+        severity: "warning"
+      - name: "unconditional-recursion"
+        severity: "error"
+      - name: "unexported-naming"
+        severity: "warning"
+      - name: "unexported-return"
+        severity: "error"
+      - name: "unhandled-error"
+        severity: "warning"
+        arguments:
+          - "fmt.Print"
+          - "fmt.Printf"
+          - "fmt.Println"
+          - "fmt.Fprint"
+          - "fmt.Fprintf"
+          - "fmt.Fprintln"
+      - name: "unnecessary-stmt"
+        severity: "warning"
+      - name: "unreachable-code"
+        severity: "warning"
+      - name: "unused-parameter"
+        severity: "warning"
+      - name: "unused-receiver"
+        severity: "warning"
+        disabled: true
+      - name: "use-any"
+        severity: "warning"
+      - name: "useless-break"
+        severity: "warning"
+      - name: "waitgroup-by-value"
+        severity: "warning"

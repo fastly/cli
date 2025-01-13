@@ -7,15 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/commands/configstoreentry"
+	root "github.com/fastly/cli/pkg/commands/configstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 func TestCreateEntryCommand(t *testing.T) {
@@ -26,13 +24,13 @@ func TestCreateEntryCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      testutil.Args(configstoreentry.RootName + " create --key a-key --value a-value"),
+			Args:      "--key a-key --value a-value",
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s", configstoreentry.RootName, storeID, itemKey, itemValue)),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
 			API: mock.API{
 				CreateConfigStoreItemFn: func(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return nil, errors.New("invalid request")
@@ -41,7 +39,7 @@ func TestCreateEntryCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s", configstoreentry.RootName, storeID, itemKey, itemValue)),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
 			API: mock.API{
 				CreateConfigStoreItemFn: func(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
@@ -54,7 +52,7 @@ func TestCreateEntryCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Created key '%s' in Config Store '%s'", itemKey, storeID),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s create --store-id %s --key %s --value %s --json", configstoreentry.RootName, storeID, itemKey, itemValue)),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --json", storeID, itemKey, itemValue),
 			API: mock.API{
 				CreateConfigStoreItemFn: func(i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
@@ -76,20 +74,7 @@ func TestCreateEntryCommand(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestDeleteEntryCommand(t *testing.T) {
@@ -111,25 +96,25 @@ func TestDeleteEntryCommand(t *testing.T) {
 		}
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      testutil.Args(configstoreentry.RootName + " delete --key a-key"),
+			Args:      "--key a-key",
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Args:      testutil.Args(configstoreentry.RootName + " delete --store-id " + storeID),
+			Args:      "--store-id " + storeID,
 			WantError: "invalid command, neither --all or --key provided",
 		},
 		{
-			Args:      testutil.Args(configstoreentry.RootName + " delete --json --all --store-id " + storeID),
+			Args:      "--json --all --store-id " + storeID,
 			WantError: "invalid flag combination, --all and --json",
 		},
 		{
-			Args:      testutil.Args(configstoreentry.RootName + " delete --key a-key --all --store-id " + storeID),
+			Args:      "--key a-key --all --store-id " + storeID,
 			WantError: "invalid flag combination, --all and --key",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --key %s", configstoreentry.RootName, storeID, itemKey)),
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				DeleteConfigStoreItemFn: func(i *fastly.DeleteConfigStoreItemInput) error {
 					return errors.New("invalid request")
@@ -138,7 +123,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --key %s", configstoreentry.RootName, storeID, itemKey)),
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				DeleteConfigStoreItemFn: func(i *fastly.DeleteConfigStoreItemInput) error {
 					return nil
@@ -147,7 +132,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Deleted key '%s' from Config Store '%s'", itemKey, storeID),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --key %s --json", configstoreentry.RootName, storeID, itemKey)),
+			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
 			API: mock.API{
 				DeleteConfigStoreItemFn: func(i *fastly.DeleteConfigStoreItemInput) error {
 					return nil
@@ -164,7 +149,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 			}),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", configstoreentry.RootName, storeID)),
+			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
 			API: mock.API{
 				ListConfigStoreItemsFn: func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return testItems, nil
@@ -181,7 +166,7 @@ SUCCESS: Deleted all keys from Config Store '%s'
 `, storeID),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s delete --store-id %s --all --auto-yes", configstoreentry.RootName, storeID)),
+			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
 			API: mock.API{
 				ListConfigStoreItemsFn: func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return testItems, nil
@@ -194,22 +179,7 @@ SUCCESS: Deleted all keys from Config Store '%s'
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
-			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestDescribeEntryCommand(t *testing.T) {
@@ -227,13 +197,13 @@ func TestDescribeEntryCommand(t *testing.T) {
 		UpdatedAt: &now,
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      testutil.Args(configstoreentry.RootName + " describe --key a-key"),
+			Args:      "--key a-key",
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s describe --store-id %s --key %s", configstoreentry.RootName, storeID, itemKey)),
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				GetConfigStoreItemFn: func(i *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return nil, errors.New("invalid request")
@@ -242,7 +212,7 @@ func TestDescribeEntryCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s describe --store-id %s --key %s", configstoreentry.RootName, storeID, itemKey)),
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				GetConfigStoreItemFn: func(i *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
@@ -257,7 +227,7 @@ func TestDescribeEntryCommand(t *testing.T) {
 			WantOutput: printConfigStoreItem(testItem),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s describe --store-id %s --key %s --json", configstoreentry.RootName, storeID, itemKey)),
+			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
 			API: mock.API{
 				GetConfigStoreItemFn: func(i *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
@@ -273,20 +243,7 @@ func TestDescribeEntryCommand(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestListEntriesCommand(t *testing.T) {
@@ -305,13 +262,12 @@ func TestListEntriesCommand(t *testing.T) {
 		}
 	}
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      testutil.Args(configstoreentry.RootName + " list"),
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s list --store-id %s", configstoreentry.RootName, storeID)),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				ListConfigStoreItemsFn: func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return nil, errors.New("invalid request")
@@ -320,7 +276,7 @@ func TestListEntriesCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s list --store-id %s", configstoreentry.RootName, storeID)),
+			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
 				ListConfigStoreItemsFn: func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return testItems, nil
@@ -329,7 +285,7 @@ func TestListEntriesCommand(t *testing.T) {
 			WantOutput: printConfigStoreItemsTbl(testItems),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s list --store-id %s --json", configstoreentry.RootName, storeID)),
+			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				ListConfigStoreItemsFn: func(i *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return testItems, nil
@@ -339,20 +295,7 @@ func TestListEntriesCommand(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestUpdateEntryCommand(t *testing.T) {
@@ -363,13 +306,13 @@ func TestUpdateEntryCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      testutil.Args(configstoreentry.RootName + " update --key a-key --value a-value"),
+			Args:      "--key a-key --value a-value",
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s update --store-id %s --key %s --value %s", configstoreentry.RootName, storeID, itemKey, itemValue)),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
 			API: mock.API{
 				UpdateConfigStoreItemFn: func(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return nil, errors.New("invalid request")
@@ -378,7 +321,7 @@ func TestUpdateEntryCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s update --store-id %s --key %s --value %s", configstoreentry.RootName, storeID, itemKey, itemValue)),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
 			API: mock.API{
 				UpdateConfigStoreItemFn: func(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
@@ -391,7 +334,7 @@ func TestUpdateEntryCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Updated config store item %s in store %s", itemKey, storeID),
 		},
 		{
-			Args: testutil.Args(fmt.Sprintf("%s update --store-id %s --key %s --value %s --json", configstoreentry.RootName, storeID, itemKey, itemValue+"updated")),
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --json", storeID, itemKey, itemValue+"updated"),
 			API: mock.API{
 				UpdateConfigStoreItemFn: func(i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
@@ -413,20 +356,7 @@ func TestUpdateEntryCommand(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		testcase := testcase
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			err := app.Run(opts)
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func printConfigStoreItem(i *fastly.ConfigStoreItem) string {

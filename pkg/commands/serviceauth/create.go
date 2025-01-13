@@ -3,34 +3,31 @@ package serviceauth
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // Permissions is a list of supported permission values.
-// https://developer.fastly.com/reference/api/account/service-authorization/#data-model
+// https://www.fastly.com/documentation/reference/api/account/service-authorization#data-model
 var Permissions = []string{"full", "read_only", "purge_select", "purge_all"}
 
 // CreateCommand calls the Fastly API to create a service authorization.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 	input       fastly.CreateServiceAuthorizationInput
-	manifest    manifest.Data
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 	userID      string
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Create service authorization").Alias("add")
 
@@ -41,16 +38,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	// NOTE: We default to 'read_only' for security reasons.
 	// The API otherwise defaults to 'full' permissions!
 	c.CmdClause.Flag("permission", "The permission the user has in relation to the service (default: read_only)").HintOptions(Permissions...).Default("read_only").Short('p').EnumVar(&c.input.Permission, Permissions...)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -58,16 +55,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":   c.manifest.Flag.ServiceID,
+			"Service ID":   c.Globals.Manifest.Flag.ServiceID,
 			"Service Name": c.serviceName.Value,
 		})
 		return err
 	}
 	if c.Globals.Flags.Verbose {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.input.Service = &fastly.SAService{

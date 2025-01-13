@@ -11,11 +11,12 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/kingpin"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/kingpin"
 )
 
 // Usage returns a contextual usage string for the application. In order to deal
@@ -130,7 +131,7 @@ var UsageTemplateFuncs = template.FuncMap{
 	},
 	"SeeAlso": func(cm *kingpin.CmdModel) string {
 		cmd := cm.FullCommand()
-		url := "https://developer.fastly.com/reference/cli/"
+		url := "https://www.fastly.com/documentation/reference/cli/"
 		var trail string
 		if len(cmd) > 0 {
 			trail = "/"
@@ -139,14 +140,17 @@ var UsageTemplateFuncs = template.FuncMap{
 	},
 }
 
-// WARNING: kingpin has no way of decorating flags as being "global" therefore
-// if you add/remove a global flag you will also need to update the app.Flag()
-// bindings in pkg/app/run.go.
+// IMPORTANT: Kingpin doesn't support global flags.
+// We hack a solution in ./run.go (`configureKingpin` function).
 //
 // NOTE: This map is used to help populate the CLI 'usage' template renderer.
 var globalFlags = map[string]bool{
 	"accept-defaults": true,
+	"account":         true,
 	"auto-yes":        true,
+	"debug-mode":      true,
+	"enable-sso":      true,
+	"endpoint":        true,
 	"help":            true,
 	"non-interactive": true,
 	"profile":         true,
@@ -206,28 +210,27 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 // processing the incoming command request from the user, as well as handling
 // the various places where help output can be displayed.
 func processCommandInput(
-	opts RunOpts,
+	data *global.Data,
 	app *kingpin.Application,
-	g *global.Data,
-	commands []cmd.Command,
-) (command cmd.Command, cmdName string, err error) {
+	commands []argparser.Command,
+) (command argparser.Command, cmdName string, err error) {
 	// As the `help` command model gets privately added as a side-effect of
 	// kingpin.Parse, we cannot add the `--format json` flag to the model.
 	// Therefore, we have to manually parse the args slice here to check for the
 	// existence of `help --format json`, if present we print usage JSON and
 	// exit early.
-	if cmd.ArgsIsHelpJSON(opts.Args) {
+	if argparser.ArgsIsHelpJSON(data.Args) {
 		j, err := UsageJSON(app)
 		if err != nil {
-			g.ErrLog.Add(err)
+			data.ErrLog.Add(err)
 			return command, cmdName, err
 		}
-		fmt.Fprintf(opts.Stdout, "%s", j)
-		return command, strings.Join(opts.Args, ""), nil
+		fmt.Fprintf(data.Output, "%s", j)
+		return command, strings.Join(data.Args, ""), nil
 	}
 
 	// Use partial application to generate help output function.
-	help := displayHelp(g.ErrLog, opts.Args, app, opts.Stdout, io.Discard)
+	help := displayHelp(data.ErrLog, data.Args, app, data.Output, io.Discard)
 
 	// Handle parse errors and display contextual usage if possible. Due to bugs
 	// and an obsession for lots of output side-effects in the kingpin.Parse
@@ -248,14 +251,14 @@ func processCommandInput(
 	// But it's useful to have it implemented so it's ready to roll when we do.
 	var vars map[string]any
 
-	if cmd.IsVerboseAndQuiet(opts.Args) {
+	if argparser.IsVerboseAndQuiet(data.Args) {
 		return command, cmdName, fsterr.RemediationError{
 			Inner:       errors.New("--verbose and --quiet flag provided"),
 			Remediation: "Either remove both --verbose and --quiet flags, or one of them.",
 		}
 	}
 
-	if cmd.IsHelpFlagOnly(opts.Args) && len(opts.Args) == 1 {
+	if argparser.IsHelpFlagOnly(data.Args) && len(data.Args) == 1 {
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),
@@ -282,14 +285,21 @@ func processCommandInput(
 	//
 	// ctx.SelectedCommand will be nil if only a flag like --verbose or -v is
 	// provided but with no actual command set so we check with IsGlobalFlagsOnly.
-	noargs := len(opts.Args) == 0
-	globalFlagsOnly := cmd.IsGlobalFlagsOnly(opts.Args)
-	ctx, err := app.ParseContext(opts.Args)
-	if err != nil && !cmd.IsCompletion(opts.Args) || noargs || globalFlagsOnly {
+	noargs := len(data.Args) == 0
+	globalFlagsOnly := argparser.IsGlobalFlagsOnly(data.Args)
+	ctx, err := app.ParseContext(data.Args)
+	if err != nil && !argparser.IsCompletion(data.Args) || noargs || globalFlagsOnly {
 		if noargs || globalFlagsOnly {
 			err = fmt.Errorf("command not specified")
 		}
 		return command, cmdName, help(vars, err)
+	}
+
+	if len(data.Args) == 1 && data.Args[0] == "--" {
+		return command, cmdName, fsterr.RemediationError{
+			Inner:       errors.New("-- is invalid input when not followed by a positional argument"),
+			Remediation: "If looking for help output try: `fastly help` for full command list or `fastly --help` for command summary.",
+		}
 	}
 
 	// NOTE: `fastly help`, no flags, or only globals, should skip conditional.
@@ -301,14 +311,14 @@ func processCommandInput(
 	// completion flag, as that depends on kingpin.Parse() being called, and so
 	// the `ctx` is otherwise empty.
 	var found bool
-	if !noargs && !globalFlagsOnly && !cmd.IsHelpOnly(opts.Args) && !cmd.IsHelpFlagOnly(opts.Args) && !cmd.IsCompletion(opts.Args) && !cmd.IsCompletionScript(opts.Args) {
-		command, found = cmd.Select(ctx.SelectedCommand.FullCommand(), commands)
+	if !noargs && !globalFlagsOnly && !argparser.IsHelpOnly(data.Args) && !argparser.IsHelpFlagOnly(data.Args) && !argparser.IsCompletion(data.Args) && !argparser.IsCompletionScript(data.Args) {
+		command, found = argparser.Select(ctx.SelectedCommand.FullCommand(), commands)
 		if !found {
 			return command, cmdName, help(vars, err)
 		}
 	}
 
-	if cmd.ContextHasHelpFlag(ctx) && !cmd.IsHelpFlagOnly(opts.Args) {
+	if argparser.ContextHasHelpFlag(ctx) && !argparser.IsHelpFlagOnly(data.Args) {
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),
@@ -335,21 +345,21 @@ func processCommandInput(
 	// caller passes --completion-bash because adding a command to the arguments
 	// list in that scenario would cause Kingpin logic to fail (as it expects the
 	// flag to be used on its own).
-	if cmd.IsCompletionScript(opts.Args) {
-		opts.Args = append(opts.Args, "shellcomplete")
+	if argparser.IsCompletionScript(data.Args) {
+		data.Args = append(data.Args, "shellcomplete")
 	}
 
-	cmdName, err = app.Parse(opts.Args)
+	cmdName, err = app.Parse(data.Args)
 	if err != nil {
 		return command, "", help(vars, err)
 	}
 
 	// Restore output writers
-	app.Writers(opts.Stdout, io.Discard)
+	app.Writers(data.Output, io.Discard)
 
 	// Kingpin generates shell completion as a side-effect of kingpin.Parse() so
 	// we allow it to call os.Exit, only if a completion flag is present.
-	if cmd.IsCompletion(opts.Args) || cmd.IsCompletionScript(opts.Args) {
+	if argparser.IsCompletion(data.Args) || argparser.IsCompletionScript(data.Args) {
 		app.Terminate(os.Exit)
 		return command, "shell-autocomplete", nil
 	}
@@ -359,33 +369,17 @@ func processCommandInput(
 	// here by calling Parse, again swapping the Writers. This also ensures the
 	// larger and more verbose help formatting is used.
 	if cmdName == "help" {
-		var buf bytes.Buffer
-		app.Writers(&buf, io.Discard)
-		_, _ = app.Parse(opts.Args)
-		app.Writers(opts.Stdout, io.Discard)
-
-		// The full-fat output of `fastly help` should have a hint at the bottom
-		// for more specific help. Unfortunately I don't know of a better way to
-		// distinguish `fastly help` from e.g. `fastly help pops` than this check.
-		if len(opts.Args) > 0 && opts.Args[len(opts.Args)-1] == "help" {
-			fmt.Fprintln(&buf, "\nFor help on a specific command, try e.g.")
-			fmt.Fprintln(&buf, "")
-			fmt.Fprintln(&buf, "\tfastly help profile")
-			fmt.Fprintln(&buf, "\tfastly profile --help")
-			fmt.Fprintln(&buf, "")
-		}
-
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err: fsterr.RemediationError{
-				Prefix: buf.String(),
+				Prefix: useFullHelpOutput(app, data.Args, data.Output).String(),
 			},
 		}
 	}
 
 	// Catch scenario where user wants to view help with the following format:
 	// fastly --help <command>
-	if cmd.IsHelpFlagOnly(opts.Args) {
+	if argparser.IsHelpFlagOnly(data.Args) {
 		return command, cmdName, fsterr.SkipExitError{
 			Skip: true,
 			Err:  help(vars, nil),
@@ -395,9 +389,28 @@ func processCommandInput(
 	return command, cmdName, nil
 }
 
+func useFullHelpOutput(app *kingpin.Application, args []string, out io.Writer) *bytes.Buffer {
+	var buf bytes.Buffer
+	app.Writers(&buf, io.Discard)
+	_, _ = app.Parse(args)
+	app.Writers(out, io.Discard)
+
+	// The full-fat output of `fastly help` should have a hint at the bottom
+	// for more specific help. Unfortunately I don't know of a better way to
+	// distinguish `fastly help` from e.g. `fastly help pops` than this check.
+	if len(args) > 0 && args[len(args)-1] == "help" {
+		fmt.Fprintln(&buf, "\nFor help on a specific command, try e.g.")
+		fmt.Fprintln(&buf, "")
+		fmt.Fprintln(&buf, "\tfastly help profile")
+		fmt.Fprintln(&buf, "\tfastly profile --help")
+		fmt.Fprintln(&buf, "")
+	}
+	return &buf
+}
+
 // metadata is combined into the usage output so the Developer Hub can display
 // additional information about how to use the commands and what APIs they call.
-// e.g. https://developer.fastly.com/reference/cli/vcl/snippet/create/
+// e.g. https://www.fastly.com/documentation/reference/cli/vcl/snippet/create/
 //
 //go:embed metadata.json
 var metadata []byte
@@ -544,7 +557,7 @@ func recurse(n int, segs []string, data commandsMetadata) commandsMetadata {
 	return nil
 }
 
-// resolveToString extracts a value from a map as a string
+// resolveToString extracts a value from a map as a string.
 func resolveToString(i any, key string) string {
 	m, ok := i.(map[string]any)
 	if ok {

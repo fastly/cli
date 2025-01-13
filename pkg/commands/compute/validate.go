@@ -10,7 +10,7 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -18,12 +18,12 @@ import (
 )
 
 // NewValidateCommand returns a usable command registered under the parent.
-func NewValidateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ValidateCommand {
+func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCommand {
 	var c ValidateCommand
 	c.Globals = g
-	c.manifest = m
-	c.CmdClause = parent.Command("validate", "Validate a Compute@Edge package")
+	c.CmdClause = parent.Command("validate", "Validate a Compute package")
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.path)
+	c.CmdClause.Flag("env", "The manifest environment config to validate (e.g. 'stage' will attempt to read 'fastly.stage.toml' inside the package)").StringVar(&c.env)
 	return &c
 }
 
@@ -31,11 +31,11 @@ func NewValidateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	packagePath := c.path
 	if packagePath == "" {
-		projectName, source := c.manifest.Name()
+		projectName, source := c.Globals.Manifest.Name()
 		if source == manifest.SourceUndefined {
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("failed to read project name: %w", fsterr.ErrReadingManifest),
-				Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+				Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
 			}
 		}
 		packagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
@@ -49,13 +49,20 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("error reading file path: %w", err)
 	}
 
+	if c.env != "" {
+		manifestFilename := fmt.Sprintf("fastly.%s.toml", c.env)
+		if c.Globals.Verbose() {
+			text.Info(out, "Using the '%s' environment manifest (it will be packaged up as %s)\n\n", manifestFilename, manifest.Filename)
+		}
+	}
+
 	if err := validatePackageContent(p); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Path": c.path,
 		})
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("failed to validate package: %w", err),
-			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+			Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
 
@@ -65,9 +72,9 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // ValidateCommand validates a package archive.
 type ValidateCommand struct {
-	cmd.Base
-	manifest manifest.Data
-	path     string
+	argparser.Base
+	env  string
+	path string
 }
 
 // validatePackageContent is a utility function to determine whether a package
@@ -76,9 +83,11 @@ type ValidateCommand struct {
 //
 // NOTE: This function is also called by the `deploy` command.
 func validatePackageContent(pkgPath string) error {
+	// False positive https://github.com/semgrep/semgrep/issues/8593
+	// nosemgrep: trailofbits.go.iterate-over-empty-map.iterate-over-empty-map
 	files := map[string]bool{
-		"fastly.toml": false,
-		"main.wasm":   false,
+		manifest.Filename: false,
+		"main.wasm":       false,
 	}
 
 	if err := packageFiles(pkgPath, func(f archiver.File) error {

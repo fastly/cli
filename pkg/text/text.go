@@ -47,29 +47,44 @@ func Wrap(text string, width uint) string {
 		if line == "" {
 			continue
 		}
-		b.WriteString(line + " ")
+		_, _ = b.WriteString(line + " ")
 	}
 	return wordwrap.WrapString(strings.TrimSpace(b.String()), width)
 }
 
 // WrapIndent a string at word boundaries with a maximum line length of width
 // and indenting the lines by a specified number of spaces.
-func WrapIndent(s string, lim uint, indent uint) string {
-	lim -= indent
-	wrapped := wordwrap.WrapString(s, lim)
+func WrapIndent(s string, limit uint, indent uint) string {
+	limit -= indent
+	wrapped := wordwrap.WrapString(s, limit)
 	var result []string
 	for _, line := range strings.Split(wrapped, "\n") {
+		// gosec G115 complains about this uint->int cast, but we
+		// know that it is safe here because the valid values
+		// for 'indent' are too small to cause an overflow
+		// #nosec G115
 		result = append(result, strings.Repeat(" ", int(indent))+line)
 	}
 	return strings.Join(result, "\n")
 }
 
+// Indent writes the help text to the writer using WrapIndent with
+// DefaultTextWidth, suffixed by a newlines. It's intended to be used to provide
+// detailed information, context, or help to the user.
+func Indent(w io.Writer, indent uint, format string, args ...any) {
+	text := fmt.Sprintf(format, args...)
+	fmt.Fprintf(w, "%s\n", WrapIndent(text, DefaultTextWidth, indent))
+}
+
 // Output writes the help text to the writer using Wrap with DefaultTextWidth,
-// suffixed by a newlines. It's intended to be used to provide detailed
+// suffixed by a newline. It's intended to be used to provide detailed
 // information, context, or help to the user.
 func Output(w io.Writer, format string, args ...any) {
-	text := fmt.Sprintf(format, args...)
-	fmt.Fprintf(w, "%s\n", Wrap(text, DefaultTextWidth))
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, strings.Repeat("\n", prefix)+Wrap(txt, DefaultTextWidth)+strings.Repeat("\n", suffix), args...)
 }
 
 // Input prints the prefix to the writer, and then reads a single line from the
@@ -135,6 +150,13 @@ func InputSecure(w io.Writer, prefix string, r io.Reader, validators ...func(str
 
 	read := func() (string, error) {
 		fmt.Fprint(w, Bold(prefix))
+		// IMPORTANT: Windows will fail if you remove the `int()` conversion.
+		//
+		// cannot use syscall.Stdin (variable of type syscall.Handle) as int value in argument to term.ReadPassword)
+		//
+		// This is because on *nix systems syscall.Stdin is already an int.
+		// But on Windows it's a Handle type:
+		// https://github.com/golang/go/blob/8d2eb290f83bca7d3b5154c6a7b3ac7546df5e8a/src/syscall/syscall_windows.go#L522
 		p, err := term.ReadPassword(int(syscall.Stdin))
 		if err != nil {
 			return "", err
@@ -165,7 +187,7 @@ outer:
 // one of true (yes and its variants) or false (no, its variants and
 // anything else) on success.
 func AskYesNo(w io.Writer, prompt string, r io.Reader) (bool, error) {
-	answer, err := Input(w, prompt, r)
+	answer, err := Input(w, Prompt(prompt), r)
 	if err != nil {
 		return false, fmt.Errorf("error reading input %w", err)
 	}
@@ -182,34 +204,75 @@ func Break(w io.Writer) {
 	fmt.Fprintln(w)
 }
 
+// BreakN writes n newlines to the writer. It's intended to be used between
+// blocks of text that would otherwise be adjacent, a sort of semantic markup.
+func BreakN(w io.Writer, n int) {
+	if n == 0 {
+		return
+	}
+	for i := 1; i <= n; i++ {
+		fmt.Fprintln(w)
+	}
+}
+
 // Deprecated is a wrapper for fmt.Fprintf with a bold red "DEPRECATED: " prefix.
 func Deprecated(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldRed("DEPRECATED: ")+format, DefaultTextWidth)+"\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldRed, "DEPRECATED", txt, prefix, suffix), args...)
 }
 
 // Error is a wrapper for fmt.Fprintf with a bold red "ERROR: " prefix.
 func Error(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldRed("ERROR: ")+format, DefaultTextWidth)+"\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldRed, "ERROR", txt, prefix, suffix), args...)
 }
 
-// Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
-func Warning(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldYellow("WARNING: ")+format, DefaultTextWidth)+"\n", args...)
+// Important is a wrapper for fmt.Fprintf with a bold yellow "IMPORTANT: " prefix.
+func Important(w io.Writer, format string, args ...any) {
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldYellow, "IMPORTANT", txt, prefix, suffix), args...)
 }
 
 // Info is a wrapper for fmt.Fprintf with a bold "INFO: " prefix.
 func Info(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(Bold("INFO: ")+format, DefaultTextWidth)+"\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldCyan, "INFO", txt, prefix, suffix), args...)
 }
 
 // Success is a wrapper for fmt.Fprintf with a bold green "SUCCESS: " prefix.
 func Success(w io.Writer, format string, args ...any) {
-	format = strings.TrimRight(format, "\r\n") + "\n"
-	fmt.Fprintf(w, "\n"+Wrap(BoldGreen("SUCCESS: ")+format, DefaultTextWidth)+"\n", args...)
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldGreen, "SUCCESS", txt, prefix, suffix), args...)
+}
+
+// Warning is a wrapper for fmt.Fprintf with a bold yellow "WARNING: " prefix.
+func Warning(w io.Writer, format string, args ...any) {
+	prefix, suffix, txt := ParseBreaks(format)
+	if suffix == 0 {
+		suffix++
+	}
+	fmt.Fprintf(w, WrapString(BoldYellow, "WARNING", txt, prefix, suffix), args...)
+}
+
+// WrapString produces string with correct wrapping and prefix/suffix linebreaks.
+func WrapString(fn ColorFn, msg, txt string, prefix, suffix int) string {
+	msg = fmt.Sprintf("%s: ", msg)
+	return strings.Repeat("\n", prefix) + Wrap(fn(msg)+txt, DefaultTextWidth) + strings.Repeat("\n", suffix)
 }
 
 // Description formats the output of a description item. A description item
@@ -222,10 +285,26 @@ func Description(w io.Writer, intro, description string) {
 	fmt.Fprintf(w, "%s:\n\t%s\n\n", intro, Bold(description))
 }
 
-// Indent writes the help text to the writer using WrapIndent with
-// DefaultTextWidth, suffixed by a newlines. It's intended to be used to provide
-// detailed information, context, or help to the user.
-func Indent(w io.Writer, indent uint, format string, args ...any) {
-	text := fmt.Sprintf(format, args...)
-	fmt.Fprintf(w, "%s\n", WrapIndent(text, DefaultTextWidth, indent))
+// ParseBreaks returns the linebreak count at the start/end of the input.
+//
+// NOTE: Any line breaks inside the main text will be stripped.
+func ParseBreaks(input string) (prefix, suffix int, txt string) {
+	var (
+		incrementSuffix bool
+		txts            []string
+	)
+	parts := strings.Split(input, "\n")
+	for _, p := range parts {
+		if p == "" && !incrementSuffix {
+			prefix++
+			continue
+		}
+		incrementSuffix = true
+		if p == "" {
+			suffix++
+		} else {
+			txts = append(txts, p)
+		}
+	}
+	return prefix, suffix, strings.Join(txts, " ")
 }

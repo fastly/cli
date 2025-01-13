@@ -1,14 +1,14 @@
 package subscription_test
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	root "github.com/fastly/cli/pkg/commands/tls/subscription"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const (
@@ -19,12 +19,10 @@ const (
 	validateMissingIDFlag = "validate missing --id flag"
 )
 
-func TestCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSSubscriptionCreate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --domain flag",
-			Args:      args("tls-subscription create"),
 			WantError: "required flag --domain not provided",
 		},
 		{
@@ -34,7 +32,7 @@ func TestCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-subscription create --domain example.com"),
+			Args:      "--domain example.com",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -50,30 +48,74 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-subscription create --domain example.com"),
+			Args:       "--domain example.com",
 			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: %s, Common Name: example.com)", mockResponseID, certificateAuthority),
+		},
+		{
+			Name: "validate cert-auth == certainly",
+			API: mock.API{
+				CreateTLSSubscriptionFn: func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+					return &fastly.TLSSubscription{
+						ID:                   mockResponseID,
+						CertificateAuthority: i.CertificateAuthority,
+						CommonName:           i.Domains[0],
+					}, nil
+				},
+			},
+			Args:       "--domain example.com --cert-auth certainly",
+			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: certainly, Common Name: example.com)", mockResponseID),
+		},
+		{
+			Name: "validate cert-auth == lets-encrypt",
+			API: mock.API{
+				CreateTLSSubscriptionFn: func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+					return &fastly.TLSSubscription{
+						ID:                   mockResponseID,
+						CertificateAuthority: i.CertificateAuthority,
+						CommonName:           i.Domains[0],
+					}, nil
+				},
+			},
+			Args:       "--domain example.com --cert-auth lets-encrypt",
+			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: lets-encrypt, Common Name: example.com)", mockResponseID),
+		},
+		{
+			Name: "validate cert-auth == globalsign",
+			API: mock.API{
+				CreateTLSSubscriptionFn: func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+					return &fastly.TLSSubscription{
+						ID:                   mockResponseID,
+						CertificateAuthority: i.CertificateAuthority,
+						CommonName:           i.Domains[0],
+					}, nil
+				},
+			},
+			Args:       "--domain example.com --cert-auth globalsign",
+			WantOutput: fmt.Sprintf("Created TLS Subscription '%s' (Authority: globalsign, Common Name: example.com)", mockResponseID),
+		},
+		{
+			Name: "validate cert-auth is invalid",
+			API: mock.API{
+				CreateTLSSubscriptionFn: func(i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
+					return &fastly.TLSSubscription{
+						ID:                   mockResponseID,
+						CertificateAuthority: i.CertificateAuthority,
+						CommonName:           i.Domains[0],
+					}, nil
+				},
+			},
+			Args:      "--domain example.com --cert-auth not-valid",
+			WantError: "enum value must be one of certainly,lets-encrypt,globalsign",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
-func TestDelete(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSSubscriptionDelete(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-subscription delete"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -83,7 +125,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("tls-subscription delete --id example"),
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -93,30 +135,18 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("tls-subscription delete --id example"),
+			Args:       "--id example",
 			WantOutput: "Deleted TLS Subscription 'example' (force: false)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
-func TestDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSSubscriptionDescribe(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-subscription describe"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -126,7 +156,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-subscription describe --id example"),
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -143,27 +173,16 @@ func TestDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-subscription describe --id example"),
+			Args:       "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nCertificate Authority: " + certificateAuthority + "\nState: pending\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
-func TestList(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSSubscriptionList(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -171,7 +190,6 @@ func TestList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-subscription list"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -190,30 +208,18 @@ func TestList(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-subscription list --verbose"),
+			Args:       "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nCertificate Authority: " + certificateAuthority + "\nState: pending\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
-func TestUpdate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSSubscriptionUpdate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-subscription update"),
 			WantError: "required flag --id not provided",
 		},
 		{
@@ -223,7 +229,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-subscription update --id example"),
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -239,20 +245,10 @@ func TestUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-subscription update --id example"),
+			Args:       "--id example",
 			WantOutput: fmt.Sprintf("Updated TLS Subscription '%s' (Authority: %s, Common Name: example.com)", mockResponseID, certificateAuthority),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

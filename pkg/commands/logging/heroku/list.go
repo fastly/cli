@@ -4,55 +4,53 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ListCommand calls the Fastly API to list Heroku logging endpoints.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest       manifest.Data
 	Input          fastly.ListHerokusInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List Heroku endpoints on a Fastly service version")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -64,10 +62,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -82,7 +79,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListHerokus(&c.Input)
 	if err != nil {
@@ -98,7 +95,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, heroku := range o {
-			tw.AddLine(heroku.ServiceID, heroku.ServiceVersion, heroku.Name)
+			tw.AddLine(
+				fastly.ToValue(heroku.ServiceID),
+				fastly.ToValue(heroku.ServiceVersion),
+				fastly.ToValue(heroku.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -107,15 +108,15 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, heroku := range o {
 		fmt.Fprintf(out, "\tHeroku %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", heroku.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", heroku.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", heroku.Name)
-		fmt.Fprintf(out, "\t\tURL: %s\n", heroku.URL)
-		fmt.Fprintf(out, "\t\tToken: %s\n", heroku.Token)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", heroku.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", heroku.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", heroku.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", heroku.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(heroku.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(heroku.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(heroku.Name))
+		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(heroku.URL))
+		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(heroku.Token))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(heroku.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(heroku.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(heroku.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(heroku.Placement))
 	}
 	fmt.Fprintln(out)
 

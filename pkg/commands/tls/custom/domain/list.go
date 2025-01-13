@@ -4,22 +4,21 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const emptyString = ""
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List all TLS domains")
 	c.Globals = g
-	c.manifest = m
 
 	// Optional.
 	c.CmdClause.Flag("filter-cert", "Limit the returned domains to those listed in the given TLS certificate's SAN list").StringVar(&c.filterTLSCertsID)
@@ -36,14 +35,13 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	filterInUse      cmd.OptionalBool
+	filterInUse      argparser.OptionalBool
 	filterTLSCertsID string
 	filterTLSSubsID  string
 	include          string
-	manifest         manifest.Data
 	pageNumber       int
 	pageSize         int
 	sort             string

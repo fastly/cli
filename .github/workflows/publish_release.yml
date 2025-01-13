@@ -1,0 +1,50 @@
+name: NPM Release
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+jobs:
+  npm_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Fetch unshallow repo"
+        run: git fetch --prune --unshallow
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Set up auth for GitHub packages
+        run: |
+          npm config set "//npm.pkg.github.com/:_authToken" "\${NODE_AUTH_TOKEN}"
+      - name: Update npm packages to latest version
+        working-directory: ./npm/@fastly/cli
+        run: npm install && npm version "${{ github.ref_name }}" --allow-same-version
+      - name: Publish packages to npmjs.org
+        working-directory: ./npm/@fastly
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for dir in *; do
+            (
+              echo $dir
+              cd $dir
+              npm publish --access=public
+            )
+          done
+      - name: Publish packages to GitHub packages
+        working-directory: ./npm/@fastly
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm config set "@fastly:registry" "https://npm.pkg.github.com/"
+          for dir in *; do
+            (
+              echo $dir
+              cd $dir
+              npm publish --access=public
+            )
+          done

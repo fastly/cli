@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/sftp"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -12,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateSFTPInput(t *testing.T) {
@@ -28,10 +29,10 @@ func TestCreateSFTPInput(t *testing.T) {
 			want: &fastly.CreateSFTPInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				Address:        fastly.String("127.0.0.1"),
-				User:           fastly.String("user"),
-				SSHKnownHosts:  fastly.String(knownHosts()),
+				Name:           fastly.ToPointer("log"),
+				Address:        fastly.ToPointer("127.0.0.1"),
+				User:           fastly.ToPointer("user"),
+				SSHKnownHosts:  fastly.ToPointer(knownHosts()),
 			},
 		},
 		{
@@ -40,23 +41,23 @@ func TestCreateSFTPInput(t *testing.T) {
 			want: &fastly.CreateSFTPInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				Address:           fastly.String("127.0.0.1"),
-				Port:              fastly.Int(80),
-				User:              fastly.String("user"),
-				Password:          fastly.String("password"),
-				PublicKey:         fastly.String(pgpPublicKey()),
-				SecretKey:         fastly.String(sshPrivateKey()),
-				SSHKnownHosts:     fastly.String(knownHosts()),
-				Path:              fastly.String("/log"),
-				Period:            fastly.Int(3600),
-				FormatVersion:     fastly.Int(2),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				MessageType:       fastly.String("classic"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.String("none"),
-				CompressionCodec:  fastly.String("zstd"),
+				Name:              fastly.ToPointer("log"),
+				Address:           fastly.ToPointer("127.0.0.1"),
+				Port:              fastly.ToPointer(80),
+				User:              fastly.ToPointer("user"),
+				Password:          fastly.ToPointer("password"),
+				PublicKey:         fastly.ToPointer(pgpPublicKey()),
+				SecretKey:         fastly.ToPointer(sshPrivateKey()),
+				SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+				Path:              fastly.ToPointer("/log"),
+				Period:            fastly.ToPointer(3600),
+				FormatVersion:     fastly.ToPointer(2),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				MessageType:       fastly.ToPointer("classic"),
+				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+				Placement:         fastly.ToPointer("none"),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -71,7 +72,7 @@ func TestCreateSFTPInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -90,7 +91,7 @@ func TestCreateSFTPInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -118,24 +119,24 @@ func TestUpdateSFTPInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				Address:           fastly.String("new2"),
-				Port:              fastly.Int(81),
-				User:              fastly.String("new3"),
-				SSHKnownHosts:     fastly.String("new4"),
-				Password:          fastly.String("new5"),
-				PublicKey:         fastly.String("new6"),
-				SecretKey:         fastly.String("new7"),
-				Path:              fastly.String("new8"),
-				Period:            fastly.Int(3601),
-				FormatVersion:     fastly.Int(3),
-				GzipLevel:         fastly.Int(0),
-				Format:            fastly.String("new9"),
-				ResponseCondition: fastly.String("new10"),
-				TimestampFormat:   fastly.String("new11"),
-				Placement:         fastly.String("new12"),
-				MessageType:       fastly.String("new13"),
-				CompressionCodec:  fastly.String("new14"),
+				NewName:           fastly.ToPointer("new1"),
+				Address:           fastly.ToPointer("new2"),
+				Port:              fastly.ToPointer(81),
+				User:              fastly.ToPointer("new3"),
+				SSHKnownHosts:     fastly.ToPointer("new4"),
+				Password:          fastly.ToPointer("new5"),
+				PublicKey:         fastly.ToPointer("new6"),
+				SecretKey:         fastly.ToPointer("new7"),
+				Path:              fastly.ToPointer("new8"),
+				Period:            fastly.ToPointer(3601),
+				FormatVersion:     fastly.ToPointer(3),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new9"),
+				ResponseCondition: fastly.ToPointer("new10"),
+				TimestampFormat:   fastly.ToPointer("new11"),
+				Placement:         fastly.ToPointer("new12"),
+				MessageType:       fastly.ToPointer("new13"),
+				CompressionCodec:  fastly.ToPointer("new14"),
 			},
 		},
 		{
@@ -168,7 +169,7 @@ func TestUpdateSFTPInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -187,7 +188,7 @@ func TestUpdateSFTPInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -206,10 +207,10 @@ func createCommandRequired() *sftp.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &sftp.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -217,21 +218,21 @@ func createCommandRequired() *sftp.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Address:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1"},
-		User:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		SSHKnownHosts: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: knownHosts()},
+		EndpointName:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Address:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "127.0.0.1"},
+		User:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		SSHKnownHosts: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: knownHosts()},
 	}
 }
 
@@ -246,10 +247,10 @@ func createCommandAll() *sftp.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &sftp.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -257,34 +258,34 @@ func createCommandAll() *sftp.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "127.0.0.1"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		SSHKnownHosts:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: knownHosts()},
-		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 80},
-		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "password"},
-		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: pgpPublicKey()},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: sshPrivateKey()},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/log"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		Address:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "127.0.0.1"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		SSHKnownHosts:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: knownHosts()},
+		Port:              argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 80},
+		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "password"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: pgpPublicKey()},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: sshPrivateKey()},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "/log"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3600},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -304,7 +305,7 @@ func updateCommandNoUpdates() *sftp.UpdateCommand {
 	}
 
 	return &sftp.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -313,12 +314,12 @@ func updateCommandNoUpdates() *sftp.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -337,7 +338,7 @@ func updateCommandAll() *sftp.UpdateCommand {
 	}
 
 	return &sftp.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -346,35 +347,35 @@ func updateCommandAll() *sftp.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		Address:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		SSHKnownHosts:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		Port:              cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 81},
-		Password:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3601},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		GzipLevel:         cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 0},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new13"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new14"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		Address:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		SSHKnownHosts:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		Port:              argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 81},
+		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3601},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		GzipLevel:         argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 0},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
 	}
 }
 

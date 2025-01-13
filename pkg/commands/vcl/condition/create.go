@@ -3,55 +3,54 @@ package condition
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ConditionTypes are the allowed input values for the --type flag.
-// Reference: https://developer.fastly.com/reference/api/vcl-services/condition/
+// Reference: https://www.fastly.com/documentation/reference/api/vcl-services/condition
 var ConditionTypes = []string{"REQUEST", "CACHE", "RESPONSE", "PREFETCH"}
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
-	manifest manifest.Data
+	argparser.Base
 
 	// Required.
-	serviceVersion cmd.OptionalServiceVersion
+	serviceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	autoClone     cmd.OptionalAutoClone
-	conditionType cmd.OptionalString
-	name          cmd.OptionalString
-	priority      cmd.OptionalInt
-	serviceName   cmd.OptionalServiceNameID
-	statement     cmd.OptionalString
+	autoClone     argparser.OptionalAutoClone
+	conditionType argparser.OptionalString
+	name          argparser.OptionalString
+	priority      argparser.OptionalInt
+	serviceName   argparser.OptionalServiceNameID
+	statement     argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
-	c.CmdClause = parent.Command("create", "Create a condtion on a Fastly service version").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a condition on a Fastly service version").Alias("add")
 
 	// Required flags
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional flags
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -59,16 +58,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("priority", "Condition priority").Action(c.priority.Set).IntVar(&c.priority.Value)
 	c.CmdClause.Flag("statement", "Condition statement").Action(c.statement.Set).StringVar(&c.statement.Value)
 	c.CmdClause.Flag("type", "Condition type").HintOptions(ConditionTypes...).Action(c.conditionType.Set).EnumVar(&c.conditionType.Value, ConditionTypes...)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
@@ -77,17 +76,19 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": errors.ServiceVersion(serviceVersion),
 		})
@@ -96,7 +97,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := fastly.CreateConditionInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
 	if c.name.WasSet {
@@ -113,13 +114,18 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	r, err := c.Globals.APIClient.CreateCondition(&input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
 
-	text.Success(out, "Created condition %s (service %s version %d)", r.Name, r.ServiceID, r.ServiceVersion)
+	text.Success(out,
+		"Created condition %s (service %s version %d)",
+		fastly.ToValue(r.Name),
+		fastly.ToValue(r.ServiceID),
+		fastly.ToValue(r.ServiceVersion),
+	)
 	return nil
 }

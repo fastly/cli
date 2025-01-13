@@ -3,10 +3,11 @@ package service
 import (
 	"fmt"
 	"io"
+	"strconv"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -15,27 +16,30 @@ import (
 
 // ListCommand calls the Fastly API to list services.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	input fastly.ListServicesInput
+	direction     string
+	page, perPage int
+	input         fastly.GetServicesInput
+	sort          string
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 	c.CmdClause = parent.Command("list", "List Fastly services")
 
 	// Optional.
-	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.input.Direction, cmd.PaginationDirection...)
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.direction, argparser.PaginationDirection...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.input.Page)
-	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.input.PerPage)
-	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.input.Sort)
+	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
+	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
+	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.sort)
 	return &c
 }
 
@@ -45,7 +49,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	paginator := c.Globals.APIClient.NewListServicesPaginator(&c.input)
+	c.input.Direction = &c.direction
+	c.input.Page = &c.page
+	c.input.PerPage = &c.perPage
+	c.input.Sort = &c.sort
+	paginator := c.Globals.APIClient.GetServices(&c.input)
 
 	var o []*fastly.Service
 	for paginator.HasNext() {
@@ -72,14 +80,20 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 				updatedAt = service.UpdatedAt.UTC().Format(time.Format)
 			}
 
-			activeVersion := fmt.Sprint(service.ActiveVersion)
+			activeVersion := strconv.Itoa(fastly.ToValue(service.ActiveVersion))
 			for _, v := range service.Versions {
-				if int(v.Number) == service.ActiveVersion && !v.Active {
+				if fastly.ToValue(v.Number) == fastly.ToValue(service.ActiveVersion) && !fastly.ToValue(v.Active) {
 					activeVersion = "n/a"
 				}
 			}
 
-			tw.AddLine(service.Name, service.ID, service.Type, activeVersion, updatedAt)
+			tw.AddLine(
+				fastly.ToValue(service.Name),
+				fastly.ToValue(service.ServiceID),
+				fastly.ToValue(service.Type),
+				activeVersion,
+				updatedAt,
+			)
 		}
 		tw.Print()
 		return nil

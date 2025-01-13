@@ -9,7 +9,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl/#create-acl"
+        "https://www.fastly.com/documentation/reference/api/acls/acl#create-acl"
       ]
     },
     "delete": {
@@ -20,7 +20,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl/#delete-acl"
+        "https://www.fastly.com/documentation/reference/api/acls/acl#delete-acl"
       ]
     },
     "describe": {
@@ -31,7 +31,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl/#get-acl"
+        "https://www.fastly.com/documentation/reference/api/acls/acl#get-acl"
       ]
     },
     "list": {
@@ -42,7 +42,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl/#list-acls"
+        "https://www.fastly.com/documentation/reference/api/acls/acl#list-acls"
       ]
     },
     "update": {
@@ -53,7 +53,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl/#update-acl"
+        "https://www.fastly.com/documentation/reference/api/acls/acl#update-acl"
       ]
     }
   },
@@ -70,7 +70,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl-entry/#create-acl-entry"
+        "https://www.fastly.com/documentation/reference/api/acls/acl-entry#create-acl-entry"
       ]
     },
     "delete": {
@@ -81,7 +81,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl-entry/#delete-acl-entry"
+        "https://www.fastly.com/documentation/reference/api/acls/acl-entry#delete-acl-entry"
       ]
     },
     "describe": {
@@ -92,7 +92,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl-entry/#get-acl-entry"
+        "https://www.fastly.com/documentation/reference/api/acls/acl-entry#get-acl-entry"
       ]
     },
     "list": {
@@ -103,7 +103,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl-entry/#list-acl-entries"
+        "https://www.fastly.com/documentation/reference/api/acls/acl-entry#list-acl-entries"
       ]
     },
     "update": {
@@ -114,43 +114,43 @@
         },
         {
           "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --file ./batch.json",
-          "description": "Update multiple ACL entries using a [JSON batch file](https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries).",
+          "description": "Update multiple ACL entries using a [JSON batch file](https://www.fastly.com/documentation/reference/api/acls/acl-entry#bulk-update-acl-entries).",
           "title": "Update multiple ACL entries in the specified ACL using a local file"
         },
         {
           "cmd": "fastly acl-entry update --acl-id SU1Z0isxPaozGVKXdv0eY --file \"$(< batch.json)\"",
-          "description": "Update multiple ACL entries using a [JSON batch file](https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries)'s content passed in using shell command substitution.",
+          "description": "Update multiple ACL entries using a [JSON batch file](https://www.fastly.com/documentation/reference/api/acls/acl-entry#bulk-update-acl-entries)'s content passed in using shell command substitution.",
           "title": "Update multiple ACL entries in the specified ACL using command substitution"
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries",
-        "https://developer.fastly.com/reference/api/acls/acl-entry/#update-acl-entry"
+        "https://www.fastly.com/documentation/reference/api/acls/acl-entry#bulk-update-acl-entries",
+        "https://www.fastly.com/documentation/reference/api/acls/acl-entry#update-acl-entry"
       ]
     }
   },
   "auth-token": {
     "create": {
       "apis": [
-        "https://developer.fastly.com/reference/api/auth/#create-token"
+        "https://www.fastly.com/documentation/reference/api/auth-tokens#create-token"
       ]
     },
     "delete": {
       "apis": [
-        "https://developer.fastly.com/reference/api/auth/#revoke-token-current",
-        "https://developer.fastly.com/reference/api/auth/#bulk-revoke-tokens",
-        "https://developer.fastly.com/reference/api/auth/#revoke-token"
+        "https://www.fastly.com/documentation/reference/api/auth-tokens#revoke-token-current",
+        "https://www.fastly.com/documentation/reference/api/auth-tokens#bulk-revoke-tokens",
+        "https://www.fastly.com/documentation/reference/api/auth-tokens#revoke-token"
       ]
     },
     "describe": {
       "apis": [
-        "https://developer.fastly.com/reference/api/auth/#get-token-current"
+        "https://www.fastly.com/documentation/reference/api/auth-tokens#get-token-current"
       ]
     },
     "list": {
       "apis": [
-        "https://developer.fastly.com/reference/api/auth/#list-tokens-customer",
-        "https://developer.fastly.com/reference/api/auth/#list-tokens-user"
+        "https://www.fastly.com/documentation/reference/api/auth-tokens#list-tokens-customer",
+        "https://www.fastly.com/documentation/reference/api/auth-tokens#list-tokens-user"
       ]
     }
   },
@@ -164,7 +164,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/backend/#create-backend"
+        "https://www.fastly.com/documentation/reference/api/services/backend#create-backend"
       ]
     },
     "delete": {
@@ -175,7 +175,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/backend/#delete-backend"
+        "https://www.fastly.com/documentation/reference/api/services/backend#delete-backend"
       ]
     },
     "describe": {
@@ -186,7 +186,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/backend/#get-backend"
+        "https://www.fastly.com/documentation/reference/api/services/backend#get-backend"
       ]
     },
     "list": {
@@ -197,7 +197,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/backend/#list-backends"
+        "https://www.fastly.com/documentation/reference/api/services/backend#list-backends"
       ]
     },
     "update": {
@@ -208,7 +208,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/backend/#update-backend"
+        "https://www.fastly.com/documentation/reference/api/services/backend#update-backend"
       ]
     }
   },
@@ -218,7 +218,7 @@
         {
           "cmd": "fastly compute build",
           "description": "In the `fastly.toml` manifest define a new `[scripts]` table and within it define a `build` key with your Yarn instructions. For example, `build = \"yarn install && yarn build\"`.",
-          "title": "Build a JavaScript Compute@Edge package using Yarn instead of NPM"
+          "title": "Build a JavaScript Compute package using Yarn instead of NPM"
         }
       ]
     },
@@ -226,38 +226,38 @@
       "examples": [
         {
           "cmd": "fastly compute deploy --accept-defaults",
-          "description": "The optional `--accept-defaults` flag accepts default values for all prompts if configured via the [fastly.toml](https://developer.fastly.com/reference/compute/fastly-toml/) `[setup]` section and performs a deploy non-interactively",
-          "title": "Deploy a package to a Fastly Compute@Edge service"
+          "description": "The optional `--accept-defaults` flag accepts default values for all prompts if configured via the [fastly.toml](https://www.fastly.com/documentation/reference/compute/fastly-toml) `[setup]` section and performs a deploy non-interactively",
+          "title": "Deploy a package to a Fastly Compute service"
         },
         {
           "cmd": "fastly compute deploy --package ./pkg/example.tar.gz",
           "description": "Use the <kdb>fastly compute pack</kbd> command to package up a pre-compiled Wasm binary and then reference the generated archive file when deploying.",
-          "title": "Deploy a custom package to a Fastly Compute@Edge service"
+          "title": "Deploy a custom package to a Fastly Compute service"
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/service/#create-service",
-        "https://developer.fastly.com/reference/api/services/service/#get-service",
-        "https://developer.fastly.com/reference/api/services/package/#get-package",
-        "https://developer.fastly.com/reference/api/services/package/#put-package"
+        "https://www.fastly.com/documentation/reference/api/services/service#create-service",
+        "https://www.fastly.com/documentation/reference/api/services/service#get-service",
+        "https://www.fastly.com/documentation/reference/api/services/package#get-package",
+        "https://www.fastly.com/documentation/reference/api/services/package#put-package"
       ]
     },
     "init": {
       "examples": [
         {
           "cmd": "fastly compute init --name example --language rust",
-          "description": "To initialize a new Compute@Edge package you must select a supported language. The language can be provided using the optional `--language` flag, which supports tab completion hints, or the flag can be omitted and you'll be prompted interactively. The `--name` flag can also be omitted, which will result in the CLI prompting you interactively.",
-          "title": "Initialize a new Compute@Edge package locally"
+          "description": "To initialize a new Compute package you must select a supported language. The language can be provided using the optional `--language` flag, which supports tab completion hints, or the flag can be omitted and you'll be prompted interactively. The `--name` flag can also be omitted, which will result in the CLI prompting you interactively.",
+          "title": "Initialize a new Compute package locally"
         },
         {
           "cmd": "fastly compute init --from=https://fiddle.fastly.dev/fiddle/0220c0d2",
-          "description": "Any [Compute@Edge examples](https://developer.fastly.com/solutions/examples/) can be used as a source template for your new package.",
-          "title": "Initialize a new Compute@Edge package locally using a remote package template"
+          "description": "Any [Compute examples](https://www.fastly.com/documentation/solutions/examples) can be used as a source template for your new package.",
+          "title": "Initialize a new Compute package locally using a remote package template"
         },
         {
           "cmd": "fastly compute init --directory ./example",
           "description": "We recommend that you change to the new project directory after running this command, before executing further CLI commands.",
-          "title": "Initialize a new Compute@Edge package locally in a different directory"
+          "title": "Initialize a new Compute package locally in a different directory"
         }
       ]
     },
@@ -265,8 +265,8 @@
       "examples": [
         {
           "cmd": "fastly compute pack --wasm-binary ./bin/main.wasm",
-          "description": "Write Compute@Edge applications in [any WASI-supporting language](https://developer.fastly.com/learning/compute/custom/) and use <kbd>fastly compute pack</kbd> to package the pre-compiled Wasm binary into a supported format.",
-          "title": "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service"
+          "description": "Write Compute applications in [any WASI-supporting language](https://www.fastly.com/documentation/guides/compute/custom) and use <kbd>fastly compute pack</kbd> to package the pre-compiled Wasm binary into a supported format.",
+          "title": "Package a pre-compiled Wasm binary for a Fastly Compute service"
         }
       ]
     },
@@ -275,14 +275,14 @@
         {
           "cmd": "fastly compute publish --accept-defaults",
           "description": "The <kbd>fastly compute publish</kbd> command is a convenience wrapper around the existing build and deploy commands. All flags present on the <kbd>fastly compute build</kbd> and <kbd>fastly compute deploy</kbd> commands are available to use here.",
-          "title": "Build and deploy a Compute@Edge package to a Fastly service"
+          "title": "Build and deploy a Compute package to a Fastly service"
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/service/#create-service",
-        "https://developer.fastly.com/reference/api/services/service/#get-service",
-        "https://developer.fastly.com/reference/api/services/package/#get-package",
-        "https://developer.fastly.com/reference/api/services/package/#put-package"
+        "https://www.fastly.com/documentation/reference/api/services/service#create-service",
+        "https://www.fastly.com/documentation/reference/api/services/service#get-service",
+        "https://www.fastly.com/documentation/reference/api/services/package#get-package",
+        "https://www.fastly.com/documentation/reference/api/services/package#put-package"
       ]
     },
     "serve": {
@@ -290,7 +290,7 @@
         {
           "cmd": "fastly compute serve --watch",
           "description": "The `compute serve` command wraps the existing build command. All flags present on the <kbd>fastly compute build</kbd> command are available to use here. Additionally, the `--watch` command enables 'hot reloading' of your project code whenever changes are made to the source code.",
-          "title": "Build and run a Compute@Edge package locally"
+          "title": "Build and run a Compute package locally"
         }
       ]
     },
@@ -303,14 +303,14 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/package/#put-package"
+        "https://www.fastly.com/documentation/reference/api/services/package#put-package"
       ]
     },
     "validate": {
       "examples": [
         {
           "cmd": "fastly compute validate --package ./pkg/example.tar.gz",
-          "title": "Validate a Compute@Edge package"
+          "title": "Validate a Compute package"
         }
       ]
     }
@@ -325,65 +325,65 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/resources/config-store-item/#list-config-store-items",
-        "https://developer.fastly.com/reference/api/services/resources/config-store-item/#delete-config-store-item"
+        "https://www.fastly.com/documentation/reference/api/services/resources/config-store-item#list-config-store-items",
+        "https://www.fastly.com/documentation/reference/api/services/resources/config-store-item#delete-config-store-item"
       ]
     }
   },
   "dictionary": {
     "create": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary/#get-dictionary"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary#get-dictionary"
       ]
     },
     "delete": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary/#delete-dictionary"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary#delete-dictionary"
       ]
     },
     "describe": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary/#get-dictionary",
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary-info/#get-dictionary-info",
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#list-dictionary-items"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary#get-dictionary",
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-info#get-dictionary-info",
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-item#list-dictionary-items"
       ]
     },
     "list": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary/#list-dictionaries"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary#list-dictionaries"
       ]
     },
     "update": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary/#update-dictionary"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary#update-dictionary"
       ]
     }
   },
   "dictionary-item": {
     "create": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#create-dictionary-item"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-item#create-dictionary-item"
       ]
     },
     "delete": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#delete-dictionary-item"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-item#delete-dictionary-item"
       ]
     },
     "describe": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#get-dictionary-item"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-item#get-dictionary-item"
       ]
     },
     "list": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#list-dictionary-items"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-item#list-dictionary-items"
       ]
     },
     "update": {
       "apis": [
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#bulk-update-dictionary-item",
-        "https://developer.fastly.com/reference/api/dictionaries/dictionary-item/#upsert-dictionary-item"
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-item#bulk-update-dictionary-item",
+        "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-item#upsert-dictionary-item"
       ]
     }
   },
@@ -397,7 +397,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/domain/#create-domain"
+        "https://www.fastly.com/documentation/reference/api/services/domain#create-domain"
       ]
     },
     "delete": {
@@ -409,7 +409,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/domain/#delete-domain"
+        "https://www.fastly.com/documentation/reference/api/services/domain#delete-domain"
       ]
     },
     "describe": {
@@ -420,7 +420,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/domain/#get-domain"
+        "https://www.fastly.com/documentation/reference/api/services/domain#get-domain"
       ]
     },
     "list": {
@@ -431,7 +431,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/domain/#list-domains"
+        "https://www.fastly.com/documentation/reference/api/services/domain#list-domains"
       ]
     },
     "update": {
@@ -443,7 +443,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/domain/#update-domain"
+        "https://www.fastly.com/documentation/reference/api/services/domain#update-domain"
       ]
     },
     "validate": {
@@ -455,41 +455,41 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/domain/#check-domains",
-        "https://developer.fastly.com/reference/api/services/domain/#check-domain"
+        "https://www.fastly.com/documentation/reference/api/services/domain#check-domains",
+        "https://www.fastly.com/documentation/reference/api/services/domain#check-domain"
       ]
     }
   },
   "healthcheck": {
     "create": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/healthcheck/#create-healthcheck"
+        "https://www.fastly.com/documentation/reference/api/services/healthcheck#create-healthcheck"
       ]
     },
     "delete": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/healthcheck/#delete-healthcheck"
+        "https://www.fastly.com/documentation/reference/api/services/healthcheck#delete-healthcheck"
       ]
     },
     "describe": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/healthcheck/#get-healthcheck"
+        "https://www.fastly.com/documentation/reference/api/services/healthcheck#get-healthcheck"
       ]
     },
     "list": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/healthcheck/#list-healthchecks"
+        "https://www.fastly.com/documentation/reference/api/services/healthcheck#list-healthchecks"
       ]
     },
     "update": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/healthcheck/#update-healthcheck"
+        "https://www.fastly.com/documentation/reference/api/services/healthcheck#update-healthcheck"
       ]
     }
   },
   "ip-list": {
     "apis": [
-      "https://developer.fastly.com/reference/api/utils/public-ip-list/"
+      "https://www.fastly.com/documentation/reference/api/utils/public-ip-list"
     ]
   },
   "kv-store-entry": {
@@ -512,7 +512,7 @@
         }
       ],
       "apis": [
-        "https://developer.fastly.com/reference/api/services/resources/kv-store-item/#set-value-for-key"
+        "https://www.fastly.com/documentation/reference/api/services/resources/kv-store-item#set-value-for-key"
       ]
     }
   },
@@ -520,834 +520,854 @@
     "azureblob": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/azureblob/#create-log-azure"
+          "https://www.fastly.com/documentation/reference/api/logging/azureblob#create-log-azure"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/azureblob/#delete-log-azure"
+          "https://www.fastly.com/documentation/reference/api/logging/azureblob#delete-log-azure"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/azureblob/#get-log-azure"
+          "https://www.fastly.com/documentation/reference/api/logging/azureblob#get-log-azure"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/azureblob/#list-log-azure"
+          "https://www.fastly.com/documentation/reference/api/logging/azureblob#list-log-azure"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/azureblob/#update-log-azure"
+          "https://www.fastly.com/documentation/reference/api/logging/azureblob#update-log-azure"
         ]
       }
     },
     "bigquery": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/bigquery/#create-log-bigquery"
+          "https://www.fastly.com/documentation/reference/api/logging/bigquery#create-log-bigquery"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/bigquery/#delete-log-bigquery"
+          "https://www.fastly.com/documentation/reference/api/logging/bigquery#delete-log-bigquery"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/bigquery/#get-log-bigquery"
+          "https://www.fastly.com/documentation/reference/api/logging/bigquery#get-log-bigquery"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/bigquery/#list-log-bigquery"
+          "https://www.fastly.com/documentation/reference/api/logging/bigquery#list-log-bigquery"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/bigquery/#update-log-bigquery"
+          "https://www.fastly.com/documentation/reference/api/logging/bigquery#update-log-bigquery"
         ]
       }
     },
     "cloudfiles": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/cloudfiles/#create-log-cloudfiles"
+          "https://www.fastly.com/documentation/reference/api/logging/cloudfiles#create-log-cloudfiles"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/cloudfiles/#delete-log-cloudfiles"
+          "https://www.fastly.com/documentation/reference/api/logging/cloudfiles#delete-log-cloudfiles"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/cloudfiles/#get-log-cloudfiles"
+          "https://www.fastly.com/documentation/reference/api/logging/cloudfiles#get-log-cloudfiles"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/cloudfiles/#list-log-cloudfiles"
+          "https://www.fastly.com/documentation/reference/api/logging/cloudfiles#list-log-cloudfiles"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/cloudfiles/#update-log-cloudfiles"
+          "https://www.fastly.com/documentation/reference/api/logging/cloudfiles#update-log-cloudfiles"
         ]
       }
     },
     "datadog": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/datadog/#create-log-datadog"
+          "https://www.fastly.com/documentation/reference/api/logging/datadog#create-log-datadog"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/datadog/#delete-log-datadog"
+          "https://www.fastly.com/documentation/reference/api/logging/datadog#delete-log-datadog"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/datadog/#get-log-datadog"
+          "https://www.fastly.com/documentation/reference/api/logging/datadog#get-log-datadog"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/datadog/#list-log-datadog"
+          "https://www.fastly.com/documentation/reference/api/logging/datadog#list-log-datadog"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/datadog/#update-log-datadog"
+          "https://www.fastly.com/documentation/reference/api/logging/datadog#update-log-datadog"
         ]
       }
     },
     "digitalocean": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/digitalocean/#create-log-digocean"
+          "https://www.fastly.com/documentation/reference/api/logging/digitalocean#create-log-digocean"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/digitalocean/#delete-log-digocean"
+          "https://www.fastly.com/documentation/reference/api/logging/digitalocean#delete-log-digocean"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/digitalocean/#get-log-digocean"
+          "https://www.fastly.com/documentation/reference/api/logging/digitalocean#get-log-digocean"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/digitalocean/#list-log-digocean"
+          "https://www.fastly.com/documentation/reference/api/logging/digitalocean#list-log-digocean"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/digitalocean/#update-log-digocean"
+          "https://www.fastly.com/documentation/reference/api/logging/digitalocean#update-log-digocean"
         ]
       }
     },
     "elasticsearch": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/elasticsearch/#create-log-elasticsearch"
+          "https://www.fastly.com/documentation/reference/api/logging/elasticsearch#create-log-elasticsearch"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/elasticsearch/#delete-log-elasticsearch"
+          "https://www.fastly.com/documentation/reference/api/logging/elasticsearch#delete-log-elasticsearch"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/elasticsearch/#get-log-elasticsearch"
+          "https://www.fastly.com/documentation/reference/api/logging/elasticsearch#get-log-elasticsearch"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/elasticsearch/#list-log-elasticsearch"
+          "https://www.fastly.com/documentation/reference/api/logging/elasticsearch#list-log-elasticsearch"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/elasticsearch/#update-log-elasticsearch"
+          "https://www.fastly.com/documentation/reference/api/logging/elasticsearch#update-log-elasticsearch"
         ]
       }
     },
     "ftp": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/ftp/#create-log-ftp"
+          "https://www.fastly.com/documentation/reference/api/logging/ftp#create-log-ftp"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/ftp/#delete-log-ftp"
+          "https://www.fastly.com/documentation/reference/api/logging/ftp#delete-log-ftp"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/ftp/#get-log-ftp"
+          "https://www.fastly.com/documentation/reference/api/logging/ftp#get-log-ftp"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/ftp/#list-log-ftp"
+          "https://www.fastly.com/documentation/reference/api/logging/ftp#list-log-ftp"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/ftp/#update-log-ftp"
+          "https://www.fastly.com/documentation/reference/api/logging/ftp#update-log-ftp"
         ]
       }
     },
     "gcs": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/gcs/#create-log-gcs"
+          "https://www.fastly.com/documentation/reference/api/logging/gcs#create-log-gcs"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/gcs/#delete-log-gcs"
+          "https://www.fastly.com/documentation/reference/api/logging/gcs#delete-log-gcs"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/gcs/#get-log-gcs"
+          "https://www.fastly.com/documentation/reference/api/logging/gcs#get-log-gcs"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/gcs/#list-log-gcs"
+          "https://www.fastly.com/documentation/reference/api/logging/gcs#list-log-gcs"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/gcs/#update-log-gcs"
+          "https://www.fastly.com/documentation/reference/api/logging/gcs#update-log-gcs"
         ]
       }
     },
     "googlepubsub": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/google-pubsub/#create-log-gcp-pubsub"
+          "https://www.fastly.com/documentation/reference/api/logging/google-pubsub#create-log-gcp-pubsub"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/google-pubsub/#delete-log-gcp-pubsub"
+          "https://www.fastly.com/documentation/reference/api/logging/google-pubsub#delete-log-gcp-pubsub"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/google-pubsub/#get-log-gcp-pubsub"
+          "https://www.fastly.com/documentation/reference/api/logging/google-pubsub#get-log-gcp-pubsub"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/google-pubsub/#list-log-gcp-pubsub"
+          "https://www.fastly.com/documentation/reference/api/logging/google-pubsub#list-log-gcp-pubsub"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/google-pubsub/#update-log-gcp-pubsub"
+          "https://www.fastly.com/documentation/reference/api/logging/google-pubsub#update-log-gcp-pubsub"
         ]
       }
     },
     "heroku": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/heroku/#create-log-heroku"
+          "https://www.fastly.com/documentation/reference/api/logging/heroku#create-log-heroku"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/heroku/#delete-log-heroku"
+          "https://www.fastly.com/documentation/reference/api/logging/heroku#delete-log-heroku"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/heroku/#get-log-heroku"
+          "https://www.fastly.com/documentation/reference/api/logging/heroku#get-log-heroku"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/heroku/#list-log-heroku"
+          "https://www.fastly.com/documentation/reference/api/logging/heroku#list-log-heroku"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/heroku/#update-log-heroku"
+          "https://www.fastly.com/documentation/reference/api/logging/heroku#update-log-heroku"
         ]
       }
     },
     "honeycomb": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/honeycomb/#create-log-honeycomb"
+          "https://www.fastly.com/documentation/reference/api/logging/honeycomb#create-log-honeycomb"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/honeycomb/#delete-log-honeycomb"
+          "https://www.fastly.com/documentation/reference/api/logging/honeycomb#delete-log-honeycomb"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/honeycomb/#get-log-honeycomb"
+          "https://www.fastly.com/documentation/reference/api/logging/honeycomb#get-log-honeycomb"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/honeycomb/#list-log-honeycomb"
+          "https://www.fastly.com/documentation/reference/api/logging/honeycomb#list-log-honeycomb"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/honeycomb/#update-log-honeycomb"
+          "https://www.fastly.com/documentation/reference/api/logging/honeycomb#update-log-honeycomb"
         ]
       }
     },
     "https": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/https/#create-log-https"
+          "https://www.fastly.com/documentation/reference/api/logging/https#create-log-https"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/https/#delete-log-https"
+          "https://www.fastly.com/documentation/reference/api/logging/https#delete-log-https"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/https/#get-log-https"
+          "https://www.fastly.com/documentation/reference/api/logging/https#get-log-https"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/https/#list-log-https"
+          "https://www.fastly.com/documentation/reference/api/logging/https#list-log-https"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/https/#update-log-https"
+          "https://www.fastly.com/documentation/reference/api/logging/https#update-log-https"
         ]
       }
     },
     "kafka": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kafka/#create-log-kafka"
+          "https://www.fastly.com/documentation/reference/api/logging/kafka#create-log-kafka"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kafka/#delete-log-kafka"
+          "https://www.fastly.com/documentation/reference/api/logging/kafka#delete-log-kafka"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kafka/#get-log-kafka"
+          "https://www.fastly.com/documentation/reference/api/logging/kafka#get-log-kafka"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kafka/#list-log-kafka"
+          "https://www.fastly.com/documentation/reference/api/logging/kafka#list-log-kafka"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kafka/#update-log-kafka"
+          "https://www.fastly.com/documentation/reference/api/logging/kafka#update-log-kafka"
         ]
       }
     },
     "kinesis": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kinesis/#create-log-kinesis"
+          "https://www.fastly.com/documentation/reference/api/logging/kinesis#create-log-kinesis"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kinesis/#delete-log-kinesis"
+          "https://www.fastly.com/documentation/reference/api/logging/kinesis#delete-log-kinesis"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kinesis/#get-log-kinesis"
+          "https://www.fastly.com/documentation/reference/api/logging/kinesis#get-log-kinesis"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kinesis/#list-log-kinesis"
+          "https://www.fastly.com/documentation/reference/api/logging/kinesis#list-log-kinesis"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/kinesis/#update-log-kinesis"
+          "https://www.fastly.com/documentation/reference/api/logging/kinesis#update-log-kinesis"
         ]
       }
     },
     "logentries": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logentries/#create-log-logentries"
+          "https://www.fastly.com/documentation/reference/api/logging/logentries#create-log-logentries"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logentries/#delete-log-logentries"
+          "https://www.fastly.com/documentation/reference/api/logging/logentries#delete-log-logentries"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logentries/#get-log-logentries"
+          "https://www.fastly.com/documentation/reference/api/logging/logentries#get-log-logentries"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logentries/#list-log-logentries"
+          "https://www.fastly.com/documentation/reference/api/logging/logentries#list-log-logentries"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logentries/#update-log-logentries"
+          "https://www.fastly.com/documentation/reference/api/logging/logentries#update-log-logentries"
         ]
       }
     },
     "loggly": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/loggly/#create-log-loggly"
+          "https://www.fastly.com/documentation/reference/api/logging/loggly#create-log-loggly"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/loggly/#delete-log-loggly"
+          "https://www.fastly.com/documentation/reference/api/logging/loggly#delete-log-loggly"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/loggly/#get-log-loggly"
+          "https://www.fastly.com/documentation/reference/api/logging/loggly#get-log-loggly"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/loggly/#list-log-loggly"
+          "https://www.fastly.com/documentation/reference/api/logging/loggly#list-log-loggly"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/loggly/#update-log-loggly"
+          "https://www.fastly.com/documentation/reference/api/logging/loggly#update-log-loggly"
         ]
       }
     },
     "logshuttle": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logshuttle/#create-log-logshuttle"
+          "https://www.fastly.com/documentation/reference/api/logging/logshuttle#create-log-logshuttle"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logshuttle/#delete-log-logshuttle"
+          "https://www.fastly.com/documentation/reference/api/logging/logshuttle#delete-log-logshuttle"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logshuttle/#get-log-logshuttle"
+          "https://www.fastly.com/documentation/reference/api/logging/logshuttle#get-log-logshuttle"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logshuttle/#list-log-logshuttle"
+          "https://www.fastly.com/documentation/reference/api/logging/logshuttle#list-log-logshuttle"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/logshuttle/#update-log-logshuttle"
+          "https://www.fastly.com/documentation/reference/api/logging/logshuttle#update-log-logshuttle"
         ]
       }
     },
     "newrelic": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/new-relic/#create-log-newrelic"
+          "https://www.fastly.com/documentation/reference/api/logging/new-relic#create-log-newrelic"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/new-relic/#delete-log-newrelic"
+          "https://www.fastly.com/documentation/reference/api/logging/new-relic#delete-log-newrelic"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/new-relic/#get-log-newrelic"
+          "https://www.fastly.com/documentation/reference/api/logging/new-relic#get-log-newrelic"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/new-relic/#list-log-newrelic"
+          "https://www.fastly.com/documentation/reference/api/logging/new-relic#list-log-newrelic"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/new-relic/#update-log-newrelic"
+          "https://www.fastly.com/documentation/reference/api/logging/new-relic#update-log-newrelic"
         ]
       }
     },
     "openstack": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/openstack/#get-log-openstack"
+          "https://www.fastly.com/documentation/reference/api/logging/openstack#get-log-openstack"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/openstack/#delete-log-openstack"
+          "https://www.fastly.com/documentation/reference/api/logging/openstack#delete-log-openstack"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/openstack/#get-log-openstack"
+          "https://www.fastly.com/documentation/reference/api/logging/openstack#get-log-openstack"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/openstack/#list-log-openstack"
+          "https://www.fastly.com/documentation/reference/api/logging/openstack#list-log-openstack"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/openstack/#update-log-openstack"
+          "https://www.fastly.com/documentation/reference/api/logging/openstack#update-log-openstack"
         ]
       }
     },
     "papertrail": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/papertrail/#create-log-papertrail"
+          "https://www.fastly.com/documentation/reference/api/logging/papertrail#create-log-papertrail"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/papertrail/#delete-log-papertrail"
+          "https://www.fastly.com/documentation/reference/api/logging/papertrail#delete-log-papertrail"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/papertrail/#get-log-papertrail"
+          "https://www.fastly.com/documentation/reference/api/logging/papertrail#get-log-papertrail"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/papertrail/#list-log-papertrail"
+          "https://www.fastly.com/documentation/reference/api/logging/papertrail#list-log-papertrail"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/papertrail/#update-log-papertrail"
+          "https://www.fastly.com/documentation/reference/api/logging/papertrail#update-log-papertrail"
         ]
       }
     },
     "s3": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/s3/#create-log-aws-s3"
+          "https://www.fastly.com/documentation/reference/api/logging/s3#create-log-aws-s3"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/s3/#delete-log-aws-s3"
+          "https://www.fastly.com/documentation/reference/api/logging/s3#delete-log-aws-s3"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/s3/#get-log-aws-s3"
+          "https://www.fastly.com/documentation/reference/api/logging/s3#get-log-aws-s3"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/s3/#list-log-aws-s3"
+          "https://www.fastly.com/documentation/reference/api/logging/s3#list-log-aws-s3"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/s3/#update-log-aws-s3"
+          "https://www.fastly.com/documentation/reference/api/logging/s3#update-log-aws-s3"
         ]
       }
     },
     "scalyr": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/scalyr/#create-log-scalyr"
+          "https://www.fastly.com/documentation/reference/api/logging/scalyr#create-log-scalyr"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/scalyr/#delete-log-scalyr"
+          "https://www.fastly.com/documentation/reference/api/logging/scalyr#delete-log-scalyr"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/scalyr/#get-log-scalyr"
+          "https://www.fastly.com/documentation/reference/api/logging/scalyr#get-log-scalyr"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/scalyr/#list-log-scalyr"
+          "https://www.fastly.com/documentation/reference/api/logging/scalyr#list-log-scalyr"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/scalyr/#update-log-scalyr"
+          "https://www.fastly.com/documentation/reference/api/logging/scalyr#update-log-scalyr"
         ]
       }
     },
     "sftp": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sftp/#create-log-sftp"
+          "https://www.fastly.com/documentation/reference/api/logging/sftp#create-log-sftp"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sftp/#delete-log-sftp"
+          "https://www.fastly.com/documentation/reference/api/logging/sftp#delete-log-sftp"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sftp/#get-log-sftp"
+          "https://www.fastly.com/documentation/reference/api/logging/sftp#get-log-sftp"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sftp/#list-log-sftp"
+          "https://www.fastly.com/documentation/reference/api/logging/sftp#list-log-sftp"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sftp/#update-log-sftp"
+          "https://www.fastly.com/documentation/reference/api/logging/sftp#update-log-sftp"
         ]
       }
     },
     "splunk": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/splunk/#create-log-splunk"
+          "https://www.fastly.com/documentation/reference/api/logging/splunk#create-log-splunk"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/splunk/#delete-log-splunk"
+          "https://www.fastly.com/documentation/reference/api/logging/splunk#delete-log-splunk"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/splunk/#get-log-splunk"
+          "https://www.fastly.com/documentation/reference/api/logging/splunk#get-log-splunk"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/splunk/#list-log-splunk"
+          "https://www.fastly.com/documentation/reference/api/logging/splunk#list-log-splunk"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/splunk/#update-log-splunk"
+          "https://www.fastly.com/documentation/reference/api/logging/splunk#update-log-splunk"
         ]
       }
     },
     "sumologic": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sumologic/#create-log-sumologic"
+          "https://www.fastly.com/documentation/reference/api/logging/sumologic#create-log-sumologic"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sumologic/#delete-log-sumologic"
+          "https://www.fastly.com/documentation/reference/api/logging/sumologic#delete-log-sumologic"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sumologic/#list-log-sumologic"
+          "https://www.fastly.com/documentation/reference/api/logging/sumologic#list-log-sumologic"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sumologic/#list-log-sumologic"
+          "https://www.fastly.com/documentation/reference/api/logging/sumologic#list-log-sumologic"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/sumologic/#update-log-sumologic"
+          "https://www.fastly.com/documentation/reference/api/logging/sumologic#update-log-sumologic"
         ]
       }
     },
     "syslog": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/syslog/#create-log-syslog"
+          "https://www.fastly.com/documentation/reference/api/logging/syslog#create-log-syslog"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/syslog/#delete-log-syslog"
+          "https://www.fastly.com/documentation/reference/api/logging/syslog#delete-log-syslog"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/syslog/#get-log-syslog"
+          "https://www.fastly.com/documentation/reference/api/logging/syslog#get-log-syslog"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/syslog/#list-log-syslog"
+          "https://www.fastly.com/documentation/reference/api/logging/syslog#list-log-syslog"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/logging/syslog/#update-log-syslog"
+          "https://www.fastly.com/documentation/reference/api/logging/syslog#update-log-syslog"
         ]
       }
     }
   },
+  "metadata": {
+    "examples": [
+      {
+        "cmd": "fastly compute metadata --enable",
+        "title": "Enable all metadata collection information"
+      },
+      {
+        "cmd": "fastly compute metadata --disable",
+        "title": "Disable all metadata collection information"
+      },
+      {
+        "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
+        "title": "Enable specific metadata collection information"
+      },
+      {
+        "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
+        "title": "Disable specific metadata collection information"
+      }
+    ]
+  },
   "pops": {
     "apis": [
-      "https://developer.fastly.com/reference/api/utils/pops/#list-pops"
+      "https://www.fastly.com/documentation/reference/api/utils/pops#list-pops"
     ]
   },
   "profile": {
     "apis": [
-      "https://developer.fastly.com/reference/api/auth/#get-token-current",
-      "https://developer.fastly.com/reference/api/account/user/#get-user"
+      "https://www.fastly.com/documentation/reference/api/auth-tokens#get-token-current",
+      "https://www.fastly.com/documentation/reference/api/account/user#get-user"
     ]
   },
   "purge": {
     "apis": [
-      "https://developer.fastly.com/reference/api/purging/#purge-all",
-      "https://developer.fastly.com/reference/api/purging/#bulk-purge-tag",
-      "https://developer.fastly.com/reference/api/purging/#purge-tag",
-      "https://developer.fastly.com/reference/api/purging/#purge-single-url"
+      "https://www.fastly.com/documentation/reference/api/purging#purge-all",
+      "https://www.fastly.com/documentation/reference/api/purging#bulk-purge-tag",
+      "https://www.fastly.com/documentation/reference/api/purging#purge-tag",
+      "https://www.fastly.com/documentation/reference/api/purging#purge-single-url"
     ]
   },
   "search": {
     "create": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/service/#create-service"
+        "https://www.fastly.com/documentation/reference/api/services/service#create-service"
       ]
     },
     "delete": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/service/#get-service-detail",
-        "https://developer.fastly.com/reference/api/services/version/#deactivate-service-version",
-        "https://developer.fastly.com/reference/api/services/service/#delete-service"
+        "https://www.fastly.com/documentation/reference/api/services/service#get-service-detail",
+        "https://www.fastly.com/documentation/reference/api/services/version#deactivate-service-version",
+        "https://www.fastly.com/documentation/reference/api/services/service#delete-service"
       ]
     },
     "describe": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/service/#get-service-detail"
+        "https://www.fastly.com/documentation/reference/api/services/service#get-service-detail"
       ]
     },
     "list": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/service/#list-services"
+        "https://www.fastly.com/documentation/reference/api/services/service#list-services"
       ]
     },
     "search": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/service/#search-service"
+        "https://www.fastly.com/documentation/reference/api/services/service#search-service"
       ]
     },
     "update": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/service/#update-service"
+        "https://www.fastly.com/documentation/reference/api/services/service#update-service"
       ]
     }
   },
   "service-version": {
     "activate": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/version/#activate-service-version"
+        "https://www.fastly.com/documentation/reference/api/services/version#activate-service-version"
       ]
     },
     "clone": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/version/#clone-service-version"
+        "https://www.fastly.com/documentation/reference/api/services/version#clone-service-version"
       ]
     },
     "deactivate": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/version/#deactivate-service-version"
+        "https://www.fastly.com/documentation/reference/api/services/version#deactivate-service-version"
       ]
     },
     "list": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/version/#list-service-versions"
+        "https://www.fastly.com/documentation/reference/api/services/version#list-service-versions"
       ]
     },
     "lock": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/version/#lock-service-version"
+        "https://www.fastly.com/documentation/reference/api/services/version#lock-service-version"
       ]
     },
     "update": {
       "apis": [
-        "https://developer.fastly.com/reference/api/services/version/#update-service-version"
+        "https://www.fastly.com/documentation/reference/api/services/version#update-service-version"
       ]
     }
   },
   "stats": {
     "historical": {
       "apis": [
-        "https://developer.fastly.com/reference/api/metrics-stats/historical-stats/#get-hist-stats-service"
+        "https://www.fastly.com/documentation/reference/api/metrics-stats/historical-stats#get-hist-stats-service"
       ]
     },
     "realtime": {
       "apis": [
-        "https://developer.fastly.com/reference/api/metrics-stats/realtime/#get-stats-last-second"
+        "https://www.fastly.com/documentation/reference/api/metrics-stats/realtime#get-stats-last-second"
       ]
     },
     "regional": {
       "apis": [
-        "https://developer.fastly.com/reference/api/metrics-stats/historical-stats/#get-regions"
+        "https://www.fastly.com/documentation/reference/api/metrics-stats/historical-stats#get-regions"
       ]
     }
   },
   "user": {
     "create": {
       "apis": [
-        "https://developer.fastly.com/reference/api/account/user/#create-user"
+        "https://www.fastly.com/documentation/reference/api/account/user#create-user"
       ]
     },
     "delete": {
       "apis": [
-        "https://developer.fastly.com/reference/api/account/user/#delete-user"
+        "https://www.fastly.com/documentation/reference/api/account/user#delete-user"
       ]
     },
     "describe": {
       "apis": [
-        "https://developer.fastly.com/reference/api/account/user/#get-current-user",
-        "https://developer.fastly.com/reference/api/account/user/#get-user"
+        "https://www.fastly.com/documentation/reference/api/account/user#get-current-user",
+        "https://www.fastly.com/documentation/reference/api/account/user#get-user"
       ]
     },
     "list": {
       "apis": [
-        "https://developer.fastly.com/reference/api/account/customer/#list-users"
+        "https://www.fastly.com/documentation/reference/api/account/customer#list-users"
       ]
     },
     "update": {
       "apis": [
-        "https://developer.fastly.com/reference/api/account/user/#request-password-reset",
-        "https://developer.fastly.com/reference/api/account/user/#update-user"
+        "https://www.fastly.com/documentation/reference/api/account/user#request-password-reset",
+        "https://www.fastly.com/documentation/reference/api/account/user#update-user"
       ]
     }
   },
@@ -1355,54 +1375,54 @@
     "condition": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/condition/#create-condition"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/condition#create-condition"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/condition/#delete-condition"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/condition#delete-condition"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/condition/#get-condition"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/condition#get-condition"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/condition/#list-conditions"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/condition#list-conditions"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/condition/#update-condition"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/condition#update-condition"
         ]
       }
     },
     "custom": {
       "create": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/vcl/#create-custom-vcl"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/vcl#create-custom-vcl"
         ]
       },
       "delete": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/vcl/#delete-custom-vcl"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/vcl#delete-custom-vcl"
         ]
       },
       "describe": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/vcl/#get-custom-vcl"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/vcl#get-custom-vcl"
         ]
       },
       "list": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/vcl/#list-custom-vcl"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/vcl#list-custom-vcl"
         ]
       },
       "update": {
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/vcl/#update-custom-vcl"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/vcl#update-custom-vcl"
         ]
       }
     },
@@ -1421,7 +1441,7 @@
           }
         ],
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/snippet/#create-snippet"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/snippet#create-snippet"
         ]
       },
       "delete": {
@@ -1432,7 +1452,7 @@
           }
         ],
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/snippet/#delete-snippet"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/snippet#delete-snippet"
         ]
       },
       "describe": {
@@ -1444,8 +1464,8 @@
           }
         ],
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/snippet/#get-snippet-dynamic",
-          "https://developer.fastly.com/reference/api/vcl-services/snippet/#get-snippet"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/snippet#get-snippet-dynamic",
+          "https://www.fastly.com/documentation/reference/api/vcl-services/snippet#get-snippet"
         ]
       },
       "list": {
@@ -1456,7 +1476,7 @@
           }
         ],
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/snippet/#list-snippets"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/snippet#list-snippets"
         ]
       },
       "update": {
@@ -1468,8 +1488,8 @@
           }
         ],
         "apis": [
-          "https://developer.fastly.com/reference/api/vcl-services/snippet/#update-snippet-dynamic",
-          "https://developer.fastly.com/reference/api/vcl-services/snippet/#update-snippet"
+          "https://www.fastly.com/documentation/reference/api/vcl-services/snippet#update-snippet-dynamic",
+          "https://www.fastly.com/documentation/reference/api/vcl-services/snippet#update-snippet"
         ]
       }
     }

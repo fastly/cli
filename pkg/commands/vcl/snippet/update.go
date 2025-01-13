@@ -4,35 +4,34 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("update", "Update a VCL snippet for a particular service and version")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -41,16 +40,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	c.CmdClause.Flag("name", "The name of the VCL snippet to update").StringVar(&c.name)
 	c.CmdClause.Flag("new-name", "New name for the VCL snippet").Action(c.newName.Set).StringVar(&c.newName.Value)
 	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).IntVar(&c.priority.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("snippet-id", "Alphanumeric string identifying a VCL Snippet").StringVar(&c.snippetID)
@@ -63,28 +62,38 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 
-	autoClone      cmd.OptionalAutoClone
-	content        cmd.OptionalString
-	dynamic        cmd.OptionalBool
-	location       cmd.OptionalString
-	manifest       manifest.Data
+	autoClone      argparser.OptionalAutoClone
+	content        argparser.OptionalString
+	dynamic        argparser.OptionalBool
+	location       argparser.OptionalString
 	name           string
-	newName        cmd.OptionalString
-	priority       cmd.OptionalInt
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	newName        argparser.OptionalString
+	priority       argparser.OptionalInt
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 	snippetID      string
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  c.dynamic.WasSet && c.dynamic.Value,
+	// in the normal case, we do not want to allow 'active' or 'locked' services to be updated,
+	// so we require those states to be 'false'
+	var allowActive = optional.Of(false)
+	var allowLocked = optional.Of(false)
+	if c.dynamic.WasSet && c.dynamic.Value {
+		// in this case, we will accept all states ('active' and 'inactive', 'locked' and 'unlocked'),
+		// so we mark the Optional[bool] fields as 'empty' and they will not be applied as filters
+		allowActive = optional.Empty[bool]()
+		allowLocked = optional.Empty[bool]()
+	}
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             allowActive,
+		Locked:             allowLocked,
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -98,12 +107,14 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
 	if c.dynamic.WasSet {
-		input, err := c.constructDynamicInput(serviceID, serviceVersion.Number)
+		input, err := c.constructDynamicInput(serviceID, serviceVersionNumber)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
@@ -111,19 +122,19 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
-				"Service Version": serviceVersion.Number,
+				"Service Version": serviceVersionNumber,
 			})
 			return err
 		}
-		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", v.ID, v.ServiceID)
+		text.Success(out, "Updated dynamic VCL snippet '%s' (service: %s)", fastly.ToValue(v.SnippetID), fastly.ToValue(v.ServiceID))
 		return nil
 	}
 
-	input, err := c.constructInput(serviceID, serviceVersion.Number)
+	input, err := c.constructInput(serviceID, serviceVersionNumber)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
@@ -131,11 +142,19 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": serviceVersionNumber,
 		})
 		return err
 	}
-	text.Success(out, "Updated VCL snippet '%s' (previously: '%s', service: %s, version: %d, type: %v, priority: %d)", v.Name, input.Name, v.ServiceID, v.ServiceVersion, v.Type, v.Priority)
+	text.Success(out,
+		"Updated VCL snippet '%s' (previously: '%s', service: %s, version: %d, type: %v, priority: %d)",
+		fastly.ToValue(v.Name),
+		input.Name,
+		fastly.ToValue(v.ServiceID),
+		fastly.ToValue(v.ServiceVersion),
+		fastly.ToValue(v.Type),
+		fastly.ToValue(v.Priority),
+	)
 	return nil
 }
 
@@ -143,18 +162,17 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *UpdateCommand) constructDynamicInput(serviceID string, _ int) (*fastly.UpdateDynamicSnippetInput, error) {
 	var input fastly.UpdateDynamicSnippetInput
 
-	input.ID = c.snippetID
+	input.SnippetID = c.snippetID
 	input.ServiceID = serviceID
 
 	if c.newName.WasSet {
 		return nil, fmt.Errorf("error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet")
 	}
-
 	if c.snippetID == "" {
 		return nil, fmt.Errorf("error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet")
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(cmd.Content(c.content.Value))
+		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
 	}
 
 	return &input, nil
@@ -181,7 +199,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		input.Priority = &c.priority.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.String(cmd.Content(c.content.Value))
+		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
 	}
 	if c.location.WasSet {
 		location := fastly.SnippetType(c.location.Value)

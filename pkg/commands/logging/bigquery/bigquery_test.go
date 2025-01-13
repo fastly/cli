@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/bigquery"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -12,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateBigQueryInput(t *testing.T) {
@@ -28,12 +29,12 @@ func TestCreateBigQueryInput(t *testing.T) {
 			want: &fastly.CreateBigQueryInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("log"),
-				ProjectID:      fastly.String("123"),
-				Dataset:        fastly.String("dataset"),
-				Table:          fastly.String("table"),
-				User:           fastly.String("user"),
-				SecretKey:      fastly.String("-----BEGIN PRIVATE KEY-----foo"),
+				Name:           fastly.ToPointer("log"),
+				ProjectID:      fastly.ToPointer("123"),
+				Dataset:        fastly.ToPointer("dataset"),
+				Table:          fastly.ToPointer("table"),
+				User:           fastly.ToPointer("user"),
+				SecretKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----foo"),
 			},
 		},
 		{
@@ -42,17 +43,17 @@ func TestCreateBigQueryInput(t *testing.T) {
 			want: &fastly.CreateBigQueryInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("log"),
-				ProjectID:         fastly.String("123"),
-				Dataset:           fastly.String("dataset"),
-				Table:             fastly.String("table"),
-				Template:          fastly.String("template"),
-				User:              fastly.String("user"),
-				SecretKey:         fastly.String("-----BEGIN PRIVATE KEY-----foo"),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				Placement:         fastly.String("none"),
-				FormatVersion:     fastly.Int(2),
+				Name:              fastly.ToPointer("log"),
+				ProjectID:         fastly.ToPointer("123"),
+				Dataset:           fastly.ToPointer("dataset"),
+				Table:             fastly.ToPointer("table"),
+				Template:          fastly.ToPointer("template"),
+				User:              fastly.ToPointer("user"),
+				SecretKey:         fastly.ToPointer("-----BEGIN PRIVATE KEY-----foo"),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
+				FormatVersion:     fastly.ToPointer(2),
 			},
 		},
 		{
@@ -67,7 +68,7 @@ func TestCreateBigQueryInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -86,7 +87,7 @@ func TestCreateBigQueryInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -128,17 +129,17 @@ func TestUpdateBigQueryInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "log",
-				NewName:           fastly.String("new1"),
-				ProjectID:         fastly.String("new2"),
-				Dataset:           fastly.String("new3"),
-				Table:             fastly.String("new4"),
-				User:              fastly.String("new5"),
-				SecretKey:         fastly.String("new6"),
-				Template:          fastly.String("new7"),
-				ResponseCondition: fastly.String("new8"),
-				Placement:         fastly.String("new9"),
-				Format:            fastly.String("new10"),
-				FormatVersion:     fastly.Int(3),
+				NewName:           fastly.ToPointer("new1"),
+				ProjectID:         fastly.ToPointer("new2"),
+				Dataset:           fastly.ToPointer("new3"),
+				Table:             fastly.ToPointer("new4"),
+				User:              fastly.ToPointer("new5"),
+				SecretKey:         fastly.ToPointer("new6"),
+				Template:          fastly.ToPointer("new7"),
+				ResponseCondition: fastly.ToPointer("new8"),
+				Placement:         fastly.ToPointer("new9"),
+				Format:            fastly.ToPointer("new10"),
+				FormatVersion:     fastly.ToPointer(3),
 			},
 		},
 		{
@@ -157,7 +158,7 @@ func TestUpdateBigQueryInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -176,7 +177,7 @@ func TestUpdateBigQueryInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -195,10 +196,10 @@ func createCommandRequired() *bigquery.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &bigquery.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -206,23 +207,23 @@ func createCommandRequired() *bigquery.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		ProjectID:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "123"},
-		Dataset:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "dataset"},
-		Table:        cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "table"},
-		User:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		SecretKey:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		ProjectID:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "123"},
+		Dataset:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "dataset"},
+		Table:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "table"},
+		User:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		SecretKey:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
 	}
 }
 
@@ -237,10 +238,10 @@ func createCommandAll() *bigquery.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &bigquery.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -248,28 +249,28 @@ func createCommandAll() *bigquery.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "log"},
-		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "123"},
-		Dataset:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "dataset"},
-		Table:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "table"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "user"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
-		Template:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "template"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "log"},
+		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "123"},
+		Dataset:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "dataset"},
+		Table:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "table"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "user"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----foo"},
+		Template:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "template"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 	}
 }
 
@@ -289,7 +290,7 @@ func updateCommandNoUpdates() *bigquery.UpdateCommand {
 	}
 
 	return &bigquery.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -298,12 +299,12 @@ func updateCommandNoUpdates() *bigquery.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -322,7 +323,7 @@ func updateCommandAll() *bigquery.UpdateCommand {
 	}
 
 	return &bigquery.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -331,28 +332,28 @@ func updateCommandAll() *bigquery.UpdateCommand {
 			},
 		},
 		EndpointName: "log",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		ProjectID:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		Dataset:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		Table:             cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		User:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		SecretKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		Template:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		Dataset:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		Table:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		Template:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 	}
 }
 

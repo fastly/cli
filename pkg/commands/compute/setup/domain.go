@@ -8,10 +8,11 @@ import (
 	"strings"
 
 	petname "github.com/dustinkirkland/golang-petname"
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const defaultTopLevelDomain = "edgecompute.app"
@@ -67,7 +68,7 @@ func (d *Domains) Configure() error {
 	)
 	if !d.AcceptDefaults && !d.NonInteractive {
 		text.Break(d.Stdout)
-		domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
+		domain, err = text.Input(d.Stdout, text.Prompt(fmt.Sprintf("Domain: [%s] ", defaultDomain)), d.Stdin, d.validateDomain)
 		if err != nil {
 			return fmt.Errorf("error reading input %w", err)
 		}
@@ -117,6 +118,7 @@ func (d *Domains) Predefined() bool {
 }
 
 // Validate checks if the service has the required resources.
+// For a domain resource, we simply check there is at least one domain.
 //
 // NOTE: It should set an internal `missing` field (boolean) accordingly so that
 // the Missing() method can report the state of the resource.
@@ -129,7 +131,6 @@ func (d *Domains) Validate() error {
 		return fmt.Errorf("error fetching service domains: %w", err)
 	}
 	d.available = available
-
 	if len(d.available) == 0 {
 		d.missing = true
 	}
@@ -167,11 +168,13 @@ func (d *Domains) createDomain(name string, attempt int) error {
 		Name:           &name,
 	})
 	if err != nil {
+		err = fmt.Errorf("error creating domain: %w", err)
+
 		// We have to stop the ticker so we can now prompt the user.
 		d.Spinner.StopFailMessage(msg)
 		spinErr := d.Spinner.StopFail()
 		if spinErr != nil {
-			return spinErr
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 
 		if attempt > d.RetryLimit {
@@ -188,7 +191,7 @@ func (d *Domains) createDomain(name string, attempt int) error {
 						defaultDomain := generateDomainName()
 						if !d.AcceptDefaults && !d.NonInteractive {
 							text.Break(d.Stdout)
-							domain, err = text.Input(d.Stdout, text.BoldYellow(fmt.Sprintf("Domain already taken, please choose another (attempt %d of %d): [%s] ", attempt, d.RetryLimit, defaultDomain)), d.Stdin, d.validateDomain)
+							domain, err = text.Input(d.Stdout, text.Prompt(fmt.Sprintf("Domain already taken, please choose another (attempt %d of %d): [%s] ", attempt, d.RetryLimit, defaultDomain)), d.Stdin, d.validateDomain)
 							if err != nil {
 								return fmt.Errorf("error reading input %w", err)
 							}
@@ -203,7 +206,7 @@ func (d *Domains) createDomain(name string, attempt int) error {
 			}
 		}
 
-		return fmt.Errorf("error creating domain: %w", err)
+		return err
 	}
 
 	d.Spinner.StopMessage(msg)

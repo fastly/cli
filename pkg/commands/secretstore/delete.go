@@ -3,28 +3,26 @@ package secretstore
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("delete", "Delete a secret store")
 
 	// Required.
-	c.RegisterFlag(cmd.StoreIDFlag(&c.Input.ID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.Input.StoreID)) // --store-id
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -34,11 +32,10 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	Input    fastly.DeleteSecretStoreInput
-	manifest manifest.Data
+	Input fastly.DeleteSecretStoreInput
 }
 
 // Exec invokes the application logic for the command.
@@ -58,14 +55,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.Input.ID,
+			c.Input.StoreID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted Secret Store '%s'", c.Input.ID)
-
+	text.Success(out, "Deleted Secret Store '%s'", c.Input.StoreID)
 	return nil
 }

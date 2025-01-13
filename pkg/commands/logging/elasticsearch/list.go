@@ -4,55 +4,53 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ListCommand calls the Fastly API to list Elasticsearch logging endpoints.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest       manifest.Data
 	Input          fastly.ListElasticsearchInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List Elasticsearch endpoints on a Fastly service version")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -64,10 +62,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -82,7 +79,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListElasticsearch(&c.Input)
 	if err != nil {
@@ -98,7 +95,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, elasticsearch := range o {
-			tw.AddLine(elasticsearch.ServiceID, elasticsearch.ServiceVersion, elasticsearch.Name)
+			tw.AddLine(
+				fastly.ToValue(elasticsearch.ServiceID),
+				fastly.ToValue(elasticsearch.ServiceVersion),
+				fastly.ToValue(elasticsearch.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -107,22 +108,22 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, elasticsearch := range o {
 		fmt.Fprintf(out, "\tElasticsearch %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", elasticsearch.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", elasticsearch.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", elasticsearch.Name)
-		fmt.Fprintf(out, "\t\tIndex: %s\n", elasticsearch.Index)
-		fmt.Fprintf(out, "\t\tURL: %s\n", elasticsearch.URL)
-		fmt.Fprintf(out, "\t\tPipeline: %s\n", elasticsearch.Pipeline)
-		fmt.Fprintf(out, "\t\tTLS CA certificate: %s\n", elasticsearch.TLSCACert)
-		fmt.Fprintf(out, "\t\tTLS client certificate: %s\n", elasticsearch.TLSClientCert)
-		fmt.Fprintf(out, "\t\tTLS client key: %s\n", elasticsearch.TLSClientKey)
-		fmt.Fprintf(out, "\t\tTLS hostname: %s\n", elasticsearch.TLSHostname)
-		fmt.Fprintf(out, "\t\tUser: %s\n", elasticsearch.User)
-		fmt.Fprintf(out, "\t\tPassword: %s\n", elasticsearch.Password)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", elasticsearch.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", elasticsearch.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", elasticsearch.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", elasticsearch.Placement)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(elasticsearch.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(elasticsearch.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(elasticsearch.Name))
+		fmt.Fprintf(out, "\t\tIndex: %s\n", fastly.ToValue(elasticsearch.Index))
+		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(elasticsearch.URL))
+		fmt.Fprintf(out, "\t\tPipeline: %s\n", fastly.ToValue(elasticsearch.Pipeline))
+		fmt.Fprintf(out, "\t\tTLS CA certificate: %s\n", fastly.ToValue(elasticsearch.TLSCACert))
+		fmt.Fprintf(out, "\t\tTLS client certificate: %s\n", fastly.ToValue(elasticsearch.TLSClientCert))
+		fmt.Fprintf(out, "\t\tTLS client key: %s\n", fastly.ToValue(elasticsearch.TLSClientKey))
+		fmt.Fprintf(out, "\t\tTLS hostname: %s\n", fastly.ToValue(elasticsearch.TLSHostname))
+		fmt.Fprintf(out, "\t\tUser: %s\n", fastly.ToValue(elasticsearch.User))
+		fmt.Fprintf(out, "\t\tPassword: %s\n", fastly.ToValue(elasticsearch.Password))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(elasticsearch.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(elasticsearch.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(elasticsearch.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(elasticsearch.Placement))
 	}
 	fmt.Fprintln(out)
 

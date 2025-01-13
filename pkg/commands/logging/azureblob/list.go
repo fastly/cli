@@ -4,55 +4,53 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ListCommand calls the Fastly API to list Azure Blob Storage logging endpoints.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest       manifest.Data
 	Input          fastly.ListBlobStoragesInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List Azure Blob Storage logging endpoints on a Fastly service version")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -64,10 +62,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -82,13 +79,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListBlobStorages(&c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -101,7 +98,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, azureblob := range o {
-			tw.AddLine(azureblob.ServiceID, azureblob.ServiceVersion, azureblob.Name)
+			tw.AddLine(
+				fastly.ToValue(azureblob.ServiceID),
+				fastly.ToValue(azureblob.ServiceVersion),
+				fastly.ToValue(azureblob.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -110,24 +111,24 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, azureblob := range o {
 		fmt.Fprintf(out, "\tBlobStorage %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", azureblob.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", azureblob.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", azureblob.Name)
-		fmt.Fprintf(out, "\t\tContainer: %s\n", azureblob.Container)
-		fmt.Fprintf(out, "\t\tAccount name: %s\n", azureblob.AccountName)
-		fmt.Fprintf(out, "\t\tSAS token: %s\n", azureblob.SASToken)
-		fmt.Fprintf(out, "\t\tPath: %s\n", azureblob.Path)
-		fmt.Fprintf(out, "\t\tPeriod: %d\n", azureblob.Period)
-		fmt.Fprintf(out, "\t\tGZip level: %d\n", azureblob.GzipLevel)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", azureblob.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", azureblob.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", azureblob.ResponseCondition)
-		fmt.Fprintf(out, "\t\tMessage type: %s\n", azureblob.MessageType)
-		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", azureblob.TimestampFormat)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", azureblob.Placement)
-		fmt.Fprintf(out, "\t\tPublic key: %s\n", azureblob.PublicKey)
-		fmt.Fprintf(out, "\t\tFile max bytes: %d\n", azureblob.FileMaxBytes)
-		fmt.Fprintf(out, "\t\tCompression codec: %s\n", azureblob.CompressionCodec)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(azureblob.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(azureblob.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(azureblob.Name))
+		fmt.Fprintf(out, "\t\tContainer: %s\n", fastly.ToValue(azureblob.Container))
+		fmt.Fprintf(out, "\t\tAccount name: %s\n", fastly.ToValue(azureblob.AccountName))
+		fmt.Fprintf(out, "\t\tSAS token: %s\n", fastly.ToValue(azureblob.SASToken))
+		fmt.Fprintf(out, "\t\tPath: %s\n", fastly.ToValue(azureblob.Path))
+		fmt.Fprintf(out, "\t\tPeriod: %d\n", fastly.ToValue(azureblob.Period))
+		fmt.Fprintf(out, "\t\tGZip level: %d\n", fastly.ToValue(azureblob.GzipLevel))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(azureblob.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(azureblob.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(azureblob.ResponseCondition))
+		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(azureblob.MessageType))
+		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(azureblob.TimestampFormat))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(azureblob.Placement))
+		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(azureblob.PublicKey))
+		fmt.Fprintf(out, "\t\tFile max bytes: %d\n", fastly.ToValue(azureblob.FileMaxBytes))
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(azureblob.CompressionCodec))
 	}
 	fmt.Fprintln(out)
 

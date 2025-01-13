@@ -3,17 +3,20 @@ package s3_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestS3Create(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -101,9 +104,12 @@ func TestS3Create(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -111,7 +117,7 @@ func TestS3Create(t *testing.T) {
 }
 
 func TestS3List(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -171,9 +177,12 @@ func TestS3List(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -181,7 +190,7 @@ func TestS3List(t *testing.T) {
 }
 
 func TestS3Describe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -213,9 +222,12 @@ func TestS3Describe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -223,7 +235,7 @@ func TestS3Describe(t *testing.T) {
 }
 
 func TestS3Update(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -266,9 +278,12 @@ func TestS3Update(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -276,7 +291,7 @@ func TestS3Update(t *testing.T) {
 }
 
 func TestS3Delete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -310,9 +325,12 @@ func TestS3Delete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -323,69 +341,69 @@ var errTest = errors.New("fixture error")
 
 func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:        i.ServiceID,
-		ServiceVersion:   i.ServiceVersion,
-		Name:             *i.Name,
-		CompressionCodec: "zstd",
+		ServiceID:        fastly.ToPointer(i.ServiceID),
+		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
+		Name:             i.Name,
+		CompressionCodec: fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func createS3Error(i *fastly.CreateS3Input) (*fastly.S3, error) {
+func createS3Error(_ *fastly.CreateS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
 func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	return []*fastly.S3{
 		{
-			ServiceID:                    i.ServiceID,
-			ServiceVersion:               i.ServiceVersion,
-			Name:                         "logs",
-			BucketName:                   "my-logs",
-			AccessKey:                    "1234",
-			SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			IAMRole:                      "",
-			Domain:                       "https://s3.us-east-1.amazonaws.com",
-			Path:                         "logs/",
-			Period:                       3600,
-			Format:                       `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:                2,
-			MessageType:                  "classic",
-			ResponseCondition:            "Prevent default logging",
-			TimestampFormat:              "%Y-%m-%dT%H:%M:%S.000",
-			Redundancy:                   "standard",
-			Placement:                    "none",
-			PublicKey:                    pgpPublicKey(),
-			ServerSideEncryption:         "aws:kms",
-			ServerSideEncryptionKMSKeyID: "1234",
-			CompressionCodec:             "zstd",
+			ServiceID:                    fastly.ToPointer(i.ServiceID),
+			ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
+			Name:                         fastly.ToPointer("logs"),
+			BucketName:                   fastly.ToPointer("my-logs"),
+			AccessKey:                    fastly.ToPointer("1234"),
+			SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			IAMRole:                      fastly.ToPointer("xyz"),
+			Domain:                       fastly.ToPointer("https://s3.us-east-1.amazonaws.com"),
+			Path:                         fastly.ToPointer("logs/"),
+			Period:                       fastly.ToPointer(3600),
+			Format:                       fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:                fastly.ToPointer(2),
+			MessageType:                  fastly.ToPointer("classic"),
+			ResponseCondition:            fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+			Placement:                    fastly.ToPointer("none"),
+			PublicKey:                    fastly.ToPointer(pgpPublicKey()),
+			ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+			ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
+			CompressionCodec:             fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:                    i.ServiceID,
-			ServiceVersion:               i.ServiceVersion,
-			Name:                         "analytics",
-			BucketName:                   "analytics",
-			AccessKey:                    "1234",
-			SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Domain:                       "https://s3.us-east-2.amazonaws.com",
-			Path:                         "logs/",
-			Period:                       86400,
-			Format:                       `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:                2,
-			MessageType:                  "classic",
-			ResponseCondition:            "Prevent default logging",
-			TimestampFormat:              "%Y-%m-%dT%H:%M:%S.000",
-			Redundancy:                   "standard",
-			Placement:                    "none",
-			PublicKey:                    pgpPublicKey(),
-			ServerSideEncryption:         "aws:kms",
-			ServerSideEncryptionKMSKeyID: "1234",
-			FileMaxBytes:                 12345,
-			CompressionCodec:             "zstd",
+			ServiceID:                    fastly.ToPointer(i.ServiceID),
+			ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
+			Name:                         fastly.ToPointer("analytics"),
+			BucketName:                   fastly.ToPointer("analytics"),
+			AccessKey:                    fastly.ToPointer("1234"),
+			SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Domain:                       fastly.ToPointer("https://s3.us-east-2.amazonaws.com"),
+			Path:                         fastly.ToPointer("logs/"),
+			Period:                       fastly.ToPointer(86400),
+			Format:                       fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:                fastly.ToPointer(2),
+			MessageType:                  fastly.ToPointer("classic"),
+			ResponseCondition:            fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+			Placement:                    fastly.ToPointer("none"),
+			PublicKey:                    fastly.ToPointer(pgpPublicKey()),
+			ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+			ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
+			FileMaxBytes:                 fastly.ToPointer(12345),
+			CompressionCodec:             fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
 
-func listS3sError(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
+func listS3sError(_ *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	return nil, errTest
 }
 
@@ -396,8 +414,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listS3sVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -409,6 +427,7 @@ Version: 1
 		Bucket: my-logs
 		Access key: 1234
 		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
+		IAM role: xyz
 		Path: logs/
 		Period: 3600
 		GZip level: 0
@@ -450,30 +469,30 @@ Version: 1
 
 func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:                    i.ServiceID,
-		ServiceVersion:               i.ServiceVersion,
-		Name:                         "logs",
-		BucketName:                   "my-logs",
-		AccessKey:                    "1234",
-		SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Domain:                       "https://s3.us-east-1.amazonaws.com",
-		Path:                         "logs/",
-		Period:                       3600,
-		Format:                       `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:                2,
-		MessageType:                  "classic",
-		ResponseCondition:            "Prevent default logging",
-		TimestampFormat:              "%Y-%m-%dT%H:%M:%S.000",
-		Redundancy:                   "standard",
-		Placement:                    "none",
-		PublicKey:                    pgpPublicKey(),
-		ServerSideEncryption:         "aws:kms",
-		ServerSideEncryptionKMSKeyID: "1234",
-		CompressionCodec:             "zstd",
+		ServiceID:                    fastly.ToPointer(i.ServiceID),
+		ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
+		Name:                         fastly.ToPointer("logs"),
+		BucketName:                   fastly.ToPointer("my-logs"),
+		AccessKey:                    fastly.ToPointer("1234"),
+		SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Domain:                       fastly.ToPointer("https://s3.us-east-1.amazonaws.com"),
+		Path:                         fastly.ToPointer("logs/"),
+		Period:                       fastly.ToPointer(3600),
+		Format:                       fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:                fastly.ToPointer(2),
+		MessageType:                  fastly.ToPointer("classic"),
+		ResponseCondition:            fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+		Placement:                    fastly.ToPointer("none"),
+		PublicKey:                    fastly.ToPointer(pgpPublicKey()),
+		ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+		ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
+		CompressionCodec:             fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func getS3Error(i *fastly.GetS3Input) (*fastly.S3, error) {
+func getS3Error(_ *fastly.GetS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
@@ -503,38 +522,38 @@ Version: 1
 
 func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
-		ServiceID:                    i.ServiceID,
-		ServiceVersion:               i.ServiceVersion,
-		Name:                         "log",
-		BucketName:                   "my-logs",
-		AccessKey:                    "1234",
-		SecretKey:                    "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Domain:                       "https://s3.us-east-1.amazonaws.com",
-		Path:                         "logs/",
-		Period:                       3600,
-		Format:                       `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:                2,
-		MessageType:                  "classic",
-		ResponseCondition:            "Prevent default logging",
-		TimestampFormat:              "%Y-%m-%dT%H:%M:%S.000",
-		Redundancy:                   "standard",
-		Placement:                    "none",
-		PublicKey:                    pgpPublicKey(),
-		ServerSideEncryption:         "aws:kms",
-		ServerSideEncryptionKMSKeyID: "1234",
-		CompressionCodec:             "zstd",
+		ServiceID:                    fastly.ToPointer(i.ServiceID),
+		ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
+		Name:                         fastly.ToPointer("log"),
+		BucketName:                   fastly.ToPointer("my-logs"),
+		AccessKey:                    fastly.ToPointer("1234"),
+		SecretKey:                    fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Domain:                       fastly.ToPointer("https://s3.us-east-1.amazonaws.com"),
+		Path:                         fastly.ToPointer("logs/"),
+		Period:                       fastly.ToPointer(3600),
+		Format:                       fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:                fastly.ToPointer(2),
+		MessageType:                  fastly.ToPointer("classic"),
+		ResponseCondition:            fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+		Placement:                    fastly.ToPointer("none"),
+		PublicKey:                    fastly.ToPointer(pgpPublicKey()),
+		ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+		ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
+		CompressionCodec:             fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func updateS3Error(i *fastly.UpdateS3Input) (*fastly.S3, error) {
+func updateS3Error(_ *fastly.UpdateS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
-func deleteS3OK(i *fastly.DeleteS3Input) error {
+func deleteS3OK(_ *fastly.DeleteS3Input) error {
 	return nil
 }
 
-func deleteS3Error(i *fastly.DeleteS3Input) error {
+func deleteS3Error(_ *fastly.DeleteS3Input) error {
 	return errTest
 }
 

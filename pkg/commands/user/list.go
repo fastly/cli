@@ -4,24 +4,22 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.CmdClause = parent.Command("list", "List all users from a specified customer id")
 	c.Globals = g
-	c.manifest = m
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagCustomerIDName,
-		Description: cmd.FlagCustomerIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagCustomerIDName,
+		Description: argparser.FlagCustomerIDDesc,
 		Dst:         &c.customerID.Value,
 		Action:      c.customerID.Set,
 	})
@@ -31,19 +29,14 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	customerID cmd.OptionalCustomerID
-	manifest   manifest.Data
+	customerID argparser.OptionalCustomerID
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -89,17 +82,17 @@ func (c *ListCommand) constructInput() *fastly.ListCustomerUsersInput {
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, us []*fastly.User) {
 	for _, u := range us {
-		fmt.Fprintf(out, "\nID: %s\n", u.ID)
-		fmt.Fprintf(out, "Login: %s\n", u.Login)
-		fmt.Fprintf(out, "Name: %s\n", u.Name)
-		fmt.Fprintf(out, "Role: %s\n", u.Role)
-		fmt.Fprintf(out, "Customer ID: %s\n", u.CustomerID)
-		fmt.Fprintf(out, "Email Hash: %s\n", u.EmailHash)
-		fmt.Fprintf(out, "Limit Services: %t\n", u.LimitServices)
-		fmt.Fprintf(out, "Locked: %t\n", u.Locked)
-		fmt.Fprintf(out, "Require New Password: %t\n", u.RequireNewPassword)
-		fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", u.TwoFactorAuthEnabled)
-		fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", u.TwoFactorSetupRequired)
+		fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(u.UserID))
+		fmt.Fprintf(out, "Login: %s\n", fastly.ToValue(u.Login))
+		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(u.Name))
+		fmt.Fprintf(out, "Role: %s\n", fastly.ToValue(u.Role))
+		fmt.Fprintf(out, "Customer ID: %s\n", fastly.ToValue(u.CustomerID))
+		fmt.Fprintf(out, "Email Hash: %s\n", fastly.ToValue(u.EmailHash))
+		fmt.Fprintf(out, "Limit Services: %t\n", fastly.ToValue(u.LimitServices))
+		fmt.Fprintf(out, "Locked: %t\n", fastly.ToValue(u.Locked))
+		fmt.Fprintf(out, "Require New Password: %t\n", fastly.ToValue(u.RequireNewPassword))
+		fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", fastly.ToValue(u.TwoFactorAuthEnabled))
+		fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", fastly.ToValue(u.TwoFactorSetupRequired))
 
 		if u.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", u.CreatedAt)
@@ -119,7 +112,13 @@ func (c *ListCommand) printSummary(out io.Writer, us []*fastly.User) error {
 	t := text.NewTable(out)
 	t.AddHeader("LOGIN", "NAME", "ROLE", "LOCKED", "ID")
 	for _, u := range us {
-		t.AddLine(u.Login, u.Name, u.Role, u.Locked, u.ID)
+		t.AddLine(
+			fastly.ToValue(u.Login),
+			fastly.ToValue(u.Name),
+			fastly.ToValue(u.Role),
+			fastly.ToValue(u.Locked),
+			fastly.ToValue(u.UserID),
+		)
 	}
 	t.Print()
 	return nil

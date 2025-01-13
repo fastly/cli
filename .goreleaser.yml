@@ -1,5 +1,6 @@
 # https://goreleaser.com/customization/project/
 project_name: fastly
+version: 2
 
 # https://goreleaser.com/customization/release/
 release:
@@ -123,7 +124,7 @@ brews:
     skip_upload: auto
     description: A CLI for interacting with the Fastly platform
     homepage: https://github.com/fastly/cli
-    folder: Formula
+    directory: Formula
     custom_block: |
       head do
         url "https://github.com/fastly/cli.git"
@@ -144,9 +145,14 @@ nfpms:
     maintainer: Fastly
     homepage: https://github.com/fastly/cli
     bindir: /usr/local/bin
+    description: CLI tool for interacting with the Fastly API.
     formats:
       - deb
       - rpm
+    contents:
+      - src: deb-copyright
+        dst: /usr/share/doc/fastly/copyright
+        packager: deb
 
 # https://goreleaser.com/customization/checksum/
 checksum:
@@ -154,11 +160,11 @@ checksum:
 
 # https://goreleaser.com/customization/snapshots/
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 
 # https://goreleaser.com/customization/changelog/
 changelog:
-  skip: true
+  disable: true
 
 # https://goreleaser.com/customization/docker/
 # dockers:

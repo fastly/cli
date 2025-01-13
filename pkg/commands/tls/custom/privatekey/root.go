@@ -3,22 +3,25 @@ package privatekey
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "private-key"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, globals *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, globals *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = globals
-	c.CmdClause = parent.Command("private-key", "Upload and manage private keys used to sign a Certificate")
+	c.CmdClause = parent.Command(CommandName, "Upload and manage private keys used to sign certificates")
 	return &c
 }
 

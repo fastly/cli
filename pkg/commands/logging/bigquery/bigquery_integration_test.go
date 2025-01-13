@@ -3,17 +3,20 @@ package bigquery_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestBigQueryCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -43,9 +46,12 @@ func TestBigQueryCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -53,7 +59,7 @@ func TestBigQueryCreate(t *testing.T) {
 }
 
 func TestBigQueryList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -113,9 +119,12 @@ func TestBigQueryList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -123,7 +132,7 @@ func TestBigQueryList(t *testing.T) {
 }
 
 func TestBigQueryDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +164,12 @@ func TestBigQueryDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +177,7 @@ func TestBigQueryDescribe(t *testing.T) {
 }
 
 func TestBigQueryUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -199,9 +211,12 @@ func TestBigQueryUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -209,7 +224,7 @@ func TestBigQueryUpdate(t *testing.T) {
 }
 
 func TestBigQueryDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -243,9 +258,12 @@ func TestBigQueryDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -256,52 +274,52 @@ var errTest = errors.New("fixture error")
 
 func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
-func createBigQueryError(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
+func createBigQueryError(_ *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
 func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
 	return []*fastly.BigQuery{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			ProjectID:         "my-project",
-			Dataset:           "raw-logs",
-			Table:             "logs",
-			User:              "service-account@domain.com",
-			AccountName:       "none",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Template:          "%Y%m%d",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			ProjectID:         fastly.ToPointer("my-project"),
+			Dataset:           fastly.ToPointer("raw-logs"),
+			Table:             fastly.ToPointer("logs"),
+			User:              fastly.ToPointer("service-account@domain.com"),
+			AccountName:       fastly.ToPointer("none"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			Template:          fastly.ToPointer("%Y%m%d"),
+			Placement:         fastly.ToPointer("none"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			ProjectID:         "my-project",
-			Dataset:           "analytics",
-			Table:             "logs",
-			User:              "service-account@domain.com",
-			AccountName:       "none",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Template:          "%Y%m%d",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			ProjectID:         fastly.ToPointer("my-project"),
+			Dataset:           fastly.ToPointer("analytics"),
+			Table:             fastly.ToPointer("logs"),
+			User:              fastly.ToPointer("service-account@domain.com"),
+			AccountName:       fastly.ToPointer("none"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			Template:          fastly.ToPointer("%Y%m%d"),
+			Placement:         fastly.ToPointer("none"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		},
 	}, nil
 }
 
-func listBigQueriesError(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
+func listBigQueriesError(_ *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
@@ -312,8 +330,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listBigQueriesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -352,23 +370,23 @@ Version: 1
 
 func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		ProjectID:         "my-project",
-		Dataset:           "raw-logs",
-		Table:             "logs",
-		User:              "service-account@domain.com",
-		AccountName:       "none",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Template:          "%Y%m%d",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		ProjectID:         fastly.ToPointer("my-project"),
+		Dataset:           fastly.ToPointer("raw-logs"),
+		Table:             fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("service-account@domain.com"),
+		AccountName:       fastly.ToPointer("none"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Template:          fastly.ToPointer("%Y%m%d"),
+		Placement:         fastly.ToPointer("none"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 	}, nil
 }
 
-func getBigQueryError(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
+func getBigQueryError(_ *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
@@ -391,29 +409,29 @@ Version: 1
 
 func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ProjectID:         "my-project",
-		Dataset:           "raw-logs",
-		Table:             "logs",
-		User:              "service-account@domain.com",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Template:          "%Y%m%d",
-		Placement:         "none",
-		ResponseCondition: "Prevent default logging",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ProjectID:         fastly.ToPointer("my-project"),
+		Dataset:           fastly.ToPointer("raw-logs"),
+		Table:             fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("service-account@domain.com"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Template:          fastly.ToPointer("%Y%m%d"),
+		Placement:         fastly.ToPointer("none"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 	}, nil
 }
 
-func updateBigQueryError(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
+func updateBigQueryError(_ *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
-func deleteBigQueryOK(i *fastly.DeleteBigQueryInput) error {
+func deleteBigQueryOK(_ *fastly.DeleteBigQueryInput) error {
 	return nil
 }
 
-func deleteBigQueryError(i *fastly.DeleteBigQueryInput) error {
+func deleteBigQueryError(_ *fastly.DeleteBigQueryInput) error {
 	return errTest
 }

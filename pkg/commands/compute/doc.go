@@ -1,2 +1,2 @@
-// Package compute contains commands to manage Compute@Edge packages.
+// Package compute contains commands to manage Compute packages.
 package compute

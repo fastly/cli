@@ -3,22 +3,25 @@ package service_test
 import (
 	"bytes"
 	"errors"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestServiceCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -60,9 +63,12 @@ func TestServiceCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -70,7 +76,7 @@ func TestServiceCreate(t *testing.T) {
 }
 
 func TestServiceList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -79,50 +85,117 @@ func TestServiceList(t *testing.T) {
 	}{
 		{
 			api: mock.API{
-				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
-					return &testutil.ServicesPaginator{ReturnErr: true}
+				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+						Errors: []error{
+							testutil.Err,
+						},
+						Responses: []*http.Response{nil},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
 			args:      args("service list"),
 			wantError: testutil.Err.Error(),
 		},
-		// NOTE: Our mock paginator defines three services, and so even when setting
-		// --per-page 1 we expect the final output to display both items.
 		{
 			api: mock.API{
-				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
-					return &testutil.ServicesPaginator{NumOfPages: i.PerPage, MaxPages: 3}
+				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[
+                  {
+                    "name": "Foo",
+                    "id": "123",
+                    "type": "wasm",
+                    "version": 2,
+                    "updated_at": "2021-06-15T23:00:00Z"
+                  },
+                  {
+                    "name": "Bar",
+                    "id": "456",
+                    "type": "wasm",
+                    "version": 1,
+                    "updated_at": "2021-06-15T23:00:00Z"
+                  },
+                  {
+                    "name": "Baz",
+                    "id": "789",
+                    "type": "vcl",
+                    "version": 1
+                  }
+                ]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
 			args:       args("service list --per-page 1"),
 			wantOutput: listServicesShortOutput,
 		},
-		// In the following test, we set --page 1 and as there's only one record
-		// displayed per page we expect only the first record to be displayed.
 		{
 			api: mock.API{
-				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
-					return &testutil.ServicesPaginator{Count: i.Page - 1, RequestedPage: i.Page, NumOfPages: i.PerPage, MaxPages: 3}
-				},
-			},
-			args:       args("service list --page 1 --per-page 1"),
-			wantOutput: listServicesShortOutputPageOne,
-		},
-		// In the following test, we set --page 2 and as there's only one record
-		// displayed per page we expect only the second record to be displayed.
-		{
-			api: mock.API{
-				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
-					return &testutil.ServicesPaginator{Count: i.Page - 1, RequestedPage: i.Page, NumOfPages: i.PerPage, MaxPages: 3}
-				},
-			},
-			args:       args("service list --page 2 --per-page 1"),
-			wantOutput: listServicesShortOutputPageTwo,
-		},
-		{
-			api: mock.API{
-				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
-					return &testutil.ServicesPaginator{MaxPages: 3}
+				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[
+                  {
+                    "name": "Foo",
+                    "id": "123",
+                    "type": "wasm",
+                    "version": 2,
+                    "updated_at": "2021-06-15T23:00:00Z",
+                    "customer_id": "mycustomerid",
+                    "versions": [
+                      {
+                        "number": 1,
+                        "comment": "a",
+                        "service_id": "b",
+                        "active": false,
+                        "locked": false,
+                        "deployed": false,
+                        "staging": false,
+                        "testing": false,
+                        "created_at": "2021-06-15T23:00:00Z",
+                        "deleted_at": "2021-06-15T23:00:00Z",
+                        "updated_at": "2021-06-15T23:00:00Z"
+                      },
+                      {
+                        "number": 2,
+                        "comment": "c",
+                        "service_id": "d",
+                        "active": true,
+                        "locked": false,
+                        "deployed": true,
+                        "staging": false,
+                        "testing": false,
+                        "created_at": "2021-06-15T23:00:00Z",
+                        "updated_at": "2021-06-15T23:00:00Z"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Bar",
+                    "id": "456",
+                    "type": "wasm",
+                    "version": 1,
+                    "updated_at": "2021-06-15T23:00:00Z",
+                    "customer_id": "mycustomerid"
+                  },
+                  {
+                    "name": "Baz",
+                    "id": "789",
+                    "type": "vcl",
+                    "version": 1,
+                    "customer_id": "mycustomerid"
+                  }
+                ]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
 				},
 			},
 			args:       args("service list --verbose"),
@@ -133,9 +206,12 @@ func TestServiceList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -143,7 +219,7 @@ func TestServiceList(t *testing.T) {
 }
 
 func TestServiceDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -190,9 +266,12 @@ func TestServiceDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -200,7 +279,7 @@ func TestServiceDescribe(t *testing.T) {
 }
 
 func TestServiceSearch(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -231,9 +310,12 @@ func TestServiceSearch(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -241,7 +323,7 @@ func TestServiceSearch(t *testing.T) {
 }
 
 func TestServiceUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -296,9 +378,12 @@ func TestServiceUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -306,7 +391,7 @@ func TestServiceUpdate(t *testing.T) {
 }
 
 func TestServiceDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	nonEmptyServiceID := regexp.MustCompile(`service_id = "[^"]+"`)
 
 	scenarios := []struct {
@@ -379,12 +464,17 @@ func TestServiceDelete(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			var stdout bytes.Buffer
-			runOpts := testutil.NewRunOpts(testcase.args, &stdout)
-			runOpts.APIClient = mock.APIClient(testcase.api)
-			runErr := app.Run(runOpts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				runOpts := testutil.MockGlobalData(testcase.args, &stdout)
+				runOpts.APIClientFactory = mock.APIClient(testcase.api)
+				return runOpts, nil
+			}
+			runErr := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, runErr, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 
@@ -416,8 +506,8 @@ var errTest = errors.New("fixture error")
 
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:   "12345",
-		Name: *i.Name,
+		ServiceID: fastly.ToPointer("12345"),
+		Name:      i.Name,
 	}, nil
 }
 
@@ -427,31 +517,21 @@ func createServiceError(*fastly.CreateServiceInput) (*fastly.Service, error) {
 
 var listServicesShortOutput = strings.TrimSpace(`
 NAME  ID   TYPE  ACTIVE VERSION  LAST EDITED (UTC)
-Foo   123  wasm  2               2010-11-15 19:01
-Bar   456  wasm  1               2015-03-14 12:59
+Foo   123  wasm  2               2021-06-15 23:00
+Bar   456  wasm  1               2021-06-15 23:00
 Baz   789  vcl   1               n/a
 `) + "\n"
 
-var listServicesShortOutputPageOne = strings.TrimSpace(`
-NAME  ID   TYPE  ACTIVE VERSION  LAST EDITED (UTC)
-Foo   123  wasm  2               2010-11-15 19:01
-`) + "\n"
-
-var listServicesShortOutputPageTwo = strings.TrimSpace(`
-NAME  ID   TYPE  ACTIVE VERSION  LAST EDITED (UTC)
-Bar   456  wasm  1               2015-03-14 12:59
-`) + "\n"
-
 var listServicesVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service 1/3
 	ID: 123
 	Name: Foo
 	Type: wasm
 	Customer ID: mycustomerid
-	Last edited (UTC): 2010-11-15 19:01
+	Last edited (UTC): 2021-06-15 23:00
 	Active version: 2
 	Versions: 2
 		Version 1/2
@@ -461,11 +541,11 @@ Service 1/3
 			Active: false
 			Locked: false
 			Deployed: false
-			Staging: false
+			Staged: false
 			Testing: false
-			Created (UTC): 2001-02-03 04:05
-			Last edited (UTC): 2001-02-04 04:05
-			Deleted (UTC): 2001-02-05 04:05
+			Created (UTC): 2021-06-15 23:00
+			Last edited (UTC): 2021-06-15 23:00
+			Deleted (UTC): 2021-06-15 23:00
 		Version 2/2
 			Number: 2
 			Comment: c
@@ -473,17 +553,17 @@ Service 1/3
 			Active: true
 			Locked: false
 			Deployed: true
-			Staging: false
+			Staged: false
 			Testing: false
-			Created (UTC): 2001-03-03 04:05
-			Last edited (UTC): 2001-03-04 04:05
+			Created (UTC): 2021-06-15 23:00
+			Last edited (UTC): 2021-06-15 23:00
 
 Service 2/3
 	ID: 456
 	Name: Bar
 	Type: wasm
 	Customer ID: mycustomerid
-	Last edited (UTC): 2015-03-14 12:59
+	Last edited (UTC): 2021-06-15 23:00
 	Active version: 1
 	Versions: 0
 
@@ -496,45 +576,46 @@ Service 3/3
 	Versions: 0
 `) + "\n\n"
 
-func getServiceOK(i *fastly.GetServiceInput) (*fastly.Service, error) {
+func getServiceOK(_ *fastly.GetServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:      "12345",
-		Name:    "Foo",
-		Comment: "Bar",
+		ServiceID: fastly.ToPointer("12345"),
+		Name:      fastly.ToPointer("Foo"),
+		Comment:   fastly.ToPointer("Bar"),
 	}, nil
 }
 
-func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceOK(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
-		ID:         "123",
-		Name:       "Foo",
-		Type:       "wasm",
-		CustomerID: "mycustomerid",
-		ActiveVersion: fastly.Version{
-			Number:    2,
-			Comment:   "c",
-			ServiceID: "d",
-			Active:    true,
-			Deployed:  true,
+		ServiceID:  fastly.ToPointer("123"),
+		Name:       fastly.ToPointer("Foo"),
+		Type:       fastly.ToPointer("wasm"),
+		Comment:    fastly.ToPointer("example"),
+		CustomerID: fastly.ToPointer("mycustomerid"),
+		ActiveVersion: &fastly.Version{
+			Number:    fastly.ToPointer(2),
+			Comment:   fastly.ToPointer("c"),
+			ServiceID: fastly.ToPointer("d"),
+			Active:    fastly.ToPointer(true),
+			Deployed:  fastly.ToPointer(true),
 			CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
 			UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
 		},
 		UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		Versions: []*fastly.Version{
 			{
-				Number:    1,
-				Comment:   "a",
-				ServiceID: "b",
+				Number:    fastly.ToPointer(1),
+				Comment:   fastly.ToPointer("a"),
+				ServiceID: fastly.ToPointer("b"),
 				CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 			},
 			{
-				Number:    2,
-				Comment:   "c",
-				ServiceID: "d",
-				Active:    true,
-				Deployed:  true,
+				Number:    fastly.ToPointer(2),
+				Comment:   fastly.ToPointer("c"),
+				ServiceID: fastly.ToPointer("d"),
+				Active:    fastly.ToPointer(true),
+				Deployed:  fastly.ToPointer(true),
 				CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
 			},
@@ -542,7 +623,7 @@ func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
 	}, nil
 }
 
-func describeServiceError(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceError(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return nil, errTest
 }
 
@@ -550,6 +631,7 @@ var describeServiceShortOutput = strings.TrimSpace(`
 ID: 123
 Name: Foo
 Type: wasm
+Comment: example
 Customer ID: mycustomerid
 Last edited (UTC): 2010-11-15 19:01
 Active version:
@@ -557,10 +639,7 @@ Active version:
 	Comment: c
 	Service ID: d
 	Active: true
-	Locked: false
 	Deployed: true
-	Staging: false
-	Testing: false
 	Created (UTC): 2001-03-03 04:05
 	Last edited (UTC): 2001-03-04 04:05
 Versions: 2
@@ -568,11 +647,6 @@ Versions: 2
 		Number: 1
 		Comment: a
 		Service ID: b
-		Active: false
-		Locked: false
-		Deployed: false
-		Staging: false
-		Testing: false
 		Created (UTC): 2001-02-03 04:05
 		Last edited (UTC): 2001-02-04 04:05
 		Deleted (UTC): 2001-02-05 04:05
@@ -581,23 +655,21 @@ Versions: 2
 		Comment: c
 		Service ID: d
 		Active: true
-		Locked: false
 		Deployed: true
-		Staging: false
-		Testing: false
 		Created (UTC): 2001-03-03 04:05
 		Last edited (UTC): 2001-03-04 04:05
 `) + "\n"
 
 var describeServiceVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
 ID: 123
 Name: Foo
 Type: wasm
+Comment: example
 Customer ID: mycustomerid
 Last edited (UTC): 2010-11-15 19:01
 Active version:
@@ -605,10 +677,7 @@ Active version:
 	Comment: c
 	Service ID: d
 	Active: true
-	Locked: false
 	Deployed: true
-	Staging: false
-	Testing: false
 	Created (UTC): 2001-03-03 04:05
 	Last edited (UTC): 2001-03-04 04:05
 Versions: 2
@@ -616,11 +685,6 @@ Versions: 2
 		Number: 1
 		Comment: a
 		Service ID: b
-		Active: false
-		Locked: false
-		Deployed: false
-		Staging: false
-		Testing: false
 		Created (UTC): 2001-02-03 04:05
 		Last edited (UTC): 2001-02-04 04:05
 		Deleted (UTC): 2001-02-05 04:05
@@ -629,36 +693,33 @@ Versions: 2
 		Comment: c
 		Service ID: d
 		Active: true
-		Locked: false
 		Deployed: true
-		Staging: false
-		Testing: false
 		Created (UTC): 2001-03-03 04:05
 		Last edited (UTC): 2001-03-04 04:05
 `) + "\n"
 
-func searchServiceOK(i *fastly.SearchServiceInput) (*fastly.Service, error) {
+func searchServiceOK(_ *fastly.SearchServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:         "123",
-		Name:       "Foo",
-		Type:       "wasm",
-		CustomerID: "mycustomerid",
+		ServiceID:  fastly.ToPointer("123"),
+		Name:       fastly.ToPointer("Foo"),
+		Type:       fastly.ToPointer("wasm"),
+		CustomerID: fastly.ToPointer("mycustomerid"),
 		UpdatedAt:  testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		Versions: []*fastly.Version{
 			{
-				Number:    1,
-				Comment:   "a",
-				ServiceID: "b",
+				Number:    fastly.ToPointer(1),
+				Comment:   fastly.ToPointer("a"),
+				ServiceID: fastly.ToPointer("b"),
 				CreatedAt: testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 				DeletedAt: testutil.MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 			},
 			{
-				Number:    2,
-				Comment:   "c",
-				ServiceID: "d",
-				Active:    true,
-				Deployed:  true,
+				Number:    fastly.ToPointer(2),
+				Comment:   fastly.ToPointer("c"),
+				ServiceID: fastly.ToPointer("d"),
+				Active:    fastly.ToPointer(true),
+				Deployed:  fastly.ToPointer(true),
 				CreatedAt: testutil.MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
 			},
@@ -672,17 +733,11 @@ Name: Foo
 Type: wasm
 Customer ID: mycustomerid
 Last edited (UTC): 2010-11-15 19:01
-Active version: 0
 Versions: 2
 	Version 1/2
 		Number: 1
 		Comment: a
 		Service ID: b
-		Active: false
-		Locked: false
-		Deployed: false
-		Staging: false
-		Testing: false
 		Created (UTC): 2001-02-03 04:05
 		Last edited (UTC): 2001-02-04 04:05
 		Deleted (UTC): 2001-02-05 04:05
@@ -691,34 +746,25 @@ Versions: 2
 		Comment: c
 		Service ID: d
 		Active: true
-		Locked: false
 		Deployed: true
-		Staging: false
-		Testing: false
 		Created (UTC): 2001-03-03 04:05
 		Last edited (UTC): 2001-03-04 04:05
 `) + "\n"
 
 var searchServiceVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 ID: 123
 Name: Foo
 Type: wasm
 Customer ID: mycustomerid
 Last edited (UTC): 2010-11-15 19:01
-Active version: 0
 Versions: 2
 	Version 1/2
 		Number: 1
 		Comment: a
 		Service ID: b
-		Active: false
-		Locked: false
-		Deployed: false
-		Staging: false
-		Testing: false
 		Created (UTC): 2001-02-03 04:05
 		Last edited (UTC): 2001-02-04 04:05
 		Deleted (UTC): 2001-02-05 04:05
@@ -727,17 +773,14 @@ Versions: 2
 		Comment: c
 		Service ID: d
 		Active: true
-		Locked: false
 		Deployed: true
-		Staging: false
-		Testing: false
 		Created (UTC): 2001-03-03 04:05
 		Last edited (UTC): 2001-03-04 04:05
 `) + "\n"
 
-func updateServiceOK(i *fastly.UpdateServiceInput) (*fastly.Service, error) {
+func updateServiceOK(_ *fastly.UpdateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID: "12345",
+		ServiceID: fastly.ToPointer("12345"),
 	}, nil
 }
 

@@ -12,11 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -67,6 +68,12 @@ func TestDeploy(t *testing.T) {
 				Dst: filepath.Join("pkg", "package.tar.gz"),
 			},
 		},
+		Write: []testutil.FileIO{
+			{
+				Src: "This is my data for the KV Store 'store_one' baz field.",
+				Dst: "kv_store_one_baz.txt",
+			},
+		},
 	})
 	defer os.RemoveAll(rootdir)
 
@@ -76,10 +83,12 @@ func TestDeploy(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	originalPackageSizeLimit := compute.MaxPackageSize
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		api            mock.API
 		args           []string
@@ -100,11 +109,6 @@ func TestDeploy(t *testing.T) {
 		wantRemediationError string
 		wantOutput           []string
 	}{
-		{
-			name:      "no token",
-			args:      args("compute deploy"),
-			wantError: "no token provided",
-		},
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute deploy --token 123"),
@@ -131,13 +135,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -162,13 +164,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -192,6 +192,18 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123 --version 1"),
 			api: mock.API{
 				CloneVersionFn:      testutil.CloneVersionError,
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				ListVersionsFn:      testutil.ListVersions,
+			},
+			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
+		},
+		{
+			name: "service version is locked, clone version error",
+			args: args("compute deploy --service-id 123 --token 123 --version 2"),
+			api: mock.API{
+				CloneVersionFn:      testutil.CloneVersionError,
+				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				ListVersionsFn:      testutil.ListVersions,
 			},
@@ -202,6 +214,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
 				CloneVersionFn:      testutil.CloneVersionResult(4),
+				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsError,
@@ -250,6 +263,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn: createServiceError,
+				DeleteServiceFn: deleteServiceOK,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -268,6 +282,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
+				DeleteServiceFn:  deleteServiceOK,
 				GetCurrentUserFn: getCurrentUserError,
 			},
 			stdin: []string{
@@ -285,6 +300,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
+				DeleteServiceFn:  deleteServiceOK,
 				GetCurrentUserFn: getCurrentUser,
 			},
 			httpClientRes: []*http.Response{
@@ -300,7 +316,7 @@ func TestDeploy(t *testing.T) {
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
-			wantError:            "error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account",
+			wantError:            "error creating service: you do not have the Compute free trial enabled on your Fastly account",
 			wantRemediationError: errors.ComputeTrialRemediation,
 			wantOutput: []string{
 				"Creating service",
@@ -313,6 +329,7 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				CreateServiceFn:  createServiceErrorNoTrial,
+				DeleteServiceFn:  deleteServiceOK,
 				GetCurrentUserFn: getCurrentUser,
 			},
 			httpClientRes: []*http.Response{
@@ -324,7 +341,7 @@ func TestDeploy(t *testing.T) {
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
-			wantError:            "error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account",
+			wantError:            "error creating service: you do not have the Compute free trial enabled on your Fastly account",
 			wantRemediationError: errors.ComputeTrialRemediation,
 			wantOutput: []string{
 				"Creating service",
@@ -344,13 +361,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -418,11 +433,11 @@ func TestDeploy(t *testing.T) {
 			name: "undo stack is executed",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
-				CreateServiceFn: createServiceOK,
-				ListDomainsFn:   listDomainsNone,
-				CreateDomainFn:  createDomainOK,
 				CreateBackendFn: createBackendError,
+				CreateDomainFn:  createDomainOK,
+				CreateServiceFn: createServiceOK,
 				DeleteServiceFn: deleteServiceOK,
+				ListDomainsFn:   listDomainsNone,
 			},
 			stdin: []string{
 				"Y", // when prompted to create a new service
@@ -443,8 +458,8 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionError,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
@@ -468,8 +483,8 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageIdentical,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 			},
@@ -484,20 +499,18 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionOk,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -512,24 +525,22 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with path",
-			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version latest"),
+			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version 3"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -543,29 +554,27 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		// NOTE: The following test ensures that if the user runs the CLI from a
-		// directory that isn't a C@E project directory (i.e. it has no manifest
+		// directory that isn't a Compute project directory (i.e. it has no manifest
 		// file present) then the deploy command should try to locate a manifest
 		// inside the given package tar.gz archive.
 		{
 			name: "success with path called from non project directory",
-			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version latest --verbose"),
+			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version 3 --verbose"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			noManifest: true,
@@ -582,24 +591,22 @@ func TestDeploy(t *testing.T) {
 		},
 		{
 			name: "success with inactive version",
-			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version latest"),
+			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version 3"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -615,20 +622,18 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionOk,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -644,20 +649,18 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionOk,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -673,21 +676,19 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:   activateVersionOk,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 				UpdateVersionFn:     updateVersionOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -714,13 +715,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -769,13 +768,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -821,13 +818,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -874,13 +869,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -917,7 +910,7 @@ func TestDeploy(t *testing.T) {
 		// when the user has no [setup] configuration and they also pass the
 		// --non-interactive flag. This is done by ensuring we DON'T see the
 		// standard 'Creating backend' output because we want to conceal the fact
-		// that we require a backend for compute services because it's a temporary
+		// that we require a backend for Compute services because it's a temporary
 		// implementation detail.
 		{
 			name: "success with no setup.backends configuration and non-interactive for new service creation",
@@ -932,13 +925,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -961,13 +952,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -1002,13 +991,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -1047,13 +1034,11 @@ func TestDeploy(t *testing.T) {
 				UpdatePackageFn:   updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			stdin: []string{
@@ -1079,20 +1064,18 @@ func TestDeploy(t *testing.T) {
 				CreateBackendFn:     createBackendOK,
 				CreateServiceFn:     createServiceOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			wantOutput: []string{
@@ -1116,20 +1099,18 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1168,20 +1149,18 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1219,25 +1198,24 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
-				CreateResourceFn:        createResourceOK,
 				CreateDomainFn:          createDomainOK,
+				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
 				GetPackageFn:            getPackageOk,
-				GetServiceFn:            getServiceOK,
 				GetServiceDetailsFn:     getServiceDetailsWasm,
+				GetServiceFn:            getServiceOK,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1273,31 +1251,91 @@ func TestDeploy(t *testing.T) {
 			},
 		},
 		{
+			name: "success with setup.config_stores configuration and no existing service and a conflicting store name",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:       activateVersionOk,
+				CreateBackendFn:         createBackendOK,
+				CreateConfigStoreFn:     createConfigStoreOK,
+				CreateDomainFn:          createDomainOK,
+				CreateResourceFn:        createResourceOK,
+				CreateServiceFn:         createServiceOK,
+				GetConfigStoreFn:        getConfigStoreOk,
+				GetPackageFn:            getPackageOk,
+				GetServiceDetailsFn:     getServiceDetailsWasm,
+				GetServiceFn:            getServiceOK,
+				ListConfigStoresFn:      listConfigStoresOk,
+				ListDomainsFn:           listDomainsOk,
+				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
+				UpdatePackageFn:         updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
+			},
+			httpClientErr: []error{
+				nil,
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.config_stores.example]
+			description = "My first store"
+			[setup.config_stores.example.items.foo]
+			value = "my default value for foo"
+			description = "a good description about foo"
+			[setup.config_stores.example.items.bar]
+			value = "my default value for bar"
+			description = "a good description about bar"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"WARNING: A Config Store called 'example' already exists",
+				"Retrieving existing Config Store 'example'",
+				"Configuring config store 'example'",
+				"My first store",
+				"Create a config store key called 'foo'",
+				"my default value for foo",
+				"Create a config store key called 'bar'",
+				"my default value for bar",
+				"Creating config store item 'foo'",
+				"Creating config store item 'bar'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
 			name: "success with setup.config_stores configuration and no existing service and --non-interactive",
 			args: args("compute deploy --non-interactive --token 123"),
 			api: mock.API{
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
-				CreateResourceFn:        createResourceOK,
 				CreateDomainFn:          createDomainOK,
+				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
 				GetPackageFn:            getPackageOk,
-				GetServiceFn:            getServiceOK,
 				GetServiceDetailsFn:     getServiceDetailsWasm,
+				GetServiceFn:            getServiceOK,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1333,25 +1371,24 @@ func TestDeploy(t *testing.T) {
 				ActivateVersionFn:       activateVersionOk,
 				CreateBackendFn:         createBackendOK,
 				CreateConfigStoreFn:     createConfigStoreOK,
-				CreateConfigStoreItemFn: createConfigStoreItemOK,
-				CreateResourceFn:        createResourceOK,
 				CreateDomainFn:          createDomainOK,
+				CreateResourceFn:        createResourceOK,
 				CreateServiceFn:         createServiceOK,
 				GetPackageFn:            getPackageOk,
-				GetServiceFn:            getServiceOK,
 				GetServiceDetailsFn:     getServiceDetailsWasm,
+				GetServiceFn:            getServiceOK,
+				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
 				ListVersionsFn:          testutil.ListVersions,
+				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1395,20 +1432,18 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1443,20 +1478,18 @@ func TestDeploy(t *testing.T) {
 				CreateDomainFn:         createDomainOK,
 				CreateServiceFn:        createServiceOK,
 				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
 				GetServiceDetailsFn:    getServiceDetailsWasm,
+				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1492,20 +1525,18 @@ func TestDeploy(t *testing.T) {
 				CreateDomainFn:         createDomainOK,
 				CreateServiceFn:        createServiceOK,
 				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
 				GetServiceDetailsFn:    getServiceDetailsWasm,
+				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1542,20 +1573,18 @@ func TestDeploy(t *testing.T) {
 				CreateDomainFn:         createDomainOK,
 				CreateServiceFn:        createServiceOK,
 				GetPackageFn:           getPackageOk,
-				GetServiceFn:           getServiceOK,
 				GetServiceDetailsFn:    getServiceDetailsWasm,
+				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
 				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1589,20 +1618,18 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBackendFn:     createBackendOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1611,7 +1638,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
@@ -1625,40 +1652,39 @@ func TestDeploy(t *testing.T) {
 				"SUCCESS: Deployed package (service 123, version 4)",
 			},
 			dontWantOutput: []string{
-				"Configuring kv store 'store_one'",
-				"Create an kv store key called 'foo'",
-				"Create an kv store key called 'bar'",
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Configuring KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 			},
 		},
 		{
-			name: "success with setup.kv_stores configuration and no existing service",
+			name: "success with setup.kv_stores configuration and no existing service plus use of file and existing store",
 			args: args("compute deploy --token 123"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				CreateBackendFn:     createBackendOK,
-				CreateKVStoreFn:     createKVStoreOK,
-				InsertKVStoreKeyFn:  createKVStoreItemOK,
-				CreateResourceFn:    createResourceOK,
 				CreateDomainFn:      createDomainOK,
+				CreateResourceFn:    createResourceOK,
 				CreateServiceFn:     createServiceOK,
+				GetKVStoreFn:        getKVStoreOk,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
+				ListKVStoresFn:      listKVStoresOk,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1667,28 +1693,79 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
 			[setup.kv_stores.store_one.items.bar]
 			value = "my default value for bar"
 			description = "a good description about bar"
+			[setup.kv_stores.store_one.items.baz]
+			file = "./kv_store_one_baz.txt"
+			description = "a file containing the data for this key"
 			`,
 			stdin: []string{
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring kv store 'store_one'",
-				"Create an kv store key called 'foo'",
-				"Create an kv store key called 'bar'",
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"WARNING: A KV Store called 'store_one' already exists",
+				"Retrieving existing KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Create a KV Store key called 'baz'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
+				"Creating KV Store key 'baz'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
 			},
+		},
+		{
+			name: "error with setup.kv_stores configuration and no existing service with file and value on same key",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				CreateBackendFn:     createBackendOK,
+				CreateDomainFn:      createDomainOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				CreateResourceFn:    createResourceOK,
+				CreateServiceFn:     createServiceOK,
+				DeleteServiceFn:     deleteServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
+				ListDomainsFn:       listDomainsOk,
+				ListKVStoresFn:      listKVStoresEmpty,
+				ListVersionsFn:      testutil.ListVersions,
+			},
+			httpClientRes: []*http.Response{
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
+			},
+			httpClientErr: []error{
+				nil,
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.kv_stores.store_one]
+			description = "My first KV Store"
+			[setup.kv_stores.store_one.items.baz]
+      value = "some_value"
+			file = "./kv_store_one_baz.txt"
+			description = "a file containing the data for this key"
+			`,
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Configuring KV Store 'store_one'",
+			},
+			wantError: "invalid config: both 'value' and 'file' were set",
 		},
 		{
 			name: "success with setup.kv_stores configuration and no existing service and --non-interactive",
@@ -1696,26 +1773,25 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				CreateBackendFn:     createBackendOK,
-				CreateKVStoreFn:     createKVStoreOK,
-				InsertKVStoreKeyFn:  createKVStoreItemOK,
-				CreateResourceFn:    createResourceOK,
 				CreateDomainFn:      createDomainOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				CreateResourceFn:    createResourceOK,
 				CreateServiceFn:     createServiceOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
+				ListKVStoresFn:      listKVStoresEmpty,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1724,7 +1800,7 @@ func TestDeploy(t *testing.T) {
 			language = "rust"
 
 			[setup.kv_stores.store_one]
-			description = "My first kv store"
+			description = "My first KV Store"
 			[setup.kv_stores.store_one.items.foo]
 			value = "my default value for foo"
 			description = "a good description about foo"
@@ -1736,9 +1812,9 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1750,26 +1826,25 @@ func TestDeploy(t *testing.T) {
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
 				CreateBackendFn:     createBackendOK,
-				CreateKVStoreFn:     createKVStoreOK,
-				InsertKVStoreKeyFn:  createKVStoreItemOK,
-				CreateResourceFn:    createResourceOK,
 				CreateDomainFn:      createDomainOK,
+				CreateKVStoreFn:     createKVStoreOK,
+				CreateResourceFn:    createResourceOK,
 				CreateServiceFn:     createServiceOK,
 				GetPackageFn:        getPackageOk,
-				GetServiceFn:        getServiceOK,
 				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
+				ListKVStoresFn:      listKVStoresEmpty,
 				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
-				{
-					Body:       io.NopCloser(strings.NewReader("success")),
-					Status:     http.StatusText(http.StatusOK),
-					StatusCode: http.StatusOK,
-				},
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
 			},
 			httpClientErr: []error{
+				nil,
 				nil,
 			},
 			manifest: `
@@ -1785,12 +1860,12 @@ func TestDeploy(t *testing.T) {
 				"Y", // when prompted to create a new service
 			},
 			wantOutput: []string{
-				"Configuring kv store 'store_one'",
-				"Create an kv store key called 'foo'",
-				"Create an kv store key called 'bar'",
-				"Creating kv store 'store_one'",
-				"Creating kv store key 'foo'",
-				"Creating kv store key 'bar'",
+				"Configuring KV Store 'store_one'",
+				"Create a KV Store key called 'foo'",
+				"Create a KV Store key called 'bar'",
+				"Creating KV Store 'store_one'",
+				"Creating KV Store key 'foo'",
+				"Creating KV Store key 'bar'",
 				"Uploading package",
 				"Activating service",
 				"SUCCESS: Deployed package (service 12345, version 1)",
@@ -1800,7 +1875,184 @@ func TestDeploy(t *testing.T) {
 			// be present in the stdout/stderr as the [setup/dictionaries]
 			// configuration does not define them.
 			dontWantOutput: []string{
-				"My first kv store",
+				"My first KV Store",
+				"my default value for foo",
+				"my default value for bar",
+			},
+		},
+		// NOTE: The following test validates [setup] only works for a new service.
+		{
+			name: "success with setup.secret_stores configuration and existing service",
+			args: args("compute deploy --service-id 123 --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				CreateBackendFn:     createBackendOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
+			},
+			httpClientErr: []error{
+				nil,
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			description = "My first Secret Store"
+			[setup.secret_stores.store_one.entries.foo]
+			description = "a good description about foo"
+			[setup.secret_stores.store_one.entries.bar]
+			description = "a good description about bar"
+			`,
+			wantOutput: []string{
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 123, version 4)",
+			},
+			dontWantOutput: []string{
+				"Configuring Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Creating Secret Store 'store_one'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+			},
+		},
+		{
+			name: "success with setup.secret_stores configuration and no existing service but an existing store",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateDomainFn:      createDomainOK,
+				CreateResourceFn:    createResourceOK,
+				CreateSecretFn:      createSecretOk,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetSecretStoreFn:    getSecretStoreOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				ListDomainsFn:       listDomainsOk,
+				ListSecretStoresFn:  listSecretStoresOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
+			},
+			httpClientErr: []error{
+				nil,
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			description = "My first Secret Store"
+			[setup.secret_stores.store_one.entries.foo]
+			description = "a good description about foo"
+			[setup.secret_stores.store_one.entries.bar]
+			description = "a good description about bar"
+			[setup.secret_stores.store_one.entries.baz]
+			description = "a file containing the data for this entry"
+			`,
+			stdin: []string{
+				"Y",         // when prompted to create a new service
+				"",          // leave blank for service name prompt
+				"",          // leave blank for backend prompt
+				"",          // leave blank for using existing store prompt
+				"my_secret", // when prompted to add a secret for foo (this can't be empty)
+				"my_secret", // when prompted to add a secret for bar (this can't be empty)
+				"my_secret", // when prompted to add a secret for baz (this can't be empty)
+			},
+			wantOutput: []string{
+				"WARNING: A Secret Store called 'store_one' already exists",
+				"Retrieving existing Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Create a Secret Store entry called 'baz'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+				"Creating Secret Store entry 'baz'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with setup.secret_stores configuration and no existing service and no predefined values",
+			args: args("compute deploy --token 123"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CreateBackendFn:     createBackendOK,
+				CreateDomainFn:      createDomainOK,
+				CreateResourceFn:    createResourceOK,
+				CreateSecretFn:      createSecretOk,
+				CreateSecretStoreFn: createSecretStoreOk,
+				CreateServiceFn:     createServiceOK,
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				ListDomainsFn:       listDomainsOk,
+				ListSecretStoresFn:  listSecretStoresEmpty,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
+			},
+			httpClientErr: []error{
+				nil,
+				nil,
+			},
+			manifest: `
+			name = "package"
+			manifest_version = 2
+			language = "rust"
+
+			[setup.secret_stores.store_one]
+			[setup.secret_stores.store_one.entries.foo]
+			[setup.secret_stores.store_one.entries.bar]
+			`,
+			stdin: []string{
+				"Y",         // when prompted to create a new service
+				"",          // leave blank for service name prompt
+				"",          // leave blank for backend prompt
+				"my_secret", // when prompted to add a secret for foo (this can't be empty)
+				"my_secret", // when prompted to add a secret for bar (this can't be empty)
+			},
+			wantOutput: []string{
+				"Configuring Secret Store 'store_one'",
+				"Create a Secret Store entry called 'foo'",
+				"Create a Secret Store entry called 'bar'",
+				"Creating Secret Store 'store_one'",
+				"Creating Secret Store entry 'foo'",
+				"Creating Secret Store entry 'bar'",
+				"Uploading package",
+				"Activating service",
+				"SUCCESS: Deployed package (service 12345, version 1)",
+			},
+			// The following are predefined values for the `description` and `value`
+			// fields from the prior setup.dictionaries tests that we expect to not
+			// be present in the stdout/stderr as the [setup/dictionaries]
+			// configuration does not define them.
+			dontWantOutput: []string{
+				"My first Secret Store",
 				"my default value for foo",
 				"my default value for bar",
 			},
@@ -1817,7 +2069,7 @@ func TestDeploy(t *testing.T) {
 			if testcase.manifest != "" {
 				manifestContent = testcase.manifest
 			}
-			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0o777); err != nil {
+			if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0o600); err != nil {
 				t.Fatal(err)
 			}
 
@@ -1839,8 +2091,8 @@ func TestDeploy(t *testing.T) {
 			}
 
 			var stdout threadsafe.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
+			opts := testutil.MockGlobalData(testcase.args, &stdout)
+			opts.APIClientFactory = mock.APIClient(testcase.api)
 
 			if testcase.httpClientRes != nil || testcase.httpClientErr != nil {
 				opts.HTTPClient = mock.HTMLClient(testcase.httpClientRes, testcase.httpClientErr)
@@ -1858,7 +2110,7 @@ func TestDeploy(t *testing.T) {
 				// To handle multiple prompt input from the user we need to do some
 				// coordination around io pipes to mimic the required user behaviour.
 				stdin, prompt := io.Pipe()
-				opts.Stdin = stdin
+				opts.Input = stdin
 
 				// Wait for user input and write it to the prompt
 				inputc := make(chan string)
@@ -1873,7 +2125,10 @@ func TestDeploy(t *testing.T) {
 
 				// Call `app.Run()` and wait for response
 				go func() {
-					err = app.Run(opts)
+					app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+						return opts, nil
+					}
+					err = app.Run(testcase.args, nil)
 					done <- true
 				}()
 
@@ -1890,6 +2145,7 @@ func TestDeploy(t *testing.T) {
 				case <-done:
 					// Wait for app.Run() to finish
 				case <-time.After(10 * time.Second):
+					t.Log(stdout.String())
 					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
 				}
 			} else {
@@ -1897,8 +2153,11 @@ func TestDeploy(t *testing.T) {
 				if len(testcase.stdin) > 0 {
 					stdin = testcase.stdin[0]
 				}
-				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
+				opts.Input = strings.NewReader(stdin)
+				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+					return opts, nil
+				}
+				err = app.Run(testcase.args, nil)
 			}
 
 			t.Log(stdout.String())
@@ -1917,11 +2176,104 @@ func TestDeploy(t *testing.T) {
 	}
 }
 
+func TestDeploy_ActivateBeacon(t *testing.T) {
+	// We're going to chdir to a deploy environment,
+	// so save the PWD to return to, afterwards.
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test environment
+	rootdir := testutil.NewEnv(testutil.EnvOpts{
+		T: t,
+		Copy: []testutil.FileIO{
+			{
+				Src: filepath.Join("testdata", "deploy", "pkg", "package.tar.gz"),
+				Dst: filepath.Join("pkg", "package.tar.gz"),
+			},
+		},
+		Write: []testutil.FileIO{
+			{
+				Src: "This is my data for the KV Store 'store_one' baz field.",
+				Dst: "kv_store_one_baz.txt",
+			},
+		},
+	})
+	defer os.RemoveAll(rootdir)
+
+	// Before running the test, chdir into the build environment.
+	// When we're done, chdir back to our original location.
+	// This is so we can reliably copy the testdata/ fixtures.
+	if err := os.Chdir(rootdir); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
+
+	stdout := threadsafe.Buffer{}
+	args := testutil.SplitArgs("compute deploy --auto-yes --non-interactive")
+	recordingHTTP := &mock.HTTPClient{
+		Responses: []*http.Response{
+			// the body is closed by beacon.Notify
+			//nolint: bodyclose
+			mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+		},
+		Errors: []error{
+			nil,
+		},
+		Index:        -1,
+		SaveRequests: true,
+	}
+
+	manifestContent := `
+	name = "package"
+	manifest_version = 2
+	language = "rust"
+	`
+
+	if err := os.WriteFile(filepath.Join(rootdir, manifest.Filename), []byte(manifestContent), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	opts := testutil.MockGlobalData(args, &stdout)
+	opts.HTTPClient = recordingHTTP
+	opts.APIClientFactory = mock.APIClient(mock.API{
+		ActivateVersionFn: func(*fastly.ActivateVersionInput) (*fastly.Version, error) {
+			return nil, testutil.Err
+		},
+		CloneVersionFn:      testutil.CloneVersionResult(4),
+		CreateBackendFn:     createBackendOK,
+		CreateServiceFn:     createServiceOK,
+		DeleteServiceFn:     deleteServiceOK,
+		GetPackageFn:        getPackageOk,
+		GetServiceDetailsFn: getServiceDetailsWasm,
+		GetServiceFn:        getServiceOK,
+		ListDomainsFn:       listDomainsOk,
+		ListVersionsFn:      testutil.ListVersions,
+		UpdatePackageFn:     updatePackageOk,
+	})
+
+	app.Init = func(_ []string, stdin io.Reader) (*global.Data, error) {
+		opts.Input = stdin
+		return opts, nil
+	}
+
+	err = app.Run(args, nil)
+
+	testutil.AssertErrorContains(t, err, "error activating version:")
+	testutil.AssertLength(t, 1, recordingHTTP.Requests)
+
+	beaconReq := recordingHTTP.Requests[0]
+	testutil.AssertEqual(t, "fastly-notification-relay.edgecompute.app", beaconReq.URL.Hostname())
+}
+
 func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
-		ID:   "12345",
-		Name: *i.Name,
-		Type: *i.Type,
+		ServiceID: fastly.ToPointer("12345"),
+		Name:      i.Name,
+		Type:      i.Type,
 	}, nil
 }
 
@@ -1937,7 +2289,7 @@ func createServiceErrorNoTrial(*fastly.CreateServiceInput) (*fastly.Service, err
 
 func getCurrentUser() (*fastly.User, error) {
 	return &fastly.User{
-		CustomerID: "abc",
+		CustomerID: fastly.ToPointer("abc"),
 	}, nil
 }
 
@@ -1945,45 +2297,45 @@ func getCurrentUserError() (*fastly.User, error) {
 	return nil, testutil.Err
 }
 
-func deleteServiceOK(i *fastly.DeleteServiceInput) error {
+func deleteServiceOK(_ *fastly.DeleteServiceInput) error {
 	return nil
 }
 
-func createDomainError(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
+func createDomainError(_ *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return nil, testutil.Err
 }
 
-func deleteDomainOK(i *fastly.DeleteDomainInput) error {
+func deleteDomainOK(_ *fastly.DeleteDomainInput) error {
 	return nil
 }
 
-func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendError(_ *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return nil, testutil.Err
 }
 
-func deleteBackendOK(i *fastly.DeleteBackendInput) error {
+func deleteBackendOK(_ *fastly.DeleteBackendInput) error {
 	return nil
 }
 
 func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	return &fastly.Package{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Metadata: fastly.PackageMetadata{
-			FilesHash: "d8786807216a37608ecd0bc2357c86f883faad89043141f0a147f2c186ce0212333d31229399c131539205908f5cf0884ea64552782544ff9b27416cd5b996b2",
-			HashSum:   "bf634ccf8be5c8417cf562466ece47ea61056ddeb07273a3d861e8ad757ed3577bc182006d04093c301467cadfd2b1805eedebd1e7cfa0404c723680f2dbc01e",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Metadata: &fastly.PackageMetadata{
+			FilesHash: fastly.ToPointer("d8786807216a37608ecd0bc2357c86f883faad89043141f0a147f2c186ce0212333d31229399c131539205908f5cf0884ea64552782544ff9b27416cd5b996b2"),
+			HashSum:   fastly.ToPointer("bf634ccf8be5c8417cf562466ece47ea61056ddeb07273a3d861e8ad757ed3577bc182006d04093c301467cadfd2b1805eedebd1e7cfa0404c723680f2dbc01e"),
 		},
 	}, nil
 }
 
-func activateVersionError(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+func activateVersionError(_ *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
-func listDomainsError(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsError(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, testutil.Err
 }
 
-func listDomainsNone(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsNone(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{}, nil
 }

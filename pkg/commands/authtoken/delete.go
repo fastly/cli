@@ -7,22 +7,19 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("delete", "Revoke an API token").Alias("remove")
 
@@ -34,21 +31,15 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
-	cmd.Base
+	argparser.Base
 
-	current  bool
-	file     string
-	id       string
-	manifest manifest.Data
+	current bool
+	file    string
+	id      string
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	if !c.current && c.file == "" && c.id == "" {
 		return fmt.Errorf("error parsing arguments: must provide either the --current, --file or --id flag")
 	}
@@ -79,6 +70,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 		text.Success(out, "Deleted tokens")
 		if c.Globals.Verbose() {
+			text.Break(out)
 			c.printTokens(out, input.Tokens)
 		}
 		return nil
@@ -121,11 +113,7 @@ func (c *DeleteCommand) constructInputBatch() (*fastly.BatchDeleteTokensInput, e
 
 	if path, err = filepath.Abs(c.file); err == nil {
 		if _, err = os.Stat(path); err == nil {
-			// gosec flagged this:
-			// G304 (CWE-22): Potential file inclusion via variable
-			// Disabling as we trust the source of the path variable.
-			/* #nosec */
-			if file, err = os.Open(path); err == nil {
+			if file, err = os.Open(path); err == nil /* #nosec */ {
 				scanner := bufio.NewScanner(file)
 				for scanner.Scan() {
 					tokens = append(tokens, &fastly.BatchToken{ID: scanner.Text()})
@@ -146,7 +134,6 @@ func (c *DeleteCommand) constructInputBatch() (*fastly.BatchDeleteTokensInput, e
 
 // printTokens displays the tokens provided by a user.
 func (c *DeleteCommand) printTokens(out io.Writer, rs []*fastly.BatchToken) {
-	fmt.Fprintf(out, "\n")
 	t := text.NewTable(out)
 	t.AddHeader("TOKEN ID")
 	for _, r := range rs {

@@ -2,10 +2,11 @@ package testutil
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/google/go-cmp/cmp"
 )
@@ -102,7 +103,7 @@ func AssertRemediationErrorContains(t *testing.T, err error, target string) {
 // AssertPathContentFlag errors a test scenario if the given flag value hasn't
 // been parsed as expected.
 //
-// Example: Some flags will internally be passed to `cmd.Content` to acquire
+// Example: Some flags will internally be passed to `argparser.Content` to acquire
 // the value. If passed a file path, then we expect the testdata/<fixture> to
 // have been read, otherwise we expect the given flag value to have been used.
 func AssertPathContentFlag(flag string, wantError string, args []string, fixture string, content string, t *testing.T) {
@@ -111,7 +112,7 @@ func AssertPathContentFlag(flag string, wantError string, args []string, fixture
 			if a == fmt.Sprintf("--%s", flag) {
 				want := args[i+1]
 				if want == fmt.Sprintf("./testdata/%s", fixture) {
-					want = cmd.Content(want)
+					want = argparser.Content(want)
 				}
 				if content != want {
 					t.Errorf("wanted %s, have %s", want, content)
@@ -119,5 +120,29 @@ func AssertPathContentFlag(flag string, wantError string, args []string, fixture
 				break
 			}
 		}
+	}
+}
+
+// Borrowed from https://github.com/stretchr/testify/blob/v1.9.0/assert/assertions.go#L778-L784
+func getLen(x any) (l int, ok bool) {
+	v := reflect.ValueOf(x)
+	defer func() {
+		ok = recover() == nil
+	}()
+	return v.Len(), true
+}
+
+// AssertLength fails a test scenario if the given slice or string does
+// not have the expected length.
+func AssertLength(t *testing.T, want int, have any) {
+	t.Helper()
+	l, ok := getLen(have)
+
+	if !ok {
+		t.Fatalf("cannot get len of type %T", have)
+	}
+
+	if l != want {
+		t.Fatalf("wanted %d elements, got %d (%#v)", want, l, have)
 	}
 }

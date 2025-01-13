@@ -1,12 +1,13 @@
-package cmd
+package argparser
 
 import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/fastly/kingpin"
 
+	"4d63.com/optional"
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -99,10 +100,27 @@ type OptionalInt struct {
 	Value int
 }
 
+// OptionalFloat64 models an optional int flag value.
+type OptionalFloat64 struct {
+	Optional
+	Value float64
+}
+
 // ServiceDetailsOpts provides data and behaviours required by the
 // ServiceDetails function.
 type ServiceDetailsOpts struct {
-	AllowActiveLocked  bool
+	// Active controls whether active service-versions will be included in the result;
+	// if this is Empty, then the 'active' state of the version is ignored;
+	// otherwise, the 'active' state must match the value
+	Active optional.Optional[bool]
+	// Locked controls whether locked service-versions will be included in the result;
+	// if this is Empty, then the 'locked' state of the version is ignored;
+	// otherwise, the 'locked' state must match the value
+	Locked optional.Optional[bool]
+	// Staging controls whether staging service-versions will be included in the result;
+	// if this is Empty, then the 'staging' state of the version is ignored;
+	// otherwise, the 'staging' state must match the value
+	Staging            optional.Optional[bool]
 	AutoCloneFlag      OptionalAutoClone
 	APIClient          api.Interface
 	Manifest           manifest.Data
@@ -134,43 +152,85 @@ func ServiceDetails(opts ServiceDetailsOpts) (serviceID string, serviceVersion *
 		if err != nil {
 			return serviceID, currentVersion, err
 		}
-	} else if !opts.AllowActiveLocked && (v.Active || v.Locked) {
+		return serviceID, v, nil
+	}
+
+	failure := false
+	var failureState string
+
+	if active, present := opts.Active.Get(); present {
+		if active && !fastly.ToValue(v.Active) {
+			failure = true
+			failureState = "not active"
+		}
+		if !active && fastly.ToValue(v.Active) {
+			failure = true
+			failureState = "active"
+		}
+	}
+
+	if locked, present := opts.Locked.Get(); present {
+		if locked && !fastly.ToValue(v.Locked) {
+			failure = true
+			failureState = "not locked"
+		}
+		if !locked && fastly.ToValue(v.Locked) {
+			failure = true
+			failureState = "locked"
+		}
+	}
+
+	if staging, present := opts.Staging.Get(); present {
+		if staging && !fastly.ToValue(v.Staging) {
+			failure = true
+			failureState = "not staged"
+		}
+		if !staging && fastly.ToValue(v.Staging) {
+			failure = true
+			failureState = "staged"
+		}
+	}
+
+	if failure {
 		err = fsterr.RemediationError{
-			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
+			Inner:       fmt.Errorf("service version %d is %s", fastly.ToValue(v.Number), failureState),
 			Remediation: fsterr.AutoCloneRemediation,
 		}
 		return serviceID, v, err
 	}
-
 	return serviceID, v, nil
 }
 
 // ServiceID returns the Service ID and the source of that information.
 //
-// NOTE: If Service ID not provided then check if Service Name provided and use
-// that information to acquire the Service ID.
+// NOTE: If Service Name is provided it overrides all other methods of
+// obtaining the Service ID.
 func ServiceID(serviceName OptionalServiceNameID, data manifest.Data, client api.Interface, li fsterr.LogInterface) (serviceID string, source manifest.Source, flag string, err error) {
-	flag = "--service-id"
+	flag = "--" + FlagServiceIDName
 	serviceID, source = data.ServiceID()
 
-	if source == manifest.SourceUndefined {
-		if !serviceName.WasSet {
-			err = fsterr.ErrNoServiceID
+	if serviceName.WasSet {
+		if source == manifest.SourceFlag {
+			err = fmt.Errorf("cannot specify both %s and %s", FlagServiceIDName, FlagServiceName)
 			if li != nil {
 				li.Add(err)
 			}
 			return serviceID, source, flag, err
 		}
 
-		flag = "--service-name"
+		flag = "--" + FlagServiceName
 		serviceID, err = serviceName.Parse(client)
 		if err != nil {
 			if li != nil {
 				li.Add(err)
 			}
-		} else {
-			source = manifest.SourceFlag
+			return serviceID, source, flag, err
 		}
+		source = manifest.SourceFlag
+	}
+
+	if source == manifest.SourceUndefined {
+		err = fsterr.ErrNoServiceID
 	}
 
 	return serviceID, source, flag, err
@@ -253,14 +313,22 @@ func IsVerboseAndQuiet(args []string) bool {
 //
 // args: [--verbose -v --endpoint ... --token ... -t ... --endpoint ...] 10
 // total: 10
+//
+// IMPORTANT: Kingpin doesn't support global flags.
+// We hack a solution in ../app/run.go (`configureKingpin` function).
 func IsGlobalFlagsOnly(args []string) bool {
 	// Global flags are defined in ../app/run.go
+	// False positive https://github.com/semgrep/semgrep/issues/8593
+	// nosemgrep: trailofbits.go.iterate-over-empty-map.iterate-over-empty-map
 	globals := map[string]int{
 		"--accept-defaults": 0,
 		"-d":                0,
+		"--account":         1,
+		"--api":             1,
 		"--auto-yes":        0,
 		"-y":                0,
-		"--endpoint":        1,
+		"--debug-mode":      0,
+		"--enable-sso":      0,
 		"--help":            0,
 		"--non-interactive": 0,
 		"-i":                0,

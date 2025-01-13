@@ -4,52 +4,50 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
-	manifest       manifest.Data
+	argparser.Base
+	argparser.JSONOutput
 	name           string
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Show detailed information about a condition on a Fastly service version").Alias("get")
 	c.Globals = g
-	c.manifest = m
 
 	// Required flags
 	c.CmdClause.Flag("name", "Name of condition").Short('n').Required().StringVar(&c.name)
 
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional flags
 	c.RegisterFlagBool(c.JSONFlag())
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
@@ -62,10 +60,9 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -81,14 +78,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	var input fastly.GetConditionInput
 	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion.Number
+	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 	input.Name = c.name
 
 	r, err := c.Globals.APIClient.GetCondition(&input)
 	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]interface{}{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": serviceVersion.Number,
+			"Service Version": fastly.ToValue(serviceVersion.Number),
 		})
 		return err
 	}
@@ -98,13 +95,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", r.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(r.ServiceID))
 	}
-	fmt.Fprintf(out, "Version: %d\n", r.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", r.Name)
-	fmt.Fprintf(out, "Statement: %s\n", r.Statement)
-	fmt.Fprintf(out, "Type: %s\n", r.Type)
-	fmt.Fprintf(out, "Priority: %d\n", r.Priority)
+	fmt.Fprintf(out, "Version: %d\n", fastly.ToValue(r.ServiceVersion))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
+	fmt.Fprintf(out, "Statement: %s\n", fastly.ToValue(r.Statement))
+	fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(r.Type))
+	fmt.Fprintf(out, "Priority: %d\n", fastly.ToValue(r.Priority))
 
 	return nil
 }

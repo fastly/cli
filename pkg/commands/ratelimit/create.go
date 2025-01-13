@@ -6,13 +6,13 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // rateLimitActionFlagOpts is a string representation of rateLimitActions
@@ -43,27 +43,26 @@ var rateLimitWindowSizeFlagOpts = func() (windowSizes []string) {
 }()
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("create", "Create a rate limiter for a particular service and version").Alias("add")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.CmdClause.Flag("action", "The action to take when a rate limiter violation is detected").HintOptions(rateLimitActionFlagOpts...).EnumVar(&c.action, rateLimitActionFlagOpts...)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -79,16 +78,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("response-object-name", "Name of existing response object. Required if action is response_object").StringVar(&c.responseObjectName)
 	c.CmdClause.Flag("response-status", "HTTP response status code (e.g. 429)").IntVar(&c.responseStatus)
 	c.CmdClause.Flag("rps-limit", "Upper limit of requests per second allowed by the rate limiter").IntVar(&c.rpsLimit)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("uri-dict-name", "The name of an Edge Dictionary containing URIs as keys").StringVar(&c.uriDictName)
@@ -99,16 +98,15 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	action              string
-	autoClone           cmd.OptionalAutoClone
+	autoClone           argparser.OptionalAutoClone
 	clientKeys          string
 	featRevision        int
 	httpMethods         string
 	loggerType          string
-	manifest            manifest.Data
 	name                string
 	penaltyDuration     int
 	responseContent     string
@@ -116,19 +114,14 @@ type CreateCommand struct {
 	responseObjectName  string
 	responseStatus      int
 	rpsLimit            int
-	serviceName         cmd.OptionalServiceNameID
-	serviceVersion      cmd.OptionalServiceVersion
+	serviceName         argparser.OptionalServiceNameID
+	serviceVersion      argparser.OptionalServiceVersion
 	uriDictName         string
 	windowSize          string
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
-
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -140,10 +133,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -159,7 +154,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 	input.ServiceID = serviceID
-	input.ServiceVersion = serviceVersion.Number
+	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.CreateERL(input)
 	if err != nil {
@@ -174,7 +169,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created rate limiter '%s' (%s)", o.Name, o.ID)
+	text.Success(out, "Created rate limiter '%s' (%s)", fastly.ToValue(o.Name), fastly.ToValue(o.RateLimiterID))
 	return nil
 }
 
@@ -185,7 +180,7 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 	if c.action != "" {
 		for _, a := range fastly.ERLActions {
 			if c.action == string(a) {
-				input.Action = fastly.ERLActionPtr(a)
+				input.Action = fastly.ToPointer(a)
 				break
 			}
 		}
@@ -197,7 +192,7 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 	}
 
 	if c.featRevision > 0 {
-		input.FeatureRevision = fastly.Int(c.featRevision)
+		input.FeatureRevision = fastly.ToPointer(c.featRevision)
 	}
 
 	if c.httpMethods != "" {
@@ -208,44 +203,44 @@ func (c *CreateCommand) constructInput() *fastly.CreateERLInput {
 	if c.loggerType != "" {
 		for _, l := range fastly.ERLLoggers {
 			if c.loggerType == string(l) {
-				input.LoggerType = fastly.ERLLoggerPtr(l)
+				input.LoggerType = fastly.ToPointer(l)
 				break
 			}
 		}
 	}
 
 	if c.name != "" {
-		input.Name = fastly.String(c.name)
+		input.Name = fastly.ToPointer(c.name)
 	}
 
 	if c.penaltyDuration > 0 {
-		input.PenaltyBoxDuration = fastly.Int(c.penaltyDuration)
+		input.PenaltyBoxDuration = fastly.ToPointer(c.penaltyDuration)
 	}
 
 	if c.responseContent != "" && c.responseContentType != "" && c.responseStatus > 0 {
 		input.Response = &fastly.ERLResponseType{
-			ERLContent:     c.responseContent,
-			ERLContentType: c.responseContentType,
-			ERLStatus:      c.responseStatus,
+			ERLContent:     fastly.ToPointer(c.responseContent),
+			ERLContentType: fastly.ToPointer(c.responseContentType),
+			ERLStatus:      fastly.ToPointer(c.responseStatus),
 		}
 	}
 
 	if c.responseObjectName != "" {
-		input.ResponseObjectName = fastly.String(c.responseObjectName)
+		input.ResponseObjectName = fastly.ToPointer(c.responseObjectName)
 	}
 
 	if c.rpsLimit > 0 {
-		input.RpsLimit = fastly.Int(c.rpsLimit)
+		input.RpsLimit = fastly.ToPointer(c.rpsLimit)
 	}
 
 	if c.uriDictName != "" {
-		input.URIDictionaryName = fastly.String(c.uriDictName)
+		input.URIDictionaryName = fastly.ToPointer(c.uriDictName)
 	}
 
 	if c.windowSize != "" {
 		for _, w := range fastly.ERLWindowSizes {
 			if c.windowSize == fmt.Sprint(w) {
-				input.WindowSize = fastly.ERLWindowSizePtr(w)
+				input.WindowSize = fastly.ToPointer(w)
 				break
 			}
 		}

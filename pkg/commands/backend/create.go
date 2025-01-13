@@ -1,68 +1,74 @@
 package backend
 
 import (
+	"errors"
 	"io"
 	"net"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // CreateCommand calls the Fastly API to create backends.
 type CreateCommand struct {
-	cmd.Base
-	manifest manifest.Data
+	argparser.Base
 
 	// Required.
-	serviceVersion cmd.OptionalServiceVersion
+	serviceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	address             cmd.OptionalString
-	autoClone           cmd.OptionalAutoClone
-	autoLoadBalance     cmd.OptionalBool
-	betweenBytesTimeout cmd.OptionalInt
-	comment             cmd.OptionalString
-	connectTimeout      cmd.OptionalInt
-	firstByteTimeout    cmd.OptionalInt
-	healthCheck         cmd.OptionalString
-	maxConn             cmd.OptionalInt
-	maxTLSVersion       cmd.OptionalString
-	minTLSVersion       cmd.OptionalString
-	name                cmd.OptionalString
-	overrideHost        cmd.OptionalString
-	port                cmd.OptionalInt
-	requestCondition    cmd.OptionalString
-	serviceName         cmd.OptionalServiceNameID
-	shield              cmd.OptionalString
-	sslCACert           cmd.OptionalString
-	sslCertHostname     cmd.OptionalString
-	sslCheckCert        cmd.OptionalBool
-	sslCiphers          cmd.OptionalString
-	sslClientCert       cmd.OptionalString
-	sslClientKey        cmd.OptionalString
-	sslSNIHostname      cmd.OptionalString
-	useSSL              cmd.OptionalBool
-	weight              cmd.OptionalInt
+	address             argparser.OptionalString
+	autoClone           argparser.OptionalAutoClone
+	autoLoadBalance     argparser.OptionalBool
+	betweenBytesTimeout argparser.OptionalInt
+	comment             argparser.OptionalString
+	connectTimeout      argparser.OptionalInt
+	firstByteTimeout    argparser.OptionalInt
+	healthCheck         argparser.OptionalString
+	maxConn             argparser.OptionalInt
+	maxTLSVersion       argparser.OptionalString
+	minTLSVersion       argparser.OptionalString
+	name                argparser.OptionalString
+	noSSLCheckCert      argparser.OptionalBool
+	overrideHost        argparser.OptionalString
+	port                argparser.OptionalInt
+	requestCondition    argparser.OptionalString
+	serviceName         argparser.OptionalServiceNameID
+	shield              argparser.OptionalString
+	sslCACert           argparser.OptionalString
+	sslCertHostname     argparser.OptionalString
+	sslCheckCert        argparser.OptionalBool
+	sslCiphers          argparser.OptionalString
+	sslClientCert       argparser.OptionalString
+	sslClientKey        argparser.OptionalString
+	sslSNIHostname      argparser.OptionalString
+	tcpKaEnable         argparser.OptionalString
+	tcpKaInterval       argparser.OptionalInt
+	tcpKaProbes         argparser.OptionalInt
+	tcpKaTime           argparser.OptionalInt
+	httpKaTime          argparser.OptionalInt
+	useSSL              argparser.OptionalBool
+	weight              argparser.OptionalInt
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Create a backend on a Fastly service version").Alias("add")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
@@ -70,7 +76,7 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	// Optional.
 
 	c.CmdClause.Flag("address", "A hostname, IPv4, or IPv6 address for the backend").Action(c.address.Set).StringVar(&c.address.Value)
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -84,19 +90,20 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.maxTLSVersion.Set).StringVar(&c.maxTLSVersion.Value)
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.minTLSVersion.Set).StringVar(&c.minTLSVersion.Value)
 	c.CmdClause.Flag("name", "Backend name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
+	c.CmdClause.Flag("no-ssl-check-cert", "Skip checking SSL certs").Action(c.noSSLCheckCert.Set).BoolVar(&c.noSSLCheckCert.Value)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
 	c.CmdClause.Flag("port", "Port number of the address").Action(c.port.Set).IntVar(&c.port.Value)
 	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").Action(c.requestCondition.Set).StringVar(&c.requestCondition.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("shield", "The shield POP designated to reduce inbound load on this origin by serving the cached data to the rest of the network").Action(c.shield.Set).StringVar(&c.shield.Value)
@@ -107,6 +114,11 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("ssl-client-cert", "Client certificate attached to origin").Action(c.sslClientCert.Set).StringVar(&c.sslClientCert.Value)
 	c.CmdClause.Flag("ssl-client-key", "Client key attached to origin").Action(c.sslClientKey.Set).StringVar(&c.sslClientKey.Value)
 	c.CmdClause.Flag("ssl-sni-hostname", "Overrides ssl_hostname, but only for SNI in the handshake. Does not affect cert validation at all.").Action(c.sslSNIHostname.Set).StringVar(&c.sslSNIHostname.Value)
+	c.CmdClause.Flag("tcp-ka-enabled", "Enable TCP keepalive probes [true, false]").Action(c.tcpKaEnable.Set).StringVar(&c.tcpKaEnable.Value)
+	c.CmdClause.Flag("tcp-ka-interval", "Configure how long to wait between sending each TCP keepalive probe.").Action(c.tcpKaInterval.Set).IntVar(&c.tcpKaInterval.Value)
+	c.CmdClause.Flag("tcp-ka-probes", "Configure how many unacknowledged TCP keepalive probes to send before considering the connection dead.").Action(c.tcpKaProbes.Set).IntVar(&c.tcpKaProbes.Value)
+	c.CmdClause.Flag("tcp-ka-time", "Configure how long to wait after the last sent data before sending TCP keepalive probes.").Action(c.tcpKaTime.Set).IntVar(&c.tcpKaTime.Value)
+	c.CmdClause.Flag("http-ka-time", "Configure how long to keep idle HTTP keepalive connections in the connection pool.").Action(c.httpKaTime.Set).IntVar(&c.httpKaTime.Value)
 	c.CmdClause.Flag("use-ssl", "Whether or not to use SSL to reach the backend").Action(c.useSSL.Set).BoolVar(&c.useSSL.Value)
 	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.weight.Set).IntVar(&c.weight.Value)
 
@@ -115,10 +127,12 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -127,13 +141,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
 	input := fastly.CreateBackendInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
 	if c.name.WasSet {
@@ -143,7 +157,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Address = &c.address.Value
 	}
 	if c.autoLoadBalance.WasSet {
-		input.AutoLoadbalance = fastly.CBool(c.autoLoadBalance.Value)
+		input.AutoLoadbalance = fastly.ToPointer(fastly.Compatibool(c.autoLoadBalance.Value))
 	}
 	if c.betweenBytesTimeout.WasSet {
 		input.BetweenBytesTimeout = &c.betweenBytesTimeout.Value
@@ -169,6 +183,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.minTLSVersion.WasSet {
 		input.MinTLSVersion = &c.minTLSVersion.Value
 	}
+	if c.noSSLCheckCert.WasSet {
+		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(false))
+	}
 	if c.overrideHost.WasSet {
 		input.OverrideHost = &c.overrideHost.Value
 	}
@@ -185,7 +202,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.SSLCertHostname = &c.sslCertHostname.Value
 	}
 	if c.sslCheckCert.WasSet {
-		input.SSLCheckCert = fastly.CBool(c.sslCheckCert.Value)
+		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
+		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(c.sslCheckCert.Value))
 	}
 	if c.sslCiphers.WasSet {
 		input.SSLCiphers = &c.sslCiphers.Value
@@ -199,6 +217,34 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.sslSNIHostname.WasSet {
 		input.SSLSNIHostname = &c.sslSNIHostname.Value
 	}
+	if c.tcpKaEnable.WasSet {
+		var tcpKaEnable bool
+
+		switch c.tcpKaEnable.Value {
+		case "true":
+			tcpKaEnable = true
+		case "false":
+			tcpKaEnable = false
+		default:
+			err := errors.New("'tcp-ka-enable' flag must be one of the following [true, false]")
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+
+		input.TCPKeepAliveEnable = &tcpKaEnable
+	}
+	if c.tcpKaInterval.WasSet {
+		input.TCPKeepAliveIntvl = &c.tcpKaInterval.Value
+	}
+	if c.tcpKaProbes.WasSet {
+		input.TCPKeepAliveProbes = &c.tcpKaProbes.Value
+	}
+	if c.tcpKaTime.WasSet {
+		input.TCPKeepAliveTime = &c.tcpKaTime.Value
+	}
+	if c.httpKaTime.WasSet {
+		input.KeepAliveTime = &c.httpKaTime.Value
+	}
 	if c.weight.WasSet {
 		input.Weight = &c.weight.Value
 	}
@@ -208,9 +254,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Port = &c.port.Value
 	case c.useSSL.WasSet && c.useSSL.Value:
 		if c.Globals.Flags.Verbose {
-			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443")
+			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443\n\n")
 		}
-		input.Port = fastly.Int(443)
+		input.Port = fastly.ToPointer(443)
 	}
 
 	if input.Address != nil && !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {
@@ -241,7 +287,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created backend %s (service %s version %d)", b.Name, b.ServiceID, b.ServiceVersion)
+	text.Success(out, "Created backend %s (service %s version %d)", fastly.ToValue(b.Name), fastly.ToValue(b.ServiceID), fastly.ToValue(b.ServiceVersion))
 	return nil
 }
 

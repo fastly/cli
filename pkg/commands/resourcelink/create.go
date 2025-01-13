@@ -3,33 +3,32 @@ package resourcelink
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a resource link.
 type CreateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	autoClone      cmd.OptionalAutoClone
+	autoClone      argparser.OptionalAutoClone
 	input          fastly.CreateResourceInput
-	manifest       manifest.Data
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 		input: fastly.CreateResourceInput{
 			// Kingpin requires the following to be initialized.
 			ResourceID: new(string),
@@ -39,41 +38,41 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause = parent.Command("create", "Create a Fastly service resource link").Alias("link")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "resource-id",
 		Short:       'r',
 		Description: flagResourceIDDescription,
 		Dst:         c.input.ResourceID,
 		Required:    true,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// At least one of the following is required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
 		Short:       's',
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceName,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceName,
 		Action:      c.serviceName.Set,
-		Description: cmd.FlagServiceDesc,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "name",
 		Short:       'n',
 		Description: flagNameDescription,
@@ -89,10 +88,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -100,14 +101,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      c.manifest.Flag.ServiceID,
+			"Service ID":      c.Globals.Manifest.Flag.ServiceID,
 			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
 
 	c.input.ServiceID = serviceID
-	c.input.ServiceVersion = serviceVersion.Number
+	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.CreateResource(&c.input)
 	if err != nil {
@@ -123,6 +124,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created service resource link %q (%s) on service %s version %s", o.Name, o.ID, o.ServiceID, o.ServiceVersion)
+	text.Success(out,
+		"Created service resource link %q (%s) on service %s version %d",
+		fastly.ToValue(o.Name),
+		fastly.ToValue(o.LinkID),
+		fastly.ToValue(o.ServiceID),
+		fastly.ToValue(o.ServiceVersion),
+	)
 	return nil
 }

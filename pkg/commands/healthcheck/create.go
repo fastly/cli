@@ -3,59 +3,58 @@ package healthcheck
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // CreateCommand calls the Fastly API to create healthchecks.
 type CreateCommand struct {
-	cmd.Base
-	manifest manifest.Data
+	argparser.Base
 
 	// Required.
-	serviceVersion cmd.OptionalServiceVersion
+	serviceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	autoClone        cmd.OptionalAutoClone
-	checkInterval    cmd.OptionalInt
-	comment          cmd.OptionalString
-	expectedResponse cmd.OptionalInt
-	host             cmd.OptionalString
-	httpVersion      cmd.OptionalString
-	initial          cmd.OptionalInt
-	method           cmd.OptionalString
-	name             cmd.OptionalString
-	path             cmd.OptionalString
-	serviceName      cmd.OptionalServiceNameID
-	threshold        cmd.OptionalInt
-	timeout          cmd.OptionalInt
-	window           cmd.OptionalInt
+	autoClone        argparser.OptionalAutoClone
+	checkInterval    argparser.OptionalInt
+	comment          argparser.OptionalString
+	expectedResponse argparser.OptionalInt
+	host             argparser.OptionalString
+	httpVersion      argparser.OptionalString
+	initial          argparser.OptionalInt
+	method           argparser.OptionalString
+	name             argparser.OptionalString
+	path             argparser.OptionalString
+	serviceName      argparser.OptionalServiceNameID
+	threshold        argparser.OptionalInt
+	timeout          argparser.OptionalInt
+	window           argparser.OptionalInt
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Create a healthcheck on a Fastly service version").Alias("add")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
@@ -68,16 +67,16 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 	c.CmdClause.Flag("method", "Which HTTP method to use").Action(c.method.Set).StringVar(&c.method.Value)
 	c.CmdClause.Flag("name", "Healthcheck name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
 	c.CmdClause.Flag("path", "The path to check").Action(c.path.Set).StringVar(&c.path.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("threshold", "How many healthchecks must succeed to be considered healthy").Action(c.threshold.Set).IntVar(&c.threshold.Value)
@@ -88,10 +87,12 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -106,7 +107,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	input := fastly.CreateHealthCheckInput{
 		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion.Number,
+		ServiceVersion: fastly.ToValue(serviceVersion.Number),
 	}
 
 	if c.name.WasSet {
@@ -155,6 +156,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created healthcheck %s (service %s version %d)", h.Name, h.ServiceID, h.ServiceVersion)
+	text.Success(out, "Created healthcheck %s (service %s version %d)", fastly.ToValue(h.Name), fastly.ToValue(h.ServiceID), fastly.ToValue(h.ServiceVersion))
 	return nil
 }

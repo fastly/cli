@@ -3,17 +3,20 @@ package openstack_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestOpenstackCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -51,9 +54,12 @@ func TestOpenstackCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -61,7 +67,7 @@ func TestOpenstackCreate(t *testing.T) {
 }
 
 func TestOpenstackList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -121,9 +127,12 @@ func TestOpenstackList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -131,7 +140,7 @@ func TestOpenstackList(t *testing.T) {
 }
 
 func TestOpenstackDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -163,9 +172,12 @@ func TestOpenstackDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -173,7 +185,7 @@ func TestOpenstackDescribe(t *testing.T) {
 }
 
 func TestOpenstackUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -207,9 +219,12 @@ func TestOpenstackUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -217,7 +232,7 @@ func TestOpenstackUpdate(t *testing.T) {
 }
 
 func TestOpenstackDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -251,9 +266,12 @@ func TestOpenstackDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -264,67 +282,67 @@ var errTest = errors.New("fixture error")
 
 func createOpenstackOK(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
 	s := fastly.Openstack{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
-	if *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
 	return &s, nil
 }
 
-func createOpenstackError(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
+func createOpenstackError(_ *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
 func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
 	return []*fastly.Openstack{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			BucketName:        "my-logs",
-			AccessKey:         "1234",
-			User:              "user",
-			URL:               "https://example.com",
-			Path:              "logs/",
-			Period:            3600,
-			GzipLevel:         0,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			MessageType:       "classic",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			PublicKey:         pgpPublicKey(),
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			BucketName:        fastly.ToPointer("my-logs"),
+			AccessKey:         fastly.ToPointer("1234"),
+			User:              fastly.ToPointer("user"),
+			URL:               fastly.ToPointer("https://example.com"),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(3600),
+			GzipLevel:         fastly.ToPointer(0),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			MessageType:       fastly.ToPointer("classic"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			BucketName:        "analytics",
-			AccessKey:         "1234",
-			User:              "user2",
-			URL:               "https://two.example.com",
-			Path:              "logs/",
-			Period:            86400,
-			GzipLevel:         0,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			PublicKey:         pgpPublicKey(),
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			BucketName:        fastly.ToPointer("analytics"),
+			AccessKey:         fastly.ToPointer("1234"),
+			User:              fastly.ToPointer("user2"),
+			URL:               fastly.ToPointer("https://two.example.com"),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(86400),
+			GzipLevel:         fastly.ToPointer(0),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
 
-func listOpenstacksError(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
+func listOpenstacksError(_ *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
 	return nil, errTest
 }
 
@@ -335,8 +353,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listOpenstacksVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -383,28 +401,28 @@ Version: 1
 
 func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	return &fastly.Openstack{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		BucketName:        "my-logs",
-		AccessKey:         "1234",
-		User:              "user",
-		URL:               "https://example.com",
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         0,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		PublicKey:         pgpPublicKey(),
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		BucketName:        fastly.ToPointer("my-logs"),
+		AccessKey:         fastly.ToPointer("1234"),
+		User:              fastly.ToPointer("user"),
+		URL:               fastly.ToPointer("https://example.com"),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(0),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func getOpenstackError(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
+func getOpenstackError(_ *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
@@ -431,35 +449,35 @@ Version: 1
 
 func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
 	return &fastly.Openstack{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		BucketName:        "my-logs",
-		AccessKey:         "1234",
-		User:              "userupdate",
-		URL:               "https://update.example.com",
-		Path:              "logs/",
-		Period:            3600,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		PublicKey:         pgpPublicKey(),
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		BucketName:        fastly.ToPointer("my-logs"),
+		AccessKey:         fastly.ToPointer("1234"),
+		User:              fastly.ToPointer("userupdate"),
+		URL:               fastly.ToPointer("https://update.example.com"),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func updateOpenstackError(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
+func updateOpenstackError(_ *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
-func deleteOpenstackOK(i *fastly.DeleteOpenstackInput) error {
+func deleteOpenstackOK(_ *fastly.DeleteOpenstackInput) error {
 	return nil
 }
 
-func deleteOpenstackError(i *fastly.DeleteOpenstackInput) error {
+func deleteOpenstackError(_ *fastly.DeleteOpenstackInput) error {
 	return errTest
 }
 

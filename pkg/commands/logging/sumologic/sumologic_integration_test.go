@@ -3,17 +3,20 @@ package sumologic_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestSumologicCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -43,9 +46,12 @@ func TestSumologicCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -53,7 +59,7 @@ func TestSumologicCreate(t *testing.T) {
 }
 
 func TestSumologicList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -113,9 +119,12 @@ func TestSumologicList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -123,7 +132,7 @@ func TestSumologicList(t *testing.T) {
 }
 
 func TestSumologicDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +164,12 @@ func TestSumologicDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +177,7 @@ func TestSumologicDescribe(t *testing.T) {
 }
 
 func TestSumologicUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -199,9 +211,12 @@ func TestSumologicUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -209,7 +224,7 @@ func TestSumologicUpdate(t *testing.T) {
 }
 
 func TestSumologicDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -243,9 +258,12 @@ func TestSumologicDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -256,44 +274,44 @@ var errTest = errors.New("fixture error")
 
 func createSumologicOK(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
-func createSumologicError(i *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
+func createSumologicError(_ *fastly.CreateSumologicInput) (*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
 func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
 	return []*fastly.Sumologic{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			URL:               "example.com",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			URL:               fastly.ToPointer("example.com"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			URL:               "bar.com",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			ResponseCondition: "Prevent default logging",
-			MessageType:       "classic",
-			FormatVersion:     2,
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			URL:               fastly.ToPointer("bar.com"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			MessageType:       fastly.ToPointer("classic"),
+			FormatVersion:     fastly.ToPointer(2),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
 
-func listSumologicsError(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
+func listSumologicsError(_ *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
@@ -304,8 +322,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listSumologicsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -334,19 +352,19 @@ Version: 1
 
 func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		URL:               "example.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		URL:               fastly.ToPointer("example.com"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func getSumologicError(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
+func getSumologicError(_ *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
@@ -364,26 +382,26 @@ Version: 1
 
 func updateSumologicOK(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
 	return &fastly.Sumologic{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		URL:               "example.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		URL:               fastly.ToPointer("example.com"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func updateSumologicError(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
+func updateSumologicError(_ *fastly.UpdateSumologicInput) (*fastly.Sumologic, error) {
 	return nil, errTest
 }
 
-func deleteSumologicOK(i *fastly.DeleteSumologicInput) error {
+func deleteSumologicOK(_ *fastly.DeleteSumologicInput) error {
 	return nil
 }
 
-func deleteSumologicError(i *fastly.DeleteSumologicInput) error {
+func deleteSumologicError(_ *fastly.DeleteSumologicInput) error {
 	return errTest
 }

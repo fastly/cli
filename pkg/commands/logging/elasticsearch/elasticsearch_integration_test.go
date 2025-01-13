@@ -3,17 +3,20 @@ package elasticsearch_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestElasticsearchCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -43,9 +46,12 @@ func TestElasticsearchCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -53,7 +59,7 @@ func TestElasticsearchCreate(t *testing.T) {
 }
 
 func TestElasticsearchList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -113,9 +119,12 @@ func TestElasticsearchList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -123,7 +132,7 @@ func TestElasticsearchList(t *testing.T) {
 }
 
 func TestElasticsearchDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +164,12 @@ func TestElasticsearchDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +177,7 @@ func TestElasticsearchDescribe(t *testing.T) {
 }
 
 func TestElasticsearchUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -199,9 +211,12 @@ func TestElasticsearchUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -209,7 +224,7 @@ func TestElasticsearchUpdate(t *testing.T) {
 }
 
 func TestElasticsearchDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -243,9 +258,12 @@ func TestElasticsearchDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -256,77 +274,77 @@ var errTest = errors.New("fixture error")
 
 func createElasticsearchOK(i *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Index:             "logs",
-		URL:               "example.com",
-		Pipeline:          "logs",
-		User:              "user",
-		Password:          "password",
-		RequestMaxEntries: 2,
-		RequestMaxBytes:   2,
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		FormatVersion:     2,
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Index:             fastly.ToPointer("logs"),
+		URL:               fastly.ToPointer("example.com"),
+		Pipeline:          fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
+		RequestMaxEntries: fastly.ToPointer(2),
+		RequestMaxBytes:   fastly.ToPointer(2),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		FormatVersion:     fastly.ToPointer(2),
 	}, nil
 }
 
-func createElasticsearchError(i *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
+func createElasticsearchError(_ *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
 func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
 	return []*fastly.Elasticsearch{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Index:             "logs",
-			URL:               "example.com",
-			Pipeline:          "logs",
-			User:              "user",
-			Password:          "password",
-			RequestMaxEntries: 2,
-			RequestMaxBytes:   2,
-			Placement:         "none",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-			FormatVersion:     2,
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			Index:             fastly.ToPointer("logs"),
+			URL:               fastly.ToPointer("example.com"),
+			Pipeline:          fastly.ToPointer("logs"),
+			User:              fastly.ToPointer("user"),
+			Password:          fastly.ToPointer("password"),
+			RequestMaxEntries: fastly.ToPointer(2),
+			RequestMaxBytes:   fastly.ToPointer(2),
+			Placement:         fastly.ToPointer("none"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+			FormatVersion:     fastly.ToPointer(2),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Index:             "analytics",
-			URL:               "example.com",
-			Pipeline:          "analytics",
-			User:              "user",
-			Password:          "password",
-			RequestMaxEntries: 2,
-			RequestMaxBytes:   2,
-			Placement:         "none",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Index:             fastly.ToPointer("analytics"),
+			URL:               fastly.ToPointer("example.com"),
+			Pipeline:          fastly.ToPointer("analytics"),
+			User:              fastly.ToPointer("user"),
+			Password:          fastly.ToPointer("password"),
+			RequestMaxEntries: fastly.ToPointer(2),
+			RequestMaxBytes:   fastly.ToPointer(2),
+			Placement:         fastly.ToPointer("none"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
 		},
 	}, nil
 }
 
-func listElasticsearchsError(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
+func listElasticsearchsError(_ *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
@@ -337,8 +355,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listElasticsearchsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -381,28 +399,28 @@ Version: 1
 
 func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Index:             "logs",
-		URL:               "example.com",
-		Pipeline:          "logs",
-		User:              "user",
-		Password:          "password",
-		RequestMaxEntries: 2,
-		RequestMaxBytes:   2,
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		FormatVersion:     2,
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Index:             fastly.ToPointer("logs"),
+		URL:               fastly.ToPointer("example.com"),
+		Pipeline:          fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
+		RequestMaxEntries: fastly.ToPointer(2),
+		RequestMaxBytes:   fastly.ToPointer(2),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		FormatVersion:     fastly.ToPointer(2),
 	}, nil
 }
 
-func getElasticsearchError(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
+func getElasticsearchError(_ *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
@@ -427,35 +445,35 @@ Version: 1
 
 func updateElasticsearchOK(i *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Index:             "logs",
-		URL:               "example.com",
-		Pipeline:          "logs",
-		User:              "user",
-		Password:          "password",
-		RequestMaxEntries: 2,
-		RequestMaxBytes:   2,
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		FormatVersion:     2,
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Index:             fastly.ToPointer("logs"),
+		URL:               fastly.ToPointer("example.com"),
+		Pipeline:          fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
+		RequestMaxEntries: fastly.ToPointer(2),
+		RequestMaxBytes:   fastly.ToPointer(2),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		FormatVersion:     fastly.ToPointer(2),
 	}, nil
 }
 
-func updateElasticsearchError(i *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
+func updateElasticsearchError(_ *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
-func deleteElasticsearchOK(i *fastly.DeleteElasticsearchInput) error {
+func deleteElasticsearchOK(_ *fastly.DeleteElasticsearchInput) error {
 	return nil
 }
 
-func deleteElasticsearchError(i *fastly.DeleteElasticsearchInput) error {
+func deleteElasticsearchError(_ *fastly.DeleteElasticsearchInput) error {
 	return errTest
 }

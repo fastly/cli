@@ -1,4 +1,4 @@
-package cmd
+package argparser
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/api"
@@ -117,13 +117,16 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 	vs, err := client.ListVersions(&fastly.ListVersionsInput{
 		ServiceID: sid,
 	})
-	if err != nil || len(vs) == 0 {
+	if err != nil {
 		return nil, fmt.Errorf("error listing service versions: %w", err)
+	}
+	if len(vs) == 0 {
+		return nil, errors.New("error listing service versions: no versions available")
 	}
 
 	// Sort versions into descending order.
 	sort.Slice(vs, func(i, j int) bool {
-		return vs[i].Number > vs[j].Number
+		return fastly.ToValue(vs[i].Number) > fastly.ToValue(vs[j].Number)
 	})
 
 	var v *fastly.Version
@@ -136,7 +139,7 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 	case "": // no --version flag provided
 		v, err = GetActiveVersion(vs)
 		if err != nil {
-			return vs[0], nil // if no active version, return latest version
+			return vs[0], nil //lint:ignore nilerr if no active version, return latest version
 		}
 	default:
 		v, err = GetSpecifiedVersion(vs, sv.Value)
@@ -156,7 +159,7 @@ type OptionalServiceNameID struct {
 
 // Parse returns a service ID based off the given service name.
 func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, err error) {
-	paginator := client.NewListServicesPaginator(&fastly.ListServicesInput{})
+	paginator := client.GetServices(&fastly.GetServicesInput{})
 	var services []*fastly.Service
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
@@ -166,8 +169,8 @@ func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, 
 		services = append(services, data...)
 	}
 	for _, s := range services {
-		if s.Name == sv.Value {
-			return s.ID, nil
+		if fastly.ToValue(s.Name) == sv.Value {
+			return fastly.ToValue(s.ServiceID), nil
 		}
 	}
 	return serviceID, errors.New("error matching service name with available services")
@@ -218,23 +221,24 @@ type OptionalAutoClone struct {
 // cloned version if the input argument was either active or locked.
 func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, out io.Writer, client api.Interface) (*fastly.Version, error) {
 	// if user didn't provide --autoclone flag
-	if !ac.Value && (v.Active || v.Locked) {
+	if !ac.Value && (fastly.ToValue(v.Active) || fastly.ToValue(v.Locked)) {
 		return nil, fsterr.RemediationError{
-			Inner:       fmt.Errorf("service version %d is not editable", v.Number),
+			Inner:       fmt.Errorf("service version %d is not editable", fastly.ToValue(v.Number)),
 			Remediation: fsterr.AutoCloneRemediation,
 		}
 	}
-	if ac.Value && (v.Active || v.Locked) {
+	if ac.Value && (v.Active != nil && *v.Active || v.Locked != nil && *v.Locked) {
 		version, err := client.CloneVersion(&fastly.CloneVersionInput{
 			ServiceID:      sid,
-			ServiceVersion: v.Number,
+			ServiceVersion: fastly.ToValue(v.Number),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("error cloning service version: %w", err)
 		}
 		if verbose {
-			msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.", v.Number, version.Number)
-			text.Output(out, msg)
+			msg := "Service version %d is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on version %d.\n\n"
+			format := fmt.Sprintf(msg, fastly.ToValue(v.Number), fastly.ToValue(version.Number))
+			text.Info(out, format)
 		}
 		return version, nil
 	}
@@ -246,7 +250,7 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 // GetActiveVersion returns the active service version.
 func GetActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
 	for _, v := range vs {
-		if v.Active {
+		if fastly.ToValue(v.Active) {
 			return v, nil
 		}
 	}
@@ -261,7 +265,7 @@ func GetSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version,
 	}
 
 	for _, v := range vs {
-		if v.Number == i {
+		if fastly.ToValue(v.Number) == i {
 			return v, nil
 		}
 	}
@@ -275,12 +279,7 @@ func Content(flagval string) string {
 	content := flagval
 	if path, err := filepath.Abs(flagval); err == nil {
 		if _, err := os.Stat(path); err == nil {
-			// gosec flagged this:
-			// G304 (CWE-22): Potential file inclusion via variable
-			//
-			// Disabling as we require a user to configure their own environment.
-			/* #nosec */
-			if data, err := os.ReadFile(path); err == nil {
+			if data, err := os.ReadFile(path); err == nil /* #nosec */ {
 				content = string(data)
 			}
 		}

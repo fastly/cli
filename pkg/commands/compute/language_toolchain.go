@@ -11,6 +11,7 @@ import (
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
+	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -34,14 +35,18 @@ var DefaultBuildErrorRemediation = func() string {
 - Did the build script (see fastly.toml [scripts.build]) produce a ./bin/main.wasm binary file?
 - Was there a configured [scripts.post_build] step that needs to be double-checked?
 
-For more information on fastly.toml configuration settings, refer to https://developer.fastly.com/reference/compute/fastly-toml/`,
+For more information on fastly.toml configuration settings, refer to https://www.fastly.com/documentation/reference/compute/fastly-toml`,
 		text.BoldYellow("Here are some steps you can follow to debug the issue"))
 }()
 
-// Toolchain abstracts a Compute@Edge source language toolchain.
+// Toolchain abstracts a Compute source language toolchain.
 type Toolchain interface {
 	// Build compiles the user's source code into a Wasm binary.
 	Build() error
+	// DefaultBuildScript indicates if a default build script was used.
+	DefaultBuildScript() bool
+	// Dependencies returns all dependencies used by the project.
+	Dependencies() map[string]string
 }
 
 // BuildToolchain enables a language toolchain to compile their build script.
@@ -60,6 +65,10 @@ type BuildToolchain struct {
 	in io.Reader
 	// internalPostBuildCallback is run after the build but before post build.
 	internalPostBuildCallback func() error
+	// manifestFilename is the name of the manifest file.
+	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// out is the users terminal stdout stream
@@ -77,13 +86,26 @@ type BuildToolchain struct {
 
 // Build compiles the user's source code into a Wasm binary.
 func (bt BuildToolchain) Build() error {
+	// Make sure to delete any pre-existing binary otherwise prior metadata will
+	// continue to be persisted.
+	if _, err := os.Stat(binWasmPath); err == nil {
+		os.Remove(binWasmPath)
+	}
+
 	cmd, args := bt.buildFn(bt.buildScript)
 
 	if bt.verbose {
-		text.Break(bt.out)
-		text.Description(bt.out, "Build script to execute", fmt.Sprintf("%s %s", cmd, strings.Join(args, " ")))
+		buildScript := fmt.Sprintf("%s %s", cmd, strings.Join(args, " "))
+		text.Description(bt.out, "Build script to execute", FilterSecretsFromString(buildScript))
+
+		// IMPORTANT: We filter secrets the best we can before printing env vars.
+		// We use two separate processes to do this.
+		// First is filtering based on known environment variables.
+		// Second is filtering based on a generalised regex pattern.
 		if len(bt.env) > 0 {
-			text.Description(bt.out, "Build environment variables set", strings.Join(bt.env, " "))
+			ExtendStaticSecretEnvVars(bt.metadataFilterEnvVars)
+			s := strings.Join(bt.env, " ")
+			text.Description(bt.out, "Build environment variables set", FilterSecretsFromString(s))
 		}
 	}
 
@@ -107,20 +129,19 @@ func (bt BuildToolchain) Build() error {
 		// But we can't just call StopFailMessage() without first starting the spinner.
 		if bt.verbose {
 			text.Break(bt.out)
-			err := bt.spinner.Start()
-			if err != nil {
-				return err
+			spinErr := bt.spinner.Start()
+			if spinErr != nil {
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			bt.spinner.Message(msg + "...")
-
 			bt.spinner.StopFailMessage(msg)
-			spinErr := bt.spinner.StopFail()
+			spinErr = bt.spinner.StopFail()
 			if spinErr != nil {
-				return spinErr
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 		}
 		// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
-		// If we're in non-verbose mode, then the spiner is BEFORE the error output.
+		// If we're in non-verbose mode, then the spinner is BEFORE the error output.
 		// Also, in non-verbose mode stopping the spinner is handled internally.
 		// See the call to StopFailMessage() inside fstexec.Streaming.Exec().
 		return bt.handleError(err)
@@ -160,7 +181,6 @@ func (bt BuildToolchain) Build() error {
 	if err != nil {
 		return bt.handleError(err)
 	}
-
 	// NOTE: The logic for checking the Wasm binary is 'valid' is not exhaustive.
 	if err := bt.validateWasm(); err != nil {
 		return err
@@ -168,7 +188,11 @@ func (bt BuildToolchain) Build() error {
 
 	if bt.postBuild != "" {
 		if !bt.autoYes && !bt.nonInteractive {
-			msg := fmt.Sprintf(CustomPostScriptMessage, "build")
+			manifestFilename := bt.manifestFilename
+			if manifestFilename == "" {
+				manifestFilename = manifest.Filename
+			}
+			msg := fmt.Sprintf(CustomPostScriptMessage, "build", manifestFilename)
 			err := bt.promptForPostBuildContinue(msg, bt.postBuild, bt.out, bt.in)
 			if err != nil {
 				return err
@@ -194,16 +218,15 @@ func (bt BuildToolchain) Build() error {
 			// But we can't just call StopFailMessage() without first starting the spinner.
 			if bt.verbose {
 				text.Break(bt.out)
-				err := bt.spinner.Start()
-				if err != nil {
-					return err
+				spinErr := bt.spinner.Start()
+				if spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				bt.spinner.Message(msg + "...")
-
 				bt.spinner.StopFailMessage(msg)
-				spinErr := bt.spinner.StopFail()
+				spinErr = bt.spinner.StopFail()
 				if spinErr != nil {
-					return spinErr
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			// WARNING: Don't try to add 'StopFailMessage/StopFail' calls here.
@@ -302,7 +325,6 @@ func (bt BuildToolchain) execCommand(cmd string, args []string, spinMessage stri
 // when there is a post_build in the fastly.toml manifest file.
 func (bt BuildToolchain) promptForPostBuildContinue(msg, script string, out io.Writer, in io.Reader) error {
 	text.Info(out, "%s:\n", msg)
-	text.Break(out)
 	text.Indent(out, 4, "%s", script)
 
 	label := "\nDo you want to run this now? [y/N] "

@@ -1,24 +1,24 @@
 package backend_test
 
 import (
-	"bytes"
 	"errors"
+	"io"
+	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
+	root "github.com/fastly/cli/pkg/commands/backend"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestBackendCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("backend create --version 1"),
+			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		// The following test specifies a service version that's 'active', and
@@ -26,16 +26,38 @@ func TestBackendCreate(t *testing.T) {
 		// --autoclone flag and trying to add a backend to an activated service
 		// should cause an error.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com"),
+			Args: "--service-id 123 --version 1 --address example.com --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
-			WantError: "service version 1 is not editable",
+			WantError: "service version 1 is active",
 		},
-		// The following test is the same as the above but it appends --autoclone
+		// The following test specifies a service version that's 'locked', and
+		// subsequently we expect it to not be cloned as we don't provide the
+		// --autoclone flag and trying to add a backend to a locked service
+		// should cause an error.
+		{
+			Args: "--service-id 123 --version 2 --address example.com --name www.test.com",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			WantError: "service version 2 is locked",
+		},
+		// The following test is the same as the 'active' test above but it appends --autoclone
 		// so we can be sure the backend creation error still occurs.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address example.com --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				CreateBackendFn: createBackendError,
+			},
+			WantError: errTest.Error(),
+		},
+		// The following test is the same as the 'locked' test above but it appends --autoclone
+		// so we can be sure the backend creation error still occurs.
+		{
+			Args: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -46,7 +68,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test is the same as above but with an IP address for the
 		// --address flag instead of a hostname.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -60,7 +82,7 @@ func TestBackendCreate(t *testing.T) {
 		// NOTE: Added --port flag to validate that a nil pointer dereference is
 		// not triggered at runtime when parsing the arguments.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080"),
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -70,7 +92,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// We test that setting an invalid host override does not result in an error
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --override-host invalid-host-override --name www.test.com --autoclone --port 8080"),
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --override-host invalid-host-override --name www.test.com --autoclone --port 8080",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -80,11 +102,18 @@ func TestBackendCreate(t *testing.T) {
 		},
 		// The following test validates that --service-name can replace --service-id
 		{
-			Args: args("backend create --service-name Foo --version 1 --address 127.0.0.1 --name www.test.com --autoclone"),
+			Args: "--service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				NewListServicesPaginatorFn: func(i *fastly.ListServicesInput) fastly.PaginatorServices {
-					return &testutil.ServicesPaginator{}
+				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+						Errors: []error{nil},
+						Responses: []*http.Response{
+							{
+								Body: io.NopCloser(strings.NewReader(`[{"id": "123", "name": "test-service"}]`)),
+							},
+						},
+					}, fastly.ListOpts{}, "/example")
 				},
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendOK,
@@ -95,7 +124,7 @@ func TestBackendCreate(t *testing.T) {
 		// --verbose so we may validate the expected output message regarding a
 		// missing port is displayed.
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose"),
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -107,7 +136,7 @@ func TestBackendCreate(t *testing.T) {
 		// --verbose so we may validate a successful backend creation.
 		//
 		{
-			Args: args("backend create --service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8443 --use-ssl --verbose"),
+			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8443 --use-ssl --verbose",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -115,35 +144,49 @@ func TestBackendCreate(t *testing.T) {
 			},
 			WantOutput: "Created backend www.test.com (service 123 version 4)",
 		},
-		// The following test specifies a service version that's 'inactive', and
-		// subsequently we expect it to be the same editable version.
+		// The following test specifies a service version that's 'inactive' and not 'locked',
+		// and subsequently we expect it to be the same editable version.
 		{
-			Args: args("backend create --service-id 123 --version 3 --address 127.0.0.1 --name www.test.com"),
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
 			WantOutput: "Created backend www.test.com (service 123 version 3)",
 		},
+		// The following tests verify parsing of the --tcp-ka-enable flag.
+		{
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=true",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 3)",
+		},
+		{
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=false",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 3)",
+		},
+		{
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=invalid",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
+		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestBackendList(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args: args("backend list --service-id 123 --version 1 --json"),
+			Args: "--service-id 123 --version 1 --json",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -151,7 +194,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsJSONOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 --json --verbose"),
+			Args: "--service-id 123 --version 1 --json --verbose",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -159,7 +202,7 @@ func TestBackendList(t *testing.T) {
 			WantError: fsterr.ErrInvalidVerboseJSONCombo.Error(),
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1"),
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -167,7 +210,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsShortOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 --verbose"),
+			Args: "--service-id 123 --version 1 --verbose",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -175,7 +218,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1 -v"),
+			Args: "--service-id 123 --version 1 -v",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -183,7 +226,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend --verbose list --service-id 123 --version 1"),
+			Args: "--verbose --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -191,7 +234,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("-v backend list --service-id 123 --version 1"),
+			Args: "-v --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
@@ -199,7 +242,7 @@ func TestBackendList(t *testing.T) {
 			WantOutput: listBackendsVerboseOutput,
 		},
 		{
-			Args: args("backend list --service-id 123 --version 1"),
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsError,
@@ -207,30 +250,17 @@ func TestBackendList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			if testcase.WantError == "" {
-				testutil.AssertString(t, testcase.WantOutput, stdout.String())
-			}
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestBackendDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("backend describe --service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend describe --service-id 123 --version 1 --name www.test.com"),
+			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendError,
@@ -238,7 +268,7 @@ func TestBackendDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend describe --service-id 123 --version 1 --name www.test.com"),
+			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendOK,
@@ -246,28 +276,17 @@ func TestBackendDescribe(t *testing.T) {
 			WantOutput: describeBackendOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestBackendUpdate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("backend update --service-id 123 --version 2 --new-name www.test.com --comment "),
+			Args:      "--service-id 123 --version 2 --new-name www.test.com --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -277,7 +296,7 @@ func TestBackendUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -286,29 +305,49 @@ func TestBackendUpdate(t *testing.T) {
 			},
 			WantOutput: "Updated backend www.example.com (service 123 version 4)",
 		},
+		// The following tests verify parsing of the --tcp-ka-enable flag.
+		{
+			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=true --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantOutput: "Updated backend  (service 123 version 4)",
+		},
+		{
+			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=false --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantOutput: "Updated backend  (service 123 version 4)",
+		},
+		{
+			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=invalid --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
+		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestBackendDelete(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("backend delete --service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -317,7 +356,7 @@ func TestBackendDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("backend delete --service-id 123 --version 1 --name www.test.com --autoclone"),
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
@@ -326,33 +365,23 @@ func TestBackendDelete(t *testing.T) {
 			WantOutput: "Deleted backend www.test.com (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")
 
 func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	if i.Name == nil {
-		i.Name = fastly.String("")
+		i.Name = fastly.ToPointer("")
 	}
 	return &fastly.Backend{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
-func createBackendError(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendError(_ *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
@@ -371,25 +400,25 @@ func createBackendWithPort(wantPort int) func(*fastly.CreateBackendInput) (*fast
 func listBackendsOK(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return []*fastly.Backend{
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "test.com",
-			Address:        "www.test.com",
-			Port:           80,
-			Comment:        "test",
+			Address:        fastly.ToPointer("www.test.com"),
+			Comment:        fastly.ToPointer("test"),
+			Name:           fastly.ToPointer("test.com"),
+			Port:           fastly.ToPointer(80),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 		},
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "example.com",
-			Address:        "www.example.com",
-			Port:           443,
-			Comment:        "example",
+			Address:        fastly.ToPointer("www.example.com"),
+			Comment:        fastly.ToPointer("example"),
+			Name:           fastly.ToPointer("example.com"),
+			Port:           fastly.ToPointer(443),
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 		},
 	}, nil
 }
 
-func listBackendsError(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+func listBackendsError(_ *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return nil, errTest
 }
 
@@ -397,75 +426,81 @@ var listBackendsJSONOutput = strings.TrimSpace(`
 [
   {
     "Address": "www.test.com",
-    "AutoLoadbalance": false,
-    "BetweenBytesTimeout": 0,
+    "AutoLoadbalance": null,
+    "BetweenBytesTimeout": null,
     "Comment": "test",
-    "ConnectTimeout": 0,
+    "ConnectTimeout": null,
     "CreatedAt": null,
     "DeletedAt": null,
-    "ErrorThreshold": 0,
-    "FirstByteTimeout": 0,
-    "HealthCheck": "",
-    "Hostname": "",
-    "KeepAliveTime": 0,
-    "MaxConn": 0,
-    "MaxTLSVersion": "",
-    "MinTLSVersion": "",
+    "ErrorThreshold": null,
+    "FirstByteTimeout": null,
+    "HealthCheck": null,
+    "Hostname": null,
+    "KeepAliveTime": null,
+    "MaxConn": null,
+    "MaxTLSVersion": null,
+    "MinTLSVersion": null,
     "Name": "test.com",
-    "OverrideHost": "",
+    "OverrideHost": null,
     "Port": 80,
-    "RequestCondition": "",
-    "ShareKey": "",
-    "SSLCACert": "",
-    "SSLCertHostname": "",
-    "SSLCheckCert": false,
-    "SSLCiphers": "",
-    "SSLClientCert": "",
-    "SSLClientKey": "",
-    "SSLHostname": "",
-    "SSLSNIHostname": "",
+    "RequestCondition": null,
+    "ShareKey": null,
+    "SSLCACert": null,
+    "SSLCertHostname": null,
+    "SSLCheckCert": null,
+    "SSLCiphers": null,
+    "SSLClientCert": null,
+    "SSLClientKey": null,
+    "SSLSNIHostname": null,
     "ServiceID": "123",
     "ServiceVersion": 1,
-    "Shield": "",
+    "Shield": null,
+    "TCPKeepAliveEnable": null,
+    "TCPKeepAliveIntvl": null,
+    "TCPKeepAliveProbes": null,
+    "TCPKeepAliveTime": null,
     "UpdatedAt": null,
-    "UseSSL": false,
-    "Weight": 0
+    "UseSSL": null,
+    "Weight": null
   },
   {
     "Address": "www.example.com",
-    "AutoLoadbalance": false,
-    "BetweenBytesTimeout": 0,
+    "AutoLoadbalance": null,
+    "BetweenBytesTimeout": null,
     "Comment": "example",
-    "ConnectTimeout": 0,
+    "ConnectTimeout": null,
     "CreatedAt": null,
     "DeletedAt": null,
-    "ErrorThreshold": 0,
-    "FirstByteTimeout": 0,
-    "HealthCheck": "",
-    "Hostname": "",
-    "KeepAliveTime": 0,
-    "MaxConn": 0,
-    "MaxTLSVersion": "",
-    "MinTLSVersion": "",
+    "ErrorThreshold": null,
+    "FirstByteTimeout": null,
+    "HealthCheck": null,
+    "Hostname": null,
+    "KeepAliveTime": null,
+    "MaxConn": null,
+    "MaxTLSVersion": null,
+    "MinTLSVersion": null,
     "Name": "example.com",
-    "OverrideHost": "",
+    "OverrideHost": null,
     "Port": 443,
-    "RequestCondition": "",
-    "ShareKey": "",
-    "SSLCACert": "",
-    "SSLCertHostname": "",
-    "SSLCheckCert": false,
-    "SSLCiphers": "",
-    "SSLClientCert": "",
-    "SSLClientKey": "",
-    "SSLHostname": "",
-    "SSLSNIHostname": "",
+    "RequestCondition": null,
+    "ShareKey": null,
+    "SSLCACert": null,
+    "SSLCertHostname": null,
+    "SSLCheckCert": null,
+    "SSLCiphers": null,
+    "SSLClientCert": null,
+    "SSLClientKey": null,
+    "SSLSNIHostname": null,
     "ServiceID": "123",
     "ServiceVersion": 1,
-    "Shield": "",
+    "Shield": null,
+    "TCPKeepAliveEnable": null,
+    "TCPKeepAliveIntvl": null,
+    "TCPKeepAliveProbes": null,
+    "TCPKeepAliveTime": null,
     "UpdatedAt": null,
-    "UseSSL": false,
-    "Weight": 0
+    "UseSSL": null,
+    "Weight": null
   }
 ]
 `) + "\n"
@@ -477,8 +512,8 @@ SERVICE  VERSION  NAME         ADDRESS          PORT  COMMENT
 `) + "\n"
 
 var listBackendsVerboseOutput = strings.Join([]string{
-	"Fastly API token not provided",
 	"Fastly API endpoint: https://api.fastly.com",
+	"Fastly API token provided via config file (profile: user)",
 	"",
 	"Service ID (via --service-id): 123",
 	"",
@@ -507,6 +542,11 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		Min TLS version: ",
 	"		Max TLS version: ",
 	"		SSL ciphers: ",
+	"		HTTP KeepAlive Timeout: 0",
+	"		TCP KeepAlive Enabled: unset",
+	"		TCP KeepAlive Interval: 0",
+	"		TCP KeepAlive Probes: 0",
+	"		TCP KeepAlive Timeout: 0",
 	"	Backend 2/2",
 	"		Name: example.com",
 	"		Comment: example",
@@ -531,20 +571,25 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		Min TLS version: ",
 	"		Max TLS version: ",
 	"		SSL ciphers: ",
+	"		HTTP KeepAlive Timeout: 0",
+	"		TCP KeepAlive Enabled: unset",
+	"		TCP KeepAlive Interval: 0",
+	"		TCP KeepAlive Probes: 0",
+	"		TCP KeepAlive Timeout: 0",
 }, "\n") + "\n\n"
 
 func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           "test.com",
-		Address:        "www.test.com",
-		Port:           80,
-		Comment:        "test",
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer("test.com"),
+		Address:        fastly.ToPointer("www.test.com"),
+		Port:           fastly.ToPointer(80),
+		Comment:        fastly.ToPointer("test"),
 	}, nil
 }
 
-func getBackendError(i *fastly.GetBackendInput) (*fastly.Backend, error) {
+func getBackendError(_ *fastly.GetBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
@@ -574,25 +619,30 @@ var describeBackendOutput = strings.Join([]string{
 	"Min TLS version: ",
 	"Max TLS version: ",
 	"SSL ciphers: ",
+	"HTTP KeepAlive Timeout: 0",
+	"TCP KeepAlive Enabled: unset",
+	"TCP KeepAlive Interval: 0",
+	"TCP KeepAlive Probes: 0",
+	"TCP KeepAlive Timeout: 0",
 }, "\n") + "\n"
 
 func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.NewName,
-		Comment:        *i.Comment,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.NewName,
+		Comment:        i.Comment,
 	}, nil
 }
 
-func updateBackendError(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
+func updateBackendError(_ *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
-func deleteBackendOK(i *fastly.DeleteBackendInput) error {
+func deleteBackendOK(_ *fastly.DeleteBackendInput) error {
 	return nil
 }
 
-func deleteBackendError(i *fastly.DeleteBackendInput) error {
+func deleteBackendError(_ *fastly.DeleteBackendInput) error {
 	return errTest
 }

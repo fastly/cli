@@ -5,27 +5,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/fastly/kingpin"
+
+	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // Scopes is a list of purging scope options.
-// https://developer.fastly.com/reference/api/auth/#scopes
+// https://www.fastly.com/documentation/reference/api/auth-tokens#scopes
 var Scopes = []string{"global", "purge_select", "purge_all", "global:read"}
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Create an API token").Alias("add")
 
@@ -53,10 +50,9 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
+	argparser.Base
 
 	expires  time.Time
-	manifest manifest.Data
 	name     string
 	password string
 	scope    []string
@@ -65,11 +61,6 @@ type CreateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	input := c.constructInput()
 
 	r, err := c.Globals.APIClient.CreateToken(input)
@@ -83,7 +74,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		expires = r.ExpiresAt.String()
 	}
 
-	text.Success(out, "Created token '%s' (name: %s, id: %s, scope: %s, expires: %s)", r.AccessToken, r.Name, r.ID, r.Scope, expires)
+	text.Success(out, "Created token '%s' (name: %s, id: %s, scope: %s, expires: %s)", fastly.ToValue(r.AccessToken), fastly.ToValue(r.Name), fastly.ToValue(r.TokenID), fastly.ToValue(r.Scope), expires)
 	return nil
 }
 
@@ -91,16 +82,16 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput() *fastly.CreateTokenInput {
 	var input fastly.CreateTokenInput
 
-	input.Password = c.password
+	input.Password = fastly.ToPointer(c.password)
 
 	if !c.expires.IsZero() {
 		input.ExpiresAt = &c.expires
 	}
 	if c.name != "" {
-		input.Name = c.name
+		input.Name = fastly.ToPointer(c.name)
 	}
 	if len(c.scope) > 0 {
-		input.Scope = fastly.TokenScope(strings.Join(c.scope, " "))
+		input.Scope = fastly.ToPointer(fastly.TokenScope(strings.Join(c.scope, " ")))
 	}
 	if len(c.services) > 0 {
 		input.Services = c.services

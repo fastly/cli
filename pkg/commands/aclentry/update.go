@@ -5,22 +5,20 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("update", "Update an ACL entry for a specified ACL")
 
@@ -33,16 +31,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	c.CmdClause.Flag("id", "Alphanumeric string identifying an ACL Entry").Action(c.id.Set).StringVar(&c.id.Value)
 	c.CmdClause.Flag("ip", "An IP address").Action(c.ip.Set).StringVar(&c.ip.Value)
 	c.CmdClause.Flag("negated", "Whether to negate the match").Action(c.negated.Set).BoolVar(&c.negated.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("subnet", "Number of bits for the subnet mask applied to the IP address").Action(c.subnet.Set).IntVar(&c.subnet.Value)
@@ -52,27 +50,26 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 
 // UpdateCommand calls the Fastly API to update an appropriate resource.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 
 	aclID       string
-	comment     cmd.OptionalString
-	file        cmd.OptionalString
-	id          cmd.OptionalString
-	ip          cmd.OptionalString
-	manifest    manifest.Data
-	negated     cmd.OptionalBool
-	serviceName cmd.OptionalServiceNameID
-	subnet      cmd.OptionalInt
+	comment     argparser.OptionalString
+	file        argparser.OptionalString
+	id          argparser.OptionalString
+	ip          argparser.OptionalString
+	negated     argparser.OptionalBool
+	serviceName argparser.OptionalServiceNameID
+	subnet      argparser.OptionalInt
 }
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	if c.file.WasSet {
@@ -106,7 +103,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated ACL entry '%s' (ip: %s, service: %s)", a.ID, a.IP, a.ServiceID)
+	text.Success(out, "Updated ACL entry '%s' (ip: %s, service: %s)", fastly.ToValue(a.EntryID), fastly.ToValue(a.IP), fastly.ToValue(a.ServiceID))
 	return nil
 }
 
@@ -117,7 +114,7 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 	input.ACLID = c.aclID
 	input.ServiceID = serviceID
 
-	s := cmd.Content(c.file.Value)
+	s := argparser.Content(c.file.Value)
 	bs := []byte(s)
 
 	err := json.Unmarshal(bs, &input)
@@ -131,7 +128,7 @@ func (c *UpdateCommand) constructBatchInput(serviceID string) (*fastly.BatchModi
 	if len(input.Entries) == 0 {
 		err := fsterr.RemediationError{
 			Inner:       fmt.Errorf("missing 'entries' %s", c.file.Value),
-			Remediation: "Consult the API documentation for the JSON format: https://developer.fastly.com/reference/api/acls/acl-entry/#bulk-update-acl-entries",
+			Remediation: "Consult the API documentation for the JSON format: https://www.fastly.com/documentation/reference/api/acls/acl-entry#bulk-update-acl-entries",
 		}
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"File": string(bs),
@@ -151,7 +148,7 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 	}
 
 	input.ACLID = c.aclID
-	input.ID = c.id.Value
+	input.EntryID = c.id.Value
 	input.ServiceID = serviceID
 
 	if c.comment.WasSet {
@@ -161,7 +158,7 @@ func (c *UpdateCommand) constructInput(serviceID string) (*fastly.UpdateACLEntry
 		input.IP = &c.ip.Value
 	}
 	if c.negated.WasSet {
-		input.Negated = fastly.CBool(c.negated.Value)
+		input.Negated = fastly.ToPointer(fastly.Compatibool(c.negated.Value))
 	}
 	if c.subnet.WasSet {
 		input.Subnet = &c.subnet.Value

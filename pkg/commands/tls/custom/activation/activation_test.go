@@ -1,14 +1,15 @@
 package activation_test
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	root "github.com/fastly/cli/pkg/commands/tls/custom"
+	sub "github.com/fastly/cli/pkg/commands/tls/custom/activation"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 const (
@@ -19,17 +20,16 @@ const (
 	validateMissingIDFlag = "validate missing --id flag"
 )
 
-func TestCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSCustomActivationEnable(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom activation enable --cert-id example"),
+			Args:      "--cert-id example",
 			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom activation enable --id example"),
+			Args:      "--id example",
 			WantError: "required flag --cert-id not provided",
 		},
 		{
@@ -39,7 +39,7 @@ func TestCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom activation enable --cert-id example --id example"),
+			Args:      "--cert-id example --id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -54,30 +54,18 @@ func TestCreate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom activation enable --cert-id example --id example"),
+			Args:       "--cert-id example --id example",
 			WantOutput: fmt.Sprintf("Enabled TLS Activation '%s' (Certificate '%s')", mockResponseID, mockResponseCertID),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "enable"}, scenarios)
 }
 
-func TestDelete(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSCustomActivationDisable(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom activation disable"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -87,7 +75,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("tls-custom activation disable --id example"),
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -97,30 +85,18 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("tls-custom activation disable --id example"),
+			Args:       "--id example",
 			WantOutput: "Disabled TLS Activation 'example'",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "disable"}, scenarios)
 }
 
-func TestDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSCustomActivationDescribe(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom activation describe"),
 			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
@@ -130,7 +106,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom activation describe --id example"),
+			Args:      "--id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -144,27 +120,16 @@ func TestDescribe(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom activation describe --id example"),
+			Args:       "--id example",
 			WantOutput: "\nID: " + mockResponseID + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
-func TestList(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSCustomActivationList(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
 			API: mock.API{
@@ -172,7 +137,6 @@ func TestList(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom activation list"),
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -188,35 +152,24 @@ func TestList(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom activation list --verbose"),
+			Args:       "--verbose",
 			WantOutput: "\nID: " + mockResponseID + "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
-func TestUpdate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestTLSCustomActivationUpdate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom activation update --cert-id example"),
+			Args:      "--cert-id example",
 			WantError: "required flag --id not provided",
 		},
 		{
 			Name:      validateMissingIDFlag,
-			Args:      args("tls-custom activation update --id example"),
+			Args:      "--id example",
 			WantError: "required flag --cert-id not provided",
 		},
 		{
@@ -226,7 +179,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("tls-custom activation update --cert-id example --id example"),
+			Args:      "--cert-id example --id example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -241,20 +194,10 @@ func TestUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:       args("tls-custom activation update --cert-id example --id example"),
+			Args:       "--cert-id example --id example",
 			WantOutput: fmt.Sprintf("Updated TLS Activation Certificate '%s' (previously: 'example')", mockResponseCertID),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }

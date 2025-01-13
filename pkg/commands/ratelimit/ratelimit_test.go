@@ -1,18 +1,17 @@
 package ratelimit_test
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	root "github.com/fastly/cli/pkg/commands/ratelimit"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
-func TestCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestRateLimitCreate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate CreateERL API error",
 			API: mock.API{
@@ -21,7 +20,7 @@ func TestCreate(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("rate-limit create --name example --service-id 123 --token abc --version 3"),
+			Args:      "--name example --service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -29,33 +28,22 @@ func TestCreate(t *testing.T) {
 			API: mock.API{
 				CreateERLFn: func(i *fastly.CreateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						Name: *i.Name,
-						ID:   "123",
+						Name:          i.Name,
+						RateLimiterID: fastly.ToPointer("123"),
 					}, nil
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:       args("rate-limit create --name example --service-id 123 --token abc --version 3"),
+			Args:       "--name example --service-id 123 --version 3",
 			WantOutput: "Created rate limiter 'example' (123)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
-func TestDelete(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestRateLimitDelete(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate DeleteERL API error",
 			API: mock.API{
@@ -63,7 +51,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("rate-limit delete --id 123 --token abc"),
+			Args:      "--id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -73,27 +61,16 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("rate-limit delete --id 123 --token abc"),
-			WantOutput: "\nSUCCESS: Deleted rate limter '123'\n",
+			Args:       "--id 123",
+			WantOutput: "SUCCESS: Deleted rate limiter '123'\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
-func TestDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestRateLimitDescribe(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate GetERL API error",
 			API: mock.API{
@@ -101,7 +78,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("rate-limit describe --id 123 --token abc"),
+			Args:      "--id 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -109,36 +86,25 @@ func TestDescribe(t *testing.T) {
 			API: mock.API{
 				GetERLFn: func(i *fastly.GetERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						ID:                 "123",
-						Name:               "example",
-						Action:             fastly.ERLActionResponse,
-						RpsLimit:           10,
-						WindowSize:         fastly.ERLSize60,
-						PenaltyBoxDuration: 20,
+						RateLimiterID:      fastly.ToPointer("123"),
+						Name:               fastly.ToPointer("example"),
+						Action:             fastly.ToPointer(fastly.ERLActionResponse),
+						RpsLimit:           fastly.ToPointer(10),
+						WindowSize:         fastly.ToPointer(fastly.ERLSize60),
+						PenaltyBoxDuration: fastly.ToPointer(20),
 					}, nil
 				},
 			},
-			Args:       args("rate-limit describe --id 123 --token abc"),
-			WantOutput: "\nAction: response\nClient Key: []\nFeature Revision: 0\nHTTP Methods: []\nID: 123\nLogger Type: \nName: example\nPenalty Box Duration: 20\nResponse: <nil>\nResponse Object Name: \nRPS Limit: 10\nService ID: \nURI Dictionary Name: \nVersion: 0\nWindowSize: 60\n",
+			Args:       "--id 123",
+			WantOutput: "\nAction: response\nClient Key: []\nFeature Revision: 0\nHTTP Methods: []\nID: 123\nLogger Type: \nName: example\nPenalty Box Duration: 20\nResponse: \nResponse Object Name: \nRPS Limit: 10\nService ID: \nURI Dictionary Name: \nVersion: 0\nWindowSize: 60\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
-func TestList(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestRateLimitList(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate ListERL API error",
 			API: mock.API{
@@ -147,7 +113,7 @@ func TestList(t *testing.T) {
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:      args("rate-limit list --service-id 123 --token abc --version 3"),
+			Args:      "--service-id 123 --version 3",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -156,38 +122,27 @@ func TestList(t *testing.T) {
 				ListERLsFn: func(i *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 					return []*fastly.ERL{
 						{
-							ID:                 "123",
-							Name:               "example",
-							Action:             fastly.ERLActionResponse,
-							RpsLimit:           10,
-							WindowSize:         fastly.ERLSize60,
-							PenaltyBoxDuration: 20,
+							RateLimiterID:      fastly.ToPointer("123"),
+							Name:               fastly.ToPointer("example"),
+							Action:             fastly.ToPointer(fastly.ERLActionResponse),
+							RpsLimit:           fastly.ToPointer(10),
+							WindowSize:         fastly.ToPointer(fastly.ERLSize60),
+							PenaltyBoxDuration: fastly.ToPointer(20),
 						},
 					}, nil
 				},
 				ListVersionsFn: testutil.ListVersions,
 			},
-			Args:       args("rate-limit list --service-id 123 --token abc --version 3"),
+			Args:       "--service-id 123 --version 3",
 			WantOutput: "ID   NAME     ACTION    RPS LIMIT  WINDOW SIZE  PENALTY BOX DURATION\n123  example  response  10         60           20\n",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
-func TestUpdate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TesRateLimittUpdate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate UpdateERL API error",
 			API: mock.API{
@@ -195,7 +150,7 @@ func TestUpdate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("rate-limit update --id 123 --name example --token abc"),
+			Args:      "--id 123 --name example",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -203,25 +158,15 @@ func TestUpdate(t *testing.T) {
 			API: mock.API{
 				UpdateERLFn: func(i *fastly.UpdateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
-						Name: *i.Name,
-						ID:   "123",
+						Name:          i.Name,
+						RateLimiterID: fastly.ToPointer("123"),
 					}, nil
 				},
 			},
-			Args:       args("rate-limit update --id 123 --name example --token abc"),
+			Args:       "--id 123 --name example",
 			WantOutput: "Updated rate limiter 'example' (123)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }

@@ -3,42 +3,39 @@ package secretstore
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("list", "List secret stores")
 
 	// Optional.
-	c.RegisterFlag(cmd.CursorFlag(&c.Input.Cursor))  // --cursor
-	c.RegisterFlagBool(c.JSONFlag())                 // --json
-	c.RegisterFlagInt(cmd.LimitFlag(&c.Input.Limit)) // --limit
+	c.RegisterFlag(argparser.CursorFlag(&c.Input.Cursor))  // --cursor
+	c.RegisterFlagBool(c.JSONFlag())                       // --json
+	c.RegisterFlagInt(argparser.LimitFlag(&c.Input.Limit)) // --limit
 
 	return &c
 }
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	// NOTE: API returns 10 items even when --limit is set to smaller.
-	Input    fastly.ListSecretStoresInput
-	manifest manifest.Data
+	Input fastly.ListSecretStoresInput
 }
 
 // Exec invokes the application logic for the command.
@@ -71,7 +68,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 
 			if o.Meta.NextCursor != "" {
 				text.Break(out)
-				printNext, err := text.AskYesNo(out, "Print next page [yes/no]: ", in)
+				printNext, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
 				if err != nil {
 					return err
 				}

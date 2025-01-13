@@ -8,10 +8,11 @@ import (
 	"strings"
 	"testing"
 
+	toml "github.com/pelletier/go-toml"
+
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/testutil"
-	toml "github.com/pelletier/go-toml"
 )
 
 //go:embed testdata/static/config.toml
@@ -29,7 +30,7 @@ type testReadScenario struct {
 	wantError            string
 }
 
-// TestConfigRead validates all logic flows within config.File.Read()
+// TestConfigRead validates all logic flows within config.File.Read().
 func TestConfigRead(t *testing.T) {
 	scenarios := []testReadScenario{
 		{
@@ -106,7 +107,9 @@ func TestConfigRead(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			if testcase.userConfigFilename == "" {
 				if fi, err := os.Stat(configPath); err == nil {
@@ -191,7 +194,9 @@ func TestUseStatic(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	var out bytes.Buffer
 
@@ -224,8 +229,19 @@ func TestUseStatic(t *testing.T) {
 	if strings.Contains(string(data), "[user]") {
 		t.Error("expected legacy [user] section to be removed")
 	}
-	if !strings.Contains(string(data), "[profile.user]\ndefault = true\nemail = \"testing@fastly.com\"\ntoken = \"foobar\"") {
-		t.Error("expected legacy [user] section to be migrated to [profile.user]")
+	if !strings.Contains(string(data), `[profile.user]
+access_token = ""
+access_token_created = 0
+access_token_ttl = 0
+customer_id = ""
+customer_name = ""
+default = true
+email = "testing@fastly.com"
+refresh_token = ""
+refresh_token_created = 0
+refresh_token_ttl = 0
+token = "foobar"`) {
+		t.Errorf("expected legacy [user] section to be migrated to [profile.user]: %s", string(data))
 	}
 
 	// Validate that invalid static configuration returns a specific error.
@@ -249,7 +265,7 @@ func TestUseStatic(t *testing.T) {
 }
 
 type testInvalidConfigScenario struct {
-	testutil.TestScenario
+	testutil.CLIScenario
 
 	invalid      bool
 	staticConfig []byte
@@ -291,7 +307,7 @@ func TestInvalidConfig(t *testing.T) {
 				Copy: []testutil.FileIO{
 					{
 						Src: filepath.Join("testdata", testcase.userConfig),
-						Dst: filepath.Join("config.toml"),
+						Dst: "config.toml",
 					},
 				},
 			})
@@ -304,7 +320,9 @@ func TestInvalidConfig(t *testing.T) {
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
 			}
-			defer os.Chdir(pwd)
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
 
 			var f config.File
 			var stdout bytes.Buffer

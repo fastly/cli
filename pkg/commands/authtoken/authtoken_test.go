@@ -1,31 +1,21 @@
 package authtoken_test
 
 import (
-	"bytes"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/errors"
+	root "github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-func TestCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+func TestAuthTokenCreate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --password flag",
-			Args:      args("auth-token create"),
 			WantError: "error parsing arguments: required flag --password not provided",
-		},
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token create --password secure"),
-			WantError: errors.ErrNoToken.Inner.Error(),
 		},
 		{
 			Name: "validate CreateToken API error",
@@ -34,7 +24,7 @@ func TestCreate(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("auth-token create --password secure --token 123"),
+			Args:      "--password secure --token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -43,14 +33,14 @@ func TestCreate(t *testing.T) {
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   &testutil.Date,
-						ID:          "123",
-						Name:        "Example",
-						Scope:       "foobar",
-						AccessToken: "123abc",
+						TokenID:     fastly.ToPointer("123"),
+						Name:        fastly.ToPointer("Example"),
+						Scope:       fastly.ToPointer(fastly.TokenScope("foobar")),
+						AccessToken: fastly.ToPointer("123abc"),
 					}, nil
 				},
 			},
-			Args:       args("auth-token create --password secure --token 123"),
+			Args:       "--password secure --token 123",
 			WantOutput: "Created token '123abc' (name: Example, id: 123, scope: foobar, expires: 2021-06-15 23:00:00 +0000 UTC)",
 		},
 		{
@@ -59,42 +49,26 @@ func TestCreate(t *testing.T) {
 				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   i.ExpiresAt,
-						ID:          "123",
+						TokenID:     fastly.ToPointer("123"),
 						Name:        i.Name,
 						Scope:       i.Scope,
-						AccessToken: "123abc",
+						AccessToken: fastly.ToPointer("123abc"),
 					}, nil
 				},
 			},
-			Args:       args("auth-token create --expires 2021-09-15T23:00:00Z --name Testing --password secure --scope purge_all --scope global:read --services a,b,c --token 123"),
+			Args:       "--expires 2021-09-15T23:00:00Z --name Testing --password secure --scope purge_all --scope global:read --services a,b,c --token 123",
 			WantOutput: "Created token '123abc' (name: Testing, id: 123, scope: purge_all global:read, expires: 2021-09-15 23:00:00 +0000 UTC)",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
-func TestDelete(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token delete"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
+func TestAuthTokenDelete(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing optional flags",
-			Args:      args("auth-token delete --token 123"),
+			Args:      "--token 123",
 			WantError: "error parsing arguments: must provide either the --current, --file or --id flag",
 		},
 		{
@@ -104,7 +78,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("auth-token delete --current --token 123"),
+			Args:      "--current --token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -114,7 +88,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("auth-token delete --file ./testdata/tokens --token 123"),
+			Args:      "--file ./testdata/tokens --token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -124,7 +98,7 @@ func TestDelete(t *testing.T) {
 					return testutil.Err
 				},
 			},
-			Args:      args("auth-token delete --id 123 --token 123"),
+			Args:      "--id 123 --token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -134,7 +108,7 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("auth-token delete --current --token 123"),
+			Args:       "--current --token 123",
 			WantOutput: "Deleted current token",
 		},
 		{
@@ -144,7 +118,7 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("auth-token delete --file ./testdata/tokens --token 123"),
+			Args:       "--file ./testdata/tokens --token 123",
 			WantOutput: "Deleted tokens",
 		},
 		{
@@ -154,7 +128,7 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("auth-token delete --file ./testdata/tokens --token 123 --verbose"),
+			Args:       "--file ./testdata/tokens --token 123 --verbose",
 			WantOutput: fileTokensOutput(),
 		},
 		{
@@ -164,32 +138,16 @@ func TestDelete(t *testing.T) {
 					return nil
 				},
 			},
-			Args:       args("auth-token delete --id 123 --token 123"),
+			Args:       "--id 123 --token 123",
 			WantOutput: "Deleted token '123'",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
-func TestDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
-		{
-			Name:      "validate missing --token flag",
-			Args:      args("auth-token describe"),
-			WantError: errors.ErrNoToken.Inner.Error(),
-		},
+func TestAuthTokenDescribe(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate GetTokenSelf API error",
 			API: mock.API{
@@ -197,7 +155,7 @@ func TestDescribe(t *testing.T) {
 					return nil, testutil.Err
 				},
 			},
-			Args:      args("auth-token describe --token 123"),
+			Args:      "--token 123",
 			WantError: testutil.Err.Error(),
 		},
 		{
@@ -205,156 +163,99 @@ func TestDescribe(t *testing.T) {
 			API: mock.API{
 				GetTokenSelfFn: getToken,
 			},
-			Args:       args("auth-token describe --token 123"),
+			Args:       "--token 123",
 			WantOutput: describeTokenOutput(),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
-func TestList(t *testing.T) {
-	args := testutil.Args
-	type ts struct {
-		testutil.TestScenario
-		SetEnv bool
-	}
-	scenarios := []ts{
+func TestAuthTokenList(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate missing --token flag",
-				Args:      args("auth-token list"),
-				WantError: errors.ErrNoToken.Inner.Error(),
+			Name: "validate ListTokens API error",
+			API: mock.API{
+				ListTokensFn: func(_ *fastly.ListTokensInput) ([]*fastly.Token, error) {
+					return nil, testutil.Err
+				},
 			},
+			WantError: testutil.Err.Error(),
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate ListTokens API error",
-				API: mock.API{
-					ListTokensFn: func() ([]*fastly.Token, error) {
-						return nil, testutil.Err
-					},
+			Name: "validate ListCustomerTokens API error",
+			API: mock.API{
+				ListCustomerTokensFn: func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
+					return nil, testutil.Err
 				},
-				Args:      args("auth-token list --token 123"),
-				WantError: testutil.Err.Error(),
 			},
+			Args:      "--customer-id 123",
+			WantError: testutil.Err.Error(),
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate ListCustomerTokens API error",
-				API: mock.API{
-					ListCustomerTokensFn: func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
-						return nil, testutil.Err
-					},
-				},
-				Args:      args("auth-token list --customer-id 123 --token 123"),
-				WantError: testutil.Err.Error(),
+			Name: "validate ListTokens API success",
+			API: mock.API{
+				ListTokensFn: listTokens,
 			},
+			WantOutput: listTokenOutputSummary(false),
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate ListTokens API success",
-				API: mock.API{
-					ListTokensFn: listTokens,
-				},
-				Args:       args("auth-token list --token 123"),
-				WantOutput: listTokenOutputSummary(false),
+			Name: "validate ListCustomerTokens API success",
+			API: mock.API{
+				ListCustomerTokensFn: listCustomerTokens,
 			},
+			Args:       "--customer-id 123",
+			WantOutput: listTokenOutputSummary(false),
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate ListCustomerTokens API success",
-				API: mock.API{
-					ListCustomerTokensFn: listCustomerTokens,
-				},
-				Args:       args("auth-token list --customer-id 123 --token 123"),
-				WantOutput: listTokenOutputSummary(false),
+			Name: "validate ListCustomerTokens API success with env var",
+			API: mock.API{
+				ListCustomerTokensFn: listCustomerTokens,
 			},
+			WantOutput: listTokenOutputSummary(true),
+			EnvVars:    map[string]string{"FASTLY_CUSTOMER_ID": "123"},
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate ListCustomerTokens API success with env var",
-				API: mock.API{
-					ListCustomerTokensFn: listCustomerTokens,
-				},
-				Args:       args("auth-token list --token 123"),
-				WantOutput: listTokenOutputSummary(true),
+			Name: "validate --verbose flag",
+			API: mock.API{
+				ListTokensFn: listTokens,
 			},
-			SetEnv: true,
-		},
-		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate --verbose flag",
-				API: mock.API{
-					ListTokensFn: listTokens,
-				},
-				Args:       args("auth-token list --token 123 --verbose"),
-				WantOutput: listTokenOutputVerbose(),
-			},
+			Args:       "--verbose",
+			WantOutput: listTokenOutputVerbose(),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			if testcase.SetEnv {
-				if err := os.Setenv("FASTLY_CUSTOMER_ID", "123"); err != nil {
-					t.Fatal(err)
-				}
-				defer func() {
-					if err := os.Unsetenv("FASTLY_CUSTOMER_ID"); err != nil {
-						t.Fatal(err)
-					}
-				}()
-			}
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func getToken() (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
-		ID:         "123",
-		Name:       "Foo",
-		UserID:     "456",
+		TokenID:    fastly.ToPointer("123"),
+		Name:       fastly.ToPointer("Foo"),
+		UserID:     fastly.ToPointer("456"),
 		Services:   []string{"a", "b"},
-		Scope:      fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope)),
-		IP:         "127.0.0.1",
+		Scope:      fastly.ToPointer(fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope))),
+		IP:         fastly.ToPointer("127.0.0.1"),
 		CreatedAt:  &t,
 		ExpiresAt:  &t,
 		LastUsedAt: &t,
 	}, nil
 }
 
-func listTokens() ([]*fastly.Token, error) {
+func listTokens(_ *fastly.ListTokensInput) ([]*fastly.Token, error) {
 	t := testutil.Date
 	token, _ := getToken()
 	vs := []*fastly.Token{
 		token,
 		{
-			ID:         "456",
-			Name:       "Bar",
-			UserID:     "789",
+			TokenID:    fastly.ToPointer("456"),
+			Name:       fastly.ToPointer("Bar"),
+			UserID:     fastly.ToPointer("789"),
 			Services:   []string{"a", "b"},
-			Scope:      fastly.GlobalScope,
-			IP:         "127.0.0.2",
+			Scope:      fastly.ToPointer(fastly.GlobalScope),
+			IP:         fastly.ToPointer("127.0.0.2"),
 			CreatedAt:  &t,
 			ExpiresAt:  &t,
 			LastUsedAt: &t,
@@ -363,8 +264,8 @@ func listTokens() ([]*fastly.Token, error) {
 	return vs, nil
 }
 
-func listCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
-	return listTokens()
+func listCustomerTokens(_ *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
+	return listTokens(nil)
 }
 
 func fileTokensOutput() string {
@@ -391,8 +292,8 @@ Expires at: 2021-06-15 23:00:00 +0000 UTC`
 }
 
 func listTokenOutputVerbose() string {
-	return `Fastly API token provided via --token
-Fastly API endpoint: https://api.fastly.com
+	return `Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 
 ID: 123
@@ -423,7 +324,7 @@ Expires at: 2021-06-15 23:00:00 +0000 UTC
 func listTokenOutputSummary(env bool) string {
 	var msg string
 	if env {
-		msg = "\nINFO: Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n"
+		msg = "INFO: Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n"
 	}
 	return fmt.Sprintf(`%sNAME  TOKEN ID  USER ID  SCOPE                  SERVICES
 Foo   123       456      purge_all global:read  a, b

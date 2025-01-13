@@ -4,55 +4,53 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DescribeCommand calls the Fastly API to describe a backend.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest       manifest.Data
 	Input          fastly.GetBackendInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	c := DescribeCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Show detailed information about a backend on a Fastly service version").Alias("get")
 
 	// Required.
 	c.CmdClause.Flag("name", "Name of backend").Short('n').Required().StringVar(&c.Input.Name)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -64,10 +62,9 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -82,7 +79,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetBackend(&c.Input)
 	if err != nil {
@@ -103,32 +100,41 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, b *fastly.Backend) error {
 	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", b.ServiceID)
+		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(b.ServiceID))
 	}
-	fmt.Fprintf(out, "Service Version: %d\n\n", b.ServiceVersion)
-	fmt.Fprintf(out, "Name: %s\n", b.Name)
-	fmt.Fprintf(out, "Comment: %v\n", b.Comment)
-	fmt.Fprintf(out, "Address: %v\n", b.Address)
-	fmt.Fprintf(out, "Port: %v\n", b.Port)
-	fmt.Fprintf(out, "Override host: %v\n", b.OverrideHost)
-	fmt.Fprintf(out, "Connect timeout: %v\n", b.ConnectTimeout)
-	fmt.Fprintf(out, "Max connections: %v\n", b.MaxConn)
-	fmt.Fprintf(out, "First byte timeout: %v\n", b.FirstByteTimeout)
-	fmt.Fprintf(out, "Between bytes timeout: %v\n", b.BetweenBytesTimeout)
-	fmt.Fprintf(out, "Auto loadbalance: %v\n", b.AutoLoadbalance)
-	fmt.Fprintf(out, "Weight: %v\n", b.Weight)
-	fmt.Fprintf(out, "Healthcheck: %v\n", b.HealthCheck)
-	fmt.Fprintf(out, "Shield: %v\n", b.Shield)
-	fmt.Fprintf(out, "Use SSL: %v\n", b.UseSSL)
-	fmt.Fprintf(out, "SSL check cert: %v\n", b.SSLCheckCert)
-	fmt.Fprintf(out, "SSL CA cert: %v\n", b.SSLCACert)
-	fmt.Fprintf(out, "SSL client cert: %v\n", b.SSLClientCert)
-	fmt.Fprintf(out, "SSL client key: %v\n", b.SSLClientKey)
-	fmt.Fprintf(out, "SSL cert hostname: %v\n", b.SSLCertHostname)
-	fmt.Fprintf(out, "SSL SNI hostname: %v\n", b.SSLSNIHostname)
-	fmt.Fprintf(out, "Min TLS version: %v\n", b.MinTLSVersion)
-	fmt.Fprintf(out, "Max TLS version: %v\n", b.MaxTLSVersion)
-	fmt.Fprintf(out, "SSL ciphers: %v\n", b.SSLCiphers)
+	fmt.Fprintf(out, "Service Version: %d\n\n", fastly.ToValue(b.ServiceVersion))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(b.Name))
+	fmt.Fprintf(out, "Comment: %v\n", fastly.ToValue(b.Comment))
+	fmt.Fprintf(out, "Address: %v\n", fastly.ToValue(b.Address))
+	fmt.Fprintf(out, "Port: %v\n", fastly.ToValue(b.Port))
+	fmt.Fprintf(out, "Override host: %v\n", fastly.ToValue(b.OverrideHost))
+	fmt.Fprintf(out, "Connect timeout: %v\n", fastly.ToValue(b.ConnectTimeout))
+	fmt.Fprintf(out, "Max connections: %v\n", fastly.ToValue(b.MaxConn))
+	fmt.Fprintf(out, "First byte timeout: %v\n", fastly.ToValue(b.FirstByteTimeout))
+	fmt.Fprintf(out, "Between bytes timeout: %v\n", fastly.ToValue(b.BetweenBytesTimeout))
+	fmt.Fprintf(out, "Auto loadbalance: %v\n", fastly.ToValue(b.AutoLoadbalance))
+	fmt.Fprintf(out, "Weight: %v\n", fastly.ToValue(b.Weight))
+	fmt.Fprintf(out, "Healthcheck: %v\n", fastly.ToValue(b.HealthCheck))
+	fmt.Fprintf(out, "Shield: %v\n", fastly.ToValue(b.Shield))
+	fmt.Fprintf(out, "Use SSL: %v\n", fastly.ToValue(b.UseSSL))
+	fmt.Fprintf(out, "SSL check cert: %v\n", fastly.ToValue(b.SSLCheckCert))
+	fmt.Fprintf(out, "SSL CA cert: %v\n", fastly.ToValue(b.SSLCACert))
+	fmt.Fprintf(out, "SSL client cert: %v\n", fastly.ToValue(b.SSLClientCert))
+	fmt.Fprintf(out, "SSL client key: %v\n", fastly.ToValue(b.SSLClientKey))
+	fmt.Fprintf(out, "SSL cert hostname: %v\n", fastly.ToValue(b.SSLCertHostname))
+	fmt.Fprintf(out, "SSL SNI hostname: %v\n", fastly.ToValue(b.SSLSNIHostname))
+	fmt.Fprintf(out, "Min TLS version: %v\n", fastly.ToValue(b.MinTLSVersion))
+	fmt.Fprintf(out, "Max TLS version: %v\n", fastly.ToValue(b.MaxTLSVersion))
+	fmt.Fprintf(out, "SSL ciphers: %v\n", fastly.ToValue(b.SSLCiphers))
+	fmt.Fprintf(out, "HTTP KeepAlive Timeout: %v\n", fastly.ToValue(b.KeepAliveTime))
+	if b.TCPKeepAliveEnable == nil {
+		fmt.Fprintf(out, "TCP KeepAlive Enabled: unset\n")
+	} else {
+		fmt.Fprintf(out, "TCP KeepAlive Enabled: %v\n", fastly.ToValue(b.TCPKeepAliveEnable))
+	}
+	fmt.Fprintf(out, "TCP KeepAlive Interval: %v\n", fastly.ToValue(b.TCPKeepAliveIntvl))
+	fmt.Fprintf(out, "TCP KeepAlive Probes: %v\n", fastly.ToValue(b.TCPKeepAliveProbes))
+	fmt.Fprintf(out, "TCP KeepAlive Timeout: %v\n", fastly.ToValue(b.TCPKeepAliveTime))
 
 	return nil
 }

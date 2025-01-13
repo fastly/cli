@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/api"
+	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/useragent"
 )
@@ -32,7 +33,7 @@ func (e APIError) Error() string {
 	return e.Err.Error()
 }
 
-// NewError returns an APIError
+// NewError returns an APIError.
 func NewError(err error, statusCode int) APIError {
 	return APIError{
 		Err:        err,
@@ -50,6 +51,7 @@ type HTTPHeader struct {
 type CallOptions struct {
 	APIEndpoint string
 	Body        io.Reader
+	Debug       bool
 	HTTPClient  api.HTTPClient
 	HTTPHeaders []HTTPHeader
 	Method      string
@@ -58,6 +60,8 @@ type CallOptions struct {
 }
 
 // Call calls the given API endpoint and returns its response data.
+//
+// WARNING: Loads entire response body into memory.
 func Call(opts CallOptions) (data []byte, err error) {
 	host := strings.TrimSuffix(opts.APIEndpoint, "/")
 	endpoint := fmt.Sprintf("%s%s", host, opts.Path)
@@ -67,13 +71,22 @@ func Call(opts CallOptions) (data []byte, err error) {
 		return data, NewError(err, 0)
 	}
 
-	req.Header.Set("Fastly-Key", opts.Token)
+	if opts.Token != "" {
+		req.Header.Set("Fastly-Key", opts.Token)
+	}
 	req.Header.Set("User-Agent", useragent.Name)
 	for _, header := range opts.HTTPHeaders {
 		req.Header.Set(header.Key, header.Value)
 	}
 
+	if opts.Debug {
+		debug.DumpHTTPRequest(req)
+	}
 	res, err := opts.HTTPClient.Do(req)
+	if opts.Debug {
+		debug.DumpHTTPResponse(res)
+	}
+
 	if err != nil {
 		if urlErr, ok := err.(*url.Error); ok && urlErr.Timeout() {
 			return data, fsterr.RemediationError{

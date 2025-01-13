@@ -3,17 +3,20 @@ package sftp_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestSFTPCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -51,9 +54,12 @@ func TestSFTPCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -61,7 +67,7 @@ func TestSFTPCreate(t *testing.T) {
 }
 
 func TestSFTPList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -121,9 +127,12 @@ func TestSFTPList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -131,7 +140,7 @@ func TestSFTPList(t *testing.T) {
 }
 
 func TestSFTPDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -163,9 +172,12 @@ func TestSFTPDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -173,7 +185,7 @@ func TestSFTPDescribe(t *testing.T) {
 }
 
 func TestSFTPUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -207,9 +219,12 @@ func TestSFTPUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -217,7 +232,7 @@ func TestSFTPUpdate(t *testing.T) {
 }
 
 func TestSFTPDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -251,9 +266,12 @@ func TestSFTPDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -264,70 +282,70 @@ var errTest = errors.New("fixture error")
 
 func createSFTPOK(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	s := fastly.SFTP{
-		ServiceID:        i.ServiceID,
-		ServiceVersion:   i.ServiceVersion,
-		CompressionCodec: "zstd",
+		ServiceID:        fastly.ToPointer(i.ServiceID),
+		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
+		CompressionCodec: fastly.ToPointer("zstd"),
 	}
 
-	if *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
 	return &s, nil
 }
 
-func createSFTPError(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
+func createSFTPError(_ *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
 func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	return []*fastly.SFTP{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Address:           "127.0.0.1",
-			Port:              514,
-			User:              "user",
-			Password:          "password",
-			PublicKey:         pgpPublicKey(),
-			SecretKey:         sshPrivateKey(),
-			SSHKnownHosts:     knownHosts(),
-			Path:              "/logs",
-			Period:            3600,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Address:           fastly.ToPointer("127.0.0.1"),
+			Port:              fastly.ToPointer(514),
+			User:              fastly.ToPointer("user"),
+			Password:          fastly.ToPointer("password"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			SecretKey:         fastly.ToPointer(sshPrivateKey()),
+			SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+			Path:              fastly.ToPointer("/logs"),
+			Period:            fastly.ToPointer(3600),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Address:           "example.com",
-			Port:              123,
-			User:              "user",
-			Password:          "password",
-			PublicKey:         pgpPublicKey(),
-			SecretKey:         sshPrivateKey(),
-			SSHKnownHosts:     knownHosts(),
-			Path:              "/analytics",
-			Period:            3600,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			MessageType:       "classic",
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Address:           fastly.ToPointer("example.com"),
+			Port:              fastly.ToPointer(123),
+			User:              fastly.ToPointer("user"),
+			Password:          fastly.ToPointer("password"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			SecretKey:         fastly.ToPointer(sshPrivateKey()),
+			SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+			Path:              fastly.ToPointer("/analytics"),
+			Period:            fastly.ToPointer(3600),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			MessageType:       fastly.ToPointer("classic"),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
 
-func listSFTPsError(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
+func listSFTPsError(_ *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	return nil, errTest
 }
 
@@ -338,8 +356,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listSFTPsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -390,30 +408,30 @@ Version: 1
 
 func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Address:           "example.com",
-		Port:              514,
-		User:              "user",
-		Password:          "password",
-		PublicKey:         pgpPublicKey(),
-		SecretKey:         sshPrivateKey(),
-		SSHKnownHosts:     knownHosts(),
-		Path:              "/logs",
-		Period:            3600,
-		GzipLevel:         2,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Address:           fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(514),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		SecretKey:         fastly.ToPointer(sshPrivateKey()),
+		SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+		Path:              fastly.ToPointer("/logs"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(2),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func getSFTPError(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
+func getSFTPError(_ *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
@@ -442,41 +460,41 @@ Version: 1
 
 func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Address:           "example.com",
-		Port:              514,
-		User:              "user",
-		Password:          "password",
-		PublicKey:         pgpPublicKey(),
-		SecretKey:         sshPrivateKey(),
-		SSHKnownHosts:     knownHosts(),
-		Path:              "/logs",
-		Period:            3600,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Address:           fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(514),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		SecretKey:         fastly.ToPointer(sshPrivateKey()),
+		SSHKnownHosts:     fastly.ToPointer(knownHosts()),
+		Path:              fastly.ToPointer("/logs"),
+		Period:            fastly.ToPointer(3600),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func updateSFTPError(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
+func updateSFTPError(_ *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
-func deleteSFTPOK(i *fastly.DeleteSFTPInput) error {
+func deleteSFTPOK(_ *fastly.DeleteSFTPInput) error {
 	return nil
 }
 
-func deleteSFTPError(i *fastly.DeleteSFTPInput) error {
+func deleteSFTPError(_ *fastly.DeleteSFTPInput) error {
 	return errTest
 }
 
-// knownHosts returns sample known hosts suitable for testing
+// knownHosts returns sample known hosts suitable for testing.
 func knownHosts() string {
 	return strings.TrimSpace(`
 example.com

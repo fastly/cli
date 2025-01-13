@@ -1,10 +1,11 @@
 package profile
 
 import (
-	"fmt"
+	"errors"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -14,12 +15,12 @@ import (
 
 // ListCommand represents a Kingpin command.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("list", "List user profiles")
@@ -40,7 +41,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Config.Profiles == nil {
 		msg := "no profiles available"
 		return fsterr.RemediationError{
-			Inner:       fmt.Errorf(msg),
+			Inner:       errors.New(msg),
 			Remediation: fsterr.ProfileRemediation,
 		}
 	}
@@ -52,15 +53,19 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	name, p := profile.Default(c.Globals.Config.Profiles)
-	if name == "" {
+	if p == nil {
 		text.Warning(out, profile.NoDefaults)
 	} else {
-		text.Info(out, "Default profile highlighted in red.")
+		if c.Globals.Verbose() {
+			text.Break(out)
+		}
+		text.Info(out, "Default profile highlighted in red.\n\n")
 		display(name, p, out, text.BoldRed)
 	}
 
 	for k, v := range c.Globals.Config.Profiles {
 		if !v.Default {
+			text.Break(out)
 			display(k, v, out, text.Bold)
 		}
 	}
@@ -68,10 +73,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 func display(k string, v *config.Profile, out io.Writer, style func(a ...any) string) {
-	text.Break(out)
 	text.Output(out, style(k))
 	text.Break(out)
 	text.Output(out, "%s: %t", style("Default"), v.Default)
 	text.Output(out, "%s: %s", style("Email"), v.Email)
 	text.Output(out, "%s: %s", style("Token"), v.Token)
+	text.Output(out, "%s: %t", style("SSO"), !auth.IsLongLivedToken(v))
+	if !auth.IsLongLivedToken(v) {
+		text.Output(out, "%s: %s", style("Customer ID"), v.CustomerID)
+		text.Output(out, "%s: %s", style("Customer Name"), v.CustomerName)
+	}
 }

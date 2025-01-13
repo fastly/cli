@@ -6,13 +6,15 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/commands/compute"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/github"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/useragent"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func init() {
@@ -26,24 +28,29 @@ func init() {
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
-	av github.AssetVersioner
+	argparser.Base
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "version"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, av github.AssetVersioner) *RootCommand {
-	var c RootCommand
-	c.av = av
-	c.CmdClause = parent.Command("version", "Display version information for the Fastly CLI")
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
+	c := RootCommand{
+		Base: argparser.Base{
+			Globals: g,
+		},
+	}
+	c.CmdClause = parent.Command(CommandName, "Display version information for the Fastly CLI")
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", revision.AppVersion, revision.GitCommit)
-	fmt.Fprintf(out, "Built with %s\n", revision.GoVersion)
+	fmt.Fprintf(out, "Built with %s (%s)\n", revision.GoVersion, Now().Format("2006-01-02"))
 
-	viceroy := filepath.Join(compute.InstallDir, c.av.BinaryName())
+	viceroy := filepath.Join(github.InstallDir, c.Globals.Versioners.Viceroy.BinaryName())
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as we lookup the binary in a trusted location. For this to be a
@@ -61,7 +68,10 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 // IsPreRelease determines if the given app version is a pre-release.
 //
-// NOTE: this is indicated by the presence of a hyphen, e.g. v1.0.0-rc.1
+// NOTE: this is indicated by the presence of a hyphen, e.g. `v1.0.0-rc.1`.
 func IsPreRelease(version string) bool {
 	return strings.Contains(version, "-")
 }
+
+// Now is exposed so that we may mock it from our test file.
+var Now = time.Now

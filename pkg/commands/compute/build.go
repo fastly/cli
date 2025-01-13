@@ -3,21 +3,32 @@ package compute
 import (
 	"bufio"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
+	"golang.org/x/text/cases"
+	textlang "golang.org/x/text/language"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/check"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
+	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -26,10 +37,18 @@ const IgnoreFilePath = ".fastlyignore"
 
 // CustomPostScriptMessage is the message displayed to a user when there is
 // either a post_init or post_build script defined.
-const CustomPostScriptMessage = "This project has a custom post_%s script defined in the fastly.toml manifest"
+const CustomPostScriptMessage = "This project has a custom post_%s script defined in the %s manifest"
+
+// ErrWasmtoolsNotFound represents an error finding the binary installed.
+var ErrWasmtoolsNotFound = fsterr.RemediationError{
+	Inner:       fmt.Errorf("wasm-tools not found"),
+	Remediation: fsterr.BugRemediation,
+}
 
 // Flags represents the flags defined for the command.
 type Flags struct {
+	Dir         string
+	Env         string
 	IncludeSrc  bool
 	Lang        string
 	PackageName string
@@ -38,25 +57,33 @@ type Flags struct {
 
 // BuildCommand produces a deployable artifact from files on the local disk.
 type BuildCommand struct {
-	cmd.Base
+	argparser.Base
 
-	// NOTE: these are public so that the "serve" and "publish" composite
-	// commands can set the values appropriately before calling Exec().
-	Flags    Flags
-	Manifest manifest.Data
+	// NOTE: Composite commands require these build flags to be public.
+	// e.g. serve, publish, hashsum, hash-files
+	// This is so they can set values appropriately before calling Build.Exec().
+	Flags                 Flags
+	MetadataDisable       bool
+	MetadataFilterEnvVars string
+	MetadataShow          bool
+	SkipChangeDir         bool // set by parent composite commands (e.g. serve, publish)
 }
 
 // NewBuildCommand returns a usable command registered under the parent.
-func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *BuildCommand {
+func NewBuildCommand(parent argparser.Registerer, g *global.Data) *BuildCommand {
 	var c BuildCommand
 	c.Globals = g
-	c.Manifest = m
-	c.CmdClause = parent.Command("build", "Build a Compute@Edge package locally")
+	c.CmdClause = parent.Command("build", "Build a Compute package locally")
 
 	// NOTE: when updating these flags, be sure to update the composite commands:
 	// `compute publish` and `compute serve`.
+	c.CmdClause.Flag("dir", "Project directory to build (default: current directory)").Short('C').StringVar(&c.Flags.Dir)
+	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Flags.Env)
 	c.CmdClause.Flag("include-source", "Include source code in built package").BoolVar(&c.Flags.IncludeSrc)
 	c.CmdClause.Flag("language", "Language type").StringVar(&c.Flags.Lang)
+	c.CmdClause.Flag("metadata-disable", "Disable Wasm binary metadata annotations").BoolVar(&c.MetadataDisable)
+	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").StringVar(&c.MetadataFilterEnvVars)
+	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").BoolVar(&c.MetadataShow)
 	c.CmdClause.Flag("package-name", "Package name").StringVar(&c.Flags.PackageName)
 	c.CmdClause.Flag("timeout", "Timeout, in seconds, for the build compilation step").IntVar(&c.Flags.Timeout)
 
@@ -67,9 +94,37 @@ func NewBuildCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Bu
 func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// We'll restore this at the end to print a final successful build output.
 	originalOut := out
-
 	if c.Globals.Flags.Quiet {
 		out = io.Discard
+	}
+
+	manifestFilename := EnvironmentManifest(c.Flags.Env)
+	if c.Flags.Env != "" {
+		if c.Globals.Verbose() {
+			text.Info(out, EnvManifestMsg, manifestFilename, manifest.Filename)
+		}
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
+	manifestPath := filepath.Join(wd, manifestFilename)
+
+	var projectDir string
+	if !c.SkipChangeDir {
+		projectDir, err = ChangeProjectDirectory(c.Flags.Dir)
+		if err != nil {
+			return err
+		}
+		if projectDir != "" {
+			if c.Globals.Verbose() {
+				text.Info(out, ProjectDirMsg, projectDir)
+			}
+			manifestPath = filepath.Join(projectDir, manifestFilename)
+		}
 	}
 
 	spinner, err := text.NewSpinner(out)
@@ -83,82 +138,56 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}(c.Globals.ErrLog)
 
-	err = spinner.Start()
-	if err != nil {
-		return err
+	if c.Globals.Verbose() {
+		text.Break(out)
 	}
-	msg := "Verifying fastly.toml"
-	spinner.Message(msg + "...")
-
-	err = c.Manifest.File.ReadError()
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			err = fsterr.ErrReadingManifest
+	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), func(_ *text.SpinnerWrapper) error {
+		// The check for c.SkipChangeDir here is because we might need to attempt
+		// another read of the manifest file. To explain: if we're skipping the
+		// change of directory, it means we were called from a composite command,
+		// which has already changed directory to one that contains the fastly.toml
+		// file. This means we should try reading the manifest file from the new
+		// location as the potential ReadError() would have been based on the
+		// initial directory the CLI was invoked from.
+		if c.SkipChangeDir || projectDir != "" || c.Flags.Env != "" {
+			err = c.Globals.Manifest.File.Read(manifestPath)
+		} else {
+			err = c.Globals.Manifest.File.ReadError()
 		}
-		c.Globals.ErrLog.Add(err)
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				err = fsterr.ErrReadingManifest
+			}
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
-
-		return err
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Identifying package name"
-	spinner.Message(msg + "...")
+	wasmtools, wasmtoolsErr := GetWasmTools(spinner, out, c.Globals.Versioners.WasmTools, c.Globals)
 
-	packageName, err := packageName(c)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
+	var pkgName string
+	err = spinner.Process("Identifying package name", func(_ *text.SpinnerWrapper) error {
+		pkgName, err = c.PackageName(manifestFilename)
 		return err
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+	})
 	if err != nil {
 		return err
 	}
 
-	err = spinner.Start()
-	if err != nil {
+	var toolchain string
+	err = spinner.Process("Identifying toolchain", func(_ *text.SpinnerWrapper) error {
+		toolchain, err = identifyToolchain(c)
 		return err
-	}
-	msg = "Identifying toolchain"
-	spinner.Message(msg + "...")
-
-	toolchain, err := toolchain(c)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-		return err
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+	})
 	if err != nil {
 		return err
 	}
 
-	language, err := language(toolchain, c, in, out, spinner)
+	language, err := language(toolchain, manifestFilename, c, in, out, spinner)
 	if err != nil {
 		return err
 	}
@@ -175,56 +204,194 @@ func (c *BuildCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Creating package archive"
-	spinner.Message(msg + "...")
-
-	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", packageName))
-
-	// NOTE: The minimum package requirement is `fastly.toml` and `main.wasm`.
-	files := []string{
-		manifest.Filename,
-		"bin/main.wasm",
-	}
-
-	files, err = c.includeSourceCode(files, language.SourceDirectory)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-		return err
-	}
-
-	err = CreatePackageArchive(files, dest)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Files":       files,
-			"Destination": dest,
-		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+	// IMPORTANT: We ignore errors downloading wasm-tools.
+	// This is because we don't want to block a user from building their project.
+	// Annotating the compiled binary with metadata isn't that important.
+	if wasmtoolsErr == nil {
+		metadataProcessedBy := fmt.Sprintf(
+			"--processed-by=fastly=%s (%s)",
+			revision.AppVersion, cases.Title(textlang.English).String(language.Name),
+		)
+		metadataArgs := []string{
+			"metadata", "add", binWasmPath, metadataProcessedBy,
 		}
 
-		return fmt.Errorf("error creating package archive: %w", err)
+		metadataDisable, _ := strconv.ParseBool(c.Globals.Env.WasmMetadataDisable)
+		if !c.MetadataDisable && !metadataDisable {
+			if err := c.AnnotateWasmBinaryLong(wasmtools, metadataArgs, language); err != nil {
+				return err
+			}
+		} else {
+			if err := c.AnnotateWasmBinaryShort(wasmtools, metadataArgs); err != nil {
+				return err
+			}
+		}
+		if c.MetadataShow {
+			c.ShowMetadata(wasmtools, out)
+		}
+	} else {
+		if !c.Globals.Verbose() {
+			text.Break(out)
+		}
+		text.Info(out, "There was an error downloading the wasm-tools (used for binary annotations) but we don't let that block you building your project. For reference here is the error (in case you want to let us know about it): %s\n\n", wasmtoolsErr.Error())
 	}
 
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+	dest := filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", pkgName))
+	err = spinner.Process("Creating package archive", func(_ *text.SpinnerWrapper) error {
+		// IMPORTANT: The minimum package requirement is `fastly.toml` and `main.wasm`.
+		//
+		// The Fastly platform will reject a package that doesn't have a manifest
+		// named exactly fastly.toml which means if the user is building and
+		// deploying a package with an environment manifest (e.g. fastly.stage.toml)
+		// then we need to:
+		//
+		// 1. Rename any existing fastly.toml to fastly.toml.backup.<TIMESTAMP>
+		// 2. Make a temp copy of the environment manifest and name it fastly.toml
+		// 3. Remove the newly created fastly.toml once the packaging is done
+		// 4. Rename the fastly.toml.backup back to fastly.toml
+		if c.Flags.Env != "" {
+			// 1. Rename any existing fastly.toml to fastly.toml.backup.<TIMESTAMP>
+			//
+			// For example, the user is trying to deploy a fastly.stage.toml rather
+			// than the standard fastly.toml manifest.
+			if _, err := os.Stat(manifest.Filename); err == nil {
+				backup := fmt.Sprintf("%s.backup.%d", manifest.Filename, time.Now().Unix())
+				if err := os.Rename(manifest.Filename, backup); err != nil {
+					return fmt.Errorf("failed to backup primary manifest file: %w", err)
+				}
+				defer func() {
+					// 4. Rename the fastly.toml.backup back to fastly.toml
+					if err = os.Rename(backup, manifest.Filename); err != nil {
+						text.Error(out, err.Error())
+					}
+				}()
+			} else {
+				// 3. Remove the newly created fastly.toml once the packaging is done
+				//
+				// If there wasn't an existing fastly.toml because the user only wants
+				// to work with environment manifests (e.g. fastly.stage.toml and
+				// fastly.production.toml) then we should remove the fastly.toml that we
+				// created just for the packaging process (see step 2. below).
+				defer func() {
+					if err = os.Remove(manifest.Filename); err != nil {
+						text.Error(out, err.Error())
+					}
+				}()
+			}
+			// 2. Make a temp copy of the environment manifest and name it fastly.toml
+			//
+			// If there was no existing fastly.toml then this step will create one, so
+			// we need to make sure we remove it after packaging has finished so as to
+			// not confuse the user with a fastly.toml that has suddenly appeared (see
+			// step 3. above).
+			if err := filesystem.CopyFile(manifestFilename, manifest.Filename); err != nil {
+				return fmt.Errorf("failed to copy environment manifest file: %w", err)
+			}
+		}
+
+		files := []string{
+			manifest.Filename,
+			binWasmPath,
+		}
+		files, err = c.includeSourceCode(files, language.SourceDirectory)
+		if err != nil {
+			return err
+		}
+		err = CreatePackageArchive(files, dest)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Files":       files,
+				"Destination": dest,
+			})
+			return fmt.Errorf("error creating package archive: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
 	out = originalOut
-	text.Success(out, "Built package (%s)", dest)
+	text.Success(out, "\nBuilt package (%s)", dest)
 	return nil
+}
+
+// AnnotateWasmBinaryShort annotates the Wasm binary with only the CLI version.
+func (c *BuildCommand) AnnotateWasmBinaryShort(wasmtools string, args []string) error {
+	return c.Globals.ExecuteWasmTools(wasmtools, args, c.Globals)
+}
+
+// AnnotateWasmBinaryLong annotates the Wasm binary will all available data.
+func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, language *Language) error {
+	var ms runtime.MemStats
+	runtime.ReadMemStats(&ms)
+
+	// Allow customer to specify their own env variables to be filtered.
+	ExtendStaticSecretEnvVars(c.MetadataFilterEnvVars)
+
+	dc := DataCollection{}
+
+	metadata := c.Globals.Config.WasmMetadata
+
+	// Only record basic data if user has disabled all other metadata collection.
+	if metadata.BuildInfo == "disable" && metadata.MachineInfo == "disable" && metadata.PackageInfo == "disable" && metadata.ScriptInfo == "disable" {
+		return c.AnnotateWasmBinaryShort(wasmtools, args)
+	}
+
+	if metadata.BuildInfo == "enable" {
+		dc.BuildInfo = DataCollectionBuildInfo{
+			MemoryHeapAlloc: bucketMB(bytesToMB(ms.HeapAlloc)) + "MB",
+		}
+	}
+	if metadata.MachineInfo == "enable" {
+		dc.MachineInfo = DataCollectionMachineInfo{
+			Arch:      runtime.GOARCH,
+			CPUs:      runtime.NumCPU(),
+			Compiler:  runtime.Compiler,
+			GoVersion: runtime.Version(),
+			OS:        runtime.GOOS,
+		}
+	}
+	if metadata.PackageInfo == "enable" {
+		dc.PackageInfo = DataCollectionPackageInfo{
+			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
+			Packages:   language.Dependencies(),
+		}
+	}
+	if metadata.ScriptInfo == "enable" {
+		dc.ScriptInfo = DataCollectionScriptInfo{
+			DefaultBuildUsed: language.DefaultBuildScript(),
+			BuildScript:      FilterSecretsFromString(c.Globals.Manifest.File.Scripts.Build),
+			EnvVars:          FilterSecretsFromSlice(c.Globals.Manifest.File.Scripts.EnvVars),
+			PostInitScript:   FilterSecretsFromString(c.Globals.Manifest.File.Scripts.PostInit),
+			PostBuildScript:  FilterSecretsFromString(c.Globals.Manifest.File.Scripts.PostBuild),
+		}
+	}
+
+	data, err := json.Marshal(dc)
+	if err != nil {
+		text.Info(c.Globals.Output, "failed to marshal DataCollection struct into JSON: %s", err)
+	}
+	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
+	return c.Globals.ExecuteWasmTools(wasmtools, args, c.Globals)
+}
+
+// ShowMetadata displays the metadata attached to the Wasm binary.
+func (c *BuildCommand) ShowMetadata(wasmtools string, out io.Writer) {
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as the variables come from trusted sources.
+	// #nosec
+	// nosemgrep
+	command := exec.Command(wasmtools, "metadata", "show", binWasmPath)
+	wasmtoolsOutput, err := command.Output()
+	if err != nil {
+		text.Error(out, "failed to execute wasm-tools metadata command: %s\n\n", err)
+		return
+	}
+	text.Info(out, "\nBelow is the metadata attached to the Wasm binary\n\n")
+	fmt.Fprintln(out, string(wasmtoolsOutput))
+	text.Break(out)
 }
 
 // includeSourceCode calculates what source code files to include in the final
@@ -268,39 +435,254 @@ func (c *BuildCommand) includeSourceCode(files []string, srcDir string) ([]strin
 	return files, nil
 }
 
-// packageName acquires the package name from either a flag or manifest.
+// PackageName acquires the package name from either a flag or manifest.
 // Additionally it will sanitize the name.
-func packageName(c *BuildCommand) (string, error) {
+func (c *BuildCommand) PackageName(manifestFilename string) (string, error) {
 	var name string
 
 	switch {
 	case c.Flags.PackageName != "":
 		name = c.Flags.PackageName
-	case c.Manifest.File.Name != "":
-		name = c.Manifest.File.Name // use the project name as a fallback
+	case c.Globals.Manifest.File.Name != "":
+		name = c.Globals.Manifest.File.Name // use the project name as a fallback
 	default:
 		return "", fsterr.RemediationError{
 			Inner:       fmt.Errorf("package name is missing"),
-			Remediation: "Add a name to the fastly.toml 'name' field. Reference: https://developer.fastly.com/reference/compute/fastly-toml/",
+			Remediation: fmt.Sprintf("Add a name to the %s 'name' field. Reference: https://www.fastly.com/documentation/reference/compute/fastly-toml", manifestFilename),
 		}
 	}
 
 	return sanitize.BaseName(name), nil
 }
 
-// toolchain determines the programming language.
+// ExecuteWasmTools calls the wasm-tools binary.
+func ExecuteWasmTools(wasmtools string, args []string, d *global.Data) error {
+	errMsg := "failed to annotate binary with metadata: %s\n\n"
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with function call as argument or command arguments
+	// Disabling as we trust the source of the variable.
+	// #nosec
+	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
+	command := exec.Command(wasmtools, args...)
+	wasmtoolsOutput, err := command.Output()
+	if err != nil && d.Verbose() {
+		text.Info(d.Output, errMsg, err)
+	}
+	if len(wasmtoolsOutput) == 0 {
+		return nil
+	}
+
+	// Make a backup of the original Wasm binary (before being annotated).
+	originalBin, err := os.ReadFile(binWasmPath)
+	if err != nil {
+		return err
+	}
+
+	// Overwrite the original Wasm binary with the annotated version.
+	//
+	// G302 (CWE-276): Expect file permissions to be 0600 or less
+	// gosec flagged this:
+	// Disabling as we want all users to be able to execute this binary.
+	// #nosec
+	err = os.WriteFile(binWasmPath, wasmtoolsOutput, 0o777)
+	if err != nil {
+		if d.Verbose() {
+			text.Info(d.Output, errMsg, err)
+		}
+
+		// Restore the original Wasm binary.
+		//
+		// G302 (CWE-276): Expect file permissions to be 0600 or less
+		// gosec flagged this:
+		// Disabling as we want all users to be able to execute this binary.
+		// #nosec
+		err = os.WriteFile(binWasmPath, originalBin, 0o777)
+		if err != nil {
+			return fmt.Errorf("failed to restore %s: %w", binWasmPath, err)
+		}
+	}
+
+	return nil
+}
+
+// GetWasmTools returns the path to the wasm-tools binary.
+// If there is no version installed, install the latest version.
+// If there is a version installed, update to the latest version if not already.
+//
+// But only update the version if the CLI installed it.
+// Otherwise updating a binary in the $PATH could cause problems if it's managed
+// by a third-party software management tool like Homebrew, MacPorts etc.
+func GetWasmTools(spinner text.Spinner, out io.Writer, wasmtoolsVersioner github.AssetVersioner, g *global.Data) (binPath string, err error) {
+	binPath, err = exec.LookPath("wasm-tools")
+	if err == nil {
+		if g.Verbose() {
+			text.Info(out, "\nUsing wasm-tools binary found in user $PATH\n\n")
+		}
+		return binPath, nil
+	}
+	if g.Verbose() {
+		text.Info(out, "\nFailed to lookup wasm-tools binary in user $PATH. We'll attempt to locate it inside a Fastly CLI managed directory.")
+	}
+
+	binPath = wasmtoolsVersioner.InstallPath()
+
+	// NOTE: When checking if wasm-tools is installed we don't use $PATH.
+	//
+	// $PATH is unreliable across OS platforms, but also we actually install
+	// wasm-tools in the same location as the CLI's app config, which means it
+	// wouldn't be found in the $PATH any way. We could pass the path for the app
+	// config into exec.LookPath() but it's simpler to attempt executing the binary.
+	//
+	// gosec flagged this:
+	// G204 (CWE-78): Subprocess launched with variable
+	// Disabling as the variables come from trusted sources.
+	// #nosec
+	// nosemgrep
+	c := exec.Command(binPath, "--version")
+
+	var installedVersion string
+
+	stdoutStderr, err := c.CombinedOutput()
+	if err != nil {
+		g.ErrLog.Add(err)
+	} else {
+		// Check the version output has the expected format: `wasm-tools 1.0.40`
+		installedVersion = strings.TrimSpace(string(stdoutStderr))
+		segs := strings.Split(installedVersion, " ")
+		if len(segs) < 2 {
+			return binPath, ErrWasmtoolsNotFound
+		}
+		installedVersion = segs[1]
+	}
+
+	if installedVersion == "" {
+		if g.Verbose() {
+			text.Info(out, "\nwasm-tools is not already installed, so we will install the latest version.\n\n")
+		}
+		err = installLatestWasmtools(binPath, spinner, wasmtoolsVersioner)
+		if err != nil {
+			g.ErrLog.Add(err)
+			return binPath, err
+		}
+
+		latestVersion, err := wasmtoolsVersioner.LatestVersion()
+		if err != nil {
+			return binPath, fmt.Errorf("failed to retrieve wasm-tools latest version: %w", err)
+		}
+
+		g.Config.WasmTools.LatestVersion = latestVersion
+		g.Config.WasmTools.LastChecked = time.Now().Format(time.RFC3339)
+
+		err = g.Config.Write(g.ConfigPath)
+		if err != nil {
+			return binPath, err
+		}
+	}
+
+	if installedVersion != "" {
+		err = updateWasmtools(binPath, spinner, out, g, wasmtoolsVersioner, installedVersion)
+		if err != nil {
+			g.ErrLog.Add(err)
+			return binPath, err
+		}
+	}
+
+	err = github.SetBinPerms(binPath)
+	if err != nil {
+		g.ErrLog.Add(err)
+		return binPath, err
+	}
+
+	return binPath, nil
+}
+
+func installLatestWasmtools(binPath string, spinner text.Spinner, wasmtoolsVersioner github.AssetVersioner) error {
+	return spinner.Process("Fetching latest wasm-tools release", func(_ *text.SpinnerWrapper) error {
+		tmpBin, err := wasmtoolsVersioner.DownloadLatest()
+		if err != nil {
+			return fmt.Errorf("failed to download latest wasm-tools release: %w", err)
+		}
+		defer os.RemoveAll(tmpBin)
+		if err := os.Rename(tmpBin, binPath); err != nil {
+			if err := filesystem.CopyFile(tmpBin, binPath); err != nil {
+				return fmt.Errorf("failed to move wasm-tools binary to accessible location: %w", err)
+			}
+		}
+		return nil
+	})
+}
+
+func updateWasmtools(
+	binPath string,
+	spinner text.Spinner,
+	out io.Writer,
+	g *global.Data,
+	wasmtoolsVersioner github.AssetVersioner,
+	installedVersion string,
+) error {
+	cfg := g.Config
+	cfgPath := g.ConfigPath
+
+	// NOTE: We shouldn't see LastChecked with no value if wasm-tools installed.
+	if cfg.WasmTools.LastChecked == "" {
+		cfg.WasmTools.LastChecked = time.Now().Format(time.RFC3339)
+		if err := cfg.Write(cfgPath); err != nil {
+			return err
+		}
+	}
+	if !check.Stale(cfg.WasmTools.LastChecked, cfg.WasmTools.TTL) {
+		if g.Verbose() {
+			text.Info(out, "\nwasm-tools is installed but the CLI config (`fastly config`) shows the TTL, checking for a newer version, hasn't expired.\n\n")
+		}
+		return nil
+	}
+
+	var latestVersion string
+	err := spinner.Process("Checking latest wasm-tools release", func(_ *text.SpinnerWrapper) error {
+		var err error
+		latestVersion, err = wasmtoolsVersioner.LatestVersion()
+		if err != nil {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("error fetching latest version: %w", err),
+				Remediation: fsterr.NetworkRemediation,
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	cfg.WasmTools.LatestVersion = latestVersion
+	cfg.WasmTools.LastChecked = time.Now().Format(time.RFC3339)
+
+	err = cfg.Write(cfgPath)
+	if err != nil {
+		return err
+	}
+	if g.Verbose() {
+		text.Info(out, "\nThe CLI config (`fastly config`) has been updated with the latest wasm-tools version: %s\n\n", latestVersion)
+	}
+	if installedVersion == latestVersion {
+		return nil
+	}
+
+	return installLatestWasmtools(binPath, spinner, wasmtoolsVersioner)
+}
+
+// identifyToolchain determines the programming language.
 //
 // It prioritises the --language flag over the manifest field.
 // Will error if neither are provided.
 // Lastly, it will normalise with a trim and lowercase.
-func toolchain(c *BuildCommand) (string, error) {
+func identifyToolchain(c *BuildCommand) (string, error) {
 	var toolchain string
 
 	switch {
 	case c.Flags.Lang != "":
 		toolchain = c.Flags.Lang
-	case c.Manifest.File.Language != "":
-		toolchain = c.Manifest.File.Language
+	case c.Globals.Manifest.File.Language != "":
+		toolchain = c.Globals.Manifest.File.Language
 	default:
 		return "", fmt.Errorf("language cannot be empty, please provide a language")
 	}
@@ -309,72 +691,39 @@ func toolchain(c *BuildCommand) (string, error) {
 }
 
 // language returns a pointer to a supported language.
-func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, spinner text.Spinner) (*Language, error) {
+//
+// TODO: Fix the mess that is New<language>()'s argument list.
+func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader, out io.Writer, spinner text.Spinner) (*Language, error) {
 	var language *Language
 	switch toolchain {
 	case "assemblyscript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "assemblyscript",
 			SourceDirectory: AsSourceDirectory,
-			Toolchain: NewAssemblyScript(
-				&c.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				out,
-				spinner,
-			),
+			Toolchain:       NewAssemblyScript(c, in, manifestFilename, out, spinner),
 		})
 	case "go":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "go",
 			SourceDirectory: GoSourceDirectory,
-			Toolchain: NewGo(
-				&c.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				out,
-				spinner,
-			),
+			Toolchain:       NewGo(c, in, manifestFilename, out, spinner),
 		})
 	case "javascript":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "javascript",
 			SourceDirectory: JsSourceDirectory,
-			Toolchain: NewJavaScript(
-				&c.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				out,
-				spinner,
-			),
+			Toolchain:       NewJavaScript(c, in, manifestFilename, out, spinner),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "rust",
 			SourceDirectory: RustSourceDirectory,
-			Toolchain: NewRust(
-				&c.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				out,
-				spinner,
-			),
+			Toolchain:       NewRust(c, in, manifestFilename, out, spinner),
 		})
 	case "other":
 		language = NewLanguage(&LanguageOptions{
-			Name: "other",
-			Toolchain: NewOther(
-				&c.Manifest.File,
-				c.Globals,
-				c.Flags,
-				in,
-				out,
-				spinner,
-			),
+			Name:      "other",
+			Toolchain: NewOther(c, in, manifestFilename, out, spinner),
 		})
 	default:
 		return nil, fmt.Errorf("unsupported language %s", toolchain)
@@ -387,7 +736,7 @@ func language(toolchain string, c *BuildCommand, in io.Reader, out io.Writer, sp
 // The directory is required so a main.wasm can be placed inside it.
 func binDir(c *BuildCommand) error {
 	if c.Globals.Verbose() {
-		text.Info(c.Globals.Output, "Creating ./bin directory (for Wasm binary)")
+		text.Info(c.Globals.Output, "\nCreating ./bin directory (for Wasm binary)\n\n")
 	}
 	dir, err := os.Getwd()
 	if err != nil {
@@ -523,4 +872,74 @@ func GetNonIgnoredFiles(base string, ignoredFiles map[string]bool) ([]string, er
 	})
 
 	return files, err
+}
+
+// bytesToMB converts the runtime.MemStats.HeapAlloc bytes into megabytes.
+func bytesToMB(bytes uint64) uint64 {
+	return uint64(math.Round(float64(bytes) / (1024 * 1024)))
+}
+
+// bucketMB determines a consistent bucket size for heap allocation.
+// NOTE: This is to avoid building a package with a fluctuating hashsum.
+// e.g. `fastly compute hash-files` should be consistent unless memory increase is significant.
+func bucketMB(mb uint64) string {
+	switch {
+	case mb < 2:
+		return "<2"
+	case mb >= 2 && mb < 5:
+		return "2-5"
+	case mb >= 5 && mb < 10:
+		return "5-10"
+	case mb >= 10 && mb < 20:
+		return "10-20"
+	case mb >= 20 && mb < 30:
+		return "20-30"
+	case mb >= 30 && mb < 40:
+		return "30-40"
+	case mb >= 40 && mb < 50:
+		return "40-50"
+	default:
+		return ">50"
+	}
+}
+
+// DataCollection represents data annotated onto the Wasm binary.
+type DataCollection struct {
+	BuildInfo   DataCollectionBuildInfo   `json:"build_info,omitempty"`
+	MachineInfo DataCollectionMachineInfo `json:"machine_info,omitempty"`
+	PackageInfo DataCollectionPackageInfo `json:"package_info,omitempty"`
+	ScriptInfo  DataCollectionScriptInfo  `json:"script_info,omitempty"`
+}
+
+// DataCollectionBuildInfo represents build data annotated onto the Wasm binary.
+type DataCollectionBuildInfo struct {
+	MemoryHeapAlloc string `json:"mem_heap_alloc,omitempty"`
+}
+
+// DataCollectionMachineInfo represents machine data annotated onto the Wasm binary.
+type DataCollectionMachineInfo struct {
+	Arch      string `json:"arch,omitempty"`
+	CPUs      int    `json:"cpus,omitempty"`
+	Compiler  string `json:"compiler,omitempty"`
+	GoVersion string `json:"go_version,omitempty"`
+	OS        string `json:"os,omitempty"`
+}
+
+// DataCollectionPackageInfo represents package data annotated onto the Wasm binary.
+type DataCollectionPackageInfo struct {
+	// ClonedFrom indicates if the Starter Kit used was cloned from a specific
+	// repository (e.g. using the `compute init` --from flag).
+	ClonedFrom string `json:"cloned_from,omitempty"`
+	// Packages is a map where the key is the name of the package and the value is
+	// the package version.
+	Packages map[string]string `json:"packages,omitempty"`
+}
+
+// DataCollectionScriptInfo represents script data annotated onto the Wasm binary.
+type DataCollectionScriptInfo struct {
+	DefaultBuildUsed bool     `json:"default_build_used,omitempty"`
+	BuildScript      string   `json:"build_script,omitempty"`
+	EnvVars          []string `json:"env_vars,omitempty"`
+	PostInitScript   string   `json:"post_init_script,omitempty"`
+	PostBuildScript  string   `json:"post_build_script,omitempty"`
 }

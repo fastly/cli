@@ -4,45 +4,44 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DeleteCommand calls the Fastly API to delete services.
 type DeleteCommand struct {
-	cmd.Base
-	manifest    manifest.Data
+	argparser.Base
 	Input       fastly.DeleteServiceInput
 	force       bool
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("delete", "Delete a Fastly service").Alias("remove")
 
 	// Optional.
 	c.CmdClause.Flag("force", "Force deletion of an active service").Short('f').BoolVar(&c.force)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -50,19 +49,19 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	c.Input.ID = serviceID
+	c.Input.ServiceID = serviceID
 
 	if c.force {
 		s, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
-			ID: serviceID,
+			ServiceID: serviceID,
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -71,15 +70,15 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		if s.ActiveVersion.Number != 0 {
+		if s.ActiveVersion != nil && fastly.ToValue(s.ActiveVersion.Number) != 0 {
 			_, err := c.Globals.APIClient.DeactivateVersion(&fastly.DeactivateVersionInput{
 				ServiceID:      serviceID,
-				ServiceVersion: s.ActiveVersion.Number,
+				ServiceVersion: fastly.ToValue(s.ActiveVersion.Number),
 			})
 			if err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]any{
 					"Service ID":      serviceID,
-					"Service Version": s.ActiveVersion.Number,
+					"Service Version": fastly.ToValue(s.ActiveVersion.Number),
 				})
 				return err
 			}
@@ -99,17 +98,17 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Ensure that VCL service users are unaffected by checking if the Service ID
 	// was acquired via the fastly.toml manifest.
 	if source == manifest.SourceFile {
-		if err := c.manifest.File.Read(manifest.Filename); err != nil {
+		if err := c.Globals.Manifest.File.Read(manifest.Filename); err != nil {
 			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error reading fastly.toml: %w", err)
 		}
-		c.manifest.File.ServiceID = ""
-		if err := c.manifest.File.Write(manifest.Filename); err != nil {
+		c.Globals.Manifest.File.ServiceID = ""
+		if err := c.Globals.Manifest.File.Write(manifest.Filename); err != nil {
 			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error updating fastly.toml: %w", err)
 		}
 	}
 
-	text.Success(out, "Deleted service ID %s", c.Input.ID)
+	text.Success(out, "Deleted service ID %s", c.Input.ServiceID)
 	return nil
 }

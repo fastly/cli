@@ -3,17 +3,20 @@ package serviceauth_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestServiceAuthCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -39,9 +42,12 @@ func TestServiceAuthCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -49,7 +55,7 @@ func TestServiceAuthCreate(t *testing.T) {
 }
 
 func TestServiceAuthList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -98,16 +104,19 @@ func TestServiceAuthList(t *testing.T) {
 		{
 			args:       args("service-auth list --verbose"),
 			api:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
-			wantOutput: "Fastly API token not provided\nFastly API endpoint: https://api.fastly.com\n\nAuth ID: 123\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
+			wantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nAuth ID: 123\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
 	}
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -116,7 +125,7 @@ func TestServiceAuthList(t *testing.T) {
 }
 
 func TestServiceAuthDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -163,9 +172,12 @@ func TestServiceAuthDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
@@ -174,7 +186,7 @@ func TestServiceAuthDescribe(t *testing.T) {
 }
 
 func TestServiceAuthUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -204,9 +216,12 @@ func TestServiceAuthUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -214,7 +229,7 @@ func TestServiceAuthUpdate(t *testing.T) {
 }
 
 func TestServiceAuthDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -240,9 +255,12 @@ func TestServiceAuthDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -255,7 +273,7 @@ func createServiceAuthError(*fastly.CreateServiceAuthorizationInput) (*fastly.Se
 	return nil, errTest
 }
 
-func createServiceAuthOK(i *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func createServiceAuthOK(_ *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 	}, nil
@@ -265,7 +283,7 @@ func listServiceAuthError(*fastly.ListServiceAuthorizationsInput) (*fastly.Servi
 	return nil, errTest
 }
 
-func listServiceAuthOK(i *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
+func listServiceAuthOK(_ *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
 	return &fastly.ServiceAuthorizations{
 		Items: []*fastly.ServiceAuthorization{
 			{
@@ -286,7 +304,7 @@ func describeServiceAuthError(*fastly.GetServiceAuthorizationInput) (*fastly.Ser
 	return nil, errTest
 }
 
-func describeServiceAuthOK(i *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func describeServiceAuthOK(_ *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 		User: &fastly.SAUser{
@@ -303,7 +321,7 @@ func updateServiceAuthError(*fastly.UpdateServiceAuthorizationInput) (*fastly.Se
 	return nil, errTest
 }
 
-func updateServiceAuthOK(i *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func updateServiceAuthOK(_ *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 	}, nil
@@ -313,6 +331,6 @@ func deleteServiceAuthError(*fastly.DeleteServiceAuthorizationInput) error {
 	return errTest
 }
 
-func deleteServiceAuthOK(i *fastly.DeleteServiceAuthorizationInput) error {
+func deleteServiceAuthOK(_ *fastly.DeleteServiceAuthorizationInput) error {
 	return nil
 }

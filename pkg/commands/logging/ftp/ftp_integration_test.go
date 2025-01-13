@@ -3,17 +3,20 @@ package ftp_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestFTPCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -51,9 +54,12 @@ func TestFTPCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -61,7 +67,7 @@ func TestFTPCreate(t *testing.T) {
 }
 
 func TestFTPList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -121,9 +127,12 @@ func TestFTPList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -131,7 +140,7 @@ func TestFTPList(t *testing.T) {
 }
 
 func TestFTPDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -163,9 +172,12 @@ func TestFTPDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -173,7 +185,7 @@ func TestFTPDescribe(t *testing.T) {
 }
 
 func TestFTPUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -207,9 +219,12 @@ func TestFTPUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -217,7 +232,7 @@ func TestFTPUpdate(t *testing.T) {
 }
 
 func TestFTPDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -251,9 +266,12 @@ func TestFTPDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -264,61 +282,61 @@ var errTest = errors.New("fixture error")
 
 func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:        i.ServiceID,
-		ServiceVersion:   i.ServiceVersion,
-		Name:             *i.Name,
-		CompressionCodec: *i.CompressionCodec,
+		ServiceID:        fastly.ToPointer(i.ServiceID),
+		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
+		Name:             i.Name,
+		CompressionCodec: i.CompressionCodec,
 	}, nil
 }
 
-func createFTPError(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
+func createFTPError(_ *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
 func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	return []*fastly.FTP{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Address:           "example.com",
-			Port:              123,
-			Username:          "anonymous",
-			Password:          "foo@example.com",
-			PublicKey:         pgpPublicKey(),
-			Path:              "logs/",
-			Period:            3600,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Address:           fastly.ToPointer("example.com"),
+			Port:              fastly.ToPointer(123),
+			Username:          fastly.ToPointer("anonymous"),
+			Password:          fastly.ToPointer("foo@example.com"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(3600),
+			GzipLevel:         fastly.ToPointer(9),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Address:           "127.0.0.1",
-			Port:              456,
-			Username:          "foo",
-			Password:          "password",
-			PublicKey:         pgpPublicKey(),
-			Path:              "logs/",
-			Period:            86400,
-			GzipLevel:         9,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Address:           fastly.ToPointer("127.0.0.1"),
+			Port:              fastly.ToPointer(456),
+			Username:          fastly.ToPointer("foo"),
+			Password:          fastly.ToPointer("password"),
+			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(86400),
+			GzipLevel:         fastly.ToPointer(9),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
 
-func listFTPsError(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
+func listFTPsError(_ *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	return nil, errTest
 }
 
@@ -329,8 +347,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listFTPsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -375,27 +393,27 @@ Version: 1
 
 func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Address:           "example.com",
-		Port:              123,
-		Username:          "anonymous",
-		Password:          "foo@example.com",
-		PublicKey:         pgpPublicKey(),
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Address:           fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(123),
+		Username:          fastly.ToPointer("anonymous"),
+		Password:          fastly.ToPointer("foo@example.com"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(9),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func getFTPError(i *fastly.GetFTPInput) (*fastly.FTP, error) {
+func getFTPError(_ *fastly.GetFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
@@ -421,35 +439,35 @@ Version: 1
 
 func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Address:           "example.com",
-		Port:              123,
-		Username:          "anonymous",
-		Password:          "foo@example.com",
-		PublicKey:         pgpPublicKey(),
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         9,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Address:           fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(123),
+		Username:          fastly.ToPointer("anonymous"),
+		Password:          fastly.ToPointer("foo@example.com"),
+		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(9),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func updateFTPError(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
+func updateFTPError(_ *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
-func deleteFTPOK(i *fastly.DeleteFTPInput) error {
+func deleteFTPOK(_ *fastly.DeleteFTPInput) error {
 	return nil
 }
 
-func deleteFTPError(i *fastly.DeleteFTPInput) error {
+func deleteFTPError(_ *fastly.DeleteFTPInput) error {
 	return errTest
 }
 

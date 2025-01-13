@@ -3,22 +3,25 @@ package kinesis
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "kinesis"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("kinesis", "Manipulate a Kinesis logging endpoint for a specific Fastly service version")
+	c.CmdClause = parent.Command(CommandName, "Manipulate a Kinesis logging endpoint for a specific Fastly service version")
 	return &c
 }
 

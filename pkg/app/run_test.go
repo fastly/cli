@@ -10,15 +10,15 @@ import (
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestShellCompletion(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
 			Name: "bash shell complete",
-			Args: args("--completion-script-bash"),
+			Args: "--completion-script-bash",
 			WantOutput: `
 _fastly_bash_autocomplete() {
     local cur prev opts base
@@ -34,7 +34,7 @@ complete -F _fastly_bash_autocomplete fastly
 		},
 		{
 			Name: "zsh shell complete",
-			Args: args("--completion-script-zsh"),
+			Args: "--completion-script-zsh",
 			WantOutput: `
 #compdef fastly
 autoload -U compinit && compinit
@@ -53,12 +53,15 @@ _fastly_bash_autocomplete() {
 complete -F _fastly_bash_autocomplete fastly
 `,
 		},
+		// FIXME: Put back `sso` GA.
 		{
 			Name: "shell evaluate completion options",
-			Args: args("--completion-bash"),
+			Args: "--completion-bash",
 			WantOutput: `help
+sso
 acl
 acl-entry
+alerts
 auth-token
 backend
 compute
@@ -69,12 +72,14 @@ dictionary
 dictionary-entry
 domain
 healthcheck
+install
 ip-list
 kv-store
 kv-store-entry
 log-tail
 logging
 pops
+products
 profile
 purge
 rate-limit
@@ -116,13 +121,14 @@ whoami
 
 			go func() {
 				var buf bytes.Buffer
-				io.Copy(&buf, r)
+				_, _ = io.Copy(&buf, r)
 				outC <- buf.String()
 			}()
 
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(testutil.SplitArgs(testcase.Args), &stdout), nil
+			}
+			err := app.Run(testutil.SplitArgs(testcase.Args), nil)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}
@@ -142,8 +148,8 @@ func stripTrailingSpace(str string) string {
 
 	scan := bufio.NewScanner(strings.NewReader(str))
 	for scan.Scan() {
-		buf.WriteString(strings.TrimRight(scan.Text(), " \t\r\n"))
-		buf.WriteString("\n")
+		_, _ = buf.WriteString(strings.TrimRight(scan.Text(), " \t\r\n"))
+		_, _ = buf.WriteString("\n")
 	}
 	return buf.String()
 }

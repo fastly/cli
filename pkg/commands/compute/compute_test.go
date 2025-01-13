@@ -10,26 +10,23 @@ import (
 	"github.com/mholt/archiver/v3"
 
 	"github.com/fastly/cli/pkg/commands/compute"
-	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-// TestPublishFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergencePublish validates that the manually curated list of flags
 // within the `compute publish` command doesn't fall out of sync with the
 // `compute build` and `compute deploy` commands from which publish is composed.
-func TestPublishFlagDivergence(t *testing.T) {
-	var (
-		g    global.Data
-		data manifest.Data
-	)
+func TestFlagDivergencePublish(t *testing.T) {
+	var g global.Data
+	g.Manifest = &manifest.Data{}
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &g)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g, data)
-	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g, data)
-	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd, data)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &g)
+	dcmd := compute.NewDeployCommand(rcmd.CmdClause, &g)
+	pcmd := compute.NewPublishCommand(rcmd.CmdClause, &g, bcmd, dcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
 	deployFlags := getFlags(dcmd.CmdClause)
@@ -40,10 +37,18 @@ func TestPublishFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
+
 	iter = deployFlags.MapRange()
 	for iter.Next() {
 		expect[iter.Key().String()] = 1
@@ -59,24 +64,16 @@ func TestPublishFlagDivergence(t *testing.T) {
 	}
 }
 
-// TestServeFlagDivergence validates that the manually curated list of flags
+// TestFlagDivergenceServe validates that the manually curated list of flags
 // within the `compute serve` command doesn't fall out of sync with the
 // `compute build` command as `compute serve` delegates to build.
-func TestServeFlagDivergence(t *testing.T) {
-	var (
-		cfg  global.Data
-		data manifest.Data
-	)
-	versioner := github.New(github.Opts{
-		Org:    "fastly",
-		Repo:   "viceroy",
-		Binary: "viceroy",
-	})
+func TestFlagDivergenceServe(t *testing.T) {
+	var cfg global.Data
 	acmd := kingpin.New("foo", "bar")
 
 	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg, data)
-	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd, versioner, data)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	scmd := compute.NewServeCommand(rcmd.CmdClause, &cfg, bcmd)
 
 	buildFlags := getFlags(bcmd.CmdClause)
 	serveFlags := getFlags(scmd.CmdClause)
@@ -86,9 +83,16 @@ func TestServeFlagDivergence(t *testing.T) {
 		have   = make(map[string]int)
 	)
 
+	// Some flags on `compute build` are unique to it.
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
+
 	iter := buildFlags.MapRange()
 	for iter.Next() {
-		expect[iter.Key().String()] = 1
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
 	}
 
 	// Some flags on `compute serve` are unique to it.
@@ -96,9 +100,11 @@ func TestServeFlagDivergence(t *testing.T) {
 	ignoreServeFlags := []string{
 		"addr",
 		"debug",
-		"env",
 		"file",
+		"profile-guest",
+		"profile-guest-dir",
 		"skip-build",
+		"viceroy-args",
 		"viceroy-check",
 		"viceroy-path",
 		"watch",
@@ -115,6 +121,108 @@ func TestServeFlagDivergence(t *testing.T) {
 
 	if !reflect.DeepEqual(expect, have) {
 		t.Fatalf("the flags between build and serve don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
+	}
+}
+
+// TestFlagDivergenceHashSum validates that the manually curated list of flags
+// within the `compute hashsum` command doesn't fall out of sync with the
+// `compute build` command as `compute hashsum` delegates to build.
+func TestFlagDivergenceHashSum(t *testing.T) {
+	var cfg global.Data
+	acmd := kingpin.New("foo", "bar")
+
+	rcmd := compute.NewRootCommand(acmd, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	hcmd := compute.NewHashsumCommand(rcmd.CmdClause, &cfg, bcmd)
+
+	buildFlags := getFlags(bcmd.CmdClause)
+	hashsumFlags := getFlags(hcmd.CmdClause)
+
+	var (
+		expect = make(map[string]int)
+		have   = make(map[string]int)
+	)
+
+	// Some flags on `compute build` are unique to it.
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
+
+	iter := buildFlags.MapRange()
+	for iter.Next() {
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
+	}
+
+	// Some flags on `compute hashsum` are unique to it.
+	// We only want to be sure hashsum contains all build flags.
+	ignoreHashsumFlags := []string{
+		"package",
+		"skip-build",
+	}
+
+	iter = hashsumFlags.MapRange()
+	for iter.Next() {
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreHashsumFlags, flag) {
+			have[flag] = 1
+		}
+	}
+
+	if !reflect.DeepEqual(expect, have) {
+		t.Fatalf("the flags between build and hashsum don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
+	}
+}
+
+// TestFlagDivergenceHashFiles validates that the manually curated list of flags
+// within the `compute hashsum` command doesn't fall out of sync with the
+// `compute build` command as `compute hashsum` delegates to build.
+func TestFlagDivergenceHashFiles(t *testing.T) {
+	var cfg global.Data
+	acmd := kingpin.New("foo", "bar")
+
+	rcmd := compute.NewRootCommand(acmd, &cfg)
+	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
+	hcmd := compute.NewHashFilesCommand(rcmd.CmdClause, &cfg, bcmd)
+
+	buildFlags := getFlags(bcmd.CmdClause)
+	hashfilesFlags := getFlags(hcmd.CmdClause)
+
+	var (
+		expect = make(map[string]int)
+		have   = make(map[string]int)
+	)
+
+	// Some flags on `compute build` are unique to it.
+	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
+	ignoreBuildFlags := []string{}
+
+	iter := buildFlags.MapRange()
+	for iter.Next() {
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreBuildFlags, flag) {
+			expect[flag] = 1
+		}
+	}
+
+	// Some flags on `compute hashsum` are unique to it.
+	// We only want to be sure hashsum contains all build flags.
+	ignoreHashfilesFlags := []string{
+		"package",
+		"skip-build",
+	}
+
+	iter = hashfilesFlags.MapRange()
+	for iter.Next() {
+		flag := iter.Key().String()
+		if !ignoreFlag(ignoreHashfilesFlags, flag) {
+			have[flag] = 1
+		}
+	}
+
+	if !reflect.DeepEqual(expect, have) {
+		t.Fatalf("the flags between build and hash-files don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
 	}
 }
 
@@ -157,7 +265,9 @@ func TestCreatePackageArchive(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	destination := "cli.tar.gz"
 
@@ -233,7 +343,9 @@ func TestGetIgnoredFiles(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	for _, testcase := range []struct {
 		name         string
@@ -267,7 +379,7 @@ func TestGetIgnoredFiles(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
-			if err := os.WriteFile(filepath.Join(rootdir, compute.IgnoreFilePath), []byte(testcase.fastlyignore), 0o777); err != nil {
+			if err := os.WriteFile(filepath.Join(rootdir, compute.IgnoreFilePath), []byte(testcase.fastlyignore), 0o600); err != nil {
 				t.Fatal(err)
 			}
 			output, err := compute.GetIgnoredFiles(compute.IgnoreFilePath)
@@ -302,7 +414,9 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 	if err := os.Chdir(rootdir); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(pwd)
+	defer func() {
+		_ = os.Chdir(pwd)
+	}()
 
 	for _, testcase := range []struct {
 		name         string
@@ -317,14 +431,14 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 			wantFiles: []string{
 				"Cargo.lock",
 				"Cargo.toml",
-				filepath.Join("src/main.rs"),
+				filepath.Join("src", "main.rs"),
 			},
 		},
 		{
 			name: "one ignored file",
 			path: ".",
 			ignoredFiles: map[string]bool{
-				filepath.Join("src/main.rs"): true,
+				filepath.Join("src", "main.rs"): true,
 			},
 			wantFiles: []string{
 				"Cargo.lock",
@@ -339,7 +453,7 @@ func TestGetNonIgnoredFiles(t *testing.T) {
 				"Cargo.lock": true,
 			},
 			wantFiles: []string{
-				filepath.Join("src/main.rs"),
+				filepath.Join("src", "main.rs"),
 			},
 		},
 	} {

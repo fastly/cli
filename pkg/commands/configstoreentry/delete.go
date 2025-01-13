@@ -6,12 +6,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -24,25 +23,24 @@ const deleteKeysConcurrencyLimit int = 100
 const batchLimit int = 100
 
 // NewDeleteCommand returns a usable command registered under the parent.
-func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeleteCommand {
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	c := DeleteCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("delete", "Delete a config store item")
 
 	// Required.
-	c.RegisterFlag(cmd.StoreIDFlag(&c.input.StoreID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
 
 	// Optional.
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.deleteAll)
 	c.CmdClause.Flag("batch-size", "Key batch processing size (ignored when set without the --all flag)").Short('b').Action(c.batchSize.Set).IntVar(&c.batchSize.Value)
 	c.CmdClause.Flag("concurrency", "Control thread pool size (ignored when set without the --all flag)").Short('c').Action(c.concurrency.Set).IntVar(&c.concurrency.Value)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "key",
 		Short:       'k',
 		Description: "Item name",
@@ -54,14 +52,13 @@ func NewDeleteCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // DeleteCommand calls the Fastly API to delete an appropriate resource.
 type DeleteCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	batchSize   cmd.OptionalInt
-	concurrency cmd.OptionalInt
+	batchSize   argparser.OptionalInt
+	concurrency argparser.OptionalInt
 	deleteAll   bool
 	input       fastly.DeleteConfigStoreItemInput
-	manifest    manifest.Data
 }
 
 // Exec invokes the application logic for the command.
@@ -82,9 +79,8 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 	if c.deleteAll {
 		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-			text.Warning(out, "This will delete ALL entries from your store!")
-			text.Break(out)
-			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [yes/no]: ", in)
+			text.Warning(out, "This will delete ALL entries from your store!\n\n")
+			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
 			if err != nil {
 				return err
 			}
@@ -117,7 +113,6 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Deleted key '%s' from Config Store '%s'", c.input.Key, c.input.StoreID)
-
 	return nil
 }
 
@@ -184,6 +179,6 @@ func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 		return fmt.Errorf("failed to delete keys: %s", strings.Join(failedKeys, ", "))
 	}
 
-	text.Success(out, "Deleted all keys from Config Store '%s'", c.input.StoreID)
+	text.Success(out, "\nDeleted all keys from Config Store '%s'", c.input.StoreID)
 	return nil
 }

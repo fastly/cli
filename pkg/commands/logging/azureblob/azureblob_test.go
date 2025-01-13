@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/azureblob"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
@@ -12,7 +14,6 @@ import (
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestCreateBlobStorageInput(t *testing.T) {
@@ -28,10 +29,10 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			want: &fastly.CreateBlobStorageInput{
 				ServiceID:      "123",
 				ServiceVersion: 4,
-				Name:           fastly.String("logs"),
-				AccountName:    fastly.String("account"),
-				Container:      fastly.String("container"),
-				SASToken:       fastly.String("token"),
+				Name:           fastly.ToPointer("logs"),
+				AccountName:    fastly.ToPointer("account"),
+				Container:      fastly.ToPointer("container"),
+				SASToken:       fastly.ToPointer("token"),
 			},
 		},
 		{
@@ -40,20 +41,20 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			want: &fastly.CreateBlobStorageInput{
 				ServiceID:         "123",
 				ServiceVersion:    4,
-				Name:              fastly.String("logs"),
-				Container:         fastly.String("container"),
-				AccountName:       fastly.String("account"),
-				SASToken:          fastly.String("token"),
-				Path:              fastly.String("/log"),
-				Period:            fastly.Int(3600),
-				Format:            fastly.String(`%h %l %u %t "%r" %>s %b`),
-				MessageType:       fastly.String("classic"),
-				FormatVersion:     fastly.Int(2),
-				ResponseCondition: fastly.String("Prevent default logging"),
-				TimestampFormat:   fastly.String("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.String("none"),
-				PublicKey:         fastly.String(pgpPublicKey()),
-				CompressionCodec:  fastly.String("zstd"),
+				Name:              fastly.ToPointer("logs"),
+				Container:         fastly.ToPointer("container"),
+				AccountName:       fastly.ToPointer("account"),
+				SASToken:          fastly.ToPointer("token"),
+				Path:              fastly.ToPointer("/log"),
+				Period:            fastly.ToPointer(3600),
+				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+				MessageType:       fastly.ToPointer("classic"),
+				FormatVersion:     fastly.ToPointer(2),
+				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+				Placement:         fastly.ToPointer("none"),
+				PublicKey:         fastly.ToPointer(pgpPublicKey()),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -68,7 +69,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.cmd.Globals.APIClient,
 				Manifest:           testcase.cmd.Manifest,
@@ -87,7 +88,7 @@ func TestCreateBlobStorageInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -115,21 +116,21 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 				ServiceID:         "123",
 				ServiceVersion:    4,
 				Name:              "logs",
-				NewName:           fastly.String("new1"),
-				Container:         fastly.String("new2"),
-				AccountName:       fastly.String("new3"),
-				SASToken:          fastly.String("new4"),
-				Path:              fastly.String("new5"),
-				Period:            fastly.Int(3601),
-				GzipLevel:         fastly.Int(0),
-				Format:            fastly.String("new6"),
-				FormatVersion:     fastly.Int(3),
-				ResponseCondition: fastly.String("new7"),
-				MessageType:       fastly.String("new8"),
-				TimestampFormat:   fastly.String("new9"),
-				Placement:         fastly.String("new10"),
-				PublicKey:         fastly.String("new11"),
-				CompressionCodec:  fastly.String("new12"),
+				NewName:           fastly.ToPointer("new1"),
+				Container:         fastly.ToPointer("new2"),
+				AccountName:       fastly.ToPointer("new3"),
+				SASToken:          fastly.ToPointer("new4"),
+				Path:              fastly.ToPointer("new5"),
+				Period:            fastly.ToPointer(3601),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new6"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new7"),
+				MessageType:       fastly.ToPointer("new8"),
+				TimestampFormat:   fastly.ToPointer("new9"),
+				Placement:         fastly.ToPointer("new10"),
+				PublicKey:         fastly.ToPointer("new11"),
+				CompressionCodec:  fastly.ToPointer("new12"),
 			},
 		},
 		{
@@ -162,7 +163,7 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
 
-			serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+			serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 				AutoCloneFlag:      testcase.cmd.AutoClone,
 				APIClient:          testcase.api,
 				Manifest:           testcase.cmd.Manifest,
@@ -181,7 +182,7 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 			case err == nil && testcase.wantError != "":
 				t.Fatalf("expected error, have nil (service details: %s, %d)", serviceID, serviceVersion.Number)
 			case err == nil && testcase.wantError == "":
-				have, err := testcase.cmd.ConstructInput(serviceID, serviceVersion.Number)
+				have, err := testcase.cmd.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 				testutil.AssertErrorContains(t, err, testcase.wantError)
 				testutil.AssertEqual(t, testcase.want, have)
 			}
@@ -202,10 +203,10 @@ func createCommandRequired() *azureblob.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &azureblob.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -213,21 +214,21 @@ func createCommandRequired() *azureblob.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Container:    cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "container"},
-		AccountName:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "account"},
-		SASToken:     cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "token"},
+		EndpointName: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Container:    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "container"},
+		AccountName:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "account"},
+		SASToken:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "token"},
 	}
 }
 
@@ -242,10 +243,10 @@ func createCommandAll() *azureblob.CreateCommand {
 	g.APIClient, _ = mock.APIClient(mock.API{
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
-	})("token", "endpoint")
+	})("token", "endpoint", false)
 
 	return &azureblob.CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -253,31 +254,31 @@ func createCommandAll() *azureblob.CreateCommand {
 				ServiceID: "123",
 			},
 		},
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		EndpointName:      cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "logs"},
-		Container:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "container"},
-		AccountName:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "account"},
-		SASToken:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "token"},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "/log"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3600},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 2},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "Prevent default logging"},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "none"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "classic"},
-		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: pgpPublicKey()},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "zstd"},
+		EndpointName:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "logs"},
+		Container:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "container"},
+		AccountName:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "account"},
+		SASToken:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "token"},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "/log"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3600},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: pgpPublicKey()},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -297,7 +298,7 @@ func updateCommandNoUpdates() *azureblob.UpdateCommand {
 	}
 
 	return &azureblob.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -306,12 +307,12 @@ func updateCommandNoUpdates() *azureblob.UpdateCommand {
 			},
 		},
 		EndpointName: "logs",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
@@ -330,7 +331,7 @@ func updateCommandAll() *azureblob.UpdateCommand {
 	}
 
 	return &azureblob.UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: &g,
 		},
 		Manifest: manifest.Data{
@@ -339,32 +340,32 @@ func updateCommandAll() *azureblob.UpdateCommand {
 			},
 		},
 		EndpointName: "logs",
-		ServiceVersion: cmd.OptionalServiceVersion{
-			OptionalString: cmd.OptionalString{Value: "1"},
+		ServiceVersion: argparser.OptionalServiceVersion{
+			OptionalString: argparser.OptionalString{Value: "1"},
 		},
-		AutoClone: cmd.OptionalAutoClone{
-			OptionalBool: cmd.OptionalBool{
-				Optional: cmd.Optional{
+		AutoClone: argparser.OptionalAutoClone{
+			OptionalBool: argparser.OptionalBool{
+				Optional: argparser.Optional{
 					WasSet: true,
 				},
 				Value: true,
 			},
 		},
-		NewName:           cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new1"},
-		Container:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new2"},
-		AccountName:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new3"},
-		SASToken:          cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new4"},
-		Path:              cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new5"},
-		Period:            cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3601},
-		GzipLevel:         cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 0},
-		Format:            cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new6"},
-		FormatVersion:     cmd.OptionalInt{Optional: cmd.Optional{WasSet: true}, Value: 3},
-		ResponseCondition: cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new7"},
-		MessageType:       cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new8"},
-		TimestampFormat:   cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new9"},
-		Placement:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new10"},
-		PublicKey:         cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new11"},
-		CompressionCodec:  cmd.OptionalString{Optional: cmd.Optional{WasSet: true}, Value: "new12"},
+		NewName:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new1"},
+		Container:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new2"},
+		AccountName:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
+		SASToken:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		Path:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3601},
+		GzipLevel:         argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 0},
+		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 	}
 }
 

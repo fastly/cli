@@ -41,10 +41,7 @@ func (re RemediationError) Print(w io.Writer) {
 		fmt.Fprintf(w, "%s\n\n", strings.TrimRight(re.Prefix, "\r\n"))
 	}
 	if re.Inner != nil {
-		text.Error(w, "%s.", re.Inner.Error()) // single "\n" ensured by text.Error
-	}
-	if re.Inner != nil && re.Remediation != "" {
-		fmt.Fprintln(w) // additional "\n" to allow breathing room
+		text.Error(w, "%s.\n\n", re.Inner.Error()) // single "\n" ensured by text.Error
 	}
 	if re.Remediation != "" {
 		fmt.Fprintf(w, "%s\n", strings.TrimRight(re.Remediation, "\r\n"))
@@ -60,7 +57,7 @@ var AuthRemediation = fmt.Sprintf(strings.Join([]string{
 	"Check that you're supplying a valid token, either via --token,",
 	"through the environment variable %s, or through the config file via `fastly profile`.",
 	"Verify that the token is still valid via `fastly whoami`.",
-}, " "), env.Token)
+}, " "), env.APIToken)
 
 // NetworkRemediation suggests, somewhat unhelpfully, to try again later.
 var NetworkRemediation = strings.Join([]string{
@@ -119,8 +116,8 @@ var IDRemediation = strings.Join([]string{
 // PackageSizeRemediation suggests checking the resources documentation for the
 // current package size limit.
 var PackageSizeRemediation = strings.Join([]string{
-	"Please check our Compute@Edge resource limits:",
-	"https://developer.fastly.com/learning/compute/#limitations-and-constraints",
+	"Please check our Compute resource limits:",
+	"https://www.fastly.com/documentation/guides/compute#limitations-and-constraints",
 }, " ")
 
 // UnrecognisedManifestVersionRemediation suggests steps to resolve an issue
@@ -128,7 +125,7 @@ var PackageSizeRemediation = strings.Join([]string{
 // current CLI version supports.
 var UnrecognisedManifestVersionRemediation = strings.Join([]string{
 	"Please try updating the installed CLI version using: `fastly update`.",
-	"See also https://developer.fastly.com/reference/fastly-toml/ to check your fastly.toml manifest is up-to-date with the latest data model.",
+	"See also https://www.fastly.com/documentation/reference/compute/fastly-toml to check your fastly.toml manifest is up-to-date with the latest data model.",
 	BugRemediation,
 }, " ")
 
@@ -136,7 +133,7 @@ var UnrecognisedManifestVersionRemediation = strings.Join([]string{
 // manifest issue.
 var ComputeInitRemediation = strings.Join([]string{
 	"Run `fastly compute init` to ensure a correctly configured manifest.",
-	"See more at https://developer.fastly.com/reference/fastly-toml/",
+	"See more at https://www.fastly.com/documentation/reference/compute/fastly-toml",
 }, " ")
 
 // ComputeServeRemediation suggests re-running `compute serve` with one of the
@@ -150,7 +147,7 @@ var ComputeServeRemediation = strings.Join([]string{
 // the fastly.toml manifest.
 var ComputeBuildRemediation = strings.Join([]string{
 	"Add a [scripts] section with `build = \"%s\"`.",
-	"See more at https://developer.fastly.com/reference/fastly-toml/",
+	"See more at https://www.fastly.com/documentation/reference/compute/fastly-toml",
 }, " ")
 
 // ComputeTrialRemediation suggests contacting customer manager to enable the
@@ -167,4 +164,9 @@ var InvalidStaticConfigRemediation = strings.Join([]string{
 	"Run `fastly update` to upgrade your current CLI version.",
 	"If this does not resolve the issue, then please file an issue:",
 	"https://github.com/fastly/cli/issues/new?labels=bug&template=bug_report.md",
+}, " ")
+
+// TokenExpirationRemediation indicates that a stored OIDC token has expired.
+var TokenExpirationRemediation = strings.Join([]string{
+	"Run 'fastly --profile <NAME> sso' to refresh the token.",
 }, " ")

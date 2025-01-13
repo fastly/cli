@@ -3,17 +3,20 @@ package kafka_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestKafkaCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -43,9 +46,12 @@ func TestKafkaCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -53,7 +59,7 @@ func TestKafkaCreate(t *testing.T) {
 }
 
 func TestKafkaList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -113,9 +119,12 @@ func TestKafkaList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -123,7 +132,7 @@ func TestKafkaList(t *testing.T) {
 }
 
 func TestKafkaDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +164,12 @@ func TestKafkaDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +177,7 @@ func TestKafkaDescribe(t *testing.T) {
 }
 
 func TestKafkaUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -208,9 +220,12 @@ func TestKafkaUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -218,7 +233,7 @@ func TestKafkaUpdate(t *testing.T) {
 }
 
 func TestKafkaDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -252,9 +267,12 @@ func TestKafkaDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -265,86 +283,86 @@ var errTest = errors.New("fixture error")
 
 func createKafkaOK(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Topic:             "logs",
-		Brokers:           "127.0.0.1,127.0.0.2",
-		RequiredACKs:      "-1",
-		CompressionCodec:  "zippy",
-		UseTLS:            true,
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "127.0.0.1,127.0.0.2",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		FormatVersion:     2,
-		ParseLogKeyvals:   true,
-		RequestMaxBytes:   1024,
-		AuthMethod:        "plain",
-		User:              "user",
-		Password:          "password",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Topic:             fastly.ToPointer("logs"),
+		Brokers:           fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		RequiredACKs:      fastly.ToPointer("-1"),
+		CompressionCodec:  fastly.ToPointer("zippy"),
+		UseTLS:            fastly.ToPointer(true),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		FormatVersion:     fastly.ToPointer(2),
+		ParseLogKeyvals:   fastly.ToPointer(true),
+		RequestMaxBytes:   fastly.ToPointer(1024),
+		AuthMethod:        fastly.ToPointer("plain"),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
 	}, nil
 }
 
-func createKafkaError(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
+func createKafkaError(_ *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
 func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 	return []*fastly.Kafka{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Topic:             "logs",
-			Brokers:           "127.0.0.1,127.0.0.2",
-			RequiredACKs:      "-1",
-			CompressionCodec:  "zippy",
-			UseTLS:            true,
-			Placement:         "none",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "127.0.0.1,127.0.0.2",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-			FormatVersion:     2,
-			ParseLogKeyvals:   false,
-			RequestMaxBytes:   0,
-			AuthMethod:        "",
-			User:              "",
-			Password:          "",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			Topic:             fastly.ToPointer("logs"),
+			Brokers:           fastly.ToPointer("127.0.0.1,127.0.0.2"),
+			RequiredACKs:      fastly.ToPointer("-1"),
+			CompressionCodec:  fastly.ToPointer("zippy"),
+			UseTLS:            fastly.ToPointer(true),
+			Placement:         fastly.ToPointer("none"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+			FormatVersion:     fastly.ToPointer(2),
+			ParseLogKeyvals:   fastly.ToPointer(false),
+			RequestMaxBytes:   fastly.ToPointer(0),
+			AuthMethod:        fastly.ToPointer("plain"),
+			User:              fastly.ToPointer("user"),
+			Password:          fastly.ToPointer("password"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Topic:             "analytics",
-			Brokers:           "127.0.0.1,127.0.0.2",
-			RequiredACKs:      "-1",
-			CompressionCodec:  "zippy",
-			UseTLS:            true,
-			Placement:         "none",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "127.0.0.1,127.0.0.2",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ParseLogKeyvals:   false,
-			RequestMaxBytes:   0,
-			AuthMethod:        "",
-			User:              "",
-			Password:          "",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Topic:             fastly.ToPointer("analytics"),
+			Brokers:           fastly.ToPointer("127.0.0.1,127.0.0.2"),
+			RequiredACKs:      fastly.ToPointer("-1"),
+			CompressionCodec:  fastly.ToPointer("zippy"),
+			UseTLS:            fastly.ToPointer(true),
+			Placement:         fastly.ToPointer("none"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ParseLogKeyvals:   fastly.ToPointer(false),
+			RequestMaxBytes:   fastly.ToPointer(0),
+			AuthMethod:        fastly.ToPointer("plain"),
+			User:              fastly.ToPointer("user"),
+			Password:          fastly.ToPointer("password"),
 		},
 	}, nil
 }
 
-func listKafkasError(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
+func listKafkasError(_ *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 	return nil, errTest
 }
 
@@ -355,8 +373,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listKafkasVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -380,9 +398,9 @@ Version: 1
 		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
-		SASL authentication method: 
-		SASL authentication username: 
-		SASL authentication password: 
+		SASL authentication method: plain
+		SASL authentication username: user
+		SASL authentication password: password
 	Kafka 2/2
 		Service ID: 123
 		Version: 1
@@ -402,33 +420,33 @@ Version: 1
 		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
-		SASL authentication method: 
-		SASL authentication username: 
-		SASL authentication password:
-`) + " \n\n"
+		SASL authentication method: plain
+		SASL authentication username: user
+		SASL authentication password: password
+  `) + "\n\n"
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Brokers:           "127.0.0.1,127.0.0.2",
-		Topic:             "logs",
-		RequiredACKs:      "-1",
-		UseTLS:            true,
-		CompressionCodec:  "zippy",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "127.0.0.1,127.0.0.2",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Brokers:           fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		Topic:             fastly.ToPointer("logs"),
+		RequiredACKs:      fastly.ToPointer("-1"),
+		UseTLS:            fastly.ToPointer(true),
+		CompressionCodec:  fastly.ToPointer("zippy"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
 	}, nil
 }
 
-func getKafkaError(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
+func getKafkaError(_ *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
@@ -458,59 +476,59 @@ Version: 1
 
 func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Topic:             "logs",
-		Brokers:           "127.0.0.1,127.0.0.2",
-		RequiredACKs:      "-1",
-		CompressionCodec:  "zippy",
-		UseTLS:            true,
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "127.0.0.1,127.0.0.2",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		FormatVersion:     2,
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Topic:             fastly.ToPointer("logs"),
+		Brokers:           fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		RequiredACKs:      fastly.ToPointer("-1"),
+		CompressionCodec:  fastly.ToPointer("zippy"),
+		UseTLS:            fastly.ToPointer(true),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		FormatVersion:     fastly.ToPointer(2),
 	}, nil
 }
 
 func updateKafkaSASL(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		Topic:             "logs",
-		Brokers:           "127.0.0.1,127.0.0.2",
-		RequiredACKs:      "-1",
-		CompressionCodec:  "zippy",
-		UseTLS:            true,
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "127.0.0.1,127.0.0.2",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		FormatVersion:     2,
-		ParseLogKeyvals:   true,
-		RequestMaxBytes:   1024,
-		AuthMethod:        "plain",
-		User:              "user",
-		Password:          "password",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		Topic:             fastly.ToPointer("logs"),
+		Brokers:           fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		RequiredACKs:      fastly.ToPointer("-1"),
+		CompressionCodec:  fastly.ToPointer("zippy"),
+		UseTLS:            fastly.ToPointer(true),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		FormatVersion:     fastly.ToPointer(2),
+		ParseLogKeyvals:   fastly.ToPointer(true),
+		RequestMaxBytes:   fastly.ToPointer(1024),
+		AuthMethod:        fastly.ToPointer("plain"),
+		User:              fastly.ToPointer("user"),
+		Password:          fastly.ToPointer("password"),
 	}, nil
 }
 
-func updateKafkaError(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
+func updateKafkaError(_ *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
-func deleteKafkaOK(i *fastly.DeleteKafkaInput) error {
+func deleteKafkaOK(_ *fastly.DeleteKafkaInput) error {
 	return nil
 }
 
-func deleteKafkaError(i *fastly.DeleteKafkaInput) error {
+func deleteKafkaError(_ *fastly.DeleteKafkaInput) error {
 	return errTest
 }

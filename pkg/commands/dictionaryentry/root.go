@@ -3,22 +3,25 @@ package dictionaryentry
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 	// no flags
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "dictionary-entry"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("dictionary-entry", "Manipulate Fastly edge dictionary items")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly edge dictionary items")
 	return &c
 }
 

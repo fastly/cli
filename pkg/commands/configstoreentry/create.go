@@ -3,44 +3,42 @@ package configstoreentry
 import (
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("create", "Create a new config store item").Alias("insert")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "key",
 		Short:       'k',
 		Description: "Item name",
 		Dst:         &c.input.Key,
 		Required:    true,
 	})
-	c.RegisterFlag(cmd.StoreIDFlag(&c.input.StoreID)) // --store-id
+	c.RegisterFlag(argparser.StoreIDFlag(&c.input.StoreID)) // --store-id
 
 	// One of these must be set.
-	c.RegisterFlagBool(cmd.BoolFlagOpts{
+	c.RegisterFlagBool(argparser.BoolFlagOpts{
 		Name:        "stdin",
 		Description: "Read item value from STDIN. If set, --value will be ignored",
 		Dst:         &c.stdin,
 		Required:    false,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "value",
 		Description: "Item value. Required unless --stdin is set",
 		Dst:         &c.input.Value,
@@ -55,12 +53,10 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // CreateCommand calls the Fastly API to create an appropriate resource.
 type CreateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
-
-	input    fastly.CreateConfigStoreItemInput
-	stdin    bool
-	manifest manifest.Data
+	argparser.Base
+	argparser.JSONOutput
+	input fastly.CreateConfigStoreItemInput
+	stdin bool
 }
 
 // Exec invokes the application logic for the command.
@@ -105,6 +101,5 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Created key '%s' in Config Store '%s'", o.Key, o.StoreID)
-
 	return nil
 }

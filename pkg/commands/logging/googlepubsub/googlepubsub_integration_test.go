@@ -3,17 +3,20 @@ package googlepubsub_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestGooglePubSubCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -43,9 +46,12 @@ func TestGooglePubSubCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -53,7 +59,7 @@ func TestGooglePubSubCreate(t *testing.T) {
 }
 
 func TestGooglePubSubList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -113,9 +119,12 @@ func TestGooglePubSubList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -123,7 +132,7 @@ func TestGooglePubSubList(t *testing.T) {
 }
 
 func TestGooglePubSubDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +164,12 @@ func TestGooglePubSubDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +177,7 @@ func TestGooglePubSubDescribe(t *testing.T) {
 }
 
 func TestGooglePubSubUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -199,9 +211,12 @@ func TestGooglePubSubUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -209,7 +224,7 @@ func TestGooglePubSubUpdate(t *testing.T) {
 }
 
 func TestGooglePubSubDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -243,9 +258,12 @@ func TestGooglePubSubDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -256,59 +274,59 @@ var errTest = errors.New("fixture error")
 
 func createGooglePubSubOK(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Topic:             "topic",
-		User:              "user",
-		SecretKey:         "secret",
-		ProjectID:         "project",
-		AccountName:       "me@fastly.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Topic:             fastly.ToPointer("topic"),
+		User:              fastly.ToPointer("user"),
+		SecretKey:         fastly.ToPointer("secret"),
+		ProjectID:         fastly.ToPointer("project"),
+		AccountName:       fastly.ToPointer("me@fastly.com"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func createGooglePubSubError(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
+func createGooglePubSubError(_ *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
 func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	return []*fastly.Pubsub{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			User:              "user@example.com",
-			AccountName:       "none",
-			SecretKey:         "secret",
-			ProjectID:         "project",
-			Topic:             "topic",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			Placement:         "none",
-			FormatVersion:     2,
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			User:              fastly.ToPointer("user@example.com"),
+			AccountName:       fastly.ToPointer("none"),
+			SecretKey:         fastly.ToPointer("secret"),
+			ProjectID:         fastly.ToPointer("project"),
+			Topic:             fastly.ToPointer("topic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			Placement:         fastly.ToPointer("none"),
+			FormatVersion:     fastly.ToPointer(2),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			User:              "user@example.com",
-			AccountName:       "none",
-			SecretKey:         "secret",
-			ProjectID:         "project",
-			Topic:             "analytics",
-			Placement:         "none",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			User:              fastly.ToPointer("user@example.com"),
+			AccountName:       fastly.ToPointer("none"),
+			SecretKey:         fastly.ToPointer("secret"),
+			ProjectID:         fastly.ToPointer("project"),
+			Topic:             fastly.ToPointer("analytics"),
+			Placement:         fastly.ToPointer("none"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
 		},
 	}, nil
 }
 
-func listGooglePubSubsError(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
+func listGooglePubSubsError(_ *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
@@ -319,8 +337,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listGooglePubSubsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -355,22 +373,22 @@ Version: 1
 
 func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Topic:             "topic",
-		User:              "user@example.com",
-		AccountName:       "none",
-		SecretKey:         "secret",
-		ProjectID:         "project",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Topic:             fastly.ToPointer("topic"),
+		User:              fastly.ToPointer("user@example.com"),
+		AccountName:       fastly.ToPointer("none"),
+		SecretKey:         fastly.ToPointer("secret"),
+		ProjectID:         fastly.ToPointer("project"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func getGooglePubSubError(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
+func getGooglePubSubError(_ *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
@@ -391,28 +409,28 @@ Version: 1
 
 func updateGooglePubSubOK(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Topic:             "topic",
-		User:              "user@example.com",
-		SecretKey:         "secret",
-		ProjectID:         "project",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Topic:             fastly.ToPointer("topic"),
+		User:              fastly.ToPointer("user@example.com"),
+		SecretKey:         fastly.ToPointer("secret"),
+		ProjectID:         fastly.ToPointer("project"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func updateGooglePubSubError(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
+func updateGooglePubSubError(_ *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
-func deleteGooglePubSubOK(i *fastly.DeletePubsubInput) error {
+func deleteGooglePubSubOK(_ *fastly.DeletePubsubInput) error {
 	return nil
 }
 
-func deleteGooglePubSubError(i *fastly.DeletePubsubInput) error {
+func deleteGooglePubSubError(_ *fastly.DeletePubsubInput) error {
 	return errTest
 }

@@ -4,34 +4,32 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "pops"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("pops", "List Fastly datacenters")
+	c.CmdClause = parent.Command(CommandName, "List Fastly datacenters")
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
 	dcs, err := c.Globals.APIClient.AllDatacenters()
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -42,8 +40,28 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	t := text.NewTable(out)
 	t.AddHeader("NAME", "CODE", "GROUP", "SHIELD", "COORDINATES")
 	for _, dc := range dcs {
-		t.AddLine(dc.Name, dc.Code, dc.Group, dc.Shield, fmt.Sprintf("%+v", dc.Coordinates))
+		t.AddLine(
+			fastly.ToValue(dc.Name),
+			fastly.ToValue(dc.Code),
+			fastly.ToValue(dc.Group),
+			fastly.ToValue(dc.Shield),
+			Coordinates(dc.Coordinates),
+		)
 	}
 	t.Print()
 	return nil
+}
+
+// Coordinates returns a stringified object of coordinate data.
+func Coordinates(c *fastly.Coordinates) string {
+	if c != nil {
+		return fmt.Sprintf(
+			`{Latitude:%v Longtitude:%v X:%v Y:%v}`,
+			fastly.ToValue(c.Latitude),
+			fastly.ToValue(c.Longtitude),
+			fastly.ToValue(c.X),
+			fastly.ToValue(c.Y),
+		)
+	}
+	return ""
 }

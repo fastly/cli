@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 // Deduce attempts to deduce a RemediationError from a plain error. If the error
@@ -57,7 +57,7 @@ func SimplifyFastlyError(httpError fastly.HTTPError) error {
 		if detail := httpError.Errors[0].Detail; detail != "" {
 			s += fmt.Sprintf(" (%s)", detail)
 		}
-		return fmt.Errorf(s)
+		return errors.New(s)
 
 	default:
 		return fmt.Errorf(

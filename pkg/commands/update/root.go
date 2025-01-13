@@ -6,9 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/blang/semver"
+
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/text"
@@ -17,18 +18,17 @@ import (
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
-	av             github.AssetVersioner
-	configFilePath string
+	argparser.Base
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "update"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, configFilePath string, av github.AssetVersioner, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("update", "Update the CLI to the latest version")
-	c.av = av
-	c.configFilePath = configFilePath
+	c.CmdClause = parent.Command(CommandName, "Update the CLI to the latest version")
 	return &c
 }
 
@@ -39,17 +39,15 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Updating versioning information"
-	spinner.Message(msg + "...")
+	var (
+		current, latest semver.Version
+		shouldUpdate    bool
+	)
 
-	current, latest, shouldUpdate := Check(revision.AppVersion, c.av)
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+	err = spinner.Process("Updating versioning information", func(_ *text.SpinnerWrapper) error {
+		current, latest, shouldUpdate = Check(revision.AppVersion, c.Globals.Versioners.CLI)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -64,124 +62,94 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
-	err = spinner.Start()
+	var downloadedBin string
+	err = spinner.Process("Fetching latest release", func(_ *text.SpinnerWrapper) error {
+		downloadedBin, err = c.Globals.Versioners.CLI.DownloadLatest()
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Current CLI version": current,
+				"Latest CLI version":  latest,
+			})
+			return fmt.Errorf("error downloading latest release: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return err
-	}
-	msg = "Fetching latest release"
-	spinner.Message(msg + "...")
-
-	downloadedBin, err := c.av.DownloadLatest()
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Current CLI version": current,
-			"Latest CLI version":  latest,
-		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-
-		return fmt.Errorf("error downloading latest release: %w", err)
 	}
 	defer os.RemoveAll(downloadedBin)
 
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Replacing binary"
-	spinner.Message(msg + "...")
-
-	execPath, err := os.Executable()
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+	var currentBin string
+	err = spinner.Process("Replacing binary", func(_ *text.SpinnerWrapper) error {
+		execPath, err := os.Executable()
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fmt.Errorf("error determining executable path: %w", err)
 		}
 
-		return fmt.Errorf("error determining executable path: %w", err)
-	}
-
-	currentBin, err := filepath.Abs(execPath)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Executable path": execPath,
-		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		currentBin, err = filepath.Abs(execPath)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Executable path": execPath,
+			})
+			return fmt.Errorf("error determining absolute target path: %w", err)
 		}
 
-		return fmt.Errorf("error determining absolute target path: %w", err)
-	}
+		// Windows does not permit replacing a running executable, however it will
+		// permit it if you first move the original executable. So we first move the
+		// running executable to a new location, then we move the executable that we
+		// downloaded to the same location as the original.
+		// I've also tested this approach on nix systems and it works fine.
+		//
+		// Reference:
+		// https://github.com/golang/go/issues/21997#issuecomment-331744930
 
-	// Windows does not permit replacing a running executable, however it will
-	// permit it if you first move the original executable. So we first move the
-	// running executable to a new location, then we move the executable that we
-	// downloaded to the same location as the original.
-	// I've also tested this approach on nix systems and it works fine.
-	//
-	// Reference:
-	// https://github.com/golang/go/issues/21997#issuecomment-331744930
-
-	backup := currentBin + ".bak"
-	if err := os.Rename(currentBin, backup); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Executable (source)":      downloadedBin,
-			"Executable (destination)": currentBin,
-		})
-		return fmt.Errorf("error moving the current executable: %w", err)
-	}
-
-	if err = os.Remove(backup); err != nil {
-		c.Globals.ErrLog.Add(err)
-	}
-
-	// Move the downloaded binary to the same location as the current executable.
-	if err := os.Rename(downloadedBin, currentBin); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Executable (source)":      downloadedBin,
-			"Executable (destination)": currentBin,
-		})
-		renameErr := err
-
-		// Failing that we'll try to io.Copy downloaded binary to the current binary.
-		if err := filesystem.CopyFile(downloadedBin, currentBin); err != nil {
+		backup := currentBin + ".bak"
+		if err := os.Rename(currentBin, backup); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Executable (source)":      downloadedBin,
 				"Executable (destination)": currentBin,
 			})
+			return fmt.Errorf("error moving the current executable: %w", err)
+		}
 
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return spinErr
+		if err = os.Remove(backup); err != nil {
+			c.Globals.ErrLog.Add(err)
+		}
+
+		// Move the downloaded binary to the same location as the current executable.
+		if err := os.Rename(downloadedBin, currentBin); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Executable (source)":      downloadedBin,
+				"Executable (destination)": currentBin,
+			})
+			renameErr := err
+
+			// Failing that we'll try to io.Copy downloaded binary to the current binary.
+			if err := filesystem.CopyFile(downloadedBin, currentBin); err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]any{
+					"Executable (source)":      downloadedBin,
+					"Executable (destination)": currentBin,
+				})
+				return fmt.Errorf("error 'copying' latest binary in place: %w (following an error 'moving': %w)", err, renameErr)
 			}
 
-			return fmt.Errorf("error 'copying' latest binary in place: %w (following an error 'moving': %w)", err, renameErr)
+			// G302 (CWE-276): Expect file permissions to be 0600 or less
+			// gosec flagged this:
+			// Disabling as the file was not executable without it and we need all users
+			// to be able to execute the binary.
+			// #nosec
+			err := os.Chmod(currentBin, 0o755)
+			if err != nil {
+				return fmt.Errorf("failed to modify permissions after 'copying' latest binary: %w", err)
+			}
 		}
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
-	text.Success(out, "Updated %s to %s.", currentBin, latest)
+	text.Success(out, "\nUpdated %s to %s.", currentBin, latest)
 	return nil
 }

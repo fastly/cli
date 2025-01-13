@@ -1,96 +1,67 @@
 package profile_test
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	root "github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
+	fsttime "github.com/fastly/cli/pkg/time"
 )
 
-// Scenario is an extension of the base TestScenario.
-// It includes manipulating stdin.
-type Scenario struct {
-	testutil.TestScenario
-
-	ConfigFile config.File
-	Stdin      []string
-}
-
-func TestCreate(t *testing.T) {
-	var (
-		configPath string
-		data       []byte
-	)
-
-	// Create temp environment to run test code within.
-	{
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Read the test config.toml data
-		path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		data, err = os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Create a new test environment along with a test config.toml file.
-		rootdir := testutil.NewEnv(testutil.EnvOpts{
-			T: t,
-			Write: []testutil.FileIO{
-				{Src: string(data), Dst: "config.toml"},
-			},
-		})
-		configPath = filepath.Join(rootdir, "config.toml")
-		defer os.RemoveAll(rootdir)
-
-		if err := os.Chdir(rootdir); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Chdir(wd)
-	}
-
-	args := testutil.Args
-	scenarios := []Scenario{
+func TestProfileCreate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate profile creation works",
-				Args: args("profile create foo"),
-				API: mock.API{
-					GetTokenSelfFn: getToken,
-					GetUserFn:      getUser,
-				},
-				WantOutputs: []string{
-					"Fastly API token:",
-					"Validating token",
-					"Persisting configuration",
-					"Profile 'foo' created",
-				},
+			Name: "validate profile creation works",
+			Args: "foo",
+			API: mock.API{
+				GetTokenSelfFn: getToken,
+				GetUserFn:      getUser,
 			},
 			Stdin: []string{"some_token"},
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			WantOutputs: []string{
+				"Fastly API token:",
+				"Validating token",
+				"Persisting configuration",
+				"Profile 'foo' created",
+			},
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate profile duplication",
-				Args:      args("profile create foo"),
-				WantError: "profile 'foo' already exists",
+			Name: "validate profile duplication",
+			Args: "foo",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: true,
@@ -99,134 +70,32 @@ func TestCreate(t *testing.T) {
 					},
 				},
 			},
+			WantError: "profile 'foo' already exists",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var (
-				err    error
-				stdout bytes.Buffer
-			)
-
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			// We override the config path so that we don't accidentally write over
-			// our own configuration file.
-			opts.ConfigPath = configPath
-
-			// The read of the config file only really happens in the main()
-			// function, so for the sake of the test environment we need to construct
-			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
-
-			// TODO: abstract the logic for handling interactive stdin prompts.
-			// This same if/else block is fundamentally duplicated across test files.
-			if len(testcase.Stdin) > 1 {
-				// To handle multiple prompt input from the user we need to do some
-				// coordination around io pipes to mimic the required user behaviour.
-				stdin, prompt := io.Pipe()
-				opts.Stdin = stdin
-
-				// Wait for user input and write it to the prompt
-				inputc := make(chan string)
-				go func() {
-					for input := range inputc {
-						fmt.Fprintln(prompt, input)
-					}
-				}()
-
-				// We need a channel so we wait for `run()` to complete
-				done := make(chan bool)
-
-				// Call `app.Run()` and wait for response
-				go func() {
-					err = app.Run(opts)
-					done <- true
-				}()
-
-				// User provides input
-				//
-				// NOTE: Must provide as much input as is expected to be waited on by `run()`.
-				//       For example, if `run()` calls `input()` twice, then provide two messages.
-				//       Otherwise the select statement will trigger the timeout error.
-				for _, input := range testcase.Stdin {
-					inputc <- input
-				}
-
-				select {
-				case <-done:
-					// Wait for app.Run() to finish
-				case <-time.After(time.Second):
-					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
-				}
-			} else {
-				stdin := ""
-				if len(testcase.Stdin) > 0 {
-					stdin = testcase.Stdin[0]
-				}
-				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
-			}
-
-			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
-func TestDelete(t *testing.T) {
-	var (
-		configPath string
-		data       []byte
-	)
-
-	// Create temp environment to run test code within.
-	{
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Read the test config.toml data
-		path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		data, err = os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Create a new test environment along with a test config.toml file.
-		rootdir := testutil.NewEnv(testutil.EnvOpts{
-			T: t,
-			Write: []testutil.FileIO{
-				{Src: string(data), Dst: "config.toml"},
-			},
-		})
-		configPath = filepath.Join(rootdir, "config.toml")
-		defer os.RemoveAll(rootdir)
-
-		if err := os.Chdir(rootdir); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Chdir(wd)
-	}
-
-	args := testutil.Args
-	scenarios := []Scenario{
+func TestProfileDelete(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
-			TestScenario: testutil.TestScenario{
-				Name:       "validate profile deletion works",
-				Args:       args("profile delete foo"),
-				WantOutput: "Profile 'foo' deleted",
+			Name: "validate profile deletion works",
+			Args: "foo",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: true,
@@ -235,98 +104,49 @@ func TestDelete(t *testing.T) {
 					},
 				},
 			},
+			WantOutput: "Profile 'foo' deleted",
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate incorrect profile",
-				Args:      args("profile delete unknown"),
-				WantError: "the specified profile does not exist",
-			},
-		},
-	}
-
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var (
-				err    error
-				stdout bytes.Buffer
-			)
-
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			// We override the config path so that we don't accidentally write over
-			// our own configuration file.
-			opts.ConfigPath = configPath
-
-			// The read of the config file only really happens in the main()
-			// function, so for the sake of the test environment we need to construct
-			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
-
-			err = app.Run(opts)
-
-			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
-}
-
-func TestList(t *testing.T) {
-	var (
-		configPath string
-		data       []byte
-	)
-
-	// Create temp environment to run test code within.
-	{
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Read the test config.toml data
-		path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		data, err = os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Create a new test environment along with a test config.toml file.
-		rootdir := testutil.NewEnv(testutil.EnvOpts{
-			T: t,
-			Write: []testutil.FileIO{
-				{Src: string(data), Dst: "config.toml"},
-			},
-		})
-		configPath = filepath.Join(rootdir, "config.toml")
-		defer os.RemoveAll(rootdir)
-
-		if err := os.Chdir(rootdir); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Chdir(wd)
-	}
-
-	args := testutil.Args
-	scenarios := []Scenario{
-		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate listing profiles works",
-				Args: args("profile list"),
-				WantOutputs: []string{
-					"Default profile highlighted in red.",
-					"foo\n\nDefault: true\nEmail: foo@example.com\nToken: 123",
-					"bar\n\nDefault: false\nEmail: bar@example.com\nToken: 456",
+			Name: "validate incorrect profile",
+			Args: "unknown",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
-			ConfigFile: config.File{
+			WantError: "the specified profile does not exist",
+		},
+	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+}
+
+func TestProfileList(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
+		{
+			Name: "validate listing profiles works",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: true,
@@ -340,42 +160,73 @@ func TestList(t *testing.T) {
 					},
 				},
 			},
+			WantOutputs: []string{
+				"Default profile highlighted in red.",
+				"foo\n\nDefault: true\nEmail: foo@example.com\nToken: 123",
+				"bar\n\nDefault: false\nEmail: bar@example.com\nToken: 456",
+			},
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate no profiles defined",
-				Args:      args("profile list"),
-				WantError: "no profiles available",
+			Name: "validate no profiles defined",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
+			ConfigFile: &config.File{},
+			WantError:  "no profiles available",
 		},
 		// NOTE: The following test is subtly different to the previous one in that
 		// our logic checks whether the config.Profiles map type is nil. If it is
 		// then we error (see above test), otherwise if the map is set but there
 		// are no profiles, then we notify the user no profiles exist.
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate no profiles available",
-				Args: args("profile list"),
-				WantOutputs: []string{
-					"No profiles defined. To create a profile, run",
-					"fastly profile create <name>",
+			Name: "validate no profiles available",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{},
 			},
+			WantOutputs: []string{
+				"No profiles defined. To create a profile, run",
+				"fastly profile create <name>",
+			},
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate listing profiles displays warning if no default set",
-				Args: args("profile list"),
-				WantOutputs: []string{
-					"At least one account profile should be set as the 'default'. Run `fastly profile update <NAME>`.",
-					"foo\n\nDefault: false\nEmail: foo@example.com\nToken: 123",
-					"bar\n\nDefault: false\nEmail: bar@example.com\nToken: 456",
+			Name: "validate listing profiles displays warning if no default set",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: false,
@@ -389,14 +240,29 @@ func TestList(t *testing.T) {
 					},
 				},
 			},
+			WantOutputs: []string{
+				"At least one account profile should be set as the 'default'.",
+				"foo\n\nDefault: false\nEmail: foo@example.com\nToken: 123",
+				"bar\n\nDefault: false\nEmail: bar@example.com\nToken: 456",
+			},
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate listing profiles with --verbose and --json causes an error",
-				Args:      args("profile list --verbose --json"),
-				WantError: "invalid flag combination, --verbose and --json",
+			Name: "validate listing profiles with --verbose and --json causes an error",
+			Args: "--verbose --json",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: false,
@@ -410,126 +276,109 @@ func TestList(t *testing.T) {
 					},
 				},
 			},
+			WantError: "invalid flag combination, --verbose and --json",
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate listing profiles with --json displays data correctly",
-				Args: args("profile list --json"),
-				WantOutput: `{
+			Name: "validate listing profiles with --json displays data correctly",
+			Args: "--json",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default: false,
+						Email:   "foo@example.com",
+						Token:   "123",
+					},
+					"bar": &config.Profile{
+						Default: false,
+						Email:   "bar@example.com",
+						Token:   "456",
+					},
+				},
+			},
+			WantOutput: `{
   "bar": {
+    "access_token": "",
+    "access_token_created": 0,
+    "access_token_ttl": 0,
+    "customer_id": "",
+    "customer_name": "",
     "default": false,
     "email": "bar@example.com",
+    "refresh_token": "",
+    "refresh_token_created": 0,
+    "refresh_token_ttl": 0,
     "token": "456"
   },
   "foo": {
+    "access_token": "",
+    "access_token_created": 0,
+    "access_token_ttl": 0,
+    "customer_id": "",
+    "customer_name": "",
     "default": false,
     "email": "foo@example.com",
+    "refresh_token": "",
+    "refresh_token_created": 0,
+    "refresh_token_ttl": 0,
     "token": "123"
   }
 }`,
-			},
-			ConfigFile: config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: false,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
-					},
-				},
-			},
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var (
-				err    error
-				stdout bytes.Buffer
-			)
-
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			// We override the config path so that we don't accidentally write over
-			// our own configuration file.
-			opts.ConfigPath = configPath
-
-			// The read of the config file only really happens in the main()
-			// function, so for the sake of the test environment we need to construct
-			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
-
-			err = app.Run(opts)
-
-			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
-func TestSwitch(t *testing.T) {
-	var (
-		configPath string
-		data       []byte
-	)
-
-	// Create temp environment to run test code within.
-	{
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Read the test config.toml data
-		path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		data, err = os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Create a new test environment along with a test config.toml file.
-		rootdir := testutil.NewEnv(testutil.EnvOpts{
-			T: t,
-			Write: []testutil.FileIO{
-				{Src: string(data), Dst: "config.toml"},
-			},
-		})
-		configPath = filepath.Join(rootdir, "config.toml")
-		defer os.RemoveAll(rootdir)
-
-		if err := os.Chdir(rootdir); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Chdir(wd)
-	}
-
-	args := testutil.Args
-	scenarios := []Scenario{
+func TestProfileSwitch(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate switching to unknown profile returns an error",
-				Args:      args("profile switch unknown"),
-				WantError: "the profile 'unknown' does not exist",
+			Name: "validate switching to unknown profile returns an error",
+			Args: "unknown",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
+			WantError: "the profile 'unknown' does not exist",
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name:       "validate switching profiles works",
-				Args:       args("profile switch bar"),
-				WantOutput: "Profile switched to 'bar'",
+			Name: "validate switching profiles works",
+			Args: "bar",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: true,
@@ -543,87 +392,33 @@ func TestSwitch(t *testing.T) {
 					},
 				},
 			},
+			WantOutput: "Profile switched to 'bar'",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var (
-				err    error
-				stdout bytes.Buffer
-			)
-
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			// We override the config path so that we don't accidentally write over
-			// our own configuration file.
-			opts.ConfigPath = configPath
-
-			// The read of the config file only really happens in the main()
-			// function, so for the sake of the test environment we need to construct
-			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
-
-			err = app.Run(opts)
-
-			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "switch"}, scenarios)
 }
 
-func TestToken(t *testing.T) {
-	var (
-		configPath string
-		data       []byte
-	)
+func TestProfileToken(t *testing.T) {
+	now := time.Now()
 
-	// Create temp environment to run test code within.
-	{
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Read the test config.toml data
-		path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		data, err = os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Create a new test environment along with a test config.toml file.
-		rootdir := testutil.NewEnv(testutil.EnvOpts{
-			T: t,
-			Write: []testutil.FileIO{
-				{Src: string(data), Dst: "config.toml"},
-			},
-		})
-		configPath = filepath.Join(rootdir, "config.toml")
-		defer os.RemoveAll(rootdir)
-
-		if err := os.Chdir(rootdir); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Chdir(wd)
-	}
-
-	args := testutil.Args
-	scenarios := []Scenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			TestScenario: testutil.TestScenario{
-				Name:       "validate the active profile token is displayed by default",
-				Args:       args("profile token"),
-				WantOutput: "123",
+			Name: "validate the active profile non-OIDC token is displayed by default",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: true,
@@ -637,14 +432,25 @@ func TestToken(t *testing.T) {
 					},
 				},
 			},
+			WantOutput: "123",
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name:       "validate token is displayed for the specified profile",
-				Args:       args("profile token bar"), // we choose a non-default profile
-				WantOutput: "456",
+			Name: "validate non-OIDC token is displayed for the specified profile",
+			Args: "bar", // we choose a non-default profile
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: true,
@@ -658,14 +464,25 @@ func TestToken(t *testing.T) {
 					},
 				},
 			},
+			WantOutput: "456",
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name:       "validate token is displayed for the specified profile using global --profile",
-				Args:       args("profile token --profile bar"), // we choose a non-default profile
-				WantOutput: "456",
+			Name: "validate non-OIDC token is displayed for the specified profile using global --profile",
+			Args: "--profile bar", // we choose a non-default profile
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
-			ConfigFile: config.File{
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: true,
@@ -679,105 +496,186 @@ func TestToken(t *testing.T) {
 					},
 				},
 			},
+			WantOutput: "456",
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate an unrecognised profile causes an error",
-				Args:      args("profile token unknown"),
-				WantError: "profile 'unknown' does not exist",
+			Name: "validate an unrecognised profile causes an error",
+			Args: "unknown",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
+			WantError: "profile 'unknown' does not exist",
+		},
+		{
+			Name: "validate that an expired OIDC token generates an error",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Add(time.Duration(-1200) * time.Second).Unix(),
+						RefreshTokenTTL:     600,
+					},
+				},
+			},
+			WantError: fmt.Sprintf("the token in profile 'foo' expired at '%s'", now.Add(time.Duration(-600)*time.Second).UTC().Format(fsttime.Format)),
+		},
+		{
+			Name: "validate that a soon-to-expire OIDC token generates an error",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     30,
+					},
+				},
+			},
+			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", now.Add(time.Duration(30)*time.Second).UTC().Format(fsttime.Format)),
+		},
+		{
+			Name: "validate that a soon-to-expire OIDC token with a non-default TTL does not generate an error",
+			Args: "--ttl 30s",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     60,
+					},
+				},
+			},
+			WantOutput: "123",
+		},
+		{
+			Name: "validate that an OIDC token with a long non-default TTL generates an error",
+			Args: "--ttl 1800s",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"foo": &config.Profile{
+						Default:             true,
+						Email:               "foo@example.com",
+						Token:               "123",
+						RefreshTokenCreated: now.Unix(),
+						RefreshTokenTTL:     1200,
+					},
+				},
+			},
+			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", now.Add(time.Duration(1200)*time.Second).UTC().Format(fsttime.Format)),
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var (
-				err    error
-				stdout bytes.Buffer
-			)
-
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			// We override the config path so that we don't accidentally write over
-			// our own configuration file.
-			opts.ConfigPath = configPath
-
-			// The read of the config file only really happens in the main()
-			// function, so for the sake of the test environment we need to construct
-			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
-
-			err = app.Run(opts)
-
-			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "token"}, scenarios)
 }
 
-func TestUpdate(t *testing.T) {
-	var (
-		configPath string
-		data       []byte
-	)
-
-	// Create temp environment to run test code within.
-	{
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Read the test config.toml data
-		path, err := filepath.Abs(filepath.Join("./", "testdata", "config.toml"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		data, err = os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Create a new test environment along with a test config.toml file.
-		rootdir := testutil.NewEnv(testutil.EnvOpts{
-			T: t,
-			Write: []testutil.FileIO{
-				{Src: string(data), Dst: "config.toml"},
-			},
-		})
-		configPath = filepath.Join(rootdir, "config.toml")
-		defer os.RemoveAll(rootdir)
-
-		if err := os.Chdir(rootdir); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Chdir(wd)
-	}
-
-	args := testutil.Args
-	scenarios := []Scenario{
+func TestProfileUpdate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
 		{
-			TestScenario: testutil.TestScenario{
-				Name:      "validate updating unknown profile returns an error",
-				Args:      args("profile update unknown"),
-				WantError: "the profile 'unknown' does not exist",
+			Name: "validate updating unknown profile returns an error",
+			Args: "unknown",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
 			},
+			WantError: "the profile 'unknown' does not exist",
 		},
 		{
-			TestScenario: testutil.TestScenario{
-				Name: "validate updating profile works",
-				Args: args("profile update bar"), // we choose a non-default profile
-				API: mock.API{
-					GetTokenSelfFn: getToken,
-					GetUserFn:      getUser,
-				},
-				WantOutput: "Profile 'bar' updated",
+			Name: "validate updating profile works",
+			Args: "bar", // we choose a non-default profile
+			API: mock.API{
+				GetTokenSelfFn: getToken,
+				GetUserFn:      getUser,
 			},
-			ConfigFile: config.File{
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
 				Profiles: config.Profiles{
 					"foo": &config.Profile{
 						Default: true,
@@ -792,97 +690,27 @@ func TestUpdate(t *testing.T) {
 				},
 			},
 			Stdin: []string{
+				"",  // we skip SSO prompt
 				"",  // we skip updating the token
 				"y", // we set the profile to be the default
 			},
+			WantOutput: "Profile 'bar' updated",
 		},
 	}
 
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var (
-				err    error
-				stdout bytes.Buffer
-			)
-
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-
-			// We override the config path so that we don't accidentally write over
-			// our own configuration file.
-			opts.ConfigPath = configPath
-
-			// The read of the config file only really happens in the main()
-			// function, so for the sake of the test environment we need to construct
-			// an in-memory representation of the config file we want to be using.
-			opts.ConfigFile = testcase.ConfigFile
-
-			if len(testcase.Stdin) > 1 {
-				// To handle multiple prompt input from the user we need to do some
-				// coordination around io pipes to mimic the required user behaviour.
-				stdin, prompt := io.Pipe()
-				opts.Stdin = stdin
-
-				// Wait for user input and write it to the prompt
-				inputc := make(chan string)
-				go func() {
-					for input := range inputc {
-						fmt.Fprintln(prompt, input)
-					}
-				}()
-
-				// We need a channel so we wait for `run()` to complete
-				done := make(chan bool)
-
-				// Call `app.Run()` and wait for response
-				go func() {
-					err = app.Run(opts)
-					done <- true
-				}()
-
-				// User provides input
-				//
-				// NOTE: Must provide as much input as is expected to be waited on by `run()`.
-				//       For example, if `run()` calls `input()` twice, then provide two messages.
-				//       Otherwise the select statement will trigger the timeout error.
-				for _, input := range testcase.Stdin {
-					inputc <- input
-				}
-
-				select {
-				case <-done:
-					// Wait for app.Run() to finish
-				case <-time.After(time.Second):
-					t.Fatalf("unexpected timeout waiting for mocked prompt inputs to be processed")
-				}
-			} else {
-				stdin := ""
-				if len(testcase.Stdin) > 0 {
-					stdin = testcase.Stdin[0]
-				}
-				opts.Stdin = strings.NewReader(stdin)
-				err = app.Run(opts)
-			}
-
-			t.Log(stdout.String())
-
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func getToken() (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
-		ID:         "123",
-		Name:       "Foo",
-		UserID:     "456",
+		TokenID:    fastly.ToPointer("123"),
+		Name:       fastly.ToPointer("Foo"),
+		UserID:     fastly.ToPointer("456"),
 		Services:   []string{"a", "b"},
-		Scope:      fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope)),
-		IP:         "127.0.0.1",
+		Scope:      fastly.ToPointer(fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope))),
+		IP:         fastly.ToPointer("127.0.0.1"),
 		CreatedAt:  &t,
 		ExpiresAt:  &t,
 		LastUsedAt: &t,
@@ -893,17 +721,17 @@ func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
-		ID:                     i.ID,
-		Login:                  "foo@example.com",
-		Name:                   "foo",
-		Role:                   "user",
-		CustomerID:             "abc",
-		EmailHash:              "example-hash",
-		LimitServices:          true,
-		Locked:                 true,
-		RequireNewPassword:     true,
-		TwoFactorAuthEnabled:   true,
-		TwoFactorSetupRequired: true,
+		UserID:                 fastly.ToPointer(i.UserID),
+		Login:                  fastly.ToPointer("foo@example.com"),
+		Name:                   fastly.ToPointer("foo"),
+		Role:                   fastly.ToPointer("user"),
+		CustomerID:             fastly.ToPointer("abc"),
+		EmailHash:              fastly.ToPointer("example-hash"),
+		LimitServices:          fastly.ToPointer(true),
+		Locked:                 fastly.ToPointer(true),
+		RequireNewPassword:     fastly.ToPointer(true),
+		TwoFactorAuthEnabled:   fastly.ToPointer(true),
+		TwoFactorSetupRequired: fastly.ToPointer(true),
 		CreatedAt:              &t,
 		DeletedAt:              &t,
 		UpdatedAt:              &t,

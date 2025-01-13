@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/api"
 	fsterrors "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // SecretStores represents the service state related to secret stores defined
@@ -35,8 +36,10 @@ type SecretStores struct {
 // SecretStore represents the configuration parameters for creating a
 // secret store via the API client.
 type SecretStore struct {
-	Name    string
-	Entries []SecretStoreEntry
+	Name              string
+	Entries           []SecretStoreEntry
+	LinkExistingStore bool
+	ExistingStoreID   string
 }
 
 // SecretStoreEntry represents the configuration parameters for creating
@@ -54,18 +57,68 @@ func (s *SecretStores) Predefined() bool {
 
 // Configure prompts the user for specific values related to the service resource.
 func (s *SecretStores) Configure() error {
+	var (
+		cursor         string
+		existingStores []fastly.SecretStore
+	)
+
+	for {
+		o, err := s.APIClient.ListSecretStores(&fastly.ListSecretStoresInput{
+			Cursor: cursor,
+		})
+		if err != nil {
+			return err
+		}
+		if o != nil {
+			existingStores = append(existingStores, o.Data...)
+			if o.Meta.NextCursor != "" {
+				cursor = o.Meta.NextCursor
+				continue
+			}
+			break
+		}
+	}
+
 	for name, settings := range s.Setup {
+		var (
+			existingStoreID   string
+			linkExistingStore bool
+		)
+
+		for _, store := range existingStores {
+			if store.Name == name {
+				if s.AcceptDefaults || s.NonInteractive {
+					linkExistingStore = true
+					existingStoreID = store.StoreID
+				} else {
+					text.Warning(s.Stdout, "\nA Secret Store called '%s' already exists\n\n", name)
+					prompt := text.Prompt("Use a different store name (or leave empty to use the existing store): ")
+					value, err := text.Input(s.Stdout, prompt, s.Stdin)
+					if err != nil {
+						return fmt.Errorf("error reading prompt input: %w", err)
+					}
+					if value == "" {
+						linkExistingStore = true
+						existingStoreID = store.StoreID
+					} else {
+						name = value
+					}
+				}
+			}
+		}
+
 		if !s.AcceptDefaults && !s.NonInteractive {
-			text.Break(s.Stdout)
-			text.Output(s.Stdout, "Configuring secret store '%s'", name)
+			text.Output(s.Stdout, "\nConfiguring Secret Store '%s'", name)
 			if settings.Description != "" {
 				text.Output(s.Stdout, settings.Description)
 			}
 		}
 
 		store := SecretStore{
-			Name:    name,
-			Entries: make([]SecretStoreEntry, 0, len(settings.Entries)),
+			Name:              name,
+			Entries:           make([]SecretStoreEntry, 0, len(settings.Entries)),
+			LinkExistingStore: linkExistingStore,
+			ExistingStoreID:   existingStoreID,
 		}
 
 		for key, entry := range settings.Entries {
@@ -75,14 +128,13 @@ func (s *SecretStores) Configure() error {
 			)
 
 			if !s.AcceptDefaults && !s.NonInteractive {
-				text.Break(s.Stdout)
-				text.Output(s.Stdout, "Create a secret store entry called '%s'", key)
+				text.Output(s.Stdout, "\nCreate a Secret Store entry called '%s'", key)
 				if entry.Description != "" {
 					text.Output(s.Stdout, entry.Description)
 				}
 				text.Break(s.Stdout)
 
-				prompt := text.BoldYellow("Value: ")
+				prompt := text.Prompt("Value: ")
 				value, err = text.InputSecure(s.Stdout, prompt, s.Stdin)
 				if err != nil {
 					return fmt.Errorf("error reading prompt input: %w", err)
@@ -115,77 +167,71 @@ func (s *SecretStores) Create() error {
 	}
 
 	for _, secretStore := range s.required {
-		if err := s.Spinner.Start(); err != nil {
-			return err
-		}
-		msg := fmt.Sprintf("Creating secret store '%s'", secretStore.Name)
-		s.Spinner.Message(msg + "...")
+		var (
+			err   error
+			store *fastly.SecretStore
+		)
 
-		store, err := s.APIClient.CreateSecretStore(&fastly.CreateSecretStoreInput{
-			Name: secretStore.Name,
-		})
-		if err != nil {
-			s.Spinner.StopFailMessage(msg)
-			if serr := s.Spinner.StopFail(); serr != nil {
-				return serr
+		if secretStore.LinkExistingStore {
+			err = s.Spinner.Process(fmt.Sprintf("Retrieving existing Secret Store '%s'", secretStore.Name), func(_ *text.SpinnerWrapper) error {
+				store, err = s.APIClient.GetSecretStore(&fastly.GetSecretStoreInput{
+					StoreID: secretStore.ExistingStoreID,
+				})
+				if err != nil {
+					return fmt.Errorf("failed to get existing store '%s': %w", secretStore.Name, err)
+				}
+				return nil
+			})
+			if err != nil {
+				return err
 			}
-			return fmt.Errorf("error creating secret store %q: %w", secretStore.Name, err)
-		}
-		s.Spinner.StopMessage(msg)
-		if err = s.Spinner.Stop(); err != nil {
-			return err
+		} else {
+			err = s.Spinner.Process(fmt.Sprintf("Creating Secret Store '%s'", secretStore.Name), func(_ *text.SpinnerWrapper) error {
+				store, err = s.APIClient.CreateSecretStore(&fastly.CreateSecretStoreInput{
+					Name: secretStore.Name,
+				})
+				if err != nil {
+					return fmt.Errorf("error creating Secret Store %q: %w", secretStore.Name, err)
+				}
+				return nil
+			})
+			if err != nil {
+				return err
+			}
 		}
 
 		for _, entry := range secretStore.Entries {
-			if err = s.Spinner.Start(); err != nil {
-				return err
-			}
-			msg = fmt.Sprintf("Creating secret store entry '%s'...", entry.Name)
-			s.Spinner.Message(msg)
-
-			_, err = s.APIClient.CreateSecret(&fastly.CreateSecretInput{
-				ID:     store.ID,
-				Name:   entry.Name,
-				Secret: []byte(entry.Secret),
+			err = s.Spinner.Process(fmt.Sprintf("Creating Secret Store entry '%s'...", entry.Name), func(_ *text.SpinnerWrapper) error {
+				_, err = s.APIClient.CreateSecret(&fastly.CreateSecretInput{
+					StoreID: store.StoreID,
+					Name:    entry.Name,
+					Secret:  []byte(entry.Secret),
+				})
+				if err != nil {
+					return fmt.Errorf("error creating Secret Store entry %q: %w", entry.Name, err)
+				}
+				return nil
 			})
 			if err != nil {
-				s.Spinner.StopFailMessage(msg)
-				if serr := s.Spinner.StopFail(); serr != nil {
-					return serr
-				}
-				return fmt.Errorf("error creating secret store entry %q: %w", entry.Name, err)
-			}
-
-			s.Spinner.StopMessage(msg)
-			if err = s.Spinner.Stop(); err != nil {
 				return err
 			}
 		}
 
-		if err = s.Spinner.Start(); err != nil {
-			return err
-		}
-		msg = fmt.Sprintf("Creating resource link between service and secret store '%s'...", store.Name)
-		s.Spinner.Message(msg)
-
-		// We need to link the secret store to the C@E Service, otherwise the service
-		// will not have access to the store.
-		_, err = s.APIClient.CreateResource(&fastly.CreateResourceInput{
-			ServiceID:      s.ServiceID,
-			ServiceVersion: s.ServiceVersion,
-			Name:           fastly.String(store.Name),
-			ResourceID:     fastly.String(store.ID),
+		err = s.Spinner.Process(fmt.Sprintf("Creating resource link between service and Secret Store '%s'...", store.Name), func(_ *text.SpinnerWrapper) error {
+			// We need to link the secret store to the C@E Service, otherwise the service
+			// will not have access to the store.
+			_, err = s.APIClient.CreateResource(&fastly.CreateResourceInput{
+				ServiceID:      s.ServiceID,
+				ServiceVersion: s.ServiceVersion,
+				Name:           fastly.ToPointer(store.Name),
+				ResourceID:     fastly.ToPointer(store.StoreID),
+			})
+			if err != nil {
+				return fmt.Errorf("error creating resource link between the service %q and the Secret Store %q: %w", s.ServiceID, store.Name, err)
+			}
+			return nil
 		})
 		if err != nil {
-			s.Spinner.StopFailMessage(msg)
-			if serr := s.Spinner.StopFail(); serr != nil {
-				return serr
-			}
-			return fmt.Errorf("error creating resource link between the service %q and the secret store %q: %w", s.ServiceID, store.Name, err)
-		}
-
-		s.Spinner.StopMessage(msg)
-		if err = s.Spinner.Stop(); err != nil {
 			return err
 		}
 	}

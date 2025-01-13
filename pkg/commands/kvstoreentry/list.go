@@ -1,41 +1,47 @@
 package kvstoreentry
 
 import (
+	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // ListCommand calls the Fastly API to list the keys for a given kv store.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest manifest.Data
-	Input    fastly.ListKVStoreKeysInput
+	consistency string
+	Input       fastly.ListKVStoreKeysInput
+}
+
+// ConsistencyOptions is a list of allowed consistency values.
+var ConsistencyOptions = []string{
+	"eventual",
+	"strong",
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 
 	c.CmdClause = parent.Command("list", "List keys")
 
 	// Required.
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
+	c.CmdClause.Flag("consistency", "Determines accuracy of results. i.e. 'eventual' uses caching to improve performance").Default("strong").HintOptions(ConsistencyOptions...).EnumVar(&c.consistency, ConsistencyOptions...)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
@@ -69,6 +75,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		spinner.Message(msg + "... (this can take a few minutes depending on the number of entries)")
 	}
 
+	switch c.consistency {
+	case "eventual":
+		c.Input.Consistency = fastly.ConsistencyEventual
+	case "strong":
+		c.Input.Consistency = fastly.ConsistencyStrong
+	}
+
 	for {
 		o, err := c.Globals.APIClient.ListKVStoreKeys(&c.Input)
 		if err != nil {
@@ -77,7 +90,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return spinErr
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			return err

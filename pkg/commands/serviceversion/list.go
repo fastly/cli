@@ -3,46 +3,45 @@ package serviceversion
 import (
 	"fmt"
 	"io"
+	"time"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v8/fastly"
+	fsttime "github.com/fastly/cli/pkg/time"
 )
 
 // ListCommand calls the Fastly API to list services.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest    manifest.Data
 	Input       fastly.ListVersionsInput
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List Fastly service versions")
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -54,12 +53,12 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	c.Input.ServiceID = serviceID
@@ -78,9 +77,14 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if !c.Globals.Verbose() {
 		tw := text.NewTable(out)
-		tw.AddHeader("NUMBER", "ACTIVE", "LAST EDITED (UTC)")
+		tw.AddHeader("NUMBER", "ACTIVE", "STAGED", "LAST EDITED (UTC)")
 		for _, version := range o {
-			tw.AddLine(version.Number, version.Active, version.UpdatedAt.UTC().Format(time.Format))
+			tw.AddLine(
+				fastly.ToValue(version.Number),
+				fastly.ToValue(version.Active),
+				fastly.ToValue(version.Staging),
+				parseTime(version.UpdatedAt),
+			)
 		}
 		tw.Print()
 		return nil
@@ -94,4 +98,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintln(out)
 
 	return nil
+}
+
+func parseTime(ua *time.Time) string {
+	if ua == nil {
+		return ""
+	}
+	return ua.UTC().Format(fsttime.Format)
 }

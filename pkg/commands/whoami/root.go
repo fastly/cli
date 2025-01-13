@@ -6,59 +6,61 @@ import (
 	"io"
 	"net/http"
 	"sort"
-	"strings"
+	"strconv"
 
-	"github.com/fastly/cli/pkg/cmd"
-	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/api/undocumented"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/useragent"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 }
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "whoami"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("whoami", "Get information about the currently authenticated account")
+	c.CmdClause = parent.Command(CommandName, "Get information about the currently authenticated account")
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	endpoint, _ := c.Globals.Endpoint()
-	fullurl := fmt.Sprintf("%s/verify", strings.TrimSuffix(endpoint, "/"))
-	req, err := http.NewRequest("GET", fullurl, nil)
-	if err != nil {
-		return fmt.Errorf("error constructing API request: %w", err)
-	}
-
-	token, source := c.Globals.Token()
-	if source == lookup.SourceUndefined {
-		return errors.ErrNoToken
-	}
-
-	req.Header.Set("Fastly-Key", token)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", useragent.Name)
-	resp, err := c.Globals.HTTPClient.Do(req)
+	debugMode, _ := strconv.ParseBool(c.Globals.Env.DebugMode)
+	token, _ := c.Globals.Token()
+	apiEndpoint, _ := c.Globals.APIEndpoint()
+	data, err := undocumented.Call(undocumented.CallOptions{
+		APIEndpoint: apiEndpoint,
+		HTTPClient:  c.Globals.HTTPClient,
+		HTTPHeaders: []undocumented.HTTPHeader{
+			{
+				Key:   "Accept",
+				Value: "application/json",
+			},
+			{
+				Key:   "User-Agent",
+				Value: useragent.Name,
+			},
+		},
+		Method: http.MethodGet,
+		Path:   "/verify",
+		Token:  token,
+		Debug:  debugMode,
+	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error executing API request: %w", err)
 	}
-	defer resp.Body.Close() // #nosec G307
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error from API: %s", resp.Status)
-	}
 
 	var response VerifyResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := json.Unmarshal(data, &response); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error decoding API response: %w", err)
 	}

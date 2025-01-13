@@ -36,11 +36,11 @@ endif
 # You can pass flags to goreleaser via GORELEASER_ARGS
 # --clean will save you deleting the dist dir
 # --single-target will be quicker and only build for your os & architecture
-# --skip-post-hooks which prevents errors such as trying to execute the binary for each OS (e.g. we call scripts/documentation.sh and we can't run Windows exe on a Mac).
-# --skip-validate will skip the checks (e.g. git tag checks which result in a 'dirty git state' error)
+# --skip=post-hooks which prevents errors such as trying to execute the binary for each OS (e.g. we call scripts/documentation.sh and we can't run Windows exe on a Mac).
+# --skip=validate will skip the checks (e.g. git tag checks which result in a 'dirty git state' error)
 #
 # EXAMPLE:
-# make release GORELEASER_ARGS="--clean --skip-post-hooks --skip-validate"
+# make release GORELEASER_ARGS="--clean --skip=post-hooks --skip=validate"
 release: dependencies $(GO_FILES) ## Build executables using goreleaser
 	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
 
@@ -53,7 +53,7 @@ config:
 	@$(CONFIG_SCRIPT)
 
 .PHONY: all
-all: config dependencies tidy fmt vet staticcheck gosec semgrep test build install ## Run EVERYTHING!
+all: config dependencies tidy fmt vet staticcheck gosec semgrep imports test build install ## Run EVERYTHING!
 
 # Update CI tools used by ./.github/workflows/pr_test.yml
 .PHONY: dependencies
@@ -93,6 +93,9 @@ revive: ## Run linter (using revive)
 gosec: ## Run security vulnerability checker
 	gosec -quiet -exclude=G104 ./{cmd,pkg}/...
 
+nilaway: ## Run nilaway
+	@nilaway ./...
+
 # Run semgrep checker.
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
 .PHONY: semgrep
@@ -106,6 +109,16 @@ semgrep: ## Run semgrep
 .PHONY: staticcheck
 staticcheck: ## Run static analysis
 	staticcheck ./{cmd,pkg}/...
+
+# Run imports formatter.
+.PHONY: imports
+imports:
+	@echo goimports ./{cmd,pkg}
+	@eval "bash -c 'F=\$$(goimports -l ./{cmd,pkg}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
+
+.PHONY: golangci
+golangci: ## Run golangci-lint
+	golangci-lint run --verbose
 
 # Run tests
 .PHONY: test
@@ -138,6 +151,12 @@ graph: ## Graph generates a call graph that focuses on the specified package
 	go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
 	@rm callvis.gv
 
+.PHONY: deps-app-update
+deps-app-update: ## Update all application dependencies
+	$(GO_BIN) get -u -d -t ./...
+	$(GO_BIN) mod tidy
+	if [ -d "vendor" ]; then $(GO_BIN) mod vendor; fi
+
 .PHONY: help
 help:
 	@printf "Targets\n"
@@ -146,3 +165,7 @@ help:
 	@printf "\033[36m%s\033[0m" $(.DEFAULT_GOAL)
 	@printf "\n\nMake Variables\n"
 	@(grep -h -E '^[0-9a-zA-Z_.-]+\s[:?]?=.*? ## .*$$' $(MAKEFILE_LIST) || true) | sort | awk 'BEGIN {FS = "[:?]?=.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: run
+run: config
+	$(GO_BIN) run cmd/fastly/main.go $(GO_ARGS)

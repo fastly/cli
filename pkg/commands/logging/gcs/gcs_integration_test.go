@@ -3,17 +3,20 @@ package gcs_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestGCSCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -22,6 +25,15 @@ func TestGCSCreate(t *testing.T) {
 	}{
 		{
 			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone"),
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				CreateGCSFn:    createGCSOK,
+			},
+			wantOutput: "Created GCS logging endpoint log (service 123 version 4)",
+		},
+		{
+			args: args("logging gcs create --service-id 123 --version 1 --name log --bucket log --account-name service-account-id --project-id gcp-prj-id --period 86400 --autoclone"),
 			api: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
@@ -51,9 +63,12 @@ func TestGCSCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -61,7 +76,7 @@ func TestGCSCreate(t *testing.T) {
 }
 
 func TestGCSList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -121,9 +136,12 @@ func TestGCSList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -131,7 +149,7 @@ func TestGCSList(t *testing.T) {
 }
 
 func TestGCSDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -163,9 +181,12 @@ func TestGCSDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -173,7 +194,7 @@ func TestGCSDescribe(t *testing.T) {
 }
 
 func TestGCSUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -207,9 +228,12 @@ func TestGCSUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -217,7 +241,7 @@ func TestGCSUpdate(t *testing.T) {
 }
 
 func TestGCSDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -251,9 +275,12 @@ func TestGCSDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -264,60 +291,60 @@ var errTest = errors.New("fixture error")
 
 func createGCSOK(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
-func createGCSError(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
+func createGCSError(_ *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
 func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 	return []*fastly.GCS{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Bucket:            "my-logs",
-			User:              "foo@example.com",
-			AccountName:       "me@fastly.com",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-			Path:              "logs/",
-			Period:            3600,
-			GzipLevel:         0,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Bucket:            fastly.ToPointer("my-logs"),
+			User:              fastly.ToPointer("foo@example.com"),
+			AccountName:       fastly.ToPointer("me@fastly.com"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----foo"),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(3600),
+			GzipLevel:         fastly.ToPointer(0),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Bucket:            "analytics",
-			User:              "foo@example.com",
-			AccountName:       "me@fastly.com",
-			SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-			Path:              "logs/",
-			Period:            86400,
-			GzipLevel:         0,
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-			Placement:         "none",
-			CompressionCodec:  "zstd",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Bucket:            fastly.ToPointer("analytics"),
+			User:              fastly.ToPointer("foo@example.com"),
+			AccountName:       fastly.ToPointer("me@fastly.com"),
+			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----foo"),
+			Path:              fastly.ToPointer("logs/"),
+			Period:            fastly.ToPointer(86400),
+			GzipLevel:         fastly.ToPointer(0),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
+			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
 }
 
-func listGCSsError(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
+func listGCSsError(_ *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 	return nil, errTest
 }
 
@@ -328,8 +355,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listGCSsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -374,27 +401,27 @@ Version: 1
 
 func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Bucket:            "my-logs",
-		User:              "foo@example.com",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-		AccountName:       "me@fastly.com",
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         0,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Bucket:            fastly.ToPointer("my-logs"),
+		User:              fastly.ToPointer("foo@example.com"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----foo"),
+		AccountName:       fastly.ToPointer("me@fastly.com"),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(0),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func getGCSError(i *fastly.GetGCSInput) (*fastly.GCS, error) {
+func getGCSError(_ *fastly.GetGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
@@ -410,6 +437,7 @@ Name: logs
 Path: logs/
 Period: 3600
 Placement: none
+Project ID: 
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----foo
 Service ID: 123
@@ -420,33 +448,33 @@ Version: 1
 
 func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Bucket:            "logs",
-		User:              "foo@example.com",
-		SecretKey:         "-----BEGIN RSA PRIVATE KEY-----foo",
-		Path:              "logs/",
-		Period:            3600,
-		GzipLevel:         0,
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		MessageType:       "classic",
-		TimestampFormat:   "%Y-%m-%dT%H:%M:%S.000",
-		Placement:         "none",
-		CompressionCodec:  "zstd",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Bucket:            fastly.ToPointer("logs"),
+		User:              fastly.ToPointer("foo@example.com"),
+		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----foo"),
+		Path:              fastly.ToPointer("logs/"),
+		Period:            fastly.ToPointer(3600),
+		GzipLevel:         fastly.ToPointer(0),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		MessageType:       fastly.ToPointer("classic"),
+		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
+		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
 
-func updateGCSError(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
+func updateGCSError(_ *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
-func deleteGCSOK(i *fastly.DeleteGCSInput) error {
+func deleteGCSOK(_ *fastly.DeleteGCSInput) error {
 	return nil
 }
 
-func deleteGCSError(i *fastly.DeleteGCSInput) error {
+func deleteGCSError(_ *fastly.DeleteGCSInput) error {
 	return errTest
 }

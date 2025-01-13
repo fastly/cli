@@ -5,28 +5,26 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List API tokens")
 
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagCustomerIDName,
-		Description: cmd.FlagCustomerIDDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagCustomerIDName,
+		Description: argparser.FlagCustomerIDDesc,
 		Dst:         &c.customerID.Value,
 		Action:      c.customerID.Set,
 	})
@@ -36,19 +34,14 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	customerID cmd.OptionalCustomerID
-	manifest   manifest.Data
+	customerID argparser.OptionalCustomerID
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -60,19 +53,16 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if err = c.customerID.Parse(); err == nil {
 		if !c.customerID.WasSet && !c.Globals.Flags.Quiet {
-			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable")
-			text.Break(out)
+			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n")
 		}
-
 		input := c.constructInput()
-
 		o, err = c.Globals.APIClient.ListCustomerTokens(input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	} else {
-		o, err = c.Globals.APIClient.ListTokens()
+		o, err = c.Globals.APIClient.ListTokens(&fastly.ListTokensInput{})
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -107,12 +97,12 @@ func (c *ListCommand) constructInput() *fastly.ListCustomerTokensInput {
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.Token) {
 	for _, r := range rs {
-		fmt.Fprintf(out, "\nID: %s\n", r.ID)
-		fmt.Fprintf(out, "Name: %s\n", r.Name)
-		fmt.Fprintf(out, "User ID: %s\n", r.UserID)
+		fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.TokenID))
+		fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
+		fmt.Fprintf(out, "User ID: %s\n", fastly.ToValue(r.UserID))
 		fmt.Fprintf(out, "Services: %s\n", strings.Join(r.Services, ", "))
-		fmt.Fprintf(out, "Scope: %s\n", r.Scope)
-		fmt.Fprintf(out, "IP: %s\n\n", r.IP)
+		fmt.Fprintf(out, "Scope: %s\n", fastly.ToValue(r.Scope))
+		fmt.Fprintf(out, "IP: %s\n\n", fastly.ToValue(r.IP))
 
 		if r.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)
@@ -129,12 +119,18 @@ func (c *ListCommand) printVerbose(out io.Writer, rs []*fastly.Token) {
 
 // printSummary displays the information returned from the API in a summarised
 // format.
-func (c *ListCommand) printSummary(out io.Writer, rs []*fastly.Token) error {
-	t := text.NewTable(out)
-	t.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
-	for _, r := range rs {
-		t.AddLine(r.Name, r.ID, r.UserID, r.Scope, strings.Join(r.Services, ", "))
+func (c *ListCommand) printSummary(out io.Writer, ts []*fastly.Token) error {
+	tbl := text.NewTable(out)
+	tbl.AddHeader("NAME", "TOKEN ID", "USER ID", "SCOPE", "SERVICES")
+	for _, t := range ts {
+		tbl.AddLine(
+			fastly.ToValue(t.Name),
+			fastly.ToValue(t.TokenID),
+			fastly.ToValue(t.UserID),
+			fastly.ToValue(t.Scope),
+			strings.Join(t.Services, ", "),
+		)
 	}
-	t.Print()
+	tbl.Print()
 	return nil
 }

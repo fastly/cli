@@ -4,21 +4,20 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List ACLs")
 
@@ -27,20 +26,20 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
-	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(cmd.PaginationDirection[0]).HintOptions(cmd.PaginationDirection...).EnumVar(&c.direction, cmd.PaginationDirection...)
+	c.CmdClause.Flag("direction", "Direction in which to sort results").Default(argparser.PaginationDirection[0]).HintOptions(argparser.PaginationDirection...).EnumVar(&c.direction, argparser.PaginationDirection...)
 	c.CmdClause.Flag("page", "Page number of data set to fetch").IntVar(&c.page)
 	c.CmdClause.Flag("per-page", "Number of records per page").IntVar(&c.perPage)
 	c.CmdClause.Flag("sort", "Field on which to sort").Default("created").StringVar(&c.sort)
@@ -50,15 +49,14 @@ func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Lis
 
 // ListCommand calls the Fastly API to list appropriate resources.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	aclID       string
 	direction   string
-	manifest    manifest.Data
 	page        int
 	perPage     int
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 	sort        string
 }
 
@@ -68,19 +66,17 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	input := c.constructInput(serviceID)
-	paginator := c.Globals.APIClient.NewListACLEntriesPaginator(input)
+	paginator := c.Globals.APIClient.GetACLEntries(input)
 
-	// TODO: Use generics support in go 1.18 to replace this almost identical
-	// logic inside of 'dictionary-item list' and 'service list'.
 	var o []*fastly.ACLEntry
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
@@ -111,15 +107,23 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *ListCommand) constructInput(serviceID string) *fastly.ListACLEntriesInput {
-	var input fastly.ListACLEntriesInput
+func (c *ListCommand) constructInput(serviceID string) *fastly.GetACLEntriesInput {
+	var input fastly.GetACLEntriesInput
 
 	input.ACLID = c.aclID
-	input.Direction = c.direction
-	input.Page = c.page
-	input.PerPage = c.perPage
+	if c.direction != "" {
+		input.Direction = fastly.ToPointer(c.direction)
+	}
+	if c.page > 0 {
+		input.Page = fastly.ToPointer(c.page)
+	}
+	if c.perPage > 0 {
+		input.PerPage = fastly.ToPointer(c.perPage)
+	}
 	input.ServiceID = serviceID
-	input.Sort = c.sort
+	if c.sort != "" {
+		input.Sort = fastly.ToPointer(c.sort)
+	}
 
 	return &input
 }
@@ -128,12 +132,12 @@ func (c *ListCommand) constructInput(serviceID string) *fastly.ListACLEntriesInp
 // format.
 func (c *ListCommand) printVerbose(out io.Writer, as []*fastly.ACLEntry) {
 	for _, a := range as {
-		fmt.Fprintf(out, "ACL ID: %s\n", a.ACLID)
-		fmt.Fprintf(out, "ID: %s\n", a.ID)
-		fmt.Fprintf(out, "IP: %s\n", a.IP)
-		fmt.Fprintf(out, "Subnet: %d\n", a.Subnet)
-		fmt.Fprintf(out, "Negated: %t\n", a.Negated)
-		fmt.Fprintf(out, "Comment: %s\n\n", a.Comment)
+		fmt.Fprintf(out, "ACL ID: %s\n", fastly.ToValue(a.ACLID))
+		fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(a.EntryID))
+		fmt.Fprintf(out, "IP: %s\n", fastly.ToValue(a.IP))
+		fmt.Fprintf(out, "Subnet: %d\n", fastly.ToValue(a.Subnet))
+		fmt.Fprintf(out, "Negated: %t\n", fastly.ToValue(a.Negated))
+		fmt.Fprintf(out, "Comment: %s\n\n", fastly.ToValue(a.Comment))
 
 		if a.CreatedAt != nil {
 			fmt.Fprintf(out, "Created at: %s\n", a.CreatedAt)
@@ -159,7 +163,13 @@ func (c *ListCommand) printSummary(out io.Writer, as []*fastly.ACLEntry) error {
 		if a.Subnet != nil {
 			subnet = *a.Subnet
 		}
-		t.AddLine(a.ServiceID, a.ID, a.IP, subnet, a.Negated)
+		t.AddLine(
+			fastly.ToValue(a.ServiceID),
+			fastly.ToValue(a.EntryID),
+			fastly.ToValue(a.IP),
+			subnet,
+			fastly.ToValue(a.Negated),
+		)
 	}
 	t.Print()
 	return nil

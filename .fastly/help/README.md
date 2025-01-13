@@ -1,6 +1,6 @@
 # Developer Hub Help Pages
 
-This directory contains troubleshooting pages for common issues in this project, which are ingested by the [Developer Hub](https://developer.fastly.com) and served on the `fastly.help` domain.
+This directory contains troubleshooting pages for common issues in this project, which are ingested by the [Developer Hub](https://fastly.com/documentation/developers) and served on the `fastly.help` domain.
 
 To update or create a help page, add or edit the Markdown files in this directory. Changes will be deployed on Developer Hub within 24 hours.
 
@@ -9,7 +9,7 @@ To update or create a help page, add or edit the Markdown files in this director
 ```md
 ---
 id: ecp-feature
-title: Compute@Edge is not enabled on your account
+title: Compute is not enabled on your account
 template: help
 ---
 

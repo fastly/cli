@@ -3,17 +3,20 @@ package splunk_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestSplunkCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -43,9 +46,12 @@ func TestSplunkCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -53,7 +59,7 @@ func TestSplunkCreate(t *testing.T) {
 }
 
 func TestSplunkList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -113,9 +119,12 @@ func TestSplunkList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -123,7 +132,7 @@ func TestSplunkList(t *testing.T) {
 }
 
 func TestSplunkDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +164,12 @@ func TestSplunkDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +177,7 @@ func TestSplunkDescribe(t *testing.T) {
 }
 
 func TestSplunkUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -199,9 +211,12 @@ func TestSplunkUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -209,7 +224,7 @@ func TestSplunkUpdate(t *testing.T) {
 }
 
 func TestSplunkDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -243,9 +258,12 @@ func TestSplunkDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -256,52 +274,52 @@ var errTest = errors.New("fixture error")
 
 func createSplunkOK(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
-func createSplunkError(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
+func createSplunkError(_ *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
 func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	return []*fastly.Splunk{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			URL:               "example.com",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-			Token:             "tkn",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			URL:               fastly.ToPointer("example.com"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
+			Token:             fastly.ToPointer("tkn"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			URL:               "127.0.0.1",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
-			Token:             "tkn1",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----qux",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----qux",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			URL:               fastly.ToPointer("127.0.0.1"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
+			Token:             fastly.ToPointer("tkn1"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----qux"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----qux"),
 		},
 	}, nil
 }
 
-func listSplunksError(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
+func listSplunksError(_ *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	return nil, errTest
 }
 
@@ -312,8 +330,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listSplunksVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -350,23 +368,23 @@ Version: 1
 
 func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		URL:               "example.com",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
-		Token:             "tkn",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		URL:               fastly.ToPointer("example.com"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
+		Token:             fastly.ToPointer("tkn"),
 	}, nil
 }
 
-func getSplunkError(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
+func getSplunkError(_ *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
@@ -388,30 +406,30 @@ Version: 1
 
 func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		URL:               "example.com",
-		Token:             "tkn",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		URL:               fastly.ToPointer("example.com"),
+		Token:             fastly.ToPointer("tkn"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func updateSplunkError(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
+func updateSplunkError(_ *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
-func deleteSplunkOK(i *fastly.DeleteSplunkInput) error {
+func deleteSplunkOK(_ *fastly.DeleteSplunkInput) error {
 	return nil
 }
 
-func deleteSplunkError(i *fastly.DeleteSplunkInput) error {
+func deleteSplunkError(_ *fastly.DeleteSplunkInput) error {
 	return errTest
 }

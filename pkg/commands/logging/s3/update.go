@@ -3,72 +3,73 @@ package s3
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"4d63.com/optional"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // UpdateCommand calls the Fastly API to update an Amazon S3 logging endpoint.
 type UpdateCommand struct {
-	cmd.Base
+	argparser.Base
 	Manifest manifest.Data
 
 	// Required.
-	EndpointName   string // Can't shadow cmd.Base method Name().
-	ServiceName    cmd.OptionalServiceNameID
-	ServiceVersion cmd.OptionalServiceVersion
+	EndpointName   string // Can't shadow argparser.Base method Name().
+	ServiceName    argparser.OptionalServiceNameID
+	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone                    cmd.OptionalAutoClone
-	NewName                      cmd.OptionalString
-	Address                      cmd.OptionalString
-	BucketName                   cmd.OptionalString
-	AccessKey                    cmd.OptionalString
-	SecretKey                    cmd.OptionalString
-	IAMRole                      cmd.OptionalString
-	Domain                       cmd.OptionalString
-	Path                         cmd.OptionalString
-	Period                       cmd.OptionalInt
-	GzipLevel                    cmd.OptionalInt
-	FileMaxBytes                 cmd.OptionalInt
-	Format                       cmd.OptionalString
-	FormatVersion                cmd.OptionalInt
-	MessageType                  cmd.OptionalString
-	ResponseCondition            cmd.OptionalString
-	TimestampFormat              cmd.OptionalString
-	Placement                    cmd.OptionalString
-	PublicKey                    cmd.OptionalString
-	Redundancy                   cmd.OptionalString
-	ServerSideEncryption         cmd.OptionalString
-	ServerSideEncryptionKMSKeyID cmd.OptionalString
-	CompressionCodec             cmd.OptionalString
+	AutoClone                    argparser.OptionalAutoClone
+	NewName                      argparser.OptionalString
+	Address                      argparser.OptionalString
+	BucketName                   argparser.OptionalString
+	AccessKey                    argparser.OptionalString
+	SecretKey                    argparser.OptionalString
+	IAMRole                      argparser.OptionalString
+	Domain                       argparser.OptionalString
+	Path                         argparser.OptionalString
+	Period                       argparser.OptionalInt
+	GzipLevel                    argparser.OptionalInt
+	FileMaxBytes                 argparser.OptionalInt
+	Format                       argparser.OptionalString
+	FormatVersion                argparser.OptionalInt
+	MessageType                  argparser.OptionalString
+	ResponseCondition            argparser.OptionalString
+	TimestampFormat              argparser.OptionalString
+	Placement                    argparser.OptionalString
+	PublicKey                    argparser.OptionalString
+	Redundancy                   argparser.OptionalString
+	ServerSideEncryption         argparser.OptionalString
+	ServerSideEncryptionKMSKeyID argparser.OptionalString
+	CompressionCodec             argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *UpdateCommand {
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
 	c := UpdateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		Manifest: m,
 	}
 	c.CmdClause = parent.Command("update", "Update a S3 logging endpoint on a Fastly service version")
 
 	// Required.
 	c.CmdClause.Flag("name", "The name of the S3 logging object").Short('n').Required().StringVar(&c.EndpointName)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
-	c.RegisterAutoCloneFlag(cmd.AutoCloneFlagOpts{
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
@@ -92,16 +93,16 @@ func NewUpdateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *U
 	c.CmdClause.Flag("secret-key", "Your S3 account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.CmdClause.Flag("server-side-encryption", "Set to enable S3 Server Side Encryption. Can be either AES256 or aws:kms").Action(c.ServerSideEncryption.Set).EnumVar(&c.ServerSideEncryption.Value, string(fastly.S3ServerSideEncryptionAES), string(fastly.S3ServerSideEncryptionKMS))
 	c.CmdClause.Flag("server-side-encryption-kms-key-id", "Server-side KMS Key ID. Must be set if server-side-encryption is set to aws:kms").Action(c.ServerSideEncryptionKMSKeyID.Set).StringVar(&c.ServerSideEncryptionKMSKeyID.Value)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.Manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
 	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
@@ -195,16 +196,16 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	if c.Redundancy.WasSet {
 		redundancy, err := ValidateRedundancy(c.Redundancy.Value)
 		if err == nil {
-			input.Redundancy = fastly.S3RedundancyPtr(redundancy)
+			input.Redundancy = fastly.ToPointer(redundancy)
 		}
 	}
 
 	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionPtr(fastly.S3ServerSideEncryptionAES)
+			input.ServerSideEncryption = fastly.ToPointer(fastly.S3ServerSideEncryptionAES)
 		case string(fastly.S3ServerSideEncryptionKMS):
-			input.ServerSideEncryption = fastly.S3ServerSideEncryptionPtr(fastly.S3ServerSideEncryptionKMS)
+			input.ServerSideEncryption = fastly.ToPointer(fastly.S3ServerSideEncryptionKMS)
 		}
 	}
 
@@ -213,10 +214,12 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		AutoCloneFlag:      c.AutoClone,
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.Manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.ServiceName,
 		ServiceVersionFlag: c.ServiceVersion,
@@ -230,7 +233,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	input, err := c.ConstructInput(serviceID, serviceVersion.Number)
+	input, err := c.ConstructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -242,6 +245,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated S3 logging endpoint %s (service %s version %d)", s3.Name, s3.ServiceID, s3.ServiceVersion)
+	text.Success(out,
+		"Updated S3 logging endpoint %s (service %s version %d)",
+		fastly.ToValue(s3.Name),
+		fastly.ToValue(s3.ServiceID),
+		fastly.ToValue(s3.ServiceVersion),
+	)
 	return nil
 }

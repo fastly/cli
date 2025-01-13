@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,15 +16,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fastly/go-fastly/v9/fastly"
 	cp "github.com/otiai10/copy"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/internal/beacon"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
@@ -35,32 +39,36 @@ var (
 	fastlyFileIgnoreListRegEx = regexp.MustCompile(`\.github|LICENSE|SECURITY\.md|CHANGELOG\.md|screenshot\.png`)
 )
 
-// InitCommand initializes a Compute@Edge project package on the local machine.
+// InitCommand initializes a Compute project package on the local machine.
 type InitCommand struct {
-	cmd.Base
+	argparser.Base
 
-	branch    string
-	dir       string
-	cloneFrom string
-	language  string
-	manifest  manifest.Data
-	tag       string
+	// CloneFrom is the value of the --from flag.
+	// NOTE: CloneFrom is public so that we can check to see if we need
+	// a token (to use --from=service-id) or not (to use a git
+	// repository).
+	CloneFrom string
+
+	branch   string
+	dir      string
+	language string
+	tag      string
 }
 
 // Languages is a list of supported language options.
 var Languages = []string{"rust", "javascript", "go", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
-func NewInitCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *InitCommand {
+func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
 	var c InitCommand
 	c.Globals = g
-	c.manifest = m
-	c.CmdClause = parent.Command("init", "Initialize a new Compute@Edge package locally")
-	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
-	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&c.manifest.File.Authors)
-	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
-	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template").Short('f').StringVar(&c.cloneFrom)
+
+	c.CmdClause = parent.Command("init", "Initialize a new Compute package locally")
+	c.CmdClause.Flag("author", "Author(s) of the package").Short('a').StringsVar(&g.Manifest.File.Authors)
 	c.CmdClause.Flag("branch", "Git branch name to clone from package template repository").Hidden().StringVar(&c.branch)
+	c.CmdClause.Flag("directory", "Destination to write the new package, defaulting to the current directory").Short('p').StringVar(&c.dir)
+	c.CmdClause.Flag("from", "Local project directory, or Git repository URL, or URL referencing a .zip/.tar.gz file, containing a package template, or an existing service ID created from a starter kit").Short('f').StringVar(&c.CloneFrom)
+	c.CmdClause.Flag("language", "Language of the package").Short('l').HintOptions(Languages...).EnumVar(&c.language, Languages...)
 	c.CmdClause.Flag("tag", "Git tag name to clone from package template repository").Hidden().StringVar(&c.tag)
 
 	return &c
@@ -68,28 +76,36 @@ func NewInitCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Ini
 
 // Exec implements the command interface.
 func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	var introContext string
-	if c.cloneFrom != "" {
-		introContext = " (using --from to locate package template)"
+	var (
+		introContext      string
+		isExistingService bool
+	)
+	if c.CloneFrom != "" {
+		isExistingService = text.IsFastlyID(c.CloneFrom)
+		if !isExistingService {
+			introContext = " (using --from to locate package template)"
+		}
 	}
 
-	text.Break(out)
-	text.Output(out, "Creating a new Compute@Edge project%s.", introContext)
-	text.Break(out)
+	if isExistingService {
+		text.Output(out, "Initializing Compute project from service %s.\n\n", c.CloneFrom)
+	} else {
+		text.Output(out, "Creating a new Compute project%s.\n\n", introContext)
+	}
 	text.Output(out, "Press ^C at any time to quit.")
 
-	if c.cloneFrom != "" && c.language == "" {
-		text.Warning(out, "When using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
+	if c.CloneFrom != "" && !isExistingService && c.language == "" {
+		text.Warning(out, "\nWhen using the --from flag, the project language cannot be inferred. Please either use the --language flag to explicitly set the language or ensure the project's fastly.toml sets a valid language.")
 	}
 
 	text.Break(out)
-
-	cont, err := verifyDirectory(c.Globals.Flags, c.dir, out, in)
+	cont, notEmpty, err := c.VerifyDirectory(in, out)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 	if !cont {
+		text.Break(out)
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("project directory not empty"),
 			Remediation: fsterr.ExistingDirRemediation,
@@ -108,13 +124,12 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return fmt.Errorf("error determining current directory: %w", err)
 	}
 
-	mf := c.manifest.File
+	mf := c.Globals.Manifest.File
 	if c.Globals.Flags.Quiet {
 		mf.SetQuiet(true)
 	}
 	if c.dir == "" && !mf.Exists() && c.Globals.Verbose() {
-		text.Info(out, "--directory not specified, using current directory")
-		text.Break(out)
+		text.Info(out, "--directory not specified, using current directory\n\n")
 		c.dir = wd
 	}
 
@@ -123,7 +138,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	dst, err := verifyDestination(c.dir, spinner, out)
+	dst, err := c.VerifyDestination(spinner)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory": c.dir,
@@ -132,37 +147,55 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 	c.dir = dst
 
+	if notEmpty {
+		text.Break(out)
+	}
+	err = spinner.Process("Validating directory permissions", validateDirectoryPermissions(dst))
+	if err != nil {
+		return err
+	}
+
 	// Assign the default profile email if available.
 	email := ""
-	profileName, p := profile.Default(c.Globals.Config.Profiles)
-	if profileName != "" {
+	if _, p := profile.Default(c.Globals.Config.Profiles); p != nil {
 		email = p.Email
 	}
 
-	name, desc, authors, err := promptOrReturn(c.Globals.Flags, c.manifest, c.dir, email, in, out)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Description": desc,
-			"Directory":   c.dir,
-		})
-		return err
+	var (
+		name    string
+		desc    string
+		authors []string
+	)
+	if !isExistingService {
+		name, desc, authors, err = c.PromptOrReturn(email, in, out)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Description": desc,
+				"Directory":   c.dir,
+			})
+			return err
+		}
 	}
 
 	languages := NewLanguages(c.Globals.Config.StarterKits)
 
 	var language *Language
 
-	if c.language == "" && c.cloneFrom == "" {
-		language, err = promptForLanguage(c.Globals.Flags, languages, in, out)
+	if c.language == "" && c.CloneFrom == "" && c.Globals.Manifest.File.Language == "" {
+		language, err = c.PromptForLanguage(languages, in, out)
 		if err != nil {
 			return err
 		}
 	}
 
 	// NOTE: The --language flag is an EnumVar, meaning it's already validated.
-	if c.language != "" {
+	if c.language != "" || mf.Language != "" {
+		l := c.language
+		if c.language == "" {
+			l = mf.Language
+		}
 		for _, recognisedLanguage := range languages {
-			if strings.EqualFold(c.language, recognisedLanguage.Name) {
+			if strings.EqualFold(l, recognisedLanguage.Name) {
 				language = recognisedLanguage
 			}
 		}
@@ -174,43 +207,195 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// fastly.toml manifest, or the language they selected was "other" (meaning
 	// they're bringing their own project code), then we'll prompt the user to
 	// select a starter kit project.
-	if c.cloneFrom == "" && !mf.Exists() && language.Name != "other" {
-		from, branch, tag, err = promptForStarterKit(c.Globals.Flags, language.StarterKits, in, out)
+	triggerStarterKitPrompt := c.CloneFrom == "" && !mf.Exists() && language.Name != "other"
+	if triggerStarterKitPrompt {
+		from, branch, tag, err = c.PromptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"From":           c.cloneFrom,
+				"From":           c.CloneFrom,
 				"Branch":         c.branch,
 				"Tag":            c.tag,
 				"Manifest Exist": false,
 			})
 			return err
 		}
-		c.cloneFrom = from
+		c.CloneFrom = from
 	}
 
-	// We only want to fetch a remote package if c.cloneFrom has been set.
-	// This can happen in two ways:
+	defer func() {
+		if triggerStarterKitPrompt || !isExistingService {
+			return
+		}
+
+		evt := beacon.Event{
+			Name: "init",
+		}
+		if err != nil {
+			evt.Status = beacon.StatusFail
+		} else {
+			evt.Status = beacon.StatusSuccess
+		}
+
+		bErr := beacon.Notify(c.Globals, c.CloneFrom, evt)
+		if bErr != nil {
+			c.Globals.ErrLog.Add(bErr)
+		}
+	}()
+
+	// There are three situations in which we might fetch something
+	// here. We might fetch a template if:
 	//
-	// 1. --from flag is set
+	// 1. --from flag is set to a template repository, or
 	// 2. user selects starter kit when prompted
+	//
+	// Or we fetch an existing, deployed package if
+	//
+	// 3. --from flag is set to a serviceID
 	//
 	// We don't fetch if the user has indicated their language of choice is
 	// "other" because this means they intend on handling the compilation of code
 	// that isn't natively supported by the platform.
-	if c.cloneFrom != "" {
-		err = fetchPackageTemplate(c, branch, tag, file.Archives, spinner, out)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"From":      from,
-				"Branch":    branch,
-				"Tag":       tag,
-				"Directory": c.dir,
+	if c.CloneFrom != "" {
+		if !isExistingService {
+			err = c.FetchPackageTemplate(branch, tag, file.Archives, spinner, out)
+			if err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]any{
+					"From":      from,
+					"Branch":    branch,
+					"Tag":       tag,
+					"Directory": c.dir,
+				})
+				return err
+			}
+		} else {
+			var (
+				serviceDetails *fastly.ServiceDetail
+				pack           *fastly.Package
+				serviceVersion int
+			)
+			err = spinner.Process("Fetching service details", func(_ *text.SpinnerWrapper) error {
+				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
+					ServiceID: c.CloneFrom,
+				})
+				if err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]any{
+						"From":      c.CloneFrom,
+						"Directory": c.dir,
+					})
+					if hErr, ok := err.(*fastly.HTTPError); ok && hErr.IsNotFound() {
+						return fmt.Errorf("the service %s could not be found", c.CloneFrom)
+					}
+					return err
+				}
+
+				if fastly.ToValue(serviceDetails.Type) != "wasm" {
+					return fmt.Errorf("service %s is not a Compute service (type is %s)", c.CloneFrom, fastly.ToValue(serviceDetails.Type))
+				}
+
+				if serviceDetails.ActiveVersion != nil {
+					serviceVersion = fastly.ToValue(serviceDetails.ActiveVersion.Number)
+					pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
+						ServiceID:      c.CloneFrom,
+						ServiceVersion: serviceVersion,
+					})
+					if err != nil {
+						return err
+					}
+				} else {
+					for i := len(serviceDetails.Versions) - 1; i >= 0; i-- {
+						serviceVersion = fastly.ToValue(serviceDetails.Versions[i].Number)
+						pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
+							ServiceID:      c.CloneFrom,
+							ServiceVersion: serviceVersion,
+						})
+						if err != nil {
+							if hErr, ok := err.(*fastly.HTTPError); ok {
+								if hErr.IsNotFound() {
+									continue
+								}
+							}
+							return err
+						}
+						if pack != nil {
+							break
+						}
+					}
+				}
+
+				// were not able to find any service versions with an
+				// existing package
+				if pack == nil {
+					return fmt.Errorf("unable to find any version of service %s with an existing package", c.CloneFrom)
+				}
+
+				return nil
 			})
-			return err
+			if err != nil {
+				return err
+			}
+
+			if pack.Metadata != nil {
+				clonedFrom := fastly.ToValue(pack.Metadata.ClonedFrom)
+				if serviceVersion > 1 {
+					text.Info(out, "\nService has active versions, not fetching starter kit source\n\n")
+				} else if gitRepositoryRegEx.MatchString(clonedFrom) {
+					err = spinner.Process("Initializing file structure from selected starter kit", func(*text.SpinnerWrapper) error {
+						err := c.ClonePackageFromEndpoint(clonedFrom, "", "")
+						if err != nil {
+							c.Globals.ErrLog.AddWithContext(err, map[string]any{
+								"cloned_from": clonedFrom,
+							})
+							return fmt.Errorf("could not fetch original source code: %w", err)
+						}
+						return nil
+					})
+					if err != nil {
+						return err
+					}
+				}
+
+				if pack.Metadata.Name != nil {
+					name = *pack.Metadata.Name
+				}
+
+				if name == "" {
+					name = *serviceDetails.Name
+				}
+
+				if pack.Metadata.Description != nil {
+					desc = *pack.Metadata.Description
+				}
+
+				if desc == "" {
+					desc = fastly.ToValue(serviceDetails.Comment)
+				}
+
+				authors = append(authors, pack.Metadata.Authors...)
+				mf.Language = fastly.ToValue(pack.Metadata.Language)
+			}
+
+			mf.Name = name
+			mf.ServiceID = *pack.ServiceID
+			mf.Description = desc
+			// mf.Profile = profileName
+			mf.Authors = authors
+
+			mp := filepath.Join(c.dir, manifest.Filename)
+			err = mf.Write(mp)
+			if err != nil {
+				return fmt.Errorf("error creating fastly.toml: %w", err)
+			}
 		}
 	}
 
-	mf, err = updateManifest(mf, spinner, c.dir, name, desc, authors, language)
+	// If the user was prompted to fill the name/desc/authors/lang, then we insert
+	// a line break so the following spinner instances have spacing. But only if
+	// the starter kit wasn't prompted for as that already handles spacing.
+	if (mf.Name == "" || mf.Description == "" || mf.Language == "" || len(mf.Authors) == 0) && !triggerStarterKitPrompt {
+		text.Break(out)
+	}
+
+	mf, err = c.UpdateManifest(mf, spinner, name, desc, authors, language)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Directory":   c.dir,
@@ -220,7 +405,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	language, err = initializeLanguage(spinner, language, languages, mf.Language, wd, c.dir)
+	language, err = c.InitializeLanguage(spinner, language, languages, mf.Language, wd)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error initializing package: %w", err)
@@ -235,11 +420,11 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	postInit := md.File.Scripts.PostInit
 	if postInit != "" {
 		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-			msg := fmt.Sprintf(CustomPostScriptMessage, "init")
+			msg := fmt.Sprintf(CustomPostScriptMessage, "init", manifest.Filename)
 			err := promptForPostInitContinue(msg, postInit, out, in)
 			if err != nil {
 				if errors.Is(err, fsterr.ErrPostInitStopped) {
-					displayOutput(mf.Name, dst, language.Name, out)
+					displayInitOutput(mf.Name, dst, language.Name, out)
 					return nil
 				}
 				return err
@@ -285,16 +470,14 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// But we can't just call StopFailMessage() without first starting the spinner.
 			if c.Globals.Flags.Verbose {
 				text.Break(out)
-				err := spinner.Start()
-				if err != nil {
-					return err
+				spinErr := spinner.Start()
+				if spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				spinner.Message(msg + "...")
-
 				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return spinErr
+				if spinErr := spinner.StopFail(); spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 			}
 			return err
@@ -318,55 +501,56 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	displayOutput(mf.Name, dst, language.Name, out)
+	displayInitOutput(mf.Name, dst, language.Name, out)
 	return nil
 }
 
-// verifyDirectory indicates if the user wants to continue with the execution
+// VerifyDirectory indicates if the user wants to continue with the execution
 // flow when presented with a prompt that suggests the current directory isn't
 // empty.
-func verifyDirectory(flags global.Flags, dir string, out io.Writer, in io.Reader) (bool, error) {
+func (c *InitCommand) VerifyDirectory(in io.Reader, out io.Writer) (cont, notEmpty bool, err error) {
+	flags := c.Globals.Flags
+	dir := c.dir
+
 	if dir == "" {
 		dir = "."
 	}
-	dir, err := filepath.Abs(dir)
+	dir, err = filepath.Abs(dir)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 
 	files, err := os.ReadDir(dir)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 
-	if strings.Contains(dir, " ") && !flags.AutoYes && !flags.NonInteractive {
-		text.Warning(out, "Your project path contains spaces. In some cases this can result in issues with your installed language toolchain, e.g. `npm`. Consider removing any spaces.")
-		text.Break(out)
+	if strings.Contains(dir, " ") && !flags.Quiet {
+		text.Warning(out, "Your project path contains spaces. In some cases this can result in issues with your installed language toolchain, e.g. `npm`. Consider removing any spaces.\n\n")
 	}
 
 	if len(files) > 0 && !flags.AutoYes && !flags.NonInteractive {
-		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute@Edge project in %s? [y/N] ", dir)
+		label := fmt.Sprintf("The current directory isn't empty. Are you sure you want to initialize a Compute project in %s? [y/N] ", dir)
 		result, err := text.AskYesNo(out, label, in)
 		if err != nil {
-			return false, err
+			return false, true, err
 		}
-		return result, nil
+		return result, true, nil
 	}
 
-	return true, nil
+	return true, false, nil
 }
 
-// verifyDestination checks the provided path exists and is a directory.
+// VerifyDestination checks the provided path exists and is a directory.
 //
 // NOTE: For validating user permissions it will create a temporary file within
 // the directory and then remove it before returning the absolute path to the
 // directory itself.
-func verifyDestination(path string, spinner text.Spinner, out io.Writer) (dst string, err error) {
-	dst, err = filepath.Abs(path)
+func (c *InitCommand) VerifyDestination(spinner text.Spinner) (dst string, err error) {
+	dst, err = filepath.Abs(c.dir)
 	if err != nil {
 		return "", err
 	}
-
 	fi, err := os.Stat(dst)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return dst, fmt.Errorf("couldn't verify package directory: %w", err) // generic error
@@ -375,132 +559,79 @@ func verifyDestination(path string, spinner text.Spinner, out io.Writer) (dst st
 		return dst, fmt.Errorf("package destination is not a directory") // specific problem
 	}
 	if err != nil && errors.Is(err, fs.ErrNotExist) { // normal-ish case
-		text.Break(out)
-
-		err := spinner.Start()
-		if err != nil {
-			return "", err
-		}
-		msg := fmt.Sprintf("Creating %s", dst)
-		spinner.Message(msg + "...")
-
-		if err := os.MkdirAll(dst, 0o700); err != nil {
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return "", spinErr
+		err := spinner.Process(fmt.Sprintf("Creating %s", dst), func(_ *text.SpinnerWrapper) error {
+			if err := os.MkdirAll(dst, 0o700); err != nil {
+				return fmt.Errorf("error creating package destination: %w", err)
 			}
-			return dst, fmt.Errorf("error creating package destination: %w", err)
-		}
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
+			return nil
+		})
 		if err != nil {
 			return "", err
 		}
-	}
-
-	text.Break(out)
-	err = spinner.Start()
-	if err != nil {
-		return "", err
-	}
-	msg := "Validating directory permissions"
-	spinner.Message(msg + "...")
-
-	tmpname := make([]byte, 16)
-	n, err := rand.Read(tmpname)
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("error generating random filename: %w", err)
-	}
-	if n != 16 {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
-	}
-
-	// gosec flagged this:
-	// G304 (CWE-22): Potential file inclusion via variable
-	//
-	// Disabling as the input is determined by our own package.
-	/* #nosec */
-	f, err := os.Create(filepath.Join(dst, fmt.Sprintf("tmp_%x", tmpname)))
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("error creating file in package destination: %w", err)
-	}
-
-	if err := f.Close(); err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("error closing file in package destination: %w", err)
-	}
-
-	if err := os.Remove(f.Name()); err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return "", spinErr
-		}
-		return dst, fmt.Errorf("error removing file in package destination: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return "", err
 	}
 	return dst, nil
 }
 
-// promptOrReturn will prompt the user for information missing from the
+func validateDirectoryPermissions(dst string) text.SpinnerProcess {
+	return func(_ *text.SpinnerWrapper) error {
+		tmpname := make([]byte, 16)
+		n, err := rand.Read(tmpname)
+		if err != nil {
+			return fmt.Errorf("error generating random filename: %w", err)
+		}
+		if n != 16 {
+			return fmt.Errorf("failed to generate enough entropy (%d/%d)", n, 16)
+		}
+
+		// gosec flagged this:
+		// G304 (CWE-22): Potential file inclusion via variable
+		//
+		// Disabling as the input is determined by our own package.
+		// #nosec
+		f, err := os.Create(filepath.Join(dst, fmt.Sprintf("tmp_%x", tmpname)))
+		if err != nil {
+			return fmt.Errorf("error creating file in package destination: %w", err)
+		}
+
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("error closing file in package destination: %w", err)
+		}
+
+		if err := os.Remove(f.Name()); err != nil {
+			return fmt.Errorf("error removing file in package destination: %w", err)
+		}
+		return nil
+	}
+}
+
+// PromptOrReturn will prompt the user for information missing from the
 // fastly.toml manifest file, otherwise if it already exists then the value is
 // returned as is.
-func promptOrReturn(
-	flags global.Flags,
-	m manifest.Data,
-	path, email string,
-	in io.Reader,
-	out io.Writer,
-) (name, description string, authors []string, err error) {
-	name, _ = m.Name()
-	description, _ = m.Description()
-	authors, _ = m.Authors()
+func (c *InitCommand) PromptOrReturn(email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
+	flags := c.Globals.Flags
+	name, _ = c.Globals.Manifest.Name()
+	description, _ = c.Globals.Manifest.Description()
+	authors, _ = c.Globals.Manifest.Authors()
 
-	if name == "" || description == "" || len(authors) == 0 {
+	if name == "" && !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Break(out)
 	}
-
-	name, err = promptPackageName(flags, name, path, in, out)
+	name, err = c.PromptPackageName(flags, name, in, out)
 	if err != nil {
 		return "", description, authors, err
 	}
 
+	if description == "" && !flags.AcceptDefaults && !flags.NonInteractive {
+		text.Break(out)
+	}
 	description, err = promptPackageDescription(flags, description, in, out)
 	if err != nil {
 		return name, "", authors, err
 	}
 
-	// This catches scenarios where someone runs `compute init` multiple times.
-	if name != "" && len(authors) > 0 {
+	if len(authors) == 0 && !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Break(out)
 	}
-
 	authors, err = promptPackageAuthors(flags, authors, email, in, out)
 	if err != nil {
 		return name, description, []string{}, err
@@ -509,13 +640,13 @@ func promptOrReturn(
 	return name, description, authors, nil
 }
 
-// promptPackageName prompts the user for a package name unless already defined either
+// PromptPackageName prompts the user for a package name unless already defined either
 // via the corresponding CLI flag or the manifest file.
 //
 // It will use a default of the current directory path if no value provided by
 // the user via the prompt.
-func promptPackageName(flags global.Flags, name string, dirPath string, in io.Reader, out io.Writer) (string, error) {
-	defaultName := filepath.Base(dirPath)
+func (c *InitCommand) PromptPackageName(flags global.Flags, name string, in io.Reader, out io.Writer) (string, error) {
+	defaultName := filepath.Base(c.dir)
 
 	if name == "" && (flags.AcceptDefaults || flags.NonInteractive) {
 		return defaultName, nil
@@ -523,12 +654,10 @@ func promptPackageName(flags global.Flags, name string, dirPath string, in io.Re
 
 	if name == "" {
 		var err error
-
 		name, err = text.Input(out, fmt.Sprintf("Name: [%s] ", defaultName), in)
 		if err != nil {
 			return "", fmt.Errorf("error reading input: %w", err)
 		}
-
 		if name == "" {
 			name = defaultName
 		}
@@ -590,22 +719,24 @@ func promptPackageAuthors(flags global.Flags, authors []string, manifestEmail st
 	return authors, nil
 }
 
-// promptForLanguage prompts the user for a package language unless already
+// PromptForLanguage prompts the user for a package language unless already
 // defined either via the corresponding CLI flag or the manifest file.
-func promptForLanguage(flags global.Flags, languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
+func (c *InitCommand) PromptForLanguage(languages []*Language, in io.Reader, out io.Writer) (*Language, error) {
 	var (
 		language *Language
 		option   string
 		err      error
 	)
+	flags := c.Globals.Flags
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
-		text.Output(out, "%s", text.Bold("Language:"))
-		text.Output(out, "(Find out more about language support at https://developer.fastly.com/learning/compute)")
+		text.Output(out, "\n%s", text.Bold("Language:"))
+		text.Output(out, "(Find out more about language support at https://www.fastly.com/documentation/guides/compute)")
 		for i, lang := range languages {
 			text.Output(out, "[%d] %s", i+1, lang.DisplayName)
 		}
 
+		text.Break(out)
 		option, err = text.Input(out, "Choose option: [1] ", in, validateLanguageOption(languages))
 		if err != nil {
 			return nil, fmt.Errorf("reading input %w", err)
@@ -643,26 +774,28 @@ func validateLanguageOption(languages []*Language) func(string) error {
 	}
 }
 
-// promptForStarterKit prompts the user for a package starter kit.
+// PromptForStarterKit prompts the user for a package starter kit.
 //
-// It returns the path to the starter kit, and the corresponding branch/tag,
-func promptForStarterKit(flags global.Flags, kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
+// It returns the path to the starter kit, and the corresponding branch/tag.
+func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
 	var option string
+	flags := c.Globals.Flags
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
-		text.Output(out, "%s", text.Bold("Starter kit:"))
+		text.Output(out, "\n%s", text.Bold("Starter kit:"))
 		for i, kit := range kits {
 			fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
 			text.Indent(out, 4, "%s\n%s", kit.Description, kit.Path)
 		}
-
-		text.Info(out, "For a complete list of Starter Kits:\n\thttps://developer.fastly.com/solutions/starters/")
+		text.Info(out, "\nFor a complete list of Starter Kits:")
+		text.Indent(out, 4, "https://www.fastly.com/documentation/solutions/starters")
 		text.Break(out)
 
 		option, err = text.Input(out, "Choose option or paste git URL: [1] ", in, validateTemplateOptionOrURL(kits))
 		if err != nil {
 			return "", "", "", fmt.Errorf("error reading input: %w", err)
 		}
+		text.Break(out)
 	}
 
 	if option == "" {
@@ -686,79 +819,86 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 		}
 		if option, err := strconv.Atoi(input); err == nil {
 			if option > len(templates) {
-				return fmt.Errorf(msg)
+				return errors.New(msg)
 			}
 			return nil
 		}
 		if !gitRepositoryRegEx.MatchString(input) {
-			return fmt.Errorf(msg)
+			return errors.New(msg)
 		}
 		return nil
 	}
 }
 
-// fetchPackageTemplate will determine if the package code should be fetched
+// FetchPackageTemplate will determine if the package code should be fetched
 // from GitHub using the git binary to clone the source or a HTTP request that
 // uses content-negotiation to determine the type of archive format used.
-func fetchPackageTemplate(
-	c *InitCommand,
-	branch, tag string,
-	archives []file.Archive,
-	spinner text.Spinner,
-	out io.Writer,
-) error {
-	text.Break(out)
-
+func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.Archive, spinner text.Spinner, out io.Writer) error {
 	err := spinner.Start()
 	if err != nil {
 		return err
 	}
+	text.Break(out)
 	msg := "Fetching package template"
 	spinner.Message(msg + "...")
 
 	// If the user has provided a local file path, we'll recursively copy the
 	// directory to c.dir.
-	fi, err := os.Stat(c.cloneFrom)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-	} else if fi.IsDir() {
-		if err := cp.Copy(c.cloneFrom, c.dir); err != nil {
+	if fi, err := os.Stat(c.CloneFrom); err == nil && fi.IsDir() {
+		if err := cp.Copy(c.CloneFrom, c.dir); err != nil {
 			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return spinErr
+			if spinErr := spinner.StopFail(); spinErr != nil {
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return err
 		}
-
 		spinner.StopMessage(msg)
 		return spinner.Stop()
 	}
+	c.Globals.ErrLog.Add(err)
 
-	req, err := http.NewRequest("GET", c.cloneFrom, nil)
+	// If this isn't a local file path, it should be a URL.
+	u, err := url.Parse(c.CloneFrom)
 	if err != nil {
+		spinner.StopFailMessage(msg)
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		}
+		return fmt.Errorf("could not read --from URL: %w", err)
+	}
+
+	// If given an opaque string, the scheme and host are typically
+	// empty and the string ends up in u.Path.
+	if u.Host == "" && u.Scheme == "" {
+		spinner.StopFailMessage(msg)
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		}
+		return fmt.Errorf("--from url seems invalid: %s", c.CloneFrom)
+	}
+
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		err = fmt.Errorf("failed to construct package request URL: %w", err)
 		c.Globals.ErrLog.Add(err)
-		if gitRepositoryRegEx.MatchString(c.cloneFrom) {
-			if err := clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir); err != nil {
+
+		if gitRepositoryRegEx.MatchString(c.CloneFrom) {
+			if err := c.ClonePackageFromEndpoint(c.CloneFrom, branch, tag); err != nil {
 				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return spinErr
+				if spinErr := spinner.StopFail(); spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return err
 			}
-
 			spinner.StopMessage(msg)
 			return spinner.Stop()
 		}
 
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
-		return fmt.Errorf("failed to construct package request URL: %w", err)
+		return err
 	}
 
 	for _, archive := range archives {
@@ -767,34 +907,51 @@ func fetchPackageTemplate(
 		}
 	}
 
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPRequest(req)
+	}
 	res, err := c.Globals.HTTPClient.Do(req)
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPResponse(res)
+	}
+
 	if err != nil {
+		err = fmt.Errorf("failed to get package '%s': %w", req.URL.String(), err)
 		c.Globals.ErrLog.Add(err)
-
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
-		return fmt.Errorf("failed to get package: %w", err)
+		return err
 	}
 	defer res.Body.Close() // #nosec G307
 
 	if res.StatusCode != http.StatusOK {
-		err := fmt.Errorf("failed to get package: %s", res.Status)
+		err := fmt.Errorf("failed to get package '%s': %s", req.URL.String(), res.Status)
 		c.Globals.ErrLog.Add(err)
-
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
 		return err
 	}
 
-	filename := filepath.Base(c.cloneFrom)
+	tempdir, err := tempDir("package-init-download")
+	if err != nil {
+		err = fmt.Errorf("error creating temporary path for package template download: %w", err)
+		c.Globals.ErrLog.Add(err)
+		spinner.StopFailMessage(msg)
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+		}
+		return err
+	}
+	defer os.RemoveAll(tempdir)
+
+	filename := filepath.Join(
+		tempdir,
+		filepath.Base(c.CloneFrom),
+	)
 	ext := filepath.Ext(filename)
 
 	// gosec flagged this:
@@ -804,39 +961,24 @@ func fetchPackageTemplate(
 	/* #nosec */
 	f, err := os.Create(filename)
 	if err != nil {
+		err = fmt.Errorf("failed to create local %s archive: %w", filename, err)
 		c.Globals.ErrLog.Add(err)
-
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
-		return fmt.Errorf("failed to create local %s archive: %w", filename, err)
+		return err
 	}
-	defer func() {
-		// NOTE: Later on we rename the file to include an extension and the
-		// following call to os.Remove works still because the `filename` variable
-		// that is still in scope is also updated to include the extension.
-		err := os.Remove(filename)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			text.Break(out)
-			text.Info(out, "We were unable to clean-up the local %s file (it can be safely removed)", filename)
-		}
-	}()
 
 	_, err = io.Copy(f, res.Body)
 	if err != nil {
+		err = fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
 		c.Globals.ErrLog.Add(err)
-
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
-
-		return fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
+		return err
 	}
 
 	// NOTE: We used to `defer` the closing of the file after its creation but
@@ -880,13 +1022,10 @@ mimes:
 			err := os.Rename(filename, filenameWithExt)
 			if err != nil {
 				c.Globals.ErrLog.Add(err)
-
 				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return spinErr
+				if spinErr := spinner.StopFail(); spinErr != nil {
+					return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
-
 				return err
 			}
 			filename = filenameWithExt
@@ -897,26 +1036,23 @@ mimes:
 
 		err = archive.Extract()
 		if err != nil {
+			err = fmt.Errorf("failed to extract %s archive content: %w", filename, err)
 			c.Globals.ErrLog.Add(err)
-
 			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return spinErr
+			if spinErr := spinner.StopFail(); spinErr != nil {
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
-
-			return fmt.Errorf("failed to extract %s archive content: %w", filename, err)
+			return err
 		}
 
 		spinner.StopMessage(msg)
 		return spinner.Stop()
 	}
 
-	if err := clonePackageFromEndpoint(c.cloneFrom, branch, tag, c.dir); err != nil {
+	if err := c.ClonePackageFromEndpoint(c.CloneFrom, branch, tag); err != nil {
 		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
+		if spinErr := spinner.StopFail(); spinErr != nil {
+			return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 		}
 		return err
 	}
@@ -925,14 +1061,9 @@ mimes:
 	return spinner.Stop()
 }
 
-// clonePackageFromEndpoint clones the given repo (from) into a temp directory,
+// ClonePackageFromEndpoint clones the given repo (from) into a temp directory,
 // then copies specific files to the destination directory (path).
-func clonePackageFromEndpoint(
-	from string,
-	branch string,
-	tag string,
-	dst string,
-) error {
+func (c *InitCommand) ClonePackageFromEndpoint(from, branch, tag string) error {
 	_, err := exec.LookPath("git")
 	if err != nil {
 		return fsterr.RemediationError{
@@ -972,10 +1103,10 @@ func clonePackageFromEndpoint(
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as there should be no vulnerability to cloning a remote repo.
 	/* #nosec */
-	c := exec.Command("git", args...)
+	command := exec.Command("git", args...)
 
 	// nosemgrep (invalid-usage-of-modified-variable)
-	stdoutStderr, err := c.CombinedOutput()
+	stdoutStderr, err := command.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error fetching package template: %w\n\n%s", err, stdoutStderr)
 	}
@@ -1003,14 +1134,13 @@ func clonePackageFromEndpoint(
 			return nil
 		}
 
-		dst := filepath.Join(dst, rel)
+		dst := filepath.Join(c.dir, rel)
 		if err := os.MkdirAll(filepath.Dir(dst), 0o750); err != nil {
 			return err
 		}
 
 		return filesystem.CopyFile(path, dst)
 	})
-
 	if err != nil {
 		return fmt.Errorf("error copying files from package template: %w", err)
 	}
@@ -1034,211 +1164,136 @@ func tempDir(prefix string) (abspath string, err error) {
 	return abspath, nil
 }
 
-// updateManifest updates the manifest with data acquired from various sources.
+// UpdateManifest updates the manifest with data acquired from various sources.
 // e.g. prompting the user, existing manifest file.
 //
 // NOTE: The language argument might be nil (if the user passes --from flag).
-func updateManifest(
-	m manifest.File,
-	spinner text.Spinner,
-	path, name, desc string,
-	authors []string,
-	language *Language,
-) (manifest.File, error) {
-	err := spinner.Start()
-	if err != nil {
-		return m, err
-	}
-	msg := "Reading fastly.toml"
-	spinner.Message(msg + "...")
+func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name, desc string, authors []string, language *Language) (manifest.File, error) {
+	var returnEarly bool
+	mp := filepath.Join(c.dir, manifest.Filename)
 
-	mp := filepath.Join(path, manifest.Filename)
-
-	if err := m.Read(mp); err != nil {
-		if language != nil {
-			if language.Name == "other" {
-				// We create a fastly.toml manifest on behalf of the user if they're
-				// bringing their own pre-compiled Wasm binary to be packaged.
-				m.ManifestVersion = manifest.ManifestLatestVersion
-				m.Name = name
-				m.Description = desc
-				m.Authors = authors
-				m.Language = language.Name
-				if err := m.Write(mp); err != nil {
-					spinner.StopFailMessage(msg)
-					spinErr := spinner.StopFail()
-					if spinErr != nil {
-						return m, spinErr
+	err := spinner.Process("Reading fastly.toml", func(_ *text.SpinnerWrapper) error {
+		if err := m.Read(mp); err != nil {
+			if language != nil {
+				if language.Name == "other" {
+					// We create a fastly.toml manifest on behalf of the user if they're
+					// bringing their own pre-compiled Wasm binary to be packaged.
+					m.ManifestVersion = manifest.ManifestLatestVersion
+					m.Name = name
+					m.Description = desc
+					m.Authors = authors
+					m.Language = language.Name
+					m.ClonedFrom = c.CloneFrom
+					if err := m.Write(mp); err != nil {
+						return fmt.Errorf("error saving fastly.toml: %w", err)
 					}
-					return m, fmt.Errorf("error saving fastly.toml: %w", err)
+					returnEarly = true
+					return nil // EXIT updateManifest
 				}
-				spinner.StopFailMessage(msg)
-				spinErr := spinner.StopFail()
-				if spinErr != nil {
-					return m, spinErr
-				}
-				return m, nil
 			}
+			return fmt.Errorf("error reading fastly.toml: %w", err)
 		}
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return m, spinErr
-		}
-		return m, fmt.Errorf("error reading fastly.toml: %w", err)
+		return nil
+	})
+	if err != nil {
+		return m, err
+	}
+	if returnEarly {
+		return m, nil
 	}
 
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+	err = spinner.Process(fmt.Sprintf("Setting package name in manifest to %q", name), func(_ *text.SpinnerWrapper) error {
+		m.Name = name
+		return nil
+	})
 	if err != nil {
 		return m, err
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return m, err
-	}
-	msg = fmt.Sprintf("Setting package name in manifest to %q", name)
-	spinner.Message(msg + "...")
-
-	m.Name = name
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return m, err
-	}
-
-	// NOTE: We allow an empty description to be set.
-	m.Description = desc
+	var descMsg string
 	if desc != "" {
-		desc = " to '" + desc + "'"
+		descMsg = " to '" + desc + "'"
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return m, err
-	}
-	msg = fmt.Sprintf("Setting description in manifest%s", desc)
-	spinner.Message(msg + "...")
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
+	err = spinner.Process(fmt.Sprintf("Setting description in manifest%s", descMsg), func(_ *text.SpinnerWrapper) error {
+		// NOTE: We allow an empty description to be set.
+		m.Description = desc
+		return nil
+	})
 	if err != nil {
 		return m, err
 	}
 
 	if len(authors) > 0 {
-		err := spinner.Start()
-		if err != nil {
-			return m, err
-		}
-		msg := fmt.Sprintf("Setting authors in manifest to '%s'", strings.Join(authors, ", "))
-		spinner.Message(msg + "...")
-
-		m.Authors = authors
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
+		err = spinner.Process(fmt.Sprintf("Setting authors in manifest to '%s'", strings.Join(authors, ", ")), func(_ *text.SpinnerWrapper) error {
+			m.Authors = authors
+			return nil
+		})
 		if err != nil {
 			return m, err
 		}
 	}
 
 	if language != nil {
-		err := spinner.Start()
-		if err != nil {
-			return m, err
-		}
-		msg := fmt.Sprintf("Setting language in manifest to '%s'", language.Name)
-		spinner.Message(msg + "...")
-
-		m.Language = language.Name
-
-		spinner.StopMessage(msg)
-		err = spinner.Stop()
+		err = spinner.Process(fmt.Sprintf("Setting language in manifest to '%s'", language.Name), func(_ *text.SpinnerWrapper) error {
+			m.Language = language.Name
+			return nil
+		})
 		if err != nil {
 			return m, err
 		}
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return m, err
-	}
-	msg = "Saving manifest changes"
-	spinner.Message(msg + "...")
+	m.ClonedFrom = c.CloneFrom
 
-	if err := m.Write(mp); err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return m, spinErr
+	err = spinner.Process("Saving manifest changes", func(_ *text.SpinnerWrapper) error {
+		if err := m.Write(mp); err != nil {
+			return fmt.Errorf("error saving fastly.toml: %w", err)
 		}
-		return m, fmt.Errorf("error saving fastly.toml: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	return m, spinner.Stop()
+		return nil
+	})
+	return m, err
 }
 
-// initializeLanguage for newly cloned package.
-func initializeLanguage(spinner text.Spinner, language *Language, languages []*Language, name, wd, path string) (*Language, error) {
-	err := spinner.Start()
+// InitializeLanguage for newly cloned package.
+func (c *InitCommand) InitializeLanguage(spinner text.Spinner, language *Language, languages []*Language, name, wd string) (*Language, error) {
+	err := spinner.Process("Initializing package", func(_ *text.SpinnerWrapper) error {
+		if wd != c.dir {
+			err := os.Chdir(c.dir)
+			if err != nil {
+				return fmt.Errorf("error changing to your project directory: %w", err)
+			}
+		}
+
+		// Language will not be set if user provides the --from flag. So we'll check
+		// the manifest content and ensure what's set there is the language instance
+		// used for the sake of `compute build` operations.
+		if language == nil {
+			var match bool
+			for _, l := range languages {
+				if strings.EqualFold(name, l.Name) {
+					language = l
+					match = true
+					break
+				}
+			}
+			if !match {
+				return fmt.Errorf("unrecognised package language")
+			}
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	msg := "Initializing package"
-	spinner.Message(msg + "...")
 
-	if wd != path {
-		err := os.Chdir(path)
-		if err != nil {
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return nil, spinErr
-			}
-			return nil, fmt.Errorf("error changing to your project directory: %w", err)
-		}
-	}
-
-	// Language will not be set if user provides the --from flag. So we'll check
-	// the manifest content and ensure what's set there is the language instance
-	// used for the sake of `compute build` operations.
-	if language == nil {
-		var match bool
-		for _, l := range languages {
-			if strings.EqualFold(name, l.Name) {
-				language = l
-				match = true
-				break
-			}
-		}
-		if !match {
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return nil, spinErr
-			}
-			return nil, fmt.Errorf("unrecognised package language")
-		}
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return nil, err
-	}
 	return language, nil
 }
 
 // promptForPostInitContinue ensures the user is happy to continue with running
 // the define post_init script in the fastly.toml manifest file.
 func promptForPostInitContinue(msg, script string, out io.Writer, in io.Reader) error {
-	text.Info(out, "%s:\n", msg)
-	text.Break(out)
+	text.Info(out, "\n%s:\n", msg)
 	text.Indent(out, 4, "%s", script)
 
 	label := "\nDo you want to run this now? [y/N] "
@@ -1253,8 +1308,8 @@ func promptForPostInitContinue(msg, script string, out io.Writer, in io.Reader) 
 	return nil
 }
 
-// displayOutput of package information and useful links.
-func displayOutput(name, dst, language string, out io.Writer) {
+// displayInitOutput of package information and useful links.
+func displayInitOutput(name, dst, language string, out io.Writer) {
 	text.Break(out)
 	text.Description(out, fmt.Sprintf("Initialized package %s to", text.Bold(name)), dst)
 
@@ -1265,6 +1320,6 @@ func displayOutput(name, dst, language string, out io.Writer) {
 		text.Description(out, "To publish the package (build and deploy), run", "fastly compute publish")
 	}
 
-	text.Description(out, "To learn about deploying Compute@Edge projects using third-party orchestration tools, visit", "https://developer.fastly.com/learning/integrations/orchestration/")
+	text.Description(out, "To learn about deploying Compute projects using third-party orchestration tools, visit", "https://www.fastly.com/documentation/guides/integrations/orchestration")
 	text.Success(out, "Initialized package %s", text.Bold(name))
 }

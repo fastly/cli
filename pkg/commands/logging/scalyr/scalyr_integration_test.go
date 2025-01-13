@@ -3,18 +3,21 @@ package scalyr_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	fsterrs "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestScalyrCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -52,9 +55,12 @@ func TestScalyrCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -62,7 +68,7 @@ func TestScalyrCreate(t *testing.T) {
 }
 
 func TestScalyrList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -122,9 +128,12 @@ func TestScalyrList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -132,7 +141,7 @@ func TestScalyrList(t *testing.T) {
 }
 
 func TestScalyrDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -164,9 +173,12 @@ func TestScalyrDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -174,7 +186,7 @@ func TestScalyrDescribe(t *testing.T) {
 }
 
 func TestScalyrUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -208,9 +220,12 @@ func TestScalyrUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -218,7 +233,7 @@ func TestScalyrUpdate(t *testing.T) {
 }
 
 func TestScalyrDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -252,9 +267,12 @@ func TestScalyrDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -265,71 +283,73 @@ var errTest = errors.New("fixture error")
 
 func createScalyrOK(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	s := fastly.Scalyr{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
 	// Avoids null pointer dereference for test cases with missing required params.
 	// If omitted, tests are guaranteed to panic.
-	if i.Name != nil && *i.Name != "" {
-		s.Name = *i.Name
+	if i.Name != nil {
+		s.Name = i.Name
 	}
 
-	if i.Token != nil && *i.Token != "" {
-		s.Token = *i.Token
+	if i.Token != nil {
+		s.Token = i.Token
 	}
 
-	if i.Format != nil && *i.Format != "" {
-		s.Format = *i.Format
+	if i.Format != nil {
+		s.Format = i.Format
 	}
 
-	if i.FormatVersion != nil && *i.FormatVersion != 0 {
-		s.FormatVersion = *i.FormatVersion
+	if i.FormatVersion != nil {
+		s.FormatVersion = i.FormatVersion
 	}
 
-	if i.ResponseCondition != nil && *i.ResponseCondition != "" {
-		s.ResponseCondition = *i.ResponseCondition
+	if i.ResponseCondition != nil {
+		s.ResponseCondition = i.ResponseCondition
 	}
 
-	if i.Placement != nil && *i.Placement != "" {
-		s.Placement = *i.Placement
+	if i.Placement != nil {
+		s.Placement = i.Placement
 	}
 
 	return &s, nil
 }
 
-func createScalyrError(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
+func createScalyrError(_ *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
 func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	return []*fastly.Scalyr{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Token:             "abc",
-			Region:            "US",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Token:             fastly.ToPointer("abc"),
+			Region:            fastly.ToPointer("US"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
+			ProjectID:         fastly.ToPointer("example-project"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Token:             "abc",
-			Region:            "US",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Token:             fastly.ToPointer("abc"),
+			Region:            fastly.ToPointer("US"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
+			ProjectID:         fastly.ToPointer("example-project"),
 		},
 	}, nil
 }
 
-func listScalyrsError(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
+func listScalyrsError(_ *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
@@ -340,8 +360,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listScalyrsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -356,6 +376,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Project ID: example-project
 	Scalyr 2/2
 		Service ID: 123
 		Version: 1
@@ -366,23 +387,25 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Project ID: example-project
 `) + "\n\n"
 
 func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Token:             "abc",
-		Region:            "US",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Token:             fastly.ToPointer("abc"),
+		Region:            fastly.ToPointer("US"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
+		ProjectID:         fastly.ToPointer("example-project"),
 	}, nil
 }
 
-func getScalyrError(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
+func getScalyrError(_ *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
@@ -391,6 +414,7 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
 Placement: none
+Project ID: example-project
 Region: US
 Response condition: Prevent default logging
 Service ID: 123
@@ -400,26 +424,26 @@ Version: 1
 
 func updateScalyrOK(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Token:             "abc",
-		Region:            "EU",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Token:             fastly.ToPointer("abc"),
+		Region:            fastly.ToPointer("EU"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func updateScalyrError(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
+func updateScalyrError(_ *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
-func deleteScalyrOK(i *fastly.DeleteScalyrInput) error {
+func deleteScalyrOK(_ *fastly.DeleteScalyrInput) error {
 	return nil
 }
 
-func deleteScalyrError(i *fastly.DeleteScalyrInput) error {
+func deleteScalyrError(_ *fastly.DeleteScalyrInput) error {
 	return errTest
 }

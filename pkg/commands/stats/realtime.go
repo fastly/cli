@@ -5,40 +5,38 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // RealtimeCommand exposes the Realtime Metrics API.
 type RealtimeCommand struct {
-	cmd.Base
-	manifest manifest.Data
+	argparser.Base
 
 	formatFlag  string
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 }
 
 // NewRealtimeCommand is the "stats realtime" subcommand.
-func NewRealtimeCommand(parent cmd.Registerer, g *global.Data, data manifest.Data) *RealtimeCommand {
+func NewRealtimeCommand(parent argparser.Registerer, g *global.Data) *RealtimeCommand {
 	var c RealtimeCommand
 	c.Globals = g
-	c.manifest = data
 
 	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 
@@ -49,12 +47,12 @@ func NewRealtimeCommand(parent cmd.Registerer, g *global.Data, data manifest.Dat
 
 // Exec implements the command interface.
 func (c *RealtimeCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	switch c.formatFlag {

@@ -8,37 +8,38 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
+// CommandName is the string to be used to invoke this command
+const CommandName = "purge"
+
 // NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *RootCommand {
+func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
-	c.CmdClause = parent.Command("purge", "Invalidate objects in the Fastly cache")
+	c.CmdClause = parent.Command(CommandName, "Invalidate objects in the Fastly cache")
 	c.Globals = g
-	c.manifest = m
 
 	// Optional.
 	c.CmdClause.Flag("all", "Purge everything from a service").BoolVar(&c.all)
 	c.CmdClause.Flag("file", "Purge a service of a newline delimited list of Surrogate Keys").StringVar(&c.file)
 	c.CmdClause.Flag("key", "Purge a service of objects tagged with a Surrogate Key").StringVar(&c.key)
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	c.CmdClause.Flag("soft", "A 'soft' purge marks affected objects as stale rather than making them inaccessible").BoolVar(&c.soft)
@@ -50,30 +51,24 @@ func NewRootCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *Roo
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.
 type RootCommand struct {
-	cmd.Base
+	argparser.Base
 
 	all         bool
 	file        string
 	key         string
-	manifest    manifest.Data
-	serviceName cmd.OptionalServiceNameID
+	serviceName argparser.OptionalServiceNameID
 	soft        bool
 	url         string
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
-
-	serviceID, source, flag, err := cmd.ServiceID(c.serviceName, c.manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	if c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
 	// The URL purge API call doesn't require a Service ID.
@@ -149,7 +144,7 @@ func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
 		})
 		return err
 	}
-	text.Success(out, "Purge all status: %s", p.Status)
+	text.Success(out, "Purge all status: %s", fastly.ToValue(p.Status))
 	return nil
 }
 
@@ -206,7 +201,7 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 		})
 		return err
 	}
-	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, p.Status, p.ID)
+	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
 	return nil
 }
 
@@ -222,7 +217,7 @@ func (c *RootCommand) purgeURL(out io.Writer) error {
 		})
 		return err
 	}
-	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, p.Status, p.ID)
+	text.Success(out, "Purged URL: %s (soft: %t). Status: %s, ID: %s", c.url, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
 	return nil
 }
 
@@ -236,11 +231,7 @@ func populateKeys(fpath string, errLog fsterr.LogInterface) (keys []string, err 
 
 	if path, err = filepath.Abs(fpath); err == nil {
 		if _, err = os.Stat(path); err == nil {
-			// gosec flagged this:
-			// G304 (CWE-22): Potential file inclusion via variable
-			// Disabling as we trust the source of the fpath variable.
-			/* #nosec */
-			if file, err = os.Open(path); err == nil {
+			if file, err = os.Open(path); err == nil /* #nosec */ {
 				scanner := bufio.NewScanner(file)
 				for scanner.Scan() {
 					keys = append(keys, scanner.Text())

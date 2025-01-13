@@ -2,6 +2,7 @@ package compute
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -10,16 +11,15 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"golang.org/x/mod/modfile"
 
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // TinyGoDefaultBuildCommand is a build command compiled into the CLI binary so it
-// can be used as a fallback for customer's who have an existing C@E project and
+// can be used as a fallback for customer's who have an existing Compute project and
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
@@ -27,35 +27,36 @@ import (
 // NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
 // We no longer do that. In 6.x we use the default and just inform the user.
 // This makes the experience less confusing as users didn't expect file changes.
-const TinyGoDefaultBuildCommand = "tinygo build -target=wasi -gc=conservative -o bin/main.wasm ./"
+var TinyGoDefaultBuildCommand = fmt.Sprintf("tinygo build -target=wasi -gc=conservative -o %s ./", binWasmPath)
 
-// GoSourceDirectory represents the source code directory.                                               │                                                           │
+// GoSourceDirectory represents the source code directory.
 const GoSourceDirectory = "."
 
 // NewGo constructs a new Go toolchain.
 func NewGo(
-	fastlyManifest *manifest.File,
-	globals *global.Data,
-	flags Flags,
+	c *BuildCommand,
 	in io.Reader,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Go {
 	return &Go{
 		Shell: Shell{},
 
-		autoYes:        globals.Flags.AutoYes,
-		build:          fastlyManifest.Scripts.Build,
-		config:         globals.Config.Language.Go,
-		env:            fastlyManifest.Scripts.EnvVars,
-		errlog:         globals.ErrLog,
-		input:          in,
-		nonInteractive: globals.Flags.NonInteractive,
-		output:         out,
-		postBuild:      fastlyManifest.Scripts.PostBuild,
-		spinner:        spinner,
-		timeout:        flags.Timeout,
-		verbose:        globals.Verbose(),
+		autoYes:               c.Globals.Flags.AutoYes,
+		build:                 c.Globals.Manifest.File.Scripts.Build,
+		config:                c.Globals.Config.Language.Go,
+		env:                   c.Globals.Manifest.File.Scripts.EnvVars,
+		errlog:                c.Globals.ErrLog,
+		input:                 in,
+		manifestFilename:      manifestFilename,
+		metadataFilterEnvVars: c.MetadataFilterEnvVars,
+		nonInteractive:        c.Globals.Flags.NonInteractive,
+		output:                out,
+		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
+		spinner:               spinner,
+		timeout:               c.Flags.Timeout,
+		verbose:               c.Globals.Verbose(),
 	}
 }
 
@@ -74,12 +75,18 @@ type Go struct {
 	build string
 	// config is the Go specific application configuration.
 	config config.Go
+	// defaultBuild indicates if the default build script was used.
+	defaultBuild bool
 	// env is environment variables to be set.
 	env []string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
 	input io.Reader
+	// manifestFilename is the name of the manifest file.
+	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
@@ -95,6 +102,31 @@ type Go struct {
 	verbose bool
 }
 
+// DefaultBuildScript indicates if a custom build script was used.
+func (g *Go) DefaultBuildScript() bool {
+	return g.defaultBuild
+}
+
+// Dependencies returns all dependencies used by the project.
+func (g *Go) Dependencies() map[string]string {
+	deps := make(map[string]string)
+	data, err := os.ReadFile("go.mod")
+	if err != nil {
+		return deps
+	}
+	f, err := modfile.ParseLax("go.mod", data, nil)
+	if err != nil {
+		return deps
+	}
+	for _, req := range f.Require {
+		if req.Indirect {
+			continue
+		}
+		deps[req.Mod.Path] = req.Mod.Version
+	}
+	return deps
+}
+
 // Build compiles the user's source code into a Wasm binary.
 func (g *Go) Build() error {
 	var (
@@ -104,10 +136,13 @@ func (g *Go) Build() error {
 
 	if g.build == "" {
 		g.build = TinyGoDefaultBuildCommand
+		g.defaultBuild = true
 		tinygoToolchain = true
 		toolchainConstraint = g.config.ToolchainConstraintTinyGo
-		text.Info(g.output, "No [scripts.build] found in fastly.toml. Visit https://developer.fastly.com/learning/compute/go/ to learn how to target standard Go vs TinyGo.")
-		text.Break(g.output)
+		if !g.verbose {
+			text.Break(g.output)
+		}
+		text.Info(g.output, "No [scripts.build] found in %s. Visit https://www.fastly.com/documentation/guides/compute/go/ to learn how to target standard Go vs TinyGo.\n\n", g.manifestFilename)
 		text.Description(g.output, "The following default build command for TinyGo will be used", g.build)
 	}
 
@@ -142,18 +177,20 @@ func (g *Go) Build() error {
 	}
 
 	bt := BuildToolchain{
-		autoYes:        g.autoYes,
-		buildFn:        g.Shell.Build,
-		buildScript:    g.build,
-		env:            g.env,
-		errlog:         g.errlog,
-		in:             g.input,
-		nonInteractive: g.nonInteractive,
-		out:            g.output,
-		postBuild:      g.postBuild,
-		spinner:        g.spinner,
-		timeout:        g.timeout,
-		verbose:        g.verbose,
+		autoYes:               g.autoYes,
+		buildFn:               g.Shell.Build,
+		buildScript:           g.build,
+		env:                   g.env,
+		errlog:                g.errlog,
+		in:                    g.input,
+		manifestFilename:      g.manifestFilename,
+		metadataFilterEnvVars: g.metadataFilterEnvVars,
+		nonInteractive:        g.nonInteractive,
+		out:                   g.output,
+		postBuild:             g.postBuild,
+		spinner:               g.spinner,
+		timeout:               g.timeout,
+		verbose:               g.verbose,
 	}
 
 	return bt.Build()
@@ -244,7 +281,7 @@ func identifyTinyGoConstraint(configConstraint, fallback string) string {
 // the opportunity to do something about it if they choose.
 func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
 	if g.verbose {
-		text.Info(g.output, "The Fastly CLI build step requires a %s version '%s'. ", toolchain, constraint)
+		text.Info(g.output, "The Fastly CLI build step requires a %s version '%s'.\n\n", toolchain, constraint)
 	}
 
 	versionCommand := fmt.Sprintf("%s version", toolchain)
@@ -279,8 +316,8 @@ func (g *Go) toolchainConstraint(toolchain, pattern, constraint string) {
 		return
 	}
 
-	if !c.Check(v) {
-		text.Warning(g.output, "The %s version '%s' didn't meet the constraint '%s'", toolchain, version, constraint)
-		text.Break(g.output)
+	valid, errs := c.Validate(v)
+	if !valid {
+		text.Warning(g.output, "The %s version requirement was not satisfied: %s", toolchain, errors.Join(errs...))
 	}
 }

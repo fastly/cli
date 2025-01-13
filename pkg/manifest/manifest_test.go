@@ -79,7 +79,7 @@ func TestManifest(t *testing.T) {
 		}
 
 		defer func(path string, b []byte) {
-			err := os.WriteFile(path, b, 0o644)
+			err := os.WriteFile(path, b, 0o600)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -152,7 +152,7 @@ func TestManifestPrepend(t *testing.T) {
 		}
 
 		defer func(path string, b []byte) {
-			err := os.WriteFile(path, b, 0o644)
+			err := os.WriteFile(path, b, 0o600)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -178,7 +178,9 @@ func TestManifestPrepend(t *testing.T) {
 		if err := os.Chdir(rootdir); err != nil {
 			t.Fatal(err)
 		}
-		defer os.Chdir(wd)
+		defer func() {
+			_ = os.Chdir(wd)
+		}()
 	}
 
 	var f manifest.File
@@ -243,7 +245,7 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 	}
 
 	defer func(fpath string, b []byte) {
-		err := os.WriteFile(fpath, b, 0o644)
+		err := os.WriteFile(fpath, b, 0o600)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -293,7 +295,15 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 		t.Fatal("expected [local_server] block to exist in fastly.toml but is missing")
 	}
 
-	got, want := lt.(*toml.Tree).String(), ot.(*toml.Tree).String()
+	localTree, ok := lt.(*toml.Tree)
+	if !ok {
+		t.Fatal("failed to convert 'local' interface{} to toml.Tree")
+	}
+	originalTree, ok := ot.(*toml.Tree)
+	if !ok {
+		t.Fatal("failed to convert 'original' interface{} to toml.Tree")
+	}
+	want, got := originalTree.String(), localTree.String()
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Fatalf("testing section between original and updated fastly.toml do not match (-want +got):\n%s", diff)
 	}

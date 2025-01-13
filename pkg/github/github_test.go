@@ -46,7 +46,7 @@ func TestDownloadArchiveExtract(t *testing.T) {
 
 			binary := "fastly"
 			if fstruntime.Windows {
-				binary = binary + ".exe"
+				binary += ".exe"
 			}
 
 			a := Asset{

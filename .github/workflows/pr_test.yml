@@ -15,7 +15,7 @@ jobs:
       - name: "Generate static app config"
         run: make config
       - name: "Config Artifact"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
@@ -27,9 +27,9 @@ jobs:
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@1.83.0 # to install tq via `make config`
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.21.x
+          go-version: 1.22.x
       # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
       # This is useful if you need to clear the cache when a dependency doesn't update correctly.
       #
@@ -45,17 +45,17 @@ jobs:
           echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
       - name: Go Bin Cache
         id: go-bin-deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.go-cache-paths.outputs.gobin }}
           key: ${{ runner.os }}-lint-go-bin-${{ hashFiles('.github/dependencies.txt') }}
       - name: Go Build Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.go-cache-paths.outputs.gobuild }}
           key: ${{ runner.os }}-lint-go-build-${{ hashFiles('**/go.sum') }}
       - name: Go Mod Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.go-cache-paths.outputs.gomod }}
           key: ${{ runner.os }}-lint-go-mod-${{ hashFiles('**/go.sum') }}
@@ -82,12 +82,15 @@ jobs:
       - name: "Security audit"
         run: make gosec
         shell: bash
+      - name: "Run go imports"
+        run: make imports
+        shell: bash
   test:
     needs: [config]
     strategy:
       matrix:
-        tinygo-version: [0.27.0]
-        go-version: [1.21.x]
+        tinygo-version: [0.31.2]
+        go-version: [1.22.x]
         node-version: [18]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
@@ -95,12 +98,12 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
       - name: "Install Go"
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
           # IMPORTANT: Disable caching to prevent cache restore errors later.
           cache: false
-      - uses: Integralist/setup-tinygo@v1.0.0
+      - uses: acifani/setup-tinygo@v2
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: Retrieve Go Paths
@@ -111,12 +114,12 @@ jobs:
           echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
           echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
       - name: Go Build Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.go-cache-paths.outputs.gobuild }}
           key: ${{ runner.os }}-test-go-build-${{ hashFiles('**/go.sum') }}
       - name: Go Mod Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.go-cache-paths.outputs.gomod }}
           key: ${{ runner.os }}-test-go-mod-${{ hashFiles('**/go.sum') }}
@@ -128,11 +131,11 @@ jobs:
         run: rustup show && rustup target list --installed --toolchain 1.83.0
         shell: bash
       - name: "Install Node"
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Config Artifact"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
@@ -152,7 +155,7 @@ jobs:
         shell: bash
         env:
           # NOTE: The following lets us focus the test run while debugging.
-          # TEST_ARGS: "-run TestDeploy ./pkg/commands/compute/..."
+          # TEST_ARGS: "-run TestBuild ./pkg/commands/compute/..."
           TEST_COMPUTE_INIT: true
           TEST_COMPUTE_BUILD: true
           TEST_COMPUTE_DEPLOY: true

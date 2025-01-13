@@ -1,26 +1,26 @@
 package condition_test
 
 import (
-	"bytes"
 	"errors"
 	"strings"
 	"testing"
 
-	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	root "github.com/fastly/cli/pkg/commands/vcl"
+	sub "github.com/fastly/cli/pkg/commands/vcl/condition"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestConditionCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("vcl condition create --version 1"),
+			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type REQUEST --autoclone"),
+			Args: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -29,7 +29,7 @@ func TestConditionCreate(t *testing.T) {
 			WantOutput: "Created condition always_false (service 123 version 4)",
 		},
 		{
-			Args: args("vcl condition create --service-id 123 --version 1 --name always_false --statement false --type REQUEST --priority 10 --autoclone"),
+			Args: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --priority 10 --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -39,27 +39,17 @@ func TestConditionCreate(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range scenarios {
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestConditionDelete(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("vcl condition delete --service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("vcl condition delete --service-id 123 --version 1 --name always_false --autoclone"),
+			Args: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -68,7 +58,7 @@ func TestConditionDelete(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("vcl condition delete --service-id 123 --version 1 --name always_false --autoclone"),
+			Args: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -77,28 +67,18 @@ func TestConditionDelete(t *testing.T) {
 			WantOutput: "Deleted condition always_false (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestConditionUpdate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("vcl condition update --service-id 123 --version 1 --new-name false_always --comment "),
+			Args:      "--service-id 123 --version 1 --new-name false_always --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --autoclone"),
+			Args: "--service-id 123 --version 1 --name always_false --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -107,7 +87,7 @@ func TestConditionUpdate(t *testing.T) {
 			WantError: "error parsing arguments: must provide either --new-name, --statement, --type or --priority to update condition",
 		},
 		{
-			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --new-name false_always --autoclone"),
+			Args: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -116,7 +96,7 @@ func TestConditionUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("vcl condition update --service-id 123 --version 1 --name always_false --new-name false_always --autoclone"),
+			Args: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
 			API: mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
@@ -125,28 +105,18 @@ func TestConditionUpdate(t *testing.T) {
 			WantOutput: "Updated condition false_always (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.WantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestConditionDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args:      args("vcl condition describe --service-id 123 --version 1"),
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Args: args("vcl condition describe --service-id 123 --version 1 --name always_false"),
+			Args: "--service-id 123 --version 1 --name always_false",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionError,
@@ -154,7 +124,7 @@ func TestConditionDescribe(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 		{
-			Args: args("vcl condition describe --service-id 123 --version 1 --name always_false"),
+			Args: "--service-id 123 --version 1 --name always_false",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionOK,
@@ -162,24 +132,14 @@ func TestConditionDescribe(t *testing.T) {
 			WantOutput: describeConditionOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestConditionList(t *testing.T) {
-	args := testutil.Args
-	scenarios := []testutil.TestScenario{
+	scenarios := []testutil.CLIScenario{
 		{
-			Args: args("vcl condition list --service-id 123 --version 1"),
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -187,7 +147,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsShortOutput,
 		},
 		{
-			Args: args("vcl condition list --service-id 123 --version 1 --verbose"),
+			Args: "--service-id 123 --version 1 --verbose",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -195,7 +155,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("vcl condition list --service-id 123 --version 1 -v"),
+			Args: "--service-id 123 --version 1 -v",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -203,7 +163,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("vcl condition --verbose list --service-id 123 --version 1"),
+			Args: "--verbose --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -211,7 +171,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("-v vcl condition list --service-id 123 --version 1"),
+			Args: "-v --service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
@@ -219,7 +179,7 @@ func TestConditionList(t *testing.T) {
 			WantOutput: listConditionsVerboseOutput,
 		},
 		{
-			Args: args("vcl condition list --service-id 123 --version 1"),
+			Args: "--service-id 123 --version 1",
 			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsError,
@@ -227,17 +187,8 @@ func TestConditionList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(testcase.Name, func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.Args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.API)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.WantError)
-			testutil.AssertString(t, testcase.WantOutput, stdout.String())
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 var describeConditionOutput = "\n" + strings.TrimSpace(`
@@ -256,8 +207,8 @@ SERVICE  VERSION  NAME                  STATEMENT  TYPE     PRIORITY
 `) + "\n"
 
 var listConditionsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -277,108 +228,108 @@ Version: 1
 var errTest = errors.New("fixture error")
 
 func createConditionOK(i *fastly.CreateConditionInput) (*fastly.Condition, error) {
-	var priority int = 10
+	priority := 10
 	if i.Priority != nil {
 		priority = *i.Priority
 	}
 
-	var conditionType string = "REQUEST"
+	conditionType := "REQUEST"
 	if i.Type != nil {
 		conditionType = *i.Type
 	}
 
 	return &fastly.Condition{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
-		Statement:      *i.Statement,
-		Type:           conditionType,
-		Priority:       priority,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
+		Statement:      i.Statement,
+		Type:           fastly.ToPointer(conditionType),
+		Priority:       fastly.ToPointer(priority),
 	}, nil
 }
 
-func createConditionError(i *fastly.CreateConditionInput) (*fastly.Condition, error) {
+func createConditionError(_ *fastly.CreateConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
-func deleteConditionOK(i *fastly.DeleteConditionInput) error {
+func deleteConditionOK(_ *fastly.DeleteConditionInput) error {
 	return nil
 }
 
-func deleteConditionError(i *fastly.DeleteConditionInput) error {
+func deleteConditionError(_ *fastly.DeleteConditionInput) error {
 	return errTest
 }
 
 func updateConditionOK(i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
-	var priority int = 10
+	priority := 10
 	if i.Priority != nil {
 		priority = *i.Priority
 	}
 
-	var conditionType string = "REQUEST"
+	conditionType := "REQUEST"
 	if i.Type != nil {
 		conditionType = *i.Type
 	}
 
-	var statement string = "false"
+	statement := "false"
 	if i.Statement != nil {
 		statement = *i.Type
 	}
 
 	return &fastly.Condition{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Statement:      statement,
-		Type:           conditionType,
-		Priority:       priority,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer(i.Name),
+		Statement:      fastly.ToPointer(statement),
+		Type:           fastly.ToPointer(conditionType),
+		Priority:       fastly.ToPointer(priority),
 	}, nil
 }
 
-func updateConditionError(i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
+func updateConditionError(_ *fastly.UpdateConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
 func getConditionOK(i *fastly.GetConditionInput) (*fastly.Condition, error) {
-	var priority int = 10
-	var conditionType string = "CACHE"
-	var statement string = "false"
+	priority := 10
+	conditionType := "CACHE"
+	statement := "false"
 
 	return &fastly.Condition{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
-		Statement:      statement,
-		Type:           conditionType,
-		Priority:       priority,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer(i.Name),
+		Statement:      fastly.ToPointer(statement),
+		Type:           fastly.ToPointer(conditionType),
+		Priority:       fastly.ToPointer(priority),
 	}, nil
 }
 
-func getConditionError(i *fastly.GetConditionInput) (*fastly.Condition, error) {
+func getConditionError(_ *fastly.GetConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
 func listConditionsOK(i *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
 	return []*fastly.Condition{
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "always_false_request",
-			Statement:      "false",
-			Type:           "REQUEST",
-			Priority:       10,
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("always_false_request"),
+			Statement:      fastly.ToPointer("false"),
+			Type:           fastly.ToPointer("REQUEST"),
+			Priority:       fastly.ToPointer(10),
 		},
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "always_false_cache",
-			Statement:      "false",
-			Type:           "CACHE",
-			Priority:       10,
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("always_false_cache"),
+			Statement:      fastly.ToPointer("false"),
+			Type:           fastly.ToPointer("CACHE"),
+			Priority:       fastly.ToPointer(10),
 		},
 	}, nil
 }
 
-func listConditionsError(i *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
+func listConditionsError(_ *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
 	return nil, errTest
 }

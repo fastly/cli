@@ -11,35 +11,33 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/runtime"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("create", "Insert a key-value pair").Alias("insert")
 
 	// Required.
-	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.ID)
+	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
 	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
 	c.CmdClause.Flag("dir-allow-hidden", "Allow hidden files (e.g. dot files) to be included (skipped by default)").BoolVar(&c.dirAllowHidden)
 	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
-	c.CmdClause.Flag("file", "Path to a file containing individual JSON objects separated by new-line delimiter").StringVar(&c.filePath)
+	c.CmdClause.Flag("file", `Path to a file containing individual JSON objects (e.g., {"key":"...","value":"base64_encoded_value"}) separated by new-line delimiter`).StringVar(&c.filePath)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').StringVar(&c.Input.Key)
 	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
@@ -50,14 +48,13 @@ func NewCreateCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *C
 
 // CreateCommand calls the Fastly API to insert a key into an kv store.
 type CreateCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
 	dirAllowHidden bool
 	dirConcurrency int
 	dirPath        string
 	filePath       string
-	manifest       manifest.Data
 	stdin          bool
 
 	Input fastly.InsertKVStoreKeyInput
@@ -100,15 +97,14 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 			ID  string `json:"id"`
 			Key string `json:"key"`
 		}{
-			c.Input.ID,
+			c.Input.StoreID,
 			c.Input.Key,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Created key '%s' in KV Store '%s'", c.Input.Key, c.Input.ID)
-
+	text.Success(out, "Created key '%s' in KV Store '%s'", c.Input.Key, c.Input.StoreID)
 	return nil
 }
 
@@ -175,6 +171,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 		if !cont {
 			return nil
 		}
+		text.Break(out)
 	}
 
 	path, err := filepath.Abs(c.dirPath)
@@ -189,12 +186,8 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 
 	filteredFiles := make([]fs.DirEntry, 0)
 	for _, file := range allFiles {
-		hidden, err := isHiddenFile(file.Name())
-		if err != nil {
-			return err
-		}
 		// Skip directories/symlinks OR any hidden files unless the user allows them.
-		if !file.Type().IsRegular() || (file.Type().IsRegular() && hidden && !c.dirAllowHidden) {
+		if !file.Type().IsRegular() || (file.Type().IsRegular() && isHiddenFile(file.Name()) && !c.dirAllowHidden) {
 			continue
 		}
 		filteredFiles = append(filteredFiles, file)
@@ -286,7 +279,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 
 			opts := insertKeyOptions{
 				client: c.Globals.APIClient,
-				id:     c.Input.ID,
+				id:     c.Input.StoreID,
 				key:    filename,
 				file:   lr,
 			}
@@ -332,7 +325,7 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	}
 
 	if len(processingErrors) == 0 {
-		text.Success(out, "Inserted %d keys into KV Store", len(filteredFiles))
+		text.Success(out, "\nInserted %d keys into KV Store", len(filteredFiles))
 		return nil
 	}
 
@@ -367,8 +360,8 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 	}
 
 	if err := c.Globals.APIClient.BatchModifyKVStoreKey(&fastly.BatchModifyKVStoreKeyInput{
-		ID:   c.Input.ID,
-		Body: in,
+		StoreID: c.Input.StoreID,
+		Body:    in,
 	}); err != nil {
 		c.Globals.ErrLog.Add(err)
 
@@ -405,15 +398,18 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 		return err
 	}
 
+	if c.Globals.Verbose() {
+		text.Break(out)
+	}
 	text.Success(out, "Inserted keys into KV Store")
 	return nil
 }
 
 func insertKey(opts insertKeyOptions) error {
 	return opts.client.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
-		Body: opts.file,
-		ID:   opts.id,
-		Key:  opts.key,
+		Body:    opts.file,
+		StoreID: opts.id,
+		Key:     opts.key,
 	})
 }
 

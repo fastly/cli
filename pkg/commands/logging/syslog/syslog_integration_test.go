@@ -3,17 +3,20 @@ package syslog_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestSyslogCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -43,9 +46,12 @@ func TestSyslogCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -53,7 +59,7 @@ func TestSyslogCreate(t *testing.T) {
 }
 
 func TestSyslogList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -113,9 +119,12 @@ func TestSyslogList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -123,7 +132,7 @@ func TestSyslogList(t *testing.T) {
 }
 
 func TestSyslogDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +164,12 @@ func TestSyslogDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +177,7 @@ func TestSyslogDescribe(t *testing.T) {
 }
 
 func TestSyslogUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -199,9 +211,12 @@ func TestSyslogUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -209,7 +224,7 @@ func TestSyslogUpdate(t *testing.T) {
 }
 
 func TestSyslogDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -243,9 +258,12 @@ func TestSyslogDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -256,62 +274,62 @@ var errTest = errors.New("fixture error")
 
 func createSyslogOK(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 	}, nil
 }
 
-func createSyslogError(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
+func createSyslogError(_ *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
 func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 	return []*fastly.Syslog{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			Address:           "127.0.0.1",
-			Hostname:          "",
-			Port:              514,
-			UseTLS:            false,
-			IPV4:              "127.0.0.1",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-			Token:             "tkn",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			Address:           fastly.ToPointer("127.0.0.1"),
+			Hostname:          fastly.ToPointer("127.0.0.1"),
+			Port:              fastly.ToPointer(514),
+			UseTLS:            fastly.ToPointer(false),
+			IPV4:              fastly.ToPointer("127.0.0.1"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+			Token:             fastly.ToPointer("tkn"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			Address:           "example.com",
-			Hostname:          "example.com",
-			Port:              789,
-			UseTLS:            true,
-			IPV4:              "",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----baz",
-			TLSHostname:       "example.com",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----qux",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----qux",
-			Token:             "tkn",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			FormatVersion:     2,
-			MessageType:       "classic",
-			ResponseCondition: "Prevent default logging",
-			Placement:         "none",
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			Address:           fastly.ToPointer("example.com"),
+			Hostname:          fastly.ToPointer("example.com"),
+			Port:              fastly.ToPointer(789),
+			UseTLS:            fastly.ToPointer(true),
+			IPV4:              fastly.ToPointer("127.0.0.1"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----baz"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----qux"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----qux"),
+			Token:             fastly.ToPointer("tkn"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     fastly.ToPointer(2),
+			MessageType:       fastly.ToPointer("classic"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
 
-func listSyslogsError(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
+func listSyslogsError(_ *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 	return nil, errTest
 }
 
@@ -322,8 +340,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listSyslogsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -333,7 +351,7 @@ Version: 1
 		Version: 1
 		Name: logs
 		Address: 127.0.0.1
-		Hostname: 
+		Hostname: 127.0.0.1
 		Port: 514
 		Use TLS: false
 		IPV4: 127.0.0.1
@@ -355,7 +373,7 @@ Version: 1
 		Hostname: example.com
 		Port: 789
 		Use TLS: true
-		IPV4: 
+		IPV4: 127.0.0.1
 		TLS CA certificate: -----BEGIN CERTIFICATE-----baz
 		TLS hostname: example.com
 		TLS client certificate: -----BEGIN CERTIFICATE-----qux
@@ -370,28 +388,28 @@ Version: 1
 
 func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "logs",
-		Address:           "example.com",
-		Hostname:          "example.com",
-		Port:              514,
-		UseTLS:            true,
-		IPV4:              "",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		Token:             "tkn",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("logs"),
+		Address:           fastly.ToPointer("example.com"),
+		Hostname:          fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(514),
+		UseTLS:            fastly.ToPointer(true),
+		IPV4:              fastly.ToPointer(""),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		Token:             fastly.ToPointer("tkn"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func getSyslogError(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
+func getSyslogError(_ *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
@@ -418,35 +436,35 @@ Version: 1
 
 func updateSyslogOK(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		Address:           "example.com",
-		Hostname:          "example.com",
-		Port:              514,
-		UseTLS:            true,
-		IPV4:              "",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSHostname:       "example.com",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		Token:             "tkn",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		FormatVersion:     2,
-		MessageType:       "classic",
-		ResponseCondition: "Prevent default logging",
-		Placement:         "none",
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		Address:           fastly.ToPointer("example.com"),
+		Hostname:          fastly.ToPointer("example.com"),
+		Port:              fastly.ToPointer(514),
+		UseTLS:            fastly.ToPointer(true),
+		IPV4:              fastly.ToPointer(""),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		Token:             fastly.ToPointer("tkn"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     fastly.ToPointer(2),
+		MessageType:       fastly.ToPointer("classic"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
-func updateSyslogError(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
+func updateSyslogError(_ *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
-func deleteSyslogOK(i *fastly.DeleteSyslogInput) error {
+func deleteSyslogOK(_ *fastly.DeleteSyslogInput) error {
 	return nil
 }
 
-func deleteSyslogError(i *fastly.DeleteSyslogInput) error {
+func deleteSyslogError(_ *fastly.DeleteSyslogInput) error {
 	return errTest
 }

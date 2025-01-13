@@ -4,20 +4,18 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/lookup"
-	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	var c DescribeCommand
 	c.CmdClause = parent.Command("describe", "Get a specific user of the Fastly API and web interface").Alias("get")
 	c.Globals = g
-	c.manifest = m
 	c.CmdClause.Flag("current", "Get the logged in user").BoolVar(&c.current)
 	c.CmdClause.Flag("id", "Alphanumeric string identifying the user").StringVar(&c.id)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -26,21 +24,15 @@ func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) 
 
 // DescribeCommand calls the Fastly API to describe an appropriate resource.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	current  bool
-	id       string
-	manifest manifest.Data
+	current bool
+	id      string
 }
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	_, s := c.Globals.Token()
-	if s == lookup.SourceUndefined {
-		return fsterr.ErrNoToken
-	}
-
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -89,24 +81,24 @@ func (c *DescribeCommand) constructInput() (*fastly.GetUserInput, error) {
 			Remediation: "Alternatively pass --current to validate the logged in user.",
 		}
 	}
-	input.ID = c.id
+	input.UserID = c.id
 
 	return &input, nil
 }
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, r *fastly.User) {
-	fmt.Fprintf(out, "\nID: %s\n", r.ID)
-	fmt.Fprintf(out, "Login: %s\n", r.Login)
-	fmt.Fprintf(out, "Name: %s\n", r.Name)
-	fmt.Fprintf(out, "Role: %s\n", r.Role)
-	fmt.Fprintf(out, "Customer ID: %s\n", r.CustomerID)
-	fmt.Fprintf(out, "Email Hash: %s\n", r.EmailHash)
-	fmt.Fprintf(out, "Limit Services: %t\n", r.LimitServices)
-	fmt.Fprintf(out, "Locked: %t\n", r.Locked)
-	fmt.Fprintf(out, "Require New Password: %t\n", r.RequireNewPassword)
-	fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", r.TwoFactorAuthEnabled)
-	fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", r.TwoFactorSetupRequired)
+	fmt.Fprintf(out, "\nID: %s\n", fastly.ToValue(r.UserID))
+	fmt.Fprintf(out, "Login: %s\n", fastly.ToValue(r.Login))
+	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(r.Name))
+	fmt.Fprintf(out, "Role: %s\n", fastly.ToValue(r.Role))
+	fmt.Fprintf(out, "Customer ID: %s\n", fastly.ToValue(r.CustomerID))
+	fmt.Fprintf(out, "Email Hash: %s\n", fastly.ToValue(r.EmailHash))
+	fmt.Fprintf(out, "Limit Services: %t\n", fastly.ToValue(r.LimitServices))
+	fmt.Fprintf(out, "Locked: %t\n", fastly.ToValue(r.Locked))
+	fmt.Fprintf(out, "Require New Password: %t\n", fastly.ToValue(r.RequireNewPassword))
+	fmt.Fprintf(out, "Two Factor Auth Enabled: %t\n", fastly.ToValue(r.TwoFactorAuthEnabled))
+	fmt.Fprintf(out, "Two Factor Setup Required: %t\n\n", fastly.ToValue(r.TwoFactorSetupRequired))
 
 	if r.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", r.CreatedAt)

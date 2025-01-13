@@ -3,50 +3,48 @@ package ftp
 import (
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // DescribeCommand calls the Fastly API to describe an FTP logging endpoint.
 type DescribeCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest       manifest.Data
 	Input          fastly.GetFTPInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
-func NewDescribeCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DescribeCommand {
+func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCommand {
 	c := DescribeCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("describe", "Show detailed information about an FTP logging endpoint on a Fastly service version").Alias("get")
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
@@ -60,10 +58,9 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -78,7 +75,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.GetFTP(&c.Input)
 	if err != nil {
@@ -91,25 +88,25 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
-		"Address":            o.Address,
-		"Compression codec":  o.CompressionCodec,
-		"Format version":     o.FormatVersion,
-		"Format":             o.Format,
-		"GZip level":         o.GzipLevel,
-		"Name":               o.Name,
-		"Password":           o.Password,
-		"Path":               o.Path,
-		"Period":             o.Period,
-		"Placement":          o.Placement,
-		"Port":               o.Port,
-		"Public key":         o.PublicKey,
-		"Response condition": o.ResponseCondition,
-		"Timestamp format":   o.TimestampFormat,
-		"Username":           o.Username,
-		"Version":            o.ServiceVersion,
+		"Address":            fastly.ToValue(o.Address),
+		"Compression codec":  fastly.ToValue(o.CompressionCodec),
+		"Format version":     fastly.ToValue(o.FormatVersion),
+		"Format":             fastly.ToValue(o.Format),
+		"GZip level":         fastly.ToValue(o.GzipLevel),
+		"Name":               fastly.ToValue(o.Name),
+		"Password":           fastly.ToValue(o.Password),
+		"Path":               fastly.ToValue(o.Path),
+		"Period":             fastly.ToValue(o.Period),
+		"Placement":          fastly.ToValue(o.Placement),
+		"Port":               fastly.ToValue(o.Port),
+		"Public key":         fastly.ToValue(o.PublicKey),
+		"Response condition": fastly.ToValue(o.ResponseCondition),
+		"Timestamp format":   fastly.ToValue(o.TimestampFormat),
+		"Username":           fastly.ToValue(o.Username),
+		"Version":            fastly.ToValue(o.ServiceVersion),
 	}
 	if !c.Globals.Verbose() {
-		lines["Service ID"] = o.ServiceID
+		lines["Service ID"] = fastly.ToValue(o.ServiceID)
 	}
 	text.PrintLines(out, lines)
 

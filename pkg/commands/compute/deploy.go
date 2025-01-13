@@ -7,20 +7,25 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/compute/setup"
+	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/internal/beacon"
 	"github.com/fastly/cli/pkg/lookup"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
@@ -32,54 +37,61 @@ const (
 	trialNotActivated    = "Valid values for 'type' are: 'vcl'"
 )
 
+// ErrPackageUnchanged is an error that indicates the package hasn't changed.
+var ErrPackageUnchanged = errors.New("package is unchanged")
+
 // DeployCommand deploys an artifact previously produced by build.
 type DeployCommand struct {
-	cmd.Base
+	argparser.Base
+	manifestPath string
 
 	// NOTE: these are public so that the "publish" composite command can set the
 	// values appropriately before calling the Exec() function.
-	Comment            cmd.OptionalString
+	Comment            argparser.OptionalString
+	Dir                string
 	Domain             string
-	Manifest           manifest.Data
-	Package            string
-	ServiceName        cmd.OptionalServiceNameID
-	ServiceVersion     cmd.OptionalServiceVersion
+	Env                string
+	PackagePath        string
+	ServiceName        argparser.OptionalServiceNameID
+	ServiceVersion     argparser.OptionalServiceVersion
 	StatusCheckCode    int
 	StatusCheckOff     bool
 	StatusCheckPath    string
 	StatusCheckTimeout int
+	SkipChangeDir      bool // set by parent composite commands (e.g. serve, publish)
 }
 
 // NewDeployCommand returns a usable command registered under the parent.
-func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *DeployCommand {
+func NewDeployCommand(parent argparser.Registerer, g *global.Data) *DeployCommand {
 	var c DeployCommand
 	c.Globals = g
-	c.Manifest = m
-	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute@Edge service")
+	c.CmdClause = parent.Command("deploy", "Deploy a package to a Fastly Compute service")
 
 	// NOTE: when updating these flags, be sure to update the composite command:
 	// `compute publish`.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.Manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &c.Globals.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceVersion.Set,
-		Description: cmd.FlagVersionDesc,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.ServiceVersion.Value,
-		Name:        cmd.FlagVersionName,
+		Name:        argparser.FlagVersionName,
 	})
 	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.Comment.Set).StringVar(&c.Comment.Value)
+	c.CmdClause.Flag("dir", "Project directory (default: current directory)").Short('C').StringVar(&c.Dir)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
-	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.Package)
+	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Env)
+	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
 	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check").IntVar(&c.StatusCheckCode)
 	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.StatusCheckOff)
 	c.CmdClause.Flag("status-check-path", "Specify the URL path for the service availability check").Default("/").StringVar(&c.StatusCheckPath)
@@ -89,49 +101,92 @@ func NewDeployCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *D
 
 // Exec implements the command interface.
 func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	fnActivateTrial, source, serviceID, pkgPath, err := setupDeploy(c, out)
-	if err != nil {
-		return err
-	}
-
-	undoStack := undo.NewStack()
-	undoStack.Push(func() error {
-		// We'll only clean-up the service if it's a new service.
-		//
-		// SourceUndefined means...
-		//   - the flags --service-id/--service-name were not set.
-		//   - no service_id attribute was set in the fastly.toml manifest.
-		if source == manifest.SourceUndefined {
-			return cleanupService(c.Globals.APIClient, serviceID, c.Manifest, out)
+	manifestFilename := EnvironmentManifest(c.Env)
+	if c.Env != "" {
+		if c.Globals.Verbose() {
+			text.Info(out, EnvManifestMsg, manifestFilename, manifest.Filename)
 		}
-		return nil
-	})
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
+	c.manifestPath = filepath.Join(wd, manifestFilename)
+
+	var projectDir string
+	if !c.SkipChangeDir {
+		projectDir, err = ChangeProjectDirectory(c.Dir)
+		if err != nil {
+			return err
+		}
+		if projectDir != "" {
+			if c.Globals.Verbose() {
+				text.Info(out, ProjectDirMsg, projectDir)
+			}
+			c.manifestPath = filepath.Join(projectDir, manifestFilename)
+		}
+	}
 
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
 		return err
 	}
 
-	newService, serviceID, serviceVersion, cont, err := serviceManagement(serviceID, source, c, in, out, fnActivateTrial, spinner)
-	if err != nil {
-		return err
-	}
-	if !cont {
+	err = spinner.Process(fmt.Sprintf("Verifying %s", manifestFilename), func(_ *text.SpinnerWrapper) error {
+		// The check for c.SkipChangeDir here is because we might need to attempt
+		// another read of the manifest file. To explain: if we're skipping the
+		// change of directory, it means we were called from a composite command,
+		// which has already changed directory to one that contains the fastly.toml
+		// file. This means we should try reading the manifest file from the new
+		// location as the potential ReadError() would have been based on the
+		// initial directory the CLI was invoked from.
+		if c.SkipChangeDir || projectDir != "" || c.Env != "" {
+			err = c.Globals.Manifest.File.Read(c.manifestPath)
+		} else {
+			err = c.Globals.Manifest.File.ReadError()
+		}
+		if err != nil {
+			// If the user hasn't specified a package to deploy, then we'll just check
+			// the read error and return it.
+			if c.PackagePath == "" {
+				if errors.Is(err, os.ErrNotExist) {
+					err = fsterr.ErrReadingManifest
+				}
+				c.Globals.ErrLog.Add(err)
+				return err
+			}
+			// Otherwise, we'll attempt to read the manifest from within the given
+			// package archive.
+			if err := readManifestFromPackageArchive(c.Globals.Manifest, c.PackagePath, manifestFilename); err != nil {
+				return err
+			}
+			if c.Globals.Verbose() {
+				text.Info(out, "Using %s within --package archive: %s\n\n", manifestFilename, c.PackagePath)
+			}
+		}
 		return nil
-	}
-
-	so, err := constructSetupObjects(
-		newService, serviceID, serviceVersion.Number, c, in, out,
-	)
+	})
 	if err != nil {
 		return err
 	}
+	text.Break(out)
 
-	if err = processSetupConfig(
-		newService, so, serviceID, serviceVersion.Number, c,
-	); err != nil {
+	fnActivateTrial, serviceID, err := c.Setup(out)
+	if err != nil {
 		return err
 	}
+	noExistingService := serviceID == ""
+
+	undoStack := undo.NewStack()
+	undoStack.Push(func() error {
+		if noExistingService && serviceID != "" {
+			return c.CleanupNewService(serviceID, manifestFilename, out)
+		}
+		return nil
+	})
 
 	defer func(errLog fsterr.LogInterface) {
 		if err != nil {
@@ -140,64 +195,160 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		undoStack.RunIfError(out, err)
 	}(c.Globals.ErrLog)
 
-	if err = processSetupCreation(
-		newService, so, spinner, c, serviceID, serviceVersion.Number,
-	); err != nil {
-		return err
-	}
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+	go monitorSignals(signalCh, noExistingService, out, undoStack, spinner)
 
-	cont, err = processPackage(
-		c, pkgPath, serviceID, serviceVersion.Number, spinner, out,
-	)
-	if err != nil {
-		return err
-	}
-	if !cont {
-		return nil
-	}
-
-	if err = processService(c, serviceID, serviceVersion.Number, spinner); err != nil {
-		return err
-	}
-
-	domain, err := getServiceDomain(c.Globals.APIClient, serviceID, serviceVersion.Number)
-	if err != nil {
-		return err
-	}
-
-	serviceURL := fmt.Sprintf("https://%s", domain)
-
-	if !c.StatusCheckOff && newService {
-		var status int
-		if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
-			if re, ok := err.(fsterr.RemediationError); ok {
-				text.Warning(out, re.Remediation)
-			}
+	var serviceVersion *fastly.Version
+	if noExistingService {
+		serviceID, serviceVersion, err = c.NewService(manifestFilename, fnActivateTrial, spinner, in, out)
+		if err != nil {
+			return err
 		}
-
-		// Because the service availability can return an error (which we ignore),
-		// then we need to check for the 'no error' scenarios.
-		if err == nil {
-			if validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode {
-				// If the user set a specific status code expectation...
-				text.Warning(out, "The service path `%s` responded with a status code (%d) that didn't match what was expected (%d).", c.StatusCheckPath, status, c.StatusCheckCode)
-			} else if !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest {
-				// If no status code was specified, and the actual status response was an error...
-				text.Info(out, "The service path `%s` responded with a non-successful status code (%d). Please check your application code if this is an unexpected response.", c.StatusCheckPath, status)
+		if serviceID == "" {
+			return nil // user declined service creation prompt
+		}
+	} else {
+		// ErrPackageUnchanged is returned AFTER identifying the service version.
+		// nosemgrep: trailofbits.go.invalid-usage-of-modified-variable.invalid-usage-of-modified-variable
+		serviceVersion, err = c.ExistingServiceVersion(serviceID, out)
+		if err != nil {
+			if errors.Is(err, ErrPackageUnchanged) {
+				text.Info(out, "Skipping package deployment, local and service version are identical. (service %s, version %d) ", serviceID, fastly.ToValue(serviceVersion.Number))
+				return nil
 			}
+			return err
+		}
+		if c.Globals.Manifest.File.Setup.Defined() && !c.Globals.Flags.Quiet {
+			text.Info(out, "\nProcessing of the %s [setup] configuration happens only for a new service. Once a service is created, any further changes to the service or its resources must be made manually.\n\n", manifestFilename)
 		}
 	}
 
-	text.Break(out)
-	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
-	text.Description(out, "View this service at", serviceURL)
+	var sr ServiceResources
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 
-	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion.Number)
+	// NOTE: A 'domain' resource isn't strictly part of the [setup] config.
+	// It's part of the implementation so that we can utilise the same interface.
+	// A domain is required regardless of whether it's a new service or existing.
+	sr.domains = &setup.Domains{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		PackageDomain:  c.Domain,
+		RetryLimit:     5,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersionNumber,
+		Stdin:          in,
+		Stdout:         out,
+		Verbose:        c.Globals.Verbose(),
+	}
+	if err = sr.domains.Validate(); err != nil {
+		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersionNumber)
+		return fmt.Errorf("error configuring service domains: %w", err)
+	}
+	if noExistingService {
+		c.ConstructNewServiceResources(
+			&sr, serviceID, serviceVersionNumber, in, out,
+		)
+	}
+
+	if sr.domains.Missing() {
+		if err := sr.domains.Configure(); err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersionNumber)
+			return fmt.Errorf("error configuring service domains: %w", err)
+		}
+	}
+	if noExistingService {
+		if err = c.ConfigureServiceResources(sr, serviceID, serviceVersionNumber); err != nil {
+			return err
+		}
+	}
+
+	if sr.domains.Missing() {
+		sr.domains.Spinner = spinner
+		if err := sr.domains.Create(); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Accept defaults": c.Globals.Flags.AcceptDefaults,
+				"Auto-yes":        c.Globals.Flags.AutoYes,
+				"Non-interactive": c.Globals.Flags.NonInteractive,
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion,
+			})
+			return err
+		}
+	}
+	if noExistingService {
+		if err = c.CreateServiceResources(sr, spinner, serviceID, serviceVersionNumber); err != nil {
+			return err
+		}
+	}
+
+	err = c.UploadPackage(spinner, serviceID, serviceVersionNumber)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path":    c.PackagePath,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
+	}
+
+	if err = c.ProcessService(serviceID, serviceVersionNumber, spinner); err != nil {
+		return err
+	}
+
+	serviceURL, err := c.GetServiceURL(serviceID, serviceVersionNumber)
+	if err != nil {
+		return err
+	}
+
+	if !c.StatusCheckOff && noExistingService {
+		c.StatusCheck(serviceURL, spinner, out)
+	}
+
+	if !noExistingService {
+		text.Break(out)
+	}
+	displayDeployOutput(out, manageServiceBaseURL, serviceID, serviceURL, serviceVersionNumber)
 	return nil
 }
 
+// StatusCheck checks the service URL and identifies when it's ready.
+func (c *DeployCommand) StatusCheck(serviceURL string, spinner text.Spinner, out io.Writer) {
+	var (
+		err    error
+		status int
+	)
+	if status, err = checkingServiceAvailability(serviceURL+c.StatusCheckPath, spinner, c); err != nil {
+		if re, ok := err.(fsterr.RemediationError); ok {
+			text.Warning(out, re.Remediation)
+		}
+	}
+
+	// Because the service availability can return an error (which we ignore),
+	// then we need to check for the 'no error' scenarios.
+	if err == nil {
+		switch {
+		case validStatusCodeRange(c.StatusCheckCode) && status != c.StatusCheckCode:
+			// If the user set a specific status code expectation...
+			text.Warning(out, "The service path `%s` responded with a status code (%d) that didn't match what was expected (%d).", c.StatusCheckPath, status, c.StatusCheckCode)
+		case !validStatusCodeRange(c.StatusCheckCode) && status >= http.StatusBadRequest:
+			// If no status code was specified, and the actual status response was an error...
+			text.Info(out, "The service path `%s` responded with a non-successful status code (%d). Please check your application code if this is an unexpected response.", c.StatusCheckPath, status)
+		default:
+			text.Break(out)
+		}
+	}
+}
+
+func displayDeployOutput(out io.Writer, manageServiceBaseURL, serviceID, serviceURL string, serviceVersion int) {
+	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
+	text.Description(out, "View this service at", serviceURL)
+	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion)
+}
+
 // validStatusCodeRange checks the status is a valid status code.
-// e.g. >= 100 and <= 999
+// e.g. >= 100 and <= 999.
 func validStatusCodeRange(status int) bool {
 	if status >= 100 && status <= 999 {
 		return true
@@ -205,115 +356,72 @@ func validStatusCodeRange(status int) bool {
 	return false
 }
 
-// setupDeploy prepares the environment.
-// It will do things like:
-//   - Check if there is an API token missing.
-//   - Acquire the Service ID/Version.
-//   - Validate there is a package to deploy.
-//   - Determine if a trial needs to be activated on the user's account.
-func setupDeploy(c *DeployCommand, out io.Writer) (
-	fnActivateTrial activator,
-	source manifest.Source,
-	serviceID, pkgPath string,
-	err error,
-) {
-	defaultActivator := func(customerID string) error { return nil }
+// Setup prepares the environment.
+//
+// - Check if there is an API token missing.
+// - Acquire the Service ID/Version.
+// - Validate there is a package to deploy.
+// - Determine if a trial needs to be activated on the user's account.
+func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, serviceID string, err error) {
+	defaultActivator := func(_ string) error { return nil }
 
 	token, s := c.Globals.Token()
 	if s == lookup.SourceUndefined {
-		return defaultActivator, 0, "", "", fsterr.ErrNoToken
+		return defaultActivator, "", fsterr.ErrNoToken
 	}
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
 	// This is because later in the Exec() flow we might create a 'new' service.
-	// Refer to manageNoServiceIDFlow()
-	serviceID, source, flag, err := cmd.ServiceID(c.ServiceName, c.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
+	serviceID, source, flag, err := argparser.ServiceID(c.ServiceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err == nil && c.Globals.Verbose() {
-		cmd.DisplayServiceID(serviceID, flag, source, out)
+		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	pkgPath, err = validatePackage(c.Manifest, c.Package, c.Globals.Verbose(), c.Globals.ErrLog, out)
+	if c.PackagePath == "" {
+		projectName, source := c.Globals.Manifest.Name()
+		if source == manifest.SourceUndefined {
+			return defaultActivator, serviceID, fsterr.ErrReadingManifest
+		}
+		c.PackagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
+	}
+
+	err = validatePackage(c.PackagePath)
 	if err != nil {
-		return defaultActivator, source, serviceID, "", err
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path": c.PackagePath,
+		})
+		return defaultActivator, serviceID, err
 	}
 
-	endpoint, _ := c.Globals.Endpoint()
-	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient)
+	endpoint, _ := c.Globals.APIEndpoint()
+	fnActivateTrial = preconfigureActivateTrial(endpoint, token, c.Globals.HTTPClient, c.Globals.Env.DebugMode)
 
-	return fnActivateTrial, source, serviceID, pkgPath, err
+	return fnActivateTrial, serviceID, err
 }
 
-// validatePackage short-circuits the deploy command if the user hasn't first
-// built a package to be deployed.
-//
-// NOTE: It also validates if the package size exceeds limit:
-// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
-func validatePackage(
-	data manifest.Data,
-	packageFlag string,
-	verbose bool,
-	errLog fsterr.LogInterface,
-	out io.Writer,
-) (pkgPath string, err error) {
-	err = data.File.ReadError()
-	if err != nil {
-		if packageFlag == "" {
-			if errors.Is(err, os.ErrNotExist) {
-				err = fsterr.ErrReadingManifest
-			}
-			return pkgPath, err
-		}
-
-		// NOTE: Before returning the manifest read error, we'll attempt to read
-		// the manifest from within the given package archive.
-		err := readManifestFromPackageArchive(&data, packageFlag, verbose, out)
-		if err != nil {
-			return pkgPath, err
-		}
-	}
-
-	projectName, source := data.Name()
-	pkgPath, err = packagePath(packageFlag, projectName, source)
-	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Package path": packageFlag,
-		})
-		return pkgPath, err
-	}
-
+// validatePackage checks the package and returns its path, which can change
+// depending on the user flow scenario.
+func validatePackage(pkgPath string) error {
 	pkgSize, err := packageSize(pkgPath)
 	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Package path": pkgPath,
-		})
-		return pkgPath, fsterr.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("error reading package size: %w", err),
-			Remediation: "Run `fastly compute build` to produce a Compute@Edge package, alternatively use the --package flag to reference a package outside of the current project.",
+			Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
 		}
 	}
-
 	if pkgSize > MaxPackageSize {
-		return pkgPath, fsterr.RemediationError{
+		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("package size is too large (%d bytes)", pkgSize),
 			Remediation: fsterr.PackageSizeRemediation,
 		}
 	}
-
-	if err := validatePackageContent(pkgPath); err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Package path": pkgPath,
-			"Package size": pkgSize,
-		})
-		return pkgPath, err
-	}
-
-	return pkgPath, nil
+	return validatePackageContent(pkgPath)
 }
 
 // readManifestFromPackageArchive extracts the manifest file from the given
 // package archive file and reads it into memory.
-func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, verbose bool, out io.Writer) error {
-	dst, err := os.MkdirTemp("", fmt.Sprintf("%s-*", manifest.Filename))
+func readManifestFromPackageArchive(data *manifest.Data, packageFlag, manifestFilename string) error {
+	dst, err := os.MkdirTemp("", fmt.Sprintf("%s-*", manifestFilename))
 	if err != nil {
 		return err
 	}
@@ -329,7 +437,7 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, ver
 	}
 	extractedDirName := files[0].Name()
 
-	manifestPath, err := locateManifest(filepath.Join(dst, extractedDirName))
+	manifestPath, err := locateManifest(filepath.Join(dst, extractedDirName), manifestFilename)
 	if err != nil {
 		return err
 	}
@@ -342,16 +450,12 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag string, ver
 		return err
 	}
 
-	if verbose {
-		text.Info(out, "Using fastly.toml within --package archive:\n\t%s", packageFlag)
-	}
-
 	return nil
 }
 
 // locateManifest attempts to find the manifest within the given path's
 // directory tree.
-func locateManifest(path string) (string, error) {
+func locateManifest(path, manifestFilename string) (string, error) {
 	root, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -363,13 +467,12 @@ func locateManifest(path string) (string, error) {
 		if err != nil {
 			return err
 		}
-		if !entry.IsDir() && filepath.Base(path) == manifest.Filename {
+		if !entry.IsDir() && filepath.Base(path) == manifestFilename {
 			foundManifest = path
 			return fsterr.ErrStopWalk
 		}
 		return nil
 	})
-
 	if err != nil {
 		// If the error isn't ErrStopWalk, then the WalkDir() function had an
 		// issue processing the directory tree.
@@ -383,19 +486,10 @@ func locateManifest(path string) (string, error) {
 	return "", fmt.Errorf("error locating manifest within the given path: %s", path)
 }
 
-// packagePath generates a path that points to a package tar inside the pkg
-// directory if the package path flag was not set by the user.
-func packagePath(path, projectName string, source manifest.Source) (string, error) {
-	if path == "" {
-		if source == manifest.SourceUndefined {
-			return "", fsterr.ErrReadingManifest
-		}
-		path = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
-	}
-	return path, nil
-}
-
 // packageSize returns the size of the .tar.gz package.
+//
+// Reference:
+// https://docs.fastly.com/products/compute-at-edge-billing-and-resource-limits#resource-limits
 func packageSize(path string) (size int64, err error) {
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -404,18 +498,19 @@ func packageSize(path string) (size int64, err error) {
 	return fi.Size(), nil
 }
 
-// activator represents a function that calls an undocumented API endpoint for
-// activating a Compute@Edge free trial on the given customer account.
+// Activator represents a function that calls an undocumented API endpoint for
+// activating a Compute free trial on the given customer account.
 //
 // It is preconfigured with the Fastly API endpoint, a user token and a simple
 // HTTP Client.
 //
-// This design allows us to pass an activator rather than passing multiple
+// This design allows us to pass an Activator rather than passing multiple
 // unrelated arguments through several nested functions.
-type activator func(customerID string) error
+type Activator func(customerID string) error
 
 // preconfigureActivateTrial activates a free trial on the customer account.
-func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient) activator {
+func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient, debugMode string) Activator {
+	debug, _ := strconv.ParseBool(debugMode)
 	return func(customerID string) error {
 		_, err := undocumented.Call(undocumented.CallOptions{
 			APIEndpoint: endpoint,
@@ -423,13 +518,14 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 			Method:      http.MethodPost,
 			Path:        fmt.Sprintf(undocumented.EdgeComputeTrial, customerID),
 			Token:       token,
+			Debug:       debug,
 		})
 		if err != nil {
 			apiErr, ok := err.(undocumented.APIError)
 			if !ok {
 				return err
 			}
-			// 409 Conflict == The Compute@Edge trial has already been created.
+			// 409 Conflict == The Compute trial has already been created.
 			if apiErr.StatusCode != http.StatusConflict {
 				return fmt.Errorf("%w: %d %s", err, apiErr.StatusCode, http.StatusText(apiErr.StatusCode))
 			}
@@ -438,117 +534,63 @@ func preconfigureActivateTrial(endpoint, token string, httpClient api.HTTPClient
 	}
 }
 
-func serviceManagement(
-	serviceID string,
-	source manifest.Source,
-	c *DeployCommand,
-	in io.Reader,
-	out io.Writer,
-	fnActivateTrial activator,
-	spinner text.Spinner,
-) (newService bool, updatedServiceID string, serviceVersion *fastly.Version, cont bool, err error) {
-	if source == manifest.SourceUndefined {
-		newService = true
-		serviceID, serviceVersion, err = manageNoServiceIDFlow(
-			c.Globals.Flags, in, out,
-			c.Globals.APIClient, c.Package, c.Globals.ErrLog,
-			&c.Manifest.File, fnActivateTrial, spinner, c.ServiceName,
-		)
-		if err != nil {
-			return newService, "", nil, false, err
-		}
-		if serviceID == "" {
-			return newService, "", nil, false, nil // user declined service creation prompt
-		}
-	} else {
-		// There is a scenario where a user already has a Service ID within the
-		// fastly.toml manifest but they want to deploy their project to a different
-		// service (e.g. deploy to a staging service).
-		//
-		// In this scenario we end up here because we have found a Service ID in the
-		// manifest but if the --service-name flag is set, then we need to ignore
-		// what's set in the manifest and instead identify the ID of the service
-		// name the user has provided.
-		if c.ServiceName.WasSet {
-			serviceID, err = c.ServiceName.Parse(c.Globals.APIClient)
-			if err != nil {
-				return false, "", nil, false, err
-			}
-		}
+// NewService handles creating a new service when no Service ID is found.
+func (c *DeployCommand) NewService(manifestFilename string, fnActivateTrial Activator, spinner text.Spinner, in io.Reader, out io.Writer) (string, *fastly.Version, error) {
+	var (
+		err            error
+		serviceID      string
+		serviceVersion *fastly.Version
+	)
 
-		serviceVersion, err = manageExistingServiceFlow(serviceID, c.ServiceVersion, c.Globals.APIClient, c.Globals.Verbose(), out, c.Globals.ErrLog)
-		if err != nil {
-			return false, "", nil, false, err
-		}
-	}
-
-	return newService, serviceID, serviceVersion, true, nil
-}
-
-// manageNoServiceIDFlow handles creating a new service when no Service ID is found.
-func manageNoServiceIDFlow(
-	f global.Flags,
-	in io.Reader,
-	out io.Writer,
-	apiClient api.Interface,
-	packageFlag string,
-	errLog fsterr.LogInterface,
-	manifestFile *manifest.File,
-	fnActivateTrial activator,
-	spinner text.Spinner,
-	serviceNameFlag cmd.OptionalServiceNameID,
-) (serviceID string, serviceVersion *fastly.Version, err error) {
-	if !f.AutoYes && !f.NonInteractive {
-		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the fastly.toml file, otherwise follow the prompts to create a service now.")
-		text.Break(out)
+	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the %s file, otherwise follow the prompts to create a service now.\n\n", manifestFilename)
 		text.Output(out, "Press ^C at any time to quit.")
 
-		if manifestFile.Setup.Defined() {
-			text.Info(out, "Processing of the fastly.toml [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.")
+		if c.Globals.Manifest.File.Setup.Defined() {
+			text.Info(out, "\nProcessing of the %s [setup] configuration happens only when there is no existing service. Once a service is created, any further changes to the service or its resources must be made manually.", manifestFilename)
 		}
 
 		text.Break(out)
-
-		answer, err := text.AskYesNo(out, text.BoldYellow("Create new service: [y/N] "), in)
+		answer, err := text.AskYesNo(out, "Create new service: [y/N] ", in)
 		if err != nil {
 			return serviceID, serviceVersion, err
 		}
 		if !answer {
 			return serviceID, serviceVersion, nil
 		}
-
 		text.Break(out)
 	}
 
-	defaultServiceName := manifestFile.Name
+	defaultServiceName := c.Globals.Manifest.File.Name
 	var serviceName string
 
 	// The service name will be whatever is set in the --service-name flag.
-	// If the flag isn't set, and we're able to prompt, we'll ask the user.
 	// If the flag isn't set, and we're non-interactive, we'll use the default.
-	if serviceNameFlag.WasSet {
-		serviceName = serviceNameFlag.Value
-	} else if !f.AcceptDefaults && !f.NonInteractive {
-		serviceName, err = text.Input(out, text.BoldYellow(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
+	// If the flag isn't set, and we're interactive, we'll prompt the user.
+	switch {
+	case c.ServiceName.WasSet:
+		serviceName = c.ServiceName.Value
+	case c.Globals.Flags.AcceptDefaults || c.Globals.Flags.NonInteractive:
+		serviceName = defaultServiceName
+	default:
+		serviceName, err = text.Input(out, text.Prompt(fmt.Sprintf("Service name: [%s] ", defaultServiceName)), in)
 		if err != nil || serviceName == "" {
 			serviceName = defaultServiceName
 		}
-	} else {
-		serviceName = defaultServiceName
 	}
 
 	// There is no service and so we'll do a one time creation of the service
 	//
-	// NOTE: we're shadowing the `serviceVersion` and `serviceID` variables.
-	serviceID, serviceVersion, err = createService(f, serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
+	// NOTE: we're shadowing the `serviceID` and `serviceVersion` variables.
+	serviceID, serviceVersion, err = createService(c.Globals, serviceName, fnActivateTrial, spinner, out)
 	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service name": serviceName,
 		})
 		return serviceID, serviceVersion, err
 	}
 
-	err = updateManifestServiceID(manifestFile, manifest.Filename, serviceID)
+	err = c.UpdateManifestServiceID(serviceID, c.manifestPath)
 
 	// NOTE: Skip error if --package flag is set.
 	//
@@ -559,8 +601,8 @@ func manageNoServiceIDFlow(
 	// If the user does happen to be in a project directory and they use the
 	// --package flag, then the above function call to update the manifest will
 	// have succeeded and so there will be no error.
-	if err != nil && packageFlag == "" {
-		errLog.AddWithContext(err, map[string]any{
+	if err != nil && c.PackagePath == "" {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,
 		})
 		return serviceID, serviceVersion, err
@@ -574,14 +616,16 @@ func manageNoServiceIDFlow(
 // NOTE: If the creation of the service fails because the user has not
 // activated a free trial, then we'll trigger the trial for their account.
 func createService(
-	f global.Flags,
+	g *global.Data,
 	serviceName string,
-	apiClient api.Interface,
-	fnActivateTrial activator,
+	fnActivateTrial Activator,
 	spinner text.Spinner,
-	errLog fsterr.LogInterface,
 	out io.Writer,
 ) (serviceID string, serviceVersion *fastly.Version, err error) {
+	f := g.Flags
+	apiClient := g.APIClient
+	errLog := g.ErrLog
+
 	if !f.AcceptDefaults && !f.NonInteractive {
 		text.Break(out)
 	}
@@ -595,41 +639,42 @@ func createService(
 
 	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
 		Name: &serviceName,
-		Type: fastly.String("wasm"),
+		Type: fastly.ToPointer("wasm"),
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), trialNotActivated) {
 			user, err := apiClient.GetCurrentUser()
 			if err != nil {
+				err = fmt.Errorf("unable to identify user associated with the given token: %w", err)
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return "", nil, spinErr
+					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
-
 				return serviceID, serviceVersion, fsterr.RemediationError{
-					Inner:       fmt.Errorf("unable to identify user associated with the given token: %w", err),
-					Remediation: "To ensure you have access to the Compute@Edge platform we need your Customer ID. " + fsterr.AuthRemediation,
+					Inner:       err,
+					Remediation: "To ensure you have access to the Compute platform we need your Customer ID. " + fsterr.AuthRemediation,
 				}
 			}
 
-			err = fnActivateTrial(user.CustomerID)
+			customerID := fastly.ToValue(user.CustomerID)
+			err = fnActivateTrial(customerID)
 			if err != nil {
+				err = fmt.Errorf("error creating service: you do not have the Compute free trial enabled on your Fastly account")
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return "", nil, spinErr
+					return "", nil, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
-
 				return serviceID, serviceVersion, fsterr.RemediationError{
-					Inner:       fmt.Errorf("error creating service: you do not have the Compute@Edge free trial enabled on your Fastly account"),
+					Inner:       err,
 					Remediation: fsterr.ComputeTrialRemediation,
 				}
 			}
 
 			errLog.AddWithContext(err, map[string]any{
 				"Service Name": serviceName,
-				"Customer ID":  user.CustomerID,
+				"Customer ID":  customerID,
 			})
 
 			spinner.StopFailMessage(msg)
@@ -638,7 +683,13 @@ func createService(
 				return "", nil, err
 			}
 
-			return createService(f, serviceName, apiClient, fnActivateTrial, spinner, errLog, out)
+			return createService(g, serviceName, fnActivateTrial, spinner, out)
+		}
+
+		spinner.StopFailMessage(msg)
+		spinErr := spinner.StopFail()
+		if spinErr != nil {
+			return "", nil, spinErr
 		}
 
 		errLog.AddWithContext(err, map[string]any{
@@ -652,25 +703,23 @@ func createService(
 	if err != nil {
 		return "", nil, err
 	}
-	return service.ID, &fastly.Version{Number: 1}, nil
+	return fastly.ToValue(service.ServiceID), &fastly.Version{Number: fastly.ToPointer(1)}, nil
 }
 
-// cleanupService is executed if a new service flow has errors.
+// CleanupNewService is executed if a new service flow has errors.
 // It deletes the service, which will cause any contained resources to be deleted.
 // It will also strip the Service ID from the fastly.toml manifest file.
-func cleanupService(apiClient api.Interface, serviceID string, m manifest.Data, out io.Writer) error {
-	text.Info(out, "Cleaning up service")
-
-	err := apiClient.DeleteService(&fastly.DeleteServiceInput{
-		ID: serviceID,
+func (c *DeployCommand) CleanupNewService(serviceID, manifestFilename string, out io.Writer) error {
+	text.Info(out, "\nCleaning up service\n\n")
+	err := c.Globals.APIClient.DeleteService(&fastly.DeleteServiceInput{
+		ServiceID: serviceID,
 	})
 	if err != nil {
 		return err
 	}
 
-	text.Info(out, "Removing Service ID from fastly.toml")
-
-	err = updateManifestServiceID(&m.File, manifest.Filename, "")
+	text.Info(out, "Removing Service ID from %s\n\n", manifestFilename)
+	err = c.UpdateManifestServiceID("", c.manifestPath)
 	if err != nil {
 		return err
 	}
@@ -679,89 +728,22 @@ func cleanupService(apiClient api.Interface, serviceID string, m manifest.Data, 
 	return nil
 }
 
-// updateManifestServiceID updates the Service ID in the manifest.
+// UpdateManifestServiceID updates the Service ID in the manifest.
 //
 // There are two scenarios where this function is called. The first is when we
 // have a Service ID to insert into the manifest. The other is when there is an
 // error in the deploy flow, and for which the Service ID will be set to an
 // empty string (otherwise the service itself will be deleted while the
 // manifest will continue to hold a reference to it).
-func updateManifestServiceID(m *manifest.File, manifestFilename string, serviceID string) error {
-	if err := m.Read(manifestFilename); err != nil {
-		return fmt.Errorf("error reading fastly.toml: %w", err)
+func (c *DeployCommand) UpdateManifestServiceID(serviceID, manifestPath string) error {
+	if err := c.Globals.Manifest.File.Read(manifestPath); err != nil {
+		return fmt.Errorf("error reading %s: %w", manifestPath, err)
 	}
-
-	m.ServiceID = serviceID
-
-	if err := m.Write(manifestFilename); err != nil {
-		return fmt.Errorf("error saving fastly.toml: %w", err)
+	c.Globals.Manifest.File.ServiceID = serviceID
+	if err := c.Globals.Manifest.File.Write(manifestPath); err != nil {
+		return fmt.Errorf("error saving %s: %w", manifestPath, err)
 	}
-
 	return nil
-}
-
-// manageExistingServiceFlow clones service version if required.
-func manageExistingServiceFlow(
-	serviceID string,
-	serviceVersionFlag cmd.OptionalServiceVersion,
-	apiClient api.Interface,
-	verbose bool,
-	out io.Writer,
-	errLog fsterr.LogInterface,
-) (serviceVersion *fastly.Version, err error) {
-	serviceVersion, err = serviceVersionFlag.Parse(serviceID, apiClient)
-	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Service ID": serviceID,
-		})
-		return serviceVersion, err
-	}
-
-	// Validate that we're dealing with a Compute@Edge 'wasm' service and not a
-	// VCL service, for which we cannot upload a wasm package format to.
-	serviceDetails, err := apiClient.GetServiceDetails(&fastly.GetServiceInput{ID: serviceID})
-	if err != nil {
-		errLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
-		})
-		return serviceVersion, err
-	}
-	if serviceDetails.Type != "wasm" {
-		errLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceDetails.Type), map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
-			"Service Type":    serviceDetails.Type,
-		})
-		return serviceVersion, fsterr.RemediationError{
-			Inner:       fmt.Errorf("invalid service type: %s", serviceDetails.Type),
-			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
-		}
-	}
-
-	// Unlike other CLI commands that are a direct mapping to an API endpoint,
-	// the compute deploy command is a composite of behaviours, and so as we
-	// already automatically activate a version we should autoclone without
-	// requiring the user to explicitly provide an --autoclone flag.
-	if serviceVersion.Active || serviceVersion.Locked {
-		clonedVersion, err := apiClient.CloneVersion(&fastly.CloneVersionInput{
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion.Number,
-		})
-		if err != nil {
-			errLogService(errLog, err, serviceID, serviceVersion.Number)
-			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
-		}
-		if verbose {
-			msg := fmt.Sprintf("Service version %d is not editable, so it was automatically cloned. Now operating on version %d.", serviceVersion.Number, clonedVersion.Number)
-			text.Break(out)
-			text.Output(out, msg)
-			text.Break(out)
-		}
-		serviceVersion = clonedVersion
-	}
-
-	return serviceVersion, nil
 }
 
 // errLogService records the error, service id and version into the error log.
@@ -772,66 +754,55 @@ func errLogService(l fsterr.LogInterface, err error, sid string, sv int) {
 	})
 }
 
-// checkServiceID validates the given Service ID maps to a real service.
-func checkServiceID(serviceID string, client api.Interface) error {
-	_, err := client.GetService(&fastly.GetServiceInput{
-		ID: serviceID,
-	})
+// CompareLocalRemotePackage compares the local package files hash against the
+// existing service package version and exits early with message if identical.
+//
+// NOTE: We can't avoid the first 'no-changes' upload after the initial deploy.
+// This is because the fastly.toml manifest does actual change after first deploy.
+// When user first deploys, there is no value for service_id.
+// That version of the manifest is inside the package we're checking against.
+// So on the second deploy, even if user has made no changes themselves, we will
+// still upload that package because technically there was a change made by the
+// CLI to add the Service ID. Any subsequent deploys will be aborted because
+// there will be no changes made by the CLI nor the user.
+func (c *DeployCommand) CompareLocalRemotePackage(serviceID string, version int) error {
+	filesHash, err := getFilesHash(c.PackagePath)
 	if err != nil {
-		return fmt.Errorf("error fetching service details: %w", err)
+		return err
+	}
+	p, err := c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
+		ServiceID:      serviceID,
+		ServiceVersion: version,
+	})
+	// IMPORTANT: Skip error as some services won't have a package to compare.
+	// This happens in situations where a user will create the service outside of
+	// the CLI and then reference the Service ID in their fastly.toml manifest.
+	// In that scenario the service might just be an empty service and so trying
+	// to get the package from the service with 404.
+	if err == nil && p.Metadata != nil && filesHash == fastly.ToValue(p.Metadata.FilesHash) {
+		return ErrPackageUnchanged
 	}
 	return nil
 }
 
-// pkgCompare compares the local package files hash against the existing service
-// package version and exits early with message if identical.
-func pkgCompare(client api.Interface, serviceID string, version int, filesHash string, out io.Writer) (bool, error) {
-	p, err := client.GetPackage(&fastly.GetPackageInput{
-		ServiceID:      serviceID,
-		ServiceVersion: version,
-	})
-
-	if err == nil {
-		if filesHash == p.Metadata.FilesHash {
-			text.Info(out, "Skipping package deployment, local and service version are identical. (service %v, version %v) ", serviceID, version)
-			return false, nil
+// UploadPackage uploads the package to the specified service and version.
+func (c *DeployCommand) UploadPackage(spinner text.Spinner, serviceID string, version int) error {
+	return spinner.Process("Uploading package", func(_ *text.SpinnerWrapper) error {
+		_, err := c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
+			ServiceID:      serviceID,
+			ServiceVersion: version,
+			PackagePath:    fastly.ToPointer(c.PackagePath),
+		})
+		if err != nil {
+			return fmt.Errorf("error uploading package: %w", err)
 		}
-	}
-
-	return true, nil
+		return nil
+	})
 }
 
-// pkgUpload uploads the package to the specified service and version.
-func pkgUpload(spinner text.Spinner, client api.Interface, serviceID string, version int, path string) error {
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Uploading package"
-	spinner.Message(msg + "...")
-
-	_, err = client.UpdatePackage(&fastly.UpdatePackageInput{
-		ServiceID:      serviceID,
-		ServiceVersion: version,
-		PackagePath:    path,
-	})
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-
-		return fmt.Errorf("error uploading package: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	return spinner.Stop()
-}
-
-// setupObjects is a collection of backend objects created during setup.
+// ServiceResources is a collection of backend objects created during setup.
 // Objects may be nil.
-type setupObjects struct {
+type ServiceResources struct {
 	domains      *setup.Domains
 	backends     *setup.Backends
 	configStores *setup.ConfigStores
@@ -841,318 +812,223 @@ type setupObjects struct {
 	secretStores *setup.SecretStores
 }
 
-func constructSetupObjects(
-	newService bool,
+// ConstructNewServiceResources instantiates multiple [setup] config resources for a
+// new Service to process.
+func (c *DeployCommand) ConstructNewServiceResources(
+	sr *ServiceResources,
 	serviceID string,
 	serviceVersion int,
-	c *DeployCommand,
 	in io.Reader,
 	out io.Writer,
-) (setupObjects, error) {
-	var (
-		so  setupObjects
-		err error
-	)
-
-	// We only check the Service ID is valid when handling an existing service.
-	if !newService {
-		if err = checkServiceID(serviceID, c.Globals.APIClient); err != nil {
-			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-			return setupObjects{}, err
-		}
-	}
-
-	// Because a service_id exists in the fastly.toml doesn't mean it's valid
-	// e.g. it could be missing required resources such as a domain or backend.
-	// We check and allow the user to configure these settings before continuing.
-
-	so.domains = &setup.Domains{
+) {
+	sr.backends = &setup.Backends{
 		APIClient:      c.Globals.APIClient,
 		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
 		NonInteractive: c.Globals.Flags.NonInteractive,
-		PackageDomain:  c.Domain,
-		RetryLimit:     5,
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
+		Setup:          c.Globals.Manifest.File.Setup.Backends,
 		Stdin:          in,
 		Stdout:         out,
-		Verbose:        c.Globals.Verbose(),
 	}
 
-	if err = so.domains.Validate(); err != nil {
+	sr.configStores = &setup.ConfigStores{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Globals.Manifest.File.Setup.ConfigStores,
+		Stdin:          in,
+		Stdout:         out,
+	}
+
+	sr.loggers = &setup.Loggers{
+		Setup:  c.Globals.Manifest.File.Setup.Loggers,
+		Stdout: out,
+	}
+
+	sr.objectStores = &setup.KVStores{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Globals.Manifest.File.Setup.ObjectStores,
+		Stdin:          in,
+		Stdout:         out,
+	}
+
+	sr.kvStores = &setup.KVStores{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Globals.Manifest.File.Setup.KVStores,
+		Stdin:          in,
+		Stdout:         out,
+	}
+
+	sr.secretStores = &setup.SecretStores{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Globals.Manifest.File.Setup.SecretStores,
+		Stdin:          in,
+		Stdout:         out,
+	}
+}
+
+// ConfigureServiceResources calls the .Predefined() and .Configure() methods
+// for each [setup] resource, which first checks if a [setup] config has been
+// defined for the resource type, and if so it prompts the user for details.
+func (c *DeployCommand) ConfigureServiceResources(sr ServiceResources, serviceID string, serviceVersion int) error {
+	// NOTE: A service can't be activated without at least one backend defined.
+	// This explains why the following block of code isn't wrapped in a call to
+	// the .Predefined() method, as the call to .Configure() will ensure the
+	// user is prompted regardless of whether there is a [setup.backends]
+	// defined in the fastly.toml configuration.
+	if err := sr.backends.Configure(); err != nil {
 		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-		return setupObjects{}, fmt.Errorf("error configuring service domains: %w", err)
+		return fmt.Errorf("error configuring service backends: %w", err)
 	}
 
-	if newService {
-		so.backends = &setup.Backends{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.Backends,
-			Stdin:          in,
-			Stdout:         out,
-		}
-
-		so.configStores = &setup.ConfigStores{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.ConfigStores,
-			Stdin:          in,
-			Stdout:         out,
-		}
-
-		so.loggers = &setup.Loggers{
-			Setup:  c.Manifest.File.Setup.Loggers,
-			Stdout: out,
-		}
-
-		so.objectStores = &setup.KVStores{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.ObjectStores,
-			Stdin:          in,
-			Stdout:         out,
-		}
-
-		so.kvStores = &setup.KVStores{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.KVStores,
-			Stdin:          in,
-			Stdout:         out,
-		}
-
-		so.secretStores = &setup.SecretStores{
-			APIClient:      c.Globals.APIClient,
-			AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-			NonInteractive: c.Globals.Flags.NonInteractive,
-			ServiceID:      serviceID,
-			ServiceVersion: serviceVersion,
-			Setup:          c.Manifest.File.Setup.SecretStores,
-			Stdin:          in,
-			Stdout:         out,
-		}
-	}
-
-	return so, nil
-}
-
-func processSetupConfig(
-	newService bool,
-	so setupObjects,
-	serviceID string,
-	serviceVersion int,
-	c *DeployCommand,
-) error {
-	if so.domains.Missing() {
-		if err := so.domains.Configure(); err != nil {
+	if sr.configStores.Predefined() {
+		if err := sr.configStores.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-			return fmt.Errorf("error configuring service domains: %w", err)
+			return fmt.Errorf("error configuring service config stores: %w", err)
 		}
 	}
 
-	// IMPORTANT: The pointer refs in this block are not checked for nil.
-	// We presume if we're dealing with newService they have been set.
-	if newService {
-		// NOTE: A service can't be activated without at least one backend defined.
-		// This explains why the following block of code isn't wrapped in a call to
-		// the .Predefined() method, as the call to .Configure() will ensure the
-		// user is prompted regardless of whether there is a [setup.backends]
-		// defined in the fastly.toml configuration.
-		if err := so.backends.Configure(); err != nil {
+	if sr.loggers.Predefined() {
+		// NOTE: We don't handle errors from the Configure() method because we
+		// don't actually do anything other than display a message to the user
+		// informing them that they need to create a log endpoint and which
+		// provider type they should be. The reason we don't implement logic for
+		// creating logging objects is because the API input fields vary
+		// significantly between providers.
+		_ = sr.loggers.Configure()
+	}
+
+	if sr.objectStores.Predefined() {
+		if err := sr.objectStores.Configure(); err != nil {
 			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-			return fmt.Errorf("error configuring service backends: %w", err)
+			return fmt.Errorf("error configuring service object stores: %w", err)
 		}
+	}
 
-		if so.configStores.Predefined() {
-			if err := so.configStores.Configure(); err != nil {
-				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service config stores: %w", err)
-			}
+	if sr.kvStores.Predefined() {
+		if err := sr.kvStores.Configure(); err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
+			return fmt.Errorf("error configuring service kv stores: %w", err)
 		}
+	}
 
-		if so.loggers.Predefined() {
-			// NOTE: We don't handle errors from the Configure() method because we
-			// don't actually do anything other than display a message to the user
-			// informing them that they need to create a log endpoint and which
-			// provider type they should be. The reason we don't implement logic for
-			// creating logging objects is because the API input fields vary
-			// significantly between providers.
-			_ = so.loggers.Configure()
-		}
-
-		if so.objectStores.Predefined() {
-			if err := so.objectStores.Configure(); err != nil {
-				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service object stores: %w", err)
-			}
-		}
-
-		if so.kvStores.Predefined() {
-			if err := so.kvStores.Configure(); err != nil {
-				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service kv stores: %w", err)
-			}
-		}
-
-		if so.secretStores.Predefined() {
-			if err := so.secretStores.Configure(); err != nil {
-				errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
-				return fmt.Errorf("error configuring service secret stores: %w", err)
-			}
+	if sr.secretStores.Predefined() {
+		if err := sr.secretStores.Configure(); err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
+			return fmt.Errorf("error configuring service secret stores: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func processSetupCreation(
-	newService bool,
-	so setupObjects,
+// CreateServiceResources makes API calls to create resources that have been
+// defined in the fastly.toml [setup] configuration.
+func (c *DeployCommand) CreateServiceResources(
+	sr ServiceResources,
 	spinner text.Spinner,
-	c *DeployCommand,
 	serviceID string,
 	serviceVersion int,
 ) error {
-	if so.domains.Missing() {
-		so.domains.Spinner = spinner
+	sr.backends.Spinner = spinner
+	sr.configStores.Spinner = spinner
+	sr.objectStores.Spinner = spinner
+	sr.kvStores.Spinner = spinner
+	sr.secretStores.Spinner = spinner
 
-		if err := so.domains.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
+	if err := sr.backends.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
 	}
 
-	// IMPORTANT: The pointer refs in this block are not checked for nil.
-	// We presume if we're dealing with newService they have been set.
-	if newService {
-		so.backends.Spinner = spinner
-		so.configStores.Spinner = spinner
-		so.objectStores.Spinner = spinner
-		so.kvStores.Spinner = spinner
-		so.secretStores.Spinner = spinner
+	if err := sr.configStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
+	}
 
-		if err := so.backends.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
+	if err := sr.objectStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
+	}
 
-		if err := so.configStores.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
+	if err := sr.kvStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
+	}
 
-		if err := so.objectStores.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
-
-		if err := so.kvStores.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
-
-		if err := so.secretStores.Create(); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Accept defaults": c.Globals.Flags.AcceptDefaults,
-				"Auto-yes":        c.Globals.Flags.AutoYes,
-				"Non-interactive": c.Globals.Flags.NonInteractive,
-				"Service ID":      serviceID,
-				"Service Version": serviceVersion,
-			})
-			return err
-		}
+	if err := sr.secretStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
 	}
 
 	return nil
 }
 
-func processPackage(
-	c *DeployCommand,
-	pkgPath, serviceID string,
-	serviceVersion int,
-	spinner text.Spinner,
-	out io.Writer,
-) (cont bool, err error) {
-	filesHash, err := getFilesHash(pkgPath)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path": pkgPath,
-		})
-		return false, err
-	}
+// ProcessService updates the service version comment and then activates the
+// service version.
+func (c *DeployCommand) ProcessService(serviceID string, serviceVersion int, spinner text.Spinner) (err error) {
+	defer func() {
+		event := beacon.Event{
+			Name: "activate",
+		}
+		if err != nil {
+			event.Status = beacon.StatusFail
+		} else {
+			event.Status = beacon.StatusSuccess
+		}
+		bErr := beacon.Notify(c.Globals, serviceID, event)
+		if bErr != nil {
+			c.Globals.ErrLog.Add(bErr)
+		}
+	}()
 
-	cont, err = pkgCompare(c.Globals.APIClient, serviceID, serviceVersion, filesHash, out)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path":    pkgPath,
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
-		})
-		return false, err
-	}
-	if !cont {
-		return false, nil
-	}
-
-	err = pkgUpload(spinner, c.Globals.APIClient, serviceID, serviceVersion, pkgPath)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Package path":    pkgPath,
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
-		})
-		return false, err
-	}
-
-	return true, nil
-}
-
-func processService(c *DeployCommand, serviceID string, serviceVersion int, spinner text.Spinner) error {
 	if c.Comment.WasSet {
-		_, err := c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
+		_, err = c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
 			Comment:        &c.Comment.Value,
@@ -1162,48 +1038,36 @@ func processService(c *DeployCommand, serviceID string, serviceVersion int, spin
 		}
 	}
 
-	err := spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := fmt.Sprintf("Activating service (version %d)", serviceVersion)
-	spinner.Message(msg + "...")
-
-	_, err = c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
-		ServiceID:      serviceID,
-		ServiceVersion: serviceVersion,
-	})
-	if err != nil {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": serviceVersion,
+	return spinner.Process(fmt.Sprintf("Activating service (version %d)", serviceVersion), func(_ *text.SpinnerWrapper) error {
+		_, err = c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersion,
 		})
-		return fmt.Errorf("error activating version: %w", err)
-	}
-
-	spinner.StopMessage(msg)
-	return spinner.Stop()
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Service ID":      serviceID,
+				"Service Version": serviceVersion,
+			})
+			return fmt.Errorf("error activating version: %w", err)
+		}
+		return nil
+	})
 }
 
-func getServiceDomain(apiClient api.Interface, serviceID string, serviceVersion int) (string, error) {
-	latestDomains, err := apiClient.ListDomains(&fastly.ListDomainsInput{
+// GetServiceURL returns the service URL.
+func (c *DeployCommand) GetServiceURL(serviceID string, serviceVersion int) (string, error) {
+	latestDomains, err := c.Globals.APIClient.ListDomains(&fastly.ListDomainsInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 	})
 	if err != nil {
 		return "", err
 	}
-	name := latestDomains[0].Name
+	name := fastly.ToValue(latestDomains[0].Name)
 	if segs := strings.Split(name, "*."); len(segs) > 1 {
 		name = segs[1]
 	}
-	return name, nil
+	return fmt.Sprintf("https://%s", name), nil
 }
 
 // checkingServiceAvailability pings the service URL until either there is a
@@ -1238,14 +1102,15 @@ func checkingServiceAvailability(
 	for {
 		select {
 		case <-timeout:
+			err := errors.New("timeout: service not yet available")
 			returnedStatus := fmt.Sprintf(" (status: %d)", status)
 			spinner.StopFailMessage(msg + returnedStatus)
 			spinErr := spinner.StopFail()
 			if spinErr != nil {
-				return status, spinErr
+				return status, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 			}
 			return status, fsterr.RemediationError{
-				Inner:       errors.New("service not yet available"),
+				Inner:       err,
 				Remediation: fmt.Sprintf(remediation, "timed out", expected, status),
 			}
 		case t := <-ticker.C:
@@ -1256,19 +1121,21 @@ func checkingServiceAvailability(
 			// We overwrite the `status` variable in the parent scope (defined in the
 			// return arguments list) so it can be used as part of both the timeout
 			// and success scenarios.
-			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient, c.StatusCheckCode)
+			ok, status, err = pingServiceURL(serviceURL, c.Globals.HTTPClient, c.StatusCheckCode, c.Globals.Flags.Debug)
 			if err != nil {
+				err := fmt.Errorf("failed to ping service URL: %w", err)
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
 				spinner.StopFailMessage(msg + returnedStatus)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
-					return status, spinErr
+					return status, fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
 				}
 				return status, fsterr.RemediationError{
 					Inner:       err,
 					Remediation: fmt.Sprintf(remediation, "failed", expected, status),
 				}
-			} else if ok {
+			}
+			if ok {
 				returnedStatus := fmt.Sprintf(" (status: %d)", status)
 				spinner.StopMessage(msg + returnedStatus)
 				return status, spinner.Stop()
@@ -1289,7 +1156,7 @@ func generateTimeout(d time.Duration) string {
 // pingServiceURL indicates if the service returned a non-5xx response (or
 // whatever the user defined with --status-check-code), which should help
 // signify if the service is generally available.
-func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatusCode int) (ok bool, status int, err error) {
+func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatusCode int, debugMode bool) (ok bool, status int, err error) {
 	req, err := http.NewRequest("GET", serviceURL, nil)
 	if err != nil {
 		return false, 0, err
@@ -1299,7 +1166,13 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatus
 	// G107 (CWE-88): Potential HTTP request made with variable url
 	// Disabling as we trust the source of the variable.
 	// #nosec
+	if debugMode {
+		debug.DumpHTTPRequest(req)
+	}
 	resp, err := httpClient.Do(req)
+	if debugMode {
+		debug.DumpHTTPResponse(resp)
+	}
 	if err != nil {
 		return false, 0, err
 	}
@@ -1315,4 +1188,107 @@ func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatus
 		return true, resp.StatusCode, nil
 	}
 	return false, resp.StatusCode, nil
+}
+
+// ExistingServiceVersion returns a Service Version for an existing service.
+// If the current service version is active or locked, we clone the version.
+func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) (*fastly.Version, error) {
+	var (
+		err            error
+		serviceVersion *fastly.Version
+	)
+
+	// There is a scenario where a user already has a Service ID within the
+	// fastly.toml manifest but they want to deploy their project to a different
+	// service (e.g. deploy to a staging service).
+	//
+	// In this scenario we end up here because we have found a Service ID in the
+	// manifest but if the --service-name flag is set, then we need to ignore
+	// what's set in the manifest and instead identify the ID of the service
+	// name the user has provided.
+	if c.ServiceName.WasSet {
+		serviceID, err = c.ServiceName.Parse(c.Globals.APIClient)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	serviceVersion, err = c.ServiceVersion.Parse(serviceID, c.Globals.APIClient)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path": c.PackagePath,
+			"Service ID":   serviceID,
+		})
+		return nil, err
+	}
+
+	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
+
+	// Validate that we're dealing with a Compute 'wasm' service and not a
+	// VCL service, for which we cannot upload a wasm package format to.
+	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{ServiceID: serviceID})
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersionNumber,
+		})
+		return serviceVersion, err
+	}
+	serviceType := fastly.ToValue(serviceDetails.Type)
+	if serviceType != "wasm" {
+		c.Globals.ErrLog.AddWithContext(fmt.Errorf("error: invalid service type: '%s'", serviceType), map[string]any{
+			"Service ID":      serviceID,
+			"Service Version": serviceVersionNumber,
+			"Service Type":    serviceType,
+		})
+		return serviceVersion, fsterr.RemediationError{
+			Inner:       fmt.Errorf("invalid service type: %s", serviceType),
+			Remediation: "Ensure the provided Service ID is associated with a 'Wasm' Fastly Service and not a 'VCL' Fastly service. " + fsterr.ComputeTrialRemediation,
+		}
+	}
+
+	err = c.CompareLocalRemotePackage(serviceID, serviceVersionNumber)
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Package path":    c.PackagePath,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersionNumber,
+		})
+		return serviceVersion, err
+	}
+
+	// Unlike other CLI commands that are a direct mapping to an API endpoint,
+	// the compute deploy command is a composite of behaviours, and so as we
+	// already automatically activate a version we should autoclone without
+	// requiring the user to explicitly provide an --autoclone flag.
+	if fastly.ToValue(serviceVersion.Active) || fastly.ToValue(serviceVersion.Locked) {
+		clonedVersion, err := c.Globals.APIClient.CloneVersion(&fastly.CloneVersionInput{
+			ServiceID:      serviceID,
+			ServiceVersion: serviceVersionNumber,
+		})
+		if err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersionNumber)
+			return serviceVersion, fmt.Errorf("error cloning service version: %w", err)
+		}
+		if c.Globals.Verbose() {
+			msg := "Service version %d is not editable, so it was automatically cloned. Now operating on version %d.\n\n"
+			format := fmt.Sprintf(msg, serviceVersionNumber, fastly.ToValue(clonedVersion.Number))
+			text.Output(out, format)
+		}
+		serviceVersion = clonedVersion
+	}
+
+	return serviceVersion, nil
+}
+
+func monitorSignals(signalCh chan os.Signal, noExistingService bool, out io.Writer, undoStack *undo.Stack, spinner text.Spinner) {
+	<-signalCh
+	signal.Stop(signalCh)
+	spinner.StopFailMessage("Signal received to interrupt/terminate the Fastly CLI process")
+	_ = spinner.StopFail()
+	text.Important(out, "\n\nThe Fastly CLI process will be terminated after any clean-up tasks have been processed")
+	if noExistingService {
+		undoStack.Unwind(out)
+	}
+	os.Exit(1)
 }

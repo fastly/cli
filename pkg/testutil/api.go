@@ -1,9 +1,15 @@
 package testutil
 
 import (
+	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/commands/sso"
+	"github.com/fastly/cli/pkg/commands/whoami"
 )
 
 // Err represents a generic error.
@@ -11,7 +17,8 @@ var Err = errors.New("test error")
 
 // ListVersions returns a list of service versions in different states.
 //
-// The first element is active, the second is locked, the third is editable.
+// The first element is active, the second is locked, the third is
+// editable, the fourth is staged.
 //
 // NOTE: consult the entire test suite before adding any new entries to the
 // returned type as the tests currently use testutil.CloneVersionResult() as a
@@ -19,23 +26,27 @@ var Err = errors.New("test error")
 func ListVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
-			ServiceID: i.ServiceID,
-			Number:    1,
-			Active:    true,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(1),
+			Active:    fastly.ToPointer(true),
 			UpdatedAt: MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
 		},
 		{
-			ServiceID: i.ServiceID,
-			Number:    2,
-			Active:    false,
-			Locked:    true,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(2),
+			Locked:    fastly.ToPointer(true),
 			UpdatedAt: MustParseTimeRFC3339("2000-01-02T01:00:00Z"),
 		},
 		{
-			ServiceID: i.ServiceID,
-			Number:    3,
-			Active:    false,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(3),
 			UpdatedAt: MustParseTimeRFC3339("2000-01-03T01:00:00Z"),
+		},
+		{
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(4),
+			Staging:   fastly.ToPointer(true),
+			UpdatedAt: MustParseTimeRFC3339("2000-01-04T01:00:00Z"),
 		},
 	}, nil
 }
@@ -50,8 +61,8 @@ func ListVersionsError(_ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 		return &fastly.Version{
-			ServiceID: i.ServiceID,
-			Number:    version,
+			ServiceID: fastly.ToPointer(i.ServiceID),
+			Number:    fastly.ToPointer(version),
 		}, nil
 	}
 }
@@ -60,4 +71,54 @@ func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.
 // service version.
 func CloneVersionError(_ *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return nil, Err
+}
+
+// WhoamiVerifyClient is used by `whoami` and `sso` tests.
+type WhoamiVerifyClient whoami.VerifyResponse
+
+// Do executes the HTTP request.
+func (c WhoamiVerifyClient) Do(*http.Request) (*http.Response, error) {
+	rec := httptest.NewRecorder()
+	_ = json.NewEncoder(rec).Encode(whoami.VerifyResponse(c))
+	return rec.Result(), nil
+}
+
+// WhoamiBasicResponse is used by `whoami` and `sso` tests.
+var WhoamiBasicResponse = whoami.VerifyResponse{
+	Customer: whoami.Customer{
+		ID:   "abc",
+		Name: "Computer Company",
+	},
+	User: whoami.User{
+		ID:    "123",
+		Name:  "Alice Programmer",
+		Login: "alice@example.com",
+	},
+	Services: map[string]string{
+		"1xxaa": "First service",
+		"2baba": "Second service",
+	},
+	Token: whoami.Token{
+		ID:        "abcdefg",
+		Name:      "Token name",
+		CreatedAt: "2019-01-01T12:00:00Z",
+		// no ExpiresAt
+		Scope: "global",
+	},
+}
+
+// CurrentCustomerClient is used by `sso` tests.
+type CurrentCustomerClient sso.CurrentCustomerResponse
+
+// Do executes the HTTP request.
+func (c CurrentCustomerClient) Do(*http.Request) (*http.Response, error) {
+	rec := httptest.NewRecorder()
+	_ = json.NewEncoder(rec).Encode(sso.CurrentCustomerResponse(c))
+	return rec.Result(), nil
+}
+
+// CurrentCustomerResponse is used by `sso` tests.
+var CurrentCustomerResponse = sso.CurrentCustomerResponse{
+	ID:   "abc",
+	Name: "Computer Company",
 }

@@ -3,7 +3,7 @@ package mock
 import (
 	"crypto/ed25519"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
@@ -14,6 +14,7 @@ type API struct {
 	AllIPsFn         func() (v4, v6 fastly.IPAddrs, err error)
 
 	CreateServiceFn     func(*fastly.CreateServiceInput) (*fastly.Service, error)
+	GetServicesFn       func(*fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service]
 	ListServicesFn      func(*fastly.ListServicesInput) ([]*fastly.Service, error)
 	GetServiceFn        func(*fastly.GetServiceInput) (*fastly.Service, error)
 	GetServiceDetailsFn func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error)
@@ -59,6 +60,7 @@ type API struct {
 	ListDictionariesFn func(*fastly.ListDictionariesInput) ([]*fastly.Dictionary, error)
 	UpdateDictionaryFn func(*fastly.UpdateDictionaryInput) (*fastly.Dictionary, error)
 
+	GetDictionaryItemsFn         func(*fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem]
 	ListDictionaryItemsFn        func(*fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error)
 	GetDictionaryItemFn          func(*fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error)
 	CreateDictionaryItemFn       func(*fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error)
@@ -115,6 +117,12 @@ type API struct {
 	GetGCSFn    func(*fastly.GetGCSInput) (*fastly.GCS, error)
 	UpdateGCSFn func(*fastly.UpdateGCSInput) (*fastly.GCS, error)
 	DeleteGCSFn func(*fastly.DeleteGCSInput) error
+
+	CreateGrafanaCloudLogsFn func(*fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	ListGrafanaCloudLogsFn   func(*fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error)
+	GetGrafanaCloudLogsFn    func(*fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	UpdateGrafanaCloudLogsFn func(*fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error)
+	DeleteGrafanaCloudLogsFn func(*fastly.DeleteGrafanaCloudLogsInput) error
 
 	CreateFTPFn func(*fastly.CreateFTPInput) (*fastly.FTP, error)
 	ListFTPsFn  func(*fastly.ListFTPsInput) ([]*fastly.FTP, error)
@@ -251,6 +259,7 @@ type API struct {
 	CreateACLEntryFn        func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error)
 	DeleteACLEntryFn        func(i *fastly.DeleteACLEntryInput) error
 	GetACLEntryFn           func(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error)
+	GetACLEntriesFn         func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry]
 	ListACLEntriesFn        func(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error)
 	UpdateACLEntryFn        func(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error)
 	BatchModifyACLEntriesFn func(i *fastly.BatchModifyACLEntriesInput) error
@@ -281,12 +290,9 @@ type API struct {
 	DeleteTokenSelfFn    func() error
 	GetTokenSelfFn       func() (*fastly.Token, error)
 	ListCustomerTokensFn func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error)
-	ListTokensFn         func() ([]*fastly.Token, error)
+	ListTokensFn         func(i *fastly.ListTokensInput) ([]*fastly.Token, error)
 
-	NewListACLEntriesPaginatorFn      func(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries
-	NewListDictionaryItemsPaginatorFn func(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems
-	NewListServicesPaginatorFn        func(i *fastly.ListServicesInput) fastly.PaginatorServices
-	NewListKVStoreKeysPaginatorFn     func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries
+	NewListKVStoreKeysPaginatorFn func(i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries
 
 	GetCustomTLSConfigurationFn    func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error)
 	ListCustomTLSConfigurationsFn  func(i *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error)
@@ -332,7 +338,7 @@ type API struct {
 	DeleteConfigStoreFn       func(i *fastly.DeleteConfigStoreInput) error
 	GetConfigStoreFn          func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error)
 	GetConfigStoreMetadataFn  func(i *fastly.GetConfigStoreMetadataInput) (*fastly.ConfigStoreMetadata, error)
-	ListConfigStoresFn        func() ([]*fastly.ConfigStore, error)
+	ListConfigStoresFn        func(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error)
 	ListConfigStoreServicesFn func(i *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error)
 	UpdateConfigStoreFn       func(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error)
 
@@ -380,6 +386,18 @@ type API struct {
 	GetConditionFn    func(i *fastly.GetConditionInput) (*fastly.Condition, error)
 	ListConditionsFn  func(i *fastly.ListConditionsInput) ([]*fastly.Condition, error)
 	UpdateConditionFn func(i *fastly.UpdateConditionInput) (*fastly.Condition, error)
+
+	GetProductFn     func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
+	EnableProductFn  func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error)
+	DisableProductFn func(i *fastly.ProductEnablementInput) error
+
+	ListAlertDefinitionsFn  func(i *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error)
+	CreateAlertDefinitionFn func(i *fastly.CreateAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	GetAlertDefinitionFn    func(i *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	UpdateAlertDefinitionFn func(i *fastly.UpdateAlertDefinitionInput) (*fastly.AlertDefinition, error)
+	DeleteAlertDefinitionFn func(i *fastly.DeleteAlertDefinitionInput) error
+	TestAlertDefinitionFn   func(i *fastly.TestAlertDefinitionInput) error
+	ListAlertHistoryFn      func(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error)
 }
 
 // AllDatacenters implements Interface.
@@ -395,6 +413,11 @@ func (m API) AllIPs() (fastly.IPAddrs, fastly.IPAddrs, error) {
 // CreateService implements Interface.
 func (m API) CreateService(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return m.CreateServiceFn(i)
+}
+
+// GetServices implements Interface.
+func (m API) GetServices(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+	return m.GetServicesFn(i)
 }
 
 // ListServices implements Interface.
@@ -585,6 +608,11 @@ func (m API) ListDictionaries(i *fastly.ListDictionariesInput) ([]*fastly.Dictio
 // UpdateDictionary implements Interface.
 func (m API) UpdateDictionary(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return m.UpdateDictionaryFn(i)
+}
+
+// GetDictionaryItems implements Interface.
+func (m API) GetDictionaryItems(i *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
+	return m.GetDictionaryItemsFn(i)
 }
 
 // ListDictionaryItems implements Interface.
@@ -820,6 +848,31 @@ func (m API) UpdateGCS(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 // DeleteGCS implements Interface.
 func (m API) DeleteGCS(i *fastly.DeleteGCSInput) error {
 	return m.DeleteGCSFn(i)
+}
+
+// CreateGrafanaCloudLogs implements Interface.
+func (m API) CreateGrafanaCloudLogs(i *fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+	return m.CreateGrafanaCloudLogsFn(i)
+}
+
+// ListGrafanaCloudLogs implements Interface.
+func (m API) ListGrafanaCloudLogs(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
+	return m.ListGrafanaCloudLogsFn(i)
+}
+
+// GetGrafanaCloudLogs implements Interface.
+func (m API) GetGrafanaCloudLogs(i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+	return m.GetGrafanaCloudLogsFn(i)
+}
+
+// UpdateGrafanaCloudLogs implements Interface.
+func (m API) UpdateGrafanaCloudLogs(i *fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+	return m.UpdateGrafanaCloudLogsFn(i)
+}
+
+// DeleteGrafanaCloudLogs implements Interface.
+func (m API) DeleteGrafanaCloudLogs(i *fastly.DeleteGrafanaCloudLogsInput) error {
+	return m.DeleteGrafanaCloudLogsFn(i)
 }
 
 // CreateFTP implements Interface.
@@ -1382,6 +1435,11 @@ func (m API) GetACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 	return m.GetACLEntryFn(i)
 }
 
+// GetACLEntries implements Interface.
+func (m API) GetACLEntries(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+	return m.GetACLEntriesFn(i)
+}
+
 // ListACLEntries implements Interface.
 func (m API) ListACLEntries(i *fastly.ListACLEntriesInput) ([]*fastly.ACLEntry, error) {
 	return m.ListACLEntriesFn(i)
@@ -1513,23 +1571,8 @@ func (m API) ListCustomerTokens(i *fastly.ListCustomerTokensInput) ([]*fastly.To
 }
 
 // ListTokens implements Interface.
-func (m API) ListTokens() ([]*fastly.Token, error) {
-	return m.ListTokensFn()
-}
-
-// NewListACLEntriesPaginator implements Interface.
-func (m API) NewListACLEntriesPaginator(i *fastly.ListACLEntriesInput) fastly.PaginatorACLEntries {
-	return m.NewListACLEntriesPaginatorFn(i)
-}
-
-// NewListDictionaryItemsPaginator implements Interface.
-func (m API) NewListDictionaryItemsPaginator(i *fastly.ListDictionaryItemsInput) fastly.PaginatorDictionaryItems {
-	return m.NewListDictionaryItemsPaginatorFn(i)
-}
-
-// NewListServicesPaginator implements Interface.
-func (m API) NewListServicesPaginator(i *fastly.ListServicesInput) fastly.PaginatorServices {
-	return m.NewListServicesPaginatorFn(i)
+func (m API) ListTokens(i *fastly.ListTokensInput) ([]*fastly.Token, error) {
+	return m.ListTokensFn(i)
 }
 
 // NewListKVStoreKeysPaginator implements Interface.
@@ -1723,8 +1766,8 @@ func (m API) GetConfigStoreMetadata(i *fastly.GetConfigStoreMetadataInput) (*fas
 }
 
 // ListConfigStores implements Interface.
-func (m API) ListConfigStores() ([]*fastly.ConfigStore, error) {
-	return m.ListConfigStoresFn()
+func (m API) ListConfigStores(i *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
+	return m.ListConfigStoresFn(i)
 }
 
 // ListConfigStoreServices implements Interface.
@@ -1930,4 +1973,54 @@ func (m API) ListConditions(i *fastly.ListConditionsInput) ([]*fastly.Condition,
 // UpdateCondition implements Interface.
 func (m API) UpdateCondition(i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
 	return m.UpdateConditionFn(i)
+}
+
+// GetProduct implements Interface.
+func (m API) GetProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+	return m.GetProductFn(i)
+}
+
+// EnableProduct implements Interface.
+func (m API) EnableProduct(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+	return m.EnableProductFn(i)
+}
+
+// DisableProduct implements Interface.
+func (m API) DisableProduct(i *fastly.ProductEnablementInput) error {
+	return m.DisableProductFn(i)
+}
+
+// ListAlertDefinitions implements Interface.
+func (m API) ListAlertDefinitions(i *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
+	return m.ListAlertDefinitionsFn(i)
+}
+
+// CreateAlertDefinition implements Interface.
+func (m API) CreateAlertDefinition(i *fastly.CreateAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+	return m.CreateAlertDefinitionFn(i)
+}
+
+// GetAlertDefinition implements Interface.
+func (m API) GetAlertDefinition(i *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+	return m.GetAlertDefinitionFn(i)
+}
+
+// UpdateAlertDefinition implements Interface.
+func (m API) UpdateAlertDefinition(i *fastly.UpdateAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+	return m.UpdateAlertDefinitionFn(i)
+}
+
+// DeleteAlertDefinition implements Interface.
+func (m API) DeleteAlertDefinition(i *fastly.DeleteAlertDefinitionInput) error {
+	return m.DeleteAlertDefinitionFn(i)
+}
+
+// TestAlertDefinition implements Interface.
+func (m API) TestAlertDefinition(i *fastly.TestAlertDefinitionInput) error {
+	return m.TestAlertDefinitionFn(i)
+}
+
+// ListAlertHistory implements Interface.
+func (m API) ListAlertHistory(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
+	return m.ListAlertHistoryFn(i)
 }

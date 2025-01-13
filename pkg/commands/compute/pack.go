@@ -8,7 +8,7 @@ import (
 
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
 	"github.com/fastly/cli/pkg/global"
@@ -18,18 +18,15 @@ import (
 
 // PackCommand takes a .wasm and builds the required tar/gzip package ready to be uploaded.
 type PackCommand struct {
-	cmd.Base
-	manifest   manifest.Data
+	argparser.Base
 	wasmBinary string
 }
 
 // NewPackCommand returns a usable command registered under the parent.
-func NewPackCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *PackCommand {
+func NewPackCommand(parent argparser.Registerer, g *global.Data) *PackCommand {
 	var c PackCommand
 	c.Globals = g
-	c.manifest = m
-
-	c.CmdClause = parent.Command("pack", "Package a pre-compiled Wasm binary for a Fastly Compute@Edge service")
+	c.CmdClause = parent.Command("pack", "Package a pre-compiled Wasm binary for a Fastly Compute service")
 	c.CmdClause.Flag("wasm-binary", "Path to a pre-compiled Wasm binary").Short('w').Required().StringVar(&c.wasmBinary)
 
 	return &c
@@ -45,17 +42,19 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 
 	defer func(errLog fsterr.LogInterface) {
-		os.RemoveAll("pkg/package")
+		_ = os.RemoveAll("pkg/package")
 		if err != nil {
 			errLog.Add(err)
 		}
 	}(c.Globals.ErrLog)
 
-	if err = c.manifest.File.ReadError(); err != nil {
+	if err = c.Globals.Manifest.File.ReadError(); err != nil {
 		return err
 	}
+
 	bin := "pkg/package/bin/main.wasm"
 	bindir := filepath.Dir(bin)
+
 	err = filesystem.MakeDirectoryIfNotExists(bindir)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -71,6 +70,7 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		})
 		return err
 	}
+
 	dst, err := filepath.Abs(bin)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -79,106 +79,58 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg := "Copying wasm binary"
-	spinner.Message(msg + "...")
-
-	if err := filesystem.CopyFile(src, dst); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Path (absolute)":             src,
-			"Wasm destination (absolute)": dst,
-		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-
-		return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
-	}
-
-	if !filesystem.FileExists(bin) {
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-
-		return fsterr.RemediationError{
-			Inner:       fmt.Errorf("no wasm binary found"),
-			Remediation: "Run `fastly compute pack --path </path/to/wasm/binary>` to copy your wasm binary to the required location",
-		}
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Copying manifest"
-	spinner.Message(msg + "...")
-
-	src = manifest.Filename
-	dst = fmt.Sprintf("pkg/package/%s", manifest.Filename)
-	if err := filesystem.CopyFile(src, dst); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Manifest (destination)": dst,
-			"Manifest (source)":      src,
-		})
-
-		spinner.StopFailMessage(msg)
-		spinErr := spinner.StopFail()
-		if spinErr != nil {
-			return spinErr
-		}
-
-		return fmt.Errorf("error copying manifest to '%s': %w", dst, err)
-	}
-
-	spinner.StopMessage(msg)
-	err = spinner.Stop()
-	if err != nil {
-		return err
-	}
-
-	err = spinner.Start()
-	if err != nil {
-		return err
-	}
-	msg = "Creating package.tar.gz file"
-	spinner.Message(msg + "...")
-
-	tar := archiver.NewTarGz()
-	tar.OverwriteExisting = true
-	{
-		dir := "pkg/package"
-		src := []string{dir}
-		dst := fmt.Sprintf("%s.tar.gz", dir)
-		if err = tar.Archive(src, dst); err != nil {
+	err = spinner.Process("Copying wasm binary", func(_ *text.SpinnerWrapper) error {
+		if err := filesystem.CopyFile(src, dst); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Tar source":      dir,
-				"Tar destination": dst,
+				"Path (absolute)":             src,
+				"Wasm destination (absolute)": dst,
 			})
-
-			spinner.StopFailMessage(msg)
-			spinErr := spinner.StopFail()
-			if spinErr != nil {
-				return spinErr
-			}
-
-			return err
+			return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
 		}
+
+		if !filesystem.FileExists(bin) {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("no wasm binary found"),
+				Remediation: "Run `fastly compute pack --path </path/to/wasm/binary>` to copy your wasm binary to the required location",
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
-	spinner.StopMessage(msg)
-	return spinner.Stop()
+	err = spinner.Process("Copying manifest", func(_ *text.SpinnerWrapper) error {
+		src = manifest.Filename
+		dst = fmt.Sprintf("pkg/package/%s", manifest.Filename)
+		if err := filesystem.CopyFile(src, dst); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Manifest (destination)": dst,
+				"Manifest (source)":      src,
+			})
+			return fmt.Errorf("error copying manifest to '%s': %w", dst, err)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return spinner.Process("Creating package.tar.gz file", func(_ *text.SpinnerWrapper) error {
+		tar := archiver.NewTarGz()
+		tar.OverwriteExisting = true
+		{
+			dir := "pkg/package"
+			src := []string{dir}
+			dst := fmt.Sprintf("%s.tar.gz", dir)
+			if err = tar.Archive(src, dst); err != nil {
+				c.Globals.ErrLog.AddWithContext(err, map[string]any{
+					"Tar source":      dir,
+					"Tar destination": dst,
+				})
+				return err
+			}
+		}
+		return nil
+	})
 }

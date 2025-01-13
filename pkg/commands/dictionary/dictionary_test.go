@@ -1,325 +1,243 @@
 package dictionary_test
 
 import (
-	"bytes"
 	"errors"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 
-	"github.com/fastly/cli/pkg/app"
+	root "github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestDictionaryDescribe(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("dictionary describe --version 1 --service-id 123"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      "--version 1 --service-id 123",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("dictionary describe --version 1 --service-id 123 --name dict-1"),
-			api: mock.API{
+			Args: "--version 1 --service-id 123 --name dict-1",
+			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetDictionaryFn: describeDictionaryOK,
 			},
-			wantOutput: describeDictionaryOutput,
+			WantOutput: describeDictionaryOutput,
 		},
 		{
-			args: args("dictionary describe --version 1 --service-id 123 --name dict-1"),
-			api: mock.API{
+			Args: "--version 1 --service-id 123 --name dict-1",
+			API: mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				GetDictionaryFn: describeDictionaryOKDeleted,
 			},
-			wantOutput: describeDictionaryOutputDeleted,
+			WantOutput: describeDictionaryOutputDeleted,
 		},
 		{
-			args: args("dictionary describe --version 1 --service-id 123 --name dict-1 --verbose"),
-			api: mock.API{
+			Args: "--version 1 --service-id 123 --name dict-1 --verbose",
+			API: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				GetDictionaryFn:       describeDictionaryOK,
 				GetDictionaryInfoFn:   getDictionaryInfoOK,
 				ListDictionaryItemsFn: listDictionaryItemsOK,
 			},
-			wantOutput: describeDictionaryOutputVerbose,
+			WantOutput: describeDictionaryOutputVerbose,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestDictionaryCreate(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("dictionary create --version 1"),
-			wantError: "error reading service: no service ID found",
+			Args:      "--version 1",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),
-			api: mock.API{
+			Args: "--version 1 --service-id 123 --name denylist --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryOK,
 			},
-			wantOutput: createDictionaryOutput,
+			WantOutput: createDictionaryOutput,
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only --autoclone"),
-			api: mock.API{
+			Args: "--version 1 --service-id 123 --name denylist --write-only --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryOK,
 			},
-			wantOutput: createDictionaryOutputWriteOnly,
+			WantOutput: createDictionaryOutputWriteOnly,
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --write-only fish --autoclone"),
-			api: mock.API{
+			Args: "--version 1 --service-id 123 --name denylist --write-only fish --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
-			wantError: "error parsing arguments: unexpected 'fish'",
+			WantError: "error parsing arguments: unexpected 'fish'",
 		},
 		{
-			args: args("dictionary create --version 1 --service-id 123 --name denylist --autoclone"),
-			api: mock.API{
+			Args: "--version 1 --service-id 123 --name denylist --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateDictionaryFn: createDictionaryDuplicate,
 			},
-			wantError: "Duplicate record",
+			WantError: "Duplicate record",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestDeleteDictionary(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("dictionary delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("dictionary delete --service-id 123 --version 1 --name allowlist --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name allowlist --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteDictionaryFn: deleteDictionaryOK,
 			},
-			wantOutput: deleteDictionaryOutput,
+			WantOutput: deleteDictionaryOutput,
 		},
 		{
-			args: args("dictionary delete --service-id 123 --version 1 --name allowlist --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name allowlist --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteDictionaryFn: deleteDictionaryError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
 }
 
 func TestListDictionary(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("dictionary list --version 1"),
-			api: mock.API{
+			Args: "--version 1",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListDictionariesFn: listDictionariesOk,
 			},
-			wantError: "error reading service: no service ID found",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args:      args("dictionary list --service-id 123"),
-			wantError: "error parsing arguments: required flag --version not provided",
+			Args:      "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args: args("dictionary list --version 1 --service-id 123"),
-			api: mock.API{
+			Args: "--version 1 --service-id 123",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListDictionariesFn: listDictionariesOk,
 			},
-			wantOutput: listDictionariesOutput,
+			WantOutput: listDictionariesOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestUpdateDictionary(t *testing.T) {
-	args := testutil.Args
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("dictionary update --version 1 --name oldname --new-name newname"),
-			wantError: "error reading service: no service ID found",
+			Args:      "--version 1 --name oldname --new-name newname",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args:      args("dictionary update --service-id 123 --name oldname --new-name newname"),
-			wantError: "error parsing arguments: required flag --version not provided",
+			Args:      "--service-id 123 --name oldname --new-name newname",
+			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			args:      args("dictionary update --service-id 123 --version 1 --new-name newname"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      "--service-id 123 --version 1 --new-name newname",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name oldname --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
-			wantError: "error parsing arguments: required flag --new-name or --write-only not provided",
+			WantError: "error parsing arguments: required flag --new-name or --write-only not provided",
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
-			wantOutput: updateDictionaryNameOutput,
+			WantOutput: updateDictionaryNameOutput,
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --new-name dict-1 --write-only true --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name oldname --new-name dict-1 --write-only true --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
-			wantOutput: updateDictionaryNameOutput,
+			WantOutput: updateDictionaryNameOutput,
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --write-only true --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name oldname --write-only true --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryWriteOnlyOK,
 			},
-			wantOutput: updateDictionaryOutput,
+			WantOutput: updateDictionaryOutput,
 		},
 		{
-			args: args("dictionary update -v --service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone"),
-			api: mock.API{
+			Args: "-v --service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryNameOK,
 			},
-			wantOutput: updateDictionaryOutputVerbose,
+			WantOutput: updateDictionaryOutputVerbose,
 		},
 		{
-			args: args("dictionary update --service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name oldname --new-name dict-1 --autoclone",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateDictionaryFn: updateDictionaryError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
-			t.Log(stdout.String())
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      false,
-		ID:             "456",
+		WriteOnly:      fastly.ToPointer(false),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
 func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      false,
-		ID:             "456",
+		WriteOnly:      fastly.ToPointer(false),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		DeletedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:08Z"),
 	}, nil
@@ -327,52 +245,53 @@ func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictiona
 
 func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
 	if i.WriteOnly == nil {
-		i.WriteOnly = fastly.CBool(false)
+		i.WriteOnly = fastly.ToPointer(fastly.Compatibool(false))
 	}
 	return &fastly.Dictionary{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.Name,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      *i.WriteOnly == true,
-		ID:             "456",
+		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
-// getDictionaryInfoOK mocks the response from fastly.GetDictionaryInfo, which is not otherwise used
-// in the fastly-cli and will need to be updated here if that call changes.
-// This function requires i.ID to equal "456" to enforce the input to this call matches the
-// response to GetDictionaryInfo in describeDictionaryOK
+// getDictionaryInfoOK mocks the response from fastly.GetDictionaryInfo, which
+// is not otherwise used in the fastly-cli and will need to be updated here if
+// that call changes. This function requires i.ID to equal "456" to enforce the
+// input to this call matches the response to GetDictionaryInfo in
+// describeDictionaryOK.
 func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
-	if i.ID == "456" {
+	if i.DictionaryID == "456" {
 		return &fastly.DictionaryInfo{
-			ItemCount:   2,
+			ItemCount:   fastly.ToPointer(2),
 			LastUpdated: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
-			Digest:      "digest_hash",
+			Digest:      fastly.ToPointer("digest_hash"),
 		}, nil
-	} else {
-		return nil, errFail
 	}
+	return nil, errFail
 }
 
-// listDictionaryItemsOK mocks the response from fastly.ListDictionaryItems which is primarily used
-// in the fastly-cli.dictionaryitem package and will need to be updated here if that call changes
+// listDictionaryItemsOK mocks the response from fastly.ListDictionaryItems
+// which is primarily used in the fastly-cli.dictionaryitem package and will
+// need to be updated here if that call changes.
 func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
 		{
-			ServiceID:    i.ServiceID,
-			DictionaryID: i.DictionaryID,
-			ItemKey:      "foo",
-			ItemValue:    "bar",
+			ServiceID:    fastly.ToPointer(i.ServiceID),
+			DictionaryID: fastly.ToPointer(i.DictionaryID),
+			ItemKey:      fastly.ToPointer("foo"),
+			ItemValue:    fastly.ToPointer("bar"),
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 		{
-			ServiceID:    i.ServiceID,
-			DictionaryID: i.DictionaryID,
-			ItemKey:      "baz",
-			ItemValue:    "bear",
+			ServiceID:    fastly.ToPointer(i.ServiceID),
+			DictionaryID: fastly.ToPointer(i.DictionaryID),
+			ItemKey:      fastly.ToPointer("baz"),
+			ItemValue:    fastly.ToPointer("bear"),
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 			DeletedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:06:08Z"),
@@ -395,21 +314,21 @@ func deleteDictionaryError(*fastly.DeleteDictionaryInput) error {
 func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, error) {
 	return []*fastly.Dictionary{
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "dict-1",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("dict-1"),
 			CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-			WriteOnly:      false,
-			ID:             "456",
+			WriteOnly:      fastly.ToPointer(false),
+			DictionaryID:   fastly.ToPointer("456"),
 			UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 		{
-			ServiceID:      i.ServiceID,
-			ServiceVersion: i.ServiceVersion,
-			Name:           "dict-2",
+			ServiceID:      fastly.ToPointer(i.ServiceID),
+			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Name:           fastly.ToPointer("dict-2"),
 			CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-			WriteOnly:      false,
-			ID:             "456",
+			WriteOnly:      fastly.ToPointer(false),
+			DictionaryID:   fastly.ToPointer("456"),
 			UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 	}, nil
@@ -417,36 +336,29 @@ func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, 
 
 func updateDictionaryNameOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           *i.NewName,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           i.NewName,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      cbPtrIsTrue(i.WriteOnly),
-		ID:             "456",
+		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
 func updateDictionaryWriteOnlyOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      i.ServiceID,
-		ServiceVersion: i.ServiceVersion,
-		Name:           i.Name,
+		ServiceID:      fastly.ToPointer(i.ServiceID),
+		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		Name:           fastly.ToPointer(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      cbPtrIsTrue(i.WriteOnly),
-		ID:             "456",
+		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
+		DictionaryID:   fastly.ToPointer("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
-func cbPtrIsTrue(cb *fastly.Compatibool) bool {
-	if cb != nil {
-		return *cb == true
-	}
-	return false
-}
-
-func updateDictionaryError(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+func updateDictionaryError(_ *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return nil, errTest
 }
 
@@ -456,24 +368,25 @@ var (
 )
 
 var (
-	createDictionaryOutput          = "\nSUCCESS: Created dictionary denylist (id 456, service 123, version 4)\n"
-	createDictionaryOutputWriteOnly = "\nSUCCESS: Created dictionary denylist as write-only (id 456, service 123, version 4)\n"
-	deleteDictionaryOutput          = "\nSUCCESS: Deleted dictionary allowlist (service 123 version 4)\n"
-	updateDictionaryOutput          = "\nSUCCESS: Updated dictionary oldname (service 123 version 4)\n"
-	updateDictionaryNameOutput      = "\nSUCCESS: Updated dictionary dict-1 (service 123 version 4)\n"
+	createDictionaryOutput          = "SUCCESS: Created dictionary denylist (id 456, service 123, version 4)\n"
+	createDictionaryOutputWriteOnly = "SUCCESS: Created dictionary denylist as write-only (id 456, service 123, version 4)\n"
+	deleteDictionaryOutput          = "SUCCESS: Deleted dictionary allowlist (service 123 version 4)\n"
+	updateDictionaryOutput          = "SUCCESS: Updated dictionary oldname (service 123 version 4)\n"
+	updateDictionaryNameOutput      = "SUCCESS: Updated dictionary dict-1 (service 123 version 4)\n"
 )
 
 var updateDictionaryOutputVerbose = strings.Join(
 	[]string{
-		"Fastly API token not provided",
 		"Fastly API endpoint: https://api.fastly.com",
+		"Fastly API token provided via config file (profile: user)",
 		"",
 		"Service ID (via --service-id): 123",
 		"",
-		"Service version 1 is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on",
+		"INFO: Service version 1 is not editable, so it was automatically cloned because --autoclone is enabled. Now operating on",
 		"version 4.",
 		"",
 		strings.TrimSpace(updateDictionaryNameOutput),
+		"",
 		updateDictionaryOutputVersionCloned,
 	},
 	"\n")
@@ -509,8 +422,8 @@ Deleted (UTC): 2001-02-03 04:05
 `) + "\n"
 
 var describeDictionaryOutputVerbose = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 

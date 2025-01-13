@@ -4,55 +4,53 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/cli/pkg/cmd"
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 // ListCommand calls the Fastly API to list Kafka logging endpoints.
 type ListCommand struct {
-	cmd.Base
-	cmd.JSONOutput
+	argparser.Base
+	argparser.JSONOutput
 
-	manifest       manifest.Data
 	Input          fastly.ListKafkasInput
-	serviceName    cmd.OptionalServiceNameID
-	serviceVersion cmd.OptionalServiceVersion
+	serviceName    argparser.OptionalServiceNameID
+	serviceVersion argparser.OptionalServiceVersion
 }
 
 // NewListCommand returns a usable command registered under the parent.
-func NewListCommand(parent cmd.Registerer, g *global.Data, m manifest.Data) *ListCommand {
+func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c := ListCommand{
-		Base: cmd.Base{
+		Base: argparser.Base{
 			Globals: g,
 		},
-		manifest: m,
 	}
 	c.CmdClause = parent.Command("list", "List Kafka endpoints on a Fastly service version")
 
 	// Required.
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagVersionName,
-		Description: cmd.FlagVersionDesc,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(cmd.StringFlagOpts{
-		Name:        cmd.FlagServiceIDName,
-		Description: cmd.FlagServiceIDDesc,
-		Dst:         &c.manifest.Flag.ServiceID,
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagServiceIDName,
+		Description: argparser.FlagServiceIDDesc,
+		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	c.RegisterFlag(cmd.StringFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.serviceName.Set,
-		Name:        cmd.FlagServiceName,
-		Description: cmd.FlagServiceDesc,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
 	return &c
@@ -64,10 +62,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := cmd.ServiceDetails(cmd.ServiceDetailsOpts{
-		AllowActiveLocked:  true,
+	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
-		Manifest:           c.manifest,
+		Manifest:           *c.Globals.Manifest,
 		Out:                out,
 		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
@@ -82,7 +79,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = serviceVersion.Number
+	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	o, err := c.Globals.APIClient.ListKafkas(&c.Input)
 	if err != nil {
@@ -98,7 +95,11 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		tw := text.NewTable(out)
 		tw.AddHeader("SERVICE", "VERSION", "NAME")
 		for _, kafka := range o {
-			tw.AddLine(kafka.ServiceID, kafka.ServiceVersion, kafka.Name)
+			tw.AddLine(
+				fastly.ToValue(kafka.ServiceID),
+				fastly.ToValue(kafka.ServiceVersion),
+				fastly.ToValue(kafka.Name),
+			)
 		}
 		tw.Print()
 		return nil
@@ -107,27 +108,27 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Version: %d\n", c.Input.ServiceVersion)
 	for i, kafka := range o {
 		fmt.Fprintf(out, "\tKafka %d/%d\n", i+1, len(o))
-		fmt.Fprintf(out, "\t\tService ID: %s\n", kafka.ServiceID)
-		fmt.Fprintf(out, "\t\tVersion: %d\n", kafka.ServiceVersion)
-		fmt.Fprintf(out, "\t\tName: %s\n", kafka.Name)
-		fmt.Fprintf(out, "\t\tTopic: %s\n", kafka.Topic)
-		fmt.Fprintf(out, "\t\tBrokers: %s\n", kafka.Brokers)
-		fmt.Fprintf(out, "\t\tRequired acks: %s\n", kafka.RequiredACKs)
-		fmt.Fprintf(out, "\t\tCompression codec: %s\n", kafka.CompressionCodec)
-		fmt.Fprintf(out, "\t\tUse TLS: %t\n", kafka.UseTLS)
-		fmt.Fprintf(out, "\t\tTLS CA certificate: %s\n", kafka.TLSCACert)
-		fmt.Fprintf(out, "\t\tTLS client certificate: %s\n", kafka.TLSClientCert)
-		fmt.Fprintf(out, "\t\tTLS client key: %s\n", kafka.TLSClientKey)
-		fmt.Fprintf(out, "\t\tTLS hostname: %s\n", kafka.TLSHostname)
-		fmt.Fprintf(out, "\t\tFormat: %s\n", kafka.Format)
-		fmt.Fprintf(out, "\t\tFormat version: %d\n", kafka.FormatVersion)
-		fmt.Fprintf(out, "\t\tResponse condition: %s\n", kafka.ResponseCondition)
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", kafka.Placement)
-		fmt.Fprintf(out, "\t\tParse log key-values: %t\n", kafka.ParseLogKeyvals)
-		fmt.Fprintf(out, "\t\tMax batch size: %d\n", kafka.RequestMaxBytes)
-		fmt.Fprintf(out, "\t\tSASL authentication method: %s\n", kafka.AuthMethod)
-		fmt.Fprintf(out, "\t\tSASL authentication username: %s\n", kafka.User)
-		fmt.Fprintf(out, "\t\tSASL authentication password: %s\n", kafka.Password)
+		fmt.Fprintf(out, "\t\tService ID: %s\n", fastly.ToValue(kafka.ServiceID))
+		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(kafka.ServiceVersion))
+		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(kafka.Name))
+		fmt.Fprintf(out, "\t\tTopic: %s\n", fastly.ToValue(kafka.Topic))
+		fmt.Fprintf(out, "\t\tBrokers: %s\n", fastly.ToValue(kafka.Brokers))
+		fmt.Fprintf(out, "\t\tRequired acks: %s\n", fastly.ToValue(kafka.RequiredACKs))
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(kafka.CompressionCodec))
+		fmt.Fprintf(out, "\t\tUse TLS: %t\n", fastly.ToValue(kafka.UseTLS))
+		fmt.Fprintf(out, "\t\tTLS CA certificate: %s\n", fastly.ToValue(kafka.TLSCACert))
+		fmt.Fprintf(out, "\t\tTLS client certificate: %s\n", fastly.ToValue(kafka.TLSClientCert))
+		fmt.Fprintf(out, "\t\tTLS client key: %s\n", fastly.ToValue(kafka.TLSClientKey))
+		fmt.Fprintf(out, "\t\tTLS hostname: %s\n", fastly.ToValue(kafka.TLSHostname))
+		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(kafka.Format))
+		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(kafka.FormatVersion))
+		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(kafka.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(kafka.Placement))
+		fmt.Fprintf(out, "\t\tParse log key-values: %t\n", fastly.ToValue(kafka.ParseLogKeyvals))
+		fmt.Fprintf(out, "\t\tMax batch size: %d\n", fastly.ToValue(kafka.RequestMaxBytes))
+		fmt.Fprintf(out, "\t\tSASL authentication method: %s\n", fastly.ToValue(kafka.AuthMethod))
+		fmt.Fprintf(out, "\t\tSASL authentication username: %s\n", fastly.ToValue(kafka.User))
+		fmt.Fprintf(out, "\t\tSASL authentication password: %s\n", fastly.ToValue(kafka.Password))
 	}
 	fmt.Fprintln(out)
 

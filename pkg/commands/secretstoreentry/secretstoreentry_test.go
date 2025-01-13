@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -14,12 +15,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v8/fastly"
+	"github.com/fastly/go-fastly/v9/fastly"
 	"golang.org/x/crypto/nacl/box"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -34,7 +36,7 @@ func TestCreateSecretCommand(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	secretFile := path.Join(tmpDir, "secret-file")
-	if err := os.WriteFile(secretFile, []byte(secretValue), 0x777); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretValue), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	doesNotExistFile := path.Join(tmpDir, "DOES-NOT-EXIST")
@@ -227,11 +229,12 @@ func TestCreateSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(secretstoreentry.RootNameSecret + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 			if testcase.stdin != "" {
 				var stdin bytes.Buffer
 				stdin.WriteString(testcase.stdin)
-				opts.Stdin = &stdin
+				opts.Input = &stdin
 			}
 
 			f := testcase.api.CreateSecretFn
@@ -241,14 +244,16 @@ func TestCreateSecretCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
 			// Tests generate their own signing keys, which won't match
 			// the hardcoded value.  Disable the check against the
 			// hardcoded value.
 			t.Setenv("FASTLY_USE_API_SIGNING_KEY", "1")
 
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -284,7 +289,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("delete --store-id %s --name DOES-NOT-EXIST", storeID),
 			api: mock.API{
 				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
+					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
 					return nil
@@ -297,7 +302,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("delete --store-id %s --name %s", storeID, secretName),
 			api: mock.API{
 				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
+					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
 					return nil
@@ -310,7 +315,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("delete --store-id %s --name %s --json", storeID, secretName),
 			api: mock.API{
 				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
-					if i.ID != storeID || i.Name != secretName {
+					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
 					return nil
@@ -325,7 +330,8 @@ func TestDeleteSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(secretstoreentry.RootNameSecret + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.DeleteSecretFn
 			var apiInvoked bool
@@ -334,9 +340,11 @@ func TestDeleteSecretCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -373,7 +381,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("get --store-id %s --name %s", "DOES-NOT-EXIST", storeName),
 			api: mock.API{
 				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
-					if i.ID != storeID || i.Name != storeName {
+					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
 					return &fastly.Secret{
@@ -389,7 +397,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("get --store-id %s --name %s", storeID, storeName),
 			api: mock.API{
 				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
-					if i.ID != storeID || i.Name != storeName {
+					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
 					return &fastly.Secret{
@@ -408,7 +416,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 			args: fmt.Sprintf("get --store-id %s --name %s --json", storeID, storeName),
 			api: mock.API{
 				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
-					if i.ID != storeID || i.Name != storeName {
+					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
 					return &fastly.Secret{
@@ -429,7 +437,8 @@ func TestDescribeSecretCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(secretstoreentry.RootNameSecret + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.GetSecretFn
 			var apiInvoked bool
@@ -438,9 +447,11 @@ func TestDescribeSecretCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -514,7 +525,8 @@ func TestListSecretsCommand(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.args, func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testutil.Args(secretstoreentry.RootNameSecret+" "+testcase.args), &stdout)
+			args := testutil.SplitArgs(secretstoreentry.RootNameSecret + " " + testcase.args)
+			opts := testutil.MockGlobalData(args, &stdout)
 
 			f := testcase.api.ListSecretsFn
 			var apiInvoked bool
@@ -523,9 +535,11 @@ func TestListSecretsCommand(t *testing.T) {
 				return f(i)
 			}
 
-			opts.APIClient = mock.APIClient(testcase.api)
-
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(args, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())

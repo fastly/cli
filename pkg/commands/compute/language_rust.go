@@ -3,6 +3,7 @@ package compute
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,13 +18,11 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/filesystem"
-	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // RustDefaultBuildCommand is a build command compiled into the CLI binary so it
-// can be used as a fallback for customer's who have an existing C@E project and
+// can be used as a fallback for customer's who have an existing Compute project and
 // are simply upgrading their CLI version and might not be familiar with the
 // changes in the 4.0.0 release with regards to how build logic has moved to the
 // fastly.toml manifest.
@@ -39,33 +38,34 @@ const RustManifest = "Cargo.toml"
 // RustDefaultPackageName is the expected binary create/package name to be built.
 const RustDefaultPackageName = "fastly-compute-project"
 
-// RustSourceDirectory represents the source code directory.                                               │                                                           │
+// RustSourceDirectory represents the source code directory.
 const RustSourceDirectory = "src"
 
 // NewRust constructs a new Rust toolchain.
 func NewRust(
-	fastlyManifest *manifest.File,
-	globals *global.Data,
-	flags Flags,
+	c *BuildCommand,
 	in io.Reader,
+	manifestFilename string,
 	out io.Writer,
 	spinner text.Spinner,
 ) *Rust {
 	return &Rust{
 		Shell: Shell{},
 
-		autoYes:        globals.Flags.AutoYes,
-		build:          fastlyManifest.Scripts.Build,
-		config:         globals.Config.Language.Rust,
-		env:            fastlyManifest.Scripts.EnvVars,
-		errlog:         globals.ErrLog,
-		input:          in,
-		nonInteractive: globals.Flags.NonInteractive,
-		output:         out,
-		postBuild:      fastlyManifest.Scripts.PostBuild,
-		spinner:        spinner,
-		timeout:        flags.Timeout,
-		verbose:        globals.Verbose(),
+		autoYes:               c.Globals.Flags.AutoYes,
+		build:                 c.Globals.Manifest.File.Scripts.Build,
+		config:                c.Globals.Config.Language.Rust,
+		env:                   c.Globals.Manifest.File.Scripts.EnvVars,
+		errlog:                c.Globals.ErrLog,
+		input:                 in,
+		manifestFilename:      manifestFilename,
+		metadataFilterEnvVars: c.MetadataFilterEnvVars,
+		nonInteractive:        c.Globals.Flags.NonInteractive,
+		output:                out,
+		postBuild:             c.Globals.Manifest.File.Scripts.PostBuild,
+		spinner:               spinner,
+		timeout:               c.Flags.Timeout,
+		verbose:               c.Globals.Verbose(),
 	}
 }
 
@@ -79,16 +79,24 @@ type Rust struct {
 	build string
 	// config is the Rust specific application configuration.
 	config config.Rust
+	// defaultBuild indicates if the default build script was used.
+	defaultBuild bool
 	// env is environment variables to be set.
 	env []string
 	// errlog is an abstraction for recording errors to disk.
 	errlog fsterr.LogInterface
 	// input is the user's terminal stdin stream
 	input io.Reader
+	// manifestFilename is the name of the manifest file.
+	manifestFilename string
+	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
+	metadataFilterEnvVars string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
 	output io.Writer
+	// packageName is the resolved package name from the project Cargo.toml
+	packageName string
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
@@ -102,24 +110,65 @@ type Rust struct {
 	verbose bool
 }
 
-// Build compiles the user's source code into a Wasm binary.
-func (r *Rust) Build() error {
-	var noBuildScript bool
-	if r.build == "" {
-		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)
-		noBuildScript = true
+// DefaultBuildScript indicates if a custom build script was used.
+func (r *Rust) DefaultBuildScript() bool {
+	return r.defaultBuild
+}
+
+// CargoLockFilePackage represents a package within a Rust lockfile.
+type CargoLockFilePackage struct {
+	Name    string `toml:"name"`
+	Version string `toml:"version"`
+}
+
+// CargoLockFile represents a Rust lockfile.
+type CargoLockFile struct {
+	Packages []CargoLockFilePackage `toml:"package"`
+}
+
+// Dependencies returns all dependencies used by the project.
+func (r *Rust) Dependencies() map[string]string {
+	deps := make(map[string]string)
+
+	var clf CargoLockFile
+	if data, err := os.ReadFile("Cargo.lock"); err == nil {
+		if err := toml.Unmarshal(data, &clf); err == nil {
+			for _, v := range clf.Packages {
+				deps[v.Name] = v.Version
+			}
+		}
 	}
 
-	err := r.modifyCargoPackageName()
+	return deps
+}
+
+// Build compiles the user's source code into a Wasm binary.
+func (r *Rust) Build() error {
+	if r.build == "" {
+		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)
+		r.defaultBuild = true
+	}
+
+	err := r.modifyCargoPackageName(r.defaultBuild)
 	if err != nil {
 		return err
 	}
 
-	if noBuildScript && r.verbose {
-		text.Info(r.output, "No [scripts.build] found in fastly.toml. The following default build command for Rust will be used: `%s`\n", r.build)
+	if r.defaultBuild && r.verbose {
+		text.Info(r.output, "No [scripts.build] found in %s. The following default build command for Rust will be used: `%s`\n\n", r.manifestFilename, r.build)
 	}
 
-	r.toolchainConstraint()
+	version, err := r.toolchainConstraint()
+	if err != nil {
+		return err
+	}
+
+	if version != nil {
+		err := r.checkCargoConfigFileName(version)
+		if err != nil {
+			return err
+		}
+	}
 
 	bt := BuildToolchain{
 		autoYes:                   r.autoYes,
@@ -129,6 +178,8 @@ func (r *Rust) Build() error {
 		errlog:                    r.errlog,
 		in:                        r.input,
 		internalPostBuildCallback: r.ProcessLocation,
+		manifestFilename:          r.manifestFilename,
+		metadataFilterEnvVars:     r.metadataFilterEnvVars,
 		nonInteractive:            r.nonInteractive,
 		out:                       r.output,
 		postBuild:                 r.postBuild,
@@ -140,10 +191,20 @@ func (r *Rust) Build() error {
 	return bt.Build()
 }
 
+// RustToolchainManifest models a [toolchain] from a rust-toolchain.toml manifest.
+type RustToolchainManifest struct {
+	Toolchain RustToolchain `toml:"toolchain"`
+}
+
+// RustToolchain models the rust-toolchain targets.
+type RustToolchain struct {
+	Targets []string `toml:"targets"`
+}
+
 // modifyCargoPackageName validates whether the --bin flag matches the
 // Cargo.toml package name. If it doesn't match, update the default build script
 // to match.
-func (r *Rust) modifyCargoPackageName() error {
+func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 	s := "cargo locate-project --quiet"
 	args := strings.Split(s, " ")
 
@@ -167,7 +228,6 @@ func (r *Rust) modifyCargoPackageName() error {
 	}
 
 	if r.verbose {
-		text.Break(r.output)
 		text.Output(r.output, "Command output for '%s': %s", s, stdout.String())
 	}
 
@@ -184,21 +244,66 @@ func (r *Rust) modifyCargoPackageName() error {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
 
-	if m.Package.Name != RustDefaultPackageName {
-		r.build = fmt.Sprintf(RustDefaultBuildCommand, m.Package.Name)
+	hasCustomBuildScript := !noBuildScript
+
+	switch {
+	case m.Package.Name != "":
+		// If using standard project structure.
+		// Cargo.toml won't be a Workspace, so it will contain a package name.
+		r.packageName = m.Package.Name
+	case len(m.Workspace.Members) > 0 && noBuildScript:
+		// If user has a Cargo Workspace AND no custom script.
+		// We need to identify which Workspace package is their application.
+		// Then extract the package name from its Cargo.toml manifest.
+		// We do this by checking for a rust-toolchain.toml containing a wasm32-wasi target.
+		//
+		// NOTE: This logic will need to change in the future.
+		// Specifically, when we support linking multiple Wasm binaries.
+		for _, m := range m.Workspace.Members {
+			var rtm RustToolchainManifest
+			rustToolchainFile := "rust-toolchain.toml"
+			data, err := os.ReadFile(filepath.Join(m, rustToolchainFile)) // #nosec G304 (CWE-22)
+			if err != nil {
+				return err
+			}
+			err = toml.Unmarshal(data, &rtm)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal '%s' data: %w", rustToolchainFile, err)
+			}
+			if len(rtm.Toolchain.Targets) > 0 && rtm.Toolchain.Targets[0] == "wasm32-wasi" {
+				var cm CargoManifest
+				err := cm.Read(filepath.Join(m, "Cargo.toml"))
+				if err != nil {
+					return err
+				}
+				r.packageName = cm.Package.Name
+			}
+		}
+	case len(m.Workspace.Members) > 0 && hasCustomBuildScript:
+		// If user has a Cargo Workspace AND a custom script.
+		// Trust their custom script aligns with the relevant Workspace package name.
+		// i.e. we parse the package name specified in their custom script.
+		parts := strings.Split(r.build, " ")
+		for i, p := range parts {
+			if p == "--bin" {
+				r.packageName = parts[i+1]
+				break
+			}
+		}
+	}
+
+	// Ensure the default build script matches the Cargo.toml package name.
+	if noBuildScript && r.packageName != "" && r.packageName != RustDefaultPackageName {
+		r.build = fmt.Sprintf(RustDefaultBuildCommand, r.packageName)
 	}
 
 	return nil
 }
 
-// toolchainConstraint warns the user if the required constraint is not met.
-//
-// NOTE: We don't stop the build as their toolchain may compile successfully.
-// The warning is to help a user know something isn't quite right and gives them
-// the opportunity to do something about it if they choose.
-func (r *Rust) toolchainConstraint() {
+// toolchainConstraint generates an error if the toolchain constraint is not met.
+func (r *Rust) toolchainConstraint() (*semver.Version, error) {
 	if r.verbose {
-		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'. ", r.config.ToolchainConstraint)
+		text.Info(r.output, "The Fastly CLI requires a Rust version '%s'.\n\n", r.config.ToolchainConstraint)
 	}
 
 	versionCommand := "cargo version --quiet"
@@ -210,33 +315,74 @@ func (r *Rust) toolchainConstraint() {
 	// #nosec
 	// nosemgrep
 	cmd := exec.Command(args[0], args[1:]...)
-	stdoutStderr, err := cmd.CombinedOutput()
-	output := string(stdoutStderr)
+	stdout, err := cmd.Output()
+	output := string(stdout)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	versionPattern := regexp.MustCompile(`cargo (?P<version>\d[^\s]+)`)
 	match := versionPattern.FindStringSubmatch(output)
 	if len(match) < 2 { // We expect a pattern with one capture group.
-		return
+		return nil, fmt.Errorf("unable to obtain a version number from the 'cargo' command")
 	}
 	version := match[1]
 
 	v, err := semver.NewVersion(version)
 	if err != nil {
-		return
+		return nil, fmt.Errorf("the version string '%s' reported by the 'cargo' command is not a valid version number", version)
 	}
 
 	c, err := semver.NewConstraint(r.config.ToolchainConstraint)
 	if err != nil {
-		return
+		return nil, fmt.Errorf("the 'toolchain_constraint' value '%s' (from the config.toml file) is not a valid version constraint", r.config.ToolchainConstraint)
 	}
 
-	if !c.Check(v) {
-		text.Warning(r.output, "The Rust version '%s' didn't meet the constraint '%s'", version, r.config.ToolchainConstraint)
-		text.Break(r.output)
+	valid, errs := c.Validate(v)
+	if !valid {
+		err = nil
+		for _, e := range errs {
+			// if an 'upper bound' constraint was
+			// violated, generate an error message
+			// specific to that situation
+			if strings.Contains(e.Error(), "is greater than") {
+				err = fmt.Errorf("version '%s' of Rust has not been validated for use with Fastly Compute", v)
+			}
+		}
+		if err == nil {
+			err = fmt.Errorf("the Rust version requirement was not satisfied: '%w'", errors.Join(errs...))
+		}
+		return nil, fsterr.RemediationError{
+			Inner:       err,
+			Remediation: "Consult the Rust guide for Compute at https://www.fastly.com/documentation/guides/compute/rust/ for more information.",
+		}
 	}
+
+	return v, nil
+}
+
+func (r *Rust) checkCargoConfigFileName(rustVersion *semver.Version) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		r.errlog.Add(err)
+		return fmt.Errorf("getting current working directory: %w", err)
+	}
+
+	if !filesystem.FileExists(filepath.Join(dir, ".cargo", "config")) {
+		return nil
+	}
+
+	filenameMsg := "\nThe Cargo configuration file name is .cargo/config"
+
+	c, _ := semver.NewConstraint(">=1.78.0")
+
+	if c.Check(rustVersion) {
+		text.Warning(r.output, filenameMsg)
+		return fmt.Errorf("the build cannot proceed with Rust version '%s' as the file must be named .cargo/config.toml", rustVersion)
+	}
+
+	text.Warning(r.output, filenameMsg+". The file should be renamed to .cargo/config.toml to be compatible with Rust 1.78.0 or later\n\n")
+	return nil
 }
 
 // ProcessLocation ensures the generated Rust Wasm binary is moved to the
@@ -253,12 +399,8 @@ func (r *Rust) ProcessLocation() error {
 		r.errlog.Add(err)
 		return fmt.Errorf("error reading cargo metadata: %w", err)
 	}
-	var m CargoManifest
-	if err := m.Read(r.projectRoot); err != nil {
-		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
-	}
 
-	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", m.Package.Name))
+	src := filepath.Join(metadata.TargetDirectory, r.config.WasmWasiTarget, "release", fmt.Sprintf("%s.wasm", r.packageName))
 	dst := filepath.Join(dir, "bin", "main.wasm")
 
 	err = filesystem.CopyFile(src, dst)
@@ -279,7 +421,8 @@ type CargoLocateProject struct {
 // manifest which we are interested in and are read from the Cargo.toml manifest
 // file within the $PWD of the package.
 type CargoManifest struct {
-	Package CargoPackage `toml:"package"`
+	Package   CargoPackage   `toml:"package"`
+	Workspace CargoWorkspace `toml:"workspace"`
 }
 
 // Read the contents of the Cargo.toml manifest from filename.
@@ -288,13 +431,17 @@ func (m *CargoManifest) Read(path string) error {
 	// G304 (CWE-22): Potential file inclusion via variable.
 	// Disabling as we need to load the Cargo.toml from the user's file system.
 	// This file is decoded into a predefined struct, any unrecognised fields are dropped.
-	/* #nosec */
+	// #nosec
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	err = toml.Unmarshal(data, m)
-	return err
+	return toml.Unmarshal(data, m)
+}
+
+// CargoWorkspace models the [workspace] config inside Cargo.toml.
+type CargoWorkspace struct {
+	Members []string `toml:"members" json:"members"`
 }
 
 // CargoPackage models the package configuration properties of a Rust Cargo

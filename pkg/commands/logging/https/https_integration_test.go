@@ -3,17 +3,20 @@ package https_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v8/fastly"
 )
 
 func TestHTTPSCreate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -43,9 +46,12 @@ func TestHTTPSCreate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -53,7 +59,7 @@ func TestHTTPSCreate(t *testing.T) {
 }
 
 func TestHTTPSList(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -113,9 +119,12 @@ func TestHTTPSList(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -123,7 +132,7 @@ func TestHTTPSList(t *testing.T) {
 }
 
 func TestHTTPSDescribe(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -155,9 +164,12 @@ func TestHTTPSDescribe(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
 		})
@@ -165,7 +177,7 @@ func TestHTTPSDescribe(t *testing.T) {
 }
 
 func TestHTTPSUpdate(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -199,9 +211,12 @@ func TestHTTPSUpdate(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -209,7 +224,7 @@ func TestHTTPSUpdate(t *testing.T) {
 }
 
 func TestHTTPSDelete(t *testing.T) {
-	args := testutil.Args
+	args := testutil.SplitArgs
 	scenarios := []struct {
 		args       []string
 		api        mock.API
@@ -243,9 +258,12 @@ func TestHTTPSDelete(t *testing.T) {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
 			var stdout bytes.Buffer
-			opts := testutil.NewRunOpts(testcase.args, &stdout)
-			opts.APIClient = mock.APIClient(testcase.api)
-			err := app.Run(opts)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.APIClientFactory = mock.APIClient(testcase.api)
+				return opts, nil
+			}
+			err := app.Run(testcase.args, nil)
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 		})
@@ -256,83 +274,83 @@ var errTest = errors.New("fixture error")
 
 func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		URL:               "example.com",
-		RequestMaxEntries: 2,
-		RequestMaxBytes:   2,
-		ContentType:       "application/json",
-		HeaderName:        "name",
-		HeaderValue:       "value",
-		Method:            "GET",
-		JSONFormat:        "1",
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		TLSHostname:       "example.com",
-		MessageType:       "classic",
-		FormatVersion:     2,
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		URL:               fastly.ToPointer("example.com"),
+		RequestMaxEntries: fastly.ToPointer(2),
+		RequestMaxBytes:   fastly.ToPointer(2),
+		ContentType:       fastly.ToPointer("application/json"),
+		HeaderName:        fastly.ToPointer("name"),
+		HeaderValue:       fastly.ToPointer("value"),
+		Method:            fastly.ToPointer("GET"),
+		JSONFormat:        fastly.ToPointer("1"),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		MessageType:       fastly.ToPointer("classic"),
+		FormatVersion:     fastly.ToPointer(2),
 	}, nil
 }
 
-func createHTTPSError(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
+func createHTTPSError(_ *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
 func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	return []*fastly.HTTPS{
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "logs",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			URL:               "example.com",
-			RequestMaxEntries: 2,
-			RequestMaxBytes:   2,
-			ContentType:       "application/json",
-			HeaderName:        "name",
-			HeaderValue:       "value",
-			Method:            "GET",
-			JSONFormat:        "1",
-			Placement:         "none",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-			TLSHostname:       "example.com",
-			MessageType:       "classic",
-			FormatVersion:     2,
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("logs"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			URL:               fastly.ToPointer("example.com"),
+			RequestMaxEntries: fastly.ToPointer(2),
+			RequestMaxBytes:   fastly.ToPointer(2),
+			ContentType:       fastly.ToPointer("application/json"),
+			HeaderName:        fastly.ToPointer("name"),
+			HeaderValue:       fastly.ToPointer("value"),
+			Method:            fastly.ToPointer("GET"),
+			JSONFormat:        fastly.ToPointer("1"),
+			Placement:         fastly.ToPointer("none"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			MessageType:       fastly.ToPointer("classic"),
+			FormatVersion:     fastly.ToPointer(2),
 		},
 		{
-			ServiceID:         i.ServiceID,
-			ServiceVersion:    i.ServiceVersion,
-			Name:              "analytics",
-			ResponseCondition: "Prevent default logging",
-			Format:            `%h %l %u %t "%r" %>s %b`,
-			URL:               "analytics.example.com",
-			RequestMaxEntries: 2,
-			RequestMaxBytes:   2,
-			ContentType:       "application/json",
-			HeaderName:        "name",
-			HeaderValue:       "value",
-			Method:            "GET",
-			JSONFormat:        "1",
-			Placement:         "none",
-			TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-			TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-			TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-			TLSHostname:       "example.com",
-			MessageType:       "classic",
-			FormatVersion:     2,
+			ServiceID:         fastly.ToPointer(i.ServiceID),
+			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+			Name:              fastly.ToPointer("analytics"),
+			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+			URL:               fastly.ToPointer("analytics.example.com"),
+			RequestMaxEntries: fastly.ToPointer(2),
+			RequestMaxBytes:   fastly.ToPointer(2),
+			ContentType:       fastly.ToPointer("application/json"),
+			HeaderName:        fastly.ToPointer("name"),
+			HeaderValue:       fastly.ToPointer("value"),
+			Method:            fastly.ToPointer("GET"),
+			JSONFormat:        fastly.ToPointer("1"),
+			Placement:         fastly.ToPointer("none"),
+			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+			TLSHostname:       fastly.ToPointer("example.com"),
+			MessageType:       fastly.ToPointer("classic"),
+			FormatVersion:     fastly.ToPointer(2),
 		},
 	}, nil
 }
 
-func listHTTPSsError(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
+func listHTTPSsError(_ *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
@@ -343,8 +361,8 @@ SERVICE  VERSION  NAME
 `) + "\n"
 
 var listHTTPSsVerboseOutput = strings.TrimSpace(`
-Fastly API token not provided
 Fastly API endpoint: https://api.fastly.com
+Fastly API token provided via config file (profile: user)
 
 Service ID (via --service-id): 123
 
@@ -395,30 +413,30 @@ Version: 1
 
 func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		URL:               "example.com",
-		RequestMaxEntries: 2,
-		RequestMaxBytes:   2,
-		ContentType:       "application/json",
-		HeaderName:        "name",
-		HeaderValue:       "value",
-		Method:            "GET",
-		JSONFormat:        "1",
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		TLSHostname:       "example.com",
-		MessageType:       "classic",
-		FormatVersion:     2,
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		URL:               fastly.ToPointer("example.com"),
+		RequestMaxEntries: fastly.ToPointer(2),
+		RequestMaxBytes:   fastly.ToPointer(2),
+		ContentType:       fastly.ToPointer("application/json"),
+		HeaderName:        fastly.ToPointer("name"),
+		HeaderValue:       fastly.ToPointer("value"),
+		Method:            fastly.ToPointer("GET"),
+		JSONFormat:        fastly.ToPointer("1"),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		MessageType:       fastly.ToPointer("classic"),
+		FormatVersion:     fastly.ToPointer(2),
 	}, nil
 }
 
-func getHTTPSError(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
+func getHTTPSError(_ *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
@@ -447,37 +465,37 @@ Version: 1
 
 func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
-		ServiceID:         i.ServiceID,
-		ServiceVersion:    i.ServiceVersion,
-		Name:              "log",
-		ResponseCondition: "Prevent default logging",
-		Format:            `%h %l %u %t "%r" %>s %b`,
-		URL:               "example.com",
-		RequestMaxEntries: 2,
-		RequestMaxBytes:   2,
-		ContentType:       "application/json",
-		HeaderName:        "name",
-		HeaderValue:       "value",
-		Method:            "GET",
-		JSONFormat:        "1",
-		Placement:         "none",
-		TLSCACert:         "-----BEGIN CERTIFICATE-----foo",
-		TLSClientCert:     "-----BEGIN CERTIFICATE-----bar",
-		TLSClientKey:      "-----BEGIN PRIVATE KEY-----bar",
-		TLSHostname:       "example.com",
-		MessageType:       "classic",
-		FormatVersion:     2,
+		ServiceID:         fastly.ToPointer(i.ServiceID),
+		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
+		Name:              fastly.ToPointer("log"),
+		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
+		URL:               fastly.ToPointer("example.com"),
+		RequestMaxEntries: fastly.ToPointer(2),
+		RequestMaxBytes:   fastly.ToPointer(2),
+		ContentType:       fastly.ToPointer("application/json"),
+		HeaderName:        fastly.ToPointer("name"),
+		HeaderValue:       fastly.ToPointer("value"),
+		Method:            fastly.ToPointer("GET"),
+		JSONFormat:        fastly.ToPointer("1"),
+		Placement:         fastly.ToPointer("none"),
+		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
+		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
+		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+		TLSHostname:       fastly.ToPointer("example.com"),
+		MessageType:       fastly.ToPointer("classic"),
+		FormatVersion:     fastly.ToPointer(2),
 	}, nil
 }
 
-func updateHTTPSError(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
+func updateHTTPSError(_ *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
-func deleteHTTPSOK(i *fastly.DeleteHTTPSInput) error {
+func deleteHTTPSOK(_ *fastly.DeleteHTTPSInput) error {
 	return nil
 }
 
-func deleteHTTPSError(i *fastly.DeleteHTTPSInput) error {
+func deleteHTTPSError(_ *fastly.DeleteHTTPSInput) error {
 	return errTest
 }
