@@ -6,7 +6,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   config:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -92,7 +92,7 @@ jobs:
         tinygo-version: [0.31.2]
         go-version: [1.22.x]
         node-version: [18]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [ubuntu-22.04, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: "Checkout code"
@@ -160,7 +160,7 @@ jobs:
           TEST_COMPUTE_BUILD: true
           TEST_COMPUTE_DEPLOY: true
   docker-builds:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
