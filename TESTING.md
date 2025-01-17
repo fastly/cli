@@ -38,7 +38,7 @@ The available environment variables are:
 **Example**:
 
 ```sh
-TEST_COMPUTE_BUILD_RUST=1 make test TEST_ARGS="-run TestBuildRust/fastly_crate_prerelease ./pkg/compute/..." 
+TEST_COMPUTE_BUILD_RUST=1 make test TEST_ARGS="-run TestBuildRust/fastly_crate_prerelease ./pkg/compute/..."
 ```
 
 When running the tests locally, if you don't have the relevant language ecosystems set-up properly then the tests will fail to run and you'll need to review the code to see what the remediation steps are, as that output doesn't get shown when running the test suite.
