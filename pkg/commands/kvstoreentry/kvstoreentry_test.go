@@ -77,8 +77,11 @@ func TestCreateCommand(t *testing.T) {
 			Args:  fmt.Sprintf("--store-id %s --dir %s", storeID, filepath.Join("testdata", "example")),
 			Stdin: []string{"y"},
 			API: mock.API{
-				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
-					return nil
+				InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+					if i.Key == "foo.txt" {
+						return nil
+					}
+					return errors.New("invalid request")
 				},
 			},
 			WantOutput: "SUCCESS: Inserted 1 keys into KV Store",
@@ -87,8 +90,11 @@ func TestCreateCommand(t *testing.T) {
 			Args:  fmt.Sprintf("--store-id %s --dir %s --dir-allow-hidden", storeID, filepath.Join("testdata", "example")),
 			Stdin: []string{"y"},
 			API: mock.API{
-				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
-					return nil
+				InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+					if i.Key == "foo.txt" || i.Key == ".hiddenfile" {
+						return nil
+					}
+					return errors.New("invalid request")
 				},
 			},
 			WantOutput: "SUCCESS: Inserted 2 keys into KV Store",
