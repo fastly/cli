@@ -3,9 +3,9 @@ package domain
 import (
 	"io"
 
+	"4d63.com/optional"
 	"github.com/fastly/go-fastly/v9/fastly"
 
-	"4d63.com/optional"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -20,6 +20,7 @@ type CreateCommand struct {
 	serviceVersion argparser.OptionalServiceVersion
 
 	// Optional.
+	apiVersion  argparser.OptionalString
 	autoClone   argparser.OptionalAutoClone
 	comment     argparser.OptionalString
 	name        argparser.OptionalString
@@ -33,17 +34,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create a domain on a Fastly service version").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	c.CmdClause = parent.Command("create", "Create a domain").Alias("add")
 
 	// Optional.
+	c.CmdClause.Flag("api-version", "The Fastly API version").HintOptions(APIVersions...).Action(c.apiVersion.Set).EnumVar(&c.apiVersion.Value, APIVersions...)
 	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
@@ -62,11 +56,27 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
+	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
+	if c.apiVersion.WasSet {
+		c.v1(out)
+	}
+	return c.v0(out)
+}
+
+func (c *CreateCommand) v1(out io.Writer) error {
+	return nil
+}
+
+func (c *CreateCommand) v0(out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
