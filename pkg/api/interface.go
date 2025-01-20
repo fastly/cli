@@ -18,6 +18,11 @@ type HTTPClient interface {
 // Interface models the methods of the Fastly API client that we use.
 // It exists to allow for easier testing, in combination with Mock.
 type Interface interface {
+	Delete(p string, ro *fastly.RequestOptions) (*http.Response, error)
+	Get(p string, ro *fastly.RequestOptions) (*http.Response, error)
+	PatchJSON(p string, i any, ro *fastly.RequestOptions) (*http.Response, error)
+	PostJSON(p string, i any, ro *fastly.RequestOptions) (*http.Response, error)
+
 	AllIPs() (v4, v6 fastly.IPAddrs, err error)
 	AllDatacenters() (datacenters []fastly.Datacenter, err error)
 
