@@ -67,9 +67,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	serviceOutput := ""
 	if d.ServiceID != nil {
-		serviceOutput = fmt.Sprintf(" (service-id: %s)", *d.ServiceID)
+		serviceOutput = fmt.Sprintf(", service-id: %s", *d.ServiceID)
 	}
 
-	text.Success(out, "Created domain '%s' (domain-id: %s)%s", d.FQDN, d.DomainID, serviceOutput)
+	text.Success(out, "Created domain '%s' (domain-id: %s%s)", d.FQDN, d.DomainID, serviceOutput)
 	return nil
 }
