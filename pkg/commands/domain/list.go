@@ -1,18 +1,14 @@
 package domain
 
 import (
-	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/fastly/go-fastly/v9/fastly"
-	v1 "github.com/fastly/go-fastly/v9/fastly/domains/v1"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -22,13 +18,8 @@ type ListCommand struct {
 	argparser.JSONOutput
 
 	Input          fastly.ListDomainsInput
-	apiVersion     argparser.OptionalString
-	cursor         argparser.OptionalString
-	fqdn           argparser.OptionalString
-	limit          argparser.OptionalInt
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
-	sort           argparser.OptionalString
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -38,14 +29,18 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("list", "List domains")
+	c.CmdClause = parent.Command("list", "List domains on a Fastly service version")
+
+	// Required.
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
+		Required:    true,
+	})
 
 	// Optional.
-	c.CmdClause.Flag("api-version", fmt.Sprintf("The Fastly API version (%s)", strings.Join(APIVersions, ","))).HintOptions(APIVersions...).Action(c.apiVersion.Set).EnumVar(&c.apiVersion.Value, APIVersions...)
-	c.CmdClause.Flag("cursor", "Cursor value from the next_cursor field of a previous response, used to retrieve the next page (version support: v1)").Action(c.cursor.Set).StringVar(&c.cursor.Value)
-	c.CmdClause.Flag("fqdn", "Filters results by the FQDN using a fuzzy/partial match (version support: v1)").Action(c.fqdn.Set).StringVar(&c.fqdn.Value)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.CmdClause.Flag("limit", "Limit how many results are returned (version support: v1)").Action(c.limit.Set).IntVar(&c.limit.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -58,99 +53,11 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
-	c.CmdClause.Flag("sort", "The order in which to list the results (version support: v1)").Action(c.sort.Set).StringVar(&c.sort.Value)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
-		return fsterr.ErrInvalidVerboseJSONCombo
-	}
-	if c.apiVersion.Value == "v1" {
-		return c.v1(in, out)
-	}
-	return c.v0(out)
-}
-
-func (c *ListCommand) v1(in io.Reader, out io.Writer) error {
-	input := &v1.ListInput{}
-
-	serviceID, source, _, _ := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
-	if source == manifest.SourceFlag {
-		input.ServiceID = &serviceID
-	}
-	if c.cursor.WasSet {
-		input.Cursor = &c.cursor.Value
-	}
-	if c.fqdn.WasSet {
-		input.FQDN = &c.fqdn.Value
-	}
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
-	}
-	if c.sort.WasSet {
-		input.Sort = &c.sort.Value
-	}
-
-	fc, ok := c.Globals.APIClient.(*fastly.Client)
-	if !ok {
-		return errors.New("failed to convert interface to a fastly client")
-	}
-
-	for {
-		cl, err := v1.List(fc, input)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Cursor":     c.cursor.Value,
-				"FQDN":       c.fqdn.Value,
-				"Limit":      c.limit.Value,
-				"Service ID": serviceID,
-				"Sort":       c.sort.Value,
-			})
-			return err
-		}
-
-		if ok, err := c.WriteJSON(out, cl); ok {
-			// No pagination prompt w/ JSON output.
-			return err
-		}
-
-		// clPtr := make([]*v1.Data, len(cl.Data))
-		// for i := range cl.Data {
-		// 	clPtr[i] = &cl.Data[i]
-		// }
-
-		if c.Globals.Verbose() {
-			printVerbose(out, cl.Data)
-		} else {
-			printSummary(out, cl.Data)
-		}
-
-		if cl != nil && cl.Meta.NextCursor != "" {
-			// Check if 'out' is interactive before prompting.
-			if !c.Globals.Flags.NonInteractive && !c.Globals.Flags.AutoYes && text.IsTTY(out) {
-				printNext, err := text.AskYesNo(out, "Print next page [y/N]: ", in)
-				if err != nil {
-					return err
-				}
-				if printNext {
-					input.Cursor = &cl.Meta.NextCursor
-					continue
-				}
-			}
-		}
-
-		return nil
-	}
-}
-
-func (c *ListCommand) v0(out io.Writer) error {
+func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
