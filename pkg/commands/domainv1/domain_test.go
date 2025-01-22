@@ -40,6 +40,44 @@ func TestDomainV1Create(t *testing.T) {
 			},
 			WantOutput: fmt.Sprintf("SUCCESS: Created domain '%s' (domain-id: %s, service-id: %s)", fqdn, did, sid),
 		},
+		{
+			Args: fmt.Sprintf("--fqdn %s", fqdn),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(v1.Data{
+							DomainID: did,
+							FQDN:     fqdn,
+						}))),
+					},
+				},
+			},
+			WantOutput: fmt.Sprintf("SUCCESS: Created domain '%s' (domain-id: %s)", fqdn, did),
+		},
+		{
+			Args: fmt.Sprintf("--fqdn %s", fqdn),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusBadRequest,
+						Status:     http.StatusText(http.StatusBadRequest),
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(`
+							{
+							  "errors":[
+								{
+								  "title":"Invalid value for fqdn",
+								  "detail":"fqdn has already been taken"
+								}
+							  ]
+							}
+						`))),
+					},
+				},
+			},
+			WantError: "400 - Bad Request",
+		},
 	}
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
