@@ -178,3 +178,72 @@ func TestDomainV1Describe(t *testing.T) {
 	}
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
+
+func TestDomainV1Update(t *testing.T) {
+	fqdn := "www.example.com"
+	sid := "123"
+	did := "domain-id"
+
+	scenarios := []testutil.CLIScenario{
+		{
+			Args:      "",
+			WantError: "error parsing arguments: required flag --domain-id not provided",
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s --service-id %s", did, sid),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(v1.Data{
+							DomainID:  did,
+							FQDN:      fqdn,
+							ServiceID: &sid,
+						}))),
+					},
+				},
+			},
+			WantOutput: fmt.Sprintf("SUCCESS: Updated domain '%s' (domain-id: %s, service-id: %s)", fqdn, did, sid),
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s", did),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(v1.Data{
+							DomainID: did,
+							FQDN:     fqdn,
+						}))),
+					},
+				},
+			},
+			WantOutput: fmt.Sprintf("SUCCESS: Updated domain '%s' (domain-id: %s)", fqdn, did),
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s", did),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusBadRequest,
+						Status:     http.StatusText(http.StatusBadRequest),
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(`
+							{
+							  "errors":[
+								{
+								  "title":"Invalid value for domain-id",
+								  "detail":"whoops"
+								}
+							  ]
+							}
+						`))),
+					},
+				},
+			},
+			WantError: "400 - Bad Request",
+		},
+	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
+}
