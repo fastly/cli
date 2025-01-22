@@ -247,3 +247,40 @@ func TestDomainV1Update(t *testing.T) {
 	}
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
+
+func TestDomainV1Delete(t *testing.T) {
+	did := "domain-id"
+
+	scenarios := []testutil.CLIScenario{
+		{
+			Args:      "",
+			WantError: "error parsing arguments: required flag --domain-id not provided",
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s", did),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     http.StatusText(http.StatusNoContent),
+					},
+				},
+			},
+			WantOutput: fmt.Sprintf("SUCCESS: Deleted domain (domain-id: %s)", did),
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s", did),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusBadRequest,
+						Status:     http.StatusText(http.StatusBadRequest),
+						Body:       io.NopCloser(strings.NewReader(`{"error": "whoops"}`)),
+					},
+				},
+			},
+			WantError: "400 - Bad Request",
+		},
+	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+}
