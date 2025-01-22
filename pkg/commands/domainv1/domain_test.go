@@ -132,3 +132,49 @@ func TestDomainV1List(t *testing.T) {
 	}
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
+
+func TestDomainV1Describe(t *testing.T) {
+	fqdn := "www.example.com"
+	sid := "123"
+	did := "domain-id"
+
+	resp := testutil.GenJSON(v1.Data{
+		DomainID:  did,
+		FQDN:      fqdn,
+		ServiceID: &sid,
+	})
+
+	scenarios := []testutil.CLIScenario{
+		{
+			Args:      "",
+			WantError: "error parsing arguments: required flag --domain-id not provided",
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s --json", did),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(resp)),
+					},
+				},
+			},
+			WantOutput: string(resp),
+		},
+		{
+			Args: fmt.Sprintf("--domain-id %s --json", did),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusBadRequest,
+						Status:     http.StatusText(http.StatusBadRequest),
+						Body:       io.NopCloser(strings.NewReader(`{"error": "whoops"}`)),
+					},
+				},
+			},
+			WantError: "400 - Bad Request",
+		},
+	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+}
