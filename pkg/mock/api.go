@@ -2,7 +2,6 @@ package mock
 
 import (
 	"crypto/ed25519"
-	"net/http"
 
 	"github.com/fastly/go-fastly/v9/fastly"
 )
@@ -11,11 +10,6 @@ import (
 // The zero value is useful, but will panic on all methods. Provide function
 // implementations for the method(s) your test will call.
 type API struct {
-	DeleteFn    func(string, *fastly.RequestOptions) (*http.Response, error)
-	GetFn       func(string, *fastly.RequestOptions) (*http.Response, error)
-	PatchJSONFn func(string, any, *fastly.RequestOptions) (*http.Response, error)
-	PostJSONFn  func(string, any, *fastly.RequestOptions) (*http.Response, error)
-
 	AllDatacentersFn func() (datacenters []fastly.Datacenter, err error)
 	AllIPsFn         func() (v4, v6 fastly.IPAddrs, err error)
 
@@ -410,26 +404,6 @@ type API struct {
 	GetObservabilityCustomDashboardFn    func(i *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	UpdateObservabilityCustomDashboardFn func(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	DeleteObservabilityCustomDashboardFn func(i *fastly.DeleteObservabilityCustomDashboardInput) error
-}
-
-// Delete implements Interface.
-func (m API) Delete(p string, ro *fastly.RequestOptions) (*http.Response, error) {
-	return m.DeleteFn(p, ro)
-}
-
-// Get implements Interface.
-func (m API) Get(p string, ro *fastly.RequestOptions) (*http.Response, error) {
-	return m.GetFn(p, ro)
-}
-
-// PatchJSON implements Interface.
-func (m API) PatchJSON(p string, i any, ro *fastly.RequestOptions) (*http.Response, error) {
-	return m.PatchJSONFn(p, i, ro)
-}
-
-// PostJSON implements Interface.
-func (m API) PostJSON(p string, i any, ro *fastly.RequestOptions) (*http.Response, error) {
-	return m.PostJSONFn(p, i, ro)
 }
 
 // AllDatacenters implements Interface.
