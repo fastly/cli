@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -307,7 +308,7 @@ func listHealthChecksOK(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck,
 			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 			Name:           fastly.ToPointer("test"),
 			Comment:        fastly.ToPointer("test"),
-			Method:         fastly.ToPointer("HEAD"),
+			Method:         fastly.ToPointer(http.MethodHead),
 			Host:           fastly.ToPointer("www.test.com"),
 			Path:           fastly.ToPointer("/health"),
 		},
@@ -316,7 +317,7 @@ func listHealthChecksOK(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck,
 			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 			Name:           fastly.ToPointer("example"),
 			Comment:        fastly.ToPointer("example"),
-			Method:         fastly.ToPointer("HEAD"),
+			Method:         fastly.ToPointer(http.MethodHead),
 			Host:           fastly.ToPointer("www.example.com"),
 			Path:           fastly.ToPointer("/health"),
 		},
@@ -373,7 +374,7 @@ func getHealthCheckOK(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 		Name:           fastly.ToPointer("test"),
-		Method:         fastly.ToPointer("HEAD"),
+		Method:         fastly.ToPointer(http.MethodHead),
 		Host:           fastly.ToPointer("www.test.com"),
 		Path:           fastly.ToPointer("/healthcheck"),
 		Comment:        fastly.ToPointer("test"),

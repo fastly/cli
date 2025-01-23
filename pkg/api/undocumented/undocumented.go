@@ -103,7 +103,7 @@ func Call(opts CallOptions) (data []byte, err error) {
 		return []byte{}, NewError(err, res.StatusCode)
 	}
 
-	if res.StatusCode >= 400 {
+	if res.StatusCode >= http.StatusBadRequest {
 		return data, NewError(fmt.Errorf("error response: %q", data), res.StatusCode)
 	}
 

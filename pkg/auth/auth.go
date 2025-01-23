@@ -138,7 +138,7 @@ func (s Server) GetJWT(authorizationCode string) (JWT, error) {
 		"http://localhost:8080/callback", // NOTE: not redirected to, just a security check.
 	)
 
-	req, err := http.NewRequest("POST", s.WellKnownEndpoints.Token, strings.NewReader(payload))
+	req, err := http.NewRequest(http.MethodPost, s.WellKnownEndpoints.Token, strings.NewReader(payload))
 	if err != nil {
 		return JWT{}, err
 	}
@@ -352,7 +352,7 @@ func (s *Server) RefreshAccessToken(refreshToken string) (JWT, error) {
 		refreshToken,
 	)
 
-	req, err := http.NewRequest("POST", s.WellKnownEndpoints.Token, strings.NewReader(payload))
+	req, err := http.NewRequest(http.MethodPost, s.WellKnownEndpoints.Token, strings.NewReader(payload))
 	if err != nil {
 		return JWT{}, err
 	}

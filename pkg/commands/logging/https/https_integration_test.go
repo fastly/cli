@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -285,7 +286,7 @@ func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 		ContentType:       fastly.ToPointer("application/json"),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
-		Method:            fastly.ToPointer("GET"),
+		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
 		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
@@ -315,7 +316,7 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			ContentType:       fastly.ToPointer("application/json"),
 			HeaderName:        fastly.ToPointer("name"),
 			HeaderValue:       fastly.ToPointer("value"),
-			Method:            fastly.ToPointer("GET"),
+			Method:            fastly.ToPointer(http.MethodGet),
 			JSONFormat:        fastly.ToPointer("1"),
 			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
@@ -337,7 +338,7 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			ContentType:       fastly.ToPointer("application/json"),
 			HeaderName:        fastly.ToPointer("name"),
 			HeaderValue:       fastly.ToPointer("value"),
-			Method:            fastly.ToPointer("GET"),
+			Method:            fastly.ToPointer(http.MethodGet),
 			JSONFormat:        fastly.ToPointer("1"),
 			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
@@ -424,7 +425,7 @@ func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 		ContentType:       fastly.ToPointer("application/json"),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
-		Method:            fastly.ToPointer("GET"),
+		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
 		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
@@ -476,7 +477,7 @@ func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 		ContentType:       fastly.ToPointer("application/json"),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
-		Method:            fastly.ToPointer("GET"),
+		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
 		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),

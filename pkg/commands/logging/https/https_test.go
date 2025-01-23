@@ -2,6 +2,7 @@ package https_test
 
 import (
 	"bytes"
+	"net/http"
 	"testing"
 
 	"github.com/fastly/go-fastly/v9/fastly"
@@ -48,7 +49,7 @@ func TestCreateHTTPSInput(t *testing.T) {
 				ContentType:       fastly.ToPointer("application/json"),
 				HeaderName:        fastly.ToPointer("name"),
 				HeaderValue:       fastly.ToPointer("value"),
-				Method:            fastly.ToPointer("GET"),
+				Method:            fastly.ToPointer(http.MethodGet),
 				JSONFormat:        fastly.ToPointer("1"),
 				Placement:         fastly.ToPointer("none"),
 				TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
@@ -271,7 +272,7 @@ func createCommandAll() *https.CreateCommand {
 		ContentType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "application/json"},
 		HeaderName:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "name"},
 		HeaderValue:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "value"},
-		Method:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "GET"},
+		Method:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: http.MethodGet},
 		JSONFormat:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "1"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
 		RequestMaxEntries: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
