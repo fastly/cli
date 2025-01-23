@@ -155,10 +155,10 @@ func (c *RootCommand) tail(out io.Writer) error {
 			break
 		}
 
-		req, err := http.NewRequest("GET", path, nil)
+		req, err := http.NewRequest(http.MethodGet, path, nil)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"GET": path,
+				http.MethodGet: path,
 			})
 			return fmt.Errorf("unable to create new request: %w", err)
 		}
@@ -196,7 +196,7 @@ func (c *RootCommand) tail(out io.Writer) error {
 
 			// Try the response again after a 1 second wait.
 			if resp.StatusCode/100 == 5 && resp.StatusCode != 501 ||
-				resp.StatusCode == 429 {
+				resp.StatusCode == http.StatusTooManyRequests {
 				time.Sleep(1 * time.Second)
 				continue
 			}

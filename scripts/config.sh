@@ -23,7 +23,7 @@ kits=(
 )
 
 function parse() {
-  tq -f "$k.toml" $1
+  tq -r -f "$k.toml" $1
 }
 
 function append() {

@@ -877,7 +877,7 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 		return fmt.Errorf("--from url seems invalid: %s", c.CloneFrom)
 	}
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
 		err = fmt.Errorf("failed to construct package request URL: %w", err)
 		c.Globals.ErrLog.Add(err)

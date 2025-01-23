@@ -1157,7 +1157,7 @@ func generateTimeout(d time.Duration) string {
 // whatever the user defined with --status-check-code), which should help
 // signify if the service is generally available.
 func pingServiceURL(serviceURL string, httpClient api.HTTPClient, expectedStatusCode int, debugMode bool) (ok bool, status int, err error) {
-	req, err := http.NewRequest("GET", serviceURL, nil)
+	req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
 	if err != nil {
 		return false, 0, err
 	}
