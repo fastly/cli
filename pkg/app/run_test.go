@@ -80,6 +80,7 @@ kv-store-entry
 log-tail
 logging
 pops
+product
 products
 profile
 purge
