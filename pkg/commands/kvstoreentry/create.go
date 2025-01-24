@@ -206,7 +206,6 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 	msg := "%s %d of %d files"
 	spinner.Message(fmt.Sprintf(msg, "Processing", 0, filesTotal) + "...")
 
-	base := filepath.Base(path)
 	processed := make(chan struct{}, c.dirConcurrency)
 	sem := make(chan struct{}, c.dirConcurrency)
 	filesVerboseOutput := make(chan string, filesTotal)
@@ -240,14 +239,8 @@ func (c *CreateCommand) ProcessDir(in io.Reader, out io.Writer) error {
 			}()
 			defer wg.Done()
 
-			filePath := filepath.Join(c.dirPath, file.Name())
-			dir, filename := filepath.Split(filePath)
-			index := strings.Index(dir, base)
-			// If the user runs from `--dir .` (current directory)
-			if index == -1 {
-				index = 0
-			}
-			filename = filepath.Join(dir[index:], filename)
+			filename := file.Name()
+			filePath := filepath.Join(path, filename)
 
 			if c.Globals.Verbose() {
 				filesVerboseOutput <- filename
