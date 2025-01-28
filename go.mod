@@ -25,7 +25,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v9 v9.12.0
+	github.com/fastly/go-fastly/v9 v9.13.0
 	github.com/hashicorp/cap v0.8.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/otiai10/copy v1.14.1
@@ -38,6 +38,7 @@ require (
 )
 
 require (
+	github.com/dnaeon/go-vcr v1.2.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect

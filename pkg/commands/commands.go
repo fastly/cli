@@ -18,6 +18,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
+	"github.com/fastly/cli/pkg/commands/domainv1"
 	"github.com/fastly/cli/pkg/commands/healthcheck"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
@@ -86,7 +87,7 @@ import (
 )
 
 // Define constructs all the commands exposed by the CLI.
-func Define(
+func Define( // nolint:revive // function-length
 	app *kingpin.Application,
 	data *global.Data,
 ) []argparser.Command {
@@ -186,6 +187,12 @@ func Define(
 	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, data)
 	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, data)
 	domainValidate := domain.NewValidateCommand(domainCmdRoot.CmdClause, data)
+	domainv1CmdRoot := domainv1.NewRootCommand(app, data)
+	domainv1Create := domainv1.NewCreateCommand(domainv1CmdRoot.CmdClause, data)
+	domainv1Delete := domainv1.NewDeleteCommand(domainv1CmdRoot.CmdClause, data)
+	domainv1Describe := domainv1.NewDescribeCommand(domainv1CmdRoot.CmdClause, data)
+	domainv1List := domainv1.NewListCommand(domainv1CmdRoot.CmdClause, data)
+	domainv1Update := domainv1.NewUpdateCommand(domainv1CmdRoot.CmdClause, data)
 	healthcheckCmdRoot := healthcheck.NewRootCommand(app, data)
 	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
 	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, data)
@@ -578,6 +585,12 @@ func Define(
 		domainList,
 		domainUpdate,
 		domainValidate,
+		domainv1CmdRoot,
+		domainv1Create,
+		domainv1Delete,
+		domainv1Describe,
+		domainv1List,
+		domainv1Update,
 		healthcheckCmdRoot,
 		healthcheckCreate,
 		healthcheckDelete,

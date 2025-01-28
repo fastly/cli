@@ -3,12 +3,16 @@ package testutil
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/fastly/go-fastly/v9/fastly"
+
+	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
@@ -28,6 +32,9 @@ type CLIScenario struct {
 	// Args is the input arguments for the command to execute (not
 	// including the command names themselves).
 	Args string
+	// Client is a mock http.Client that will be used as part of a
+	// *fastly.Client instance passed into the test code.
+	Client *http.Client
 	// ConfigPath will be copied into global.Data.ConfigPath
 	ConfigPath string
 	// ConfigFile will be copied into global.Data.ConfigFile
@@ -73,7 +80,7 @@ type PathContentFlag struct {
 
 // EnvConfig provides the details required to setup a temporary test
 // environment, and optionally a function to run which accepts the
-// environment directory and can modify fields in the CLIScenario
+// environment directory and can modify fields in the CLIScenario.
 type EnvConfig struct {
 	Opts *EnvOpts
 	// EditScenario holds a function which will be called after
@@ -102,7 +109,25 @@ func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 		}
 
 		opts := MockGlobalData(fullargs, &stdout)
-		opts.APIClientFactory = mock.APIClient(scenario.API)
+
+		// NOTE: The go-fastly API client has changed design.
+		// It has started to move away from methods on the client instance.
+		// Instead it has started to expose functions that accept a client.
+		// This means for test mocking we have to adjust the mock approach.
+		var acf global.APIClientFactory
+		if scenario.Client != nil {
+			acf = func(_, _ string, _ bool) (api.Interface, error) {
+				fc, err := fastly.NewClientForEndpoint("no-key", "api.example.com")
+				if err != nil {
+					return nil, fmt.Errorf("failed to mock fastly.Client: %w", err)
+				}
+				fc.HTTPClient = scenario.Client
+				return fc, nil
+			}
+		} else {
+			acf = mock.APIClient(scenario.API)
+		}
+		opts.APIClientFactory = acf
 
 		if scenario.Env != nil {
 			// We're going to chdir to a deploy environment,

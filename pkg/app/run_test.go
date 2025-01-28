@@ -72,6 +72,7 @@ dashboard
 dictionary
 dictionary-entry
 domain
+domain-v1
 healthcheck
 install
 ip-list
