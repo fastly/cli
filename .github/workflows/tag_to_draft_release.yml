@@ -19,7 +19,7 @@ jobs:
       - name: "Set GOHOSTOS and GOHOSTARCH"
         run: echo "GOHOSTOS=$(go env GOHOSTOS)" >> $GITHUB_ENV && echo "GOHOSTARCH=$(go env GOHOSTARCH)" >> $GITHUB_ENV
       - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@1.83.0
+        uses: dtolnay/rust-toolchain@stable
       - name: "Generate static app config"
         run: make config
       # Passing the raw SSH private key causes an error:
