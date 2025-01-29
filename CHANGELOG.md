@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## [v10.18.0](https://github.com/fastly/cli/releases/tag/v10.18.0) (2025-01-29)
+
+**Enhancements:**
+
+- feat(domains): add support for v1 functionality [#1374](https://github.com/fastly/cli/pull/1374)
+- feat(dashboard): add support for Observability custom dashboards [#1357](https://github.com/fastly/cli/pull/1357)
+
+**Bug fixes:**
+
+- fix(npm): fix build checks for JavaScript code [#1354](https://github.com/fastly/cli/pull/1354)
+- fix(build): pin Rust to 1.83.0 [#1368](https://github.com/fastly/cli/pull/1368)
+- fix(build): correct generation of static configuration file [#1378](https://github.com/fastly/cli/pull/1378)
+- fix(kvstoreentry/create): rework --dir flag [#1371](https://github.com/fastly/cli/pull/1371)
+
+**Dependencies:**
+
+- build(deps): bump golang.org/x/crypto from 0.31.0 to 0.32.0 [#1366](https://github.com/fastly/cli/pull/1366)
+- build(deps): bump golang.org/x/text from 0.20.0 to 0.21.0 [#1360](https://github.com/fastly/cli/pull/1360)
+- build(deps): bump github.com/otiai10/copy from 1.14.0 to 1.14.1 [#1364](https://github.com/fastly/cli/pull/1364)
+- build(deps): bump github.com/hashicorp/cap from 0.7.0 to 0.8.0 [#1365](https://github.com/fastly/cli/pull/1365)
+- build(deps): bump golang.org/x/net from 0.27.0 to 0.33.0 [#1370](https://github.com/fastly/cli/pull/1370)
+- build(deps): bump github.com/rogpeppe/go-internal from 1.11.0 to 1.13.1 [#1379](https://github.com/fastly/cli/pull/1379)
+- build(deps): bump github.com/dustinkirkland/golang-petname from 20240428194347 to eebcea082ee0 [#1377](https://github.com/fastly/cli/pull/1377)
+
 ## [v10.17.1](https://github.com/fastly/cli/releases/tag/v10.17.1) (2024-12-04)
 
 **Bug fixes:**
