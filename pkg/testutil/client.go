@@ -10,6 +10,6 @@ type MockRoundTripper struct {
 
 // RoundTrip executes a single HTTP transaction, returning a Response for the
 // provided Request.
-func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+func (m *MockRoundTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
 	return m.Response, m.Err
 }
