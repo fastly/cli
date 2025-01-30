@@ -15,5 +15,6 @@ $ git remote add upstream git@github.com:fastly/cli.git
 ```bash
 $ make all
 ```
+1. Add your changes to `CHANGELOG.md` in [Commitizen](https://commitizen-tools.github.io/commitizen/) style message
 1. Open a pull request against `upstream main`.
 1. Celebrate :tada:!
