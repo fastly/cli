@@ -171,3 +171,9 @@ var ErrInvalidEnableDisableFlagCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination: --enable and --disable"),
 	Remediation: "Use either --enable or --disable, not both.",
 }
+
+// ErrInvalidComputeACLCombo means the user omitted either the operation, prefix, or action flag.
+var ErrInvalidComputeACLCombo = RemediationError{
+	Inner:       fmt.Errorf("--operation, --prefix, and --action are required"),
+	Remediation: "Please add all three flags or or alternatively use --file.",
+}
