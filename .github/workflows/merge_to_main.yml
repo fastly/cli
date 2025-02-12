@@ -1,3 +1,4 @@
+name: Build CLI Binaries
 on:
   pull_request:
     branches: 
@@ -9,7 +10,7 @@ jobs:
     if: ${{ github.event.pull_request.merged }}
     strategy:
       matrix:
-        platform: [ubuntu-latest,macos-latest]
+        platform: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: "Checkout code"
