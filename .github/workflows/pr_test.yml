@@ -11,7 +11,7 @@ concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
 jobs:
-  config:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
@@ -25,13 +25,6 @@ jobs:
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-      - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@stable
       - name: Install Go
         uses: actions/setup-go@v5
         with:
@@ -39,6 +32,31 @@ jobs:
       - name: "Install dependencies"
         run: make dependencies
         shell: bash
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and export
+        uses: docker/build-push-action@v6
+        with:
+          tags: cli-ubuntu:latest
+          outputs: type=docker,dest=${{ runner.temp }}/cli-ubuntu.tar
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cli-ubuntu
+          path: ${{ runner.temp }}/cli-ubuntu.tar
+  lint:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cli-ubuntu
+          path: ${{ runner.temp }}
+      - name: Load image
+        run: |
+          docker load --input ${{ runner.temp }}/cli-ubuntu.tar
+          docker image ls -a
       - name: "Run go mod tidy"
         run: make tidy
       - name: "Run go fmt"
@@ -62,7 +80,7 @@ jobs:
         run: make imports
         shell: bash
   test:
-    needs: [config]
+    needs: [build]
     strategy:
       matrix:
         tinygo-version: [0.31.2]
