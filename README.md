@@ -36,7 +36,7 @@ Please see our [SECURITY.md](SECURITY.md) for guidance on reporting security-rel
 
 ## Binaries with unreleased changes
 
-Binaries of changes on main that haven't been officially released are available [here](https://github.com/fastly/cli/actions/workflows/merge_to_main.yml). 
+Binaries containing merged changes that are planned for the next release are available [here](https://github.com/fastly/cli/actions/workflows/merge_to_main.yml). 
 Use at your own risk. 
 Updating will revert the binary to the latest released version.
 
