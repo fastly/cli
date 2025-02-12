@@ -34,6 +34,12 @@ Please also check the [CHANGELOG](https://github.com/fastly/cli/blob/main/CHANGE
 
 Please see our [SECURITY.md](SECURITY.md) for guidance on reporting security-related issues.
 
+## Binaries with unreleased changes
+
+Binaries of changes on main that haven't been officially released are available [here](https://github.com/fastly/cli/actions/workflows/merge_to_main.yml). 
+Use at your own risk. 
+Updating will revert the binary to the latest released version.
+
 ## License
 
 [Apache 2.0](LICENSE).
