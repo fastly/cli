@@ -73,8 +73,8 @@ func TestBuildRust(t *testing.T) {
 				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.78.0",
-						WasmWasiTarget:      "wasm32-wasip1",
+						ToolchainConstraint: ">= 1.54.0",
+						WasmWasiTarget:      "wasm32-wasi",
 					},
 				},
 			},
@@ -102,8 +102,8 @@ func TestBuildRust(t *testing.T) {
 				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.78.0",
-						WasmWasiTarget:      "wasm32-wasip1",
+						ToolchainConstraint: ">= 1.54.0",
+						WasmWasiTarget:      "wasm32-wasi",
 					},
 				},
 			},
@@ -123,14 +123,15 @@ func TestBuildRust(t *testing.T) {
 		    build = "echo no compilation happening"`,
 			wantRemediationError: compute.DefaultBuildErrorRemediation,
 		},
+		// NOTE: This test passes --verbose so we can validate specific outputs.
 		{
-			name: "wasmwasi target error",
+			name: "successful build",
 			args: args("compute build --verbose"),
 			applicationConfig: &config.File{
 				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.78.0",
+						ToolchainConstraint: ">= 1.54.0",
 						WasmWasiTarget:      "wasm32-wasi",
 					},
 				},
@@ -148,36 +149,7 @@ func TestBuildRust(t *testing.T) {
 			language = "rust"
 
 		    [scripts]
-		    build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName, compute.RustDefaultWasmWasiTarget)),
-			wantError: "the default build in .fastly/config.toml should produce a wasm32-wasip1 binary, but was instead set to produce a wasm32-wasi binary",
-		},
-		// NOTE: This test passes --verbose so we can validate specific outputs.
-		{
-			name: "successful build",
-			args: args("compute build --verbose"),
-			applicationConfig: &config.File{
-				Profiles: testutil.TokenProfile(),
-				Language: config.Language{
-					Rust: config.Rust{
-						ToolchainConstraint: ">= 1.78.0",
-						WasmWasiTarget:      "wasm32-wasip1",
-					},
-				},
-			},
-			cargoManifest: `
-			[package]
-			name = "fastly-compute-project"
-			version = "0.1.0"
-
-			[dependencies]
-			fastly = "=0.6.0"`,
-			fastlyManifest: fmt.Sprintf(`
-			manifest_version = 2
-			name = "test"
-			language = "rust"
-
-		    [scripts]
-		    build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName, compute.RustDefaultWasmWasiTarget)),
+		    build = "%s"`, fmt.Sprintf(compute.RustDefaultBuildCommand, compute.RustDefaultPackageName)),
 			wantOutput: []string{
 				"Creating ./bin directory (for Wasm binary)",
 				"Built package",

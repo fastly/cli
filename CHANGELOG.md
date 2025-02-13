@@ -4,7 +4,6 @@
 
 **Enhancements:**
 
-- breaking(language.rust): Switch Rust builds to wasm32-wasip1 instead of wasm32-wasi [#1382](https://github.com/fastly/cli/pull/1382)
 - build(.github/): tune up build process and add changelog enforcement
 
 **Bug fixes:**
