@@ -17,7 +17,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
       - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.83.0 # to install tq via `make config`
       - name: "Generate static app config"
         run: make config
       - name: "Config Artifact"
@@ -31,7 +31,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
       - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.83.0 # to install tq via `make config`
       - name: Install Go
         uses: actions/setup-go@v5
         with:
@@ -83,11 +83,11 @@ jobs:
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@stable
-      - name: "Add wasm32-wasip1 Rust target"
-        run: rustup target add wasm32-wasip1 --toolchain stable
+        uses: dtolnay/rust-toolchain@1.83.0
+      - name: "Add wasm32-wasi Rust target"
+        run: rustup target add wasm32-wasi --toolchain 1.83.0
       - name: "Validate Rust toolchain"
-        run: rustup show && rustup target list --installed --toolchain stable
+        run: rustup show && rustup target list --installed --toolchain 1.83.0
         shell: bash
       - name: "Install Node"
         uses: actions/setup-node@v4

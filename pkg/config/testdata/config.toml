@@ -11,8 +11,8 @@ version = "0.0.1"
 
 [language]
   [language.rust]
-  toolchain_constraint = ">= 1.78.0"
-  wasm_wasi_target = "wasm32-wasip1"
+  toolchain_constraint = ">= 1.49.0 < 2.0.0"
+  wasm_wasi_target = "wasm32-wasi"
 
 [starter-kits]
 [[starter-kits.assemblyscript]]
