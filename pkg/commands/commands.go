@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
+	"github.com/fastly/cli/pkg/commands/compute/computeacl"
 	"github.com/fastly/cli/pkg/commands/config"
 	"github.com/fastly/cli/pkg/commands/configstore"
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
@@ -132,6 +133,14 @@ func Define( // nolint:revive // function-length
 	backendList := backend.NewListCommand(backendCmdRoot.CmdClause, data)
 	backendUpdate := backend.NewUpdateCommand(backendCmdRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
+	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
+	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
+	computeACLList := computeacl.NewListCommand(computeACLCmdRoot.CmdClause, data)
+	computeACLDescribe := computeacl.NewDescribeCommand(computeACLCmdRoot.CmdClause, data)
+	computeACLUpdate := computeacl.NewUpdateCommand(computeACLCmdRoot.CmdClause, data)
+	computeACLLookup := computeacl.NewLookupCommand(computeACLCmdRoot.CmdClause, data)
+	computeACLDelete := computeacl.NewDeleteCommand(computeACLCmdRoot.CmdClause, data)
+	computeACLEntriesList := computeacl.NewListEntriesCommand(computeACLCmdRoot.CmdClause, data)
 	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, data)
 	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, data)
 	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, data, computeBuild)
@@ -529,8 +538,16 @@ func Define( // nolint:revive // function-length
 		backendDescribe,
 		backendList,
 		backendUpdate,
-		computeBuild,
 		computeCmdRoot,
+		computeACLCmdRoot,
+		computeACLCreate,
+		computeACLList,
+		computeACLDescribe,
+		computeACLDelete,
+		computeACLUpdate,
+		computeACLLookup,
+		computeACLEntriesList,
+		computeBuild,
 		computeDeploy,
 		computeHashFiles,
 		computeHashsum,
