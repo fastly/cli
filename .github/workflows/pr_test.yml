@@ -1,4 +1,10 @@
-on: pull_request
+on: 
+  pull_request:
+    # The specific activity types are listed here to include "labeled" and "unlabeled"
+    # (which are not included by default for the "pull_request" trigger).
+    # This is needed to allow skipping enforcement of the changelog in PRs with specific labels,
+    # as defined in the (optional) "skipLabels" property.
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 name: Test
 # Stop any in-flight CI jobs when a new commit is pushed.
 concurrency:
@@ -30,37 +36,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22.x
-      # NOTE: Manage GitHub Actions cache via https://github.com/fastly/cli/actions/caches
-      # This is useful if you need to clear the cache when a dependency doesn't update correctly.
-      #
-      # REFERENCES:
-      # https://www.airplane.dev/blog/caching-golang-tests-in-ci
-      # https://markphelps.me/posts/speed-up-your-go-builds-with-actions-cache/
-      #
-      - id: go-cache-paths
-        name: Retrieve Go Paths
-        run: |
-          echo "gobin=$(go env GOPATH)/bin" >> $GITHUB_OUTPUT # speed up dependency installs
-          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
-          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
-      - name: Go Bin Cache
-        id: go-bin-deps
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go-cache-paths.outputs.gobin }}
-          key: ${{ runner.os }}-lint-go-bin-${{ hashFiles('.github/dependencies.txt') }}
-      - name: Go Build Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go-cache-paths.outputs.gobuild }}
-          key: ${{ runner.os }}-lint-go-build-${{ hashFiles('**/go.sum') }}
-      - name: Go Mod Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go-cache-paths.outputs.gomod }}
-          key: ${{ runner.os }}-lint-go-mod-${{ hashFiles('**/go.sum') }}
       - name: "Install dependencies"
-        if: steps.go-bin-deps.outputs.cache-hit != 'true'
         run: make dependencies
         shell: bash
       - name: "Run go mod tidy"
@@ -106,23 +82,6 @@ jobs:
       - uses: acifani/setup-tinygo@v2
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
-      - name: Retrieve Go Paths
-        # Needed because we can't execute subshell with a third-party action.
-        id: go-cache-paths
-        shell: bash # IMPORTANT: without this Windows OS will not work.
-        run: |
-          echo "gobuild=$(go env GOCACHE)" >> $GITHUB_OUTPUT  # speed up `go test` runs
-          echo "gomod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT # speed up use of third-party modules
-      - name: Go Build Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go-cache-paths.outputs.gobuild }}
-          key: ${{ runner.os }}-test-go-build-${{ hashFiles('**/go.sum') }}
-      - name: Go Mod Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go-cache-paths.outputs.gomod }}
-          key: ${{ runner.os }}-test-go-mod-${{ hashFiles('**/go.sum') }}
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@1.83.0
       - name: "Add wasm32-wasi Rust target"
@@ -159,6 +118,10 @@ jobs:
           TEST_COMPUTE_INIT: true
           TEST_COMPUTE_BUILD: true
           TEST_COMPUTE_DEPLOY: true
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: dangoslen/changelog-enforcer@v3
   docker-builds:
     runs-on: ubuntu-latest
     steps:

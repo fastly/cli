@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Unreleased
+
+**Enhancements:**
+
+- build(.github/): tune up build process and add changelog enforcement
+
+**Bug fixes:**
+
+**Dependencies:**
+
 ## [v10.18.0](https://github.com/fastly/cli/releases/tag/v10.18.0) (2025-01-29)
 
 **Enhancements:**

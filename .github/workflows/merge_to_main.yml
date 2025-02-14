@@ -1,0 +1,38 @@
+name: Build CLI Binaries
+on:
+  pull_request:
+    branches: 
+      - "main"
+    types:
+      [closed]
+jobs:
+  build:
+    if: ${{ github.event.pull_request.merged }}
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Install Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: "Install Rust"
+        uses: dtolnay/rust-toolchain@1.83.0 # to install tq via `make config`
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+      - name: "Install dependencies"
+        run: make dependencies
+        shell: bash
+      - name: "Create Build"
+        run: make build
+        shell: bash
+      - name: "Upload Build"
+        uses: actions/upload-artifact@v4
+        with:
+          name: fastly-cli-build-${{ matrix.platform }}-${{ github.sha }}
+          path: fastly
