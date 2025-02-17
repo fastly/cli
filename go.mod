@@ -25,7 +25,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v9 v9.13.0
+	github.com/fastly/go-fastly/v9 v9.13.1
 	github.com/hashicorp/cap v0.8.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/otiai10/copy v1.14.1
@@ -34,7 +34,7 @@ require (
 	github.com/theckman/yacspin v0.13.12
 	golang.org/x/crypto v0.33.0
 	golang.org/x/exp v0.0.0-20240409090435-93d18d7e34b8
-	golang.org/x/mod v0.22.0
+	golang.org/x/mod v0.23.0
 )
 
 require (
