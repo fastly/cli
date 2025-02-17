@@ -15,6 +15,13 @@ func Success(format string, args ...any) string {
 	return b.String()
 }
 
+// Warning is a test helper used to generate output for asserting against.
+func Warning(format string, args ...any) string {
+	var b bytes.Buffer
+	text.Warning(&b, format, args...)
+	return b.String()
+}
+
 // JSON decodes then re-encodes back to JSON, with indentation matching
 // that of ../cmd/argparser.go's argparser.WriteJSON.
 func JSON(format string, args ...any) string {

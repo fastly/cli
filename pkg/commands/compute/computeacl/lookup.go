@@ -63,6 +63,12 @@ func (c *LookupCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	// Status 204 - No Content
+	if entry == nil {
+		text.Warning(out, "Compute ACL (%s) has no entry with IP (%s)", c.id, c.ip)
+		return nil
+	}
+
 	if ok, err := c.WriteJSON(out, entry); ok {
 		return err
 	}

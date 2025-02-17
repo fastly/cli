@@ -331,18 +331,17 @@ func TestComputeACLLookup(t *testing.T) {
 			WantError: "400 - Bad Request",
 		},
 		{
-			Name: "validate API status 204",
-			Args: fmt.Sprintf("--acl-id %s --ip %s", aclID, aclIP),
+			Name: "validate API status 204 - no content",
+			Args: fmt.Sprintf("--acl-id %s --ip 192.168.0.0", aclID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
 						StatusCode: http.StatusNoContent,
 						Status:     http.StatusText(http.StatusNoContent),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(entry)))),
 					},
 				},
 			},
-			WantOutput: fmtComputeACLEntry(&entry),
+			WantOutput: fstfmt.Warning("Compute ACL (%s) has no entry with IP (192.168.0.0)", aclID),
 		},
 		{
 			Name: "validate API success",
