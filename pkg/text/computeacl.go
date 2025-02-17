@@ -39,7 +39,7 @@ func PrintComputeACLEntry(out io.Writer, prefix string, entry *computeacls.Compu
 	out = textio.NewPrefixWriter(out, prefix)
 
 	fmt.Fprintf(out, "\nPrefix: %s\n", entry.Prefix)
-	fmt.Fprintf(out, "Action: %s", entry.Action)
+	fmt.Fprintf(out, "Action: %s\n", entry.Action)
 }
 
 // PrintComputeACLEntriesTbl displays compute ACL entries in a table format.
