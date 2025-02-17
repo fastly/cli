@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	root "github.com/fastly/cli/pkg/commands/compute"
 	sub "github.com/fastly/cli/pkg/commands/compute/computeacl"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v9/fastly/computeacls"
 )
 
@@ -185,7 +185,7 @@ func TestComputeACLDescribe(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fmtComputeACL(&acl),
+			WantOutput: computeACL,
 		},
 		{
 			Name: "validate optional --json flag",
@@ -238,7 +238,7 @@ func TestComputeACLList(t *testing.T) {
 			WantError: "500 - Internal Server Error",
 		},
 		{
-			Name: "validate API success (empty list)",
+			Name: "validate API success (zero compute ACLs)",
 			Args: "",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
@@ -254,7 +254,7 @@ func TestComputeACLList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fmtComputeACLs(nil),
+			WantOutput: zeroComputeACLs,
 		},
 		{
 			Name: "validate API success",
@@ -268,7 +268,7 @@ func TestComputeACLList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fmtComputeACLs(acls.Data),
+			WantOutput: computeACLs,
 		},
 		{
 			Name: "validate optional --json flag",
@@ -355,7 +355,7 @@ func TestComputeACLLookup(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fmtComputeACLEntry(&entry),
+			WantOutput: computeACLEntry,
 		},
 		{
 			Name: "validate optional --json flag",
@@ -534,7 +534,7 @@ func TestComputeACLListEntries(t *testing.T) {
 			WantError: "400 - Bad Request",
 		},
 		{
-			Name: "validate API success (empty list)",
+			Name: "validate API success (zero compute ACL entries)",
 			Args: fmt.Sprintf("--acl-id %s", aclID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
@@ -550,7 +550,7 @@ func TestComputeACLListEntries(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fmtComputeACLEntries(nil),
+			WantOutput: zeroComputeACLEntries,
 		},
 		{
 			Name: "validate API success",
@@ -564,7 +564,7 @@ func TestComputeACLListEntries(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fmtComputeACLEntries(entries.Entries),
+			WantOutput: computeACLEntries,
 		},
 		{
 			Name: "validate optional --json flag",
@@ -585,26 +585,34 @@ func TestComputeACLListEntries(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list-entries"}, scenarios)
 }
 
-func fmtComputeACL(acl *computeacls.ComputeACL) string {
-	var b bytes.Buffer
-	text.PrintComputeACL(&b, "", acl)
-	return b.String()
-}
+var computeACL = strings.TrimSpace(`
+ID: bar
+Name: foo
+`) + "\n"
 
-func fmtComputeACLs(acls []computeacls.ComputeACL) string {
-	var b bytes.Buffer
-	text.PrintComputeACLsTbl(&b, acls)
-	return b.String()
-}
+var computeACLs = strings.TrimSpace(`
+Name    ID
+foo     bar
+foobar  baz
+`) + "\n"
 
-func fmtComputeACLEntry(entry *computeacls.ComputeACLEntry) string {
-	var b bytes.Buffer
-	text.PrintComputeACLEntry(&b, "", entry)
-	return b.String()
-}
+var zeroComputeACLs = strings.TrimSpace(`
+Name  ID
+`) + "\n"
 
-func fmtComputeACLEntries(entries []computeacls.ComputeACLEntry) string {
-	var b bytes.Buffer
-	text.PrintComputeACLEntriesTbl(&b, entries)
-	return b.String()
-}
+var computeACLEntry = strings.TrimSpace(`
+Prefix: 1.2.3.4/32
+Action: ALLOW
+`) + "\n"
+
+var computeACLEntries = strings.TrimSpace(`
+Prefix          Action
+1.2.3.0/24      BLOCK
+1.2.3.4/32      ALLOW
+23.23.23.23/32  ALLOW
+192.168.0.0/16  BLOCK
+`) + "\n"
+
+var zeroComputeACLEntries = strings.TrimSpace(`
+Prefix  Action
+`) + "\n"
