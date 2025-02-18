@@ -4,7 +4,7 @@
 
 **Enhancements:**
 
-- build(.github/): tune up build process and add changelog enforcement
+- feat(computeacl): add support for compute platform ACLs [#1388](https://github.com/fastly/cli/pull/1388)
 
 **Bug fixes:**
 
