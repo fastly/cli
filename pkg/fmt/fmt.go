@@ -15,10 +15,10 @@ func Success(format string, args ...any) string {
 	return b.String()
 }
 
-// Warning is a test helper used to generate output for asserting against.
-func Warning(format string, args ...any) string {
+// Info is a test helper used to generate output for asserting against.
+func Info(format string, args ...any) string {
 	var b bytes.Buffer
-	text.Warning(&b, format, args...)
+	text.Info(&b, format, args...)
 	return b.String()
 }
 
