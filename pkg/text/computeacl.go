@@ -12,7 +12,7 @@ import (
 func PrintComputeACL(out io.Writer, prefix string, acl *computeacls.ComputeACL) {
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "\nID: %s\n", acl.ComputeACLID)
+	fmt.Fprintf(out, "ID: %s\n", acl.ComputeACLID)
 	fmt.Fprintf(out, "Name: %s\n", acl.Name)
 }
 
@@ -38,7 +38,7 @@ func PrintComputeACLsTbl(out io.Writer, acls []computeacls.ComputeACL) {
 func PrintComputeACLEntry(out io.Writer, prefix string, entry *computeacls.ComputeACLEntry) {
 	out = textio.NewPrefixWriter(out, prefix)
 
-	fmt.Fprintf(out, "\nPrefix: %s\n", entry.Prefix)
+	fmt.Fprintf(out, "Prefix: %s\n", entry.Prefix)
 	fmt.Fprintf(out, "Action: %s\n", entry.Action)
 }
 
