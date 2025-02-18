@@ -49,7 +49,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("acl-id", "Alphanumeric string identifying a compute ACL").Required().StringVar(&c.computeACLID)
 
 	// Optional.
-	c.CmdClause.Flag("file", "Batch update json passed as file path or content, e.g. $(< batch.json)").Action(c.file.Set).StringVar(&c.file.Value)
+	c.CmdClause.Flag("file", "Batch update JSON file passed as file path or content, e.g. $(< batch.json)").Action(c.file.Set).StringVar(&c.file.Value)
 	c.CmdClause.Flag("operation", "Indicating that this entry is to be added to/updated in the ACL").HintOptions(operations...).EnumVar(&c.operation.Value, operations...)
 	c.CmdClause.Flag("prefix", "An IP prefix defined in Classless Inter-Domain Routing (CIDR) format, i.e. a valid IP address (v4 or v6) followed by a forward slash (/) and a prefix length (0-32 or 0-128, depending on address family)").Action(c.prefix.Set).StringVar(&c.prefix.Value)
 	c.CmdClause.Flag("action", "The action taken on the IP address").HintOptions(actions...).EnumVar(&c.action.Value, actions...)
