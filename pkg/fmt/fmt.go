@@ -15,6 +15,13 @@ func Success(format string, args ...any) string {
 	return b.String()
 }
 
+// Info is a test helper used to generate output for asserting against.
+func Info(format string, args ...any) string {
+	var b bytes.Buffer
+	text.Info(&b, format, args...)
+	return b.String()
+}
+
 // JSON decodes then re-encodes back to JSON, with indentation matching
 // that of ../cmd/argparser.go's argparser.WriteJSON.
 func JSON(format string, args ...any) string {
