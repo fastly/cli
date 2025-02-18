@@ -1,14 +1,18 @@
 # CHANGELOG
 
-## Unreleased
+## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
 **Enhancements:**
 
 - feat(computeacl): add support for compute platform ACLs [#1388](https://github.com/fastly/cli/pull/1388)
 
-**Bug fixes:**
-
 **Dependencies:**
+
+- build(deps): bump golang.org/x/net from 0.34.0 to 0.35.0 [#1394](https://github.com/fastly/cli/pull/1394)
+- build(deps): bump golang.org/x/crypto from 0.32.0 to 0.33.0 [#1391](https://github.com/fastly/cli/pull/1391)
+- build(deps): bump golang.org/x/term from 0.28.0 to 0.29.0[#1393](https://github.com/fastly/cli/pull/1393)
+- build(deps): bump golang.org/x/oauth2 from 0.25.0 to 0.26.0 [#1390](https://github.com/fastly/cli/pull/1390)
+- build(deps): bump github.com/fastly/go-fastly/v9 from 9.13.0 to 9.13.1 [#1388](https://github.com/fastly/cli/pull/1388)
 
 ## [v10.18.0](https://github.com/fastly/cli/releases/tag/v10.18.0) (2025-01-29)
 
