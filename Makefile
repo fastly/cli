@@ -15,9 +15,6 @@ GO_BIN ?= go ## Allows overriding go executable.
 TEST_COMMAND ?= $(GO_BIN) test ## Enables support for tools such as https://github.com/rakyll/gotest
 TEST_ARGS ?= -v -timeout 15m ./... ## The compute tests can sometimes exceed the default 10m limit
 
-GOHOSTOS ?= $(shell go env GOHOSTOS || echo unknown)
-GOHOSTARCH ?= $(shell go env GOHOSTARCH || echo unknown)
-
 ifeq ($(OS), Windows_NT)
 	SHELL = cmd.exe
 	.SHELLFLAGS = /c
@@ -42,7 +39,7 @@ endif
 # EXAMPLE:
 # make release GORELEASER_ARGS="--clean --skip=post-hooks --skip=validate"
 release: dependencies $(GO_FILES) ## Build executables using goreleaser
-	@GOHOSTOS="${GOHOSTOS}" GOHOSTARCH="${GOHOSTARCH}" goreleaser build ${GORELEASER_ARGS}
+	goreleaser build ${GORELEASER_ARGS}
 
 # Useful for attaching a debugger such as https://github.com/go-delve/delve
 debug:

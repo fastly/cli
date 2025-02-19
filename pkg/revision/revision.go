@@ -24,12 +24,10 @@ var (
 	// GoHostArc instead. It can be set to the build host's `go version` output.
 	GoVersion string
 
-	// GoHostOS is the output of `go env GOHOSTOS` Passed to goreleaser by
-	// `make fastly` or the GHA workflow.
+	// GoHostOS is the value from `runtime.GOOS`
 	GoHostOS string
 
-	// GoHostArch is the output of `go env GOHOSTARCH` Passed to goreleaser by
-	// `make fastly` or the GHA workflow.
+	// GoHostArch is the value from `runtime.GOARCH`
 	GoHostArch string
 
 	// Environment is set to either "development" (when working locally) or
@@ -48,16 +46,10 @@ func init() {
 	if GitCommit == "" {
 		GitCommit = "unknown"
 	}
-	if GoHostOS == "" {
-		GoHostOS = "unknown"
-	}
-	if GoHostArch == "" {
-		GoHostArch = "unknown"
-	}
+	GoHostOS = runtime.GOOS
+	GoHostArch = runtime.GOARCH
 	if GoVersion == "" {
 		// runtime.Version() provides the Go tree's version string at build time
-		// the other values like OS and Arch aren't accessible and are passed in
-		// separately
 		GoVersion = fmt.Sprintf("go version %s %s/%s", runtime.Version(), GoHostOS, GoHostArch)
 	}
 	if Environment == "" {
