@@ -94,7 +94,7 @@ func TestVersion(t *testing.T) {
 	testutil.AssertNoError(t, err)
 	testutil.AssertString(t, strings.Join([]string{
 		"Fastly CLI version v0.0.0-unknown (unknown)",
-		fmt.Sprintf("Built with go version %s unknown/unknown (%s)", runtime.Version(), mockTime.Format("2006-01-02")),
+		fmt.Sprintf("Built with go version %s %s/%s (%s)", runtime.Version(), runtime.GOOS, runtime.GOARCH, mockTime.Format("2006-01-02")),
 		"Viceroy version: viceroy 0.0.0",
 		"",
 	}, "\n"), stdout.String())

@@ -16,8 +16,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22.x'
-      - name: "Set GOHOSTOS and GOHOSTARCH"
-        run: echo "GOHOSTOS=$(go env GOHOSTOS)" >> $GITHUB_ENV && echo "GOHOSTARCH=$(go env GOHOSTARCH)" >> $GITHUB_ENV
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@1.83.0
       - name: "Generate static app config"
@@ -43,6 +41,4 @@ jobs:
           args: release --clean
         env:
           AUR_KEY: '${{ github.workspace }}/aur_key'
-          GOHOSTOS: ${{ env.GOHOSTOS }}
-          GOHOSTARCH: ${{ env.GOHOSTARCH }}
           GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
