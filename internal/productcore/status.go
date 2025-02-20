@@ -9,10 +9,11 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v9/fastly"
+	"github.com/fastly/go-fastly/v9/fastly/products"
 )
 
 // Status is a base type for all 'status' commands.
-type Status[O any] struct {
+type Status[O products.ProductOutput, _ StatusManager[O]] struct {
 	Base
 	// hooks is a pointer to an EnablementHookFuncs structure so
 	// that tests can modify the contents of the structure after
@@ -21,15 +22,15 @@ type Status[O any] struct {
 }
 
 // Init prepares the structure for use by the CLI core.
-func (cmd *Status[O]) Init(parent argparser.Registerer, g *global.Data, productID, productName string, hooks *EnablementHookFuncs[O]) {
+func (cmd *Status[O, _]) Init(parent argparser.Registerer, g *global.Data, productName string, hooks *EnablementHookFuncs[O]) {
 	cmd.CmdClause = parent.Command("status", "Get the enablement status of the "+productName+" product")
 	cmd.hooks = hooks
 
-	cmd.Base.Init(parent, g, productID, productName)
+	cmd.Base.Init(parent, g)
 }
 
 // Exec executes the status operation.
-func (cmd *Status[O]) Exec(out io.Writer) error {
+func (cmd *Status[O, S]) Exec(out io.Writer, status S) error {
 	if cmd.Globals.Verbose() && cmd.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -44,10 +45,7 @@ func (cmd *Status[O]) Exec(out io.Writer) error {
 		argparser.DisplayServiceID(serviceID, flag, source, out)
 	}
 
-	s := EnablementStatus{ProductID: cmd.ProductID}
-	state := "disabled"
-
-	_, err = cmd.hooks.GetFunc(cmd.Globals.APIClient, serviceID)
+	o, err := cmd.hooks.GetFunc(cmd.Globals.APIClient, serviceID)
 	if err != nil {
 		var herr *fastly.HTTPError
 
@@ -59,16 +57,15 @@ func (cmd *Status[O]) Exec(out io.Writer) error {
 			return err
 		}
 	} else {
-		s.Enabled = true
-		state = "enabled"
+		status.SetEnabled(true)
+		status.TransformOutput(o)
 	}
 
-	if ok, err := cmd.WriteJSON(out, s); ok {
+	if ok, err := cmd.WriteJSON(out, status); ok {
 		return err
 	}
 
-	text.Info(out,
-		"%s is %s on service %s", cmd.ProductName, state, serviceID)
+	text.Info(out, status.GetTextResult())
 
 	return nil
 }
