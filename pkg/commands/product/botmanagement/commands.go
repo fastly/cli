@@ -14,14 +14,14 @@ import (
 
 // EnablementHooks is a structure of dependency-injection points used
 // by unit tests to provide mock behaviors
-var EnablementHooks = productcore.EnablementHookFuncs[*product.EnableOutput]{
+var EnablementHooks = productcore.EnablementHookFuncs[product.EnableOutput]{
 	DisableFunc: func(client api.Interface, serviceID string) error {
 		return product.Disable(client.(*fastly.Client), serviceID)
 	},
-	EnableFunc: func(client api.Interface, serviceID string) (*product.EnableOutput, error) {
+	EnableFunc: func(client api.Interface, serviceID string) (product.EnableOutput, error) {
 		return product.Enable(client.(*fastly.Client), serviceID)
 	},
-	GetFunc: func(client api.Interface, serviceID string) (*product.EnableOutput, error) {
+	GetFunc: func(client api.Interface, serviceID string) (product.EnableOutput, error) {
 		return product.Get(client.(*fastly.Client), serviceID)
 	},
 }
@@ -51,24 +51,25 @@ func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 
 // EnableCommand calls the Fastly API to disable the product.
 type EnableCommand struct {
-	productcore.Enable[*product.EnableOutput]
+	productcore.Enable[product.EnableOutput, *productcore.EnablementStatus[product.EnableOutput]]
 }
 
 // NewEnableCommand returns a usable command registered under the parent.
 func NewEnableCommand(parent argparser.Registerer, g *global.Data) *EnableCommand {
 	c := EnableCommand{}
-	c.Init(parent, g, product.ProductID, product.ProductName, &EnablementHooks)
+	c.Init(parent, g, product.ProductName, &EnablementHooks)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (cmd *EnableCommand) Exec(_ io.Reader, out io.Writer) error {
-	return cmd.Enable.Exec(out)
+	status := &productcore.EnablementStatus[product.EnableOutput]{ProductName: product.ProductName}
+	return cmd.Enable.Exec(out, status)
 }
 
 // DisableCommand calls the Fastly API to disable the product.
 type DisableCommand struct {
-	productcore.Disable[*product.EnableOutput]
+	productcore.Disable[product.EnableOutput, *productcore.EnablementStatus[product.EnableOutput]]
 }
 
 // NewDisableCommand returns a usable command registered under the parent.
@@ -80,22 +81,24 @@ func NewDisableCommand(parent argparser.Registerer, g *global.Data) *DisableComm
 
 // Exec invokes the application logic for the command.
 func (cmd *DisableCommand) Exec(_ io.Reader, out io.Writer) error {
-	return cmd.Disable.Exec(out)
+	status := &productcore.EnablementStatus[product.EnableOutput]{ProductName: product.ProductName}
+	return cmd.Disable.Exec(out, status)
 }
 
 // StatusCommand calls the Fastly API to get the enablement status of the product.
 type StatusCommand struct {
-	productcore.Status[*product.EnableOutput]
+	productcore.Status[product.EnableOutput, *productcore.EnablementStatus[product.EnableOutput]]
 }
 
 // NewStatusCommand returns a usable command registered under the parent.
 func NewStatusCommand(parent argparser.Registerer, g *global.Data) *StatusCommand {
 	c := StatusCommand{}
-	c.Init(parent, g, product.ProductID, product.ProductName, &EnablementHooks)
+	c.Init(parent, g, product.ProductName, &EnablementHooks)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (cmd *StatusCommand) Exec(_ io.Reader, out io.Writer) error {
-	return cmd.Status.Exec(out)
+	status := &productcore.EnablementStatus[product.EnableOutput]{ProductName: product.ProductName}
+	return cmd.Status.Exec(out, status)
 }
