@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Unreleased
+
+**Enhancements:**
+
+- fix(compute/init): Updates for renamed TypeScript default starter kit
+
+**Bug fixes:**
+
+**Dependencies:**
+
 ## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
 **Enhancements:**
