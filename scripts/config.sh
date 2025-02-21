@@ -19,7 +19,7 @@ kits=(
   compute-starter-kit-rust-empty
   compute-starter-kit-rust-static-content
   compute-starter-kit-rust-websockets
-  compute-starter-kit-typescript
+  compute-starter-kit-typescript-default
 )
 
 function parse() {
