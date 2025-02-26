@@ -11,6 +11,26 @@ concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
 jobs:
+  dependabot-changelog-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: dangoslen/dependabot-changelog-helper@v3
+        with:
+          activationLabels: dependencies
+          changelogPath: './CHANGELOG.md'
+          entryPrefix: 'build(deps): '
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs(CHANGELOG.md): add dependency bump from dependabot"
+  changelog:
+    needs: dependabot-changelog-update
+    runs-on: ubuntu-latest
+    steps:
+    - uses: dangoslen/changelog-enforcer@v3
   config:
     runs-on: ubuntu-latest
     steps:
@@ -118,10 +138,6 @@ jobs:
           TEST_COMPUTE_INIT: true
           TEST_COMPUTE_BUILD: true
           TEST_COMPUTE_DEPLOY: true
-  changelog:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: dangoslen/changelog-enforcer@v3
   docker-builds:
     runs-on: ubuntu-latest
     steps:
