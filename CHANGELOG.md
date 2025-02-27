@@ -12,6 +12,9 @@
 
 - build(deps): upgrade Go from 1.22 to 1.23 ([#624](https://github.com/fastly/cli/pull/1414))
 
+### Dependencies
+- build(deps): `github.com/rogpeppe/go-internal` from 1.13.1 to 1.14.1 ([#1416](https://github.com/fastly/cli/pull/1416))
+
 ## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
 **Enhancements:**
