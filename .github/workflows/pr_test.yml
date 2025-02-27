@@ -55,7 +55,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.23.x
       - name: "Install dependencies"
         run: make dependencies
         shell: bash
@@ -86,7 +86,7 @@ jobs:
     strategy:
       matrix:
         tinygo-version: [0.31.2]
-        go-version: [1.22.x]
+        go-version: [1.23.x]
         node-version: [18]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
