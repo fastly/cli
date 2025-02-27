@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## [Unreleased]
 
 **Enhancements:**
 
