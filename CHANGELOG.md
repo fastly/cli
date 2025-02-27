@@ -14,6 +14,7 @@
 
 ### Dependencies
 - build(deps): `github.com/rogpeppe/go-internal` from 1.13.1 to 1.14.1 ([#1416](https://github.com/fastly/cli/pull/1416))
+- build(deps): `golang.org/x/crypto` from 0.33.0 to 0.35.0 ([#1417](https://github.com/fastly/cli/pull/1417))
 
 ## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
