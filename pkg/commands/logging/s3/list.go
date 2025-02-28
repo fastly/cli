@@ -127,7 +127,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(s3.ResponseCondition))
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(s3.MessageType))
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(s3.TimestampFormat))
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(s3.Placement))
 		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(s3.PublicKey))
 		fmt.Fprintf(out, "\t\tRedundancy: %s\n", fastly.ToValue(s3.Redundancy))
 		fmt.Fprintf(out, "\t\tServer-side encryption: %s\n", fastly.ToValue(s3.ServerSideEncryption))

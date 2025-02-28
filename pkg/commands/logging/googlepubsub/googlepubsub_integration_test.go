@@ -285,7 +285,6 @@ func createGooglePubSubOK(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -306,7 +305,6 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 			Topic:             fastly.ToPointer("topic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			Placement:         fastly.ToPointer("none"),
 			FormatVersion:     fastly.ToPointer(2),
 		},
 		{
@@ -318,7 +316,6 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 			SecretKey:         fastly.ToPointer("secret"),
 			ProjectID:         fastly.ToPointer("project"),
 			Topic:             fastly.ToPointer("analytics"),
-			Placement:         fastly.ToPointer("none"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
@@ -355,7 +352,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 	Google Cloud Pub/Sub 2/2
 		Service ID: 123
 		Version: 1
@@ -368,7 +364,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 `) + "\n\n"
 
 func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
@@ -384,7 +379,6 @@ func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -397,7 +391,6 @@ Account name: none
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
-Placement: none
 Project ID: project
 Response condition: Prevent default logging
 Secret key: secret
@@ -419,7 +412,6 @@ func updateGooglePubSubOK(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

@@ -294,7 +294,6 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
 			Token:             fastly.ToPointer("tkn"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSHostname:       fastly.ToPointer("example.com"),
@@ -309,7 +308,6 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
 			Token:             fastly.ToPointer("tkn1"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSHostname:       fastly.ToPointer("example.com"),
@@ -349,7 +347,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 	Splunk 2/2
 		Service ID: 123
 		Version: 1
@@ -363,7 +360,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 `) + "\n\n"
 
 func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
@@ -379,7 +375,6 @@ func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 		Token:             fastly.ToPointer("tkn"),
 	}, nil
 }
@@ -392,7 +387,6 @@ var describeSplunkOutput = "\n" + strings.TrimSpace(`
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
-Placement: none
 Response condition: Prevent default logging
 Service ID: 123
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo
@@ -418,7 +412,6 @@ func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

@@ -142,7 +142,6 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 	}
 
 	if c.placement.WasSet {
-		input.Placement = &c.placement.Value
 	}
 
 	if c.region.WasSet {

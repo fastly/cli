@@ -45,7 +45,6 @@ func TestCreateGrafanaCloudLogsInput(t *testing.T) {
 				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 				MessageType:       fastly.ToPointer("classic"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
-				Placement:         fastly.ToPointer("none"),
 				Name:              fastly.ToPointer("log"),
 				User:              fastly.ToPointer("123456"),
 				Index:             fastly.ToPointer("{\"label\": \"value\"}"),
@@ -130,7 +129,6 @@ func TestUpdateGrafanaCloudLogsInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				Format:            fastly.ToPointer("new6"),
 				ResponseCondition: fastly.ToPointer("new7"),
-				Placement:         fastly.ToPointer("new9"),
 				MessageType:       fastly.ToPointer("new10"),
 			},
 		},
@@ -256,7 +254,6 @@ func createCommandAll() *grafanacloudlogs.CreateCommand {
 		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "123456"},
 		Index:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "{\"label\": \"value\"}"},
 		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "https://test123.grafana.net"},
@@ -337,7 +334,6 @@ func updateCommandAll() *grafanacloudlogs.UpdateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 	}
 }

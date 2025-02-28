@@ -296,7 +296,6 @@ func createBlobStorageOK(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage,
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		MessageType:       fastly.ToPointer("classic"),
-		Placement:         fastly.ToPointer("none"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}
@@ -324,7 +323,6 @@ func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage,
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
 			MessageType:       fastly.ToPointer("classic"),
-			Placement:         fastly.ToPointer("none"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
@@ -342,7 +340,6 @@ func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage,
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
@@ -381,7 +378,6 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Public key: `+pgpPublicKey()+`
 		File max bytes: 0
 		Compression codec: zstd
@@ -400,7 +396,6 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Public key: `+pgpPublicKey()+`
 		File max bytes: 0
 		Compression codec: zstd
@@ -422,7 +417,6 @@ func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		MessageType:       fastly.ToPointer("classic"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
@@ -444,7 +438,6 @@ Message type: classic
 Name: logs
 Path: /logs
 Period: 3600
-Placement: none
 Public key: `+pgpPublicKey()+`
 Response condition: Prevent default logging
 SAS token: token
@@ -468,7 +461,6 @@ func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage,
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		MessageType:       fastly.ToPointer("classic"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil

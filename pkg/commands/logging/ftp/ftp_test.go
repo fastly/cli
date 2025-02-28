@@ -52,7 +52,6 @@ func TestCreateFTPInput(t *testing.T) {
 				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.ToPointer("none"),
 				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
@@ -142,7 +141,6 @@ func TestUpdateFTPInput(t *testing.T) {
 				Format:            fastly.ToPointer("new6"),
 				ResponseCondition: fastly.ToPointer("new7"),
 				TimestampFormat:   fastly.ToPointer("new8"),
-				Placement:         fastly.ToPointer("new9"),
 				CompressionCodec:  fastly.ToPointer("new11"),
 			},
 		},
@@ -273,7 +271,6 @@ func createCommandAll() *ftp.CreateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
@@ -360,7 +357,6 @@ func updateCommandAll() *ftp.UpdateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 	}
 }

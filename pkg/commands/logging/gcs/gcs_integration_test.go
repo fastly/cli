@@ -319,7 +319,6 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
@@ -338,7 +337,6 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
@@ -377,7 +375,6 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Compression codec: zstd
 	GCS 2/2
 		Service ID: 123
@@ -395,7 +392,6 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Compression codec: zstd
 `) + "\n\n"
 
@@ -416,7 +412,6 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
@@ -436,7 +431,6 @@ Message type: classic
 Name: logs
 Path: logs/
 Period: 3600
-Placement: none
 Project ID: 
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----foo
@@ -462,7 +456,6 @@ func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		MessageType:       fastly.ToPointer("classic"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }

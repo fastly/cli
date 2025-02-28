@@ -52,7 +52,6 @@ func TestCreateSyslogInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(2),
 				MessageType:       fastly.ToPointer("classic"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
-				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -141,7 +140,6 @@ func TestUpdateSyslogInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				MessageType:       fastly.ToPointer("new9"),
 				ResponseCondition: fastly.ToPointer("new10"),
-				Placement:         fastly.ToPointer("new11"),
 			},
 		},
 		{
@@ -263,7 +261,6 @@ func createCommandAll() *syslog.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		Port:              argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 22},
 		UseTLS:            argparser.OptionalBool{Optional: argparser.Optional{WasSet: true}, Value: true},
 		TLSCACert:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
@@ -357,7 +354,6 @@ func updateCommandAll() *syslog.UpdateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 	}
 }
 

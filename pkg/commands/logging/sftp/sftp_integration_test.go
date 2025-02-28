@@ -318,7 +318,6 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
@@ -339,7 +338,6 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
@@ -381,7 +379,6 @@ Version: 1
 		Message type: classic
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Compression codec: zstd
 	SFTP 2/2
 		Service ID: 123
@@ -402,7 +399,6 @@ Version: 1
 		Message type: classic
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Compression codec: zstd
 `) + "\n\n"
 
@@ -426,7 +422,6 @@ func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
@@ -446,7 +441,6 @@ Name: logs
 Password: password
 Path: /logs
 Period: 3600
-Placement: none
 Port: 514
 Public key: ` + pgpPublicKey() + `
 Response condition: Prevent default logging
@@ -477,7 +471,6 @@ func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }

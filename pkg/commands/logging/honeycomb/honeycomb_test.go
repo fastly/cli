@@ -46,7 +46,6 @@ func TestCreateHoneycombInput(t *testing.T) {
 				Token:             fastly.ToPointer("tkn"),
 				Dataset:           fastly.ToPointer("logs"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
-				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -128,7 +127,6 @@ func TestUpdateHoneycombInput(t *testing.T) {
 				Token:             fastly.ToPointer("new3"),
 				Dataset:           fastly.ToPointer("new4"),
 				ResponseCondition: fastly.ToPointer("new5"),
-				Placement:         fastly.ToPointer("new6"),
 			},
 		},
 		{
@@ -252,7 +250,6 @@ func createCommandAll() *honeycomb.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -331,7 +328,6 @@ func updateCommandAll() *honeycomb.UpdateCommand {
 		Token:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
 		Dataset:           argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 	}
 }
 

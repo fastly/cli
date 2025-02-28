@@ -102,7 +102,6 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Name":               fastly.ToValue(o.Name),
 		"Path":               fastly.ToValue(o.Path),
 		"Period":             fastly.ToValue(o.Period),
-		"Placement":          fastly.ToValue(o.Placement),
 		"Public key":         fastly.ToValue(o.PublicKey),
 		"Response condition": fastly.ToValue(o.ResponseCondition),
 		"Secret key":         fastly.ToValue(o.SecretKey),

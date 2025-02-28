@@ -45,7 +45,6 @@ func TestCreateScalyrInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(2),
 				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
-				Placement:         fastly.ToPointer("none"),
 				ProjectID:         fastly.ToPointer("example-project"),
 			},
 		},
@@ -127,7 +126,6 @@ func TestUpdateScalyrInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				Format:            fastly.ToPointer("new3"),
 				ResponseCondition: fastly.ToPointer("new4"),
-				Placement:         fastly.ToPointer("new5"),
 				Region:            fastly.ToPointer("new6"),
 				ProjectID:         fastly.ToPointer("new7"),
 			},
@@ -252,7 +250,6 @@ func createCommandAll() *scalyr.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example-project"},
 	}
 }
@@ -331,7 +328,6 @@ func updateCommandAll() *scalyr.UpdateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
 		Region:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 	}

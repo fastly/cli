@@ -34,7 +34,6 @@ type UpdateCommand struct {
 	FormatVersion     argparser.OptionalInt
 	MessageType       argparser.OptionalString
 	NewName           argparser.OptionalString
-	Placement         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 }
 
@@ -65,7 +64,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("new-name", "New name of the Grafana Cloud Logs logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	common.Placement(c.CmdClause, &c.Placement)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -105,9 +103,6 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.NewName.WasSet {
 		input.NewName = &c.NewName.Value
-	}
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value

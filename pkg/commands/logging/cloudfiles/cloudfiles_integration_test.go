@@ -308,7 +308,6 @@ func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, erro
 			BucketName:        fastly.ToPointer("my-logs"),
 			Path:              fastly.ToPointer("logs/"),
 			Region:            fastly.ToPointer("ORD"),
-			Placement:         fastly.ToPointer("none"),
 			Period:            fastly.ToPointer(3600),
 			GzipLevel:         fastly.ToPointer(9),
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
@@ -327,7 +326,6 @@ func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, erro
 			BucketName:        fastly.ToPointer("analytics"),
 			Path:              fastly.ToPointer("logs/"),
 			Region:            fastly.ToPointer("ORD"),
-			Placement:         fastly.ToPointer("none"),
 			Period:            fastly.ToPointer(86400),
 			GzipLevel:         fastly.ToPointer(9),
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
@@ -366,7 +364,6 @@ Version: 1
 		Bucket: my-logs
 		Path: logs/
 		Region: ORD
-		Placement: none
 		Period: 3600
 		GZip level: 9
 		Format: %h %l %u %t "%r" %>s %b
@@ -384,7 +381,6 @@ Version: 1
 		Bucket: analytics
 		Path: logs/
 		Region: ORD
-		Placement: none
 		Period: 86400
 		GZip level: 9
 		Format: %h %l %u %t "%r" %>s %b
@@ -405,7 +401,6 @@ func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 		BucketName:        fastly.ToPointer("my-logs"),
 		Path:              fastly.ToPointer("logs/"),
 		Region:            fastly.ToPointer("ORD"),
-		Placement:         fastly.ToPointer("none"),
 		Period:            fastly.ToPointer(3600),
 		GzipLevel:         fastly.ToPointer(9),
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
@@ -431,7 +426,6 @@ Message type: classic
 Name: logs
 Path: logs/
 Period: 3600
-Placement: none
 Public key: `+pgpPublicKey()+`
 Region: ORD
 Response condition: Prevent default logging
@@ -451,7 +445,6 @@ func updateCloudfilesOK(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, er
 		BucketName:        fastly.ToPointer("my-logs"),
 		Path:              fastly.ToPointer("logs/"),
 		Region:            fastly.ToPointer("ORD"),
-		Placement:         fastly.ToPointer("none"),
 		Period:            fastly.ToPointer(3600),
 		GzipLevel:         fastly.ToPointer(9),
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),

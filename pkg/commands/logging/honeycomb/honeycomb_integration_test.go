@@ -300,7 +300,6 @@ func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error
 			Dataset:           fastly.ToPointer("log"),
 			Token:             fastly.ToPointer("tkn"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -311,7 +310,6 @@ func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -342,7 +340,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 	Honeycomb 2/2
 		Service ID: 123
 		Version: 1
@@ -352,7 +349,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 `) + "\n\n"
 
 func getHoneycombOK(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
@@ -365,7 +361,6 @@ func getHoneycombOK(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -378,7 +373,6 @@ Dataset: log
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
-Placement: none
 Response condition: Prevent default logging
 Service ID: 123
 Token: tkn
@@ -395,7 +389,6 @@ func updateHoneycombOK(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

@@ -295,7 +295,6 @@ func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, er
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -306,7 +305,6 @@ func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, er
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -337,7 +335,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 	Papertrail 2/2
 		Service ID: 123
 		Version: 1
@@ -347,7 +344,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 `) + "\n\n"
 
 func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
@@ -360,7 +356,6 @@ func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -373,7 +368,6 @@ Address: example.com:123
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
-Placement: none
 Port: 123
 Response condition: Prevent default logging
 Service ID: 123
@@ -390,7 +384,6 @@ func updatePapertrailOK(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, er
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

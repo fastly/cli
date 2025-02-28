@@ -36,7 +36,6 @@ type UpdateCommand struct {
 	NewName           argparser.OptionalString
 	Path              argparser.OptionalString
 	Period            argparser.OptionalInt
-	Placement         argparser.OptionalString
 	ProjectID         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	SecretKey         argparser.OptionalString
@@ -77,7 +76,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("new-name", "New name of the GCS logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to (default '/')").Action(c.Path.Set).StringVar(&c.Path.Value)
 	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("project-id", "The google project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
@@ -135,9 +133,6 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.Period.WasSet {
 		input.Period = &c.Period.Value
-	}
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 	if c.ProjectID.WasSet {
 		input.ProjectID = &c.ProjectID.Value

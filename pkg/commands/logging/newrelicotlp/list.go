@@ -124,7 +124,6 @@ func (c *ListCommand) printVerbose(out io.Writer, serviceVersion int, ls []*fast
 		fmt.Fprintf(out, "\nToken: %s\n", fastly.ToValue(l.Token))
 		fmt.Fprintf(out, "\nFormat: %s\n", fastly.ToValue(l.Format))
 		fmt.Fprintf(out, "\nFormat Version: %d\n", fastly.ToValue(l.FormatVersion))
-		fmt.Fprintf(out, "\nPlacement: %s\n", fastly.ToValue(l.Placement))
 		fmt.Fprintf(out, "\nRegion: %s\n", fastly.ToValue(l.Region))
 		fmt.Fprintf(out, "\nResponse Condition: %s\n\n", fastly.ToValue(l.ResponseCondition))
 

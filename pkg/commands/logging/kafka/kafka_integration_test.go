@@ -293,7 +293,6 @@ func createKafkaOK(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 		RequiredACKs:      fastly.ToPointer("-1"),
 		CompressionCodec:  fastly.ToPointer("zippy"),
 		UseTLS:            fastly.ToPointer(true),
-		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -324,7 +323,6 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			RequiredACKs:      fastly.ToPointer("-1"),
 			CompressionCodec:  fastly.ToPointer("zippy"),
 			UseTLS:            fastly.ToPointer(true),
-			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -345,7 +343,6 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			RequiredACKs:      fastly.ToPointer("-1"),
 			CompressionCodec:  fastly.ToPointer("zippy"),
 			UseTLS:            fastly.ToPointer(true),
-			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -395,7 +392,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
 		SASL authentication method: plain
@@ -417,7 +413,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 		Parse log key-values: false
 		Max batch size: 0
 		SASL authentication method: plain
@@ -438,7 +433,6 @@ func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -458,7 +452,6 @@ Format version: 2
 Max batch size: 0
 Name: log
 Parse log key-values: false
-Placement: none
 Required acks: -1
 Response condition: Prevent default logging
 SASL authentication method: ` + `
@@ -486,7 +479,6 @@ func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 		RequiredACKs:      fastly.ToPointer("-1"),
 		CompressionCodec:  fastly.ToPointer("zippy"),
 		UseTLS:            fastly.ToPointer(true),
-		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -507,7 +499,6 @@ func updateKafkaSASL(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 		RequiredACKs:      fastly.ToPointer("-1"),
 		CompressionCodec:  fastly.ToPointer("zippy"),
 		UseTLS:            fastly.ToPointer(true),
-		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),

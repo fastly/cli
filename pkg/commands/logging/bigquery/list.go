@@ -123,7 +123,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tTemplate suffix: %s\n", fastly.ToValue(bq.Template))
 		fmt.Fprintf(out, "\t\tSecret key: %s\n", fastly.ToValue(bq.SecretKey))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(bq.ResponseCondition))
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(bq.Placement))
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(bq.FormatVersion))
 	}
 	fmt.Fprintln(out)

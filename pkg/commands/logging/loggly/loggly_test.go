@@ -44,7 +44,6 @@ func TestCreateLogglyInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(2),
 				Token:             fastly.ToPointer("tkn"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
-				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -125,7 +124,6 @@ func TestUpdateLogglyInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				Token:             fastly.ToPointer("new3"),
 				ResponseCondition: fastly.ToPointer("new4"),
-				Placement:         fastly.ToPointer("new5"),
 			},
 		},
 		{
@@ -209,7 +207,6 @@ func createCommandOK() *loggly.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -325,7 +322,6 @@ func updateCommandAll() *loggly.UpdateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		Token:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
 	}
 }
 

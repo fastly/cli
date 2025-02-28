@@ -30,7 +30,6 @@ type CreateCommand struct {
 	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	Placement         argparser.OptionalString
 	ProjectID         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	SecretKey         argparser.OptionalString
@@ -66,7 +65,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("name", "The name of the BigQuery logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("project-id", "Your Google Cloud Platform project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON.").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
@@ -109,9 +107,6 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.FormatVersion.WasSet {
 		input.FormatVersion = &c.FormatVersion.Value
-	}
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 	if c.ProjectID.WasSet {
 		input.ProjectID = &c.ProjectID.Value

@@ -32,7 +32,6 @@ type CreateCommand struct {
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
 	MessageType       argparser.OptionalString
-	Placement         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
 }
@@ -75,7 +74,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.MessageType(c.CmdClause, &c.MessageType)
-	common.Placement(c.CmdClause, &c.Placement)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 
 	c.CmdClause.Flag("index", `The stream identifier`).Action(c.Index.Set).StringVar(&c.Index.Value)
@@ -116,9 +114,6 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.Token.WasSet {
 		input.Token = &c.Token.Value
-	}
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value

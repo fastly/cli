@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+**Breaking:**
+
+- breaking(logging): The 'placement' parameter to the logging commands
+  has been removed; it was only used in combination with the Fastly
+  WAF, which is no longer supported.
+
 **Enhancements:**
 
 - fix(compute/init): Updates for renamed TypeScript default starter kit

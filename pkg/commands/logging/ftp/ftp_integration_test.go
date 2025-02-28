@@ -311,7 +311,6 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 		{
@@ -330,7 +329,6 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
 	}, nil
@@ -369,7 +367,6 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Compression codec: zstd
 	FTP 2/2
 		Service ID: 123
@@ -387,7 +384,6 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Compression codec: zstd
 `) + "\n\n"
 
@@ -408,7 +404,6 @@ func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }
@@ -427,7 +422,6 @@ Name: logs
 Password: foo@example.com
 Path: logs/
 Period: 3600
-Placement: none
 Port: 123
 Public key: `+pgpPublicKey()+`
 Response condition: Prevent default logging
@@ -454,7 +448,6 @@ func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
 }

@@ -115,7 +115,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(loggly.Format))
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(loggly.FormatVersion))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(loggly.ResponseCondition))
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(loggly.Placement))
 	}
 	fmt.Fprintln(out)
 
