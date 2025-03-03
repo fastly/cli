@@ -126,7 +126,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(sftp.MessageType))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(sftp.ResponseCondition))
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(sftp.TimestampFormat))
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(sftp.Placement))
 		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(sftp.CompressionCodec))
 	}
 	fmt.Fprintln(out)

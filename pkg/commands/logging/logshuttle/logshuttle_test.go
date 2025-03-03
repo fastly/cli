@@ -46,7 +46,6 @@ func TestCreateLogshuttleInput(t *testing.T) {
 				URL:               fastly.ToPointer("example.com"),
 				Token:             fastly.ToPointer("tkn"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
-				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -128,7 +127,6 @@ func TestUpdateLogshuttleInput(t *testing.T) {
 				Token:             fastly.ToPointer("new3"),
 				URL:               fastly.ToPointer("new4"),
 				ResponseCondition: fastly.ToPointer("new5"),
-				Placement:         fastly.ToPointer("new6"),
 			},
 		},
 		{
@@ -252,7 +250,6 @@ func createCommandAll() *logshuttle.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -331,7 +328,6 @@ func updateCommandAll() *logshuttle.UpdateCommand {
 		Token:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
 		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 	}
 }
 

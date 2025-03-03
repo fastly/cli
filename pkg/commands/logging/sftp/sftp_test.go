@@ -56,7 +56,6 @@ func TestCreateSFTPInput(t *testing.T) {
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				MessageType:       fastly.ToPointer("classic"),
 				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-				Placement:         fastly.ToPointer("none"),
 				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
@@ -134,7 +133,6 @@ func TestUpdateSFTPInput(t *testing.T) {
 				Format:            fastly.ToPointer("new9"),
 				ResponseCondition: fastly.ToPointer("new10"),
 				TimestampFormat:   fastly.ToPointer("new11"),
-				Placement:         fastly.ToPointer("new12"),
 				MessageType:       fastly.ToPointer("new13"),
 				CompressionCodec:  fastly.ToPointer("new14"),
 			},
@@ -284,7 +282,6 @@ func createCommandAll() *sftp.CreateCommand {
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
@@ -373,7 +370,6 @@ func updateCommandAll() *sftp.UpdateCommand {
 		GzipLevel:         argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 0},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
-		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
 	}

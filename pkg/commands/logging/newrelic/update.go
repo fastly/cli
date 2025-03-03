@@ -146,7 +146,6 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.NewName = &c.newName.Value
 	}
 	if c.placement.WasSet {
-		input.Placement = &c.placement.Value
 	}
 	if c.region.WasSet {
 		input.Region = &c.region.Value

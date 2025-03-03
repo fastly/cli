@@ -46,11 +46,6 @@ func CompressionCodec(command *kingpin.CmdClause, c *argparser.OptionalString) {
 	command.Flag("compression-codec", `The codec used for compression of your logs. Valid values are zstd, snappy, and gzip. If the specified codec is "gzip", gzip_level will default to 3. To specify a different level, leave compression_codec blank and explicitly set the level using gzip_level. Specifying both compression_codec and gzip_level in the same API request will result in an error.`).Action(c.Set).StringVar(&c.Value)
 }
 
-// Placement defines the placement flag.
-func Placement(command *kingpin.CmdClause, c *argparser.OptionalString) {
-	command.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Set).StringVar(&c.Value)
-}
-
 // ResponseCondition defines the response-condition flag.
 func ResponseCondition(command *kingpin.CmdClause, c *argparser.OptionalString) {
 	command.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.Set).StringVar(&c.Value)

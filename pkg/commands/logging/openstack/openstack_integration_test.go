@@ -315,7 +315,6 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			MessageType:       fastly.ToPointer("classic"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
@@ -335,7 +334,6 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-			Placement:         fastly.ToPointer("none"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 			CompressionCodec:  fastly.ToPointer("zstd"),
 		},
@@ -375,7 +373,6 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Public key: `+pgpPublicKey()+`
 		Compression codec: zstd
 	Openstack 2/2
@@ -394,7 +391,6 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
-		Placement: none
 		Public key: `+pgpPublicKey()+`
 		Compression codec: zstd
 `) + "\n\n"
@@ -416,7 +412,6 @@ func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		MessageType:       fastly.ToPointer("classic"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil
@@ -437,7 +432,6 @@ Message type: classic
 Name: logs
 Path: logs/
 Period: 3600
-Placement: none
 Public key: `+pgpPublicKey()+`
 Response condition: Prevent default logging
 Service ID: 123
@@ -463,7 +457,6 @@ func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		MessageType:       fastly.ToPointer("classic"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
-		Placement:         fastly.ToPointer("none"),
 		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		CompressionCodec:  fastly.ToPointer("zstd"),
 	}, nil

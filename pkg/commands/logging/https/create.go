@@ -34,7 +34,6 @@ type CreateCommand struct {
 	JSONFormat        argparser.OptionalString
 	MessageType       argparser.OptionalString
 	Method            argparser.OptionalString
-	Placement         argparser.OptionalString
 	RequestMaxBytes   argparser.OptionalInt
 	RequestMaxEntries argparser.OptionalInt
 	ResponseCondition argparser.OptionalString
@@ -76,7 +75,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("json-format", "Enforces valid JSON formatting for log entries. Can be disabled 0, array of json (wraps JSON log batches in an array) 1, or newline delimited json (places each JSON log entry onto a new line in a batch) 2").Action(c.JSONFormat.Set).StringVar(&c.JSONFormat.Value)
 	common.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("method", "HTTP method used for request. Can be POST or PUT. Defaults to POST if not specified").Action(c.Method.Set).StringVar(&c.Method.Value)
-	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
 	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -167,10 +165,6 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
-	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 
 	if c.MessageType.WasSet {

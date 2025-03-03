@@ -29,7 +29,6 @@ type CreateCommand struct {
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
 	MessageType       argparser.OptionalString
-	Placement         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	URL               argparser.OptionalString
 }
@@ -60,7 +59,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).IntVar(&c.FormatVersion.Value)
 	common.Format(c.CmdClause, &c.Format)
 	common.MessageType(c.CmdClause, &c.MessageType)
-	common.Placement(c.CmdClause, &c.Placement)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -101,10 +99,6 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
-	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 
 	if c.MessageType.WasSet {

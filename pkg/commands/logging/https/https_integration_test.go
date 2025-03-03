@@ -288,7 +288,6 @@ func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
-		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
@@ -318,7 +317,6 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			HeaderValue:       fastly.ToPointer("value"),
 			Method:            fastly.ToPointer(http.MethodGet),
 			JSONFormat:        fastly.ToPointer("1"),
-			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
@@ -340,7 +338,6 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			HeaderValue:       fastly.ToPointer("value"),
 			Method:            fastly.ToPointer(http.MethodGet),
 			JSONFormat:        fastly.ToPointer("1"),
-			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
@@ -388,7 +385,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 	HTTPS 2/2
 		Service ID: 123
 		Version: 1
@@ -409,7 +405,6 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
-		Placement: none
 `) + "\n\n"
 
 func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
@@ -427,7 +422,6 @@ func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
-		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
@@ -451,7 +445,6 @@ JSON format: 1
 Message type: classic
 Method: GET
 Name: log
-Placement: none
 Request max bytes: 2
 Request max entries: 2
 Response condition: Prevent default logging
@@ -479,7 +472,6 @@ func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
-		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),

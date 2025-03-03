@@ -42,7 +42,6 @@ type UpdateCommand struct {
 	MessageType       argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
-	Placement         argparser.OptionalString
 	CompressionCodec  argparser.OptionalString
 }
 
@@ -79,7 +78,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("password", "The password for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.Password.Set).StringVar(&c.Password.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to. The directory must exist on the SFTP server before logs can be saved to it").Action(c.Path.Set).StringVar(&c.Path.Value)
 	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -172,10 +170,6 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = &c.TimestampFormat.Value
-	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 
 	if c.CompressionCodec.WasSet {

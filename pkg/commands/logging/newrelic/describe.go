@@ -114,7 +114,6 @@ func (c *DescribeCommand) print(out io.Writer, nr *fastly.NewRelic) error {
 		"Format Version":     fastly.ToValue(nr.FormatVersion),
 		"Format":             fastly.ToValue(nr.Format),
 		"Name":               fastly.ToValue(nr.Name),
-		"Placement":          fastly.ToValue(nr.Placement),
 		"Region":             fastly.ToValue(nr.Region),
 		"Response Condition": fastly.ToValue(nr.ResponseCondition),
 		"Service Version":    fastly.ToValue(nr.ServiceVersion),

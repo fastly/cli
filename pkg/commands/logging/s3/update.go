@@ -42,7 +42,6 @@ type UpdateCommand struct {
 	MessageType                  argparser.OptionalString
 	ResponseCondition            argparser.OptionalString
 	TimestampFormat              argparser.OptionalString
-	Placement                    argparser.OptionalString
 	PublicKey                    argparser.OptionalString
 	Redundancy                   argparser.OptionalString
 	ServerSideEncryption         argparser.OptionalString
@@ -86,7 +85,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("new-name", "New name of the S3 logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	c.CmdClause.Flag("redundancy", "The S3 storage class. One of: standard, intelligent_tiering, standard_ia, onezone_ia, glacier, glacier_ir, deep_archive, or reduced_redundancy").Action(c.Redundancy.Set).EnumVar(&c.Redundancy.Value, string(fastly.S3RedundancyStandard), string(fastly.S3RedundancyIntelligentTiering), string(fastly.S3RedundancyStandardIA), string(fastly.S3RedundancyOneZoneIA), string(fastly.S3RedundancyGlacierFlexibleRetrieval), string(fastly.S3RedundancyGlacierInstantRetrieval), string(fastly.S3RedundancyGlacierDeepArchive), string(fastly.S3RedundancyReduced))
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -175,10 +173,6 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = &c.TimestampFormat.Value
-	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 
 	if c.PublicKey.WasSet {

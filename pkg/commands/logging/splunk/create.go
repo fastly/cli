@@ -28,7 +28,6 @@ type CreateCommand struct {
 	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	Placement         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
 	TLSCACert         argparser.OptionalString
@@ -65,7 +64,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	})
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.Placement(c.CmdClause, &c.Placement)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -130,10 +128,6 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Token.WasSet {
 		input.Token = &c.Token.Value
-	}
-
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

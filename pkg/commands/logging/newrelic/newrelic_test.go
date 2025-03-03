@@ -188,7 +188,7 @@ func TestNewRelicDescribe(t *testing.T) {
 				GetNewRelicFn:  getNewRelic,
 			},
 			Args:       "--name foobar --service-id 123 --version 3",
-			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nPlacement: \nRegion: \nResponse Condition: \nService ID: 123\nService Version: 3\nToken: abc\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nRegion: \nResponse Condition: \nService ID: 123\nService Version: 3\nToken: abc\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
@@ -197,7 +197,7 @@ func TestNewRelicDescribe(t *testing.T) {
 				GetNewRelicFn:  getNewRelic,
 			},
 			Args:       "--name foobar --service-id 123 --version 1",
-			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nPlacement: \nRegion: \nResponse Condition: \nService ID: 123\nService Version: 1\nToken: abc\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nRegion: \nResponse Condition: \nService ID: 123\nService Version: 1\nToken: abc\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
@@ -251,7 +251,7 @@ func TestNewRelicList(t *testing.T) {
 				ListNewRelicFn: listNewRelic,
 			},
 			Args:       "--service-id 123 --verbose --version 1",
-			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nRegion: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 

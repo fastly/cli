@@ -38,7 +38,6 @@ type CreateCommand struct {
 	FormatVersion     argparser.OptionalInt
 	ResponseCondition argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
-	Placement         argparser.OptionalString
 	PublicKey         argparser.OptionalString
 	FileMaxBytes      argparser.OptionalInt
 	CompressionCodec  argparser.OptionalString
@@ -77,7 +76,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("name", "The name of the Azure Blob Storage logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("sas-token", "The Azure shared access signature providing write access to the blob service objects. Be sure to update your token before it expires or the logging functionality will not work").Action(c.SASToken.Set).StringVar(&c.SASToken.Value)
@@ -146,9 +144,6 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = &c.TimestampFormat.Value
-	}
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 	if c.PublicKey.WasSet {
 		input.PublicKey = &c.PublicKey.Value

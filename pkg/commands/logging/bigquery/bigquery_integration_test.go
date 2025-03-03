@@ -298,7 +298,6 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			Template:          fastly.ToPointer("%Y%m%d"),
-			Placement:         fastly.ToPointer("none"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		},
 		{
@@ -313,7 +312,6 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 			SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			Template:          fastly.ToPointer("%Y%m%d"),
-			Placement:         fastly.ToPointer("none"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		},
 	}, nil
@@ -349,7 +347,6 @@ Version: 1
 		Template suffix: %Y%m%d
 		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
 		Response condition: Prevent default logging
-		Placement: none
 		Format version: 0
 	BigQuery 2/2
 		Service ID: 123
@@ -364,7 +361,6 @@ Version: 1
 		Template suffix: %Y%m%d
 		Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
 		Response condition: Prevent default logging
-		Placement: none
 		Format version: 0
 `) + "\n\n"
 
@@ -381,7 +377,6 @@ func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		Template:          fastly.ToPointer("%Y%m%d"),
-		Placement:         fastly.ToPointer("none"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 	}, nil
 }
@@ -396,7 +391,6 @@ Dataset: raw-logs
 Format: %h %l %u %t "%r" %>s %b
 Format version: 0
 Name: logs
-Placement: none
 Project ID: my-project
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
@@ -419,7 +413,6 @@ func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 		SecretKey:         fastly.ToPointer("-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA"),
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		Template:          fastly.ToPointer("%Y%m%d"),
-		Placement:         fastly.ToPointer("none"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 	}, nil
 }

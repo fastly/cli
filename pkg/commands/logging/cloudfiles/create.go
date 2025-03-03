@@ -36,7 +36,6 @@ type CreateCommand struct {
 	MessageType       argparser.OptionalString
 	Path              argparser.OptionalString
 	Period            argparser.OptionalInt
-	Placement         argparser.OptionalString
 	PublicKey         argparser.OptionalString
 	Region            argparser.OptionalString
 	ResponseCondition argparser.OptionalString
@@ -77,7 +76,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("name", "The name of the Cloudfiles logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	c.CmdClause.Flag("region", "The region to stream logs to. One of: DFW-Dallas, ORD-Chicago, IAD-Northern Virginia, LON-London, SYD-Sydney, HKG-Hong Kong").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -128,9 +126,6 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.Region.WasSet {
 		input.Region = &c.Region.Value
-	}
-	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
 	}
 	if c.Period.WasSet {
 		input.Period = &c.Period.Value

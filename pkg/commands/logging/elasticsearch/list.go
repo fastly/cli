@@ -123,7 +123,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(elasticsearch.Format))
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(elasticsearch.FormatVersion))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(elasticsearch.ResponseCondition))
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(elasticsearch.Placement))
 	}
 	fmt.Fprintln(out)
 

@@ -99,7 +99,6 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"IPV4":                   fastly.ToValue(o.IPV4),
 		"Message type":           fastly.ToValue(o.MessageType),
 		"Name":                   fastly.ToValue(o.Name),
-		"Placement":              fastly.ToValue(o.Placement),
 		"Port":                   fastly.ToValue(o.Port),
 		"Response condition":     fastly.ToValue(o.ResponseCondition),
 		"TLS CA certificate":     fastly.ToValue(o.TLSCACert),

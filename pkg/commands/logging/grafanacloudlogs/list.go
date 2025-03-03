@@ -115,7 +115,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(grafanacloudlogs.FormatVersion))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(grafanacloudlogs.ResponseCondition))
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(grafanacloudlogs.MessageType))
-		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(grafanacloudlogs.Placement))
 		fmt.Fprintf(out, "\t\tUser: %s\n", fastly.ToValue(grafanacloudlogs.User))
 		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(grafanacloudlogs.URL))
 		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(grafanacloudlogs.Token))
