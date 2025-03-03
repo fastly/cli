@@ -19,6 +19,25 @@
 - [Testing](https://github.com/fastly/cli/blob/main/TESTING.md)
 - [Documentation](https://github.com/fastly/cli/blob/main/DOCUMENTATION.md)
 
+## Versioning and Release Schedules
+
+The maintainers of this module strive to maintain [semantic versioning
+(SemVer)](https://semver.org/). This means that breaking changes
+(removal of functionality, or incompatible changes to existing
+functionality) will be released in a version with the first version
+component (`major`) incremented. Feature additions will increment the
+second version component (`minor`), and bug fixes which do not affect
+compatibility will increment the third version component (`patch`).
+
+On the second Wednesday of each month, a release will be published
+including all breaking, feature, and bug-fix changes that are ready
+for release. If that Wednesday should happen to be a US holiday, the
+release will be delayed until the next available working day.
+
+If critical or urgent bug fixes are ready for release in between those
+primary releases, patch releases will be made as needed to make those
+fixes available.
+
 ## Contributing
 
 Refer to [CONTRIBUTING.md](https://github.com/fastly/cli/blob/main/CONTRIBUTING.md)
