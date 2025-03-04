@@ -27,7 +27,6 @@ type UpdateCommand struct {
 	formatVersion     argparser.OptionalInt
 	key               argparser.OptionalString
 	newName           argparser.OptionalString
-	placement         argparser.OptionalString
 	region            argparser.OptionalString
 	responseCondition argparser.OptionalString
 	url               argparser.OptionalString
@@ -60,7 +59,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint").Action(c.formatVersion.Set).IntVar(&c.formatVersion.Value)
 	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
 	c.CmdClause.Flag("new-name", "The name for the real-time logging configuration").Action(c.newName.Set).StringVar(&c.newName.Value)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
 	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.CmdClause.Flag("url", "URL of the New Relic Trace Observer, if you are using New Relic Infinite Tracing").Action(c.url.Set).StringVar(&c.url.Value)
@@ -146,8 +144,6 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fa
 	}
 	if c.newName.WasSet {
 		input.NewName = &c.newName.Value
-	}
-	if c.placement.WasSet {
 	}
 	if c.region.WasSet {
 		input.Region = &c.region.Value

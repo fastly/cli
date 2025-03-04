@@ -27,7 +27,6 @@ type CreateCommand struct {
 	formatVersion     argparser.OptionalInt
 	key               argparser.OptionalString
 	name              argparser.OptionalString
-	placement         argparser.OptionalString
 	region            argparser.OptionalString
 	responseCondition argparser.OptionalString
 	url               argparser.OptionalString
@@ -59,7 +58,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.Format(c.CmdClause, &c.format)
 	common.FormatVersion(c.CmdClause, &c.formatVersion)
 	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
-	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
 	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.CmdClause.Flag("url", "URL of the New Relic Trace Observer, if you are using New Relic Infinite Tracing").Action(c.url.Set).StringVar(&c.url.Value)
@@ -139,9 +137,6 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 
 	if c.formatVersion.WasSet {
 		input.FormatVersion = &c.formatVersion.Value
-	}
-
-	if c.placement.WasSet {
 	}
 
 	if c.region.WasSet {
