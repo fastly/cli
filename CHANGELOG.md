@@ -26,6 +26,7 @@
 - build(deps): `github.com/klauspost/compress` from 1.17.11 to 1.18.0 ([#1411](https://github.com/fastly/cli/pull/1411))
 - build(deps): `github.com/google/go-cmp` from 0.6.0 to 0.7.0 ([#1409](https://github.com/fastly/cli/pull/1409))
 - build(deps): `golang.org/x/oauth2` from 0.26.0 to 0.27.0 ([#1421](https://github.com/fastly/cli/pull/1421))
+- build(deps): `github.com/go-jose/go-jose/v3` from 3.0.3 to 3.0.4 ([#1420](https://github.com/fastly/cli/pull/1420))
 
 ## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
