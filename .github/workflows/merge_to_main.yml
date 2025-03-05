@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 18
       - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@1.83.0 # to install tq via `make config`
+        uses: dtolnay/rust-toolchain@1.90.0 # to install tq via `make config`
       - name: Install Go
         uses: actions/setup-go@v5
         with:
