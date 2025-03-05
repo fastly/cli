@@ -27,6 +27,7 @@
 - build(deps): `github.com/google/go-cmp` from 0.6.0 to 0.7.0 ([#1409](https://github.com/fastly/cli/pull/1409))
 - build(deps): `golang.org/x/oauth2` from 0.26.0 to 0.27.0 ([#1421](https://github.com/fastly/cli/pull/1421))
 - build(deps): `github.com/hashicorp/cap` from 0.8.0 to 0.9.0 ([#1422](https://github.com/fastly/cli/pull/1422))
+- build(deps): `golang.org/x/sys` from 0.30.0 to 0.31.0 ([#1429](https://github.com/fastly/cli/pull/1429))
 
 ## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
