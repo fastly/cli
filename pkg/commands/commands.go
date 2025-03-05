@@ -54,6 +54,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/sumologic"
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
+	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
@@ -102,6 +103,11 @@ func Define( // nolint:revive // function-length
 	// beginning of the list of commands.
 	ssoCmdRoot := sso.NewRootCommand(app, data)
 
+	accesskeysRoot := accesskeys.NewRootCommand(app, data)
+	accesskeysCreate := accesskeys.NewCreateCommand(accesskeysRoot.CmdClause, data)
+	accesskeysDelete := accesskeys.NewDeleteCommand(accesskeysRoot.CmdClause, data)
+	accesskeysGet := accesskeys.NewGetCommand(accesskeysRoot.CmdClause, data)
+	accesskeysList := accesskeys.NewListCommand(accesskeysRoot.CmdClause, data)
 	aclCmdRoot := acl.NewRootCommand(app, data)
 	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, data)
 	aclDelete := acl.NewDeleteCommand(aclCmdRoot.CmdClause, data)
@@ -509,6 +515,11 @@ func Define( // nolint:revive // function-length
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
+		accesskeysRoot,
+		accesskeysCreate,
+		accesskeysDelete,
+		accesskeysGet,
+		accesskeysList,
 		aclCmdRoot,
 		aclCreate,
 		aclDelete,
