@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
+// If you add a Short flag and this test starts failing, it could be due to the same short flag existing at the global level
 func TestShellCompletion(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
@@ -80,6 +81,7 @@ kv-store
 kv-store-entry
 log-tail
 logging
+object-storage
 pops
 products
 profile
