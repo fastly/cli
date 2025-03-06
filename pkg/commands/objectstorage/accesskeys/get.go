@@ -19,10 +19,10 @@ type GetCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	accessKeyId string
+	accessKeyID string
 }
 
-// NewDescribeCommand returns a usable command registered under the parent.
+// NewGetCommand returns a usable command registered under the parent.
 func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 	c := GetCommand{
 		Base: argparser.Base{
@@ -33,7 +33,7 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 	c.CmdClause = parent.Command("get", "Get an access key")
 
 	// Required.
-	c.CmdClause.Flag("ak-id", "Access key ID").Required().StringVar(&c.accessKeyId)
+	c.CmdClause.Flag("ak-id", "Access key ID").Required().StringVar(&c.accessKeyID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
@@ -53,7 +53,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	accessKey, err := accesskeys.Get(fc, &accesskeys.GetInput{
-		AccessKeyID: &c.accessKeyId,
+		AccessKeyID: &c.accessKeyID,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
