@@ -20,6 +20,8 @@ const (
 	akSecret      = "accessKeySecret"
 	akDescription = "accessKeyDescription"
 	akPermission  = "read-only-objects"
+	akBucket1     = "bucket1"
+	akBucket2     = "bucket2"
 )
 
 var ak = accesskeys.AccessKey{
@@ -27,6 +29,7 @@ var ak = accesskeys.AccessKey{
 	SecretKey:   akSecret,
 	Description: akDescription,
 	Permission:  akPermission,
+	Buckets:     []string{akBucket1, akBucket2},
 	CreatedAt:   testutil.Date,
 }
 
@@ -58,7 +61,7 @@ func TestAccessKeysCreate(t *testing.T) {
 		},
 		{
 			Name: "validate API success",
-			Args: fmt.Sprintf("--description %s --permission %s", akDescription, akPermission),
+			Args: fmt.Sprintf("--description %s --permission %s --bucket %s --bucket %s", akDescription, akPermission, akBucket1, akBucket2),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -295,7 +298,7 @@ ID: accessKeyId
 Secret: accessKeySecret
 Description: accessKeyDescription
 Permission: read-only-objects
-Buckets: []
+Buckets: [bucket1 bucket2]
 Created (UTC): 2021-06-15 23:00
 `) + "\n"
 
