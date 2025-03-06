@@ -54,6 +54,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/sumologic"
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
+	"github.com/fastly/cli/pkg/commands/objectstorage"
+	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
@@ -384,6 +386,12 @@ func Define( // nolint:revive // function-length
 	loggingSyslogDescribe := syslog.NewDescribeCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, data)
+	objectStorageRoot := objectstorage.NewRootCommand(app, data)
+	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
+	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
+	objectStorageAccesskeysDelete := accesskeys.NewDeleteCommand(objectStorageAccesskeysRoot.CmdClause, data)
+	objectStorageAccesskeysGet := accesskeys.NewGetCommand(objectStorageAccesskeysRoot.CmdClause, data)
+	objectStorageAccesskeysList := accesskeys.NewListCommand(objectStorageAccesskeysRoot.CmdClause, data)
 	popCmdRoot := pop.NewRootCommand(app, data)
 	productsCmdRoot := products.NewRootCommand(app, data)
 	profileCmdRoot := profile.NewRootCommand(app, data)
@@ -788,6 +796,12 @@ func Define( // nolint:revive // function-length
 		loggingSyslogDescribe,
 		loggingSyslogList,
 		loggingSyslogUpdate,
+		objectStorageRoot,
+		objectStorageAccesskeysRoot,
+		objectStorageAccesskeysCreate,
+		objectStorageAccesskeysDelete,
+		objectStorageAccesskeysGet,
+		objectStorageAccesskeysList,
 		popCmdRoot,
 		productsCmdRoot,
 		profileCmdRoot,

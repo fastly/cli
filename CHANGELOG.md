@@ -12,6 +12,7 @@
 **Enhancements:**
 
 - fix(compute/init): Updates for renamed TypeScript default starter kit
+- feat(objectstorage/accesskeys): add support for access keys [#1428](https://github.com/fastly/cli/pull/1428)
 
 **Bug fixes:**
 
