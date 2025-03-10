@@ -31,6 +31,7 @@
 - build(deps): `github.com/fastly/go-fastly/v9` from 9.13.1 to 9.14.0 ([#1433](https://github.com/fastly/cli/pull/1433))
 - build(deps): `golang.org/x/crypto` from 0.35.0 to 0.36.0 ([#1430](https://github.com/fastly/cli/pull/1430))
 - build(deps): `golang.org/x/oauth2` from 0.27.0 to 0.28.0 ([#1432](https://github.com/fastly/cli/pull/1432))
+- build(deps): `golang.org/x/net` from 0.35.0 to 0.37.0 ([#1439](https://github.com/fastly/cli/pull/1439))
 
 ## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
