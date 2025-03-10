@@ -33,6 +33,7 @@
 - build(deps): `golang.org/x/oauth2` from 0.27.0 to 0.28.0 ([#1432](https://github.com/fastly/cli/pull/1432))
 - build(deps): `golang.org/x/net` from 0.35.0 to 0.37.0 ([#1439](https://github.com/fastly/cli/pull/1439))
 - build(deps): `github.com/golang/snappy` from 0.0.4 to 1.0.0 ([#1438](https://github.com/fastly/cli/pull/1438))
+- build(deps): `golang.org/x/mod` from 0.23.0 to 0.24.0 ([#1437](https://github.com/fastly/cli/pull/1437))
 
 ## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
