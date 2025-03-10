@@ -8,6 +8,7 @@
   has been removed; it was only used in combination with the Fastly
   WAF, which is no longer supported.
   [#1419](https://github.com/fastly/cli/pull/1419)
+- breaking(language.rust): Switch Rust builds to wasm32-wasip1 instead of wasm32-wasi [#1382](https://github.com/fastly/cli/pull/1382)
 
 **Enhancements:**
 

@@ -30,7 +30,10 @@ import (
 // NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
 // We no longer do that. In 6.x we use the default and just inform the user.
 // This makes the experience less confusing as users didn't expect file changes.
-const RustDefaultBuildCommand = "cargo build --bin %s --release --target wasm32-wasi --color always"
+const RustDefaultBuildCommand = "cargo build --bin %s --release --target %s --color always"
+
+// RustDefaultWasmWasiTarget is the expected Rust WasmWasi build target
+const RustDefaultWasmWasiTarget = "wasm32-wasip1"
 
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
@@ -145,7 +148,7 @@ func (r *Rust) Dependencies() map[string]string {
 // Build compiles the user's source code into a Wasm binary.
 func (r *Rust) Build() error {
 	if r.build == "" {
-		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName)
+		r.build = fmt.Sprintf(RustDefaultBuildCommand, RustDefaultPackageName, RustDefaultWasmWasiTarget)
 		r.defaultBuild = true
 	}
 
@@ -168,6 +171,11 @@ func (r *Rust) Build() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	var wasmWasiTarget = r.config.WasmWasiTarget
+	if wasmWasiTarget != RustDefaultWasmWasiTarget {
+		return fmt.Errorf("the default build in .fastly/config.toml should produce a %s binary, but was instead set to produce a %s binary", RustDefaultWasmWasiTarget, wasmWasiTarget)
 	}
 
 	bt := BuildToolchain{
@@ -204,7 +212,7 @@ type RustToolchain struct {
 // modifyCargoPackageName validates whether the --bin flag matches the
 // Cargo.toml package name. If it doesn't match, update the default build script
 // to match.
-func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
+func (r *Rust) modifyCargoPackageName(defaultBuild bool) error {
 	s := "cargo locate-project --quiet"
 	args := strings.Split(s, " ")
 
@@ -244,18 +252,16 @@ func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 		return fmt.Errorf("error reading %s manifest: %w", RustManifest, err)
 	}
 
-	hasCustomBuildScript := !noBuildScript
-
 	switch {
 	case m.Package.Name != "":
 		// If using standard project structure.
 		// Cargo.toml won't be a Workspace, so it will contain a package name.
 		r.packageName = m.Package.Name
-	case len(m.Workspace.Members) > 0 && noBuildScript:
+	case len(m.Workspace.Members) > 0 && defaultBuild:
 		// If user has a Cargo Workspace AND no custom script.
 		// We need to identify which Workspace package is their application.
 		// Then extract the package name from its Cargo.toml manifest.
-		// We do this by checking for a rust-toolchain.toml containing a wasm32-wasi target.
+		// We do this by checking for a rust-toolchain.toml containing the proper target.
 		//
 		// NOTE: This logic will need to change in the future.
 		// Specifically, when we support linking multiple Wasm binaries.
@@ -270,16 +276,20 @@ func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal '%s' data: %w", rustToolchainFile, err)
 			}
-			if len(rtm.Toolchain.Targets) > 0 && rtm.Toolchain.Targets[0] == "wasm32-wasi" {
-				var cm CargoManifest
-				err := cm.Read(filepath.Join(m, "Cargo.toml"))
-				if err != nil {
-					return err
+			if len(rtm.Toolchain.Targets) > 0 {
+				if rtm.Toolchain.Targets[0] == RustDefaultWasmWasiTarget {
+					var cm CargoManifest
+					err := cm.Read(filepath.Join(m, "Cargo.toml"))
+					if err != nil {
+						return err
+					}
+					r.packageName = cm.Package.Name
+				} else {
+					return fmt.Errorf("please consult https://www.fastly.com/documentation/guides/compute/#install-language-tooling to configure your toolchain correctly")
 				}
-				r.packageName = cm.Package.Name
 			}
 		}
-	case len(m.Workspace.Members) > 0 && hasCustomBuildScript:
+	case len(m.Workspace.Members) > 0 && !defaultBuild:
 		// If user has a Cargo Workspace AND a custom script.
 		// Trust their custom script aligns with the relevant Workspace package name.
 		// i.e. we parse the package name specified in their custom script.
@@ -293,8 +303,8 @@ func (r *Rust) modifyCargoPackageName(noBuildScript bool) error {
 	}
 
 	// Ensure the default build script matches the Cargo.toml package name.
-	if noBuildScript && r.packageName != "" && r.packageName != RustDefaultPackageName {
-		r.build = fmt.Sprintf(RustDefaultBuildCommand, r.packageName)
+	if defaultBuild && r.packageName != "" && r.packageName != RustDefaultPackageName {
+		r.build = fmt.Sprintf(RustDefaultBuildCommand, r.packageName, RustDefaultWasmWasiTarget)
 	}
 
 	return nil

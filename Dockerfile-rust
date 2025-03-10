@@ -1,9 +1,9 @@
 FROM rust:latest
 LABEL maintainer="Fastly OSS <oss@fastly.com>"
 
-ENV RUST_TOOLCHAIN=1.83.0
+ENV RUST_TOOLCHAIN=stable
 RUN rustup toolchain install ${RUST_TOOLCHAIN} \
-  && rustup target add wasm32-wasi --toolchain ${RUST_TOOLCHAIN} \
+  && rustup target add wasm32-wasip1 --toolchain ${RUST_TOOLCHAIN} \
   && apt-get update && apt-get install -y curl jq && apt-get -y clean && rm -rf /var/lib/apt/lists/* \
   && export FASTLY_CLI_VERSION=$(curl -s https://api.github.com/repos/fastly/cli/releases/latest | jq -r .tag_name | cut -d 'v' -f 2) \
             GOARCH=$(dpkg --print-architecture) \
