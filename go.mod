@@ -55,7 +55,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
-	github.com/golang/snappy v0.0.4 // indirect
+	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/jsonapi v1.0.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
