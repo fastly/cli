@@ -2,7 +2,7 @@ module github.com/fastly/cli
 
 go 1.23.0
 
-toolchain go1.23.6
+toolchain go1.23.7
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
