@@ -10,7 +10,7 @@ ttl = "5m"
 [language]
 [language.rust]
 toolchain_constraint = ">= 1.49.0 < 2.0.0"
-wasm_wasi_target = "wasm32-wasi"
+wasm_wasi_target = "wasm32-wasip1"
 
 [starter-kits]
 [[starter-kits.javascript]]
