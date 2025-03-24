@@ -12,7 +12,7 @@ version = "0.0.1"
 [language]
 [language.rust]
 # we're missing the 'toolchain_constraint' property
-wasm_wasi_target = "wasm32-wasi"
+wasm_wasi_target = "wasm32-wasip1"
 
 [starter-kits]
 [[starter-kits.rust]]
