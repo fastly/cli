@@ -35,6 +35,7 @@
 - build(deps): `golang.org/x/net` from 0.35.0 to 0.37.0 ([#1439](https://github.com/fastly/cli/pull/1439))
 - build(deps): `github.com/golang/snappy` from 0.0.4 to 1.0.0 ([#1438](https://github.com/fastly/cli/pull/1438))
 - build(deps): `golang.org/x/mod` from 0.23.0 to 0.24.0 ([#1437](https://github.com/fastly/cli/pull/1437))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.12.0 to 3.13.0 ([#1442](https://github.com/fastly/cli/pull/1442))
 
 ## [v10.19.0](https://github.com/fastly/cli/releases/tag/v10.19.0) (2025-02-18)
 
