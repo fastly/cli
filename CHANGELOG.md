@@ -2,7 +2,17 @@
 
 ## [Unreleased]
 
-**Breaking:**
+### Breaking:
+
+### Enhancements:
+
+### Bug fixes:
+
+### Dependencies:
+
+## [v11.0.0](https://github.com/fastly/cli/releases/tag/v11.0.0) (2025-02-25)
+
+### Breaking:
 
 - breaking(logging): The 'placement' parameter to the logging commands
   has been removed; it was only used in combination with the Fastly
@@ -12,18 +22,15 @@
 
 - breaking(language.assemblyscript): Remove support for AssemblyScript [#1001](https://github.com/fastly/cli/pull/1001/files)
 
-**Enhancements:**
+### Enhancements:
 
 - fix(compute/init): Updates for renamed TypeScript default starter kit
 - feat(objectstorage/accesskeys): add support for access keys [#1428](https://github.com/fastly/cli/pull/1428)
 
-**Bug fixes:**
-
-**Dependencies:**
-
-- build(deps): upgrade Go from 1.22 to 1.23 ([#624](https://github.com/fastly/cli/pull/1414))
+### Bug fixes:
 
 ### Dependencies
+- build(deps): upgrade Go from 1.22 to 1.23 ([#624](https://github.com/fastly/cli/pull/1414))
 - build(deps): `github.com/rogpeppe/go-internal` from 1.13.1 to 1.14.1 ([#1416](https://github.com/fastly/cli/pull/1416))
 - build(deps): `golang.org/x/crypto` from 0.33.0 to 0.35.0 ([#1417](https://github.com/fastly/cli/pull/1417))
 - build(deps): `github.com/go-jose/go-jose/v4` from 4.0.4 to 4.0.5 ([#1412](https://github.com/fastly/cli/pull/1412))
