@@ -696,12 +696,6 @@ func identifyToolchain(c *BuildCommand) (string, error) {
 func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader, out io.Writer, spinner text.Spinner) (*Language, error) {
 	var language *Language
 	switch toolchain {
-	case "assemblyscript":
-		language = NewLanguage(&LanguageOptions{
-			Name:            "assemblyscript",
-			SourceDirectory: AsSourceDirectory,
-			Toolchain:       NewAssemblyScript(c, in, manifestFilename, out, spinner),
-		})
 	case "go":
 		language = NewLanguage(&LanguageOptions{
 			Name:            "go",
