@@ -24,10 +24,8 @@
 
 ### Enhancements:
 
-- fix(compute/init): Updates for renamed TypeScript default starter kit
+- fix(compute/init): Updates for renamed TypeScript default starter kit [#1405](https://github.com/fastly/cli/pull/1405)
 - feat(objectstorage/accesskeys): add support for access keys [#1428](https://github.com/fastly/cli/pull/1428)
-
-### Bug fixes:
 
 ### Dependencies
 - build(deps): upgrade Go from 1.22 to 1.23 ([#624](https://github.com/fastly/cli/pull/1414))
