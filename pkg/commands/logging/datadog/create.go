@@ -28,6 +28,7 @@ type CreateCommand struct {
 	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
+	Placement         argparser.OptionalString
 	Region            argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	Token             argparser.OptionalString
@@ -59,6 +60,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("auth-token", "The API key from your Datadog account").Action(c.Token.Set).StringVar(&c.Token.Value)
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US, US3, US5, or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -103,6 +105,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
+	}
+
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

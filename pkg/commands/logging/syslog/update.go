@@ -39,6 +39,7 @@ type UpdateCommand struct {
 	FormatVersion     argparser.OptionalInt
 	MessageType       argparser.OptionalString
 	ResponseCondition argparser.OptionalString
+	Placement         argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -70,6 +71,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("new-name", "New name of the Syslog logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.MessageType(c.CmdClause, &c.MessageType)
+	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -151,6 +153,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
+	}
+
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

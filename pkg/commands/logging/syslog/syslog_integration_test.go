@@ -304,6 +304,7 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 			FormatVersion:     fastly.ToPointer(2),
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -323,6 +324,7 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 			FormatVersion:     fastly.ToPointer(2),
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -362,6 +364,7 @@ Version: 1
 		Format version: 2
 		Message type: classic
 		Response condition: Prevent default logging
+		Placement: none
 	Syslog 2/2
 		Service ID: 123
 		Version: 1
@@ -380,6 +383,7 @@ Version: 1
 		Format version: 2
 		Message type: classic
 		Response condition: Prevent default logging
+		Placement: none
 `) + "\n\n"
 
 func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
@@ -401,6 +405,7 @@ func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -416,6 +421,7 @@ Hostname: example.com
 IPV4: ` + `
 Message type: classic
 Name: logs
+Placement: none
 Port: 514
 Response condition: Prevent default logging
 Service ID: 123
@@ -447,6 +453,7 @@ func updateSyslogOK(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

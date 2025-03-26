@@ -32,6 +32,7 @@ type UpdateCommand struct {
 	ResponseCondition argparser.OptionalString
 	MessageType       argparser.OptionalString
 	FormatVersion     argparser.OptionalInt // Inconsistent with other logging endpoints, but remaining as int to avoid breaking changes in fastly/go-fastly.
+	Placement         argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -61,6 +62,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).IntVar(&c.FormatVersion.Value)
 	common.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("new-name", "New name of the Sumologic logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
+	common.Placement(c.CmdClause, &c.Placement)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -109,6 +111,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.FormatVersion.WasSet {
 		input.FormatVersion = &c.FormatVersion.Value
+	}
+
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
 	}
 
 	return &input, nil

@@ -123,6 +123,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(digitalocean.ResponseCondition))
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(digitalocean.MessageType))
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(digitalocean.TimestampFormat))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(digitalocean.Placement))
 		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(digitalocean.PublicKey))
 	}
 	fmt.Fprintln(out)

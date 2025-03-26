@@ -99,6 +99,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Max batch size":               fastly.ToValue(o.RequestMaxBytes),
 		"Name":                         fastly.ToValue(o.Name),
 		"Parse log key-values":         fastly.ToValue(o.ParseLogKeyvals),
+		"Placement":                    fastly.ToValue(o.Placement),
 		"Required acks":                fastly.ToValue(o.RequiredACKs),
 		"Response condition":           fastly.ToValue(o.ResponseCondition),
 		"SASL authentication method":   fastly.ToValue(o.AuthMethod),

@@ -295,6 +295,7 @@ func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error
 			FormatVersion:     fastly.ToPointer(2),
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -305,6 +306,7 @@ func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			MessageType:       fastly.ToPointer("classic"),
 			FormatVersion:     fastly.ToPointer(2),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -335,6 +337,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Message type: classic
+		Placement: none
 	Sumologic 2/2
 		Service ID: 123
 		Version: 1
@@ -344,6 +347,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Message type: classic
+		Placement: none
 `) + "\n\n"
 
 func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
@@ -356,6 +360,7 @@ func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -368,6 +373,7 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Message type: classic
 Name: logs
+Placement: none
 Response condition: Prevent default logging
 Service ID: 123
 URL: example.com
@@ -384,6 +390,7 @@ func updateSumologicOK(i *fastly.UpdateSumologicInput) (*fastly.Sumologic, error
 		FormatVersion:     fastly.ToPointer(2),
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

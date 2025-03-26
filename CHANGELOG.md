@@ -23,7 +23,6 @@
 - breaking(compute/pack): use package name from manifest [#1025](https://github.com/fastly/cli/pull/1025)
 
 ### Enhancements:
-
 - fix(compute/init): Updates for renamed TypeScript default starter kit [#1405](https://github.com/fastly/cli/pull/1405)
 - feat(objectstorage/accesskeys): add support for access keys [#1428](https://github.com/fastly/cli/pull/1428)
 

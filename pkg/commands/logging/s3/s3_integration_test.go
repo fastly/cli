@@ -371,6 +371,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			ResponseCondition:            fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+			Placement:                    fastly.ToPointer("none"),
 			PublicKey:                    fastly.ToPointer(pgpPublicKey()),
 			ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
 			ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
@@ -392,6 +393,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			ResponseCondition:            fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+			Placement:                    fastly.ToPointer("none"),
 			PublicKey:                    fastly.ToPointer(pgpPublicKey()),
 			ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
 			ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
@@ -434,6 +436,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
+		Placement: none
 		Public key: `+pgpPublicKey()+`
 		Redundancy: standard
 		Server-side encryption: aws:kms
@@ -455,6 +458,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
+		Placement: none
 		Public key: `+pgpPublicKey()+`
 		Redundancy: standard
 		Server-side encryption: aws:kms
@@ -480,6 +484,7 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 		ResponseCondition:            fastly.ToPointer("Prevent default logging"),
 		TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 		Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+		Placement:                    fastly.ToPointer("none"),
 		PublicKey:                    fastly.ToPointer(pgpPublicKey()),
 		ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
 		ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
@@ -503,6 +508,7 @@ Message type: classic
 Name: logs
 Path: logs/
 Period: 3600
+Placement: none
 Public key: `+pgpPublicKey()+`
 Redundancy: standard
 Response condition: Prevent default logging
@@ -531,6 +537,7 @@ func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 		ResponseCondition:            fastly.ToPointer("Prevent default logging"),
 		TimestampFormat:              fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 		Redundancy:                   fastly.ToPointer(fastly.S3RedundancyStandard),
+		Placement:                    fastly.ToPointer("none"),
 		PublicKey:                    fastly.ToPointer(pgpPublicKey()),
 		ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
 		ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),

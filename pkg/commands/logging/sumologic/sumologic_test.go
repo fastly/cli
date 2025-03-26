@@ -44,6 +44,7 @@ func TestCreateSumologicInput(t *testing.T) {
 				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 				FormatVersion:     fastly.ToPointer(2),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 				MessageType:       fastly.ToPointer("classic"),
 			},
 		},
@@ -125,6 +126,7 @@ func TestUpdateSumologicInput(t *testing.T) {
 				Format:            fastly.ToPointer("new3"),
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.ToPointer("new5"),
 				MessageType:       fastly.ToPointer("new6"),
 			},
 		},
@@ -209,6 +211,7 @@ func createCommandOK() *sumologic.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
 	}
 }
@@ -325,6 +328,7 @@ func updateCommandAll() *sumologic.UpdateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 	}
 }

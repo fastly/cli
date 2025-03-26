@@ -293,6 +293,7 @@ func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.Graf
 			FormatVersion:     fastly.ToPointer(2),
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 			User:              fastly.ToPointer("123456"),
 			Token:             fastly.ToPointer("testtoken"),
 			URL:               fastly.ToPointer("https://test123.grafana.net"),
@@ -306,6 +307,7 @@ func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.Graf
 			FormatVersion:     fastly.ToPointer(2),
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 			User:              fastly.ToPointer("123456"),
 			Token:             fastly.ToPointer("testtoken"),
 			URL:               fastly.ToPointer("https://test123.grafana.net"),
@@ -339,6 +341,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Message type: classic
+		Placement: none
 		User: 123456
 		URL: https://test123.grafana.net
 		Token: testtoken
@@ -351,6 +354,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Message type: classic
+		Placement: none
 		User: 123456
 		URL: https://test123.grafana.net
 		Token: testtoken
@@ -366,6 +370,7 @@ func getGrafanaCloudLogsOK(i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaC
 		FormatVersion:     fastly.ToPointer(2),
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 		User:              fastly.ToPointer("123456"),
 		URL:               fastly.ToPointer("https://test123.grafana.net"),
 		Token:             fastly.ToPointer("testtoken"),
@@ -383,6 +388,7 @@ Format version: 2
 Index: {"label": "value"}
 Message type: classic
 Name: logs
+Placement: none
 Response condition: Prevent default logging
 Service ID: 123
 Token: testtoken
@@ -400,6 +406,7 @@ func updateGrafanaCloudLogsOK(i *fastly.UpdateGrafanaCloudLogsInput) (*fastly.Gr
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		MessageType:       fastly.ToPointer("classic"),
+		Placement:         fastly.ToPointer("none"),
 		User:              fastly.ToPointer("123456"),
 		URL:               fastly.ToPointer("https://test123.grafana.net"),
 		Token:             fastly.ToPointer("testtoken"),

@@ -315,6 +315,7 @@ func listDigitalOceansOK(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOce
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			MessageType:       fastly.ToPointer("classic"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		},
 		{
@@ -333,6 +334,7 @@ func listDigitalOceansOK(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOce
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+			Placement:         fastly.ToPointer("none"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		},
 	}, nil
@@ -371,6 +373,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
+		Placement: none
 		Public key: `+pgpPublicKey()+`
 	DigitalOcean 2/2
 		Service ID: 123
@@ -388,6 +391,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
+		Placement: none
 		Public key: `+pgpPublicKey()+`
 `) + "\n\n"
 
@@ -408,6 +412,7 @@ func getDigitalOceanOK(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, er
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		MessageType:       fastly.ToPointer("classic"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
 		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 	}, nil
 }
@@ -427,6 +432,7 @@ Message type: classic
 Name: logs
 Path: logs/
 Period: 3600
+Placement: none
 Public key: `+pgpPublicKey()+`
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
@@ -452,6 +458,7 @@ func updateDigitalOceanOK(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOce
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		MessageType:       fastly.ToPointer("classic"),
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+		Placement:         fastly.ToPointer("none"),
 		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 	}, nil
 }

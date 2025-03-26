@@ -339,6 +339,7 @@ func listKinesesOK(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -351,6 +352,7 @@ func listKinesesOK(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -383,6 +385,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Placement: none
 	Kinesis 2/2
 		Service ID: 123
 		Version: 1
@@ -394,6 +397,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Placement: none
 `) + "\n\n"
 
 func getKinesisOK(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
@@ -408,6 +412,7 @@ func getKinesisOK(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -420,6 +425,7 @@ Access key: 1234
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
+Placement: none
 Region: us-east-1
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA
@@ -440,6 +446,7 @@ func updateKinesisOK(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

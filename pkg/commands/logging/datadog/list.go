@@ -116,6 +116,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(datadog.Format))
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(datadog.FormatVersion))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(datadog.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(datadog.Placement))
 	}
 	fmt.Fprintln(out)
 

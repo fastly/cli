@@ -32,6 +32,7 @@ type UpdateCommand struct {
 	BucketName        argparser.OptionalString
 	Path              argparser.OptionalString
 	Region            argparser.OptionalString
+	Placement         argparser.OptionalString
 	Period            argparser.OptionalInt
 	GzipLevel         argparser.OptionalInt
 	Format            argparser.OptionalString
@@ -76,6 +77,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("new-name", "New name of the Cloudfiles logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
+	common.Placement(c.CmdClause, &c.Placement)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	c.CmdClause.Flag("region", "The region to stream logs to. One of: DFW-Dallas, ORD-Chicago, IAD-Northern Virginia, LON-London, SYD-Sydney, HKG-Hong Kong").Action(c.Region.Set).StringVar(&c.Region.Value)
 	c.CmdClause.Flag("user", "The username for your Cloudfile account").Action(c.User.Set).StringVar(&c.User.Value)
@@ -127,6 +129,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Region.WasSet {
 		input.Region = &c.Region.Value
+	}
+
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.Period.WasSet {

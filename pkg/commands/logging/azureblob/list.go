@@ -125,6 +125,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(azureblob.ResponseCondition))
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(azureblob.MessageType))
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(azureblob.TimestampFormat))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(azureblob.Placement))
 		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(azureblob.PublicKey))
 		fmt.Fprintf(out, "\t\tFile max bytes: %d\n", fastly.ToValue(azureblob.FileMaxBytes))
 		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(azureblob.CompressionCodec))

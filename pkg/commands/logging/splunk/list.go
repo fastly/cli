@@ -120,6 +120,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(splunk.Format))
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(splunk.FormatVersion))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(splunk.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(splunk.Placement))
 	}
 	fmt.Fprintln(out)
 
