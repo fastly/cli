@@ -8,6 +8,8 @@
 
 ### Bug fixes:
 
+- fix(logging): revert removal of placement param [#1444](https://github.com/fastly/cli/pull/1444)
+
 ### Dependencies:
 
 ## [v11.0.0](https://github.com/fastly/cli/releases/tag/v11.0.0) (2025-02-25)
