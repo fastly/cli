@@ -300,6 +300,7 @@ func listLogshuttlesOK(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, er
 			URL:               fastly.ToPointer("example.com"),
 			Token:             fastly.ToPointer("abc"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -310,6 +311,7 @@ func listLogshuttlesOK(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, er
 			URL:               fastly.ToPointer("example.com"),
 			Token:             fastly.ToPointer("abc"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -340,6 +342,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Placement: none
 	Logshuttle 2/2
 		Service ID: 123
 		Version: 1
@@ -349,6 +352,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Placement: none
 `) + "\n\n"
 
 func getLogshuttleOK(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
@@ -361,6 +365,7 @@ func getLogshuttleOK(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -372,6 +377,7 @@ var describeLogshuttleOutput = "\n" + strings.TrimSpace(`
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
+Placement: none
 Response condition: Prevent default logging
 Service ID: 123
 Token: abc
@@ -389,6 +395,7 @@ func updateLogshuttleOK(i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, er
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 

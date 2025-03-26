@@ -45,6 +45,7 @@ func TestCreateDatadogInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(2),
 				Token:             fastly.ToPointer("tkn"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -126,6 +127,7 @@ func TestUpdateDatadogInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				Token:             fastly.ToPointer("new4"),
 				ResponseCondition: fastly.ToPointer("new5"),
+				Placement:         fastly.ToPointer("new6"),
 			},
 		},
 		{
@@ -210,6 +212,7 @@ func createCommandOK() *datadog.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -326,6 +329,7 @@ func updateCommandAll() *datadog.UpdateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		Token:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 	}
 }
 

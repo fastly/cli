@@ -39,6 +39,7 @@ type UpdateCommand struct {
 	ResponseCondition argparser.OptionalString
 	MessageType       argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
+	Placement         argparser.OptionalString
 	PublicKey         argparser.OptionalString
 	CompressionCodec  argparser.OptionalString
 }
@@ -77,6 +78,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("new-name", "New name of the DigitalOcean Spaces logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
+	common.Placement(c.CmdClause, &c.Placement)
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your DigitalOcean Spaces account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
@@ -155,6 +157,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.TimestampFormat.WasSet {
 		input.TimestampFormat = &c.TimestampFormat.Value
+	}
+
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
 	}
 
 	if c.PublicKey.WasSet {

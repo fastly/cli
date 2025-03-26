@@ -123,6 +123,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(kafka.Format))
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(kafka.FormatVersion))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(kafka.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(kafka.Placement))
 		fmt.Fprintf(out, "\t\tParse log key-values: %t\n", fastly.ToValue(kafka.ParseLogKeyvals))
 		fmt.Fprintf(out, "\t\tMax batch size: %d\n", fastly.ToValue(kafka.RequestMaxBytes))
 		fmt.Fprintf(out, "\t\tSASL authentication method: %s\n", fastly.ToValue(kafka.AuthMethod))

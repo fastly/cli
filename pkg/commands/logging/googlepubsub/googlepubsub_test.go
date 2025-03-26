@@ -50,6 +50,7 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(2),
 				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
+				Placement:         fastly.ToPointer("none"),
 			},
 		},
 		{
@@ -116,6 +117,7 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 				SecretKey:         fastly.ToPointer("new3"),
 				ProjectID:         fastly.ToPointer("new4"),
 				Topic:             fastly.ToPointer("new5"),
+				Placement:         fastly.ToPointer("new6"),
 				Format:            fastly.ToPointer("new7"),
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new8"),
@@ -260,6 +262,7 @@ func createCommandAll() *googlepubsub.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 	}
 }
 
@@ -337,6 +340,7 @@ func updateCommandAll() *googlepubsub.UpdateCommand {
 		SecretKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
 		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
 		Topic:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},

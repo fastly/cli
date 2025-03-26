@@ -29,6 +29,7 @@ type CreateCommand struct {
 	AutoClone         argparser.OptionalAutoClone
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
+	Placement         argparser.OptionalString
 	Region            argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	ProjectID         argparser.OptionalString
@@ -60,6 +61,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	})
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("project-id", "The name of the logfile field sent to Scalyr").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
 	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -101,6 +103,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
+	}
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
 	}
 	if c.ProjectID.WasSet {
 		input.ProjectID = &c.ProjectID.Value

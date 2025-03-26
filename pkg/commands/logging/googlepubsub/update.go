@@ -30,6 +30,7 @@ type UpdateCommand struct {
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
 	NewName           argparser.OptionalString
+	Placement         argparser.OptionalString
 	ProjectID         argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	SecretKey         argparser.OptionalString
@@ -64,6 +65,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("new-name", "New name of the Google Cloud Pub/Sub logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
+	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("project-id", "The ID of your Google Cloud Platform project").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
 	c.CmdClause.Flag("secret-key", "Your Google Cloud Platform account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -103,6 +105,9 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.NewName.WasSet {
 		input.NewName = &c.NewName.Value
+	}
+	if c.Placement.WasSet {
+		input.Placement = &c.Placement.Value
 	}
 	if c.ProjectID.WasSet {
 		input.ProjectID = &c.ProjectID.Value

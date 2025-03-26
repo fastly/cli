@@ -52,6 +52,7 @@ func TestCreateGCSInput(t *testing.T) {
 				MessageType:       fastly.ToPointer("classic"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
+				Placement:         fastly.ToPointer("none"),
 				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
@@ -139,6 +140,7 @@ func TestUpdateGCSInput(t *testing.T) {
 				Format:            fastly.ToPointer("new6"),
 				ResponseCondition: fastly.ToPointer("new7"),
 				TimestampFormat:   fastly.ToPointer("new8"),
+				Placement:         fastly.ToPointer("new9"),
 				MessageType:       fastly.ToPointer("new10"),
 				CompressionCodec:  fastly.ToPointer("new11"),
 			},
@@ -270,6 +272,7 @@ func createCommandAll() *gcs.CreateCommand {
 		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
@@ -354,6 +357,7 @@ func updateCommandAll() *gcs.UpdateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 	}

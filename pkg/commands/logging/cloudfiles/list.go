@@ -119,6 +119,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tBucket: %s\n", fastly.ToValue(cloudfile.BucketName))
 		fmt.Fprintf(out, "\t\tPath: %s\n", fastly.ToValue(cloudfile.Path))
 		fmt.Fprintf(out, "\t\tRegion: %s\n", fastly.ToValue(cloudfile.Region))
+		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(cloudfile.Placement))
 		fmt.Fprintf(out, "\t\tPeriod: %d\n", fastly.ToValue(cloudfile.Period))
 		fmt.Fprintf(out, "\t\tGZip level: %d\n", fastly.ToValue(cloudfile.GzipLevel))
 		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(cloudfile.Format))

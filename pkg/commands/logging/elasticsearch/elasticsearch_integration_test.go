@@ -286,6 +286,7 @@ func createElasticsearchOK(i *fastly.CreateElasticsearchInput) (*fastly.Elastics
 		Password:          fastly.ToPointer("password"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSHostname:       fastly.ToPointer("example.com"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -313,6 +314,7 @@ func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticse
 			Password:          fastly.ToPointer("password"),
 			RequestMaxEntries: fastly.ToPointer(2),
 			RequestMaxBytes:   fastly.ToPointer(2),
+			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSHostname:       fastly.ToPointer("example.com"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -330,6 +332,7 @@ func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticse
 			Password:          fastly.ToPointer("password"),
 			RequestMaxEntries: fastly.ToPointer(2),
 			RequestMaxBytes:   fastly.ToPointer(2),
+			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSHostname:       fastly.ToPointer("example.com"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -374,6 +377,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Placement: none
 	Elasticsearch 2/2
 		Service ID: 123
 		Version: 1
@@ -390,6 +394,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Placement: none
 `) + "\n\n"
 
 func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
@@ -406,6 +411,7 @@ func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch,
 		Password:          fastly.ToPointer("password"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSHostname:       fastly.ToPointer("example.com"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -425,6 +431,7 @@ Index: logs
 Name: logs
 Password: password
 Pipeline: logs
+Placement: none
 Response condition: Prevent default logging
 Service ID: 123
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo
@@ -450,6 +457,7 @@ func updateElasticsearchOK(i *fastly.UpdateElasticsearchInput) (*fastly.Elastics
 		Password:          fastly.ToPointer("password"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSHostname:       fastly.ToPointer("example.com"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),

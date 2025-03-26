@@ -300,6 +300,7 @@ func listHerokusOK(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 			URL:               fastly.ToPointer("example.com"),
 			Token:             fastly.ToPointer("abc"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			Placement:         fastly.ToPointer("none"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -310,6 +311,7 @@ func listHerokusOK(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			FormatVersion:     fastly.ToPointer(2),
+			Placement:         fastly.ToPointer("none"),
 		},
 	}, nil
 }
@@ -340,6 +342,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Placement: none
 	Heroku 2/2
 		Service ID: 123
 		Version: 1
@@ -349,6 +352,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Placement: none
 `) + "\n\n"
 
 func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
@@ -361,6 +365,7 @@ func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
@@ -372,6 +377,7 @@ var describeHerokuOutput = "\n" + strings.TrimSpace(`
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
+Placement: none
 Response condition: Prevent default logging
 Service ID: 123
 Token: abc
@@ -389,6 +395,7 @@ func updateHerokuOK(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		Placement:         fastly.ToPointer("none"),
 	}, nil
 }
 
