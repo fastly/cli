@@ -9,6 +9,7 @@
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `golang.org/x/net` from 0.37.0 to 0.38.0 ([#1447](https://github.com/fastly/cli/pull/1447))
 
 ## [v11.1.0](https://github.com/fastly/cli/releases/tag/v11.1.0) (2025-03-27)
 
