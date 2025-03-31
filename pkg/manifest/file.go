@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -48,6 +49,107 @@ type File struct {
 	exists    bool
 	output    io.Writer
 	readError error
+}
+
+// MarshalTOML performs custom marshalling to TOML for objects of File type.
+func (f *File) MarshalTOML() ([]byte, error) {
+	localServer := make(map[string]interface{})
+
+	if f.LocalServer.Backends != nil {
+		localServer["backends"] = f.LocalServer.Backends
+	}
+
+	if f.LocalServer.ConfigStores != nil {
+		localServer["config_stores"] = f.LocalServer.ConfigStores
+	}
+
+	if f.LocalServer.KVStores != nil {
+		kvStores := make(map[string]interface{})
+		for key, entry := range f.LocalServer.KVStores {
+			if entry.External != nil {
+				kvStores[key] = map[string]interface{}{
+					"file":   entry.External.File,
+					"format": entry.External.Format,
+				}
+			} else {
+				items := make([]map[string]interface{}, 0, len(entry.Array))
+				for _, e := range entry.Array {
+					obj := map[string]interface{}{"key": e.Key}
+					if e.File != "" {
+						obj["file"] = e.File
+					}
+					if e.Data != "" {
+						obj["data"] = e.Data
+					}
+					items = append(items, obj)
+				}
+				kvStores[key] = items
+			}
+		}
+		localServer["kv_stores"] = kvStores
+	}
+
+	if f.LocalServer.SecretStores != nil {
+		secretStores := make(map[string]interface{})
+		for key, entry := range f.LocalServer.SecretStores {
+			if entry.External != nil {
+				secretStores[key] = map[string]interface{}{
+					"file":   entry.External.File,
+					"format": entry.External.Format,
+				}
+			} else {
+				items := make([]map[string]interface{}, 0, len(entry.Array))
+				for _, e := range entry.Array {
+					obj := map[string]interface{}{"key": e.Key}
+					if e.File != "" {
+						obj["file"] = e.File
+					}
+					if e.Data != "" {
+						obj["data"] = e.Data
+					}
+					items = append(items, obj)
+				}
+				secretStores[key] = items
+			}
+		}
+		localServer["secret_stores"] = secretStores
+	}
+
+	if f.LocalServer.ViceroyVersion != "" {
+		localServer["viceroy_version"] = f.LocalServer.ViceroyVersion
+	}
+
+	type outputFile struct {
+		Authors         []string    `toml:"authors"`
+		ClonedFrom      string      `toml:"cloned_from,omitempty"`
+		Description     string      `toml:"description"`
+		Language        string      `toml:"language"`
+		Profile         string      `toml:"profile,omitempty"`
+		LocalServer     interface{} `toml:"local_server"` // override this field
+		ManifestVersion Version     `toml:"manifest_version"`
+		Name            string      `toml:"name"`
+		Scripts         Scripts     `toml:"scripts,omitempty"`
+		ServiceID       string      `toml:"service_id"`
+		Setup           Setup       `toml:"setup,omitempty"`
+	}
+
+	out := outputFile{
+		Authors:         f.Authors,
+		ClonedFrom:      f.ClonedFrom,
+		Description:     f.Description,
+		Language:        f.Language,
+		Profile:         f.Profile,
+		LocalServer:     localServer,
+		ManifestVersion: f.ManifestVersion,
+		Name:            f.Name,
+		Scripts:         f.Scripts,
+		ServiceID:       f.ServiceID,
+		Setup:           f.Setup,
+	}
+
+	var buf bytes.Buffer
+	err := toml.NewEncoder(&buf).Encode(out)
+	return buf.Bytes(), err
 }
 
 // Exists yields whether the manifest exists.
