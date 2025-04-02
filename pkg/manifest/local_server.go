@@ -59,8 +59,8 @@ type LocalKVStore struct {
 type LocalKVStoreMap map[string]LocalKVStore
 
 // UnmarshalTOML performs custom unmarshalling of TOML data for LocalKVStoreMap.
-func (m *LocalKVStoreMap) UnmarshalTOML(v interface{}) error {
-	raw, ok := v.(map[string]interface{})
+func (m *LocalKVStoreMap) UnmarshalTOML(v any) error {
+	raw, ok := v.(map[string]any)
 	if !ok {
 		return fmt.Errorf("expected kv_stores to be a TOML table")
 	}
@@ -69,10 +69,10 @@ func (m *LocalKVStoreMap) UnmarshalTOML(v interface{}) error {
 
 	for key, val := range raw {
 		switch typed := val.(type) {
-		case []interface{}:
+		case []any:
 			var entries []KVStoreArrayEntry
 			for _, item := range typed {
-				obj, ok := item.(map[string]interface{})
+				obj, ok := item.(map[string]any)
 				if !ok {
 					return fmt.Errorf("invalid item in array for key %q", key)
 				}
@@ -87,7 +87,7 @@ func (m *LocalKVStoreMap) UnmarshalTOML(v interface{}) error {
 				Array:   entries,
 			}
 
-		case map[string]interface{}:
+		case map[string]any:
 			file, hasFile := typed["file"].(string)
 			format, hasFormat := typed["format"].(string)
 
@@ -139,8 +139,8 @@ type LocalSecretStore struct {
 type LocalSecretStoreMap map[string]LocalSecretStore
 
 // UnmarshalTOML performs custom unmarshalling of TOML data for LocalSecretStoreMap.
-func (m *LocalSecretStoreMap) UnmarshalTOML(v interface{}) error {
-	raw, ok := v.(map[string]interface{})
+func (m *LocalSecretStoreMap) UnmarshalTOML(v any) error {
+	raw, ok := v.(map[string]any)
 	if !ok {
 		return fmt.Errorf("expected secret_stores to be a TOML table")
 	}
@@ -149,10 +149,10 @@ func (m *LocalSecretStoreMap) UnmarshalTOML(v interface{}) error {
 
 	for key, val := range raw {
 		switch typed := val.(type) {
-		case []interface{}:
+		case []any:
 			var entries []SecretStoreArrayEntry
 			for _, item := range typed {
-				obj, ok := item.(map[string]interface{})
+				obj, ok := item.(map[string]any)
 				if !ok {
 					return fmt.Errorf("invalid item in array for key %q", key)
 				}
@@ -167,7 +167,7 @@ func (m *LocalSecretStoreMap) UnmarshalTOML(v interface{}) error {
 				Array:   entries,
 			}
 
-		case map[string]interface{}:
+		case map[string]any:
 			file, hasFile := typed["file"].(string)
 			format, hasFormat := typed["format"].(string)
 
@@ -191,7 +191,7 @@ func (m *LocalSecretStoreMap) UnmarshalTOML(v interface{}) error {
 	return nil
 }
 
-func decodeTOMLMap(m map[string]interface{}, out interface{}) error {
+func decodeTOMLMap(m map[string]any, out any) error {
 	buf := new(bytes.Buffer)
 	enc := toml.NewEncoder(buf)
 	if err := enc.Encode(m); err != nil {

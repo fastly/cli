@@ -53,7 +53,7 @@ type File struct {
 
 // MarshalTOML performs custom marshalling to TOML for objects of File type.
 func (f *File) MarshalTOML() ([]byte, error) {
-	localServer := make(map[string]interface{})
+	localServer := make(map[string]any)
 
 	if f.LocalServer.Backends != nil {
 		localServer["backends"] = f.LocalServer.Backends
@@ -64,17 +64,17 @@ func (f *File) MarshalTOML() ([]byte, error) {
 	}
 
 	if f.LocalServer.KVStores != nil {
-		kvStores := make(map[string]interface{})
+		kvStores := make(map[string]any)
 		for key, entry := range f.LocalServer.KVStores {
 			if entry.External != nil {
-				kvStores[key] = map[string]interface{}{
+				kvStores[key] = map[string]any{
 					"file":   entry.External.File,
 					"format": entry.External.Format,
 				}
 			} else {
-				items := make([]map[string]interface{}, 0, len(entry.Array))
+				items := make([]map[string]any, 0, len(entry.Array))
 				for _, e := range entry.Array {
-					obj := map[string]interface{}{"key": e.Key}
+					obj := map[string]any{"key": e.Key}
 					if e.File != "" {
 						obj["file"] = e.File
 					}
@@ -90,17 +90,17 @@ func (f *File) MarshalTOML() ([]byte, error) {
 	}
 
 	if f.LocalServer.SecretStores != nil {
-		secretStores := make(map[string]interface{})
+		secretStores := make(map[string]any)
 		for key, entry := range f.LocalServer.SecretStores {
 			if entry.External != nil {
-				secretStores[key] = map[string]interface{}{
+				secretStores[key] = map[string]any{
 					"file":   entry.External.File,
 					"format": entry.External.Format,
 				}
 			} else {
-				items := make([]map[string]interface{}, 0, len(entry.Array))
+				items := make([]map[string]any, 0, len(entry.Array))
 				for _, e := range entry.Array {
-					obj := map[string]interface{}{"key": e.Key}
+					obj := map[string]any{"key": e.Key}
 					if e.File != "" {
 						obj["file"] = e.File
 					}
@@ -119,21 +119,19 @@ func (f *File) MarshalTOML() ([]byte, error) {
 		localServer["viceroy_version"] = f.LocalServer.ViceroyVersion
 	}
 
-	type outputFile struct {
-		Authors         []string    `toml:"authors"`
-		ClonedFrom      string      `toml:"cloned_from,omitempty"`
-		Description     string      `toml:"description"`
-		Language        string      `toml:"language"`
-		Profile         string      `toml:"profile,omitempty"`
-		LocalServer     interface{} `toml:"local_server"` // override this field
-		ManifestVersion Version     `toml:"manifest_version"`
-		Name            string      `toml:"name"`
-		Scripts         Scripts     `toml:"scripts,omitempty"`
-		ServiceID       string      `toml:"service_id"`
-		Setup           Setup       `toml:"setup,omitempty"`
-	}
-
-	out := outputFile{
+	out := struct {
+		Authors         []string `toml:"authors"`
+		ClonedFrom      string   `toml:"cloned_from,omitempty"`
+		Description     string   `toml:"description"`
+		Language        string   `toml:"language"`
+		Profile         string   `toml:"profile,omitempty"`
+		LocalServer     any      `toml:"local_server"` // override this field
+		ManifestVersion Version  `toml:"manifest_version"`
+		Name            string   `toml:"name"`
+		Scripts         Scripts  `toml:"scripts,omitempty"`
+		ServiceID       string   `toml:"service_id"`
+		Setup           Setup    `toml:"setup,omitempty"`
+	}{
 		Authors:         f.Authors,
 		ClonedFrom:      f.ClonedFrom,
 		Description:     f.Description,

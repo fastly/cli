@@ -2,7 +2,7 @@ package manifest
 
 import (
 	"bytes"
-	"log"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -14,12 +14,12 @@ type KVWrapper struct {
 }
 
 func (w KVWrapper) MarshalTOML() ([]byte, error) {
-	obj := make(map[string]interface{})
-	kv := make(map[string]interface{})
+	obj := make(map[string]any)
+	kv := make(map[string]any)
 
 	for key, entry := range w.KVStores {
 		if entry.External != nil {
-			kv[key] = map[string]interface{}{
+			kv[key] = map[string]any{
 				"file":   entry.External.File,
 				"format": entry.External.Format,
 			}
@@ -40,12 +40,12 @@ type SecretStoreWrapper struct {
 }
 
 func (w SecretStoreWrapper) MarshalTOML() ([]byte, error) {
-	obj := make(map[string]interface{})
-	kv := make(map[string]interface{})
+	obj := make(map[string]any)
+	kv := make(map[string]any)
 
 	for key, entry := range w.SecretStores {
 		if entry.External != nil {
-			kv[key] = map[string]interface{}{
+			kv[key] = map[string]any{
 				"file":   entry.External.File,
 				"format": entry.External.Format,
 			}
@@ -63,23 +63,27 @@ func (w SecretStoreWrapper) MarshalTOML() ([]byte, error) {
 
 func TestLocalKVStores_UnmarshalTOML(t *testing.T) {
 	tests := []struct {
-		name         string
-		inputTOML    string
-		expectError  bool
-		expectArray  bool
-		expectLength int
-		wantFile     string
+		name        string
+		inputTOML   string
+		expectError bool
+		expected    LocalKVStore
 	}{
 		{
 			name: "legacy array format",
 			inputTOML: `
 [[kv_stores.my-kv]]
-key = "my-kv"
+key = "kv"
 file = "kv.json"
 `,
-			expectArray:  true,
-			expectLength: 1,
-			wantFile:     "kv.json",
+			expected: LocalKVStore{
+				IsArray: true,
+				Array: []KVStoreArrayEntry{
+					{
+						Key:  "kv",
+						File: "kv.json",
+					},
+				},
+			},
 		},
 		{
 			name: "external file format",
@@ -87,9 +91,13 @@ file = "kv.json"
 [kv_stores]
 my-kv = { file = "kv.json", format = "json" }
 `,
-			expectArray:  false,
-			expectLength: 0,
-			wantFile:     "kv.json",
+			expected: LocalKVStore{
+				IsArray: false,
+				External: &KVStoreExternalFile{
+					File:   "kv.json",
+					Format: "json",
+				},
+			},
 		},
 		{
 			name: "invalid format",
@@ -108,14 +116,6 @@ my-kv = "not-a-valid-entry"
 			decoder := toml.NewDecoder(strings.NewReader(tt.inputTOML))
 			err := decoder.Decode(&m)
 
-			buf := new(bytes.Buffer)
-			encoder := toml.NewEncoder(buf)
-
-			encodeErr := encoder.Encode(m)
-			if encodeErr != nil {
-				log.Fatalf("TOML encode failed: %v", encodeErr)
-			}
-
 			if tt.expectError {
 				if err == nil {
 					t.Fatal("Expected error for invalid format, but got none")
@@ -130,24 +130,8 @@ my-kv = "not-a-valid-entry"
 				t.Fatalf("Expected key 'my-kv' not found")
 			}
 
-			if got.IsArray != tt.expectArray {
-				t.Fatalf("Expected IsArray=%v, got %v", tt.expectArray, got.IsArray)
-			}
-
-			if tt.expectArray {
-				if len(got.Array) != tt.expectLength {
-					t.Fatalf("Expected %d inline entries, got %d", tt.expectLength, len(got.Array))
-				}
-				if got.Array[0].File != tt.wantFile {
-					t.Errorf("Expected file %q, got %q", tt.wantFile, got.Array[0].File)
-				}
-			} else {
-				if got.External == nil {
-					t.Fatal("Expected KVStoreExternalFile but got nil")
-				}
-				if got.External.File != tt.wantFile {
-					t.Errorf("Expected file %q, got %q", tt.wantFile, got.External.File)
-				}
+			if !reflect.DeepEqual(got, tt.expected) {
+				t.Errorf("Mismatch!\nGot:  %+v\nWant: %+v", got, tt.expected)
 			}
 		})
 	}
@@ -155,12 +139,10 @@ my-kv = "not-a-valid-entry"
 
 func TestLocalSecretStores_UnmarshalTOML(t *testing.T) {
 	tests := []struct {
-		name         string
-		inputTOML    string
-		expectError  bool
-		expectArray  bool
-		expectLength int
-		wantFile     string
+		name        string
+		inputTOML   string
+		expectError bool
+		expected    LocalSecretStore
 	}{
 		{
 			name: "legacy array format",
@@ -169,19 +151,29 @@ func TestLocalSecretStores_UnmarshalTOML(t *testing.T) {
 key = "secret"
 file = "secret.json"
 `,
-			expectArray:  true,
-			expectLength: 1,
-			wantFile:     "secret.json",
+			expected: LocalSecretStore{
+				IsArray: true,
+				Array: []SecretStoreArrayEntry{
+					{
+						Key:  "secret",
+						File: "secret.json",
+					},
+				},
+			},
 		},
 		{
 			name: "external file format",
 			inputTOML: `
 [secret_stores]
-my-secret-store = { file = "kv.json", format = "json" }
+my-secret-store = { file = "secret.json", format = "json" }
 `,
-			expectArray:  false,
-			expectLength: 0,
-			wantFile:     "kv.json",
+			expected: LocalSecretStore{
+				IsArray: false,
+				External: &SecretStoreExternalFile{
+					File:   "secret.json",
+					Format: "json",
+				},
+			},
 		},
 		{
 			name: "invalid format",
@@ -200,14 +192,6 @@ my-secret-store = "not-a-valid-entry"
 			decoder := toml.NewDecoder(strings.NewReader(tt.inputTOML))
 			err := decoder.Decode(&m)
 
-			buf := new(bytes.Buffer)
-			encoder := toml.NewEncoder(buf)
-
-			encodeErr := encoder.Encode(m)
-			if encodeErr != nil {
-				log.Fatalf("TOML encode failed: %v", encodeErr)
-			}
-
 			if tt.expectError {
 				if err == nil {
 					t.Fatal("Expected error for invalid format, but got none")
@@ -222,24 +206,8 @@ my-secret-store = "not-a-valid-entry"
 				t.Fatalf("Expected key 'my-secret-store' not found")
 			}
 
-			if got.IsArray != tt.expectArray {
-				t.Fatalf("Expected IsArray=%v, got %v", tt.expectArray, got.IsArray)
-			}
-
-			if tt.expectArray {
-				if len(got.Array) != tt.expectLength {
-					t.Fatalf("Expected %d inline entries, got %d", tt.expectLength, len(got.Array))
-				}
-				if got.Array[0].File != tt.wantFile {
-					t.Errorf("Expected file %q, got %q", tt.wantFile, got.Array[0].File)
-				}
-			} else {
-				if got.External == nil {
-					t.Fatal("Expected SecretStoreExternalFile but got nil")
-				}
-				if got.External.File != tt.wantFile {
-					t.Errorf("Expected file %q, got %q", tt.wantFile, got.External.File)
-				}
+			if !reflect.DeepEqual(got, tt.expected) {
+				t.Errorf("Mismatch!\nGot:  %+v\nWant: %+v", got, tt.expected)
 			}
 		})
 	}
