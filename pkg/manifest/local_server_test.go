@@ -1,65 +1,12 @@
 package manifest
 
 import (
-	"bytes"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/pelletier/go-toml"
 )
-
-type KVWrapper struct {
-	KVStores LocalKVStoreMap `toml:"kv_stores"`
-}
-
-func (w KVWrapper) MarshalTOML() ([]byte, error) {
-	obj := make(map[string]any)
-	kv := make(map[string]any)
-
-	for key, entry := range w.KVStores {
-		if entry.External != nil {
-			kv[key] = map[string]any{
-				"file":   entry.External.File,
-				"format": entry.External.Format,
-			}
-		} else {
-			kv[key] = entry.Array
-		}
-	}
-
-	obj["kv_stores"] = kv
-
-	buf := new(bytes.Buffer)
-	err := toml.NewEncoder(buf).Encode(obj)
-	return buf.Bytes(), err
-}
-
-type SecretStoreWrapper struct {
-	SecretStores LocalSecretStoreMap `toml:"secret_stores"`
-}
-
-func (w SecretStoreWrapper) MarshalTOML() ([]byte, error) {
-	obj := make(map[string]any)
-	kv := make(map[string]any)
-
-	for key, entry := range w.SecretStores {
-		if entry.External != nil {
-			kv[key] = map[string]any{
-				"file":   entry.External.File,
-				"format": entry.External.Format,
-			}
-		} else {
-			kv[key] = entry.Array
-		}
-	}
-
-	obj["kv_stores"] = kv
-
-	buf := new(bytes.Buffer)
-	err := toml.NewEncoder(buf).Encode(obj)
-	return buf.Bytes(), err
-}
 
 func TestLocalKVStores_UnmarshalTOML(t *testing.T) {
 	tests := []struct {
@@ -111,7 +58,9 @@ my-kv = "not-a-valid-entry"
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var m KVWrapper
+			var m struct {
+				KVStores LocalKVStoreMap `toml:"kv_stores"`
+			}
 
 			decoder := toml.NewDecoder(strings.NewReader(tt.inputTOML))
 			err := decoder.Decode(&m)
@@ -187,7 +136,9 @@ my-secret-store = "not-a-valid-entry"
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var m SecretStoreWrapper
+			var m struct {
+				SecretStores LocalSecretStoreMap `toml:"secret_stores"`
+			}
 
 			decoder := toml.NewDecoder(strings.NewReader(tt.inputTOML))
 			err := decoder.Decode(&m)
