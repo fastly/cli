@@ -7,6 +7,7 @@
 ### Enhancements:
 
 - feat(config): Support file/format for kv_store and secret_store in fastly.toml
+- feat(config): Support metadata for kv_store in fastly.toml
 
 ### Bug fixes:
 

@@ -81,6 +81,9 @@ func (f *File) MarshalTOML() ([]byte, error) {
 					if e.Data != "" {
 						obj["data"] = e.Data
 					}
+					if e.Metadata != "" {
+						obj["metadata"] = e.Metadata
+					}
 					items = append(items, obj)
 				}
 				kvStores[key] = items

@@ -21,13 +21,15 @@ func TestLocalKVStores_UnmarshalTOML(t *testing.T) {
 [[kv_stores.my-kv]]
 key = "kv"
 file = "kv.json"
+metadata = "metadata"
 `,
 			expected: LocalKVStore{
 				IsArray: true,
 				Array: []KVStoreArrayEntry{
 					{
-						Key:  "kv",
-						File: "kv.json",
+						Key:      "kv",
+						File:     "kv.json",
+						Metadata: "metadata",
 					},
 				},
 			},

@@ -34,9 +34,10 @@ type LocalConfigStore struct {
 // KVStoreArrayEntry represents an array-based key/value store entries.
 // It expects a key plus either a data or file field.
 type KVStoreArrayEntry struct {
-	Key  string `toml:"key"`
-	File string `toml:"file,omitempty"`
-	Data string `toml:"data,omitempty"`
+	Key      string `toml:"key"`
+	File     string `toml:"file,omitempty"`
+	Data     string `toml:"data,omitempty"`
+	Metadata string `toml:"metadata,omitempty"`
 }
 
 // KVStoreExternalFile represents the external key/value store,

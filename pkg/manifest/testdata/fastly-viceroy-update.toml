@@ -37,7 +37,7 @@ qux"""
 
 [local_server.kv_stores]
 store_one = [
-  { key = "first", data = "This is some data" },
+  { key = "first", data = "This is some data", metadata = "This is some metadata" },
   { key = "second", file = "strings.json" },
 ]
 store_three = { file = "path/to/kv.json", format = "json" }
@@ -45,6 +45,7 @@ store_three = { file = "path/to/kv.json", format = "json" }
 [[local_server.kv_stores.store_two]]
 key = "first"
 data = "This is some data"
+metadata = "This is some metadata"
 
 [[local_server.kv_stores.store_two]]
 key = "second"
