@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	v1 "github.com/fastly/go-fastly/v9/fastly/domains/v1"
+	v1 "github.com/fastly/go-fastly/v10/fastly/domains/v1"
 
 	root "github.com/fastly/cli/pkg/commands/domainv1"
 	"github.com/fastly/cli/pkg/testutil"

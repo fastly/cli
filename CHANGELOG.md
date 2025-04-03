@@ -9,6 +9,7 @@
 ### Bug fixes:
 
 ### Dependencies:
+- dep(go.mod): upgrade go-fastly from v9 to v10 [#1448](https://github.com/fastly/cli/pull/1448)
 
 ## [v11.1.0](https://github.com/fastly/cli/releases/tag/v11.1.0) (2025-03-27)
 

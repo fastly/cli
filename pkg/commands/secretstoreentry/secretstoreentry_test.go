@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v9/fastly"
+	"github.com/fastly/go-fastly/v10/fastly"
 	"golang.org/x/crypto/nacl/box"
 
 	"github.com/fastly/cli/pkg/app"

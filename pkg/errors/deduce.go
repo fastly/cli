@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fastly/go-fastly/v9/fastly"
+	"github.com/fastly/go-fastly/v10/fastly"
 )
 
 // Deduce attempts to deduce a RemediationError from a plain error. If the error

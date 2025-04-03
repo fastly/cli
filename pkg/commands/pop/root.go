@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v9/fastly"
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -56,9 +56,9 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 func Coordinates(c *fastly.Coordinates) string {
 	if c != nil {
 		return fmt.Sprintf(
-			`{Latitude:%v Longtitude:%v X:%v Y:%v}`,
+			`{Latitude:%v Longitude:%v X:%v Y:%v}`,
 			fastly.ToValue(c.Latitude),
-			fastly.ToValue(c.Longtitude),
+			fastly.ToValue(c.Longitude),
 			fastly.ToValue(c.X),
 			fastly.ToValue(c.Y),
 		)

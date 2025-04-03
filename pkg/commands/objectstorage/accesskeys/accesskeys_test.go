@@ -12,7 +12,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v9/fastly/objectstorage/accesskeys"
+	"github.com/fastly/go-fastly/v10/fastly/objectstorage/accesskeys"
 )
 
 const (

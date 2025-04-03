@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/fastly/go-fastly/v9/fastly"
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	"4d63.com/optional"
 	"github.com/fastly/cli/pkg/argparser"
