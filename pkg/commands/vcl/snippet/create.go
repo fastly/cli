@@ -40,7 +40,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("content", "VCL snippet passed as file path or content, e.g. $(< snippet.vcl)").Action(c.content.Set).StringVar(&c.content.Value)
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
 	c.CmdClause.Flag("name", "The name of the VCL snippet").Action(c.name.Set).StringVar(&c.name.Value)
-	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).IntVar(&c.priority.Value)
+	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).StringVar(&c.priority.Value)
 
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -68,7 +68,7 @@ type CreateCommand struct {
 	dynamic        argparser.OptionalBool
 	location       argparser.OptionalString
 	name           argparser.OptionalString
-	priority       argparser.OptionalInt
+	priority       argparser.OptionalString
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
 }

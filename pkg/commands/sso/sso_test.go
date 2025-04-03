@@ -165,10 +165,10 @@ func TestSSO(t *testing.T) {
 							Group:  fastly.ToPointer("Bar"),
 							Shield: fastly.ToPointer("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:   fastly.ToPointer(float64(1)),
-								Longtitude: fastly.ToPointer(float64(2)),
-								X:          fastly.ToPointer(float64(3)),
-								Y:          fastly.ToPointer(float64(4)),
+								Latitude:  fastly.ToPointer(float64(1)),
+								Longitude: fastly.ToPointer(float64(2)),
+								X:         fastly.ToPointer(float64(3)),
+								Y:         fastly.ToPointer(float64(4)),
 							},
 						},
 					}, nil
@@ -189,7 +189,7 @@ func TestSSO(t *testing.T) {
 			WantOutputs: []string{
 				// FIXME: Put back messaging once SSO is GA.
 				// "is not a Fastly SSO (Single Sign-On) generated token",
-				"{Latitude:1 Longtitude:2 X:3 Y:4}",
+				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
 			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
@@ -220,7 +220,7 @@ func TestSSO(t *testing.T) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutput:     "Your access token has expired and so has your refresh token.",
-			DontWantOutput: "{Latitude:1 Longtitude:2 X:3 Y:4}",
+			DontWantOutput: "{Latitude:1 Longitude:2 X:3 Y:4}",
 			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
 				userProfile := opts.Config.Profiles["user"]
@@ -243,10 +243,10 @@ func TestSSO(t *testing.T) {
 							Group:  fastly.ToPointer("Bar"),
 							Shield: fastly.ToPointer("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:   fastly.ToPointer(float64(1)),
-								Longtitude: fastly.ToPointer(float64(2)),
-								X:          fastly.ToPointer(float64(3)),
-								Y:          fastly.ToPointer(float64(4)),
+								Latitude:  fastly.ToPointer(float64(1)),
+								Longitude: fastly.ToPointer(float64(2)),
+								X:         fastly.ToPointer(float64(3)),
+								Y:         fastly.ToPointer(float64(4)),
 							},
 						},
 					}, nil
@@ -281,7 +281,7 @@ func TestSSO(t *testing.T) {
 				"Your access token has expired and so has your refresh token.",
 				"Starting a local server to handle the authentication flow.",
 				"Session token (persisted to your local configuration): 123",
-				"{Latitude:1 Longtitude:2 X:3 Y:4}",
+				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
 			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
 				const expectedToken = "123"

@@ -25,10 +25,10 @@ func TestAllDatacenters(t *testing.T) {
 					Group:  fastly.ToPointer("Bar"),
 					Shield: fastly.ToPointer("Baz"),
 					Coordinates: &fastly.Coordinates{
-						Latitude:   fastly.ToPointer(float64(1)),
-						Longtitude: fastly.ToPointer(float64(2)),
-						X:          fastly.ToPointer(float64(3)),
-						Y:          fastly.ToPointer(float64(4)),
+						Latitude:  fastly.ToPointer(float64(1)),
+						Longitude: fastly.ToPointer(float64(2)),
+						X:         fastly.ToPointer(float64(3)),
+						Y:         fastly.ToPointer(float64(4)),
 					},
 				},
 			}, nil
@@ -41,5 +41,5 @@ func TestAllDatacenters(t *testing.T) {
 	}
 	err := app.Run(args, nil)
 	testutil.AssertNoError(t, err)
-	testutil.AssertString(t, "\nNAME    CODE  GROUP  SHIELD  COORDINATES\nFoobar  FBR   Bar    Baz     {Latitude:1 Longtitude:2 X:3 Y:4}\n", stdout.String())
+	testutil.AssertString(t, "\nNAME    CODE  GROUP  SHIELD  COORDINATES\nFoobar  FBR   Bar    Baz     {Latitude:1 Longitude:2 X:3 Y:4}\n", stdout.String())
 }

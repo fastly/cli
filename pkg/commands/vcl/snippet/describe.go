@@ -187,7 +187,7 @@ func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
 	fmt.Fprintf(out, "Service Version: %d\n", fastly.ToValue(s.ServiceVersion))
 	fmt.Fprintf(out, "\nName: %s\n", fastly.ToValue(s.Name))
 	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(s.SnippetID))
-	fmt.Fprintf(out, "Priority: %d\n", fastly.ToValue(s.Priority))
+	fmt.Fprintf(out, "Priority: %s\n", fastly.ToValue(s.Priority))
 	fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(fastly.ToValue(s.Dynamic)))
 	fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(s.Type))
 	fmt.Fprintf(out, "Content: \n%s\n", fastly.ToValue(s.Content))

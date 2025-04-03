@@ -39,7 +39,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
 	c.CmdClause.Flag("name", "The name of the VCL snippet to update").StringVar(&c.name)
 	c.CmdClause.Flag("new-name", "New name for the VCL snippet").Action(c.newName.Set).StringVar(&c.newName.Value)
-	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).IntVar(&c.priority.Value)
+	c.CmdClause.Flag("priority", "Priority determines execution order. Lower numbers execute first").Short('p').Action(c.priority.Set).StringVar(&c.priority.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -70,7 +70,7 @@ type UpdateCommand struct {
 	location       argparser.OptionalString
 	name           string
 	newName        argparser.OptionalString
-	priority       argparser.OptionalInt
+	priority       argparser.OptionalString
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
 	snippetID      string
