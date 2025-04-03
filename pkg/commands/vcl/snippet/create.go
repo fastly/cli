@@ -106,7 +106,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out,
-		"Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, snippet id: %s, type: %s, priority: %d)",
+		"Created VCL snippet '%s' (service: %s, version: %d, dynamic: %t, snippet id: %s, type: %s, priority: %s)",
 		fastly.ToValue(v.Name),
 		fastly.ToValue(v.ServiceID),
 		fastly.ToValue(v.ServiceVersion),

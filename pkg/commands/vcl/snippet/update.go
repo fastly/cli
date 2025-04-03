@@ -147,7 +147,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 	text.Success(out,
-		"Updated VCL snippet '%s' (previously: '%s', service: %s, version: %d, type: %v, priority: %d)",
+		"Updated VCL snippet '%s' (previously: '%s', service: %s, version: %d, type: %v, priority: %s)",
 		fastly.ToValue(v.Name),
 		input.Name,
 		fastly.ToValue(v.ServiceID),

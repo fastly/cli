@@ -62,10 +62,14 @@ func TestVCLSnippetCreate(t *testing.T) {
 					if i.Name == nil {
 						i.Name = fastly.ToPointer("")
 					}
+					if i.Priority == nil {
+						i.Priority = fastly.ToPointer("100")
+					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
+						Priority:       i.Priority,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
 						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 						SnippetID:      fastly.ToPointer("123"),
@@ -73,7 +77,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:            "--content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 3",
-			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 100)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
@@ -92,10 +96,14 @@ func TestVCLSnippetCreate(t *testing.T) {
 					if i.Name == nil {
 						i.Name = fastly.ToPointer("")
 					}
+					if i.Priority == nil {
+						i.Priority = fastly.ToPointer("100")
+					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
+						Priority:       i.Priority,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
 						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 						SnippetID:      fastly.ToPointer("123"),
@@ -103,7 +111,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:            "--content ./testdata/snippet.vcl --dynamic --name foo --service-id 123 --type recv --version 3",
-			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, snippet id: 123, type: recv, priority: 0)",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: true, snippet id: 123, type: recv, priority: 100)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
@@ -121,6 +129,9 @@ func TestVCLSnippetCreate(t *testing.T) {
 					}
 					if i.Name == nil {
 						i.Name = fastly.ToPointer("")
+					}
+					if i.Priority == nil {
+						i.Priority = fastly.ToPointer("100")
 					}
 					return &fastly.Snippet{
 						Content:        i.Content,
@@ -154,10 +165,14 @@ func TestVCLSnippetCreate(t *testing.T) {
 					if i.Name == nil {
 						i.Name = fastly.ToPointer("")
 					}
+					if i.Priority == nil {
+						i.Priority = fastly.ToPointer("100")
+					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
+						Priority:       i.Priority,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
 						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 						SnippetID:      fastly.ToPointer("123"),
@@ -165,7 +180,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:            "--autoclone --content ./testdata/snippet.vcl --name foo --service-id 123 --type recv --version 1",
-			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 4, dynamic: false, snippet id: 123, type: recv, priority: 100)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
@@ -184,10 +199,14 @@ func TestVCLSnippetCreate(t *testing.T) {
 					if i.Name == nil {
 						i.Name = fastly.ToPointer("")
 					}
+					if i.Priority == nil {
+						i.Priority = fastly.ToPointer("100")
+					}
 					return &fastly.Snippet{
 						Content:        i.Content,
 						Dynamic:        i.Dynamic,
 						Name:           i.Name,
+						Priority:       i.Priority,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
 						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 						SnippetID:      fastly.ToPointer("123"),
@@ -195,7 +214,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 				},
 			},
 			Args:            "--content inline_vcl --name foo --service-id 123 --type recv --version 3",
-			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 0)",
+			WantOutput:      "Created VCL snippet 'foo' (service: 123, version: 3, dynamic: false, snippet id: 123, type: recv, priority: 100)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 	}
@@ -530,8 +549,8 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1",
-			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
+			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority '1' --service-id 123 --type recv --version 1",
+			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: '1')",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 	}
