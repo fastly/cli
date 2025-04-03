@@ -12,7 +12,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/compute/computeacl"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v9/fastly/computeacls"
+	"github.com/fastly/go-fastly/v10/fastly/computeacls"
 )
 
 func TestComputeACLCreate(t *testing.T) {

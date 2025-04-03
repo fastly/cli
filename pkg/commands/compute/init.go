@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/go-fastly/v9/fastly"
+	"github.com/fastly/go-fastly/v10/fastly"
 	cp "github.com/otiai10/copy"
 
 	"github.com/fastly/cli/pkg/argparser"

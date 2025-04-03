@@ -3,7 +3,7 @@ package snippet_test
 import (
 	"testing"
 
-	"github.com/fastly/go-fastly/v9/fastly"
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/vcl"
 	sub "github.com/fastly/cli/pkg/commands/vcl/snippet"

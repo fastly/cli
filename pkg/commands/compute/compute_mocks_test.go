@@ -5,7 +5,7 @@ package compute_test
 // also a mocked HTTP client).
 
 import (
-	"github.com/fastly/go-fastly/v9/fastly"
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	"github.com/fastly/cli/pkg/testutil"
 )

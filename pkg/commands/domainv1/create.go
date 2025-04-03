@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v9/fastly"
-	v1 "github.com/fastly/go-fastly/v9/fastly/domains/v1"
+	"github.com/fastly/go-fastly/v10/fastly"
+	v1 "github.com/fastly/go-fastly/v10/fastly/domains/v1"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
