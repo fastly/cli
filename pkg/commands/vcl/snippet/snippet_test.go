@@ -549,8 +549,8 @@ func TestVCLSnippetUpdate(t *testing.T) {
 					}, nil
 				},
 			},
-			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority '1' --service-id 123 --type recv --version 1",
-			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: '1')",
+			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1",
+			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 	}
