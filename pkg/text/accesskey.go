@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v9/fastly/objectstorage/accesskeys"
+	"github.com/fastly/go-fastly/v10/fastly/objectstorage/accesskeys"
 )
 
 // PrintAccessKey displays an access key.
