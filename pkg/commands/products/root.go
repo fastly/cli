@@ -82,6 +82,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.enableProduct != "" {
+		text.Deprecated(out, "The 'products --enable=%s' command is deprecated and will be removed in a future release. Use 'product %s enable' instead.", c.enableProduct, c.enableProduct)
 		p := identifyProduct(c.enableProduct)
 		if p == fastly.ProductUndefined {
 			return errors.New("unrecognised product")
@@ -97,6 +98,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.disableProduct != "" {
+		text.Deprecated(out, "The 'products --disable=%s' command is deprecated and will be removed in a future release. Use 'product %s disable' instead.", c.disableProduct, c.disableProduct)
 		p := identifyProduct(c.disableProduct)
 		if p == fastly.ProductUndefined {
 			return errors.New("unrecognised product")
@@ -110,6 +112,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		text.Success(out, "Successfully disabled product '%s'", c.disableProduct)
 		return nil
 	}
+
+	text.Deprecated(out, "The 'products' command is deprecated and will be removed in a future release. Use 'product <name> status' for each product of interest.")
 
 	ps := ProductStatus{}
 
