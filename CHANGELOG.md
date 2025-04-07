@@ -16,6 +16,7 @@
 - build(deps): `golang.org/x/oauth2` from 0.28.0 to 0.29.0 ([#1451](https://github.com/fastly/cli/pull/1451))
 - build(deps): `golang.org/x/sys` from 0.31.0 to 0.32.0 ([#1454](https://github.com/fastly/cli/pull/1454))
 - build(deps): `github.com/fsnotify/fsnotify` from 1.8.0 to 1.9.0 ([#1450](https://github.com/fastly/cli/pull/1450))
+- build(deps): `golang.org/x/term` from 0.30.0 to 0.31.0 ([#1455](https://github.com/fastly/cli/pull/1455))
 
 ## [v11.1.0](https://github.com/fastly/cli/releases/tag/v11.1.0) (2025-03-27)
 
