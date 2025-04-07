@@ -19,6 +19,7 @@
 - build(deps): `golang.org/x/term` from 0.30.0 to 0.31.0 ([#1455](https://github.com/fastly/cli/pull/1455))
 - build(deps): `golang.org/x/crypto` from 0.36.0 to 0.37.0 ([#1453](https://github.com/fastly/cli/pull/1453))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.13.0 to 3.14.1 ([#1456](https://github.com/fastly/cli/pull/1456))
+- build(deps): `actions/create-github-app-token` from 1 to 2 ([#1449](https://github.com/fastly/cli/pull/1449))
 
 ## [v11.1.0](https://github.com/fastly/cli/releases/tag/v11.1.0) (2025-03-27)
 
