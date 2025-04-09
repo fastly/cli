@@ -35,6 +35,9 @@ const RustDefaultBuildCommand = "cargo build --bin %s --release --target %s --co
 // RustDefaultWasmWasiTarget is the expected Rust WasmWasi build target
 const RustDefaultWasmWasiTarget = "wasm32-wasip1"
 
+// OldRustDefaultWasmWasiTarget was the expected Rust WasmWasi build target before version 11 of the CLI
+const OldRustDefaultWasmWasiTarget = "wasm32-wasi"
+
 // RustManifest is the manifest file for defining project configuration.
 const RustManifest = "Cargo.toml"
 
@@ -415,6 +418,13 @@ func (r *Rust) ProcessLocation() error {
 
 	err = filesystem.CopyFile(src, dst)
 	if err != nil {
+		// check for the binary in the 'old' location before
+		// the compilation target name was changed
+		src := filepath.Join(metadata.TargetDirectory, OldRustDefaultWasmWasiTarget, "release", fmt.Sprintf("%s.wasm", r.packageName))
+		if filesystem.FileExists(src) {
+			return fmt.Errorf("this project is configured to produce a '%s' target, but the Fastly CLI requires the '%s' target.\nTo reconfigure your project, follow the instructions at https://www.fastly.com/documentation/guides/compute/rust/#using-fastly-cli-1100-or-higher", OldRustDefaultWasmWasiTarget, r.config.WasmWasiTarget)
+		}
+
 		r.errlog.Add(err)
 		return fmt.Errorf("failed to copy wasm binary: %w", err)
 	}
