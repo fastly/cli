@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if err := app.Run(os.Args, os.Stdin); err != nil {
-		if skipExit := fsterr.Process(err, os.Args, os.Stdout); skipExit {
+		if skipExit := fsterr.Process(err, os.Args, os.Stderr); skipExit {
 			return
 		}
 		os.Exit(1)
