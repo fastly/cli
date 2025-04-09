@@ -11,6 +11,8 @@
 
 ### Bug fixes:
 
+- fix(language/rust): Check for wasm32-wasi output from build process and inform user how to reconfigure their project. [#1458](https://github.com/fastly/cli/pull/1458)
+
 ### Dependencies:
 - dep(go.mod): upgrade go-fastly from v9 to v10 [#1448](https://github.com/fastly/cli/pull/1448)
 - build(deps): `golang.org/x/oauth2` from 0.28.0 to 0.29.0 ([#1451](https://github.com/fastly/cli/pull/1451))
