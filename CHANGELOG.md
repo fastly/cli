@@ -8,7 +8,7 @@
 
 - feat(config): Support file/format for kv_store and secret_store in fastly.toml
 - feat(config): Support metadata for kv_store in fastly.toml
-- feat(pkg/commands/logging): adds support for passing a filepath as an argument for format in logging commands
+- feat(logging): add support for passing a filepath as an argument for format in logging commands
 
 ### Bug fixes:
 
