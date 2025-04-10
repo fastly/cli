@@ -119,7 +119,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Format.WasSet {
-		input.Format = &c.Format.Value
+		input.Format = fastly.ToPointer(argparser.Content(c.Format.Value))
 	}
 
 	if c.FormatVersion.WasSet {

@@ -13,7 +13,7 @@ func AccountName(command *kingpin.CmdClause, c *argparser.OptionalString) {
 
 // Format defines the format flag.
 func Format(command *kingpin.CmdClause, c *argparser.OptionalString) {
-	command.Flag("format", "Apache style log formatting. Your log must produce valid JSON").Action(c.Set).StringVar(&c.Value)
+	command.Flag("format", "Apache style log formatting. Your log must produce valid JSON. Can be a string or a file path to a file containing formatting").Action(c.Set).StringVar(&c.Value)
 }
 
 // GzipLevel defines the gzip flag.
