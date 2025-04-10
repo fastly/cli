@@ -6,6 +6,14 @@
 
 ### Enhancements:
 
+### Bug fixes:
+
+### Dependencies:
+
+## [v11.2.0](https://github.com/fastly/cli/releases/tag/v11.2.0) (2025-04-10)
+
+### Enhancements:
+
 - feat(config): Support file/format for kv_store and secret_store in fastly.toml
 - feat(config): Support metadata for kv_store in fastly.toml
 - feat(logging): add support for passing a filepath as an argument for format in logging commands
