@@ -415,6 +415,31 @@ func TestServiceID(t *testing.T) {
 	}
 }
 
+func TestContent(t *testing.T) {
+	const expectedContent = "This is a test"
+	const expectedPath = "fixtures/content_test.txt"
+	for _, testcase := range []struct {
+		name    string
+		content string
+	}{
+		{
+			name:    "regular string",
+			content: expectedContent,
+		},
+		{
+			name:    "path",
+			content: expectedPath,
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			content := argparser.Content(testcase.content)
+			if content != expectedContent {
+				t.Errorf("for test %s, wanted content %s, got %s", testcase.name, expectedContent, content)
+			}
+		})
+	}
+}
+
 // cloneVersionResult returns a function which returns a specific cloned version.
 func cloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
