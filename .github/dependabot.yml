@@ -6,7 +6,15 @@ updates:
       interval: "weekly"
     allow:
       - dependency-type: "all"
+    groups:
+      go-dependencies:
+        patterns:
+          "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      gha-dependencies:
+        patterns:
+          "*"
