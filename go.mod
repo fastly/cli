@@ -1,8 +1,7 @@
 module github.com/fastly/cli
 
 go 1.23.0
-
-toolchain go1.23.7
+toolchain go1.24.1
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
@@ -41,7 +40,7 @@ require (
 
 require (
 	github.com/dnaeon/go-vcr v1.2.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
@@ -72,7 +71,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/oauth2 v0.29.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/text v0.24.0
