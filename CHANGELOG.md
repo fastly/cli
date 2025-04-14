@@ -9,6 +9,9 @@
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `github.com/fastly/kingpin` from 2.1.12-0.20191105091915-95d230a53780+incompatible to 2.2.6+incompatible ([#1465](https://github.com/fastly/cli/pull/1465))
+- build(deps): `github.com/go-jose/go-jose/v4` from 4.0.5 to 4.1.0 ([#1465](https://github.com/fastly/cli/pull/1465))
+- build(deps): `golang.org/x/net` from 0.37.0 to 0.39.0 ([#1465](https://github.com/fastly/cli/pull/1465))
 
 ## [v11.2.0](https://github.com/fastly/cli/releases/tag/v11.2.0) (2025-04-10)
 
