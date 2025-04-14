@@ -9,6 +9,8 @@
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `github.com/go-jose/go-jose/v4` from 4.0.5 to 4.1.0 ([#1466](https://github.com/fastly/cli/pull/1466))
+- build(deps): `golang.org/x/net` from 0.37.0 to 0.39.0 ([#1466](https://github.com/fastly/cli/pull/1466))
 
 ## [v11.2.0](https://github.com/fastly/cli/releases/tag/v11.2.0) (2025-04-10)
 
