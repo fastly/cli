@@ -83,6 +83,7 @@ log-tail
 logging
 object-storage
 pops
+product
 products
 profile
 purge
