@@ -256,7 +256,7 @@ func ValidateRedundancy(val string) (redundancy fastly.S3Redundancy, err error) 
 	case string(fastly.S3RedundancyReduced):
 		redundancy = fastly.S3RedundancyReduced
 	default:
-		err = fmt.Errorf("unknown redundancy: " + val)
+		err = fmt.Errorf("unknown redundancy: %s", val)
 	}
 	return redundancy, err
 }
