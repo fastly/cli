@@ -77,7 +77,7 @@ vet: config ## Run vet static analysis
 # Run linter.
 .PHONY: revive
 revive: ## Run linter (using revive)
-	revive ./...
+	$(GO_BIN) tool revive ./...
 
 # Run security vulnerability checker.
 .PHONY: gosec
