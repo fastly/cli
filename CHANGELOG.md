@@ -11,6 +11,7 @@
 ### Dependencies:
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.0.0 to 10.0.1 ([#1467](https://github.com/fastly/cli/pull/1467))
 - build(deps): `golang.org/x/net` from 0.37.0 to 0.39.0 ([#1467](https://github.com/fastly/cli/pull/1467))
+- build(go.mod): upgrade to go 1.24.0 in order to take advantage of the new tooling mechanism ([#1469](https://github.com/fastly/cli/pull/1469))
 
 ## [v11.2.0](https://github.com/fastly/cli/releases/tag/v11.2.0) (2025-04-10)
 
