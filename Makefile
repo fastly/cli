@@ -11,9 +11,12 @@ SHELL := /usr/bin/env bash -o pipefail ## Set the shell to use for finding Go fi
 build: config ## Compile program (CGO disabled)
 	CGO_ENABLED=0 $(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
-GO_BIN ?= go ## Allows overriding go executable.
-TEST_COMMAND ?= $(GO_BIN) test ## Enables support for tools such as https://github.com/rakyll/gotest
-TEST_ARGS ?= -v -timeout 15m ./... ## The compute tests can sometimes exceed the default 10m limit
+## Allows overriding go executable.
+GO_BIN ?= go
+## Enables support for tools such as https://github.com/rakyll/gotest
+TEST_COMMAND ?= $(GO_BIN) test
+## The compute tests can sometimes exceed the default 10m limit
+TEST_ARGS ?= -v -timeout 15m ./...
 
 ifeq ($(OS), Windows_NT)
 	SHELL = cmd.exe
@@ -82,7 +85,7 @@ revive: ## Run linter (using revive)
 # Run security vulnerability checker.
 .PHONY: gosec
 gosec: ## Run security vulnerability checker
-	gosec -quiet -exclude=G104 ./{cmd,pkg}/...
+	$(GO_BIN) tool gosec -quiet -exclude=G104 ./{cmd,pkg}/...
 
 nilaway: ## Run nilaway
 	@nilaway ./...
