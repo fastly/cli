@@ -11,9 +11,12 @@ SHELL := /usr/bin/env bash -o pipefail ## Set the shell to use for finding Go fi
 build: config ## Compile program (CGO disabled)
 	CGO_ENABLED=0 $(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
-GO_BIN ?= go ## Allows overriding go executable.
-TEST_COMMAND ?= $(GO_BIN) test ## Enables support for tools such as https://github.com/rakyll/gotest
-TEST_ARGS ?= -v -timeout 15m ./... ## The compute tests can sometimes exceed the default 10m limit
+## Allows overriding go executable.
+GO_BIN ?= go
+## Enables support for tools such as https://github.com/rakyll/gotest
+TEST_COMMAND ?= $(GO_BIN) test
+## The compute tests can sometimes exceed the default 10m limit
+TEST_ARGS ?= -v -timeout 15m ./...
 
 ifeq ($(OS), Windows_NT)
 	SHELL = cmd.exe
@@ -50,19 +53,13 @@ config:
 	@$(CONFIG_SCRIPT)
 
 .PHONY: all
-all: config dependencies tidy fmt vet staticcheck gosec semgrep imports test build install ## Run EVERYTHING!
+all: config mod-download tidy fmt vet staticcheck gosec semgrep imports test build install ## Run EVERYTHING!
 
-# Update CI tools used by ./.github/workflows/pr_test.yml
-.PHONY: dependencies
-dependencies:
-	@while read -r line || [ -n "$$line" ]; do \
-		$(GO_BIN) install $$line; \
-	done < .github/dependencies.txt
-	@if [ "$$(uname)" = 'Darwin' ]; then \
-			if ! command -v semgrep &> /dev/null; then \
-					brew install semgrep; \
-			fi \
-	fi
+## Downloads the Go modules
+mod-download: 
+	@echo "==> Downloading Go module"
+	@$(GO_BIN) mod download
+.PHONY: mod-download
 
 # Clean up Go modules file.
 .PHONY: tidy
@@ -83,12 +80,12 @@ vet: config ## Run vet static analysis
 # Run linter.
 .PHONY: revive
 revive: ## Run linter (using revive)
-	revive ./...
+	$(GO_BIN) tool revive ./...
 
 # Run security vulnerability checker.
 .PHONY: gosec
 gosec: ## Run security vulnerability checker
-	gosec -quiet -exclude=G104 ./{cmd,pkg}/...
+	$(GO_BIN) tool gosec -quiet -exclude=G104 ./{cmd,pkg}/...
 
 nilaway: ## Run nilaway
 	@nilaway ./...
@@ -97,6 +94,11 @@ nilaway: ## Run nilaway
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
 .PHONY: semgrep
 semgrep: ## Run semgrep
+	@if [ "$$(uname)" = 'Darwin' ]; then \
+		if ! command -v semgrep &> /dev/null; then \
+				brew install semgrep; \
+		fi \
+	fi
 	@if [ '$(SEMGREP_SKIP)' != 'true' ]; then \
 		if command -v semgrep &> /dev/null; then semgrep ci --config auto --exclude-rule go.lang.security.audit.xss.import-text-template.import-text-template $(SEMGREP_ARGS); fi \
 	fi
@@ -105,12 +107,12 @@ semgrep: ## Run semgrep
 # To ignore lines use: //lint:ignore <CODE> <REASON>
 .PHONY: staticcheck
 staticcheck: ## Run static analysis
-	staticcheck ./{cmd,pkg}/...
+	@$(GO_BIN) tool staticcheck ./{cmd,pkg}/...
 
 # Run imports formatter.
 .PHONY: imports
 imports:
-	@echo goimports ./{cmd,pkg}
+	@echo $(GO_BIN) tool goimports ./{cmd,pkg}
 	@eval "bash -c 'F=\$$(goimports -l ./{cmd,pkg}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
 
 .PHONY: golangci
@@ -144,8 +146,7 @@ scaffold-category:
 # e.g. make graph PKG_IMPORT_PATH=github.com/fastly/cli/pkg/commands/kvstoreentry
 .PHONY: graph
 graph: ## Graph generates a call graph that focuses on the specified package
-	@$(GO_BIN) install github.com/ofabry/go-callvis@latest 2>/dev/null
-	go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
+	$(GO_BIN) tool go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
 	@rm callvis.gv
 
 .PHONY: deps-app-update
