@@ -14,6 +14,7 @@
 - build(go.mod): upgrade to go 1.24.0 in order to take advantage of the new tooling mechanism ([#1469](https://github.com/fastly/cli/pull/1469))
 - build(deps): `golang.org/x/image` from 0.15.0 to 0.18.0 ([#1470](https://github.com/fastly/cli/pull/1470))
 - build(deps): `github.com/magiconair/properties` from 1.8.7 to 1.8.10 ([#1474](https://github.com/fastly/cli/pull/1474))
+- build(deps): `github.com/hashicorp/hcl` from 1.0.1-vault-5 to 1.0.1-vault-7 ([#1473](https://github.com/fastly/cli/pull/1473))
 
 ## [v11.2.0](https://github.com/fastly/cli/releases/tag/v11.2.0) (2025-04-10)
 
