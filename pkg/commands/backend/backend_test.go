@@ -602,7 +602,6 @@ var describeBackendOutput = strings.Join([]string{
 	"Comment: test",
 	"Address: www.test.com",
 	"Port: 80",
-	"PreferIPv6: ",
 	"Override host: ",
 	"Connect timeout: 0",
 	"Max connections: 0",
