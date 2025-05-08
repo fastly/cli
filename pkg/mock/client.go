@@ -39,7 +39,7 @@ type HTTPClient struct {
 }
 
 // Get mocks a HTTP Client Get request.
-func (c *HTTPClient) Get(p string, _ *fastly.RequestOptions) (*http.Response, error) {
+func (c *HTTPClient) Get(p string, _ fastly.RequestOptions) (*http.Response, error) {
 	fmt.Printf("p: %#v\n", p)
 	// IMPORTANT: Have to increment on defer as index is already 0 by this point.
 	// This is opposite to the Do() method which is -1 at the time it's called.
