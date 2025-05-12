@@ -35,7 +35,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

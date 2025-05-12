@@ -36,7 +36,7 @@ var ProductEnablementOptions = []string{
 	"websockets",
 }
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "products"
 
 // NewRootCommand returns a new command registered in the parent.
@@ -72,7 +72,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
 
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

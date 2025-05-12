@@ -493,7 +493,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s", storeID),
 			api: mock.API{
-				ListSecretsFn: func(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, errors.New("unknown error")
 				},
 			},
@@ -503,7 +503,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s", storeID),
 			api: mock.API{
-				ListSecretsFn: func(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, nil
 				},
 			},
@@ -513,7 +513,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s --json", storeID),
 			api: mock.API{
-				ListSecretsFn: func(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, nil
 				},
 			},

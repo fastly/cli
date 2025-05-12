@@ -19,7 +19,7 @@ func TestCreate(t *testing.T) {
 		{
 			Name: "validate CreateObservabilityCustomDashboard API error",
 			API: mock.API{
-				CreateObservabilityCustomDashboardFn: func(i *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+				CreateObservabilityCustomDashboardFn: func(_ *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -29,7 +29,7 @@ func TestCreate(t *testing.T) {
 		{
 			Name: "validate missing --name flag",
 			API: mock.API{
-				CreateObservabilityCustomDashboardFn: func(i *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+				CreateObservabilityCustomDashboardFn: func(_ *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -77,7 +77,7 @@ func TestDelete(t *testing.T) {
 		{
 			Name: "validate DeleteObservabilityCustomDashboard API error",
 			API: mock.API{
-				DeleteObservabilityCustomDashboardFn: func(i *fastly.DeleteObservabilityCustomDashboardInput) error {
+				DeleteObservabilityCustomDashboardFn: func(_ *fastly.DeleteObservabilityCustomDashboardInput) error {
 					return testutil.Err
 				},
 			},
@@ -87,7 +87,7 @@ func TestDelete(t *testing.T) {
 		{
 			Name: "validate DeleteObservabilityCustomDashboard API success",
 			API: mock.API{
-				DeleteObservabilityCustomDashboardFn: func(i *fastly.DeleteObservabilityCustomDashboardInput) error {
+				DeleteObservabilityCustomDashboardFn: func(_ *fastly.DeleteObservabilityCustomDashboardInput) error {
 					return nil
 				},
 			},
@@ -108,7 +108,7 @@ func TestDescribe(t *testing.T) {
 		{
 			Name: "validate GetObservabilityCustomDashboard API error",
 			API: mock.API{
-				GetObservabilityCustomDashboardFn: func(i *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+				GetObservabilityCustomDashboardFn: func(_ *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -133,7 +133,7 @@ func TestList(t *testing.T) {
 		{
 			Name: "validate ListObservabilityCustomDashboards API error",
 			API: mock.API{
-				ListObservabilityCustomDashboardsFn: func(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ListDashboardsResponse, error) {
+				ListObservabilityCustomDashboardsFn: func(_ *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ListDashboardsResponse, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -168,7 +168,7 @@ func TestUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateObservabilityCustomDashboard API error",
 			API: mock.API{
-				UpdateObservabilityCustomDashboardFn: func(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+				UpdateObservabilityCustomDashboardFn: func(_ *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -209,7 +209,7 @@ func getObservabilityCustomDashboard(i *fastly.GetObservabilityCustomDashboardIn
 	}, nil
 }
 
-func listObservabilityCustomDashboards(i *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ListDashboardsResponse, error) {
+func listObservabilityCustomDashboards(_ *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ListDashboardsResponse, error) {
 	t := testutil.Date
 	vs := &fastly.ListDashboardsResponse{
 		Data: []fastly.ObservabilityCustomDashboard{{

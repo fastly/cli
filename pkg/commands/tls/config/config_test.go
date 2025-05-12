@@ -26,7 +26,7 @@ func TestDescribe(t *testing.T) {
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				GetCustomTLSConfigurationFn: func(i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
+				GetCustomTLSConfigurationFn: func(_ *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -125,7 +125,7 @@ func TestUpdate(t *testing.T) {
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				UpdateCustomTLSConfigurationFn: func(i *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
+				UpdateCustomTLSConfigurationFn: func(_ *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					return nil, testutil.Err
 				},
 			},

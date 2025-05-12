@@ -39,7 +39,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			Name: "validate CreateSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
+				CreateSnippetFn: func(_ *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -259,7 +259,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			Name: "validate DeleteSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteSnippetFn: func(i *fastly.DeleteSnippetInput) error {
+				DeleteSnippetFn: func(_ *fastly.DeleteSnippetInput) error {
 					return testutil.Err
 				},
 			},
@@ -270,7 +270,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			Name: "validate DeleteSnippet API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteSnippetFn: func(i *fastly.DeleteSnippetInput) error {
+				DeleteSnippetFn: func(_ *fastly.DeleteSnippetInput) error {
 					return nil
 				},
 			},
@@ -282,7 +282,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteSnippetFn: func(i *fastly.DeleteSnippetInput) error {
+				DeleteSnippetFn: func(_ *fastly.DeleteSnippetInput) error {
 					return nil
 				},
 			},
@@ -325,7 +325,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			Name: "validate GetSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetSnippetFn: func(i *fastly.GetSnippetInput) (*fastly.Snippet, error) {
+				GetSnippetFn: func(_ *fastly.GetSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -379,7 +379,7 @@ func TestVCLSnippetList(t *testing.T) {
 			Name: "validate ListSnippets API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListSnippetsFn: func(i *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
+				ListSnippetsFn: func(_ *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -482,7 +482,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			Name: "validate UpdateSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateSnippetFn: func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+				UpdateSnippetFn: func(_ *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
 			},

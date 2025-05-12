@@ -20,7 +20,7 @@ type CreateCommand struct {
 
 	// Required.
 	description string
-	permisssion string
+	permission  string
 
 	// Optional.
 	buckets []string
@@ -38,7 +38,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.CmdClause.Flag("description", "Description of the access key").Required().StringVar(&c.description)
-	c.CmdClause.Flag("permission", "Permissions to be given to the access key").Required().StringVar(&c.permisssion)
+	c.CmdClause.Flag("permission", "Permissions to be given to the access key").Required().StringVar(&c.permission)
 
 	// Optional.
 	c.CmdClause.Flag("bucket", "Bucket to be associated with the access key. Set flag multiple times to include multiple buckets").StringsVar(&c.buckets)
@@ -49,7 +49,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -60,7 +60,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	accessKey, err := accesskeys.Create(fc, &accesskeys.CreateInput{
 		Description: &c.description,
-		Permission:  &c.permisssion,
+		Permission:  &c.permission,
 		Buckets:     &c.buckets,
 	})
 	if err != nil {

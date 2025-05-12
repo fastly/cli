@@ -58,7 +58,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -98,7 +98,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		items []*fastly.DictionaryItem
 	)
 
-	if c.Globals.Verbose() || c.JSONOutput.Enabled {
+	if c.Globals.Verbose() || c.Enabled {
 		infoInput := fastly.GetDictionaryInfoInput{
 			ServiceID:      c.Input.ServiceID,
 			ServiceVersion: c.Input.ServiceVersion,
@@ -126,7 +126,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	if c.JSONOutput.Enabled {
+	if c.Enabled {
 		// NOTE: When not using JSON you have to provide the --verbose flag to get
 		// some extra information about the dictionary. When using --json we go
 		// ahead and acquire that info and combine it into the JSON output.

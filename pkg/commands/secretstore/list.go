@@ -40,7 +40,7 @@ type ListCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -56,7 +56,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		if o != nil {
 			data = append(data, o.Data...)
 
-			if c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes {
+			if c.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes {
 				if o.Meta.NextCursor != "" {
 					c.Input.Cursor = o.Meta.NextCursor
 					continue

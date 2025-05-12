@@ -34,7 +34,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			Name: "validate CreateVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
+				CreateVCLFn: func(_ *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -205,7 +205,7 @@ func TestVCLCustomDelete(t *testing.T) {
 			Name: "validate DeleteVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteVCLFn: func(i *fastly.DeleteVCLInput) error {
+				DeleteVCLFn: func(_ *fastly.DeleteVCLInput) error {
 					return testutil.Err
 				},
 			},
@@ -216,7 +216,7 @@ func TestVCLCustomDelete(t *testing.T) {
 			Name: "validate DeleteVCL API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteVCLFn: func(i *fastly.DeleteVCLInput) error {
+				DeleteVCLFn: func(_ *fastly.DeleteVCLInput) error {
 					return nil
 				},
 			},
@@ -228,7 +228,7 @@ func TestVCLCustomDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteVCLFn: func(i *fastly.DeleteVCLInput) error {
+				DeleteVCLFn: func(_ *fastly.DeleteVCLInput) error {
 					return nil
 				},
 			},
@@ -261,7 +261,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 			Name: "validate GetVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVCLFn: func(i *fastly.GetVCLInput) (*fastly.VCL, error) {
+				GetVCLFn: func(_ *fastly.GetVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -306,7 +306,7 @@ func TestVCLCustomList(t *testing.T) {
 			Name: "validate ListVCLs API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListVCLsFn: func(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
+				ListVCLsFn: func(_ *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -383,7 +383,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			Name: "validate UpdateVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+				UpdateVCLFn: func(_ *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},

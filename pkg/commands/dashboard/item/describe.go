@@ -40,7 +40,7 @@ type DescribeCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -56,8 +56,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.JSONOutput.Enabled {
-		c.WriteJSON(out, di)
+	if c.Enabled {
+		_, err := c.WriteJSON(out, di)
+		if err != nil {
+			return err
+		}
 	} else {
 		common.PrintItem(out, 0, di)
 	}

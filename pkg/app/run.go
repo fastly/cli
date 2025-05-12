@@ -61,7 +61,7 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 
 	// Define the standard input/output streams.
 	var (
-		in  io.Reader = stdin
+		in            = stdin
 		out io.Writer = sync.NewWriter(color.Output)
 	)
 

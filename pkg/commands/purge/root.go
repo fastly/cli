@@ -17,7 +17,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "purge"
 
 // NewRootCommand returns a new command registered in the parent.

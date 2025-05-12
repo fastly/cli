@@ -42,7 +42,7 @@ type RootCommand struct {
 	token       string // TODO: this will go away when GET is in go-fastly
 }
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "log-tail"
 
 // NewRootCommand returns a new command registered in the parent.
@@ -376,6 +376,7 @@ func (c *RootCommand) outputLoop(out io.Writer) {
 				if len(recv) == 0 || recv[0].highSeq < highSeq {
 					// NOTE: gocritic will warn about appendAssign but we ignore it.
 					// Because if we try to address it the code fails to work at runtime.
+					//nolint:gocritic
 					reqLogs.receives = append(recv, receive{
 						when:    time.Now(),
 						highSeq: highSeq,

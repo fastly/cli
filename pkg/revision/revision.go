@@ -24,10 +24,10 @@ var (
 	// GoHostArc instead. It can be set to the build host's `go version` output.
 	GoVersion string
 
-	// GoHostOS is the value from `runtime.GOOS`
+	// GoHostOS is the value from `runtime.GOOS`.
 	GoHostOS string
 
-	// GoHostArch is the value from `runtime.GOARCH`
+	// GoHostArch is the value from `runtime.GOARCH`.
 	GoHostArch string
 
 	// Environment is set to either "development" (when working locally) or

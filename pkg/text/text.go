@@ -157,7 +157,7 @@ func InputSecure(w io.Writer, prefix string, r io.Reader, validators ...func(str
 		// This is because on *nix systems syscall.Stdin is already an int.
 		// But on Windows it's a Handle type:
 		// https://github.com/golang/go/blob/8d2eb290f83bca7d3b5154c6a7b3ac7546df5e8a/src/syscall/syscall_windows.go#L522
-		p, err := term.ReadPassword(int(syscall.Stdin))
+		p, err := term.ReadPassword(syscall.Stdin)
 		if err != nil {
 			return "", err
 		}

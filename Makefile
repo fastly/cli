@@ -88,7 +88,7 @@ semgrep: ## Run semgrep
 	fi
 
 .PHONY: lint
-golangci: ## Run golangci-lint
+lint: ## Run golangci-lint
 	golangci-lint run --verbose
 
 # Run tests

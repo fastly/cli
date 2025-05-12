@@ -26,7 +26,7 @@ func TestPurgeAll(t *testing.T) {
 		{
 			Name: "validate PurgeAll API error",
 			API: mock.API{
-				PurgeAllFn: func(i *fastly.PurgeAllInput) (*fastly.Purge, error) {
+				PurgeAllFn: func(_ *fastly.PurgeAllInput) (*fastly.Purge, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -36,7 +36,7 @@ func TestPurgeAll(t *testing.T) {
 		{
 			Name: "validate PurgeAll API success",
 			API: mock.API{
-				PurgeAllFn: func(i *fastly.PurgeAllInput) (*fastly.Purge, error) {
+				PurgeAllFn: func(_ *fastly.PurgeAllInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
 						Status: fastly.ToPointer("ok"),
 					}, nil
@@ -61,7 +61,7 @@ func TestPurgeKeys(t *testing.T) {
 		{
 			Name: "validate PurgeKeys API error",
 			API: mock.API{
-				PurgeKeysFn: func(i *fastly.PurgeKeysInput) (map[string]string, error) {
+				PurgeKeysFn: func(_ *fastly.PurgeKeysInput) (map[string]string, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -111,7 +111,7 @@ func TestPurgeKey(t *testing.T) {
 		{
 			Name: "validate PurgeKey API error",
 			API: mock.API{
-				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
+				PurgeKeyFn: func(_ *fastly.PurgeKeyInput) (*fastly.Purge, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -121,7 +121,7 @@ func TestPurgeKey(t *testing.T) {
 		{
 			Name: "validate PurgeKey API success",
 			API: mock.API{
-				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
+				PurgeKeyFn: func(_ *fastly.PurgeKeyInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
 						Status:  fastly.ToPointer("ok"),
 						PurgeID: fastly.ToPointer("123"),
@@ -134,7 +134,7 @@ func TestPurgeKey(t *testing.T) {
 		{
 			Name: "validate PurgeKey API success with soft purge",
 			API: mock.API{
-				PurgeKeyFn: func(i *fastly.PurgeKeyInput) (*fastly.Purge, error) {
+				PurgeKeyFn: func(_ *fastly.PurgeKeyInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
 						Status:  fastly.ToPointer("ok"),
 						PurgeID: fastly.ToPointer("123"),
@@ -154,7 +154,7 @@ func TestPurgeURL(t *testing.T) {
 		{
 			Name: "validate Purge API error",
 			API: mock.API{
-				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
+				PurgeFn: func(_ *fastly.PurgeInput) (*fastly.Purge, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -164,7 +164,7 @@ func TestPurgeURL(t *testing.T) {
 		{
 			Name: "validate Purge API success",
 			API: mock.API{
-				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
+				PurgeFn: func(_ *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
 						Status:  fastly.ToPointer("ok"),
 						PurgeID: fastly.ToPointer("123"),
@@ -177,7 +177,7 @@ func TestPurgeURL(t *testing.T) {
 		{
 			Name: "validate Purge API success with soft purge",
 			API: mock.API{
-				PurgeFn: func(i *fastly.PurgeInput) (*fastly.Purge, error) {
+				PurgeFn: func(_ *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
 						Status:  fastly.ToPointer("ok"),
 						PurgeID: fastly.ToPointer("123"),

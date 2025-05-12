@@ -20,6 +20,7 @@ const (
 // EXAMPLE (unix):
 // $HOME/.gitignore -> /Users/<USER>/.gitignore
 // ~/.gitignore     -> /Users/<USER>/.gitignore
+// .
 func ResolveAbs(path string) string {
 	var uhd string
 	if strings.HasPrefix(path, UnixHome) {

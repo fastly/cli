@@ -47,7 +47,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -84,7 +84,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return fmt.Errorf("failed to delete KV store: %w", err)
 	}
 
-	if c.JSONOutput.Enabled {
+	if c.Enabled {
 		o := struct {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`

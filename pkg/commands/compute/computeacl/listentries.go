@@ -49,7 +49,7 @@ func NewListEntriesCommand(parent argparser.Registerer, g *global.Data) *ListEnt
 
 // Exec invokes the application logic for the command.
 func (c *ListEntriesCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -59,7 +59,7 @@ func (c *ListEntriesCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	var entries []computeacls.ComputeACLEntry
-	loadAllPages := c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
+	loadAllPages := c.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
 
 	for {
 		o, err := computeacls.ListEntries(fc, &computeacls.ListEntriesInput{

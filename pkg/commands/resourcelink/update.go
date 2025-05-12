@@ -84,7 +84,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+	if c.Globals.Verbose() && c.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

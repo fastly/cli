@@ -24,7 +24,7 @@ func TestProductEnablement(t *testing.T) {
 		{
 			Name: "validate API error for product status",
 			API: mock.API{
-				GetProductFn: func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+				GetProductFn: func(_ *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -43,7 +43,7 @@ websockets             false
 		{
 			Name: "validate API success for product status",
 			API: mock.API{
-				GetProductFn: func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+				GetProductFn: func(_ *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
 					return nil, nil
 				},
 			},
@@ -72,7 +72,7 @@ websockets             true
 		{
 			Name: "validate success for enabling product",
 			API: mock.API{
-				EnableProductFn: func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+				EnableProductFn: func(_ *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
 					return nil, nil
 				},
 			},
@@ -82,7 +82,7 @@ websockets             true
 		{
 			Name: "validate success for disabling product",
 			API: mock.API{
-				DisableProductFn: func(i *fastly.ProductEnablementInput) error {
+				DisableProductFn: func(_ *fastly.ProductEnablementInput) error {
 					return nil
 				},
 			},
@@ -97,7 +97,7 @@ websockets             true
 		{
 			Name: "validate API error for product status with --json output",
 			API: mock.API{
-				GetProductFn: func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+				GetProductFn: func(_ *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -116,7 +116,7 @@ websockets             true
 		{
 			Name: "validate API success for product status with --json output",
 			API: mock.API{
-				GetProductFn: func(i *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
+				GetProductFn: func(_ *fastly.ProductEnablementInput) (*fastly.ProductEnablement, error) {
 					return nil, nil
 				},
 			},

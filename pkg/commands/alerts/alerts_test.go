@@ -198,7 +198,7 @@ func TestAlertsDelete(t *testing.T) {
 			Name: "ok",
 			Args: "--id ABC",
 			API: mock.API{
-				DeleteAlertDefinitionFn: func(i *fastly.DeleteAlertDefinitionInput) error {
+				DeleteAlertDefinitionFn: func(_ *fastly.DeleteAlertDefinitionInput) error {
 					return nil
 				},
 			},
@@ -218,7 +218,7 @@ func TestAlertsDescribe(t *testing.T) {
 			Name: "ok",
 			Args: "--id ABC",
 			API: mock.API{
-				GetAlertDefinitionFn: func(i *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+				GetAlertDefinitionFn: func(_ *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error) {
 					response := &mockDefinition
 					return response, nil
 				},
@@ -290,7 +290,7 @@ func TestAlertsList(t *testing.T) {
 		{
 			Name: "validate ListAlerts API success",
 			API: mock.API{
-				ListAlertDefinitionsFn: func(i *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
+				ListAlertDefinitionsFn: func(_ *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
 					response := &fastly.AlertDefinitionsResponse{
 						Data: []fastly.AlertDefinition{mockDefinition},
 						Meta: fastly.AlertsMeta{
@@ -370,7 +370,7 @@ func TestAlertsHistoryList(t *testing.T) {
 		{
 			Name: "validate ListAlerts API success",
 			API: mock.API{
-				ListAlertHistoryFn: func(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
+				ListAlertHistoryFn: func(_ *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
 					response := &fastly.AlertHistoryResponse{
 						Data: []fastly.AlertHistory{mockHistory},
 						Meta: fastly.AlertsMeta{
@@ -445,7 +445,7 @@ func (t *flagList) String() string {
 
 var mockTime = time.Date(2024, 0o5, 0o1, 12, 0o0, 11, 0, time.UTC)
 
-var ListAlertDefinitionsEmptyResponse = func(i *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
+var ListAlertDefinitionsEmptyResponse = func(_ *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
 	response := &fastly.AlertDefinitionsResponse{
 		Data: []fastly.AlertDefinition{},
 		Meta: fastly.AlertsMeta{
@@ -458,7 +458,7 @@ var ListAlertDefinitionsEmptyResponse = func(i *fastly.ListAlertDefinitionsInput
 	return response, nil
 }
 
-var ListAlertHistoryEmptyResponse = func(i *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
+var ListAlertHistoryEmptyResponse = func(_ *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
 	response := &fastly.AlertHistoryResponse{
 		Data: []fastly.AlertHistory{},
 		Meta: fastly.AlertsMeta{
@@ -498,12 +498,12 @@ var mockHistory = fastly.AlertHistory{
 	End:          mockTime,
 }
 
-var CreateAlertDefinitionResponse = func(i *fastly.CreateAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+var CreateAlertDefinitionResponse = func(_ *fastly.CreateAlertDefinitionInput) (*fastly.AlertDefinition, error) {
 	response := &mockDefinition
 	return response, nil
 }
 
-var UpdateAlertDefinitionResponse = func(i *fastly.UpdateAlertDefinitionInput) (*fastly.AlertDefinition, error) {
+var UpdateAlertDefinitionResponse = func(_ *fastly.UpdateAlertDefinitionInput) (*fastly.AlertDefinition, error) {
 	response := &mockDefinition
 	return response, nil
 }

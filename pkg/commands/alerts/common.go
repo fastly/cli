@@ -32,13 +32,13 @@ func printDefinition(out io.Writer, indent uint, definition *fastly.AlertDefinit
 		text.Indent(out, indent, "Metric: %s", definition.Metric)
 
 		text.Indent(out, indent, "Evaluation Strategy:")
-		eType := definition.EvaluationStrategy["type"].(string)
+		eType, _ := definition.EvaluationStrategy["type"].(string)
 		text.Indent(out, indent+4, "  Type: %s", eType)
 
-		period := definition.EvaluationStrategy["period"].(string)
+		period, _ := definition.EvaluationStrategy["period"].(string)
 		text.Indent(out, indent+4, "  Period: %s", period)
 
-		threshold := definition.EvaluationStrategy["threshold"].(float64)
+		threshold, _ := definition.EvaluationStrategy["threshold"].(float64)
 		text.Indent(out, indent+4, "  Threshold: %v", threshold)
 
 		if ignoreBelow, ok := definition.EvaluationStrategy["ignore_below"].(float64); ok {
@@ -64,9 +64,9 @@ func printSummary(out io.Writer, as []*fastly.AlertDefinition) {
 	t := text.NewTable(out)
 	t.AddHeader("DEFINITION ID", "SERVICE ID", "NAME", "SOURCE", "METRIC", "TYPE", "THRESHOLD", "PERIOD")
 	for _, a := range as {
-		eType := a.EvaluationStrategy["type"].(string)
-		period := a.EvaluationStrategy["period"].(string)
-		threshold := a.EvaluationStrategy["threshold"].(float64)
+		eType, _ := a.EvaluationStrategy["type"].(string)
+		period, _ := a.EvaluationStrategy["period"].(string)
+		threshold, _ := a.EvaluationStrategy["threshold"].(float64)
 		t.AddLine(
 			a.ID,
 			a.ServiceID,
