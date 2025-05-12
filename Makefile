@@ -71,9 +71,6 @@ tidy:
 fmt:
 	golangci-lint fmt
 
-nilaway: ## Run nilaway
-	@nilaway ./...
-
 # Run semgrep checker.
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
 .PHONY: semgrep
