@@ -1,7 +1,4 @@
 version: "2"
-issues:
-  max-per-linter: 0
-  max-same-issues: 0
 run:
   allow-parallel-runners: true
   modules-download-mode: readonly
