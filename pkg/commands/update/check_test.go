@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/mock"
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestCheck(t *testing.T) {

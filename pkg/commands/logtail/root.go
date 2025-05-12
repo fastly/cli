@@ -17,8 +17,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
 	"github.com/tomnomnom/linkheader"
+
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/debug"

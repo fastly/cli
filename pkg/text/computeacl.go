@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly/computeacls"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/go-fastly/v10/fastly/computeacls"
 )
 
 // PrintComputeACL displays a compute ACL.

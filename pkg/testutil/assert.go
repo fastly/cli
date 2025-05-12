@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	"github.com/google/go-cmp/cmp"
 )
 
 // AssertEqual fatals a test if the parameters aren't equal.

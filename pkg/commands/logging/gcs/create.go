@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/go-fastly/v10/fastly"
 
 	"4d63.com/optional"
+
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"

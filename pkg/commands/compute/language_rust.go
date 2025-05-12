@@ -176,7 +176,7 @@ func (r *Rust) Build() error {
 		}
 	}
 
-	var wasmWasiTarget = r.config.WasmWasiTarget
+	wasmWasiTarget := r.config.WasmWasiTarget
 	if wasmWasiTarget != RustDefaultWasmWasiTarget {
 		return fmt.Errorf("the default build in .fastly/config.toml should produce a %s binary, but was instead set to produce a %s binary", RustDefaultWasmWasiTarget, wasmWasiTarget)
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 func TestAlertsCreate(t *testing.T) {
-	var createFlags = flagList{
+	createFlags := flagList{
 		Flags: []flag{
 			{Flag: "--name", Value: "name"},
 			{Flag: "--description", Value: "description"},
@@ -101,7 +101,7 @@ func TestAlertsCreate(t *testing.T) {
 }
 
 func TestAlertsUpdate(t *testing.T) {
-	var updateFlags = flagList{
+	updateFlags := flagList{
 		Flags: []flag{
 			{Flag: "--id", Value: "ABC"},
 			{Flag: "--name", Value: "name"},
@@ -420,7 +420,6 @@ func (t *flagList) Change(flag flag) *flagList {
 			newTuples.Flags = append(newTuples.Flags, flag)
 		} else {
 			newTuples.Flags = append(newTuples.Flags, t.Flags[i])
-
 		}
 	}
 	return &newTuples
@@ -435,6 +434,7 @@ func (t *flagList) Remove(flag string) *flagList {
 	}
 	return &newTuples
 }
+
 func (t *flagList) String() string {
 	var strs []string
 	for i := range t.Flags {
@@ -443,7 +443,7 @@ func (t *flagList) String() string {
 	return strings.Join(strs, " ")
 }
 
-var mockTime = time.Date(2024, 05, 01, 12, 00, 11, 0, time.UTC)
+var mockTime = time.Date(2024, 0o5, 0o1, 12, 0o0, 11, 0, time.UTC)
 
 var ListAlertDefinitionsEmptyResponse = func(i *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
 	response := &fastly.AlertDefinitionsResponse{

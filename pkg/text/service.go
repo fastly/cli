@@ -5,8 +5,9 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/fastly/go-fastly/v10/fastly"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	"github.com/fastly/cli/pkg/time"
 )

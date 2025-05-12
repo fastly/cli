@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	fsttime "github.com/fastly/cli/pkg/time"
 )

@@ -14,9 +14,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
+
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
