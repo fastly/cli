@@ -44,12 +44,6 @@ jobs:
       - name: "Install dependencies"
         run: make mod-download
         shell: bash
-      - name: "Config Artifact"
-        uses: actions/download-artifact@v4
-        with:
-          name: config-artifact-${{ github.sha }}
-      - name: "Move Config"
-        run: mv config.toml pkg/config/config.toml
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
