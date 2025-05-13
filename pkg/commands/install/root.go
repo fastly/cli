@@ -20,7 +20,7 @@ type RootCommand struct {
 	versionToInstall string
 }
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "install"
 
 // NewRootCommand returns a new command registered in the parent.

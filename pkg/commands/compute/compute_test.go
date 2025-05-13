@@ -6,8 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/fastly/kingpin"
 	"github.com/mholt/archiver/v3"
+
+	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/global"

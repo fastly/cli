@@ -10,7 +10,6 @@ import (
 
 // PrintAccessKey displays an access key.
 func PrintAccessKey(out io.Writer, accessKey *accesskeys.AccessKey) {
-
 	fmt.Fprintf(out, "ID: %s\n", accessKey.AccessKeyID)
 	fmt.Fprintf(out, "Secret: %s\n", accessKey.SecretKey)
 	fmt.Fprintf(out, "Description: %s\n", accessKey.Description)

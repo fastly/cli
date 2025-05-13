@@ -8,8 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/mholt/archiver/v3"
+
+	"github.com/fastly/cli/pkg/errors"
 )
 
 // Archives is a collection of supported archive formats.

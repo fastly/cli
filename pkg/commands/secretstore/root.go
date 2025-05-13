@@ -10,7 +10,7 @@ import (
 // RootNameStore is the base command name for secret store operations.
 const RootNameStore = "secret-store"
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "secret-store"
 
 // NewRootCommand returns a new command registered in the parent.

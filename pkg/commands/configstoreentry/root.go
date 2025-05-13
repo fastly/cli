@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 )
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "config-store-entry"
 
 // NewRootCommand returns a new command registered in the parent.

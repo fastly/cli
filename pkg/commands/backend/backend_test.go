@@ -105,7 +105,7 @@ func TestBackendCreate(t *testing.T) {
 			Args: "--service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{

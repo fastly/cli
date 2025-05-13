@@ -6,8 +6,9 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/fastly/go-fastly/v10/fastly"
 )
 
 var blockTemplate = template.Must(template.New("stats_block").Parse(

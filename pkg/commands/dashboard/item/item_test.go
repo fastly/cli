@@ -315,7 +315,7 @@ func TestUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
-func getDashboardOK(i *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+func getDashboardOK(_ *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 	d := defaultDashboard()
 	return &d, nil
 }
@@ -326,7 +326,7 @@ func updateDashboardOK(i *fastly.UpdateObservabilityCustomDashboardInput) (*fast
 	return &d, nil
 }
 
-func updateDashboardEmpty(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+func updateDashboardEmpty(_ *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 	d := defaultDashboard()
 	d.Items = []fastly.DashboardItem{}
 	return &d, nil

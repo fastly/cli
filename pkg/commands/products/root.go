@@ -36,7 +36,7 @@ var ProductEnablementOptions = []string{
 	"websockets",
 }
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "products"
 
 // NewRootCommand returns a new command registered in the parent.

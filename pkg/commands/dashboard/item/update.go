@@ -101,35 +101,35 @@ func (c *UpdateCommand) constructInput(d *fastly.ObservabilityCustomDashboard) (
 	item := &(*input.Items)[idx]
 
 	if c.title.WasSet {
-		(*item).Title = c.title.Value
+		item.Title = c.title.Value
 	}
 	if c.subtitle.WasSet {
-		(*item).Subtitle = c.subtitle.Value
+		item.Subtitle = c.subtitle.Value
 	}
 	if c.span.WasSet {
 		if span := c.span.Value; span <= 255 && span >= 0 {
-			(*item).Span = uint8(span)
+			item.Span = uint8(span)
 		} else {
 			return nil, fmt.Errorf("invalid span value %d", span)
 		}
 	}
 	if c.sourceType.WasSet {
-		(*item).DataSource.Type = fastly.DashboardSourceType(c.sourceType.Value)
+		item.DataSource.Type = fastly.DashboardSourceType(c.sourceType.Value)
 	}
 	if c.metrics.WasSet {
-		(*item).DataSource.Config.Metrics = c.metrics.Value
+		item.DataSource.Config.Metrics = c.metrics.Value
 	}
 	if c.vizType.WasSet {
-		(*item).Visualization.Type = fastly.VisualizationType(c.vizType.Value)
+		item.Visualization.Type = fastly.VisualizationType(c.vizType.Value)
 	}
 	if c.plotType.WasSet {
-		(*item).Visualization.Config.PlotType = fastly.PlotType(c.plotType.Value)
+		item.Visualization.Config.PlotType = fastly.PlotType(c.plotType.Value)
 	}
 	if c.calculationMethod.WasSet {
-		(*item).Visualization.Config.CalculationMethod = fastly.ToPointer(fastly.CalculationMethod(c.calculationMethod.Value))
+		item.Visualization.Config.CalculationMethod = fastly.ToPointer(fastly.CalculationMethod(c.calculationMethod.Value))
 	}
 	if c.format.WasSet {
-		(*item).Visualization.Config.Format = fastly.ToPointer(fastly.VisualizationFormat(c.format.Value))
+		item.Visualization.Config.Format = fastly.ToPointer(fastly.VisualizationFormat(c.format.Value))
 	}
 
 	return &input, nil

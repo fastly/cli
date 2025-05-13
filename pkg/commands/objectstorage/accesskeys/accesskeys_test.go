@@ -34,7 +34,6 @@ var ak = accesskeys.AccessKey{
 }
 
 func TestAccessKeysCreate(t *testing.T) {
-
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --description flag",

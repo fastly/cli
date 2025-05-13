@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
 	"github.com/segmentio/textio"
+
+	"github.com/fastly/go-fastly/v10/fastly"
 )
 
 // PrintBackend pretty prints a fastly.Backend structure in verbose format

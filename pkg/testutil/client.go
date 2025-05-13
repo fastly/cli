@@ -2,7 +2,7 @@ package testutil
 
 import "net/http"
 
-// MockRoundTripper implements [http.RoundTripper] for mocking HTTP responses
+// MockRoundTripper implements [http.RoundTripper] for mocking HTTP responses.
 type MockRoundTripper struct {
 	Response *http.Response
 	Err      error

@@ -16,7 +16,7 @@ func TestUserCreate(t *testing.T) {
 		{
 			Name: "validate CreateUser API error",
 			API: mock.API{
-				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {
+				CreateUserFn: func(_ *fastly.CreateUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -50,7 +50,7 @@ func TestUserDelete(t *testing.T) {
 		{
 			Name: "validate DeleteUser API error",
 			API: mock.API{
-				DeleteUserFn: func(i *fastly.DeleteUserInput) error {
+				DeleteUserFn: func(_ *fastly.DeleteUserInput) error {
 					return testutil.Err
 				},
 			},
@@ -60,7 +60,7 @@ func TestUserDelete(t *testing.T) {
 		{
 			Name: "validate DeleteUser API success",
 			API: mock.API{
-				DeleteUserFn: func(i *fastly.DeleteUserInput) error {
+				DeleteUserFn: func(_ *fastly.DeleteUserInput) error {
 					return nil
 				},
 			},
@@ -81,7 +81,7 @@ func TestUserDescribe(t *testing.T) {
 		{
 			Name: "validate GetUser API error",
 			API: mock.API{
-				GetUserFn: func(i *fastly.GetUserInput) (*fastly.User, error) {
+				GetUserFn: func(_ *fastly.GetUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -128,7 +128,7 @@ func TestUserList(t *testing.T) {
 		{
 			Name: "validate ListUsers API error",
 			API: mock.API{
-				ListCustomerUsersFn: func(i *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
+				ListCustomerUsersFn: func(_ *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -180,7 +180,7 @@ func TestUserUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateUser API error",
 			API: mock.API{
-				UpdateUserFn: func(i *fastly.UpdateUserInput) (*fastly.User, error) {
+				UpdateUserFn: func(_ *fastly.UpdateUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -190,7 +190,7 @@ func TestUserUpdate(t *testing.T) {
 		{
 			Name: "validate ResetUserPassword API error",
 			API: mock.API{
-				ResetUserPasswordFn: func(i *fastly.ResetUserPasswordInput) error {
+				ResetUserPasswordFn: func(_ *fastly.ResetUserPasswordInput) error {
 					return testutil.Err
 				},
 			},
@@ -214,7 +214,7 @@ func TestUserUpdate(t *testing.T) {
 		{
 			Name: "validate ResetUserPassword API success",
 			API: mock.API{
-				ResetUserPasswordFn: func(i *fastly.ResetUserPasswordInput) error {
+				ResetUserPasswordFn: func(_ *fastly.ResetUserPasswordInput) error {
 					return nil
 				},
 			},
