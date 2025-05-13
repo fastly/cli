@@ -63,11 +63,11 @@ type DeleteCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 	// TODO: Support --json for bulk deletions.
-	if c.deleteAll && c.Enabled {
+	if c.deleteAll && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidDeleteAllJSONKeyCombo
 	}
 	if c.deleteAll && c.input.Key != "" {
@@ -98,7 +98,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.Enabled {
+	if c.JSONOutput.Enabled {
 		o := struct {
 			StoreID string `json:"store_id"`
 			Key     string `json:"key"`

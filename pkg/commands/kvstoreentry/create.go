@@ -62,7 +62,7 @@ type CreateCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -92,7 +92,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.Enabled {
+	if c.JSONOutput.Enabled {
 		o := struct {
 			ID  string `json:"id"`
 			Key string `json:"key"`
@@ -365,7 +365,7 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 			r.Errors = append(r.Errors, he.Errors...)
 		}
 
-		if c.Enabled {
+		if c.JSONOutput.Enabled {
 			_, err := c.WriteJSON(out, r)
 			return err
 		}
@@ -386,7 +386,7 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.Enabled {
+	if c.JSONOutput.Enabled {
 		_, err := c.WriteJSON(out, result{Success: true})
 		return err
 	}

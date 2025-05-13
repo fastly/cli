@@ -72,7 +72,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
 
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

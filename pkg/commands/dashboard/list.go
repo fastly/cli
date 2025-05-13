@@ -42,7 +42,7 @@ type ListCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -52,7 +52,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	var dashboards []fastly.ObservabilityCustomDashboard
-	loadAllPages := c.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
+	loadAllPages := c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
 
 	for {
 		o, err := c.Globals.APIClient.ListObservabilityCustomDashboards(input)

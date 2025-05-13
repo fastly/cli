@@ -36,7 +36,7 @@ type DeleteCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -46,7 +46,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.Enabled {
+	if c.JSONOutput.Enabled {
 		o := struct {
 			ID      string `json:"dashboard_id"`
 			Deleted bool   `json:"deleted"`

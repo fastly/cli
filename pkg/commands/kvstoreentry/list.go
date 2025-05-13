@@ -48,7 +48,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -67,7 +67,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	msg := "Getting data"
 
 	// A spinner produces output and is incompatible with JSON expected output.
-	if !c.Enabled {
+	if !c.JSONOutput.Enabled {
 		err := spinner.Start()
 		if err != nil {
 			return err
@@ -86,7 +86,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		o, err := c.Globals.APIClient.ListKVStoreKeys(&c.Input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
-			if !c.Enabled {
+			if !c.JSONOutput.Enabled {
 				spinner.StopFailMessage(msg)
 				spinErr := spinner.StopFail()
 				if spinErr != nil {
@@ -104,7 +104,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	if !c.Enabled {
+	if !c.JSONOutput.Enabled {
 		spinner.StopMessage(msg)
 		err := spinner.Stop()
 		if err != nil {

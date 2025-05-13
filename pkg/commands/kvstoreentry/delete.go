@@ -60,11 +60,11 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 	// TODO: Support --json for bulk deletions.
-	if c.DeleteAll && c.Enabled {
+	if c.DeleteAll && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidDeleteAllJSONKeyCombo
 	}
 	if c.DeleteAll && c.key.WasSet {
@@ -100,7 +100,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if c.Enabled {
+	if c.JSONOutput.Enabled {
 		o := struct {
 			Key     string `json:"key"`
 			ID      string `json:"store_id"`

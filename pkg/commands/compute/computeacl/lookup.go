@@ -45,7 +45,7 @@ func NewLookupCommand(parent argparser.Registerer, g *global.Data) *LookupComman
 
 // Exec invokes the application logic for the command.
 func (c *LookupCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

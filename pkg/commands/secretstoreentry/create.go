@@ -99,7 +99,7 @@ var errMaxSecretLength = fsterr.RemediationError{
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 	if c.secretFile != "" && c.secretSTDIN {

@@ -39,7 +39,7 @@ func NewSearchCommand(parent argparser.Registerer, g *global.Data) *SearchComman
 
 // Exec invokes the application logic for the command.
 func (c *SearchCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 

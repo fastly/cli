@@ -46,7 +46,7 @@ type DescribeCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.Enabled {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
@@ -67,7 +67,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	if c.Enabled {
+	if c.JSONOutput.Enabled {
 		// Create an ad-hoc structure for JSON representation of the config store
 		// and its metadata.
 		data := struct {

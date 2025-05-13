@@ -26,6 +26,10 @@ linters:
     govet:
       enable:
         - nilness
+    staticcheck:
+      checks:
+        - all
+        - '-QF1008' 
   exclusions:
     generated: lax
     presets:
