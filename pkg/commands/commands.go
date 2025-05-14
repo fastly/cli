@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/fastly/cli/pkg/commands/domainv1/tools"
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -204,6 +205,9 @@ func Define( // nolint:revive // function-length
 	domainv1Describe := domainv1.NewDescribeCommand(domainv1CmdRoot.CmdClause, data)
 	domainv1List := domainv1.NewListCommand(domainv1CmdRoot.CmdClause, data)
 	domainv1Update := domainv1.NewUpdateCommand(domainv1CmdRoot.CmdClause, data)
+	domainv1ToolsCmdRoot := tools.NewRootCommand(domainv1CmdRoot.CmdClause, data)
+	domainv1ToolsStatus := tools.NewDomainStatusCommand(domainv1ToolsCmdRoot.CmdClause, data)
+	domainv1ToolsSuggestion := tools.NewDomainSuggestionsCommand(domainv1ToolsCmdRoot.CmdClause, data)
 	healthcheckCmdRoot := healthcheck.NewRootCommand(app, data)
 	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
 	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, data)
@@ -615,7 +619,10 @@ func Define( // nolint:revive // function-length
 		domainv1Delete,
 		domainv1Describe,
 		domainv1List,
+		domainv1ToolsCmdRoot,
 		domainv1Update,
+		domainv1ToolsStatus,
+		domainv1ToolsSuggestion,
 		healthcheckCmdRoot,
 		healthcheckCreate,
 		healthcheckDelete,
