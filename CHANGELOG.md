@@ -28,6 +28,7 @@
 - build(deps): `github.com/42wim/httpsig` from 1.2.2 to 1.2.3 ([#1472](https://github.com/fastly/cli/pull/1472))
 - build(deps): `github.com/Azure/azure-sdk-for-go/sdk/azcore` from 1.17.1 to 1.18.0 ([#1472](https://github.com/fastly/cli/pull/1472))
 - build(deps): `github.com/Azure/azure-sdk-for-go/sdk/azidentity` from 1.8.2 to 1.9.0 ([#1472](https://github.com/fastly/cli/pull/1472))
+- build(deps): `github.com/fastly/go-fastly/v10` from 10.1.0 to 10.2.0 ([#1481](https://github.com/fastly/cli/pull/1481))
 
 ## [v11.2.0](https://github.com/fastly/cli/releases/tag/v11.2.0) (2025-04-10)
 
