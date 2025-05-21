@@ -31,7 +31,6 @@ func NewDomainStatusCommand(parent argparser.Registerer, g *global.Data) *GetDom
 	}
 
 	cmd.CmdClause = parent.Command("status", "Check the availability status of a single domain name.")
-
 	// Required.
 	cmd.CmdClause.Flag("domain", "Domain being checked for availability").Required().StringVar(&cmd.domain)
 	// Optional.
@@ -70,11 +69,12 @@ func (g *GetDomainStatusCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	writeStatusSummary(out, st)
+	printStatusSummary(out, st)
 	return nil
 }
 
-func writeStatusSummary(w io.Writer, st *status.Status) {
+// printStatusSummary displays the information returned from the API in a summarized format.
+func printStatusSummary(w io.Writer, st *status.Status) {
 	fmt.Fprintf(w, "Domain: %s\n", st.Domain)
 	fmt.Fprintf(w, "Zone: %s\n", st.Zone)
 	fmt.Fprintf(w, "Status: %s\n", st.Status)

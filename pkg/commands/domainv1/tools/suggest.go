@@ -36,7 +36,6 @@ func NewDomainSuggestionsCommand(parent argparser.Registerer, g *global.Data) *G
 	}
 
 	cmd.CmdClause = parent.Command("suggest", "Performs real-time queries against the known zones database")
-
 	// Required.
 	cmd.CmdClause.Flag("query", "The term(s) to search against.").Required().StringVar(&cmd.query)
 	// Optional.
@@ -91,15 +90,17 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if g.Globals.Verbose() {
-		writeSearchVerbose(out, suggestions)
+		printSearchVerbose(out, suggestions)
 	} else {
-		writeSearchSummary(out, suggestions)
+		printSearchSummary(out, suggestions)
 	}
 
 	return nil
 }
 
-func writeSearchSummary(out io.Writer, suggestions *suggest.Suggestions) {
+// printSearchSummary displays the information returned from the API in a summarized
+// format.
+func printSearchSummary(out io.Writer, suggestions *suggest.Suggestions) {
 	t := text.NewTable(out)
 	t.AddHeader("Domain", "Subdomain", "Zone", "Path")
 	for _, suggestion := range suggestions.Results {
@@ -113,7 +114,9 @@ func writeSearchSummary(out io.Writer, suggestions *suggest.Suggestions) {
 	t.Print()
 }
 
-func writeSearchVerbose(out io.Writer, suggestions *suggest.Suggestions) {
+// printSearchVerbose displays the information returned from the API in a verbose
+// format.
+func printSearchVerbose(out io.Writer, suggestions *suggest.Suggestions) {
 	for _, suggestion := range suggestions.Results {
 		fmt.Fprintf(out, "Domain: %s\n", suggestion.Domain)
 		fmt.Fprintf(out, "Subdomain: %s\n", suggestion.Subdomain)
