@@ -14,7 +14,7 @@ type RootCommand struct {
 	// no flags
 }
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "tools"
 
 // NewRootCommand returns a new tools command registered in the parent.

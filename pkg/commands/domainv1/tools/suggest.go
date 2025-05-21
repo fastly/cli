@@ -90,17 +90,17 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if g.Globals.Verbose() {
-		printSearchVerbose(out, suggestions)
+		printSuggestionsVerbose(out, suggestions)
 	} else {
-		printSearchSummary(out, suggestions)
+		printSuggestionsSummary(out, suggestions)
 	}
 
 	return nil
 }
 
-// printSearchSummary displays the information returned from the API in a summarized
+// printSuggestionsSummary displays the information returned from the API in a summarized
 // format.
-func printSearchSummary(out io.Writer, suggestions *suggest.Suggestions) {
+func printSuggestionsSummary(out io.Writer, suggestions *suggest.Suggestions) {
 	t := text.NewTable(out)
 	t.AddHeader("Domain", "Subdomain", "Zone", "Path")
 	for _, suggestion := range suggestions.Results {
@@ -114,9 +114,9 @@ func printSearchSummary(out io.Writer, suggestions *suggest.Suggestions) {
 	t.Print()
 }
 
-// printSearchVerbose displays the information returned from the API in a verbose
+// printSuggestionsVerbose displays the information returned from the API in a verbose
 // format.
-func printSearchVerbose(out io.Writer, suggestions *suggest.Suggestions) {
+func printSuggestionsVerbose(out io.Writer, suggestions *suggest.Suggestions) {
 	for _, suggestion := range suggestions.Results {
 		fmt.Fprintf(out, "Domain: %s\n", suggestion.Domain)
 		fmt.Fprintf(out, "Subdomain: %s\n", suggestion.Subdomain)
