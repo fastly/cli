@@ -27,7 +27,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v10 v10.1.0
+	github.com/fastly/go-fastly/v10 v10.2.0
 	github.com/hashicorp/cap v0.9.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/otiai10/copy v1.14.1
