@@ -12,7 +12,7 @@ type RootCommand struct {
 	argparser.Base
 }
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "stats"
 
 // NewRootCommand returns a new top level "stats" command.

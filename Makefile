@@ -42,7 +42,7 @@ endif
 # EXAMPLE:
 # make release GORELEASER_ARGS="--clean --skip=post-hooks --skip=validate"
 release: dependencies $(GO_FILES) ## Build executables using goreleaser
-	goreleaser build ${GORELEASER_ARGS}
+	$(GO_BIN) tool -modfile=tools.mod goreleaser build ${GORELEASER_ARGS}
 
 # Useful for attaching a debugger such as https://github.com/go-delve/delve
 debug:
@@ -53,7 +53,7 @@ config:
 	@$(CONFIG_SCRIPT)
 
 .PHONY: all
-all: config mod-download tidy fmt vet staticcheck gosec semgrep imports test build install ## Run EVERYTHING!
+all: config mod-download tidy fmt lint semgrep test build install ## Run EVERYTHING!
 
 ## Downloads the Go modules
 mod-download: 
@@ -69,26 +69,7 @@ tidy:
 # Run formatter.
 .PHONY: fmt
 fmt:
-	@echo gofmt -l ./{cmd,pkg}
-	@eval "bash -c 'F=\$$(gofmt -l ./{cmd,pkg}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
-
-# Run static analysis.
-.PHONY: vet
-vet: config ## Run vet static analysis
-	$(GO_BIN) vet ./{cmd,pkg}/...
-
-# Run linter.
-.PHONY: revive
-revive: ## Run linter (using revive)
-	$(GO_BIN) tool revive ./...
-
-# Run security vulnerability checker.
-.PHONY: gosec
-gosec: ## Run security vulnerability checker
-	$(GO_BIN) tool gosec -quiet -exclude=G104 ./{cmd,pkg}/...
-
-nilaway: ## Run nilaway
-	@nilaway ./...
+	golangci-lint fmt
 
 # Run semgrep checker.
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
@@ -103,20 +84,8 @@ semgrep: ## Run semgrep
 		if command -v semgrep &> /dev/null; then semgrep ci --config auto --exclude-rule go.lang.security.audit.xss.import-text-template.import-text-template $(SEMGREP_ARGS); fi \
 	fi
 
-# Run third-party static analysis.
-# To ignore lines use: //lint:ignore <CODE> <REASON>
-.PHONY: staticcheck
-staticcheck: ## Run static analysis
-	@$(GO_BIN) tool staticcheck ./{cmd,pkg}/...
-
-# Run imports formatter.
-.PHONY: imports
-imports:
-	@echo $(GO_BIN) tool goimports ./{cmd,pkg}
-	@eval "bash -c 'F=\$$(goimports -l ./{cmd,pkg}) ; if [[ \$$F ]] ; then echo \$$F ; exit 1 ; fi'"
-
-.PHONY: golangci
-golangci: ## Run golangci-lint
+.PHONY: lint
+lint: ## Run golangci-lint
 	golangci-lint run --verbose
 
 # Run tests
@@ -146,7 +115,7 @@ scaffold-category:
 # e.g. make graph PKG_IMPORT_PATH=github.com/fastly/cli/pkg/commands/kvstoreentry
 .PHONY: graph
 graph: ## Graph generates a call graph that focuses on the specified package
-	$(GO_BIN) tool go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
+	$(GO_BIN) tool -modfile=tools.mod go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
 	@rm callvis.gv
 
 .PHONY: deps-app-update

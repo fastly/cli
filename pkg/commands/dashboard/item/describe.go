@@ -57,7 +57,10 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.JSONOutput.Enabled {
-		c.WriteJSON(out, di)
+		_, err := c.WriteJSON(out, di)
+		if err != nil {
+			return err
+		}
 	} else {
 		common.PrintItem(out, 0, di)
 	}

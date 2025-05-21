@@ -32,10 +32,10 @@ import (
 // This makes the experience less confusing as users didn't expect file changes.
 const RustDefaultBuildCommand = "cargo build --bin %s --release --target %s --color always"
 
-// RustDefaultWasmWasiTarget is the expected Rust WasmWasi build target
+// RustDefaultWasmWasiTarget is the expected Rust WasmWasi build target.
 const RustDefaultWasmWasiTarget = "wasm32-wasip1"
 
-// OldRustDefaultWasmWasiTarget was the expected Rust WasmWasi build target before version 11 of the CLI
+// OldRustDefaultWasmWasiTarget was the expected Rust WasmWasi build target before version 11 of the CLI.
 const OldRustDefaultWasmWasiTarget = "wasm32-wasi"
 
 // RustManifest is the manifest file for defining project configuration.
@@ -176,7 +176,7 @@ func (r *Rust) Build() error {
 		}
 	}
 
-	var wasmWasiTarget = r.config.WasmWasiTarget
+	wasmWasiTarget := r.config.WasmWasiTarget
 	if wasmWasiTarget != RustDefaultWasmWasiTarget {
 		return fmt.Errorf("the default build in .fastly/config.toml should produce a %s binary, but was instead set to produce a %s binary", RustDefaultWasmWasiTarget, wasmWasiTarget)
 	}

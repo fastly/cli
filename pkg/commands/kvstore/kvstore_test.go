@@ -31,7 +31,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
-				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+				CreateKVStoreFn: func(_ *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -172,7 +172,7 @@ func TestGetStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
+				GetKVStoreFn: func(_ *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -239,14 +239,14 @@ func TestListStoresCommand(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			API: mock.API{
-				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+				ListKVStoresFn: func(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return nil, nil
 				},
 			},
 		},
 		{
 			API: mock.API{
-				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+				ListKVStoresFn: func(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return nil, errors.New("unknown error")
 				},
 			},
@@ -254,7 +254,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 		{
 			API: mock.API{
-				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+				ListKVStoresFn: func(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return stores, nil
 				},
 			},
@@ -263,7 +263,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			Args: "--json",
 			API: mock.API{
-				ListKVStoresFn: func(i *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+				ListKVStoresFn: func(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return stores, nil
 				},
 			},

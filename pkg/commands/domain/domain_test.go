@@ -209,7 +209,7 @@ func TestDomainValidate(t *testing.T) {
 			Name: "validate ValidateDomain API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ValidateDomainFn: func(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
+				ValidateDomainFn: func(_ *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -220,7 +220,7 @@ func TestDomainValidate(t *testing.T) {
 			Name: "validate ValidateAllDomains API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ValidateAllDomainsFn: func(i *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error) {
+				ValidateAllDomainsFn: func(_ *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error) {
 					return nil, testutil.Err
 				},
 			},

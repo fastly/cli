@@ -20,7 +20,7 @@ func TestAuthTokenCreate(t *testing.T) {
 		{
 			Name: "validate CreateToken API error",
 			API: mock.API{
-				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
+				CreateTokenFn: func(_ *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -30,7 +30,7 @@ func TestAuthTokenCreate(t *testing.T) {
 		{
 			Name: "validate CreateToken API success with no flags",
 			API: mock.API{
-				CreateTokenFn: func(i *fastly.CreateTokenInput) (*fastly.Token, error) {
+				CreateTokenFn: func(_ *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   &testutil.Date,
 						TokenID:     fastly.ToPointer("123"),
@@ -84,7 +84,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		{
 			Name: "validate BatchDeleteTokens API error with --file",
 			API: mock.API{
-				BatchDeleteTokensFn: func(i *fastly.BatchDeleteTokensInput) error {
+				BatchDeleteTokensFn: func(_ *fastly.BatchDeleteTokensInput) error {
 					return testutil.Err
 				},
 			},
@@ -94,7 +94,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		{
 			Name: "validate DeleteToken API error with --id",
 			API: mock.API{
-				DeleteTokenFn: func(i *fastly.DeleteTokenInput) error {
+				DeleteTokenFn: func(_ *fastly.DeleteTokenInput) error {
 					return testutil.Err
 				},
 			},
@@ -114,7 +114,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		{
 			Name: "validate BatchDeleteTokens API success with --file",
 			API: mock.API{
-				BatchDeleteTokensFn: func(i *fastly.BatchDeleteTokensInput) error {
+				BatchDeleteTokensFn: func(_ *fastly.BatchDeleteTokensInput) error {
 					return nil
 				},
 			},
@@ -124,7 +124,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		{
 			Name: "validate BatchDeleteTokens API success with --file and --verbose",
 			API: mock.API{
-				BatchDeleteTokensFn: func(i *fastly.BatchDeleteTokensInput) error {
+				BatchDeleteTokensFn: func(_ *fastly.BatchDeleteTokensInput) error {
 					return nil
 				},
 			},
@@ -134,7 +134,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		{
 			Name: "validate DeleteToken API success with --id",
 			API: mock.API{
-				DeleteTokenFn: func(i *fastly.DeleteTokenInput) error {
+				DeleteTokenFn: func(_ *fastly.DeleteTokenInput) error {
 					return nil
 				},
 			},
@@ -185,7 +185,7 @@ func TestAuthTokenList(t *testing.T) {
 		{
 			Name: "validate ListCustomerTokens API error",
 			API: mock.API{
-				ListCustomerTokensFn: func(i *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
+				ListCustomerTokensFn: func(_ *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
 					return nil, testutil.Err
 				},
 			},

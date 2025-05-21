@@ -169,7 +169,7 @@ func TestInit(t *testing.T) {
 				"SUCCESS: Initialized package",
 			},
 			setupSteps: func() error {
-				return os.MkdirAll("compute-starter-kit-rust-default", 0755)
+				return os.MkdirAll("compute-starter-kit-rust-default", 0o755)
 			},
 		},
 		{
@@ -210,7 +210,7 @@ func TestInit(t *testing.T) {
 				"SUCCESS: Initialized package",
 			},
 			setupSteps: func() error {
-				return os.MkdirAll("compute-starter-kit-rust-default.git", 0755)
+				return os.MkdirAll("compute-starter-kit-rust-default.git", 0o755)
 			},
 		},
 		{

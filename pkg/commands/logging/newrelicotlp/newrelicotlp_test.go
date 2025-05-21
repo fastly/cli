@@ -38,7 +38,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 			Name: "validate CreateNewRelicOTLP API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateNewRelicOTLPFn: func(i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				CreateNewRelicOTLPFn: func(_ *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -118,7 +118,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 			Name: "validate DeleteNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteNewRelicOTLPFn: func(i *fastly.DeleteNewRelicOTLPInput) error {
+				DeleteNewRelicOTLPFn: func(_ *fastly.DeleteNewRelicOTLPInput) error {
 					return testutil.Err
 				},
 			},
@@ -129,7 +129,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 			Name: "validate DeleteNewRelic API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteNewRelicOTLPFn: func(i *fastly.DeleteNewRelicOTLPInput) error {
+				DeleteNewRelicOTLPFn: func(_ *fastly.DeleteNewRelicOTLPInput) error {
 					return nil
 				},
 			},
@@ -141,7 +141,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteNewRelicOTLPFn: func(i *fastly.DeleteNewRelicOTLPInput) error {
+				DeleteNewRelicOTLPFn: func(_ *fastly.DeleteNewRelicOTLPInput) error {
 					return nil
 				},
 			},
@@ -174,7 +174,7 @@ func TestNewRelicDescribe(t *testing.T) {
 			Name: "validate GetNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetNewRelicOTLPFn: func(i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				GetNewRelicOTLPFn: func(_ *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -219,7 +219,7 @@ func TestNewRelicList(t *testing.T) {
 			Name: "validate ListNewRelics API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListNewRelicOTLPFn: func(i *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error) {
+				ListNewRelicOTLPFn: func(_ *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -295,7 +295,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			Name: "validate UpdateNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateNewRelicOTLPFn: func(i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				UpdateNewRelicOTLPFn: func(_ *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
 				},
 			},

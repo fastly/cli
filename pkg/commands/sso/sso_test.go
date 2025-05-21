@@ -31,8 +31,8 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
-				opts.Opener = func(input string) error {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+				opts.Opener = func(_ string) error {
 					return errors.New("failed to open web browser")
 				}
 			},
@@ -44,7 +44,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -63,7 +63,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -82,7 +82,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -99,7 +99,7 @@ func TestSSO(t *testing.T) {
 				"We need to open your browser to authenticate you.",
 				"Session token (persisted to your local configuration): 123",
 			},
-			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -122,7 +122,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -139,7 +139,7 @@ func TestSSO(t *testing.T) {
 				"We need to open your browser to authenticate you.",
 				"Session token (persisted to your local configuration): 123",
 			},
-			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["test_user"]
 				if userProfile.Token != expectedToken {
@@ -183,7 +183,7 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
@@ -191,7 +191,7 @@ func TestSSO(t *testing.T) {
 				// "is not a Fastly SSO (Single Sign-On) generated token",
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -216,12 +216,12 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutput:     "Your access token has expired and so has your refresh token.",
 			DontWantOutput: "{Latitude:1 Longitude:2 X:3 Y:4}",
-			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {
@@ -265,7 +265,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -283,7 +283,7 @@ func TestSSO(t *testing.T) {
 				"Session token (persisted to your local configuration): 123",
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, scenario *testutil.CLIScenario, opts *global.Data, stdout *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "123"
 				userProfile := opts.Config.Profiles["user"]
 				if userProfile.Token != expectedToken {

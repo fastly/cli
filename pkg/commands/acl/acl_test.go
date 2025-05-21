@@ -47,7 +47,7 @@ func TestACLCreate(t *testing.T) {
 			Name: "validate CreateACL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateACLFn: func(i *fastly.CreateACLInput) (*fastly.ACL, error) {
+				CreateACLFn: func(_ *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -129,7 +129,7 @@ func TestACLDelete(t *testing.T) {
 			Name: "validate DeleteACL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteACLFn: func(i *fastly.DeleteACLInput) error {
+				DeleteACLFn: func(_ *fastly.DeleteACLInput) error {
 					return testutil.Err
 				},
 			},
@@ -140,7 +140,7 @@ func TestACLDelete(t *testing.T) {
 			Name: "validate DeleteACL API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteACLFn: func(i *fastly.DeleteACLInput) error {
+				DeleteACLFn: func(_ *fastly.DeleteACLInput) error {
 					return nil
 				},
 			},
@@ -152,7 +152,7 @@ func TestACLDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteACLFn: func(i *fastly.DeleteACLInput) error {
+				DeleteACLFn: func(_ *fastly.DeleteACLInput) error {
 					return nil
 				},
 			},
@@ -185,7 +185,7 @@ func TestACLDescribe(t *testing.T) {
 			Name: "validate GetACL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetACLFn: func(i *fastly.GetACLInput) (*fastly.ACL, error) {
+				GetACLFn: func(_ *fastly.GetACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -230,7 +230,7 @@ func TestACLList(t *testing.T) {
 			Name: "validate ListACLs API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListACLsFn: func(i *fastly.ListACLsInput) ([]*fastly.ACL, error) {
+				ListACLsFn: func(_ *fastly.ListACLsInput) ([]*fastly.ACL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -311,7 +311,7 @@ func TestACLUpdate(t *testing.T) {
 			Name: "validate UpdateACL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateACLFn: func(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
+				UpdateACLFn: func(_ *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
 				},
 			},

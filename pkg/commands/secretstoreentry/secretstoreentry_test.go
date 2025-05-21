@@ -15,8 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
 	"golang.org/x/crypto/nacl/box"
+
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
@@ -492,7 +493,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s", storeID),
 			api: mock.API{
-				ListSecretsFn: func(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, errors.New("unknown error")
 				},
 			},
@@ -502,7 +503,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s", storeID),
 			api: mock.API{
-				ListSecretsFn: func(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, nil
 				},
 			},
@@ -512,7 +513,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s --json", storeID),
 			api: mock.API{
-				ListSecretsFn: func(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, nil
 				},
 			},

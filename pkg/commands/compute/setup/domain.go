@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	petname "github.com/dustinkirkland/golang-petname"
+
 	"github.com/fastly/go-fastly/v10/fastly"
 
 	"github.com/fastly/cli/pkg/api"

@@ -58,7 +58,7 @@ type RootCommand struct {
 	InvokedFromSSO bool
 }
 
-// CommandName is the string to be used to invoke this command
+// CommandName is the string to be used to invoke this command.
 const CommandName = "sso"
 
 // NewRootCommand returns a new command registered in the parent.

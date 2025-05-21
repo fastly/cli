@@ -364,7 +364,7 @@ func TestServiceID(t *testing.T) {
 				File: manifest.File{ServiceID: "123"},
 			},
 			API: mock.API{
-				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
@@ -383,7 +383,7 @@ func TestServiceID(t *testing.T) {
 			ServiceName: argparser.OptionalServiceNameID{argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bar"}},
 			Data:        manifest.Data{},
 			API: mock.API{
-				GetServicesFn: func(i *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{

@@ -32,6 +32,7 @@ jobs:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
   lint:
+    needs: [config]
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
@@ -45,28 +46,17 @@ jobs:
       - name: "Install dependencies"
         run: make mod-download
         shell: bash
-      - name: "Run go mod tidy"
-        run: make tidy
-      - name: "Run go fmt"
-        run: make fmt
-      # NOTE: We don't download the config artifact in this job.
-      # This is because we know Linux is able to generate the configuration file.
-      # Which is triggered by the `make vet` pre-requisite target `config`.
-      - name: "Run go vet"
-        run: make vet
-        shell: bash
-      - name: "Run revive"
-        run: make revive
-        shell: bash
-      - name: "Static analysis check"
-        run: make staticcheck
-        shell: bash
-      - name: "Security audit"
-        run: make gosec
-        shell: bash
-      - name: "Run go imports"
-        run: make imports
-        shell: bash
+      - name: "Config Artifact"
+        uses: actions/download-artifact@v4
+        with:
+          name: config-artifact-${{ github.sha }}
+      - name: "Move Config"
+        run: mv config.toml pkg/config/config.toml
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
+          only-new-issues: true
   test:
     needs: [config]
     strategy:

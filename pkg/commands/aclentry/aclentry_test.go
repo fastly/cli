@@ -33,7 +33,7 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name: "validate CreateACLEntry API error",
 			API: mock.API{
-				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
+				CreateACLEntryFn: func(_ *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -96,7 +96,7 @@ func TestACLEntryDelete(t *testing.T) {
 		{
 			Name: "validate DeleteACL API error",
 			API: mock.API{
-				DeleteACLEntryFn: func(i *fastly.DeleteACLEntryInput) error {
+				DeleteACLEntryFn: func(_ *fastly.DeleteACLEntryInput) error {
 					return testutil.Err
 				},
 			},
@@ -106,7 +106,7 @@ func TestACLEntryDelete(t *testing.T) {
 		{
 			Name: "validate DeleteACL API success",
 			API: mock.API{
-				DeleteACLEntryFn: func(i *fastly.DeleteACLEntryInput) error {
+				DeleteACLEntryFn: func(_ *fastly.DeleteACLEntryInput) error {
 					return nil
 				},
 			},
@@ -138,7 +138,7 @@ func TestACLEntryDescribe(t *testing.T) {
 		{
 			Name: "validate GetACL API error",
 			API: mock.API{
-				GetACLEntryFn: func(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
+				GetACLEntryFn: func(_ *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -172,7 +172,7 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API error (via GetNext() call)",
 			API: mock.API{
-				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+				GetACLEntriesFn: func(_ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
 					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
 						Errors: []error{
 							testutil.Err,
@@ -187,7 +187,7 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API success",
 			API: mock.API{
-				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+				GetACLEntriesFn: func(_ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
 					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
@@ -229,7 +229,7 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate --verbose flag",
 			API: mock.API{
-				GetACLEntriesFn: func(i *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+				GetACLEntriesFn: func(_ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
 					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
@@ -326,7 +326,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateACL API error",
 			API: mock.API{
-				UpdateACLEntryFn: func(i *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error) {
+				UpdateACLEntryFn: func(_ *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -336,7 +336,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate error from --file set with invalid json",
 			API: mock.API{
-				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
+				BatchModifyACLEntriesFn: func(_ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
 			},
@@ -346,7 +346,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate error from --file set with zero json entries",
 			API: mock.API{
-				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
+				BatchModifyACLEntriesFn: func(_ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
 			},
@@ -356,7 +356,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate success with --file",
 			API: mock.API{
-				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
+				BatchModifyACLEntriesFn: func(_ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
 			},
@@ -370,7 +370,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate success with --file as inline json",
 			API: mock.API{
-				BatchModifyACLEntriesFn: func(i *fastly.BatchModifyACLEntriesInput) error {
+				BatchModifyACLEntriesFn: func(_ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
 			},

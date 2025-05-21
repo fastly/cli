@@ -39,7 +39,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("create --name %s", storeName),
 			api: mock.API{
-				CreateSecretStoreFn: func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+				CreateSecretStoreFn: func(_ *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -209,7 +209,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("get --store-id %s", storeID),
 			api: mock.API{
-				GetSecretStoreFn: func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+				GetSecretStoreFn: func(_ *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -304,7 +304,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			args: "list",
 			api: mock.API{
-				ListSecretStoresFn: func(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+				ListSecretStoresFn: func(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 					return nil, nil
 				},
 			},
@@ -313,7 +313,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			args: "list",
 			api: mock.API{
-				ListSecretStoresFn: func(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+				ListSecretStoresFn: func(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 					return nil, errors.New("unknown error")
 				},
 			},
@@ -323,7 +323,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			args: "list",
 			api: mock.API{
-				ListSecretStoresFn: func(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+				ListSecretStoresFn: func(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 					return stores, nil
 				},
 			},
@@ -333,7 +333,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			args: "list --json",
 			api: mock.API{
-				ListSecretStoresFn: func(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+				ListSecretStoresFn: func(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 					return stores, nil
 				},
 			},

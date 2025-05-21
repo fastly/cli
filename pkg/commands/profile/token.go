@@ -89,7 +89,9 @@ func checkTokenValidity(profileName string, p *config.Profile, ttl time.Duration
 
 	if expiry.After(time.Now().Add(ttl)) {
 		return nil
-	} else if expiry.Before(time.Now()) {
+	}
+
+	if expiry.Before(time.Now()) {
 		msg = fmt.Sprintf(profile.TokenExpired, profileName, expiry.UTC().Format(fsttime.Format))
 	} else {
 		msg = fmt.Sprintf(profile.TokenWillExpire, profileName, expiry.UTC().Format(fsttime.Format))

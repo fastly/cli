@@ -5,8 +5,9 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/fastly/go-fastly/v10/fastly"
 	"github.com/kennygrant/sanitize"
+
+	"github.com/fastly/go-fastly/v10/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"

@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"4d63.com/optional"
+
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/common"
 	"github.com/fastly/cli/pkg/errors"

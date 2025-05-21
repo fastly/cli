@@ -8,6 +8,7 @@ import (
 	"github.com/fastly/kingpin"
 
 	"4d63.com/optional"
+
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"

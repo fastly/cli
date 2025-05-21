@@ -12,11 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/kingpin"
 	"github.com/fatih/color"
 	"github.com/hashicorp/cap/oidc"
 	"github.com/skratchdot/open-golang/open"
+
+	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
@@ -60,7 +61,7 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 
 	// Define the standard input/output streams.
 	var (
-		in  io.Reader = stdin
+		in            = stdin
 		out io.Writer = sync.NewWriter(color.Output)
 	)
 
