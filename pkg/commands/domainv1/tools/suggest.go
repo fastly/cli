@@ -40,10 +40,10 @@ func NewDomainSuggestionsCommand(parent argparser.Registerer, g *global.Data) *G
 	cmd.CmdClause.Flag("query", "The term(s) to search against.").Required().StringVar(&cmd.query)
 	// Optional.
 	cmd.CmdClause.Flag("defaults", "Comma-separated list of default zones to include in the search results response").Action(cmd.defaults.Set).StringVar(&cmd.defaults.Value)
+	cmd.RegisterFlagBool(cmd.JSONFlag())
 	cmd.CmdClause.Flag("keywords", "Comma-separated list of keywords for seeding the results").Action(cmd.keywords.Set).StringVar(&cmd.keywords.Value)
 	cmd.CmdClause.Flag("location", "Overrides the IP location detection for country-code zones, with a two-character country code").Action(cmd.location.Set).StringVar(&cmd.location.Value)
 	cmd.CmdClause.Flag("vendor", "The domain name of a specific registrar or vendor ").Action(cmd.vendor.Set).StringVar(&cmd.vendor.Value)
-	cmd.RegisterFlagBool(cmd.JSONFlag())
 
 	return &cmd
 }
@@ -56,7 +56,7 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	fc, ok := g.Globals.APIClient.(*fastly.Client)
 	if !ok {
-		return errors.New("failed to convert interface to a fastly client")
+		return errors.New("failed to acquire the Fastly API client")
 	}
 
 	input := &suggest.GetInput{

@@ -20,14 +20,18 @@ func TestNewDomainsV1ToolsStatusCommand(t *testing.T) {
 			WantError: "error parsing arguments: required flag --domain not provided",
 		},
 		{
-			Args: "--domain domainr-testing.com",
+			Args:      "--domain fastly-cli-testing.com --scope not-estimate",
+			WantError: "invalid scope provided",
+		},
+		{
+			Args: "--domain fastly-cli-testing.com",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
 						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(status.Status{
-							Domain: "domainr-testing.com",
+							Domain: "fastly-cli-testing.com",
 							Zone:   "com",
 							Status: "undelegated inactive",
 							Tags:   "generic",
@@ -35,31 +39,26 @@ func TestNewDomainsV1ToolsStatusCommand(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: `Domain: domainr-testing.com
+			WantOutput: `Domain: fastly-cli-testing.com
 Zone: com
 Status: undelegated inactive
 Tags: generic
 `,
 		},
 		{
-			Args: "--domain domainr-testing.org --scope estimate",
+			Args: "--domain fastly-cli-testing-offers.com --scope estimate",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
 						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(status.Status{
-							Domain: "domainr-testing.org",
-							Zone:   "org",
+							Domain: "fastly-cli-testing-offers.com",
+							Zone:   "com",
 							Status: "marketed priced transferable active",
 							Tags:   "generic",
 							Scope:  fastly.ToPointer(status.ScopeEstimate),
 							Offers: []status.Offer{
-								{
-									Vendor:   "am.godaddy.com",
-									Currency: "USD",
-									Price:    "25000.00",
-								},
 								{
 									Vendor:   "example.com",
 									Currency: "USD",
@@ -70,38 +69,35 @@ Tags: generic
 					},
 				},
 			},
-			WantOutput: `Domain: domainr-testing.org
-Zone: org
+			WantOutput: `Domain: fastly-cli-testing-offers.com
+Zone: com
 Status: marketed priced transferable active
 Tags: generic
 Scope: estimate
 Offers:
-  - Vendor: am.godaddy.com
-    Currency: USD
-    Price: 25000.00
   - Vendor: example.com
     Currency: USD
     Price: 20000.00
 `,
 		},
 		{
-			Args: "-j --domain domainr-testing.org --scope estimate",
+			Args: "-j --domain fastly-cli-testing-offers.com --scope estimate",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
 						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(status.Status{
-							Domain: "domainr-testing.org",
-							Zone:   "org",
+							Domain: "fastly-cli-testing-offers.com",
+							Zone:   "com",
 							Status: "marketed priced transferable active",
 							Tags:   "generic",
 							Scope:  fastly.ToPointer(status.ScopeEstimate),
 							Offers: []status.Offer{
 								{
-									Vendor:   "am.godaddy.com",
+									Vendor:   "example.com",
 									Currency: "USD",
-									Price:    "25000.00",
+									Price:    "20000.00",
 								},
 							},
 						}))),
@@ -109,15 +105,15 @@ Offers:
 				},
 			},
 			WantOutput: `{
-  "domain": "domainr-testing.org",
-  "zone": "org",
+  "domain": "fastly-cli-testing-offers.com",
+  "zone": "com",
   "status": "marketed priced transferable active",
   "scope": "estimate",
   "tags": "generic",
   "offers": [
     {
-      "vendor": "am.godaddy.com",
-      "price": "25000.00",
+      "vendor": "example.com",
+      "price": "20000.00",
       "currency": "USD"
     }
   ]

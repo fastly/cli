@@ -34,8 +34,8 @@ func NewDomainStatusCommand(parent argparser.Registerer, g *global.Data) *GetDom
 	// Required.
 	cmd.CmdClause.Flag("domain", "Domain being checked for availability").Required().StringVar(&cmd.domain)
 	// Optional.
-	cmd.CmdClause.Flag("scope", "Scope determines the availability check to perform, specify `estimate` for an estimated check").Action(cmd.scope.Set).StringVar(&cmd.scope.Value)
 	cmd.RegisterFlagBool(cmd.JSONFlag())
+	cmd.CmdClause.Flag("scope", "Scope determines the availability check to perform, specify `estimate` for an estimated check").Action(cmd.scope.Set).StringVar(&cmd.scope.Value)
 
 	return &cmd
 }
@@ -46,19 +46,26 @@ func (g *GetDomainStatusCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	fc, ok := g.Globals.APIClient.(*fastly.Client)
-	if !ok {
-		return errors.New("failed to convert interface to a fastly client")
-	}
-
 	input := &status.GetInput{
 		Domain: g.domain,
 	}
 
 	if g.scope.WasSet {
-		input.Scope = fastly.ToPointer(status.Scope(g.scope.Value))
+		scope := status.Scope(g.scope.Value)
+		if scope != status.ScopeEstimate {
+			return fsterr.RemediationError{
+				Inner:       errors.New("invalid scope provided"),
+				Remediation: "Use --scope estimate for an estimate check",
+			}
+		}
+		input.Scope = fastly.ToPointer(scope)
 	}
 
+	fc, ok := g.Globals.APIClient.(*fastly.Client)
+	if !ok {
+		return errors.New("failed to acquire the Fastly API client")
+	}
+	
 	st, err := status.Get(fc, input)
 	if err != nil {
 		g.Globals.ErrLog.Add(err)

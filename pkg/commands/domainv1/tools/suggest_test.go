@@ -17,28 +17,28 @@ func TestNewDomainsV1ToolsSuggestCommand(t *testing.T) {
 	testSuggestions := suggest.Suggestions{
 		Results: []suggest.Suggestion{
 			{
-				Domain:    "domainrtest.ing",
-				Subdomain: "domainrtest.",
+				Domain:    "fastlytest.ing",
+				Subdomain: "fastlytest.",
 				Zone:      "ing",
 			},
 			{
-				Domain:    "domainrtesti.ng",
-				Subdomain: "domainrtesti.",
+				Domain:    "fastlytesti.ng",
+				Subdomain: "fastlytesti.",
 				Zone:      "ng",
 			},
 			{
-				Domain:    "domainrtesting.com",
-				Subdomain: "domainrtesting.",
+				Domain:    "fastlytesting.com",
+				Subdomain: "fastlytesting.",
 				Zone:      "com",
 			},
 			{
-				Domain:    "domainrtesting.net",
-				Subdomain: "domainrtesting.",
+				Domain:    "fastlytesting.net",
+				Subdomain: "fastlytesting.",
 				Zone:      "net",
 			},
 			{
-				Domain:    "domainrtest.in",
-				Subdomain: "domainrtest.",
+				Domain:    "fastlytest.in",
+				Subdomain: "fastlytest.",
 				Zone:      "in",
 				Path:      fastly.ToPointer("/g"),
 			},
@@ -50,7 +50,7 @@ func TestNewDomainsV1ToolsSuggestCommand(t *testing.T) {
 			WantError: "error parsing arguments: required flag --query not provided",
 		},
 		{
-			Args: "--query `domainr testing`",
+			Args: "--query `fastly testing`",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -60,12 +60,12 @@ func TestNewDomainsV1ToolsSuggestCommand(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: `Domain              Subdomain        Zone  Path
-domainrtest.ing     domainrtest.     ing   
-domainrtesti.ng     domainrtesti.    ng    
-domainrtesting.com  domainrtesting.  com   
-domainrtesting.net  domainrtesting.  net   
-domainrtest.in      domainrtest.     in    /g
+			WantOutput: `Domain             Subdomain       Zone  Path
+fastlytest.ing     fastlytest.     ing   
+fastlytesti.ng     fastlytesti.    ng    
+fastlytesting.com  fastlytesting.  com   
+fastlytesting.net  fastlytesting.  net   
+fastlytest.in      fastlytest.     in    /g
 `,
 		},
 		{
@@ -116,7 +116,7 @@ foo.club     foo.       club
 `,
 		},
 		{
-			Args: "-j --query `domainr testing`",
+			Args: "-j --query `fastly testing`",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -129,28 +129,28 @@ foo.club     foo.       club
 			WantOutput: `{
   "results": [
     {
-      "domain": "domainrtest.ing",
-      "subdomain": "domainrtest.",
+      "domain": "fastlytest.ing",
+      "subdomain": "fastlytest.",
       "zone": "ing"
     },
     {
-      "domain": "domainrtesti.ng",
-      "subdomain": "domainrtesti.",
+      "domain": "fastlytesti.ng",
+      "subdomain": "fastlytesti.",
       "zone": "ng"
     },
     {
-      "domain": "domainrtesting.com",
-      "subdomain": "domainrtesting.",
+      "domain": "fastlytesting.com",
+      "subdomain": "fastlytesting.",
       "zone": "com"
     },
     {
-      "domain": "domainrtesting.net",
-      "subdomain": "domainrtesting.",
+      "domain": "fastlytesting.net",
+      "subdomain": "fastlytesting.",
       "zone": "net"
     },
     {
-      "domain": "domainrtest.in",
-      "subdomain": "domainrtest.",
+      "domain": "fastlytest.in",
+      "subdomain": "fastlytest.",
       "zone": "in",
       "path": "/g"
     }
@@ -159,7 +159,7 @@ foo.club     foo.       club
 `,
 		},
 		{
-			Args: "-v --query `domainr testing`",
+			Args: "-v --query `fastly testing`",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -172,24 +172,24 @@ foo.club     foo.       club
 			WantOutput: `Fastly API endpoint: https://api.fastly.com
 Fastly API token provided via config file (profile: user)
 
-Domain: domainrtest.ing
-Subdomain: domainrtest.
+Domain: fastlytest.ing
+Subdomain: fastlytest.
 Zone: ing
 
-Domain: domainrtesti.ng
-Subdomain: domainrtesti.
+Domain: fastlytesti.ng
+Subdomain: fastlytesti.
 Zone: ng
 
-Domain: domainrtesting.com
-Subdomain: domainrtesting.
+Domain: fastlytesting.com
+Subdomain: fastlytesting.
 Zone: com
 
-Domain: domainrtesting.net
-Subdomain: domainrtesting.
+Domain: fastlytesting.net
+Subdomain: fastlytesting.
 Zone: net
 
-Domain: domainrtest.in
-Subdomain: domainrtest.
+Domain: fastlytest.in
+Subdomain: fastlytest.
 Zone: in
 Path: /g
 `,
