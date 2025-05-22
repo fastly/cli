@@ -65,7 +65,7 @@ func (g *GetDomainStatusCommand) Exec(_ io.Reader, out io.Writer) error {
 	if !ok {
 		return errors.New("failed to acquire the Fastly API client")
 	}
-	
+
 	st, err := status.Get(fc, input)
 	if err != nil {
 		g.Globals.ErrLog.Add(err)
