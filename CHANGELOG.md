@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(Domain Discovery): add `suggest` and `status` domain tools endpoints ([#1482](https://github.com/fastly/cli/pull/1482))
 
 ### Bug fixes:
 
