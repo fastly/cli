@@ -55,7 +55,7 @@ func (g *GetDomainStatusCommand) Exec(_ io.Reader, out io.Writer) error {
 		if scope != status.ScopeEstimate {
 			return fsterr.RemediationError{
 				Inner:       errors.New("invalid scope provided"),
-				Remediation: "Use --scope estimate for an estimate check",
+				Remediation: "Use `--scope=estimate` for an estimate check",
 			}
 		}
 		input.Scope = fastly.ToPointer(scope)
