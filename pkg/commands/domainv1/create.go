@@ -20,6 +20,9 @@ type CreateCommand struct {
 	// Required.
 	fqdn      string
 	serviceID string
+
+	// Optional.
+	description argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -32,6 +35,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause = parent.Command("create", "Create a domain").Alias("add")
 
 	// Optional.
+	c.CmdClause.Flag("description", "The description for the domain").Action(c.description.Set).StringVar(&c.description.Value)
 	c.CmdClause.Flag("fqdn", "The fully qualified domain name").Required().StringVar(&c.fqdn)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -49,6 +53,10 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	if c.serviceID != "" {
 		input.ServiceID = &c.serviceID
+	}
+
+	if c.description.WasSet {
+		input.Description = &c.description.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

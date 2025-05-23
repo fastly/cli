@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## [Unreleased]
+- feat(domains): add `description` to `domainv1` endpoints ([#1483](https://github.com/fastly/cli/pull/1483))
 
 ### Breaking:
 
