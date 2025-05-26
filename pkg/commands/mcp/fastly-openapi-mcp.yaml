@@ -1,0 +1,2517 @@
+openapi: 3.0.3
+info:
+  title: Fastly API - Essential Subset for AI Agent Interaction
+  description: |
+    This is an essential subset of the Fastly API designed specifically for AI agent interaction.
+    It contains the most commonly used endpoints for managing Fastly services through conversational interfaces,
+    covering core service management, content delivery configuration, cache management, security features,
+    edge logic, and analytics.
+  version: "1.0"
+  contact:
+    name: Fastly Support
+    url: https://www.fastly.com/support
+    email: support@fastly.com
+  license:
+    name: MIT
+  termsOfService: https://www.fastly.com/terms
+
+servers:
+  - url: https://api.fastly.com
+    description: Fastly API production server
+
+externalDocs:
+  description: Fastly API Documentation
+  url: https://developer.fastly.com/reference/api
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  # Core Service Management - Services
+  /service:
+    get:
+      summary: List services
+      description: Retrieves a list of all services configured in the user's account. Services are the top-level resource in the Fastly API, representing a logical grouping of domains and configurations for content delivery.
+      operationId: listServices
+      tags:
+        - Service
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create service
+      description: Creates a new service configuration. A service is the top-level resource that represents your web application or site in Fastly. This operation initializes the container for your CDN configurations including domains, backends, and caching rules.
+      operationId: createService
+      tags:
+        - Service
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /service/{service_id}:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+    get:
+      summary: Get service details
+      description: Retrieves detailed information about a specific service identified by its unique ID. This returns the service's configuration metadata, active version details, and core properties needed for further configuration operations.
+      operationId: getService
+      tags:
+        - Service
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update service
+      description: Updates the configuration of an existing service. This allows modification of service properties such as name and comments. Note that this operation updates service metadata, not the version-specific configurations like domains or backends.
+      operationId: updateService
+      tags:
+        - Service
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceUpdate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete service
+      description: Permanently removes a service and all its associated configurations, including all versions, domains, and backend configurations. This action cannot be undone, so use with caution.
+      operationId: deleteService
+      tags:
+        - Service
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Core Service Management - Versions
+  /service/{service_id}/version:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+    get:
+      summary: List versions
+      description: List all versions for a service
+      operationId: listVersions
+      tags:
+        - Version
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Version"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/version/{version_id}/activate:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    put:
+      summary: Activate version
+      description: Activates a specific service version, making it the production version that serves live traffic. Once activated, the version becomes locked and cannot be modified further without cloning. This is a critical operation that impacts production traffic, so it should be performed after thorough testing.
+      operationId: activateVersion
+      tags:
+        - Version
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/version/{version_id}/clone:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    put:
+      summary: Clone version
+      description: Clone a specific version
+      operationId: cloneVersion
+      tags:
+        - Version
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Content Delivery Configuration - Domains
+  /service/{service_id}/domain:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+    get:
+      summary: List domains
+      description: List all domains for a service
+      operationId: listDomains
+      tags:
+        - Domain
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Domain"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create domain
+      description: Create a new domain for a service
+      operationId: createDomain
+      tags:
+        - Domain
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Domain"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/domain/{domain_id}:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/domain_id"
+    delete:
+      summary: Delete domain
+      description: Delete a specific domain
+      operationId: deleteDomain
+      tags:
+        - Domain
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Content Delivery Configuration - Origins
+  /service/{service_id}/version/{version_id}/origin:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    get:
+      summary: List origins
+      description: Retrieves all origins for a particular service and version. Origins define the source servers where Fastly fetches content. This endpoint returns a list of all configured origins with their complete configuration details, including host information, SSL settings, and connection timeouts.
+      operationId: listOrigins
+      tags:
+        - Origin
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Origin"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create origin
+      description: Creates a new origin for the specified service and version. Origins define where Fastly should fetch your content from. This endpoint allows configuration of various origin properties including hostname, port, SSL settings, and connection timeouts. Properly configured origins are essential for content delivery performance.
+      operationId: createOrigin
+      tags:
+        - Origin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OriginCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Origin"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/version/{version_id}/origin/{origin_name}:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+      - $ref: "#/components/parameters/origin_name"
+    put:
+      summary: Update origin
+      description: Updates an existing origin configuration. This endpoint allows modification of origin properties including hostname, port, SSL settings, and connection parameters. Use this endpoint to adjust origin settings when your backend infrastructure changes or to optimize origin connection parameters.
+      operationId: updateOrigin
+      tags:
+        - Origin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OriginUpdate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Origin"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Content Delivery Configuration - Backends
+  /service/{service_id}/version/{version_id}/backend:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    get:
+      summary: List backends
+      description: List all backends for a service version
+      operationId: listBackends
+      tags:
+        - Backend
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Backend"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create backend
+      description: Create a new backend for a service version
+      operationId: createBackend
+      tags:
+        - Backend
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BackendCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Backend"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/version/{version_id}/backend/{backend_name}:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+      - $ref: "#/components/parameters/backend_name"
+    put:
+      summary: Update backend
+      description: Update a specific backend
+      operationId: updateBackend
+      tags:
+        - Backend
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BackendUpdate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Backend"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Cache Management - Cache Settings
+  /service/{service_id}/version/{version_id}/cache_settings:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    get:
+      summary: List cache settings
+      description: List all cache settings for a service version
+      operationId: listCacheSettings
+      tags:
+        - CacheSettings
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CacheSetting"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create cache setting
+      description: Create a new cache setting for a service version
+      operationId: createCacheSetting
+      tags:
+        - CacheSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CacheSettingCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CacheSetting"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/version/{version_id}/cache_settings/{cache_setting_name}:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+      - $ref: "#/components/parameters/cache_setting_name"
+    put:
+      summary: Update cache setting
+      description: Update a specific cache setting
+      operationId: updateCacheSetting
+      tags:
+        - CacheSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CacheSettingUpdate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CacheSetting"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Cache Management - Purging
+  /service/{service_id}/purge_all:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+    post:
+      summary: Purge all content
+      description: Immediately purges all cached content for a service across the global Fastly network. This operation is resource-intensive and should be used judiciously. It's useful for emergency situations where stale content must be removed immediately, such as after a significant data update or security incident. For more targeted cache invalidation, use surrogate keys or specific URL purges instead.
+      operationId: purgeAll
+      tags:
+        - Purge
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /purge/{url}:
+    parameters:
+      - name: url
+        in: path
+        description: URL to purge (without the scheme)
+        required: true
+        schema:
+          type: string
+          example: www.example.com/path/to/resource
+    post:
+      summary: Purge URL
+      description: Purges a specific URL from the Fastly cache. This is the most direct way to remove a single resource from the cache. The URL should be provided without the scheme (http:// or https://). This is a targeted operation that only affects the specified URL and is more efficient than purging all content when only specific resources need to be refreshed.
+      operationId: purgeUrl
+      tags:
+        - Purge
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurgeResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/purge:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+    post:
+      summary: Purge by key
+      description: Purges content from the Fastly cache by cache key or surrogate key. This is a flexible purging mechanism that allows for targeted invalidation of multiple related resources at once using a shared key. This is more efficient than purging individual URLs when groups of content need to be refreshed simultaneously.
+      operationId: purgeByKey
+      tags:
+        - Purge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                surrogate_keys:
+                  type: array
+                  description: List of surrogate keys to purge
+                  items:
+                    type: string
+                  example: ["key1", "key2", "product_id_123"]
+              required:
+                - surrogate_keys
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurgeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /purge/soft:
+    post:
+      summary: Soft purge by URL
+      description: Performs a "soft purge" on a specific URL, which expires the content but allows stale content to be served while fresh content is being fetched from the origin. This is useful for high-traffic resources where you want to avoid potential origin overload and maintain some level of performance during purge operations.
+      operationId: softPurgeUrl
+      tags:
+        - Purge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: URL to soft purge
+                  example: https://www.example.com/path/to/resource
+              required:
+                - url
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurgeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /service/{service_id}/purge/{purge_id}:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/purge_id"
+    get:
+      summary: Get purge status
+      description: Checks the status of a previously initiated purge request. Purge requests are processed asynchronously across the Fastly network. This endpoint allows for monitoring the progress of a purge as it propagates through the global cache infrastructure.
+      operationId: getPurgeStatus
+      tags:
+        - Purge
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurgeStatus"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Security & Performance - WAF
+  /service/{service_id}/version/{version_id}/waf:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    get:
+      summary: Get WAF settings
+      description: Retrieves the Web Application Firewall (WAF) configuration for a specific service version. The WAF provides protection against common web vulnerabilities and attacks like SQL injection, cross-site scripting (XSS), and OWASP Top 10 threats. This endpoint returns the complete WAF configuration including rule status counts and associated conditions.
+      operationId: getWafSettings
+      tags:
+        - WAF
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WAF"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create WAF
+      description: Creates a new Web Application Firewall (WAF) configuration for a service version. The WAF provides protection against attacks like SQL injection, cross-site scripting, and other OWASP Top 10 threats. This endpoint provisions the initial WAF with default settings, which can then be customized through rule management endpoints. A prefetch condition must be specified to determine which requests are inspected by the WAF.
+      operationId: createWaf
+      tags:
+        - WAF
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WAFCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WAF"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/waf/firewall/{firewall_id}/rule/{rule_id}:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/firewall_id"
+      - $ref: "#/components/parameters/rule_id"
+    patch:
+      summary: Update WAF rule
+      description: Update a specific WAF rule
+      operationId: updateWafRule
+      tags:
+        - WAF
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WAFRuleUpdate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WAFRule"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Security & Performance - Rate Limiting
+  /service/{service_id}/version/{version_id}/rate-limiting:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    get:
+      summary: List rate limiting configurations
+      description: List all rate limiting configurations for a service version
+      operationId: listRateLimits
+      tags:
+        - RateLimiting
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RateLimit"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create rate limiting
+      description: Create a new rate limiting configuration for a service version
+      operationId: createRateLimit
+      tags:
+        - RateLimiting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RateLimitCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimit"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Edge Logic & Data - Edge Dictionaries
+  /service/{service_id}/version/{version_id}/dictionary:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    get:
+      summary: List dictionaries
+      description: List all edge dictionaries for a service version
+      operationId: listDictionaries
+      tags:
+        - Dictionary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dictionary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create dictionary
+      description: Create a new edge dictionary for a service version
+      operationId: createDictionary
+      tags:
+        - Dictionary
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DictionaryCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dictionary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/version/{version_id}/dictionary/{dictionary_id}/items:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+      - $ref: "#/components/parameters/dictionary_id"
+    get:
+      summary: List dictionary items
+      description: List all items in an edge dictionary
+      operationId: listDictionaryItems
+      tags:
+        - DictionaryItem
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DictionaryItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create dictionary item
+      description: Create a new dictionary item
+      operationId: createDictionaryItem
+      tags:
+        - DictionaryItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DictionaryItemCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DictionaryItem"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Edge Logic & Data - VCL
+  /service/{service_id}/version/{version_id}/vcl:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+      - $ref: "#/components/parameters/version_id"
+    get:
+      summary: List VCL files
+      description: List all VCL files for a service version
+      operationId: listVcls
+      tags:
+        - VCL
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VCL"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create VCL file
+      description: Create a new VCL file for a service version
+      operationId: createVcl
+      tags:
+        - VCL
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VCLCreate"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VCL"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # Analytics & Monitoring
+  /stats:
+    get:
+      summary: Get real-time stats
+      description: Retrieves real-time stats for all services. This endpoint provides aggregated statistics about cache performance, bandwidth usage, and request handling across your entire Fastly account. Use this for global monitoring dashboards and cross-service analysis.
+      operationId: getStats
+      tags:
+        - Stats
+      parameters:
+        - name: from
+          in: query
+          description: Timestamp from which to begin gathering stats (UTC)
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: Timestamp to end gathering stats (UTC)
+          schema:
+            type: string
+            format: date-time
+        - name: by
+          in: query
+          description: Duration of sample windows (day, hour, minute)
+          schema:
+            type: string
+            enum: [day, hour, minute]
+            default: day
+        - name: region
+          in: query
+          description: Filter stats by geographic region
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Unprocessable Entity - Invalid parameters
+
+  /service/{service_id}/stats/summary:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+    get:
+      summary: Get service stats summary
+      description: Retrieves a summary of statistics for a specific service. This endpoint returns aggregated data for high-level metrics like hits, misses, and bandwidth usage. It's useful for dashboards that need a quick overview of service performance without the granularity of time-series data.
+      operationId: getServiceStatsSummary
+      tags:
+        - Stats
+      parameters:
+        - name: from
+          in: query
+          description: Timestamp from which to begin gathering stats (UTC)
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: Timestamp to end gathering stats (UTC)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /service/{service_id}/realtime:
+    parameters:
+      - $ref: "#/components/parameters/service_id"
+    get:
+      summary: Get real-time metrics
+      description: Streams real-time metrics for a specific service. This endpoint provides up-to-the-second data on cache performance, request rates, and error rates. It's ideal for live dashboards, automated alerting systems, and immediate visibility into the impact of configuration changes or traffic spikes.
+      operationId: getRealtimeMetrics
+      tags:
+        - Metrics
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RealtimeMetrics"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  schemas:
+    Service:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        name:
+          type: string
+          description: The name of the service.
+          example: My Service
+        customer_id:
+          type: string
+          description: Alphanumeric string identifying the customer.
+          example: x4xCwxxJxGCx123Rx5xTx
+        comment:
+          type: string
+          description: A freeform descriptive note.
+          example: Updated service
+        type:
+          type: string
+          description: The type of this service.
+          example: vcl
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the service was created.
+          example: 2016-08-17T19:27:28+00:00
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the service was last updated.
+          example: 2016-08-17T19:27:28+00:00
+        active_version:
+          type: object
+          properties:
+            number:
+              type: integer
+              description: The number of the active version.
+              example: 1
+      required:
+        - id
+        - name
+        - customer_id
+
+    ServiceCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the service.
+          example: My Service
+        comment:
+          type: string
+          description: A freeform descriptive note.
+          example: New service
+        type:
+          type: string
+          description: The type of this service.
+          enum: [vcl, wasm]
+          example: vcl
+      required:
+        - name
+        - type
+
+    ServiceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the service.
+          example: Updated Service Name
+        comment:
+          type: string
+          description: A freeform descriptive note.
+          example: Updated service
+
+    Version:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        active:
+          type: boolean
+          description: Whether this is the active version or not.
+          example: true
+        locked:
+          type: boolean
+          description: Whether this version is locked or not.
+          example: false
+        deployed:
+          type: boolean
+          description: Whether this version has been deployed or not.
+          example: true
+        staging:
+          type: boolean
+          description: Whether this version is for staging or not.
+          example: false
+        testing:
+          type: boolean
+          description: Whether this version is for testing or not.
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the version was created.
+          example: 2016-08-17T19:27:28+00:00
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the version was last updated.
+          example: 2016-08-17T19:27:28+00:00
+      required:
+        - number
+        - service_id
+        - active
+
+    Domain:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Alphanumeric string identifying the domain.
+          example: 1Z1MqLPfXE1plDLBzF1xin
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        version:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        name:
+          type: string
+          description: The name of the domain or domains associated with this service.
+          example: www.example.com
+        comment:
+          type: string
+          description: A freeform descriptive note.
+          example: Domain for website
+      required:
+        - id
+        - service_id
+        - version
+        - name
+
+    DomainCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the domain or domains associated with this service.
+          example: www.example.com
+        comment:
+          type: string
+          description: A freeform descriptive note.
+          example: Domain for website
+      required:
+        - name
+
+    Origin:
+      type: object
+      properties:
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        version:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        name:
+          type: string
+          description: Name for the origin server.
+          example: My Origin Server
+        address:
+          type: string
+          description: A hostname, IPv4, or IPv6 address for the origin server.
+          example: origin.example.com
+        port:
+          type: integer
+          description: Port number of the origin server.
+          example: 443
+        use_ssl:
+          type: boolean
+          description: Whether or not to use SSL to reach the origin.
+          example: true
+        override_host:
+          type: string
+          description: The hostname to override the Host header.
+          example: override-origin.example.com
+        connect_timeout:
+          type: integer
+          description: How long to wait for a timeout in milliseconds.
+          example: 5000
+        first_byte_timeout:
+          type: integer
+          description: How long to wait for the first byte in milliseconds.
+          example: 15000
+        between_bytes_timeout:
+          type: integer
+          description: How long to wait between bytes in milliseconds.
+          example: 10000
+        shield:
+          type: string
+          description: The shield POP designated to reduce inbound load.
+          example: iad-va-us
+        shield_region:
+          type: string
+          description: Geographic region of the shield.
+          example: us-east
+        ssl_cert_hostname:
+          type: string
+          description: Overrides ssl_hostname, but only for cert verification.
+          example: cert.example.com
+        ssl_check_cert:
+          type: boolean
+          description: Be strict on checking SSL certs.
+          example: true
+        ssl_sni_hostname:
+          type: string
+          description: Overrides ssl_hostname, but only for SNI in the handshake.
+          example: sni.example.com
+        ssl_ca_cert:
+          type: string
+          description: CA certificate to validate against.
+          example: "-----BEGIN CERTIFICATE-----\nMIIDhTCCAm2gAwIBAgIJAJmAT7S..."
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the origin was created.
+          example: "2020-04-01T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the origin was last updated.
+          example: "2020-04-01T12:00:00Z"
+      required:
+        - service_id
+        - version
+        - name
+        - address
+
+    OriginCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name for the origin server.
+          example: My Origin Server
+        address:
+          type: string
+          description: A hostname, IPv4, or IPv6 address for the origin server.
+          example: origin.example.com
+        port:
+          type: integer
+          description: Port number of the origin server.
+          example: 443
+        use_ssl:
+          type: boolean
+          description: Whether or not to use SSL to reach the origin.
+          example: true
+        override_host:
+          type: string
+          description: The hostname to override the Host header.
+          example: override-origin.example.com
+        connect_timeout:
+          type: integer
+          description: How long to wait for a timeout in milliseconds.
+          example: 5000
+        first_byte_timeout:
+          type: integer
+          description: How long to wait for the first byte in milliseconds.
+          example: 15000
+        between_bytes_timeout:
+          type: integer
+          description: How long to wait between bytes in milliseconds.
+          example: 10000
+        shield:
+          type: string
+          description: The shield POP designated to reduce inbound load.
+          example: iad-va-us
+        ssl_cert_hostname:
+          type: string
+          description: Overrides ssl_hostname, but only for cert verification.
+          example: cert.example.com
+        ssl_check_cert:
+          type: boolean
+          description: Be strict on checking SSL certs.
+          example: true
+        ssl_sni_hostname:
+          type: string
+          description: Overrides ssl_hostname, but only for SNI in the handshake.
+          example: sni.example.com
+        ssl_ca_cert:
+          type: string
+          description: CA certificate to validate against.
+          example: "-----BEGIN CERTIFICATE-----\nMIIDhTCCAm2gAwIBAgIJAJmAT7S..."
+      required:
+        - name
+        - address
+
+    OriginUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name for the origin server.
+          example: Updated Origin Server
+        address:
+          type: string
+          description: A hostname, IPv4, or IPv6 address for the origin server.
+          example: updated-origin.example.com
+        port:
+          type: integer
+          description: Port number of the origin server.
+          example: 443
+        use_ssl:
+          type: boolean
+          description: Whether or not to use SSL to reach the origin.
+          example: true
+        override_host:
+          type: string
+          description: The hostname to override the Host header.
+          example: override-updated.example.com
+        connect_timeout:
+          type: integer
+          description: How long to wait for a timeout in milliseconds.
+          example: 6000
+        first_byte_timeout:
+          type: integer
+          description: How long to wait for the first byte in milliseconds.
+          example: 20000
+        between_bytes_timeout:
+          type: integer
+          description: How long to wait between bytes in milliseconds.
+          example: 15000
+        shield:
+          type: string
+          description: The shield POP designated to reduce inbound load.
+          example: dca-dc-us
+        ssl_cert_hostname:
+          type: string
+          description: Overrides ssl_hostname, but only for cert verification.
+          example: cert-updated.example.com
+        ssl_check_cert:
+          type: boolean
+          description: Be strict on checking SSL certs.
+          example: false
+        ssl_sni_hostname:
+          type: string
+          description: Overrides ssl_hostname, but only for SNI in the handshake.
+          example: sni-updated.example.com
+        ssl_ca_cert:
+          type: string
+          description: CA certificate to validate against.
+          example: "-----BEGIN CERTIFICATE-----\nMIIDhTCCAm2gAwIBAgIJAJmAT7S..."
+
+    Backend:
+      type: object
+      properties:
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        version:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        name:
+          type: string
+          description: The name of the backend.
+          example: My Backend
+        address:
+          type: string
+          description: A hostname, IPv4, or IPv6 address for the backend.
+          example: backend.example.com
+        port:
+          type: integer
+          description: Port number of the address.
+          example: 80
+        override_host:
+          type: string
+          description: The hostname to override the Host header.
+          example: cache.example.com
+        connect_timeout:
+          type: integer
+          description: How long to wait for a timeout in milliseconds.
+          example: 5000
+        max_conn:
+          type: integer
+          description: Maximum number of connections.
+          example: 200
+        ssl_cert_hostname:
+          type: string
+          description: Overrides ssl_hostname, but only for cert verification.
+          example: cert.example.com
+        ssl_check_cert:
+          type: boolean
+          description: Be strict on checking SSL certs.
+          example: true
+        ssl_sni_hostname:
+          type: string
+          description: Overrides ssl_hostname, but only for SNI in the handshake.
+          example: sni.example.com
+        use_ssl:
+          type: boolean
+          description: Whether or not to use SSL to reach the backend.
+          example: false
+        weight:
+          type: integer
+          description: Weight used to load balance this backend against others.
+          example: 100
+        between_bytes_timeout:
+          type: integer
+          description: How long to wait between bytes in milliseconds.
+          example: 10000
+        auto_loadbalance:
+          type: boolean
+          description: Whether or not this backend should be automatically load balanced.
+          example: false
+        shield:
+          type: string
+          description: The shield POP designated to reduce inbound load.
+          example: iad-va-us
+      required:
+        - service_id
+        - version
+        - name
+        - address
+        - port
+
+    BackendCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the backend.
+          example: My Backend
+        address:
+          type: string
+          description: A hostname, IPv4, or IPv6 address for the backend.
+          example: backend.example.com
+        port:
+          type: integer
+          description: Port number of the address.
+          example: 80
+        override_host:
+          type: string
+          description: The hostname to override the Host header.
+          example: cache.example.com
+        connect_timeout:
+          type: integer
+          description: How long to wait for a timeout in milliseconds.
+          example: 5000
+        max_conn:
+          type: integer
+          description: Maximum number of connections.
+          example: 200
+        ssl_check_cert:
+          type: boolean
+          description: Be strict on checking SSL certs.
+          example: true
+        use_ssl:
+          type: boolean
+          description: Whether or not to use SSL to reach the backend.
+          example: false
+        weight:
+          type: integer
+          description: Weight used to load balance this backend against others.
+          example: 100
+        auto_loadbalance:
+          type: boolean
+          description: Whether or not this backend should be automatically load balanced.
+          example: false
+      required:
+        - name
+        - address
+        - port
+
+    BackendUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the backend.
+          example: Updated Backend
+        address:
+          type: string
+          description: A hostname, IPv4, or IPv6 address for the backend.
+          example: updated-backend.example.com
+        port:
+          type: integer
+          description: Port number of the address.
+          example: 443
+        override_host:
+          type: string
+          description: The hostname to override the Host header.
+          example: updated-cache.example.com
+        connect_timeout:
+          type: integer
+          description: How long to wait for a timeout in milliseconds.
+          example: 10000
+        max_conn:
+          type: integer
+          description: Maximum number of connections.
+          example: 300
+        ssl_check_cert:
+          type: boolean
+          description: Be strict on checking SSL certs.
+          example: false
+        use_ssl:
+          type: boolean
+          description: Whether or not to use SSL to reach the backend.
+          example: true
+        weight:
+          type: integer
+          description: Weight used to load balance this backend against others.
+          example: 200
+        auto_loadbalance:
+          type: boolean
+          description: Whether or not this backend should be automatically load balanced.
+          example: true
+
+    CacheSetting:
+      type: object
+      properties:
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        version:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        name:
+          type: string
+          description: Name for the cache settings object.
+          example: my-cache-setting
+        ttl:
+          type: integer
+          description: Maximum time to live for the cache in seconds.
+          example: 3600
+        stale_ttl:
+          type: integer
+          description: Maximum time to serve stale object in seconds.
+          example: 300
+        action:
+          type: string
+          description: One of pass, cache, or restart, indicating how to handle the cache.
+          enum: [pass, cache, restart]
+          example: cache
+        cache_condition:
+          type: string
+          description: Name of the cache condition controlling when this configuration applies.
+          example: testing
+      required:
+        - service_id
+        - version
+        - name
+        - action
+
+    CacheSettingCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name for the cache settings object.
+          example: my-cache-setting
+        ttl:
+          type: integer
+          description: Maximum time to live for the cache in seconds.
+          example: 3600
+        stale_ttl:
+          type: integer
+          description: Maximum time to serve stale object in seconds.
+          example: 300
+        action:
+          type: string
+          description: One of pass, cache, or restart, indicating how to handle the cache.
+          enum: [pass, cache, restart]
+          example: cache
+        cache_condition:
+          type: string
+          description: Name of the cache condition controlling when this configuration applies.
+          example: testing
+      required:
+        - name
+        - action
+
+    CacheSettingUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name for the cache settings object.
+          example: updated-cache-setting
+        ttl:
+          type: integer
+          description: Maximum time to live for the cache in seconds.
+          example: 7200
+        stale_ttl:
+          type: integer
+          description: Maximum time to serve stale object in seconds.
+          example: 600
+        action:
+          type: string
+          description: One of pass, cache, or restart, indicating how to handle the cache.
+          enum: [pass, cache, restart]
+          example: pass
+        cache_condition:
+          type: string
+          description: Name of the cache condition controlling when this configuration applies.
+          example: production
+
+    PurgeResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Status of the purge request.
+          example: ok
+        id:
+          type: string
+          description: Alphanumeric string identifying the purge request.
+          example: 3ZUs9oXQ3ztxEwJRQUcMRG
+        surrogate_keys:
+          type: array
+          description: The surrogate keys that were purged.
+          items:
+            type: string
+          example: ["key1", "key2"]
+      required:
+        - status
+        - id
+
+    PurgeStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Current status of the purge request.
+          enum: [in_progress, complete, failed]
+          example: complete
+        id:
+          type: string
+          description: Alphanumeric string identifying the purge request.
+          example: 3ZUs9oXQ3ztxEwJRQUcMRG
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the purge request was created.
+          example: "2020-04-01T12:30:00Z"
+        started_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the purge request started processing.
+          example: "2020-04-01T12:30:01Z"
+        completed_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the purge request completed.
+          example: "2020-04-01T12:30:15Z"
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        object_type:
+          type: string
+          description: Type of object that was purged.
+          enum: [url, surrogate-key, all]
+          example: surrogate-key
+        object:
+          type: string
+          description: Object that was purged (URL, key, etc).
+          example: "key1"
+      required:
+        - status
+        - id
+        - created_at
+        - service_id
+
+    WAF:
+      type: object
+      properties:
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        version:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        id:
+          type: string
+          description: Alphanumeric string identifying a WAF Firewall.
+          example: qKJJUh9QpYIdBgFKkRTC3n
+        prefetch_condition:
+          type: string
+          description: Name of the corresponding condition object.
+          example: WAF_Condition
+        response:
+          type: string
+          description: Name of the corresponding response object.
+          example: WAF_Response
+        rule_statuses_log_count:
+          type: object
+          properties:
+            block:
+              type: integer
+              description: Number of rules with block status.
+              example: 365
+            log:
+              type: integer
+              description: Number of rules with log status.
+              example: 248
+            score:
+              type: integer
+              description: Number of rules with score status.
+              example: 142
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the WAF Firewall was created.
+          example: "2016-08-17T19:27:28+00:00"
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the WAF Firewall was last updated.
+          example: "2016-08-17T19:27:28+00:00"
+      required:
+        - service_id
+        - version
+        - id
+
+    WAFCreate:
+      type: object
+      properties:
+        prefetch_condition:
+          type: string
+          description: Name of the corresponding condition object.
+          example: WAF_Condition
+        response:
+          type: string
+          description: Name of the corresponding response object.
+          example: WAF_Response
+      required:
+        - prefetch_condition
+
+    WAFRule:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Alphanumeric string identifying a WAF rule.
+          example: L68QKwN8QcmRFjV4y1BuN
+        rule_id:
+          type: string
+          description: Corresponding ModSecurity rule ID.
+          example: "942100"
+        severity:
+          type: integer
+          description: Severity score.
+          example: 3
+        status:
+          type: string
+          description: Rule status.
+          enum: [log, block, score]
+          example: log
+        tags:
+          type: array
+          description: List of rule tags.
+          items:
+            type: string
+          example:
+            [
+              "application-multi",
+              "language-multi",
+              "platform-multi",
+              "attack-sqli",
+            ]
+        message:
+          type: string
+          description: Rule message.
+          example: "SQL Injection Attack Detected via libinjection"
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the rule was created.
+          example: "2016-08-17T19:27:28+00:00"
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the rule was last updated.
+          example: "2016-08-17T19:27:28+00:00"
+      required:
+        - id
+        - rule_id
+        - status
+
+    WAFRuleUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Rule status.
+          enum: [log, block, score]
+          example: block
+      required:
+        - status
+
+    RateLimit:
+      type: object
+      properties:
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        version:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        id:
+          type: string
+          description: Alphanumeric string identifying a Rate Limit.
+          example: 3M74CpUYEpZIQhK4DfUQtr
+        name:
+          type: string
+          description: A human readable name for the rate limiting rule.
+          example: My Rate Limit
+        uri:
+          type: string
+          description: The URI pattern to match.
+          example: /api/*
+        http_methods:
+          type: array
+          description: Array of HTTP methods to match.
+          items:
+            type: string
+            enum: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
+          example: ["GET", "POST"]
+        rps_limit:
+          type: integer
+          description: Upper limit of requests per second allowed.
+          example: 10
+        window_size:
+          type: integer
+          description: Number of seconds during which the RPS limit is calculated.
+          example: 60
+        client_key:
+          type: array
+          description: Array of VCL variables used to generate a counter key to identify a client.
+          items:
+            type: string
+          example: ["req.http.Fastly-Client-IP", "req.http.User-Agent"]
+        penalty_box_duration:
+          type: integer
+          description: Length of time in seconds that the rate limit client entry is kept in the penalty box.
+          example: 60
+        action:
+          type: string
+          description: The action to take when a rate limit is exceeded.
+          enum: [response, response_object, custom_response]
+          example: response
+        response:
+          type: object
+          description: Custom response to be sent when the rate limit is exceeded.
+          properties:
+            status:
+              type: integer
+              description: HTTP status code for the response.
+              example: 429
+            content_type:
+              type: string
+              description: MIME type for the response.
+              example: application/json
+            content:
+              type: string
+              description: Response body content.
+              example: '{"error": "rate limit exceeded"}'
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the rate limit was created.
+          example: "2016-08-17T19:27:28+00:00"
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the rate limit was last updated.
+          example: "2016-08-17T19:27:28+00:00"
+      required:
+        - service_id
+        - version
+        - id
+        - name
+        - uri
+        - rps_limit
+        - action
+
+    RateLimitCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: A human readable name for the rate limiting rule.
+          example: My Rate Limit
+        uri:
+          type: string
+          description: The URI pattern to match.
+          example: /api/*
+        http_methods:
+          type: array
+          description: Array of HTTP methods to match.
+          items:
+            type: string
+            enum: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
+          example: ["GET", "POST"]
+        rps_limit:
+          type: integer
+          description: Upper limit of requests per second allowed.
+          example: 10
+        window_size:
+          type: integer
+          description: Number of seconds during which the RPS limit is calculated.
+          example: 60
+        client_key:
+          type: array
+          description: Array of VCL variables used to generate a counter key to identify a client.
+          items:
+            type: string
+          example: ["req.http.Fastly-Client-IP", "req.http.User-Agent"]
+        penalty_box_duration:
+          type: integer
+          description: Length of time in seconds that the rate limit client entry is kept in the penalty box.
+          example: 60
+        action:
+          type: string
+          description: The action to take when a rate limit is exceeded.
+          enum: [response, response_object, custom_response]
+          example: response
+        response:
+          type: object
+          description: Custom response to be sent when the rate limit is exceeded.
+          properties:
+            status:
+              type: integer
+              description: HTTP status code for the response.
+              example: 429
+            content_type:
+              type: string
+              description: MIME type for the response.
+              example: application/json
+            content:
+              type: string
+              description: Response body content.
+              example: '{"error": "rate limit exceeded"}'
+      required:
+        - name
+        - uri
+        - rps_limit
+        - action
+
+    Dictionary:
+      type: object
+      properties:
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        version:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        id:
+          type: string
+          description: Alphanumeric string identifying a Dictionary.
+          example: 5BUHk1vCIFZXlWdH41W3QK
+        name:
+          type: string
+          description: Name for the Dictionary.
+          example: my_dictionary
+        write_only:
+          type: boolean
+          description: Determines if items in the dictionary are readable or not.
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the dictionary was created.
+          example: "2016-08-17T19:27:28+00:00"
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the dictionary was last updated.
+          example: "2016-08-17T19:27:28+00:00"
+      required:
+        - service_id
+        - version
+        - id
+        - name
+
+    DictionaryCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name for the Dictionary.
+          example: my_dictionary
+        write_only:
+          type: boolean
+          description: Determines if items in the dictionary are readable or not.
+          example: false
+      required:
+        - name
+
+    DictionaryItem:
+      type: object
+      properties:
+        dictionary_id:
+          type: string
+          description: Alphanumeric string identifying a Dictionary.
+          example: 5BUHk1vCIFZXlWdH41W3QK
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        item_key:
+          type: string
+          description: Dictionary item key.
+          example: some-key
+        item_value:
+          type: string
+          description: Dictionary item value.
+          example: some-value
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the dictionary item was created.
+          example: "2016-08-17T19:27:28+00:00"
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the dictionary item was last updated.
+          example: "2016-08-17T19:27:28+00:00"
+      required:
+        - dictionary_id
+        - service_id
+        - item_key
+        - item_value
+
+    DictionaryItemCreate:
+      type: object
+      properties:
+        item_key:
+          type: string
+          description: Dictionary item key.
+          example: some-key
+        item_value:
+          type: string
+          description: Dictionary item value.
+          example: some-value
+      required:
+        - item_key
+        - item_value
+
+    VCL:
+      type: object
+      properties:
+        service_id:
+          type: string
+          description: Alphanumeric string identifying the service.
+          example: SU1Z0isxPaozGVKXdv0eY
+        version:
+          type: integer
+          description: Integer identifying a service version.
+          example: 1
+        name:
+          type: string
+          description: The name of this VCL.
+          example: Main VCL
+        content:
+          type: string
+          description: The VCL code.
+          example: "vcl 4.0;\n\nbackend default {\n  .host = \"127.0.0.1\";\n  .port = \"9092\";\n}"
+        main:
+          type: boolean
+          description: Set to true when this is the main VCL, otherwise false.
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the VCL was created.
+          example: "2016-08-17T19:27:28+00:00"
+        updated_at:
+          type: string
+          format: date-time
+          description: Time-stamp (GMT) when the VCL was last updated.
+          example: "2016-08-17T19:27:28+00:00"
+      required:
+        - service_id
+        - version
+        - name
+        - content
+
+    VCLCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of this VCL.
+          example: Main VCL
+        content:
+          type: string
+          description: The VCL code.
+          example: "vcl 4.0;\n\nbackend default {\n  .host = \"127.0.0.1\";\n  .port = \"9092\";\n}"
+        main:
+          type: boolean
+          description: Set to true when this is the main VCL, otherwise false.
+          example: true
+      required:
+        - name
+        - content
+
+    Stats:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Status of the request.
+          example: success
+        meta:
+          type: object
+          description: Metadata about the request.
+          properties:
+            from:
+              type: string
+              format: date-time
+              description: Start time for the stat window.
+              example: "2020-04-01T00:00:00Z"
+            to:
+              type: string
+              format: date-time
+              description: End time for the stat window.
+              example: "2020-04-02T00:00:00Z"
+            by:
+              type: string
+              description: Granularity of the stats.
+              example: day
+            region:
+              type: string
+              description: Geographic region for which stats were requested.
+              example: all
+        data:
+          type: array
+          description: The actual stats data.
+          items:
+            type: object
+            properties:
+              requests:
+                type: integer
+                description: Number of requests processed.
+                example: 1234567
+              hits:
+                type: integer
+                description: Number of cache hits.
+                example: 987654
+              hits_time:
+                type: number
+                format: float
+                description: Total time spent processing cache hits in milliseconds.
+                example: 324543.21
+              miss:
+                type: integer
+                description: Number of cache misses.
+                example: 246913
+              miss_time:
+                type: number
+                format: float
+                description: Total time spent processing cache misses in milliseconds.
+                example: 892365.42
+              bandwidth:
+                type: integer
+                description: Total bandwidth used in bytes.
+                example: 9876543210
+              errors:
+                type: integer
+                description: Number of errors.
+                example: 1234
+              pipe:
+                type: integer
+                description: Number of pipe requests.
+                example: 321
+              uncacheable:
+                type: integer
+                description: Number of uncacheable requests.
+                example: 4567
+              timestamp:
+                type: string
+                format: date-time
+                description: Timestamp for this data point.
+                example: "2020-04-01T12:00:00Z"
+
+    StatsSummary:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Status of the request.
+          example: success
+        meta:
+          type: object
+          description: Metadata about the request.
+          properties:
+            from:
+              type: string
+              format: date-time
+              description: Start time for the stat window.
+              example: "2020-04-01T00:00:00Z"
+            to:
+              type: string
+              format: date-time
+              description: End time for the stat window.
+              example: "2020-04-30T00:00:00Z"
+        data:
+          type: object
+          description: The summarized stats data.
+          properties:
+            requests:
+              type: integer
+              description: Total number of requests processed.
+              example: 15000000
+            hits:
+              type: integer
+              description: Total number of cache hits.
+              example: 12750000
+            hit_ratio:
+              type: number
+              format: float
+              description: Ratio of cache hits to total requests.
+              example: 0.85
+            bandwidth:
+              type: integer
+              description: Total bandwidth used in bytes.
+              example: 243000000000
+            errors:
+              type: integer
+              description: Total number of errors.
+              example: 15000
+            status_codes:
+              type: object
+              description: Breakdown of requests by HTTP status code.
+              additionalProperties:
+                type: integer
+              example:
+                "200": 14250000
+                "301": 300000
+                "404": 435000
+                "500": 15000
+
+    RealtimeMetrics:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the data point.
+          example: "2020-04-02T15:01:23Z"
+        data:
+          type: array
+          description: Array of realtime data points.
+          items:
+            type: object
+            properties:
+              recorded:
+                type: string
+                format: date-time
+                description: Time when this data point was recorded.
+                example: "2020-04-02T15:01:23Z"
+              requests:
+                type: integer
+                description: Number of requests in this time window.
+                example: 1234
+              resp_header_bytes:
+                type: integer
+                description: Response header bytes served.
+                example: 123456
+              resp_body_bytes:
+                type: integer
+                description: Response body bytes served.
+                example: 9876543
+              log_bytes:
+                type: integer
+                description: Log bytes generated.
+                example: 54321
+              bereq_header_bytes:
+                type: integer
+                description: Backend request header bytes.
+                example: 12345
+              bereq_body_bytes:
+                type: integer
+                description: Backend request body bytes.
+                example: 98765
+              status_1xx:
+                type: integer
+                description: Number of 1xx status responses.
+                example: 0
+              status_2xx:
+                type: integer
+                description: Number of 2xx status responses.
+                example: 1000
+              status_3xx:
+                type: integer
+                description: Number of 3xx status responses.
+                example: 200
+              status_4xx:
+                type: integer
+                description: Number of 4xx status responses.
+                example: 30
+              status_5xx:
+                type: integer
+                description: Number of 5xx status responses.
+                example: 4
+              hits:
+                type: integer
+                description: Number of cache hits.
+                example: 1000
+              miss:
+                type: integer
+                description: Number of cache misses.
+                example: 234
+              uncacheable:
+                type: integer
+                description: Number of uncacheable requests.
+                example: 30
+              errors:
+                type: integer
+                description: Number of errors.
+                example: 4
+
+  parameters:
+    service_id:
+      name: service_id
+      in: path
+      description: Alphanumeric string identifying the service.
+      required: true
+      schema:
+        type: string
+
+    version_id:
+      name: version_id
+      in: path
+      description: Integer identifying a service version.
+      required: true
+      schema:
+        type: string
+
+    domain_id:
+      name: domain_id
+      in: path
+      description: Alphanumeric string identifying a domain.
+      required: true
+      schema:
+        type: string
+
+    backend_name:
+      name: backend_name
+      in: path
+      description: The name of the backend.
+      required: true
+      schema:
+        type: string
+
+    cache_setting_name:
+      name: cache_setting_name
+      in: path
+      description: Name for the cache settings object.
+      required: true
+      schema:
+        type: string
+
+    dictionary_id:
+      name: dictionary_id
+      in: path
+      description: Alphanumeric string identifying a Dictionary.
+      required: true
+      schema:
+        type: string
+
+    firewall_id:
+      name: firewall_id
+      in: path
+      description: Alphanumeric string identifying a WAF Firewall.
+      required: true
+      schema:
+        type: string
+
+    rule_id:
+      name: rule_id
+      in: path
+      description: Alphanumeric string identifying a WAF rule.
+      required: true
+      schema:
+        type: string
+
+    purge_id:
+      name: purge_id
+      in: path
+      description: Alphanumeric string identifying a purge request.
+      required: true
+      schema:
+        type: string
+
+    origin_name:
+      name: origin_name
+      in: path
+      description: Name of the origin.
+      required: true
+      schema:
+        type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: Bad request
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: Unauthorized
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: Record not found
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Fastly-Key
+      description: API token for authentication

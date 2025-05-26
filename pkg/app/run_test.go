@@ -80,6 +80,7 @@ ip-list
 kv-store
 kv-store-entry
 log-tail
+mcp
 logging
 object-storage
 pops
