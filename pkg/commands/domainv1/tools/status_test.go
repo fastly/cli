@@ -17,14 +17,14 @@ func TestNewDomainsV1ToolsStatusCommand(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "",
-			WantError: "error parsing arguments: required flag --domain not provided",
+			WantError: "error parsing arguments: required argument 'domain' not provided",
 		},
 		{
-			Args:      "--domain fastly-cli-testing.com --scope not-estimate",
+			Args:      "fastly-cli-testing.com --scope not-estimate",
 			WantError: "invalid scope provided",
 		},
 		{
-			Args: "--domain fastly-cli-testing.com",
+			Args: "fastly-cli-testing.com",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -46,7 +46,7 @@ Tags: generic
 `,
 		},
 		{
-			Args: "--domain fastly-cli-testing-offers.com --scope estimate",
+			Args: "fastly-cli-testing-offers.com --scope estimate",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -81,7 +81,7 @@ Offers:
 `,
 		},
 		{
-			Args: "-j --domain fastly-cli-testing-offers.com --scope estimate",
+			Args: "-j fastly-cli-testing-offers.com --scope estimate",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{

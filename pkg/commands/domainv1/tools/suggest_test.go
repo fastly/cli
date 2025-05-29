@@ -47,10 +47,10 @@ func TestNewDomainsV1ToolsSuggestCommand(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "",
-			WantError: "error parsing arguments: required flag --query not provided",
+			WantError: "error parsing arguments: required argument 'query' not provided",
 		},
 		{
-			Args: "--query `fastly testing`",
+			Args: "`fastly testing`",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -69,7 +69,7 @@ fastlytest.in      fastlytest.     in    /g
 `,
 		},
 		{
-			Args: "--query foo --keywords=food,kitchen --defaults=club",
+			Args: "foo --keywords=food,kitchen --defaults=club",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -116,7 +116,7 @@ foo.club     foo.       club
 `,
 		},
 		{
-			Args: "-j --query `fastly testing`",
+			Args: "-j `fastly testing`",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -159,7 +159,7 @@ foo.club     foo.       club
 `,
 		},
 		{
-			Args: "-v --query `fastly testing`",
+			Args: "-v `fastly testing`",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
