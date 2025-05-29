@@ -9,7 +9,7 @@ import (
 
 const (
 	maxKeyLen   = 256
-	maxValueLen = 8000
+	maxValueLen = 2 << 15
 )
 
 var errNoSTDINData = fsterr.RemediationError{
