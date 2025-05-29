@@ -13,8 +13,7 @@ import (
 	"github.com/fastly/go-fastly/v10/fastly/domains/v1/tools/suggest"
 )
 
-// GetDomainSuggestionsCommand calls the Fastly API to perform a real-time query of the search term(s) against the
-// know zones database.
+// GetDomainSuggestionsCommand calls the Fastly API to retrieve domain suggestions from the provided term(s).
 type GetDomainSuggestionsCommand struct {
 	argparser.Base
 	argparser.JSONOutput

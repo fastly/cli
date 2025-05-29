@@ -30,9 +30,9 @@ func NewDomainStatusCommand(parent argparser.Registerer, g *global.Data) *GetDom
 		},
 	}
 
-	cmd.CmdClause = parent.Command("status", "Check the availability status of a single domain name.")
+	cmd.CmdClause = parent.Command("status", "Check the registration status of a single domain name.")
 	// Required.
-	cmd.CmdClause.Flag("domain", "Domain being checked for availability").Required().StringVar(&cmd.domain)
+	cmd.CmdClause.Flag("domain", "Domain name to check").Required().StringVar(&cmd.domain)
 	// Optional.
 	cmd.RegisterFlagBool(cmd.JSONFlag())
 	cmd.CmdClause.Flag("scope", "Scope determines the availability check to perform, specify `estimate` for an estimated check").Action(cmd.scope.Set).StringVar(&cmd.scope.Value)
@@ -55,7 +55,7 @@ func (g *GetDomainStatusCommand) Exec(_ io.Reader, out io.Writer) error {
 		if scope != status.ScopeEstimate {
 			return fsterr.RemediationError{
 				Inner:       errors.New("invalid scope provided"),
-				Remediation: "Use `--scope=estimate` for an estimate check",
+				Remediation: "Use `--scope=estimate` for an estimated status check",
 			}
 		}
 		input.Scope = fastly.ToPointer(scope)

@@ -21,7 +21,7 @@ const CommandName = "tools"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Tools for interacting with Domains")
+	c.CmdClause = parent.Command(CommandName, "Tools for domain discovery and operations")
 	return &c
 }
 

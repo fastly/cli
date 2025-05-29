@@ -206,7 +206,7 @@ func Define( // nolint:revive // function-length
 	domainv1List := domainv1.NewListCommand(domainv1CmdRoot.CmdClause, data)
 	domainv1ToolsCmdRoot := tools.NewRootCommand(domainv1CmdRoot.CmdClause, data)
 	domainv1ToolsStatus := tools.NewDomainStatusCommand(domainv1ToolsCmdRoot.CmdClause, data)
-	domainv1ToolsSuggestion := tools.NewDomainSuggestionsCommand(domainv1ToolsCmdRoot.CmdClause, data)
+	domainv1ToolsSuggestions := tools.NewDomainSuggestionsCommand(domainv1ToolsCmdRoot.CmdClause, data)
 	domainv1Update := domainv1.NewUpdateCommand(domainv1CmdRoot.CmdClause, data)
 	healthcheckCmdRoot := healthcheck.NewRootCommand(app, data)
 	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
@@ -622,7 +622,7 @@ func Define( // nolint:revive // function-length
 		domainv1ToolsCmdRoot,
 		domainv1Update,
 		domainv1ToolsStatus,
-		domainv1ToolsSuggestion,
+		domainv1ToolsSuggestions,
 		healthcheckCmdRoot,
 		healthcheckCreate,
 		healthcheckDelete,
