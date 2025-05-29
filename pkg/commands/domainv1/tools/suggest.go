@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -18,7 +19,7 @@ type GetDomainSuggestionsCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 	// Required.
-	query string
+	query []string
 	// Optional.
 	defaults argparser.OptionalString
 	keywords argparser.OptionalString
@@ -36,7 +37,7 @@ func NewDomainSuggestionsCommand(parent argparser.Registerer, g *global.Data) *G
 
 	cmd.CmdClause = parent.Command("suggest", "Performs real-time queries against the known zones database")
 	// Required.
-	cmd.CmdClause.Arg("query", "The comma-separated term(s) to search against.").Required().StringVar(&cmd.query)
+	cmd.CmdClause.Arg("query", "Words to use for domain suggestions").Required().StringsVar(&cmd.query)
 	// Optional.
 	cmd.CmdClause.Flag("defaults", "Comma-separated list of default zones to include in the search results response").Action(cmd.defaults.Set).StringVar(&cmd.defaults.Value)
 	cmd.RegisterFlagBool(cmd.JSONFlag())
@@ -59,7 +60,7 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &suggest.GetInput{
-		Query: g.query,
+		Query: strings.Join(g.query, " "),
 	}
 
 	if g.defaults.WasSet {

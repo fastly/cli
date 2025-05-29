@@ -46,7 +46,7 @@ Tags: generic
 `,
 		},
 		{
-			Args: "fastly-cli-testing-offers.com --scope estimate",
+			Args: "--scope estimate fastly-cli-testing-offers.com",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -81,7 +81,7 @@ Offers:
 `,
 		},
 		{
-			Args: "-j fastly-cli-testing-offers.com --scope estimate",
+			Args: "-j --scope estimate fastly-cli-testing-offers.com",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
