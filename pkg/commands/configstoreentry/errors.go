@@ -9,9 +9,9 @@ import (
 
 const (
 	maxKeyLen = 256
-	// maxValueLen is the maximum length of config store entry's value. It's set to 64k,
-	// even though users may have a smaller limit. The API will reject requests if the
-	// value is larger than the user's limit.
+	// maxValueLen is the maximum length of Config Store entry's value. It's set to 64k,
+	// even though customers may have a smaller limit. The API will reject requests if the
+	// value is larger than the customer's limit.
 	maxValueLen = 2 << 15
 )
 
