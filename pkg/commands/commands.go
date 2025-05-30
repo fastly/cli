@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"github.com/fastly/cli/pkg/commands/domainv1/tools"
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -79,6 +78,8 @@ import (
 	tlscustomprivatekey "github.com/fastly/cli/pkg/commands/tls/custom/privatekey"
 	tlsplatform "github.com/fastly/cli/pkg/commands/tls/platform"
 	tlssubscription "github.com/fastly/cli/pkg/commands/tls/subscription"
+	"github.com/fastly/cli/pkg/commands/tools"
+	domainTools "github.com/fastly/cli/pkg/commands/tools/domain"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/commands/vcl"
@@ -204,9 +205,6 @@ func Define( // nolint:revive // function-length
 	domainv1Delete := domainv1.NewDeleteCommand(domainv1CmdRoot.CmdClause, data)
 	domainv1Describe := domainv1.NewDescribeCommand(domainv1CmdRoot.CmdClause, data)
 	domainv1List := domainv1.NewListCommand(domainv1CmdRoot.CmdClause, data)
-	domainv1ToolsCmdRoot := tools.NewRootCommand(domainv1CmdRoot.CmdClause, data)
-	domainv1ToolsStatus := tools.NewDomainStatusCommand(domainv1ToolsCmdRoot.CmdClause, data)
-	domainv1ToolsSuggestions := tools.NewDomainSuggestionsCommand(domainv1ToolsCmdRoot.CmdClause, data)
 	domainv1Update := domainv1.NewUpdateCommand(domainv1CmdRoot.CmdClause, data)
 	healthcheckCmdRoot := healthcheck.NewRootCommand(app, data)
 	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
@@ -490,6 +488,10 @@ func Define( // nolint:revive // function-length
 	tlsSubscriptionDescribe := tlssubscription.NewDescribeCommand(tlsSubscriptionCmdRoot.CmdClause, data)
 	tlsSubscriptionList := tlssubscription.NewListCommand(tlsSubscriptionCmdRoot.CmdClause, data)
 	tlsSubscriptionUpdate := tlssubscription.NewUpdateCommand(tlsSubscriptionCmdRoot.CmdClause, data)
+	toolsCmdRoot := tools.NewRootCommand(app, data)
+	toolsDomainCmdRoot := domainTools.NewRootCommand(toolsCmdRoot.CmdClause, data)
+	toolsDomainStatus := domainTools.NewDomainStatusCommand(toolsDomainCmdRoot.CmdClause, data)
+	toolsDomainSuggestions := domainTools.NewDomainSuggestionsCommand(toolsDomainCmdRoot.CmdClause, data)
 	updateRoot := update.NewRootCommand(app, data)
 	userCmdRoot := user.NewRootCommand(app, data)
 	userCreate := user.NewCreateCommand(userCmdRoot.CmdClause, data)
@@ -619,10 +621,7 @@ func Define( // nolint:revive // function-length
 		domainv1Delete,
 		domainv1Describe,
 		domainv1List,
-		domainv1ToolsCmdRoot,
 		domainv1Update,
-		domainv1ToolsStatus,
-		domainv1ToolsSuggestions,
 		healthcheckCmdRoot,
 		healthcheckCreate,
 		healthcheckDelete,
@@ -902,6 +901,10 @@ func Define( // nolint:revive // function-length
 		tlsSubscriptionDescribe,
 		tlsSubscriptionList,
 		tlsSubscriptionUpdate,
+		toolsCmdRoot,
+		toolsDomainCmdRoot,
+		toolsDomainStatus,
+		toolsDomainSuggestions,
 		updateRoot,
 		userCmdRoot,
 		userCreate,

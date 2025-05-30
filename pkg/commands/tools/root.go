@@ -8,7 +8,7 @@ import (
 )
 
 // RootCommand is the parent command for all tool subcommands in this package.
-// It should be installed under the primary `domainv1` root command.
+// It should be installed under the primary root command.
 type RootCommand struct {
 	argparser.Base
 	// no flags
@@ -21,7 +21,7 @@ const CommandName = "tools"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Tools for domain discovery and operations")
+	c.CmdClause = parent.Command(CommandName, "Tools for working with the Fastly platform")
 	return &c
 }
 

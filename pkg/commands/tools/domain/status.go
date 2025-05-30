@@ -1,4 +1,4 @@
-package tools
+package domain
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 	"github.com/fastly/go-fastly/v10/fastly/domains/v1/tools/status"
 )
 
-// GetDomainStatusCommand calls the Fastly API to check the availability status of a domain.
+// GetDomainStatusCommand calls the Fastly API to check the availability of a domain name.
 type GetDomainStatusCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -30,12 +30,12 @@ func NewDomainStatusCommand(parent argparser.Registerer, g *global.Data) *GetDom
 		},
 	}
 
-	cmd.CmdClause = parent.Command("status", "Check the registration status of a single domain name.")
+	cmd.CmdClause = parent.Command("status", "Check domain name availability")
 	// Required.
 	cmd.CmdClause.Arg("domain", "Domain name to check").Required().StringVar(&cmd.domain)
 	// Optional.
 	cmd.RegisterFlagBool(cmd.JSONFlag())
-	cmd.CmdClause.Flag("scope", "Scope determines the availability check to perform, specify `estimate` for an estimated check").Action(cmd.scope.Set).StringVar(&cmd.scope.Value)
+	cmd.CmdClause.Flag("scope", "Specify `--scope=estimate` to perform an “estimated” availability check, which checks the DNS and domain aftermarkets, not domain registries").Action(cmd.scope.Set).StringVar(&cmd.scope.Value)
 
 	return &cmd
 }

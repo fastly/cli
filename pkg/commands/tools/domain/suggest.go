@@ -1,4 +1,4 @@
-package tools
+package domain
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/go-fastly/v10/fastly/domains/v1/tools/suggest"
 )
 
-// GetDomainSuggestionsCommand calls the Fastly API to retrieve domain suggestions from the provided term(s).
+// GetDomainSuggestionsCommand calls the Fastly API and results domain search results for a given query
 type GetDomainSuggestionsCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -35,14 +35,14 @@ func NewDomainSuggestionsCommand(parent argparser.Registerer, g *global.Data) *G
 		},
 	}
 
-	cmd.CmdClause = parent.Command("suggest", "Performs real-time queries against the known zones database")
+	cmd.CmdClause = parent.Command("suggest", "Returns domain search results for a given query")
 	// Required.
-	cmd.CmdClause.Arg("query", "Words to use for domain suggestions").Required().StringsVar(&cmd.query)
+	cmd.CmdClause.Arg("query", "Search query, e.g. “acme coffee shop”").Required().StringsVar(&cmd.query)
 	// Optional.
 	cmd.CmdClause.Flag("defaults", "Comma-separated list of default zones to include in the search results response").Action(cmd.defaults.Set).StringVar(&cmd.defaults.Value)
 	cmd.RegisterFlagBool(cmd.JSONFlag())
-	cmd.CmdClause.Flag("keywords", "Comma-separated list of keywords for seeding the results").Action(cmd.keywords.Set).StringVar(&cmd.keywords.Value)
-	cmd.CmdClause.Flag("location", "Overrides the IP location detection for country-code zones, with a two-character country code").Action(cmd.location.Set).StringVar(&cmd.location.Value)
+	cmd.CmdClause.Flag("keywords", "Comma-separated list of keywords for seeding the search results").Action(cmd.keywords.Set).StringVar(&cmd.keywords.Value)
+	cmd.CmdClause.Flag("location", "Override IP geolocation with a two-character country code, e.g. `--location=in` to include Indian domain zones in the search results").Action(cmd.location.Set).StringVar(&cmd.location.Value)
 	cmd.CmdClause.Flag("vendor", "The domain name of a specific registrar or vendor ").Action(cmd.vendor.Set).StringVar(&cmd.vendor.Value)
 
 	return &cmd

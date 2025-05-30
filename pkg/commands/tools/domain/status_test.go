@@ -1,4 +1,4 @@
-package tools_test
+package domain_test
 
 import (
 	"bytes"
@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	root "github.com/fastly/cli/pkg/commands/domainv1"
-	"github.com/fastly/cli/pkg/commands/domainv1/tools"
+	"github.com/fastly/cli/pkg/commands/tools"
+	"github.com/fastly/cli/pkg/commands/tools/domain"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v10/fastly"
 	"github.com/fastly/go-fastly/v10/fastly/domains/v1/tools/status"
@@ -121,5 +121,5 @@ Offers:
 `,
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, tools.CommandName, "status"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{tools.CommandName, domain.CommandName, "status"}, scenarios)
 }
