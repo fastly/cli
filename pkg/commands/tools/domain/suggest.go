@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/go-fastly/v10/fastly/domains/v1/tools/suggest"
 )
 
-// GetDomainSuggestionsCommand calls the Fastly API and results domain search results for a given query
+// GetDomainSuggestionsCommand calls the Fastly API and results domain search results for a given query.
 type GetDomainSuggestionsCommand struct {
 	argparser.Base
 	argparser.JSONOutput
