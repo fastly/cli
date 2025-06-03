@@ -177,7 +177,7 @@ func TestBackendCreate(t *testing.T) {
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
-			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
+			WantError: "'tcp-ka-enabled' flag must be one of the following [true, false]",
 		},
 		// The following tests verify parsing of the --prefer-ipv6 flag.
 		{
@@ -359,7 +359,7 @@ func TestBackendUpdate(t *testing.T) {
 				GetBackendFn:    getBackendOK,
 				UpdateBackendFn: updateBackendOK,
 			},
-			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
+			WantError: "'tcp-ka-enabled' flag must be one of the following [true, false]",
 		},
 		// The following tests verify parsing of the --prefer-ipv6 flag.
 		{

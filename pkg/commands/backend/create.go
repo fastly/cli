@@ -245,7 +245,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		case "false":
 			tcpKaEnable = false
 		default:
-			err := errors.New("'tcp-ka-enable' flag must be one of the following [true, false]")
+			err := errors.New("'tcp-ka-enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
