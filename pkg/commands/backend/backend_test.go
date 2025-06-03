@@ -179,6 +179,31 @@ func TestBackendCreate(t *testing.T) {
 			},
 			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
 		},
+		// The following tests verify parsing of the --prefer-ipv6 flag.
+		{
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --prefer-ipv6=true",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 3)",
+		},
+		{
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --prefer-ipv6=false",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantOutput: "Created backend www.test.com (service 123 version 3)",
+		},
+		{
+			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --prefer-ipv6=invalid",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendOK,
+			},
+			WantError: "'prefer-ipv6' flag must be one of the following [true, false]",
+		},
 	}
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
@@ -335,6 +360,37 @@ func TestBackendUpdate(t *testing.T) {
 				UpdateBackendFn: updateBackendOK,
 			},
 			WantError: "'tcp-ka-enable' flag must be one of the following [true, false]",
+		},
+		// The following tests verify parsing of the --prefer-ipv6 flag.
+		{
+			Args: "--service-id 123 --version 1 --name www.test.com --prefer-ipv6=true --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantOutput: "Updated backend  (service 123 version 4)",
+		},
+		{
+			Args: "--service-id 123 --version 1 --name www.test.com --prefer-ipv6=false --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantOutput: "Updated backend  (service 123 version 4)",
+		},
+		{
+			Args: "--service-id 123 --version 1 --name www.test.com --prefer-ipv6=invalid --autoclone",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetBackendFn:    getBackendOK,
+				UpdateBackendFn: updateBackendOK,
+			},
+			WantError: "'prefer-ipv6' flag must be one of the following [true, false]",
 		},
 	}
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
@@ -602,6 +658,7 @@ var describeBackendOutput = strings.Join([]string{
 	"Comment: test",
 	"Address: www.test.com",
 	"Port: 80",
+	"Prefer IPv6: false",
 	"Override host: ",
 	"Connect timeout: 0",
 	"Max connections: 0",

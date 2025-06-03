@@ -37,6 +37,7 @@ type UpdateCommand struct {
 	NoSSLCheckCert      argparser.OptionalBool
 	OverrideHost        argparser.OptionalString
 	Port                argparser.OptionalInt
+	preferIPv6          argparser.OptionalString
 	RequestCondition    argparser.OptionalString
 	SSLCACert           argparser.OptionalString
 	SSLCertHostname     argparser.OptionalString
@@ -92,6 +93,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("no-ssl-check-cert", "Skip checking SSL certs").Action(c.NoSSLCheckCert.Set).BoolVar(&c.NoSSLCheckCert.Value)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.OverrideHost.Set).StringVar(&c.OverrideHost.Value)
 	c.CmdClause.Flag("port", "Port number of the address").Action(c.Port.Set).IntVar(&c.Port.Value)
+	c.CmdClause.Flag("prefer-ipv6", "Prefer IPv6 connections").Action(c.preferIPv6.Set).StringVar(&c.preferIPv6.Value)
 	c.CmdClause.Flag("request-condition", "condition, which if met, will select this backend during a request").Action(c.RequestCondition.Set).StringVar(&c.RequestCondition.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -168,6 +170,23 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if c.OverrideHost.WasSet {
 		input.OverrideHost = &c.OverrideHost.Value
+	}
+
+	if c.preferIPv6.WasSet {
+		var preferIPv6 bool
+
+		switch c.preferIPv6.Value {
+		case "true":
+			preferIPv6 = true
+		case "false":
+			preferIPv6 = false
+		default:
+			err := errors.New("'prefer-ipv6' flag must be one of the following [true, false]")
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+
+		input.PreferIPv6 = fastly.ToPointer(fastly.Compatibool(preferIPv6))
 	}
 
 	if c.ConnectTimeout.WasSet {
