@@ -43,7 +43,7 @@ func NewDomainSuggestionsCommand(parent argparser.Registerer, g *global.Data) *G
 	cmd.RegisterFlagBool(cmd.JSONFlag())
 	cmd.CmdClause.Flag("keywords", "Comma-separated list of keywords for seeding the search results").Action(cmd.keywords.Set).StringVar(&cmd.keywords.Value)
 	cmd.CmdClause.Flag("location", "Override IP geolocation with a two-character country code, e.g. `--location=in` to include Indian domain zones in the search results").Action(cmd.location.Set).StringVar(&cmd.location.Value)
-	cmd.CmdClause.Flag("vendor", "The domain name of a specific registrar or vendor ").Action(cmd.vendor.Set).StringVar(&cmd.vendor.Value)
+	cmd.CmdClause.Flag("vendor", "The domain name of a specific registrar or vendor").Action(cmd.vendor.Set).StringVar(&cmd.vendor.Value)
 
 	return &cmd
 }
