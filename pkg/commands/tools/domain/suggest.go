@@ -35,7 +35,7 @@ func NewDomainSuggestionsCommand(parent argparser.Registerer, g *global.Data) *G
 		},
 	}
 
-	cmd.CmdClause = parent.Command("suggest", "Returns domain search results for a given query")
+	cmd.CmdClause = parent.Command("suggest", "Request domain search results for a given query")
 	// Required.
 	cmd.CmdClause.Arg("query", "Search query, e.g. “acme coffee shop”").Required().StringsVar(&cmd.query)
 	// Optional.
