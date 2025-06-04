@@ -5,12 +5,14 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(config-store): Allow for dynamic limits on Config Store entry lengths [#1485](https://github.com/fastly/cli/pull/1485)
+- feat(backend): Add support for 'prefer IPv6' attribute. ([#1487](https://github.com/fastly/cli/pull/1487))
 - feat(Domain Discovery): add `suggest` and `status` domain tools endpoints ([#1482](https://github.com/fastly/cli/pull/1482))
 
 ### Bug fixes:
 
 ### Dependencies:
-- build(deps): `github.com/fastly/go-fastly/v10` from 10.0.1 to 10.1.0 ([#1467](https://github.com/fastly/cli/pull/1476))
+- build(deps): `github.com/fastly/go-fastly/v10` from 10.0.1 to 10.1.0 ([#1476](https://github.com/fastly/cli/pull/1476))
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.0.0 to 10.0.1 ([#1467](https://github.com/fastly/cli/pull/1467))
 - build(deps): `golang.org/x/net` from 0.37.0 to 0.39.0 ([#1467](https://github.com/fastly/cli/pull/1467))
 - build(go.mod): upgrade to go 1.24.0 in order to take advantage of the new tooling mechanism ([#1469](https://github.com/fastly/cli/pull/1469))

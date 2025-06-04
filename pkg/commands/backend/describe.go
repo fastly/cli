@@ -107,6 +107,7 @@ func (c *DescribeCommand) print(out io.Writer, b *fastly.Backend) error {
 	fmt.Fprintf(out, "Comment: %v\n", fastly.ToValue(b.Comment))
 	fmt.Fprintf(out, "Address: %v\n", fastly.ToValue(b.Address))
 	fmt.Fprintf(out, "Port: %v\n", fastly.ToValue(b.Port))
+	fmt.Fprintf(out, "Prefer IPv6: %v\n", fastly.ToValue(b.PreferIPv6))
 	fmt.Fprintf(out, "Override host: %v\n", fastly.ToValue(b.OverrideHost))
 	fmt.Fprintf(out, "Connect timeout: %v\n", fastly.ToValue(b.ConnectTimeout))
 	fmt.Fprintf(out, "Max connections: %v\n", fastly.ToValue(b.MaxConn))

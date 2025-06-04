@@ -38,6 +38,7 @@ type CreateCommand struct {
 	noSSLCheckCert      argparser.OptionalBool
 	overrideHost        argparser.OptionalString
 	port                argparser.OptionalInt
+	preferIPv6          argparser.OptionalString
 	requestCondition    argparser.OptionalString
 	serviceName         argparser.OptionalServiceNameID
 	shield              argparser.OptionalString
@@ -94,6 +95,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("no-ssl-check-cert", "Skip checking SSL certs").Action(c.noSSLCheckCert.Set).BoolVar(&c.noSSLCheckCert.Value)
 	c.CmdClause.Flag("override-host", "The hostname to override the Host header").Action(c.overrideHost.Set).StringVar(&c.overrideHost.Value)
 	c.CmdClause.Flag("port", "Port number of the address").Action(c.port.Set).IntVar(&c.port.Value)
+	c.CmdClause.Flag("prefer-ipv6", "Prefer IPv6 connections [true, false]").Action(c.preferIPv6.Set).StringVar(&c.preferIPv6.Value)
 	c.CmdClause.Flag("request-condition", "Condition, which if met, will select this backend during a request").Action(c.requestCondition.Set).StringVar(&c.requestCondition.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -190,6 +192,22 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.overrideHost.WasSet {
 		input.OverrideHost = &c.overrideHost.Value
 	}
+	if c.preferIPv6.WasSet {
+		var preferIPv6 bool
+
+		switch c.preferIPv6.Value {
+		case "true":
+			preferIPv6 = true
+		case "false":
+			preferIPv6 = false
+		default:
+			err := errors.New("'prefer-ipv6' flag must be one of the following [true, false]")
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+
+		input.PreferIPv6 = fastly.ToPointer(fastly.Compatibool(preferIPv6))
+	}
 	if c.requestCondition.WasSet {
 		input.RequestCondition = &c.requestCondition.Value
 	}
@@ -227,7 +245,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		case "false":
 			tcpKaEnable = false
 		default:
-			err := errors.New("'tcp-ka-enable' flag must be one of the following [true, false]")
+			err := errors.New("'tcp-ka-enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
