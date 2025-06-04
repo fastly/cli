@@ -39,11 +39,11 @@ func NewDomainSuggestionsCommand(parent argparser.Registerer, g *global.Data) *G
 	// Required.
 	cmd.CmdClause.Arg("query", "Search query, e.g. “acme coffee shop”").Required().StringsVar(&cmd.query)
 	// Optional.
-	cmd.CmdClause.Flag("defaults", "Comma-separated list of default zones to include in the search results response").Action(cmd.defaults.Set).StringVar(&cmd.defaults.Value)
+	cmd.CmdClause.Flag("defaults", "Comma-separated list of default zones to include in the search results response, e.g. `--defaults=uk,co.uk`").Action(cmd.defaults.Set).StringVar(&cmd.defaults.Value)
 	cmd.RegisterFlagBool(cmd.JSONFlag())
-	cmd.CmdClause.Flag("keywords", "Comma-separated list of keywords for seeding the search results").Action(cmd.keywords.Set).StringVar(&cmd.keywords.Value)
-	cmd.CmdClause.Flag("location", "Override IP geolocation with a two-character country code, e.g. `--location=in` to include Indian domain zones in the search results").Action(cmd.location.Set).StringVar(&cmd.location.Value)
-	cmd.CmdClause.Flag("vendor", "The domain name of a specific registrar or vendor").Action(cmd.vendor.Set).StringVar(&cmd.vendor.Value)
+	cmd.CmdClause.Flag("keywords", "Comma-separated list of keywords for seeding the search results, e.g. `--keywords=dance,party`").Action(cmd.keywords.Set).StringVar(&cmd.keywords.Value)
+	cmd.CmdClause.Flag("location", "Override IP geolocation with a two-character country code, e.g. `--location=in` to include Indian zones in the search results").Action(cmd.location.Set).StringVar(&cmd.location.Value)
+	cmd.CmdClause.Flag("vendor", "The domain name of a specific registrar or vendor, to filter the search results to the list of zones they support").Action(cmd.vendor.Set).StringVar(&cmd.vendor.Value)
 
 	return &cmd
 }
