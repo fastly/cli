@@ -36,6 +36,8 @@
 - build(deps): `golang.org/x/mod` from 0.24.0 to 0.25.0 ([#1488](https://github.com/fastly/cli/pull/1488))
 - build(deps): `golang.org/x/sync` from 0.14.0 to 0.15.0 ([#1488](https://github.com/fastly/cli/pull/1488))
 - build(deps): `golang.org/x/text` from 0.25.0 to 0.26.0 ([#1488](https://github.com/fastly/cli/pull/1488))
+- build(deps): `golang.org/x/crypto` from 0.38.0 to 0.39.0 ([#1489](https://github.com/fastly/cli/pull/1489))
+- build(deps): `golang.org/x/net` from 0.40.0 to 0.41.0 ([#1489](https://github.com/fastly/cli/pull/1489))
 
 ## [v11.2.0](https://github.com/fastly/cli/releases/tag/v11.2.0) (2025-04-10)
 
