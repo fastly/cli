@@ -6,8 +6,8 @@
 
 ### Enhancements:
 - feat(config-store): Allow for dynamic limits on Config Store entry lengths [#1485](https://github.com/fastly/cli/pull/1485)
-
 - feat(backend): Add support for 'prefer IPv6' attribute. ([#1487](https://github.com/fastly/cli/pull/1487))
+- feat(tools/domain): add `suggest` and `status` domain tools endpoints ([#1482](https://github.com/fastly/cli/pull/1482))
 
 ### Bug fixes:
 

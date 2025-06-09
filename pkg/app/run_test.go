@@ -98,6 +98,7 @@ tls-config
 tls-custom
 tls-platform
 tls-subscription
+tools
 update
 user
 vcl
