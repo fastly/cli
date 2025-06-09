@@ -54,11 +54,6 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	fc, ok := g.Globals.APIClient.(*fastly.Client)
-	if !ok {
-		return errors.New("failed to acquire the Fastly API client")
-	}
-
 	input := &suggest.GetInput{
 		Query: strings.Join(g.query, " "),
 	}
@@ -77,6 +72,11 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if g.vendor.WasSet {
 		input.Vendor = fastly.ToPointer(g.vendor.Value)
+	}
+
+	fc, ok := g.Globals.APIClient.(*fastly.Client)
+	if !ok {
+		return errors.New("failed to acquire the Fastly API client")
 	}
 
 	suggestions, err := suggest.Get(fc, input)
