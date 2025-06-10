@@ -97,7 +97,7 @@ func TestSSO(t *testing.T) {
 			WantOutputs: []string{
 				"We're going to authenticate the 'user' profile",
 				"We need to open your browser to authenticate you.",
-				"Session token (persisted to your local configuration): 123",
+				"Session token has been stored, use 'fastly profile token user' to display it.",
 			},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "123"
@@ -137,7 +137,7 @@ func TestSSO(t *testing.T) {
 			WantOutputs: []string{
 				"We're going to authenticate the 'test_user' profile",
 				"We need to open your browser to authenticate you.",
-				"Session token (persisted to your local configuration): 123",
+				"Session token has been stored, use 'fastly profile token test_user' to display it.",
 			},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "123"
@@ -280,7 +280,7 @@ func TestSSO(t *testing.T) {
 			WantOutputs: []string{
 				"Your access token has expired and so has your refresh token.",
 				"Starting a local server to handle the authentication flow.",
-				"Session token (persisted to your local configuration): 123",
+				"Session token has been stored, use 'fastly profile token user' to display it.",
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
