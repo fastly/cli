@@ -11,6 +11,7 @@
 - feat(logging): Add support for 'processing region' attribute. ([#1491](https://github.com/fastly/cli/pull/1491))
 
 ### Bug fixes:
+- fix(sso): Don't display the token after authentication. ([#1490](https://github.com/fastly/cli/pull/1490))
 
 ### Dependencies:
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.0.1 to 10.1.0 ([#1476](https://github.com/fastly/cli/pull/1476))
