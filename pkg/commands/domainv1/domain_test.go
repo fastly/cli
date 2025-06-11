@@ -87,13 +87,15 @@ func TestDomainV1List(t *testing.T) {
 	fqdn := "www.example.com"
 	sid := "123"
 	did := "domain-id"
+	description := "domain description"
 
 	resp := testutil.GenJSON(v1.Collection{
 		Data: []v1.Data{
 			{
-				DomainID:  did,
-				FQDN:      fqdn,
-				ServiceID: &sid,
+				DomainID:    did,
+				FQDN:        fqdn,
+				ServiceID:   &sid,
+				Description: description,
 			},
 		},
 	})
@@ -137,11 +139,13 @@ func TestDomainV1Describe(t *testing.T) {
 	fqdn := "www.example.com"
 	sid := "123"
 	did := "domain-id"
+	description := "domain description"
 
 	resp := testutil.GenJSON(v1.Data{
-		DomainID:  did,
-		FQDN:      fqdn,
-		ServiceID: &sid,
+		DomainID:    did,
+		FQDN:        fqdn,
+		ServiceID:   &sid,
+		Description: description,
 	})
 
 	scenarios := []testutil.CLIScenario{

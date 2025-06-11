@@ -16,8 +16,9 @@ import (
 // UpdateCommand calls the Fastly API to update domains.
 type UpdateCommand struct {
 	argparser.Base
-	domainID  string
-	serviceID string
+	domainID    string
+	serviceID   string
+	description argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -33,6 +34,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("domain-id", "The Domain Identifier (UUID)").Required().StringVar(&c.domainID)
 
 	// Optional
+	c.CmdClause.Flag("description", "The description for the domain").Action(c.description.Set).StringVar(&c.description.Value)
 	c.CmdClause.Flag("service-id", "The service_id associated with your domain (omit to unset)").StringVar(&c.serviceID)
 
 	return &c
@@ -45,6 +47,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	if c.serviceID != "" {
 		input.ServiceID = &c.serviceID
+	}
+
+	if c.description.WasSet {
+		input.Description = &c.description.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
