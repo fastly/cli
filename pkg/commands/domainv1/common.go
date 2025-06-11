@@ -13,13 +13,13 @@ import (
 // format.
 func printSummary(out io.Writer, data []v1.Data) {
 	t := text.NewTable(out)
-	t.AddHeader("FQDN", "DOMAIN ID", "SERVICE ID", "CREATED AT", "UPDATED AT")
+	t.AddHeader("FQDN", "DOMAIN ID", "SERVICE ID", "CREATED AT", "UPDATED AT", "DESCRIPTION")
 	for _, d := range data {
 		var sid string
 		if d.ServiceID != nil {
 			sid = *d.ServiceID
 		}
-		t.AddLine(d.FQDN, d.DomainID, sid, d.CreatedAt, d.UpdatedAt)
+		t.AddLine(d.FQDN, d.DomainID, sid, d.CreatedAt, d.UpdatedAt, d.Description)
 	}
 	t.Print()
 }
@@ -35,6 +35,7 @@ func printVerbose(out io.Writer, data []v1.Data) {
 		}
 		fmt.Fprintf(out, "Created at: %s\n", d.CreatedAt)
 		fmt.Fprintf(out, "Updated at: %s\n", d.UpdatedAt)
+		fmt.Fprintf(out, "Description: %s\n", d.Description)
 		fmt.Fprintf(out, "\n")
 	}
 }

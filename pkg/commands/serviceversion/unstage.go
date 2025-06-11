@@ -25,8 +25,7 @@ type UnstageCommand struct {
 func NewUnstageCommand(parent argparser.Registerer, g *global.Data) *UnstageCommand {
 	var c UnstageCommand
 	c.Globals = g
-	// FIXME: unhide this command when appropriate
-	c.CmdClause = parent.Command("unstage", "Unstage a Fastly service version").Hidden()
+	c.CmdClause = parent.Command("unstage", "Unstage a Fastly service version")
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
