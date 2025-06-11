@@ -320,6 +320,7 @@ func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticse
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
 			FormatVersion:     fastly.ToPointer(2),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -340,6 +341,7 @@ func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticse
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -378,6 +380,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 	Elasticsearch 2/2
 		Service ID: 123
 		Version: 1
@@ -395,6 +398,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 `) + "\n\n"
 
 func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
@@ -417,6 +421,7 @@ func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch,
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 		TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
 		FormatVersion:     fastly.ToPointer(2),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -432,6 +437,7 @@ Name: logs
 Password: password
 Pipeline: logs
 Placement: none
+Processing region: us
 Response condition: Prevent default logging
 Service ID: 123
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo

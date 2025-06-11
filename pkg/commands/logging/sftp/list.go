@@ -128,6 +128,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(sftp.TimestampFormat))
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(sftp.Placement))
 		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(sftp.CompressionCodec))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(sftp.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

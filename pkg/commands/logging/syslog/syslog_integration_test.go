@@ -305,6 +305,7 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Placement:         fastly.ToPointer("none"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -325,6 +326,7 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Placement:         fastly.ToPointer("none"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -365,6 +367,7 @@ Version: 1
 		Message type: classic
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 	Syslog 2/2
 		Service ID: 123
 		Version: 1
@@ -384,6 +387,7 @@ Version: 1
 		Message type: classic
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 `) + "\n\n"
 
 func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
@@ -406,6 +410,7 @@ func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		Placement:         fastly.ToPointer("none"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -423,6 +428,7 @@ Message type: classic
 Name: logs
 Placement: none
 Port: 514
+Processing region: us
 Response condition: Prevent default logging
 Service ID: 123
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo

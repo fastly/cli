@@ -321,6 +321,7 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -340,6 +341,7 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -379,6 +381,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Compression codec: zstd
+		Processing region: us
 	GCS 2/2
 		Service ID: 123
 		Version: 1
@@ -397,6 +400,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Compression codec: zstd
+		Processing region: us
 `) + "\n\n"
 
 func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
@@ -418,6 +422,7 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -437,6 +442,7 @@ Name: logs
 Path: logs/
 Period: 3600
 Placement: none
+Processing region: us
 Project ID: 
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----foo

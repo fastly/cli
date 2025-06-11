@@ -298,6 +298,7 @@ func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.Graf
 			Token:             fastly.ToPointer("testtoken"),
 			URL:               fastly.ToPointer("https://test123.grafana.net"),
 			Index:             fastly.ToPointer("{\"label\": \"value\"}"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -312,6 +313,7 @@ func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.Graf
 			Token:             fastly.ToPointer("testtoken"),
 			URL:               fastly.ToPointer("https://test123.grafana.net"),
 			Index:             fastly.ToPointer("{\"label\": \"value\"}"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -346,6 +348,7 @@ Version: 1
 		URL: https://test123.grafana.net
 		Token: testtoken
 		Index: {"label": "value"}
+		Processing region: us
 	GrafanaCloudLogs 2/2
 		Service ID: 123
 		Version: 1
@@ -359,6 +362,7 @@ Version: 1
 		URL: https://test123.grafana.net
 		Token: testtoken
 		Index: {"label": "value"}
+		Processing region: us
 `) + "\n\n"
 
 func getGrafanaCloudLogsOK(i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
@@ -375,6 +379,7 @@ func getGrafanaCloudLogsOK(i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaC
 		URL:               fastly.ToPointer("https://test123.grafana.net"),
 		Token:             fastly.ToPointer("testtoken"),
 		Index:             fastly.ToPointer("{\"label\": \"value\"}"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -389,6 +394,7 @@ Index: {"label": "value"}
 Message type: classic
 Name: logs
 Placement: none
+Processing region: us
 Response condition: Prevent default logging
 Service ID: 123
 Token: testtoken

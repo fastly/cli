@@ -296,6 +296,7 @@ func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error
 			MessageType:       fastly.ToPointer("classic"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Placement:         fastly.ToPointer("none"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -307,6 +308,7 @@ func listSumologicsOK(i *fastly.ListSumologicsInput) ([]*fastly.Sumologic, error
 			MessageType:       fastly.ToPointer("classic"),
 			FormatVersion:     fastly.ToPointer(2),
 			Placement:         fastly.ToPointer("none"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -338,6 +340,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Placement: none
+		Processing region: us
 	Sumologic 2/2
 		Service ID: 123
 		Version: 1
@@ -348,6 +351,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Message type: classic
 		Placement: none
+		Processing region: us
 `) + "\n\n"
 
 func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
@@ -361,6 +365,7 @@ func getSumologicOK(i *fastly.GetSumologicInput) (*fastly.Sumologic, error) {
 		MessageType:       fastly.ToPointer("classic"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		Placement:         fastly.ToPointer("none"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -374,6 +379,7 @@ Format version: 2
 Message type: classic
 Name: logs
 Placement: none
+Processing region: us
 Response condition: Prevent default logging
 Service ID: 123
 URL: example.com

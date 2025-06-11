@@ -26,17 +26,18 @@ type UpdateCommand struct {
 	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
-	StreamName        argparser.OptionalString
 	AccessKey         argparser.OptionalString
-	SecretKey         argparser.OptionalString
-	IAMRole           argparser.OptionalString
-	Region            argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	ResponseCondition argparser.OptionalString
+	IAMRole           argparser.OptionalString
+	NewName           argparser.OptionalString
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
+	Region            argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	SecretKey         argparser.OptionalString
+	StreamName        argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -68,7 +69,8 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("iam-role", "The IAM role ARN for logging").Action(c.IAMRole.Set).StringVar(&c.IAMRole.Value)
 	c.CmdClause.Flag("new-name", "New name of the Kinesis logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Placement(c.CmdClause, &c.Placement)
-	c.CmdClause.Flag("region", "The AWS region where the Kinesis stream exists").Action(c.Region.Set).StringVar(&c.Region.Value)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Kinesis")
+	c.CmdClause.Flag("region", "The region where logs are received and stored by Kinesis").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your Kinesis account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -133,6 +135,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

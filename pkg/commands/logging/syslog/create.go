@@ -32,6 +32,7 @@ type CreateCommand struct {
 	FormatVersion     argparser.OptionalInt
 	MessageType       argparser.OptionalString
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
 	Port              argparser.OptionalInt
 	ResponseCondition argparser.OptionalString
 	TLSCACert         argparser.OptionalString
@@ -78,6 +79,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.MessageType(c.CmdClause, &c.MessageType)
 	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "syslog")
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
@@ -153,6 +155,11 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
 	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
+	}
+
 	return &input, nil
 }
 

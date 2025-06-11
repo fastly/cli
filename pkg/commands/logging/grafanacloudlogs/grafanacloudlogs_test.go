@@ -50,6 +50,7 @@ func TestCreateGrafanaCloudLogsInput(t *testing.T) {
 				User:              fastly.ToPointer("123456"),
 				Index:             fastly.ToPointer("{\"label\": \"value\"}"),
 				URL:               fastly.ToPointer("https://test123.grafana.net"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -132,6 +133,7 @@ func TestUpdateGrafanaCloudLogsInput(t *testing.T) {
 				ResponseCondition: fastly.ToPointer("new7"),
 				Placement:         fastly.ToPointer("new9"),
 				MessageType:       fastly.ToPointer("new10"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -260,6 +262,7 @@ func createCommandAll() *grafanacloudlogs.CreateCommand {
 		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "123456"},
 		Index:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "{\"label\": \"value\"}"},
 		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "https://test123.grafana.net"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -339,6 +342,7 @@ func updateCommandAll() *grafanacloudlogs.UpdateCommand {
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

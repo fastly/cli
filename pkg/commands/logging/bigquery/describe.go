@@ -101,6 +101,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Format":             fastly.ToValue(o.Format),
 		"Name":               fastly.ToValue(o.Name),
 		"Placement":          fastly.ToValue(o.Placement),
+		"Processing region":  fastly.ToValue(o.ProcessingRegion),
 		"Project ID":         fastly.ToValue(o.ProjectID),
 		"Response condition": fastly.ToValue(o.ResponseCondition),
 		"Secret key":         fastly.ToValue(o.SecretKey),

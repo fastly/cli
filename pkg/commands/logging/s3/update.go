@@ -26,29 +26,30 @@ type UpdateCommand struct {
 	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone                    argparser.OptionalAutoClone
-	NewName                      argparser.OptionalString
-	Address                      argparser.OptionalString
-	BucketName                   argparser.OptionalString
 	AccessKey                    argparser.OptionalString
-	SecretKey                    argparser.OptionalString
-	IAMRole                      argparser.OptionalString
+	Address                      argparser.OptionalString
+	AutoClone                    argparser.OptionalAutoClone
+	BucketName                   argparser.OptionalString
+	CompressionCodec             argparser.OptionalString
 	Domain                       argparser.OptionalString
-	Path                         argparser.OptionalString
-	Period                       argparser.OptionalInt
-	GzipLevel                    argparser.OptionalInt
 	FileMaxBytes                 argparser.OptionalInt
 	Format                       argparser.OptionalString
 	FormatVersion                argparser.OptionalInt
+	GzipLevel                    argparser.OptionalInt
+	IAMRole                      argparser.OptionalString
 	MessageType                  argparser.OptionalString
-	ResponseCondition            argparser.OptionalString
-	TimestampFormat              argparser.OptionalString
+	NewName                      argparser.OptionalString
+	Path                         argparser.OptionalString
+	Period                       argparser.OptionalInt
 	Placement                    argparser.OptionalString
+	ProcessingRegion             argparser.OptionalString
 	PublicKey                    argparser.OptionalString
 	Redundancy                   argparser.OptionalString
+	ResponseCondition            argparser.OptionalString
+	SecretKey                    argparser.OptionalString
 	ServerSideEncryption         argparser.OptionalString
 	ServerSideEncryptionKMSKeyID argparser.OptionalString
-	CompressionCodec             argparser.OptionalString
+	TimestampFormat              argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -88,6 +89,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "S3")
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	c.CmdClause.Flag("redundancy", "The S3 storage class. One of: standard, intelligent_tiering, standard_ia, onezone_ia, glacier, glacier_ir, deep_archive, or reduced_redundancy").Action(c.Redundancy.Set).EnumVar(&c.Redundancy.Value, string(fastly.S3RedundancyStandard), string(fastly.S3RedundancyIntelligentTiering), string(fastly.S3RedundancyStandardIA), string(fastly.S3RedundancyOneZoneIA), string(fastly.S3RedundancyGlacierFlexibleRetrieval), string(fastly.S3RedundancyGlacierInstantRetrieval), string(fastly.S3RedundancyGlacierDeepArchive), string(fastly.S3RedundancyReduced))
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -180,6 +182,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	if c.PublicKey.WasSet {

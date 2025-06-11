@@ -97,6 +97,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Message type":       fastly.ToValue(o.MessageType),
 		"Name":               fastly.ToValue(o.Name),
 		"Placement":          fastly.ToValue(o.Placement),
+		"Processing region":  fastly.ToValue(o.ProcessingRegion),
 		"Response condition": fastly.ToValue(o.ResponseCondition),
 		"Version":            fastly.ToValue(o.ServiceVersion),
 		"User":               fastly.ToValue(o.User),

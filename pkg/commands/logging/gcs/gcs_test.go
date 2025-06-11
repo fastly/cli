@@ -54,6 +54,7 @@ func TestCreateGCSInput(t *testing.T) {
 				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 				Placement:         fastly.ToPointer("none"),
 				CompressionCodec:  fastly.ToPointer("zstd"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -143,6 +144,7 @@ func TestUpdateGCSInput(t *testing.T) {
 				Placement:         fastly.ToPointer("new9"),
 				MessageType:       fastly.ToPointer("new10"),
 				CompressionCodec:  fastly.ToPointer("new11"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -274,6 +276,7 @@ func createCommandAll() *gcs.CreateCommand {
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -360,6 +363,7 @@ func updateCommandAll() *gcs.UpdateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

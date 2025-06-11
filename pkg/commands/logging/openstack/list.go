@@ -126,6 +126,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(openstack.Placement))
 		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(openstack.PublicKey))
 		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(openstack.CompressionCodec))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(openstack.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

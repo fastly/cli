@@ -376,6 +376,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
 			ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
 			CompressionCodec:             fastly.ToPointer("zstd"),
+			ProcessingRegion:             fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:                    fastly.ToPointer(i.ServiceID),
@@ -399,6 +400,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 			ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
 			FileMaxBytes:                 fastly.ToPointer(12345),
 			CompressionCodec:             fastly.ToPointer("zstd"),
+			ProcessingRegion:             fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -443,6 +445,7 @@ Version: 1
 		Server-side encryption KMS key ID: aws:kms
 		File max bytes: 0
 		Compression codec: zstd
+		Processing region: us
 	S3 2/2
 		Service ID: 123
 		Version: 1
@@ -465,6 +468,7 @@ Version: 1
 		Server-side encryption KMS key ID: aws:kms
 		File max bytes: 12345
 		Compression codec: zstd
+		Processing region: us
 `) + "\n\n"
 
 func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
@@ -489,6 +493,7 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 		ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
 		ServerSideEncryptionKMSKeyID: fastly.ToPointer("1234"),
 		CompressionCodec:             fastly.ToPointer("zstd"),
+		ProcessingRegion:             fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -509,6 +514,7 @@ Name: logs
 Path: logs/
 Period: 3600
 Placement: none
+Processing region: us
 Public key: `+pgpPublicKey()+`
 Redundancy: standard
 Response condition: Prevent default logging

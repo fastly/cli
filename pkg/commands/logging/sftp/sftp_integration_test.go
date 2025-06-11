@@ -320,6 +320,7 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -341,6 +342,7 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -383,6 +385,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Compression codec: zstd
+		Processing region: us
 	SFTP 2/2
 		Service ID: 123
 		Version: 1
@@ -404,6 +407,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Compression codec: zstd
+		Processing region: us
 `) + "\n\n"
 
 func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
@@ -428,6 +432,7 @@ func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -448,6 +453,7 @@ Path: /logs
 Period: 3600
 Placement: none
 Port: 514
+Processing region: us
 Public key: ` + pgpPublicKey() + `
 Response condition: Prevent default logging
 SSH known hosts: ` + knownHosts() + `

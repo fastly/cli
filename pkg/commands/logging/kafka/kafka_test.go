@@ -54,6 +54,7 @@ func TestCreateKafkaInput(t *testing.T) {
 				TLSHostname:       fastly.ToPointer("example.com"),
 				TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 				TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -149,6 +150,7 @@ func TestUpdateKafkaInput(t *testing.T) {
 				AuthMethod:        fastly.ToPointer("plain"),
 				User:              fastly.ToPointer("new13"),
 				Password:          fastly.ToPointer("new14"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -336,6 +338,7 @@ func createCommandAll() *kafka.CreateCommand {
 		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
 		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
 		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -473,6 +476,7 @@ func updateCommandAll() *kafka.UpdateCommand {
 		AuthMethod:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "plain"},
 		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
 		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

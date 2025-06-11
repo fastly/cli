@@ -335,6 +335,7 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			AuthMethod:        fastly.ToPointer("plain"),
 			User:              fastly.ToPointer("user"),
 			Password:          fastly.ToPointer("password"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -358,6 +359,7 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 			AuthMethod:        fastly.ToPointer("plain"),
 			User:              fastly.ToPointer("user"),
 			Password:          fastly.ToPointer("password"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -401,6 +403,7 @@ Version: 1
 		SASL authentication method: plain
 		SASL authentication username: user
 		SASL authentication password: password
+		Processing region: us
 	Kafka 2/2
 		Service ID: 123
 		Version: 1
@@ -423,6 +426,7 @@ Version: 1
 		SASL authentication method: plain
 		SASL authentication username: user
 		SASL authentication password: password
+		Processing region: us
   `) + "\n\n"
 
 func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
@@ -439,6 +443,7 @@ func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		Placement:         fastly.ToPointer("none"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSHostname:       fastly.ToPointer("127.0.0.1,127.0.0.2"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -459,6 +464,7 @@ Max batch size: 0
 Name: log
 Parse log key-values: false
 Placement: none
+Processing region: us
 Required acks: -1
 Response condition: Prevent default logging
 SASL authentication method: ` + `

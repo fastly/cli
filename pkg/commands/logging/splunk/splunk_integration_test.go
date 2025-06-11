@@ -300,6 +300,7 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 			TLSHostname:       fastly.ToPointer("example.com"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -315,6 +316,7 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 			TLSHostname:       fastly.ToPointer("example.com"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----qux"),
 			TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----qux"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -350,6 +352,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 	Splunk 2/2
 		Service ID: 123
 		Version: 1
@@ -364,6 +367,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 `) + "\n\n"
 
 func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
@@ -381,6 +385,7 @@ func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		Placement:         fastly.ToPointer("none"),
 		Token:             fastly.ToPointer("tkn"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -393,6 +398,7 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
 Placement: none
+Processing region: us
 Response condition: Prevent default logging
 Service ID: 123
 TLS CA certificate: -----BEGIN CERTIFICATE-----foo

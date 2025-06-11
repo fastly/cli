@@ -317,6 +317,7 @@ func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, erro
 			MessageType:       fastly.ToPointer("classic"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -336,6 +337,7 @@ func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, erro
 			MessageType:       fastly.ToPointer("classic"),
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -375,6 +377,7 @@ Version: 1
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Public key: `+pgpPublicKey()+`
+		Processing region: us
 	Cloudfiles 2/2
 		Service ID: 123
 		Version: 1
@@ -393,6 +396,7 @@ Version: 1
 		Message type: classic
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Public key: `+pgpPublicKey()+`
+		Processing region: us
 `) + "\n\n"
 
 func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
@@ -407,6 +411,7 @@ func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 		Region:            fastly.ToPointer("ORD"),
 		Placement:         fastly.ToPointer("none"),
 		Period:            fastly.ToPointer(3600),
+		ProcessingRegion:  fastly.ToPointer("us"),
 		GzipLevel:         fastly.ToPointer(9),
 		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 		FormatVersion:     fastly.ToPointer(2),
@@ -432,6 +437,7 @@ Name: logs
 Path: logs/
 Period: 3600
 Placement: none
+Processing region: us
 Public key: `+pgpPublicKey()+`
 Region: ORD
 Response condition: Prevent default logging

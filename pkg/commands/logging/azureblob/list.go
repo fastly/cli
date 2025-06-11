@@ -129,6 +129,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(azureblob.PublicKey))
 		fmt.Fprintf(out, "\t\tFile max bytes: %d\n", fastly.ToValue(azureblob.FileMaxBytes))
 		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(azureblob.CompressionCodec))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(azureblob.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

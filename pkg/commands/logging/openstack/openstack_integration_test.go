@@ -318,6 +318,7 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			Placement:         fastly.ToPointer("none"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 			CompressionCodec:  fastly.ToPointer("zstd"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -338,6 +339,7 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 			Placement:         fastly.ToPointer("none"),
 			PublicKey:         fastly.ToPointer(pgpPublicKey()),
 			CompressionCodec:  fastly.ToPointer("zstd"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -378,6 +380,7 @@ Version: 1
 		Placement: none
 		Public key: `+pgpPublicKey()+`
 		Compression codec: zstd
+		Processing region: us
 	Openstack 2/2
 		Service ID: 123
 		Version: 1
@@ -397,6 +400,7 @@ Version: 1
 		Placement: none
 		Public key: `+pgpPublicKey()+`
 		Compression codec: zstd
+		Processing region: us
 `) + "\n\n"
 
 func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
@@ -419,6 +423,7 @@ func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 		Placement:         fastly.ToPointer("none"),
 		PublicKey:         fastly.ToPointer(pgpPublicKey()),
 		CompressionCodec:  fastly.ToPointer("zstd"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -438,6 +443,7 @@ Name: logs
 Path: logs/
 Period: 3600
 Placement: none
+Processing region: us
 Public key: `+pgpPublicKey()+`
 Response condition: Prevent default logging
 Service ID: 123

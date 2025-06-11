@@ -325,6 +325,7 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			TLSHostname:       fastly.ToPointer("example.com"),
 			MessageType:       fastly.ToPointer("classic"),
 			FormatVersion:     fastly.ToPointer(2),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -347,6 +348,7 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			TLSHostname:       fastly.ToPointer("example.com"),
 			MessageType:       fastly.ToPointer("classic"),
 			FormatVersion:     fastly.ToPointer(2),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -389,6 +391,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 	HTTPS 2/2
 		Service ID: 123
 		Version: 1
@@ -410,6 +413,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 `) + "\n\n"
 
 func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
@@ -434,6 +438,7 @@ func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 		TLSHostname:       fastly.ToPointer("example.com"),
 		MessageType:       fastly.ToPointer("classic"),
 		FormatVersion:     fastly.ToPointer(2),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -452,6 +457,7 @@ Message type: classic
 Method: GET
 Name: log
 Placement: none
+Processing region: us
 Request max bytes: 2
 Request max entries: 2
 Response condition: Prevent default logging

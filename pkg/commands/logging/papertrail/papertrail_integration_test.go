@@ -296,6 +296,7 @@ func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, er
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Placement:         fastly.ToPointer("none"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -307,6 +308,7 @@ func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, er
 			FormatVersion:     fastly.ToPointer(2),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Placement:         fastly.ToPointer("none"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -338,6 +340,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 	Papertrail 2/2
 		Service ID: 123
 		Version: 1
@@ -348,6 +351,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 `) + "\n\n"
 
 func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
@@ -361,6 +365,7 @@ func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		Placement:         fastly.ToPointer("none"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -375,6 +380,7 @@ Format version: 2
 Name: logs
 Placement: none
 Port: 123
+Processing region: us
 Response condition: Prevent default logging
 Service ID: 123
 Version: 1

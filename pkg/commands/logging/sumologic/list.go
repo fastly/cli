@@ -117,6 +117,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(sumologic.ResponseCondition))
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(sumologic.MessageType))
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(sumologic.Placement))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(sumologic.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

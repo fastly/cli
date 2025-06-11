@@ -27,22 +27,23 @@ type UpdateCommand struct {
 
 	// Optional.
 	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
 	Index             argparser.OptionalString
-	URL               argparser.OptionalString
-	Pipeline          argparser.OptionalString
-	RequestMaxEntries argparser.OptionalInt
-	RequestMaxBytes   argparser.OptionalInt
-	User              argparser.OptionalString
+	NewName           argparser.OptionalString
 	Password          argparser.OptionalString
+	Pipeline          argparser.OptionalString
+	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
+	RequestMaxBytes   argparser.OptionalInt
+	RequestMaxEntries argparser.OptionalInt
+	ResponseCondition argparser.OptionalString
 	TLSCACert         argparser.OptionalString
 	TLSClientCert     argparser.OptionalString
 	TLSClientKey      argparser.OptionalString
 	TLSHostname       argparser.OptionalString
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	Placement         argparser.OptionalString
-	ResponseCondition argparser.OptionalString
+	URL               argparser.OptionalString
+	User              argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -74,6 +75,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("new-name", "New name of the Elasticsearch logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("pipeline", "The ID of the Elasticsearch ingest pipeline to apply pre-process transformations to before indexing. For example my_pipeline_id. Learn more about creating a pipeline in the Elasticsearch docs (https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)").Action(c.Password.Set).StringVar(&c.Pipeline.Value)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Elasticsearch")
 	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
 	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
@@ -167,6 +169,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

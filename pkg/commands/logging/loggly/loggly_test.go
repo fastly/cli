@@ -45,6 +45,7 @@ func TestCreateLogglyInput(t *testing.T) {
 				Token:             fastly.ToPointer("tkn"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				Placement:         fastly.ToPointer("none"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -126,6 +127,7 @@ func TestUpdateLogglyInput(t *testing.T) {
 				Token:             fastly.ToPointer("new3"),
 				ResponseCondition: fastly.ToPointer("new4"),
 				Placement:         fastly.ToPointer("new5"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -210,6 +212,7 @@ func createCommandOK() *loggly.CreateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -326,6 +329,7 @@ func updateCommandAll() *loggly.UpdateCommand {
 		Token:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new3"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

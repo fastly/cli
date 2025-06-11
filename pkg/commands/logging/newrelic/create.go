@@ -29,6 +29,7 @@ type CreateCommand struct {
 	key               argparser.OptionalString
 	name              argparser.OptionalString
 	placement         argparser.OptionalString
+	processingregion  argparser.OptionalString
 	region            argparser.OptionalString
 	responseCondition argparser.OptionalString
 }
@@ -60,7 +61,8 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.FormatVersion(c.CmdClause, &c.formatVersion)
 	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
-	c.CmdClause.Flag("region", "The region to which to stream logs").Action(c.region.Set).StringVar(&c.region.Value)
+	common.ProcessingRegion(c.CmdClause, &c.processingregion, "New Relic")
+	c.CmdClause.Flag("region", "The region where logs are received and stored by New Relic").Action(c.region.Set).StringVar(&c.region.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -142,6 +144,10 @@ func (c *CreateCommand) constructInput(serviceID string, serviceVersion int) *fa
 
 	if c.placement.WasSet {
 		input.Placement = &c.placement.Value
+	}
+
+	if c.processingregion.WasSet {
+		input.ProcessingRegion = &c.processingregion.Value
 	}
 
 	if c.region.WasSet {
