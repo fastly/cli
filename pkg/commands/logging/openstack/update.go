@@ -26,23 +26,24 @@ type UpdateCommand struct {
 	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
-	BucketName        argparser.OptionalString
 	AccessKey         argparser.OptionalString
-	User              argparser.OptionalString
-	URL               argparser.OptionalString
-	Path              argparser.OptionalString
-	Period            argparser.OptionalInt
-	GzipLevel         argparser.OptionalInt
+	AutoClone         argparser.OptionalAutoClone
+	BucketName        argparser.OptionalString
+	CompressionCodec  argparser.OptionalString
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	ResponseCondition argparser.OptionalString
+	GzipLevel         argparser.OptionalInt
 	MessageType       argparser.OptionalString
-	TimestampFormat   argparser.OptionalString
+	NewName           argparser.OptionalString
+	Path              argparser.OptionalString
+	Period            argparser.OptionalInt
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
 	PublicKey         argparser.OptionalString
-	CompressionCodec  argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	TimestampFormat   argparser.OptionalString
+	URL               argparser.OptionalString
+	User              argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -79,6 +80,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "OpenStack")
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -171,6 +173,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = &c.CompressionCodec.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

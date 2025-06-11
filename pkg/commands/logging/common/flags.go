@@ -51,6 +51,11 @@ func Placement(command *kingpin.CmdClause, c *argparser.OptionalString) {
 	command.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Set).StringVar(&c.Value)
 }
 
+// ProcessingRegion defines the processing-region flag.
+func ProcessingRegion(command *kingpin.CmdClause, c *argparser.OptionalString, endpoint string) {
+	command.Flag("processing-region", "The region where logs will be processed before streaming to "+endpoint+". One of 'none', 'eu', or 'us'. Defaults to 'none' for no specific region").Action(c.Set).StringVar(&c.Value)
+}
+
 // ResponseCondition defines the response-condition flag.
 func ResponseCondition(command *kingpin.CmdClause, c *argparser.OptionalString) {
 	command.Flag("response-condition", "The name of an existing condition in the configured endpoint, or leave blank to always execute").Action(c.Set).StringVar(&c.Value)

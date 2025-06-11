@@ -34,6 +34,7 @@ type CreateCommand struct {
 	FormatVersion     argparser.OptionalInt
 	MessageType       argparser.OptionalString
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	TimestampFormat   argparser.OptionalString
 }
@@ -77,6 +78,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.MessageType(c.CmdClause, &c.MessageType)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Grafana Cloud Logs")
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 
 	c.CmdClause.Flag("index", `The stream identifier`).Action(c.Index.Set).StringVar(&c.Index.Value)
@@ -120,6 +122,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value

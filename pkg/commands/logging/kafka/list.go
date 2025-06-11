@@ -129,6 +129,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tSASL authentication method: %s\n", fastly.ToValue(kafka.AuthMethod))
 		fmt.Fprintf(out, "\t\tSASL authentication username: %s\n", fastly.ToValue(kafka.User))
 		fmt.Fprintf(out, "\t\tSASL authentication password: %s\n", fastly.ToValue(kafka.Password))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(kafka.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

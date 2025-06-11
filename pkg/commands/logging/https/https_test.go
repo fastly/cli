@@ -58,6 +58,7 @@ func TestCreateHTTPSInput(t *testing.T) {
 				TLSHostname:       fastly.ToPointer("example.com"),
 				MessageType:       fastly.ToPointer("classic"),
 				FormatVersion:     fastly.ToPointer(2),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -137,6 +138,7 @@ func TestUpdateHTTPSInput(t *testing.T) {
 				TLSHostname:       fastly.ToPointer("new14"),
 				MessageType:       fastly.ToPointer("new15"),
 				FormatVersion:     fastly.ToPointer(3),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -285,6 +287,7 @@ func createCommandAll() *https.CreateCommand {
 		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
 		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
 		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -375,6 +378,7 @@ func updateCommandAll() *https.UpdateCommand {
 		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new15"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

@@ -37,6 +37,7 @@ type CreateCommand struct {
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
 	Region            argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	StreamName        argparser.OptionalString
@@ -72,9 +73,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	})
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	c.CmdClause.Flag("region", "The AWS region where the Kinesis stream exists").Action(c.Region.Set).StringVar(&c.Region.Value)
+	c.CmdClause.Flag("region", "The region where logs are received and stored by Kinesis").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Kinesis")
 	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Action(c.StreamName.Set).StringVar(&c.StreamName.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -152,6 +154,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

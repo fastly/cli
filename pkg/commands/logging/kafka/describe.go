@@ -100,6 +100,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Name":                         fastly.ToValue(o.Name),
 		"Parse log key-values":         fastly.ToValue(o.ParseLogKeyvals),
 		"Placement":                    fastly.ToValue(o.Placement),
+		"Processing region":            fastly.ToValue(o.ProcessingRegion),
 		"Required acks":                fastly.ToValue(o.RequiredACKs),
 		"Response condition":           fastly.ToValue(o.ResponseCondition),
 		"SASL authentication method":   fastly.ToValue(o.AuthMethod),

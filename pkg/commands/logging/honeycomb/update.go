@@ -27,13 +27,14 @@ type UpdateCommand struct {
 
 	// Optional.
 	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
+	Dataset           argparser.OptionalString
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	Dataset           argparser.OptionalString
-	Token             argparser.OptionalString
-	ResponseCondition argparser.OptionalString
+	NewName           argparser.OptionalString
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	Token             argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -65,6 +66,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("new-name", "New name of the Honeycomb logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Honeycomb")
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -115,6 +117,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

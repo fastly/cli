@@ -301,6 +301,7 @@ func listHerokusOK(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 			Token:             fastly.ToPointer("abc"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Placement:         fastly.ToPointer("none"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -312,6 +313,7 @@ func listHerokusOK(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			FormatVersion:     fastly.ToPointer(2),
 			Placement:         fastly.ToPointer("none"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -343,6 +345,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 	Heroku 2/2
 		Service ID: 123
 		Version: 1
@@ -353,6 +356,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 `) + "\n\n"
 
 func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
@@ -366,6 +370,7 @@ func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		Placement:         fastly.ToPointer("none"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -378,6 +383,7 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
 Placement: none
+Processing region: us
 Response condition: Prevent default logging
 Service ID: 123
 Token: abc

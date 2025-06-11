@@ -56,6 +56,7 @@ func TestCreateCloudfilesInput(t *testing.T) {
 				TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 				PublicKey:         fastly.ToPointer(pgpPublicKey()),
 				CompressionCodec:  fastly.ToPointer("zstd"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -147,6 +148,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				PublicKey:         fastly.ToPointer("new11"),
 				User:              fastly.ToPointer("new12"),
 				CompressionCodec:  fastly.ToPointer("new13"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -280,6 +282,7 @@ func createCommandAll() *cloudfiles.CreateCommand {
 		TimestampFormat:   argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "%Y-%m-%dT%H:%M:%S.000"},
 		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: pgpPublicKey()},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -368,6 +371,7 @@ func updateCommandAll() *cloudfiles.UpdateCommand {
 		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 		User:              argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

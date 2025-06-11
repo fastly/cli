@@ -27,13 +27,14 @@ type UpdateCommand struct {
 
 	// Optional.
 	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
-	URL               argparser.OptionalString
 	Format            argparser.OptionalString
-	ResponseCondition argparser.OptionalString
-	MessageType       argparser.OptionalString
 	FormatVersion     argparser.OptionalInt // Inconsistent with other logging endpoints, but remaining as int to avoid breaking changes in fastly/go-fastly.
+	MessageType       argparser.OptionalString
+	NewName           argparser.OptionalString
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	URL               argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -64,6 +65,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("new-name", "New name of the Sumologic logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Sumologic")
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -116,6 +118,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

@@ -32,6 +32,7 @@ type CreateCommand struct {
 	FormatVersion     argparser.OptionalInt
 	Placement         argparser.OptionalString
 	Port              argparser.OptionalInt
+	ProcessingRegion  argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 }
 
@@ -63,6 +64,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.Format(c.CmdClause, &c.Format)
 	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Papertrail")
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -110,6 +112,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

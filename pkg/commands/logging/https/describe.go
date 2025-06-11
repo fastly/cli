@@ -102,6 +102,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Method":                 fastly.ToValue(o.Method),
 		"Name":                   fastly.ToValue(o.Name),
 		"Placement":              fastly.ToValue(o.Placement),
+		"Processing region":      fastly.ToValue(o.ProcessingRegion),
 		"Request max bytes":      fastly.ToValue(o.RequestMaxBytes),
 		"Request max entries":    fastly.ToValue(o.RequestMaxEntries),
 		"Response condition":     fastly.ToValue(o.ResponseCondition),

@@ -53,6 +53,7 @@ func TestCreateBigQueryInput(t *testing.T) {
 				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				Placement:         fastly.ToPointer("none"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 				FormatVersion:     fastly.ToPointer(2),
 			},
 		},
@@ -138,6 +139,7 @@ func TestUpdateBigQueryInput(t *testing.T) {
 				Template:          fastly.ToPointer("new7"),
 				ResponseCondition: fastly.ToPointer("new8"),
 				Placement:         fastly.ToPointer("new9"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 				Format:            fastly.ToPointer("new10"),
 				FormatVersion:     fastly.ToPointer(3),
 			},
@@ -269,6 +271,7 @@ func createCommandAll() *bigquery.CreateCommand {
 		Template:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "template"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 	}
@@ -352,6 +355,7 @@ func updateCommandAll() *bigquery.UpdateCommand {
 		Template:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 	}

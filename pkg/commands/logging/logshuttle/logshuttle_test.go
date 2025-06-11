@@ -47,6 +47,7 @@ func TestCreateLogshuttleInput(t *testing.T) {
 				Token:             fastly.ToPointer("tkn"),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				Placement:         fastly.ToPointer("none"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -129,6 +130,7 @@ func TestUpdateLogshuttleInput(t *testing.T) {
 				URL:               fastly.ToPointer("new4"),
 				ResponseCondition: fastly.ToPointer("new5"),
 				Placement:         fastly.ToPointer("new6"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -253,6 +255,7 @@ func createCommandAll() *logshuttle.CreateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -332,6 +335,7 @@ func updateCommandAll() *logshuttle.UpdateCommand {
 		URL:               argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

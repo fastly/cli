@@ -26,23 +26,24 @@ type UpdateCommand struct {
 	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
-	User              argparser.OptionalString
 	AccessKey         argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone
 	BucketName        argparser.OptionalString
-	Path              argparser.OptionalString
-	Region            argparser.OptionalString
-	Placement         argparser.OptionalString
-	Period            argparser.OptionalInt
-	GzipLevel         argparser.OptionalInt
+	CompressionCodec  argparser.OptionalString
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	ResponseCondition argparser.OptionalString
+	GzipLevel         argparser.OptionalInt
 	MessageType       argparser.OptionalString
-	TimestampFormat   argparser.OptionalString
+	NewName           argparser.OptionalString
+	Path              argparser.OptionalString
+	Period            argparser.OptionalInt
+	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
 	PublicKey         argparser.OptionalString
-	CompressionCodec  argparser.OptionalString
+	Region            argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	TimestampFormat   argparser.OptionalString
+	User              argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -79,8 +80,9 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Cloud Files")
 	common.PublicKey(c.CmdClause, &c.PublicKey)
-	c.CmdClause.Flag("region", "The region to stream logs to. One of: DFW-Dallas, ORD-Chicago, IAD-Northern Virginia, LON-London, SYD-Sydney, HKG-Hong Kong").Action(c.Region.Set).StringVar(&c.Region.Value)
+	c.CmdClause.Flag("region", "The region where logs are received and stored by Cloud Files. One of: DFW-Dallas, ORD-Chicago, IAD-Northern Virginia, LON-London, SYD-Sydney, HKG-Hong Kong").Action(c.Region.Set).StringVar(&c.Region.Value)
 	c.CmdClause.Flag("user", "The username for your Cloudfile account").Action(c.User.Set).StringVar(&c.User.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -170,6 +172,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = &c.CompressionCodec.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

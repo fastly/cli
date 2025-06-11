@@ -57,6 +57,7 @@ func TestCreateOpenstackInput(t *testing.T) {
 				Placement:         fastly.ToPointer("none"),
 				PublicKey:         fastly.ToPointer(pgpPublicKey()),
 				CompressionCodec:  fastly.ToPointer("zstd"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -134,6 +135,7 @@ func TestUpdateOpenstackInput(t *testing.T) {
 				Placement:         fastly.ToPointer("new11"),
 				PublicKey:         fastly.ToPointer("new12"),
 				CompressionCodec:  fastly.ToPointer("new13"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -282,6 +284,7 @@ func createCommandAll() *openstack.CreateCommand {
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "classic"},
 		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: pgpPublicKey()},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -370,6 +373,7 @@ func updateCommandAll() *openstack.UpdateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

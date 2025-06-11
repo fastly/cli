@@ -313,6 +313,7 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -332,6 +333,7 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 			TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 			Placement:         fastly.ToPointer("none"),
 			CompressionCodec:  fastly.ToPointer("zstd"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -371,6 +373,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Compression codec: zstd
+		Processing region: us
 	FTP 2/2
 		Service ID: 123
 		Version: 1
@@ -389,6 +392,7 @@ Version: 1
 		Timestamp format: %Y-%m-%dT%H:%M:%S.000
 		Placement: none
 		Compression codec: zstd
+		Processing region: us
 `) + "\n\n"
 
 func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
@@ -410,6 +414,7 @@ func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 		Placement:         fastly.ToPointer("none"),
 		CompressionCodec:  fastly.ToPointer("zstd"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -429,6 +434,7 @@ Path: logs/
 Period: 3600
 Placement: none
 Port: 123
+Processing region: us
 Public key: `+pgpPublicKey()+`
 Response condition: Prevent default logging
 Service ID: 123

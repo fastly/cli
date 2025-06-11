@@ -308,6 +308,7 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			Placement:         fastly.ToPointer("none"),
 			FormatVersion:     fastly.ToPointer(2),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -322,6 +323,7 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 			FormatVersion:     fastly.ToPointer(2),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -356,6 +358,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 	Google Cloud Pub/Sub 2/2
 		Service ID: 123
 		Version: 1
@@ -369,6 +372,7 @@ Version: 1
 		Format version: 2
 		Response condition: Prevent default logging
 		Placement: none
+		Processing region: us
 `) + "\n\n"
 
 func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
@@ -385,6 +389,7 @@ func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 		FormatVersion:     fastly.ToPointer(2),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		Placement:         fastly.ToPointer("none"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -398,6 +403,7 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
 Placement: none
+Processing region: us
 Project ID: project
 Response condition: Prevent default logging
 Secret key: secret

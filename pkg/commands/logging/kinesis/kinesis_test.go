@@ -63,6 +63,7 @@ func TestCreateKinesisInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(2),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				Placement:         fastly.ToPointer("none"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -148,6 +149,7 @@ func TestUpdateKinesisInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new9"),
 				Placement:         fastly.ToPointer("new11"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -316,6 +318,7 @@ func createCommandAll() *kinesis.CreateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -398,6 +401,7 @@ func updateCommandAll() *kinesis.UpdateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

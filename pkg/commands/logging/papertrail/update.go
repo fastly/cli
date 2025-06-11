@@ -26,14 +26,15 @@ type UpdateCommand struct {
 	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
 	Address           argparser.OptionalString
-	Port              argparser.OptionalInt
-	FormatVersion     argparser.OptionalInt
+	AutoClone         argparser.OptionalAutoClone
 	Format            argparser.OptionalString
-	ResponseCondition argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	NewName           argparser.OptionalString
 	Placement         argparser.OptionalString
+	Port              argparser.OptionalInt
+	ProcessingRegion  argparser.OptionalString
+	ResponseCondition argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -65,6 +66,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("new-name", "New name of the Papertrail logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Papertrail")
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -120,6 +122,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

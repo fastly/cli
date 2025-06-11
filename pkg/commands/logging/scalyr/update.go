@@ -27,14 +27,15 @@ type UpdateCommand struct {
 
 	// Optional.
 	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	Token             argparser.OptionalString
+	NewName           argparser.OptionalString
+	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
+	ProjectID         argparser.OptionalString
 	Region            argparser.OptionalString
 	ResponseCondition argparser.OptionalString
-	Placement         argparser.OptionalString
-	ProjectID         argparser.OptionalString
+	Token             argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -65,8 +66,9 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("new-name", "New name of the Scalyr logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Scalyr")
 	c.CmdClause.Flag("project-id", "The name of the logfile field sent to Scalyr").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
-	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
+	c.CmdClause.Flag("region", "The region where logs are received and stored by Scalyr. Either US or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -110,6 +112,9 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 	if c.ProjectID.WasSet {
 		input.ProjectID = &c.ProjectID.Value

@@ -414,6 +414,7 @@ func getDigitalOceanOK(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, er
 		TimestampFormat:   fastly.ToPointer("%Y-%m-%dT%H:%M:%S.000"),
 		Placement:         fastly.ToPointer("none"),
 		PublicKey:         fastly.ToPointer(pgpPublicKey()),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -433,6 +434,7 @@ Name: logs
 Path: logs/
 Period: 3600
 Placement: none
+Processing region: us
 Public key: `+pgpPublicKey()+`
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA

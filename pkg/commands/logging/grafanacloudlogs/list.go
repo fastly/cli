@@ -120,6 +120,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(grafanacloudlogs.URL))
 		fmt.Fprintf(out, "\t\tToken: %s\n", fastly.ToValue(grafanacloudlogs.Token))
 		fmt.Fprintf(out, "\t\tIndex: %s\n", fastly.ToValue(grafanacloudlogs.Index))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(grafanacloudlogs.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

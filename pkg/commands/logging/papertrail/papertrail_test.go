@@ -46,6 +46,7 @@ func TestCreatePapertrailInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(2),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				Placement:         fastly.ToPointer("none"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -128,6 +129,7 @@ func TestUpdatePapertrailInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new4"),
 				Placement:         fastly.ToPointer("new5"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -251,6 +253,7 @@ func createCommandAll() *papertrail.CreateCommand {
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		Port:              argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 22},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -330,6 +333,7 @@ func updateCommandAll() *papertrail.UpdateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new4"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

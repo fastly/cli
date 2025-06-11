@@ -333,6 +333,7 @@ func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Placement:         fastly.ToPointer("none"),
 			ProjectID:         fastly.ToPointer("example-project"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -345,6 +346,7 @@ func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
 			Placement:         fastly.ToPointer("none"),
 			ProjectID:         fastly.ToPointer("example-project"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -377,6 +379,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Placement: none
 		Project ID: example-project
+		Processing region: us
 	Scalyr 2/2
 		Service ID: 123
 		Version: 1
@@ -388,6 +391,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Placement: none
 		Project ID: example-project
+		Processing region: us
 `) + "\n\n"
 
 func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
@@ -402,6 +406,7 @@ func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
 		Placement:         fastly.ToPointer("none"),
 		ProjectID:         fastly.ToPointer("example-project"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -414,6 +419,7 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 2
 Name: logs
 Placement: none
+Processing region: us
 Project ID: example-project
 Region: US
 Response condition: Prevent default logging

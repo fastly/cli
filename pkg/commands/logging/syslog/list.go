@@ -126,6 +126,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(syslog.MessageType))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(syslog.ResponseCondition))
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(syslog.Placement))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(syslog.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

@@ -51,6 +51,7 @@ func TestCreateGooglePubSubInput(t *testing.T) {
 				Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				Placement:         fastly.ToPointer("none"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -121,6 +122,7 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 				Format:            fastly.ToPointer("new7"),
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new8"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -263,6 +265,7 @@ func createCommandAll() *googlepubsub.CreateCommand {
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -344,6 +347,7 @@ func updateCommandAll() *googlepubsub.UpdateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

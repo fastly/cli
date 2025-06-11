@@ -128,6 +128,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tMessage type: %s\n", fastly.ToValue(cloudfile.MessageType))
 		fmt.Fprintf(out, "\t\tTimestamp format: %s\n", fastly.ToValue(cloudfile.TimestampFormat))
 		fmt.Fprintf(out, "\t\tPublic key: %s\n", fastly.ToValue(cloudfile.PublicKey))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(cloudfile.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

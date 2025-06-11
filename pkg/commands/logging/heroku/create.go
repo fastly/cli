@@ -30,6 +30,7 @@ type CreateCommand struct {
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
 	ResponseCondition argparser.OptionalString
 	Token             argparser.OptionalString
 	URL               argparser.OptionalString
@@ -62,6 +63,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Heroku")
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -109,6 +111,10 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

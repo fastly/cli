@@ -72,6 +72,7 @@ func TestCreateS3Input(t *testing.T) {
 				ServerSideEncryptionKMSKeyID: fastly.ToPointer("kmskey"),
 				ServerSideEncryption:         &sse,
 				CompressionCodec:             fastly.ToPointer("zstd"),
+				ProcessingRegion:             fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -167,6 +168,7 @@ func TestUpdateS3Input(t *testing.T) {
 				ServerSideEncryptionKMSKeyID: fastly.ToPointer("new12"),
 				PublicKey:                    fastly.ToPointer("new13"),
 				CompressionCodec:             fastly.ToPointer("new14"),
+				ProcessingRegion:             fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -342,6 +344,7 @@ func createCommandAll() *s3.CreateCommand {
 		ServerSideEncryption:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: string(fastly.S3ServerSideEncryptionAES)},
 		ServerSideEncryptionKMSKeyID: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "kmskey"},
 		CompressionCodec:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
+		ProcessingRegion:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -434,6 +437,7 @@ func updateCommandAll() *s3.UpdateCommand {
 		ServerSideEncryptionKMSKeyID: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 		PublicKey:                    argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
 		CompressionCodec:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
+		ProcessingRegion:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

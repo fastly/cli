@@ -300,6 +300,7 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 			Template:          fastly.ToPointer("%Y%m%d"),
 			Placement:         fastly.ToPointer("none"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -315,6 +316,7 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 			Template:          fastly.ToPointer("%Y%m%d"),
 			Placement:         fastly.ToPointer("none"),
 			ResponseCondition: fastly.ToPointer("Prevent default logging"),
+			ProcessingRegion:  fastly.ToPointer("us"),
 		},
 	}, nil
 }
@@ -351,6 +353,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Placement: none
 		Format version: 0
+		Processing region: us
 	BigQuery 2/2
 		Service ID: 123
 		Version: 1
@@ -366,6 +369,7 @@ Version: 1
 		Response condition: Prevent default logging
 		Placement: none
 		Format version: 0
+		Processing region: us
 `) + "\n\n"
 
 func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
@@ -383,6 +387,7 @@ func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 		Template:          fastly.ToPointer("%Y%m%d"),
 		Placement:         fastly.ToPointer("none"),
 		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		ProcessingRegion:  fastly.ToPointer("us"),
 	}, nil
 }
 
@@ -397,6 +402,7 @@ Format: %h %l %u %t "%r" %>s %b
 Format version: 0
 Name: logs
 Placement: none
+Processing region: us
 Project ID: my-project
 Response condition: Prevent default logging
 Secret key: -----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA

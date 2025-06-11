@@ -26,25 +26,26 @@ type UpdateCommand struct {
 	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
 	Address           argparser.OptionalString
-	Port              argparser.OptionalInt
-	PublicKey         argparser.OptionalString
-	SecretKey         argparser.OptionalString
-	SSHKnownHosts     argparser.OptionalString
-	User              argparser.OptionalString
+	AutoClone         argparser.OptionalAutoClone
+	CompressionCodec  argparser.OptionalString
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	GzipLevel         argparser.OptionalInt
+	MessageType       argparser.OptionalString
+	NewName           argparser.OptionalString
 	Password          argparser.OptionalString
 	Path              argparser.OptionalString
 	Period            argparser.OptionalInt
-	FormatVersion     argparser.OptionalInt
-	GzipLevel         argparser.OptionalInt
-	Format            argparser.OptionalString
-	MessageType       argparser.OptionalString
-	ResponseCondition argparser.OptionalString
-	TimestampFormat   argparser.OptionalString
 	Placement         argparser.OptionalString
-	CompressionCodec  argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
+	Port              argparser.OptionalInt
+	PublicKey         argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	SSHKnownHosts     argparser.OptionalString
+	SecretKey         argparser.OptionalString
+	TimestampFormat   argparser.OptionalString
+	User              argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -82,6 +83,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.Period(c.CmdClause, &c.Period)
 	common.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "SFTP")
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "The SSH private key for the server. If both password and secret_key are passed, secret_key will be used in preference").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
@@ -181,6 +183,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = &c.CompressionCodec.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

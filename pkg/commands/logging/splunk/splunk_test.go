@@ -50,6 +50,7 @@ func TestCreateSplunkInput(t *testing.T) {
 				TLSHostname:       fastly.ToPointer("example.com"),
 				TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
 				TLSClientKey:      fastly.ToPointer("-----BEGIN PRIVATE KEY-----bar"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -136,6 +137,7 @@ func TestUpdateSplunkInput(t *testing.T) {
 				TLSHostname:       fastly.ToPointer("new8"),
 				TLSClientCert:     fastly.ToPointer("new9"),
 				TLSClientKey:      fastly.ToPointer("new10"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -264,6 +266,7 @@ func createCommandAll() *splunk.CreateCommand {
 		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
 		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
 		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -347,6 +350,7 @@ func updateCommandAll() *splunk.UpdateCommand {
 		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
 		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 

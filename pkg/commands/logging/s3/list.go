@@ -134,6 +134,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tServer-side encryption KMS key ID: %s\n", fastly.ToValue(s3.ServerSideEncryption))
 		fmt.Fprintf(out, "\t\tFile max bytes: %d\n", fastly.ToValue(s3.FileMaxBytes))
 		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(s3.CompressionCodec))
+		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(s3.ProcessingRegion))
 	}
 	fmt.Fprintln(out)
 

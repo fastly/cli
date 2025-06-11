@@ -26,23 +26,24 @@ type UpdateCommand struct {
 	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
-	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
-	BucketName        argparser.OptionalString
-	Domain            argparser.OptionalString
 	AccessKey         argparser.OptionalString
-	SecretKey         argparser.OptionalString
-	Path              argparser.OptionalString
-	Period            argparser.OptionalInt
-	GzipLevel         argparser.OptionalInt
+	AutoClone         argparser.OptionalAutoClone
+	BucketName        argparser.OptionalString
+	CompressionCodec  argparser.OptionalString
+	Domain            argparser.OptionalString
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	ResponseCondition argparser.OptionalString
+	GzipLevel         argparser.OptionalInt
 	MessageType       argparser.OptionalString
-	TimestampFormat   argparser.OptionalString
+	NewName           argparser.OptionalString
+	Path              argparser.OptionalString
+	Period            argparser.OptionalInt
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
 	PublicKey         argparser.OptionalString
-	CompressionCodec  argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	SecretKey         argparser.OptionalString
+	TimestampFormat   argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -80,6 +81,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.Path(c.CmdClause, &c.Path)
 	common.Period(c.CmdClause, &c.Period)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "DigitalOcean Spaces")
 	common.PublicKey(c.CmdClause, &c.PublicKey)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your DigitalOcean Spaces account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
@@ -170,6 +172,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.CompressionCodec.WasSet {
 		input.CompressionCodec = &c.CompressionCodec.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

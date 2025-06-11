@@ -27,28 +27,29 @@ type UpdateCommand struct {
 	ServiceVersion argparser.OptionalServiceVersion
 
 	// Optional.
+	AuthMethod        argparser.OptionalString
 	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
-	Index             argparser.OptionalString
-	Topic             argparser.OptionalString
 	Brokers           argparser.OptionalString
-	UseTLS            argparser.OptionalBool
 	CompressionCodec  argparser.OptionalString
+	Format            argparser.OptionalString
+	FormatVersion     argparser.OptionalInt
+	Index             argparser.OptionalString
+	NewName           argparser.OptionalString
+	ParseLogKeyvals   argparser.OptionalBool
+	Password          argparser.OptionalString
+	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
+	RequestMaxBytes   argparser.OptionalInt
 	RequiredACKs      argparser.OptionalString
+	ResponseCondition argparser.OptionalString
 	TLSCACert         argparser.OptionalString
 	TLSClientCert     argparser.OptionalString
 	TLSClientKey      argparser.OptionalString
 	TLSHostname       argparser.OptionalString
-	Format            argparser.OptionalString
-	FormatVersion     argparser.OptionalInt
-	Placement         argparser.OptionalString
-	ResponseCondition argparser.OptionalString
-	ParseLogKeyvals   argparser.OptionalBool
-	RequestMaxBytes   argparser.OptionalInt
+	Topic             argparser.OptionalString
 	UseSASL           argparser.OptionalBool
-	AuthMethod        argparser.OptionalString
+	UseTLS            argparser.OptionalBool
 	User              argparser.OptionalString
-	Password          argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -84,6 +85,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("parse-log-keyvals", "Parse key-value pairs within the log format").Action(c.ParseLogKeyvals.Set).NegatableBoolVar(&c.ParseLogKeyvals.Value)
 	c.CmdClause.Flag("password", "SASL authentication password. Required if --auth-method is specified").Action(c.Password.Set).StringVar(&c.Password.Value)
 	common.Placement(c.CmdClause, &c.Placement)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Kafka")
 	c.CmdClause.Flag("required-acks", "The Number of acknowledgements a leader must receive before a write is considered successful. One of: 1 (default) One server needs to respond. 0	No servers need to respond. -1	Wait for all in-sync replicas to respond").Action(c.RequiredACKs.Set).StringVar(&c.RequiredACKs.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -205,6 +207,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Password.WasSet {
 		input.Password = &c.Password.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

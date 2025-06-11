@@ -99,6 +99,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		"Password":               fastly.ToValue(o.Password),
 		"Pipeline":               fastly.ToValue(o.Pipeline),
 		"Placement":              fastly.ToValue(o.Placement),
+		"Processing region":      fastly.ToValue(o.ProcessingRegion),
 		"Response condition":     fastly.ToValue(o.ResponseCondition),
 		"TLS CA certificate":     fastly.ToValue(o.TLSCACert),
 		"TLS client certificate": fastly.ToValue(o.TLSClientCert),

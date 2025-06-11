@@ -27,13 +27,14 @@ type UpdateCommand struct {
 
 	// Optional.
 	AutoClone         argparser.OptionalAutoClone
-	NewName           argparser.OptionalString
-	Token             argparser.OptionalString
-	Region            argparser.OptionalString
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
-	ResponseCondition argparser.OptionalString
+	NewName           argparser.OptionalString
 	Placement         argparser.OptionalString
+	ProcessingRegion  argparser.OptionalString
+	Region            argparser.OptionalString
+	ResponseCondition argparser.OptionalString
+	Token             argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -64,7 +65,8 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("new-name", "New name of the Datadog logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	common.Placement(c.CmdClause, &c.Placement)
-	c.CmdClause.Flag("region", "The region that log data will be sent to. One of US, US3, US5, or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
+	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Datadog")
+	c.CmdClause.Flag("region", "The region where logs are received and stored by Datadog. One of US, US3, US5, or EU. Defaults to US if undefined").Action(c.Region.Set).StringVar(&c.Region.Value)
 	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -115,6 +117,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
+	}
+
+	if c.ProcessingRegion.WasSet {
+		input.ProcessingRegion = &c.ProcessingRegion.Value
 	}
 
 	return &input, nil

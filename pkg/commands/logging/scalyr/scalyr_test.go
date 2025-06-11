@@ -47,6 +47,7 @@ func TestCreateScalyrInput(t *testing.T) {
 				ResponseCondition: fastly.ToPointer("Prevent default logging"),
 				Placement:         fastly.ToPointer("none"),
 				ProjectID:         fastly.ToPointer("example-project"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -130,6 +131,7 @@ func TestUpdateScalyrInput(t *testing.T) {
 				Placement:         fastly.ToPointer("new5"),
 				Region:            fastly.ToPointer("new6"),
 				ProjectID:         fastly.ToPointer("new7"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
 		{
@@ -254,6 +256,7 @@ func createCommandAll() *scalyr.CreateCommand {
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example-project"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
@@ -334,6 +337,7 @@ func updateCommandAll() *scalyr.UpdateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
 		Region:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
+		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
 }
 
