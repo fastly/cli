@@ -8,8 +8,11 @@ import (
 )
 
 const (
-	maxKeyLen   = 256
-	maxValueLen = 8000
+	maxKeyLen = 256
+	// maxValueLen is the maximum length of Config Store entry's value. It's set to 64k,
+	// even though customers may have a smaller limit. The API will reject requests if the
+	// value is larger than the customer's limit.
+	maxValueLen = 2 << 15
 )
 
 var errNoSTDINData = fsterr.RemediationError{

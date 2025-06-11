@@ -198,7 +198,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.InvokedFromProfileCreate || c.InvokedFromProfileUpdate || c.InvokedFromProfileSwitch {
 		textFn = text.Info
 	}
-	textFn(out, "Session token (persisted to your local configuration): %s", ar.SessionToken)
+	textFn(out, "Session token has been stored, use 'fastly profile token %s' to display it.", profileName)
 	return nil
 }
 
