@@ -7,7 +7,7 @@
 ### Enhancements:
 
 ### Bug fixes:
-- fix(sso): Ensure that OPTIONS requests sent by browsers do not break SSO authentication. ([#14XX](https://github.com/fastly/cli/pull/14XX))
+- fix(sso): Ensure that OPTIONS requests sent by browsers do not break SSO authentication. ([#1496](https://github.com/fastly/cli/pull/1496))
 
 ### Dependencies:
 
