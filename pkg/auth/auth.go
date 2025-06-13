@@ -28,8 +28,11 @@ const Remediation = "Please re-run the command. If the problem persists, please 
 // ClientID is the auth provider's Client ID.
 const ClientID = "fastly-cli"
 
-// RedirectURL is the endpoint the auth provider will pass an authorization code to.
-const RedirectURL = "http://localhost:8080/callback"
+// redirectPath is the path in the internal webserver which will receive the authorization code.
+const redirectPath = "/callback"
+
+// redirectURL is the endpoint the auth provider will pass an authorization code to.
+const redirectURL = "http://localhost:8080" + redirectPath
 
 // OIDCMetadata is OpenID Connect's metadata discovery mechanism.
 // https://swagger.io/docs/specification/authentication/openid-connect-discovery/
@@ -110,7 +113,7 @@ func (s Server) AuthURL() (string, error) {
 	params.Add("client_id", ClientID)
 	params.Add("code_challenge", challenge)
 	params.Add("code_challenge_method", "S256")
-	params.Add("redirect_uri", RedirectURL)
+	params.Add("redirect_uri", redirectURL)
 	for _, p := range s.Params {
 		params.Add(p.Field, p.Value)
 	}
@@ -135,7 +138,7 @@ func (s Server) GetJWT(authorizationCode string) (JWT, error) {
 		ClientID,
 		s.Verifier.Verifier(),
 		authorizationCode,
-		"http://localhost:8080/callback", // NOTE: not redirected to, just a security check.
+		redirectURL, // NOTE: not redirected to, just a security check.
 	)
 
 	req, err := http.NewRequest(http.MethodPost, s.WellKnownEndpoints.Token, strings.NewReader(payload))
@@ -204,6 +207,23 @@ func (s *Server) Start() error {
 // HandleCallback processes the callback from the authentication service.
 func (s *Server) HandleCallback() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != redirectPath {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		switch r.Method {
+		case "OPTIONS":
+			w.Header().Add("Access-Control-Allow-Origin", "accounts.fastly.com")
+			w.WriteHeader(http.StatusOK)
+			return
+		case "GET":
+			// handled below
+		default:
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
 		authorizationCode := r.URL.Query().Get("code")
 		if authorizationCode == "" {
 			fmt.Fprint(w, "ERROR: no authorization code returned\n")
