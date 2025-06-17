@@ -213,11 +213,11 @@ func (s *Server) HandleCallback() http.HandlerFunc {
 		}
 
 		switch r.Method {
-		case "OPTIONS":
+		case http.MethodOptions:
 			w.Header().Add("Access-Control-Allow-Origin", "accounts.fastly.com")
 			w.WriteHeader(http.StatusOK)
 			return
-		case "GET":
+		case http.MethodGet:
 			// handled below
 		default:
 			w.WriteHeader(http.StatusBadRequest)
