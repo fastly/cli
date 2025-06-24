@@ -7,6 +7,7 @@
 ### Enhancements:
 
 ### Bug fixes:
+- fix(sso): Ensure that OPTIONS requests sent by browsers do not break SSO authentication. ([#1496](https://github.com/fastly/cli/pull/1496))
 
 ### Dependencies:
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.3.0 to 10.4.0 ([#1499](https://github.com/fastly/cli/pull/1499))
@@ -14,7 +15,7 @@
 ## [v11.3.0](https://github.com/fastly/cli/releases/tag/v11.3.0) (2025-06-11)
 
 ### Enhancements:
-- feat(config-store): Allow for dynamic limits on Config Store entry lengths [#1485](https://github.com/fastly/cli/pull/1485)
+- feat(config-store): Allow for dynamic limits on Config Store entry lengths ([#1485](https://github.com/fastly/cli/pull/1485))
 - feat(backend): Add support for 'prefer IPv6' attribute. ([#1487](https://github.com/fastly/cli/pull/1487))
 - feat(tools/domain): add `suggest` and `status` domain tools endpoints ([#1482](https://github.com/fastly/cli/pull/1482))
 - feat(logging): Add support for 'processing region' attribute. ([#1491](https://github.com/fastly/cli/pull/1491))
