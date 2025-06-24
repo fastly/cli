@@ -10,6 +10,7 @@
 - fix(sso): Ensure that OPTIONS requests sent by browsers do not break SSO authentication. ([#1496](https://github.com/fastly/cli/pull/1496))
 
 ### Dependencies:
+- build(deps): `github.com/fastly/go-fastly/v10` from 10.3.0 to 10.4.0 ([#1499](https://github.com/fastly/cli/pull/1499))
 
 ## [v11.3.0](https://github.com/fastly/cli/releases/tag/v11.3.0) (2025-06-11)
 
