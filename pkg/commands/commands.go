@@ -500,6 +500,7 @@ func Define( // nolint:revive // function-length
 	userList := user.NewListCommand(userCmdRoot.CmdClause, data)
 	userUpdate := user.NewUpdateCommand(userCmdRoot.CmdClause, data)
 	vclCmdRoot := vcl.NewRootCommand(app, data)
+	vclDescribe := vcl.NewDescribeCommand(vclCmdRoot.CmdClause, data)
 	vclConditionCmdRoot := condition.NewRootCommand(vclCmdRoot.CmdClause, data)
 	vclConditionCreate := condition.NewCreateCommand(vclConditionCmdRoot.CmdClause, data)
 	vclConditionDelete := condition.NewDeleteCommand(vclConditionCmdRoot.CmdClause, data)
@@ -913,6 +914,7 @@ func Define( // nolint:revive // function-length
 		userList,
 		userUpdate,
 		vclCmdRoot,
+		vclDescribe,
 		vclConditionCmdRoot,
 		vclConditionCreate,
 		vclConditionDelete,
