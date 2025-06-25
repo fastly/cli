@@ -27,7 +27,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v10 v10.4.0
+	github.com/fastly/go-fastly/v10 v10.5.0
 	github.com/hashicorp/cap v0.9.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/otiai10/copy v1.14.1
@@ -50,7 +50,7 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/coreos/go-oidc/v3 v3.14.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
