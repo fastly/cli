@@ -8,22 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
-	"github.com/fastly/cli/pkg/useragent"
 )
-
-func init() {
-	// Override the go-fastly UserAgent value by prepending the CLI version.
-	//
-	// Results in a header similar too:
-	// User-Agent: FastlyCLI/0.1.0, FastlyGo/1.5.0 (1.13.0)
-	fastly.UserAgent = fmt.Sprintf("%s, %s", useragent.Name, fastly.UserAgent)
-}
 
 // RootCommand is the parent command for all subcommands in this package.
 // It should be installed under the primary root command.

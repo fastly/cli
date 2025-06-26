@@ -458,9 +458,12 @@ type Environment struct {
 	// UseSSO indicates if user wants to use SSO/OAuth token flow.
 	// 1: enabled, 0: disabled.
 	UseSSO string
-	// WasmMetadataDisable is the env var we look in to disable all data
-	// collection related to a Wasm binary.
-	// Set to "true" to disable all forms of data collection.
+	// UserAgentExtension is the string we'll add to the UserAgent
+	// we send in API requests.
+	UserAgentExtension string
+	// WasmMetadataDisable is the env var we look in to disable
+	// all data collection related to a Wasm binary.  Set to
+	// "true" to disable all forms of data collection.
 	WasmMetadataDisable string
 }
 
@@ -471,6 +474,7 @@ func (e *Environment) Read(state map[string]string) {
 	e.APIToken = state[env.APIToken]
 	e.DebugMode = state[env.DebugMode]
 	e.UseSSO = state[env.UseSSO]
+	e.UserAgentExtension = state[env.UserAgentExtension]
 	e.WasmMetadataDisable = state[env.WasmMetadataDisable]
 }
 
