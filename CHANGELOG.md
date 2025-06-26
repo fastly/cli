@@ -6,6 +6,8 @@
 
 ### Enhancements:
 
+- feat(env): Add environment variable for extending the UserAgent string. ([#1502](https://github.com/fastly/cli/pull/1502))
+
 ### Bug fixes:
 - fix(sso): Ensure that OPTIONS requests sent by browsers do not break SSO authentication. ([#1496](https://github.com/fastly/cli/pull/1496))
 
