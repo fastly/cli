@@ -38,6 +38,7 @@ import (
 	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/sync"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/cli/pkg/useragent"
 )
 
 // Run kick starts the CLI application.
@@ -151,6 +152,18 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 			Nested:     true,
 		}),
 	}
+
+	// If a UserAgent extension has been set in the environment,
+	// apply it
+	if e.UserAgentExtension != "" {
+		useragent.SetExtension(e.UserAgentExtension)
+	}
+	// Override the go-fastly UserAgent value by prepending the CLI version.
+	//
+	// Results in a header similar to:
+	// User-Agent: FastlyCLI/v11.3.0, FastlyGo/10.5.0 (+github.com/fastly/go-fastly; go1.24.3)
+	// (with any extension supplied above between the FastlyCLI and FastlyGo values)
+	fastly.UserAgent = fmt.Sprintf("%s, %s", useragent.Name, fastly.UserAgent)
 
 	return &global.Data{
 		APIClientFactory: factory,
