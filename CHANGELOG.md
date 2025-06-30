@@ -16,6 +16,7 @@
 - build(deps): `stefanzweifel/git-auto-commit-action` from 5 to 6 ([#1497](https://github.com/fastly/cli/pull/1497))
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.4.0 to 10.5.0 ([#1501](https://github.com/fastly/cli/pull/1501))
 - build(deps): `github.com/andybalholm/brotli` from 1.1.1 to 1.2.0 ([#1501](https://github.com/fastly/cli/pull/1501))
+- build(deps): `github.com/Masterminds/semver/v3` from 3.3.1 to 3.4.0 ([#1503](https://github.com/fastly/cli/pull/1503))
 
 ## [v11.3.0](https://github.com/fastly/cli/releases/tag/v11.3.0) (2025-06-11)
 
