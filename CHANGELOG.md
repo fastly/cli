@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(vcl): Allow showing of generated VCL for a service version [#1498](https://github.com/fastly/cli/pull/1498)
 
 - feat(env): Add environment variable for extending the UserAgent string. ([#1502](https://github.com/fastly/cli/pull/1502))
 
