@@ -6,6 +6,14 @@
 
 ### Enhancements:
 
+### Bug fixes:
+
+### Dependencies:
+
+## [v11.4.0](https://github.com/fastly/cli/releases/tag/v11.4.0) (2025-07-09)
+
+### Enhancements:
+
 - feat(env): Add environment variable for extending the UserAgent string. ([#1502](https://github.com/fastly/cli/pull/1502))
 
 ### Bug fixes:
