@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(vcl): Allow showing of generated VCL for a service version [#1498](https://github.com/fastly/cli/pull/1498)
 
 ### Bug fixes:
 
