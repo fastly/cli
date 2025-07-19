@@ -1,17 +1,21 @@
 package compute
 
 import (
+	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"net"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -20,6 +24,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
+	"github.com/mitchellh/go-ps"
 	ignore "github.com/sabhiram/go-gitignore"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -61,16 +66,19 @@ type ServeCommand struct {
 	ViceroyVersioner        github.AssetVersioner
 
 	// Serve private fields
-	addr            string
-	debug           bool
-	env             argparser.OptionalString
-	file            argparser.OptionalString
-	profileGuest    bool
-	profileGuestDir argparser.OptionalString
-	projectDir      string
-	skipBuild       bool
-	watch           bool
-	watchDir        argparser.OptionalString
+	addr                 string
+	debug                bool
+	enablePushpin        bool
+	pushpinRunnerBinPath string
+	pushpinProxyPort     string
+	env                  argparser.OptionalString
+	file                 argparser.OptionalString
+	profileGuest         bool
+	profileGuestDir      argparser.OptionalString
+	projectDir           string
+	skipBuild            bool
+	watch                bool
+	watchDir             argparser.OptionalString
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -92,6 +100,9 @@ func NewServeCommand(parent argparser.Registerer, g *global.Data, build *BuildCo
 	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
 	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
+	c.CmdClause.Flag("experimental-enable-pushpin", "Enable experimental Pushpin support for local testing of Fanout and WebSockets").BoolVar(&c.enablePushpin)
+	c.CmdClause.Flag("pushpin-path", "The path to a user installed version of the Pushpin runner binary").StringVar(&c.pushpinRunnerBinPath)
+	c.CmdClause.Flag("pushpin-proxy-port", "The port to run the Pushpin runner on. Defaults to 7677.").StringVar(&c.pushpinProxyPort)
 	c.CmdClause.Flag("profile-guest", "Profile the Wasm guest under Viceroy (requires Viceroy 0.9.1 or higher). View profiles at https://profiler.firefox.com/.").BoolVar(&c.profileGuest)
 	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
@@ -197,6 +208,116 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
+	enablePushpin := c.enablePushpin || c.Globals.Manifest.File.LocalServer.Pushpin.EnablePushpin
+	var pushpinProxyPort string
+	if enablePushpin {
+
+		err = spinner.Start()
+		if err != nil {
+			return err
+		}
+		msg := "Running local Pushpin"
+		spinner.Message(msg + "...")
+
+		spinner.StopMessage(msg)
+		err = spinner.Stop()
+		if err != nil {
+			return err
+		}
+
+		if c.Globals.Verbose() {
+			text.Break(out)
+			text.Info(out, "Starting local Pushpin...")
+			text.Break(out)
+		}
+
+		pushpinProxyPort = c.GetPushpinProxyPort(out)
+
+		pushpinRunnerBin, err := c.GetPushpinRunner(out)
+		if err != nil {
+			return err
+		}
+
+		if pushpinRunnerBin != "" {
+			args := []string{"--port=" + pushpinProxyPort}
+
+			// Iterate backends and add them
+			routes := c.BuildPushpinRoutes()
+			args = append(args, routes...)
+
+			args = append(args, "--verbose")
+
+			// Set up a context that can be canceled (prevent rogue Pushpin process)
+			var pushpinCmd *exec.Cmd
+			ctx, cancel := context.WithCancel(context.Background())
+			defer func() {
+				if pushpinCmd != nil && pushpinCmd.Process != nil {
+					killProcessTree(pushpinCmd.Process.Pid)
+				}
+				cancel()
+			}()
+
+			pushpinCmd = exec.CommandContext(ctx, pushpinRunnerBin, args...)
+			pushpinCmd.Stderr = out
+			stdout, err := pushpinCmd.StdoutPipe()
+			if err != nil {
+				return fmt.Errorf("failed to capture Pushpin stdout: %w", err)
+			}
+
+			// Start Pushpin
+			if c.Globals.Verbose() {
+				text.Info(out, "Starting Pushpin runner in the background...")
+				text.Output(out, "%s: %s", text.BoldYellow("Pushpin command"), strings.Join(pushpinCmd.Args, " "))
+			}
+			if err := pushpinCmd.Start(); err != nil {
+				return fmt.Errorf("failed to start Pushpin runner: %w", err)
+			}
+
+			// Monitor output from Pushpin
+			// 1. convert output and log it
+			// 2. wait for a timeout after a startup message
+			startupError := make(chan error, 1)
+			go func() {
+				scanner := bufio.NewScanner(stdout)
+				for scanner.Scan() {
+					line := scanner.Text()
+					// Successful if timeout passes after seeing 'started'
+					if strings.HasSuffix(line, "started") {
+						go func() {
+							time.Sleep(1000 * time.Millisecond)
+							startupError <- nil
+						}()
+					}
+
+					level, msg := formatPushpinLog(line)
+					if level != "DEBUG" || c.Globals.Verbose() {
+						text.Output(out, "%s  %s %s", time.Now().UTC().Format("2006-01-02T15:04:05.000000Z"), level, msg)
+					}
+				}
+
+				if err := scanner.Err(); err != nil {
+					startupError <- fmt.Errorf("error reading Pushpin output: %w", err)
+				} else {
+					startupError <- fmt.Errorf("process Pushpin terminated")
+				}
+			}()
+
+			// Startup error
+			err = <-startupError
+			if err != nil {
+				return fsterr.RemediationError{
+					Inner:       err,
+					Remediation: fmt.Sprintf("A process may already be running on port %s.", pushpinProxyPort),
+				}
+			}
+
+			if c.Globals.Verbose() {
+				text.Info(out, "Local Pushpin started on port %s.", pushpinProxyPort)
+				text.Break(out)
+			}
+		}
+	}
+
 	err = spinner.Start()
 	if err != nil {
 		return err
@@ -217,20 +338,21 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var restart bool
 	for {
 		err = local(localOpts{
-			addr:            c.addr,
-			bin:             bin,
-			debug:           c.debug,
-			errLog:          c.Globals.ErrLog,
-			extraArgs:       c.ViceroyBinExtraArgs,
-			manifestPath:    manifestPath,
-			out:             out,
-			profileGuest:    c.profileGuest,
-			profileGuestDir: c.profileGuestDir,
-			restarted:       restart,
-			verbose:         c.Globals.Verbose(),
-			wasmBinPath:     wasmBinaryToRun,
-			watch:           c.watch,
-			watchDir:        c.watchDir,
+			addr:             c.addr,
+			bin:              bin,
+			debug:            c.debug,
+			errLog:           c.Globals.ErrLog,
+			extraArgs:        c.ViceroyBinExtraArgs,
+			manifestPath:     manifestPath,
+			out:              out,
+			profileGuest:     c.profileGuest,
+			profileGuestDir:  c.profileGuestDir,
+			pushpinProxyPort: pushpinProxyPort,
+			restarted:        restart,
+			verbose:          c.Globals.Verbose(),
+			wasmBinPath:      wasmBinaryToRun,
+			watch:            c.watch,
+			watchDir:         c.watchDir,
 		})
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
@@ -552,22 +674,163 @@ func (c *ServeCommand) InstallViceroy(
 	return spinner.Stop()
 }
 
+// GetPushpinProxyPort returns the port to run the Pushpin proxy.
+//
+// The default value is 7677.
+// It can be overridden by providing the --pushpin-proxy-port command-line parameter.
+// If it is not found then `local_server.pushpin.proxy_prot` in fastly.toml is also checked.
+func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) string {
+	pushpinProxyPort := c.pushpinProxyPort
+	if pushpinProxyPort != "" {
+		if c.Globals.Verbose() {
+			text.Info(out, "Using Pushpin proxy port from --pushpin-proxy-port flag: %s\n\n", pushpinProxyPort)
+		}
+		return pushpinProxyPort
+	}
+
+	pushpinProxyPort = strconv.Itoa(int(c.Globals.Manifest.File.LocalServer.Pushpin.PushpinProxyPort))
+	if pushpinProxyPort != "0" {
+		if c.Globals.Verbose() {
+			text.Info(out, "Using Pushpin proxy port via `local_server.pushpin.proxy_port` setting: %s\n\n", pushpinProxyPort)
+		}
+		return pushpinProxyPort
+	}
+
+	pushpinProxyPort = "7677"
+	if c.Globals.Verbose() {
+		text.Info(out, "Using default Pushpin proxy port %s\n\n", pushpinProxyPort)
+	}
+	return pushpinProxyPort
+}
+
+// GetPushpinRunner returns the path to the installed Psuhpin binary.
+//
+// This value comes from searching the system path for `pushpin`
+// It can be overridden by providing the --pushpin-path command-line parameter.
+// If it is not found then `local_server.pushpin.pushpin_path` in fastly.toml is also checked.
+func (c *ServeCommand) GetPushpinRunner(out io.Writer) (bin string, err error) {
+	pushpinRunnerBinPath := c.pushpinRunnerBinPath
+	if pushpinRunnerBinPath != "" {
+		if c.Globals.Verbose() {
+			text.Info(out, "Using user provided install of Pushpin runner via --pushpin-path flag: %s\n\n", pushpinRunnerBinPath)
+		}
+		return filepath.Abs(pushpinRunnerBinPath)
+	}
+
+	pushpinRunnerBinPath = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPath
+	if pushpinRunnerBinPath != "" {
+		if c.Globals.Verbose() {
+			text.Info(out, "Using user provided install of Pushpin runner via `local_server.pushpin.pushpin_path` setting: %s\n\n", pushpinRunnerBinPath)
+		}
+		return filepath.Abs(pushpinRunnerBinPath)
+	}
+
+	if c.Globals.Verbose() {
+		text.Info(out, "No --pushpin-path provided, attempting to find 'pushpin' in your PATH...")
+	}
+	pushpinRunnerBinPath, err = exec.LookPath("pushpin")
+	if err != nil {
+		return "", fsterr.RemediationError{
+			Inner:       fmt.Errorf("failed to find 'pushpin' in your $PATH"),
+			Remediation: "Pushpin support was enabled via --enable-experimental-pushpin, but the 'pushpin' binary could not be found in your $PATH. Please install Pushpin (see: https://pushpin.org/docs/install/) or provide a path to the binary using the --pushpin-path flag.",
+		}
+	}
+
+	if c.Globals.Verbose() {
+		text.Info(out, "Found Pushpin runner via $PATH lookup: %s\n\n", pushpinRunnerBinPath)
+	}
+	return filepath.Abs(pushpinRunnerBinPath)
+}
+
+// BuildPushpinRoutes builds a slice of strings based on the backends
+// defined in the manifest's backend section.
+func (c *ServeCommand) BuildPushpinRoutes() []string {
+	var routes []string
+	for name, backend := range c.Globals.Manifest.File.LocalServer.Backends {
+
+		// e.g. a backend named "origin" will be mapped from "/origin".
+		pathPrefix := "/" + name
+
+		// The target should be a URL
+		u, err := url.Parse(backend.URL)
+		if err != nil {
+			// This is unlikely as we parse it elsewhere, but good to be safe.
+			// We'll just skip this backend if the URL is invalid.
+			continue
+		}
+
+		// A backend may have a path component. If it does, then
+		// it will be prepended during forwarding.
+		forwardPrefix := strings.TrimSuffix(u.Path, "/")
+
+		// Route Rule:
+		// 1. `*`: Match any Host header from the incoming request.
+		// 2. `path_beg`: Match requests whose path begins with the backend name prefix.
+		// 3. `replace_beg`: Replace the matched prefix with the forward prefix.
+		rules := fmt.Sprintf(
+			"*,path_beg=%s,replace_beg=%s",
+			pathPrefix,
+			forwardPrefix,
+		)
+		// 4. `as_host`: If the backend has an override_host.
+		if backend.OverrideHost != "" {
+			rules += fmt.Sprintf(",as_host=%s", backend.OverrideHost)
+		}
+
+		// Target:
+		// 1. `over_http`: Enable WebSocket-over-HTTP
+		target := u.Host + ",over_http"
+		// 2. `ssl`: If backend is https
+		if u.Scheme == "https" {
+			target += ",ssl"
+		}
+
+		// The final argument format is "--route=<rules> <target_url>"
+		routeArg := fmt.Sprintf("--route=%s %s", rules, target)
+		routes = append(routes, routeArg)
+
+	}
+
+	return routes
+}
+
+func formatPushpinLog(line string) (string, string) {
+	level := "INFO"
+	msg := line
+
+	if strings.HasPrefix(line, "[ERR]") || strings.HasPrefix(line, "[WARN]") ||
+		strings.HasPrefix(line, "[INFO]") || strings.HasPrefix(line, "[DEBUG]") {
+		parts := strings.SplitN(line, " ", 4)
+		if len(parts) == 4 {
+			level = strings.Trim(parts[0], "[]")
+			if level == "ERR" {
+				level = "ERROR"
+			}
+			msg = parts[3]
+		}
+	}
+
+	// Return as-is if it doesn't match pattern
+	return level, "[Pushpin] " + msg
+}
+
 // localOpts represents the inputs for `local()`.
 type localOpts struct {
-	addr            string
-	bin             string
-	debug           bool
-	errLog          fsterr.LogInterface
-	extraArgs       string
-	manifestPath    string
-	out             io.Writer
-	profileGuest    bool
-	profileGuestDir argparser.OptionalString
-	restarted       bool
-	verbose         bool
-	wasmBinPath     string
-	watch           bool
-	watchDir        argparser.OptionalString
+	addr             string
+	bin              string
+	debug            bool
+	errLog           fsterr.LogInterface
+	extraArgs        string
+	manifestPath     string
+	out              io.Writer
+	profileGuest     bool
+	profileGuestDir  argparser.OptionalString
+	pushpinProxyPort string
+	restarted        bool
+	verbose          bool
+	wasmBinPath      string
+	watch            bool
+	watchDir         argparser.OptionalString
 }
 
 // local spawns a subprocess that runs the compiled binary.
@@ -590,6 +853,10 @@ func local(opts localOpts) error {
 		if opts.verbose {
 			text.Info(opts.out, "Saving per-request profiles to %s.", directory)
 		}
+	}
+
+	if opts.pushpinProxyPort != "" {
+		args = append(args, "--local-pushpin-proxy-port="+opts.pushpinProxyPort)
 	}
 
 	if opts.extraArgs != "" {
@@ -906,4 +1173,25 @@ func watchFile(path string, watcher *fsnotify.Watcher, verbose bool, out io.Writ
 	} else if verbose {
 		text.Output(out, "%s", absolute)
 	}
+}
+
+func killProcessTree(pid int) {
+	processes, err := ps.Processes()
+	if err != nil {
+		log.Printf("failed to list processes: %v", err)
+		return
+	}
+
+	var children []int
+	for _, p := range processes {
+		if p.PPid() == pid {
+			children = append(children, p.Pid())
+		}
+	}
+
+	for _, child := range children {
+		killProcessTree(child)
+	}
+
+	_ = killProcess(pid)
 }

@@ -101,8 +101,11 @@ func TestFlagDivergenceServe(t *testing.T) {
 	ignoreServeFlags := []string{
 		"addr",
 		"debug",
+		"experimental-enable-pushpin",
 		"file",
 		"profile-guest",
+		"pushpin-path",
+		"pushpin-proxy-port",
 		"profile-guest-dir",
 		"skip-build",
 		"viceroy-args",
