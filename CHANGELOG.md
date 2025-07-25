@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- Add experimental "enable Pushpin" mode
 
 ### Bug fixes:
 
