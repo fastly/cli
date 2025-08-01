@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/rand"
+	_ "embed"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -13,10 +16,12 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -71,6 +76,7 @@ type ServeCommand struct {
 	enablePushpin        bool
 	pushpinRunnerBinPath string
 	pushpinProxyPort     string
+	pushpinPublishPort   string
 	env                  argparser.OptionalString
 	file                 argparser.OptionalString
 	profileGuest         bool
@@ -103,6 +109,7 @@ func NewServeCommand(parent argparser.Registerer, g *global.Data, build *BuildCo
 	c.CmdClause.Flag("experimental-enable-pushpin", "Enable experimental Pushpin support for local testing of Fanout and WebSockets").BoolVar(&c.enablePushpin)
 	c.CmdClause.Flag("pushpin-path", "The path to a user installed version of the Pushpin runner binary").StringVar(&c.pushpinRunnerBinPath)
 	c.CmdClause.Flag("pushpin-proxy-port", "The port to run the Pushpin runner on. Defaults to 7677.").StringVar(&c.pushpinProxyPort)
+	c.CmdClause.Flag("pushpin-publish-port", "The port to run the Pushpin publish handler on. Defaults to 5611.").StringVar(&c.pushpinPublishPort)
 	c.CmdClause.Flag("profile-guest", "Profile the Wasm guest under Viceroy (requires Viceroy 0.9.1 or higher). View profiles at https://profiler.firefox.com/.").BoolVar(&c.profileGuest)
 	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
@@ -209,7 +216,7 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	}
 
 	enablePushpin := c.enablePushpin || c.Globals.Manifest.File.LocalServer.Pushpin.EnablePushpin
-	var pushpinProxyPort string
+	var pushpinProxyPort uint16
 	if enablePushpin {
 
 		err = spinner.Start()
@@ -225,96 +232,197 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			return err
 		}
 
-		if c.Globals.Verbose() {
-			text.Break(out)
-			text.Info(out, "Starting local Pushpin...")
-			text.Break(out)
+		pwd, _ := os.Getwd()
+		pushpinLogDir := filepath.Join(pwd, "pushpin-logs")
+
+		pushpinProxyPort, err = c.GetPushpinProxyPort(out)
+		if err != nil {
+			return err
 		}
-
-		pushpinProxyPort = c.GetPushpinProxyPort(out)
-
+		pushpinPublishPort, err := c.GetPushpinPublishPort(out)
+		if err != nil {
+			return err
+		}
 		pushpinRunnerBin, err := c.GetPushpinRunner(out)
 		if err != nil {
 			return err
 		}
+		if c.Globals.Verbose() {
+			text.Info(out, "Local pushpin proxy port: %d", pushpinProxyPort)
+			text.Info(out, "Local pushpin publisher port: %d", pushpinPublishPort)
+			text.Info(out, "Local pushpin other reserved ports: %d - %d", pushpinPublishPort+1, pushpinPublishPort+3)
+			text.Info(out, "Local pushpin runner: %s", pushpinRunnerBin)
+		}
 
-		if pushpinRunnerBin != "" {
-			args := []string{"--port=" + pushpinProxyPort}
+		// Pushpin is configured with the following.
+		// - A conf file that sets up the parameters of the instance. In our case, we:
+		//   - set the runtime temporary files directory
+		//   - set the log output directory
+		//   - enable "pushpin-route" header for routing
+		//   - set the message size (64k) to match Fanout
+		//   - set the publishing addr and port
+		//   - path to the routes file to use
+		// - A routes file that sets up the routes. In our case, we:
+		//   - wires up a backend name (id) to the server host
+		//   - if the backend sets an override host, then we set thatt
+		//   - if the backend enables HTTPS, then we enable that
+		//   - if the backend has a path prefix, then we set that up
+		//   - enables WebSocket-over-HTTP
 
-			// Iterate backends and add them
-			routes := c.BuildPushpinRoutes()
-			args = append(args, routes...)
+		// The runtime temporary directory, as well as the conf file and routes file
+		// are set up and torn down along with fastly compute serve.
+		var pushpinInstanceID uint32
+		for {
+			p := make([]byte, 4)
+			_, _ = rand.Read(p)
+			pushpinInstanceID = binary.BigEndian.Uint32(p)
+			if pushpinInstanceID != 0 {
+				break
+			}
+		}
 
-			args = append(args, "--verbose")
+		pushpinRunDir := filepath.Join(
+			os.TempDir(),
+			fmt.Sprintf("pushpin-%08x", pushpinInstanceID),
+		)
+		if c.Globals.Verbose() {
+			text.Break(out)
+			text.Info(out, "Pushpin temporary runtime directory is %s", pushpinRunDir)
+		}
 
-			// Set up a context that can be canceled (prevent rogue Pushpin process)
-			var pushpinCmd *exec.Cmd
-			ctx, cancel := context.WithCancel(context.Background())
-			defer func() {
+		pushpinConfFilePath := filepath.Join(
+			os.TempDir(),
+			fmt.Sprintf("pushpin-%08x.conf", pushpinInstanceID),
+		)
+		pushpinRoutesFilePath := filepath.Join(
+			os.TempDir(),
+			fmt.Sprintf("pushpin-routes-%08x", pushpinInstanceID),
+		)
+
+		if c.Globals.Verbose() {
+			text.Info(out, "Writing config file to %s...", pushpinConfFilePath)
+		}
+
+		pushpinConfContents := c.BuildPushpinConf(pushpinRunDir, pushpinLogDir, pushpinRoutesFilePath, pushpinProxyPort, pushpinPublishPort)
+		err = os.WriteFile(pushpinConfFilePath, []byte(pushpinConfContents), 0o600)
+		if err != nil {
+			return fmt.Errorf("error writing config file %s: %w", pushpinConfFilePath, err)
+		}
+
+		if c.Globals.Verbose() {
+			text.Info(out, "Writing routes file to %s...", pushpinRoutesFilePath)
+		}
+		pushpinRoutesContents := strings.Join(c.BuildPushpinRoutes(), "\n") + "\n"
+		err = os.WriteFile(pushpinRoutesFilePath, []byte(pushpinRoutesContents), 0o600)
+		if err != nil {
+			return fmt.Errorf("error writing routes file %s: %w", pushpinRoutesFilePath, err)
+		}
+
+		if c.Globals.Verbose() {
+			text.Info(out, "Starting local Pushpin...")
+			text.Break(out)
+		}
+
+		args := []string{
+			fmt.Sprintf("--config=%s", pushpinConfFilePath),
+			"--verbose",
+		}
+
+		// Set up a context that can be canceled (prevent rogue Pushpin process)
+		var pushpinCmd *exec.Cmd
+		ctx, cancel := context.WithCancel(context.Background())
+
+		var once sync.Once
+		cleanup := func() {
+			once.Do(func() {
 				if pushpinCmd != nil && pushpinCmd.Process != nil {
+					if c.Globals.Verbose() {
+						text.Output(out, "shutting down Pushpin")
+					}
 					killProcessTree(pushpinCmd.Process.Pid)
 				}
+				if c.Globals.Verbose() {
+					text.Output(out, "removing %s", pushpinRunDir)
+				}
+				_ = os.RemoveAll(pushpinRunDir)
+				if c.Globals.Verbose() {
+					text.Output(out, "deleting %s", pushpinConfFilePath)
+				}
+				_ = os.Remove(pushpinConfFilePath)
+				if c.Globals.Verbose() {
+					text.Output(out, "deleting %s", pushpinRoutesFilePath)
+				}
+				_ = os.Remove(pushpinRoutesFilePath)
 				cancel()
-			}()
+			})
+		}
+		defer cleanup()
 
-			pushpinCmd = exec.CommandContext(ctx, pushpinRunnerBin, args...)
-			pushpinCmd.Stderr = out
-			stdout, err := pushpinCmd.StdoutPipe()
-			if err != nil {
-				return fmt.Errorf("failed to capture Pushpin stdout: %w", err)
-			}
+		// Also allow other forms of termination to perform cleanups
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT)
+		go func() {
+			<-sigCh
+			cleanup()
+		}()
 
-			// Start Pushpin
-			if c.Globals.Verbose() {
-				text.Info(out, "Starting Pushpin runner in the background...")
-				text.Output(out, "%s: %s", text.BoldYellow("Pushpin command"), strings.Join(pushpinCmd.Args, " "))
-			}
-			if err := pushpinCmd.Start(); err != nil {
-				return fmt.Errorf("failed to start Pushpin runner: %w", err)
-			}
+		pushpinCmd = exec.CommandContext(ctx, pushpinRunnerBin, args...)
+		pushpinCmd.Stderr = out
+		stdout, err := pushpinCmd.StdoutPipe()
+		if err != nil {
+			return fmt.Errorf("failed to capture Pushpin stdout: %w", err)
+		}
 
-			// Monitor output from Pushpin
-			// 1. convert output and log it
-			// 2. wait for a timeout after a startup message
-			startupError := make(chan error, 1)
-			go func() {
-				scanner := bufio.NewScanner(stdout)
-				for scanner.Scan() {
-					line := scanner.Text()
-					// Successful if timeout passes after seeing 'started'
-					if strings.HasSuffix(line, "started") {
-						go func() {
-							time.Sleep(1000 * time.Millisecond)
-							startupError <- nil
-						}()
-					}
+		// Start Pushpin
+		if c.Globals.Verbose() {
+			text.Info(out, "Starting Pushpin runner in the background...")
+			text.Output(out, "%s: %s", text.BoldYellow("Pushpin command"), strings.Join(pushpinCmd.Args, " "))
+		}
+		if err := pushpinCmd.Start(); err != nil {
+			return fmt.Errorf("failed to start Pushpin runner: %w", err)
+		}
 
-					level, msg := formatPushpinLog(line)
-					if level != "DEBUG" || c.Globals.Verbose() {
-						text.Output(out, "%s  %s %s", time.Now().UTC().Format("2006-01-02T15:04:05.000000Z"), level, msg)
-					}
+		// Monitor output from Pushpin
+		// 1. convert output and log it
+		// 2. wait for a timeout after a startup message
+		startupError := make(chan error, 1)
+		go func() {
+			scanner := bufio.NewScanner(stdout)
+			for scanner.Scan() {
+				line := scanner.Text()
+				// Successful if timeout passes after seeing 'started'
+				if strings.HasSuffix(line, "started") {
+					go func() {
+						time.Sleep(1000 * time.Millisecond)
+						startupError <- nil
+					}()
 				}
 
-				if err := scanner.Err(); err != nil {
-					startupError <- fmt.Errorf("error reading Pushpin output: %w", err)
-				} else {
-					startupError <- fmt.Errorf("process Pushpin terminated")
-				}
-			}()
-
-			// Startup error
-			err = <-startupError
-			if err != nil {
-				return fsterr.RemediationError{
-					Inner:       err,
-					Remediation: fmt.Sprintf("A process may already be running on port %s.", pushpinProxyPort),
+				level, msg := formatPushpinLog(line)
+				if level != "DEBUG" || c.Globals.Verbose() {
+					text.Output(out, "%s  %s %s", time.Now().UTC().Format("2006-01-02T15:04:05.000000Z"), level, msg)
 				}
 			}
 
-			if c.Globals.Verbose() {
-				text.Info(out, "Local Pushpin started on port %s.", pushpinProxyPort)
-				text.Break(out)
+			if err := scanner.Err(); err != nil {
+				startupError <- fmt.Errorf("error reading Pushpin output: %w", err)
+			} else {
+				startupError <- fmt.Errorf("process Pushpin terminated")
 			}
+		}()
+
+		// Startup error
+		err = <-startupError
+		if err != nil {
+			return fsterr.RemediationError{
+				Inner:       err,
+				Remediation: fmt.Sprintf("A process may already be running on port %d.", pushpinProxyPort),
+			}
+		}
+
+		if c.Globals.Verbose() {
+			text.Info(out, "Local Pushpin started on port %d.", pushpinProxyPort)
+			text.Break(out)
 		}
 	}
 
@@ -678,32 +786,81 @@ func (c *ServeCommand) InstallViceroy(
 //
 // The default value is 7677.
 // It can be overridden by providing the --pushpin-proxy-port command-line parameter.
-// If it is not found then `local_server.pushpin.proxy_prot` in fastly.toml is also checked.
-func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) string {
-	pushpinProxyPort := c.pushpinProxyPort
-	if pushpinProxyPort != "" {
-		if c.Globals.Verbose() {
-			text.Info(out, "Using Pushpin proxy port from --pushpin-proxy-port flag: %s\n\n", pushpinProxyPort)
+// If it is not found then `local_server.pushpin.proxy_port` in fastly.toml is also checked.
+func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) (uint16, error) {
+	pushpinProxyPortStr := c.pushpinProxyPort
+	var pushpinProxyPort uint16
+	if pushpinProxyPortStr != "" {
+		pushpinProxyPortInt, err := strconv.Atoi(pushpinProxyPortStr)
+		if err != nil {
+			return 0, fmt.Errorf("can't parse --pushpin-proxy-port value as a number: %s", pushpinProxyPortStr)
 		}
-		return pushpinProxyPort
+		if pushpinProxyPortInt < 1 || pushpinProxyPortInt > 65535 {
+			return 0, fmt.Errorf("--pushpin-proxy-port must be a number between 1 and 65535 (got: %d)", pushpinProxyPortInt)
+		}
+		pushpinProxyPort = uint16(pushpinProxyPortInt)
+		if c.Globals.Verbose() {
+			text.Info(out, "Using Pushpin proxy port from --pushpin-proxy-port flag: %d\n\n", pushpinProxyPort)
+		}
+		return pushpinProxyPort, nil
 	}
 
-	pushpinProxyPort = strconv.Itoa(int(c.Globals.Manifest.File.LocalServer.Pushpin.PushpinProxyPort))
-	if pushpinProxyPort != "0" {
+	pushpinProxyPort = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinProxyPort
+	if pushpinProxyPort != 0 {
 		if c.Globals.Verbose() {
-			text.Info(out, "Using Pushpin proxy port via `local_server.pushpin.proxy_port` setting: %s\n\n", pushpinProxyPort)
+			text.Info(out, "Using Pushpin proxy port via `local_server.pushpin.proxy_port` setting: %d\n\n", pushpinProxyPort)
 		}
-		return pushpinProxyPort
+		return pushpinProxyPort, nil
 	}
 
-	pushpinProxyPort = "7677"
+	pushpinProxyPort = 7677
 	if c.Globals.Verbose() {
-		text.Info(out, "Using default Pushpin proxy port %s\n\n", pushpinProxyPort)
+		text.Info(out, "Using default Pushpin proxy port %d\n\n", pushpinProxyPort)
 	}
-	return pushpinProxyPort
+	return pushpinProxyPort, nil
 }
 
-// GetPushpinRunner returns the path to the installed Psuhpin binary.
+// GetPushpinPublishPort returns the port to run the Pushpin publishing handler.
+// The design of Pushpin opens four ports starting with this port, though the publishing
+// handler itself runs on the specified port.
+//
+// The default value is 5561.
+// It can be overridden by providing the --pushpin-publish-port command-line parameter.
+// If it is not found then `local_server.pushpin.publish_port` in fastly.toml is also checked.
+func (c *ServeCommand) GetPushpinPublishPort(out io.Writer) (uint16, error) {
+	pushpinPublishPortStr := c.pushpinProxyPort
+	var pushpinPublishPort uint16
+	if pushpinPublishPortStr != "" {
+		pushpinPublishPortInt, err := strconv.Atoi(pushpinPublishPortStr)
+		if err != nil {
+			return 0, fmt.Errorf("can't parse --pushpin-publish-port value as a number: %s", pushpinPublishPortStr)
+		}
+		if pushpinPublishPortInt < 1 || pushpinPublishPortInt > 65535 {
+			return 0, fmt.Errorf("--pushpin-publish-port must be a number between 1 and 65535 (got: %d)", pushpinPublishPortInt)
+		}
+		pushpinPublishPort = uint16(pushpinPublishPortInt)
+		if c.Globals.Verbose() {
+			text.Info(out, "Using Pushpin publish handler port from --pushpin-publish-port flag: %d\n\n", pushpinPublishPort)
+		}
+		return pushpinPublishPort, nil
+	}
+
+	pushpinPublishPort = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPublishPort
+	if pushpinPublishPort != 0 {
+		if c.Globals.Verbose() {
+			text.Info(out, "Using Pushpin publish handler port via `local_server.pushpin.publish_port` setting: %d\n\n", pushpinPublishPort)
+		}
+		return pushpinPublishPort, nil
+	}
+
+	pushpinPublishPort = 5561
+	if c.Globals.Verbose() {
+		text.Info(out, "Using default Pushpin publish handler port %d\n\n", pushpinPublishPort)
+	}
+	return pushpinPublishPort, nil
+}
+
+// GetPushpinRunner returns the path to the installed Pushpin binary.
 //
 // This value comes from searching the system path for `pushpin`
 // It can be overridden by providing the --pushpin-path command-line parameter.
@@ -742,14 +899,40 @@ func (c *ServeCommand) GetPushpinRunner(out io.Writer) (bin string, err error) {
 	return filepath.Abs(pushpinRunnerBinPath)
 }
 
+// pushpinConfTemplate is a template used by BuildPushpinConf.
+//
+//go:embed pushpin.conf.template
+var pushpinConfTemplate string
+
+// BuildPushpinConf builds a temporary pushpin.conf file that contains everything that covers our needs.
+func (c *ServeCommand) BuildPushpinConf(
+	pushpinRunDir string,
+	pushpinLogDir string,
+	routesFilePath string,
+	pushpinProxyPort uint16,
+	pushpinPublishPort uint16,
+) string {
+	pushpinPullPort := pushpinPublishPort + 1
+	pushpinSubPort := pushpinPublishPort + 2
+	pushpinRepPort := pushpinPublishPort + 3
+	return fmt.Sprintf(
+		pushpinConfTemplate,
+		pushpinRunDir,
+		pushpinLogDir,
+		routesFilePath,
+		pushpinProxyPort,
+		pushpinPublishPort,
+		pushpinPullPort,
+		pushpinSubPort,
+		pushpinRepPort,
+	)
+}
+
 // BuildPushpinRoutes builds a slice of strings based on the backends
 // defined in the manifest's backend section.
 func (c *ServeCommand) BuildPushpinRoutes() []string {
 	var routes []string
 	for name, backend := range c.Globals.Manifest.File.LocalServer.Backends {
-
-		// e.g. a backend named "origin" will be mapped from "/origin".
-		pathPrefix := "/" + name
 
 		// The target should be a URL
 		u, err := url.Parse(backend.URL)
@@ -759,36 +942,32 @@ func (c *ServeCommand) BuildPushpinRoutes() []string {
 			continue
 		}
 
-		// A backend may have a path component. If it does, then
-		// it will be prepended during forwarding.
-		forwardPrefix := strings.TrimSuffix(u.Path, "/")
-
 		// Route Rule:
-		// 1. `*`: Match any Host header from the incoming request.
-		// 2. `path_beg`: Match requests whose path begins with the backend name prefix.
-		// 3. `replace_beg`: Replace the matched prefix with the forward prefix.
-		rules := fmt.Sprintf(
-			"*,path_beg=%s,replace_beg=%s",
-			pathPrefix,
-			forwardPrefix,
-		)
-		// 4. `as_host`: If the backend has an override_host.
-		if backend.OverrideHost != "" {
-			rules += fmt.Sprintf(",as_host=%s", backend.OverrideHost)
+		// 1. `id=<backend_name>`: Match requests whose Pushpin-Route header equals the backend name.
+		rules := fmt.Sprintf("id=%s", name)
+
+		// 2. A backend may have a path component. If it does, then it will be prepended during forwarding.
+		forwardPrefix := strings.TrimSuffix(u.Path, "/")
+		if forwardPrefix != "" {
+			rules += fmt.Sprintf(",replace_beg=%s", forwardPrefix)
 		}
 
 		// Target:
+		target := u.Host
 		// 1. `over_http`: Enable WebSocket-over-HTTP
-		target := u.Host + ",over_http"
+		target += ",over_http"
 		// 2. `ssl`: If backend is https
 		if u.Scheme == "https" {
 			target += ",ssl"
 		}
+		// 3. `host`: If the backend has an override_host.
+		if backend.OverrideHost != "" {
+			target += fmt.Sprintf(",host=%s", backend.OverrideHost)
+		}
 
-		// The final argument format is "--route=<rules> <target_url>"
-		routeArg := fmt.Sprintf("--route=%s %s", rules, target)
+		// The final route format
+		routeArg := fmt.Sprintf("%s %s", rules, target)
 		routes = append(routes, routeArg)
-
 	}
 
 	return routes
@@ -825,7 +1004,7 @@ type localOpts struct {
 	out              io.Writer
 	profileGuest     bool
 	profileGuestDir  argparser.OptionalString
-	pushpinProxyPort string
+	pushpinProxyPort uint16
 	restarted        bool
 	verbose          bool
 	wasmBinPath      string
@@ -855,8 +1034,8 @@ func local(opts localOpts) error {
 		}
 	}
 
-	if opts.pushpinProxyPort != "" {
-		args = append(args, "--local-pushpin-proxy-port="+opts.pushpinProxyPort)
+	if opts.pushpinProxyPort != 0 {
+		args = append(args, fmt.Sprintf("--local-pushpin-proxy-port=%d", opts.pushpinProxyPort))
 	}
 
 	if opts.extraArgs != "" {

@@ -106,6 +106,7 @@ func TestFlagDivergenceServe(t *testing.T) {
 		"profile-guest",
 		"pushpin-path",
 		"pushpin-proxy-port",
+		"pushpin-publish-port",
 		"profile-guest-dir",
 		"skip-build",
 		"viceroy-args",
