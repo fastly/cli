@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- Add experimental "enable Pushpin" mode ([#1509](https://github.com/fastly/cli/pull/1509))
 
 ### Bug fixes:
 
