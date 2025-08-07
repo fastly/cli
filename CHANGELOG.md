@@ -6,15 +6,41 @@
 
 ### Enhancements:
 - feat(vcl): Allow showing of generated VCL for a service version [#1498](https://github.com/fastly/cli/pull/1498)
+- Add experimental "enable Pushpin" mode ([#1509](https://github.com/fastly/cli/pull/1509))
 
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `golang.org/x/sys` from 0.33.0 to 0.34.0 ([#1508](https://github.com/fastly/cli/pull/1508))
+- build(deps): `golang.org/x/term` from 0.32.0 to 0.33.0 ([#1508](https://github.com/fastly/cli/pull/1508))
+- build(deps): `golang.org/x/crypto` from 0.39.0 to 0.40.0 ([#1508](https://github.com/fastly/cli/pull/1508))
+- build(deps): `golang.org/x/mod` from 0.25.0 to 0.26.0 ([#1508](https://github.com/fastly/cli/pull/1508))
+- build(deps): `golang.org/x/net` from 0.41.0 to 0.42.0 ([#1508](https://github.com/fastly/cli/pull/1508))
+- build(deps): `golang.org/x/sync` from 0.15.0 to 0.16.0 ([#1508](https://github.com/fastly/cli/pull/1508))
+- build(deps): `golang.org/x/text` from 0.26.0 to 0.27.0 ([#1508](https://github.com/fastly/cli/pull/1508))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.14.1 to 3.15.0 ([#1510](https://github.com/fastly/cli/pull/1510))
+
+## [v11.4.0](https://github.com/fastly/cli/releases/tag/v11.4.0) (2025-07-09)
+
+### Enhancements:
+
+- feat(env): Add environment variable for extending the UserAgent string. ([#1502](https://github.com/fastly/cli/pull/1502))
+
+### Bug fixes:
+- fix(sso): Ensure that OPTIONS requests sent by browsers do not break SSO authentication. ([#1496](https://github.com/fastly/cli/pull/1496))
+
+### Dependencies:
+- build(deps): `github.com/fastly/go-fastly/v10` from 10.3.0 to 10.4.0 ([#1499](https://github.com/fastly/cli/pull/1499))
+- build(deps): `stefanzweifel/git-auto-commit-action` from 5 to 6 ([#1497](https://github.com/fastly/cli/pull/1497))
+- build(deps): `github.com/fastly/go-fastly/v10` from 10.4.0 to 10.5.0 ([#1501](https://github.com/fastly/cli/pull/1501))
+- build(deps): `github.com/andybalholm/brotli` from 1.1.1 to 1.2.0 ([#1501](https://github.com/fastly/cli/pull/1501))
+- build(deps): `github.com/Masterminds/semver/v3` from 3.3.1 to 3.4.0 ([#1503](https://github.com/fastly/cli/pull/1503))
+- build(deps): `github.com/fastly/go-fastly/v10` from 10.5.0 to 10.5.1 ([#1504](https://github.com/fastly/cli/pull/1504))
 
 ## [v11.3.0](https://github.com/fastly/cli/releases/tag/v11.3.0) (2025-06-11)
 
 ### Enhancements:
-- feat(config-store): Allow for dynamic limits on Config Store entry lengths [#1485](https://github.com/fastly/cli/pull/1485)
+- feat(config-store): Allow for dynamic limits on Config Store entry lengths ([#1485](https://github.com/fastly/cli/pull/1485))
 - feat(backend): Add support for 'prefer IPv6' attribute. ([#1487](https://github.com/fastly/cli/pull/1487))
 - feat(tools/domain): add `suggest` and `status` domain tools endpoints ([#1482](https://github.com/fastly/cli/pull/1482))
 - feat(logging): Add support for 'processing region' attribute. ([#1491](https://github.com/fastly/cli/pull/1491))

@@ -40,6 +40,11 @@ const (
 	// Assigned value should be a boolean 1/0 (enable/disable).
 	UseSSO = "FASTLY_USE_SSO"
 
+	// UserAgentExtension informs the CLI of an additional string
+	// which should be added to the UserAgent included in
+	// requests made by the CLI.
+	UserAgentExtension = "FASTLY_USER_AGENT_EXTENSION"
+
 	// WasmMetadataDisable is the env var we look in to disable all data
 	// collection related to a Wasm binary.
 	// Set to "true" to disable all forms of data collection.
