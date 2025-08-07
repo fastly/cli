@@ -2,12 +2,13 @@ package syslog_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestSyslogDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createSyslogOK(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
+func createSyslogOK(_ context.Context, i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -280,11 +281,11 @@ func createSyslogOK(i *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	}, nil
 }
 
-func createSyslogError(_ *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
+func createSyslogError(_ context.Context, _ *fastly.CreateSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
-func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
+func listSyslogsOK(_ context.Context, i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 	return []*fastly.Syslog{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -331,7 +332,7 @@ func listSyslogsOK(i *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 	}, nil
 }
 
-func listSyslogsError(_ *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
+func listSyslogsError(_ context.Context, _ *fastly.ListSyslogsInput) ([]*fastly.Syslog, error) {
 	return nil, errTest
 }
 
@@ -390,7 +391,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
+func getSyslogOK(_ context.Context, i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -414,7 +415,7 @@ func getSyslogOK(i *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	}, nil
 }
 
-func getSyslogError(_ *fastly.GetSyslogInput) (*fastly.Syslog, error) {
+func getSyslogError(_ context.Context, _ *fastly.GetSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
@@ -440,7 +441,7 @@ Use TLS: true
 Version: 1
 `
 
-func updateSyslogOK(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
+func updateSyslogOK(_ context.Context, i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	return &fastly.Syslog{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -463,14 +464,14 @@ func updateSyslogOK(i *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	}, nil
 }
 
-func updateSyslogError(_ *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
+func updateSyslogError(_ context.Context, _ *fastly.UpdateSyslogInput) (*fastly.Syslog, error) {
 	return nil, errTest
 }
 
-func deleteSyslogOK(_ *fastly.DeleteSyslogInput) error {
+func deleteSyslogOK(_ context.Context, _ *fastly.DeleteSyslogInput) error {
 	return nil
 }
 
-func deleteSyslogError(_ *fastly.DeleteSyslogInput) error {
+func deleteSyslogError(_ context.Context, _ *fastly.DeleteSyslogInput) error {
 	return errTest
 }

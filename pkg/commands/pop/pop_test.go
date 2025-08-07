@@ -2,10 +2,11 @@ package pop_test
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -17,7 +18,7 @@ func TestAllDatacenters(t *testing.T) {
 	var stdout bytes.Buffer
 	args := testutil.SplitArgs("pops")
 	api := mock.API{
-		AllDatacentersFn: func() ([]fastly.Datacenter, error) {
+		AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 			return []fastly.Datacenter{
 				{
 					Name:   fastly.ToPointer("Foobar"),

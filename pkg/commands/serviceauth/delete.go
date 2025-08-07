@@ -1,9 +1,10 @@
 package serviceauth
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -32,7 +33,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	if err := c.Globals.APIClient.DeleteServiceAuthorization(&c.Input); err != nil {
+	if err := c.Globals.APIClient.DeleteServiceAuthorization(context.TODO(), &c.Input); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service Authorization ID": c.Input.ID,
 		})

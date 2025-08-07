@@ -1,10 +1,11 @@
 package kvstoreentry
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -83,7 +84,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	for {
-		o, err := c.Globals.APIClient.ListKVStoreKeys(&c.Input)
+		o, err := c.Globals.APIClient.ListKVStoreKeys(context.TODO(), &c.Input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			if !c.JSONOutput.Enabled {

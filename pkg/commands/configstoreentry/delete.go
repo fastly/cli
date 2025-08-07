@@ -1,12 +1,13 @@
 package configstoreentry
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
 	"sync"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -92,7 +93,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return c.deleteAllKeys(out)
 	}
 
-	err := c.Globals.APIClient.DeleteConfigStoreItem(&c.input)
+	err := c.Globals.APIClient.DeleteConfigStoreItem(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -118,7 +119,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 	// NOTE: The Config Store returns ALL items (there is no pagination).
-	items, err := c.Globals.APIClient.ListConfigStoreItems(&fastly.ListConfigStoreItemsInput{
+	items, err := c.Globals.APIClient.ListConfigStoreItems(context.TODO(), &fastly.ListConfigStoreItemsInput{
 		StoreID: c.input.StoreID,
 	})
 	if err != nil {
@@ -161,7 +162,7 @@ func (c *DeleteCommand) deleteAllKeys(out io.Writer) error {
 
 			for _, item := range items {
 				text.Output(out, "Deleting key: %s", item.Key)
-				err := c.Globals.APIClient.DeleteConfigStoreItem(&fastly.DeleteConfigStoreItemInput{StoreID: c.input.StoreID, Key: item.Key})
+				err := c.Globals.APIClient.DeleteConfigStoreItem(context.TODO(), &fastly.DeleteConfigStoreItemInput{StoreID: c.input.StoreID, Key: item.Key})
 				if err != nil {
 					c.Globals.ErrLog.Add(fmt.Errorf("failed to delete key '%s': %s", item.Key, err))
 					mu.Lock()

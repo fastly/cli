@@ -2,12 +2,13 @@ package authtoken
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -45,7 +46,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.current {
-		err := c.Globals.APIClient.DeleteTokenSelf()
+		err := c.Globals.APIClient.DeleteTokenSelf(context.TODO())
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -62,7 +63,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		err = c.Globals.APIClient.BatchDeleteTokens(input)
+		err = c.Globals.APIClient.BatchDeleteTokens(context.TODO(), input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -79,7 +80,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.id != "" {
 		input := c.constructInput()
 
-		err := c.Globals.APIClient.DeleteToken(input)
+		err := c.Globals.APIClient.DeleteToken(context.TODO(), input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err

@@ -1,11 +1,12 @@
 package aclentry
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -78,7 +79,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		err = c.Globals.APIClient.BatchModifyACLEntries(input)
+		err = c.Globals.APIClient.BatchModifyACLEntries(context.TODO(), input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
@@ -95,7 +96,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	a, err := c.Globals.APIClient.UpdateACLEntry(input)
+	a, err := c.Globals.APIClient.UpdateACLEntry(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,

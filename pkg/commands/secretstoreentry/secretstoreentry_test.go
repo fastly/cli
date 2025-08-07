@@ -2,6 +2,7 @@ package secretstoreentry_test
 
 import (
 	"bytes"
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
@@ -17,7 +18,7 @@ import (
 
 	"golang.org/x/crypto/nacl/box"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
@@ -58,8 +59,8 @@ func TestCreateSecretCommand(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	mockCreateClientKey := func() (*fastly.ClientKey, error) { return ck, nil }
-	mockGetSigningKey := func() (ed25519.PublicKey, error) { return skPub, nil }
+	mockCreateClientKey := func(_ context.Context) (*fastly.ClientKey, error) { return ck, nil }
+	mockGetSigningKey := func(_ context.Context) (ed25519.PublicKey, error) { return skPub, nil }
 
 	decrypt := func(ciphertext []byte) (string, error) {
 		plaintext, ok := box.OpenAnonymous(nil, ciphertext, ckPub, ckPriv)
@@ -109,7 +110,7 @@ func TestCreateSecretCommand(t *testing.T) {
 			api: mock.API{
 				CreateClientKeyFn: mockCreateClientKey,
 				GetSigningKeyFn:   mockGetSigningKey,
-				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+				CreateSecretFn: func(_ context.Context, i *fastly.CreateSecretInput) (*fastly.Secret, error) {
 					if got, err := decrypt(i.Secret); err != nil {
 						return nil, err
 					} else if got != secretValue {
@@ -130,7 +131,7 @@ func TestCreateSecretCommand(t *testing.T) {
 			api: mock.API{
 				CreateClientKeyFn: mockCreateClientKey,
 				GetSigningKeyFn:   mockGetSigningKey,
-				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+				CreateSecretFn: func(_ context.Context, i *fastly.CreateSecretInput) (*fastly.Secret, error) {
 					if got, err := decrypt(i.Secret); err != nil {
 						return nil, err
 					} else if got != secretValue {
@@ -150,7 +151,7 @@ func TestCreateSecretCommand(t *testing.T) {
 			api: mock.API{
 				CreateClientKeyFn: mockCreateClientKey,
 				GetSigningKeyFn:   mockGetSigningKey,
-				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+				CreateSecretFn: func(_ context.Context, i *fastly.CreateSecretInput) (*fastly.Secret, error) {
 					if got, err := decrypt(i.Secret); err != nil {
 						return nil, err
 					} else if got != secretValue {
@@ -174,7 +175,7 @@ func TestCreateSecretCommand(t *testing.T) {
 			api: mock.API{
 				CreateClientKeyFn: mockCreateClientKey,
 				GetSigningKeyFn:   mockGetSigningKey,
-				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+				CreateSecretFn: func(_ context.Context, i *fastly.CreateSecretInput) (*fastly.Secret, error) {
 					if got, want := i.Method, http.MethodPut; got != want {
 						return nil, fmt.Errorf("got method %q, want %q", got, want)
 					}
@@ -201,7 +202,7 @@ func TestCreateSecretCommand(t *testing.T) {
 			api: mock.API{
 				CreateClientKeyFn: mockCreateClientKey,
 				GetSigningKeyFn:   mockGetSigningKey,
-				CreateSecretFn: func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+				CreateSecretFn: func(_ context.Context, i *fastly.CreateSecretInput) (*fastly.Secret, error) {
 					if got, want := i.Method, http.MethodPatch; got != want {
 						return nil, fmt.Errorf("got method %q, want %q", got, want)
 					}
@@ -240,9 +241,9 @@ func TestCreateSecretCommand(t *testing.T) {
 
 			f := testcase.api.CreateSecretFn
 			var apiInvoked bool
-			testcase.api.CreateSecretFn = func(i *fastly.CreateSecretInput) (*fastly.Secret, error) {
+			testcase.api.CreateSecretFn = func(ctx context.Context, i *fastly.CreateSecretInput) (*fastly.Secret, error) {
 				apiInvoked = true
-				return f(i)
+				return f(ctx, i)
 			}
 
 			// Tests generate their own signing keys, which won't match
@@ -289,7 +290,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("delete --store-id %s --name DOES-NOT-EXIST", storeID),
 			api: mock.API{
-				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
+				DeleteSecretFn: func(_ context.Context, i *fastly.DeleteSecretInput) error {
 					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
@@ -302,7 +303,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("delete --store-id %s --name %s", storeID, secretName),
 			api: mock.API{
-				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
+				DeleteSecretFn: func(_ context.Context, i *fastly.DeleteSecretInput) error {
 					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
@@ -315,7 +316,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("delete --store-id %s --name %s --json", storeID, secretName),
 			api: mock.API{
-				DeleteSecretFn: func(i *fastly.DeleteSecretInput) error {
+				DeleteSecretFn: func(_ context.Context, i *fastly.DeleteSecretInput) error {
 					if i.StoreID != storeID || i.Name != secretName {
 						return errors.New("not found")
 					}
@@ -336,9 +337,9 @@ func TestDeleteSecretCommand(t *testing.T) {
 
 			f := testcase.api.DeleteSecretFn
 			var apiInvoked bool
-			testcase.api.DeleteSecretFn = func(i *fastly.DeleteSecretInput) error {
+			testcase.api.DeleteSecretFn = func(ctx context.Context, i *fastly.DeleteSecretInput) error {
 				apiInvoked = true
-				return f(i)
+				return f(ctx, i)
 			}
 
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
@@ -381,7 +382,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("get --store-id %s --name %s", "DOES-NOT-EXIST", storeName),
 			api: mock.API{
-				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
+				GetSecretFn: func(_ context.Context, i *fastly.GetSecretInput) (*fastly.Secret, error) {
 					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
@@ -397,7 +398,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("get --store-id %s --name %s", storeID, storeName),
 			api: mock.API{
-				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
+				GetSecretFn: func(_ context.Context, i *fastly.GetSecretInput) (*fastly.Secret, error) {
 					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
@@ -416,7 +417,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("get --store-id %s --name %s --json", storeID, storeName),
 			api: mock.API{
-				GetSecretFn: func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
+				GetSecretFn: func(_ context.Context, i *fastly.GetSecretInput) (*fastly.Secret, error) {
 					if i.StoreID != storeID || i.Name != storeName {
 						return nil, errors.New("invalid request")
 					}
@@ -443,9 +444,9 @@ func TestDescribeSecretCommand(t *testing.T) {
 
 			f := testcase.api.GetSecretFn
 			var apiInvoked bool
-			testcase.api.GetSecretFn = func(i *fastly.GetSecretInput) (*fastly.Secret, error) {
+			testcase.api.GetSecretFn = func(ctx context.Context, i *fastly.GetSecretInput) (*fastly.Secret, error) {
 				apiInvoked = true
-				return f(i)
+				return f(ctx, i)
 			}
 
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
@@ -493,7 +494,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s", storeID),
 			api: mock.API{
-				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ context.Context, _ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, errors.New("unknown error")
 				},
 			},
@@ -503,7 +504,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s", storeID),
 			api: mock.API{
-				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ context.Context, _ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, nil
 				},
 			},
@@ -513,7 +514,7 @@ func TestListSecretsCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("list --store-id %s --json", storeID),
 			api: mock.API{
-				ListSecretsFn: func(_ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+				ListSecretsFn: func(_ context.Context, _ *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 					return secrets, nil
 				},
 			},
@@ -531,9 +532,9 @@ func TestListSecretsCommand(t *testing.T) {
 
 			f := testcase.api.ListSecretsFn
 			var apiInvoked bool
-			testcase.api.ListSecretsFn = func(i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
+			testcase.api.ListSecretsFn = func(ctx context.Context, i *fastly.ListSecretsInput) (*fastly.Secrets, error) {
 				apiInvoked = true
-				return f(i)
+				return f(ctx, i)
 			}
 
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {

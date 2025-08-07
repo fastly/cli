@@ -1,6 +1,7 @@
 package ip
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -28,7 +29,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	ipv4, ipv6, err := c.Globals.APIClient.AllIPs()
+	ipv4, ipv6, err := c.Globals.APIClient.AllIPs(context.TODO())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

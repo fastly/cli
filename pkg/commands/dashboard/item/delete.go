@@ -1,10 +1,11 @@
 package item
 
 import (
+	"context"
 	"io"
 	"slices"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -44,7 +45,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(&fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID})
+	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), &fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID})
 	if err != nil {
 		return err
 	}
@@ -56,7 +57,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return di.ID == c.itemID
 	}) {
 		input := c.constructInput(d)
-		d, err = c.Globals.APIClient.UpdateObservabilityCustomDashboard(input)
+		d, err = c.Globals.APIClient.UpdateObservabilityCustomDashboard(context.TODO(), input)
 		if err != nil {
 			return err
 		}

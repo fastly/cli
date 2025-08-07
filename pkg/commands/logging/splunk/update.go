@@ -1,9 +1,10 @@
 package splunk
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -178,7 +179,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	splunk, err := c.Globals.APIClient.UpdateSplunk(input)
+	splunk, err := c.Globals.APIClient.UpdateSplunk(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

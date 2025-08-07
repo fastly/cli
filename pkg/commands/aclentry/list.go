@@ -1,10 +1,11 @@
 package aclentry
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -75,7 +76,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput(serviceID)
-	paginator := c.Globals.APIClient.GetACLEntries(input)
+	paginator := c.Globals.APIClient.GetACLEntries(context.TODO(), input)
 
 	var o []*fastly.ACLEntry
 	for paginator.HasNext() {

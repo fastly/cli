@@ -2,12 +2,13 @@ package stats_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -50,7 +51,7 @@ func TestRegions(t *testing.T) {
 	}
 }
 
-func getRegionsOK() (*fastly.RegionsResponse, error) {
+func getRegionsOK(_ context.Context) (*fastly.RegionsResponse, error) {
 	return &fastly.RegionsResponse{
 		Data: []string{"foo", "bar", "baz"},
 	}, nil
@@ -58,6 +59,6 @@ func getRegionsOK() (*fastly.RegionsResponse, error) {
 
 var errTest = errors.New("fixture error")
 
-func getRegionsError() (*fastly.RegionsResponse, error) {
+func getRegionsError(_ context.Context) (*fastly.RegionsResponse, error) {
 	return nil, errTest
 }

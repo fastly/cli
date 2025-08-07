@@ -1,10 +1,11 @@
 package vcl
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -79,7 +80,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
-	o, err := c.Globals.APIClient.GetGeneratedVCL(input)
+	o, err := c.Globals.APIClient.GetGeneratedVCL(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

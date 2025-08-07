@@ -1,6 +1,7 @@
 package argparser
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +13,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
+
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/api"
@@ -114,7 +116,7 @@ type OptionalServiceVersion struct {
 
 // Parse returns a service version based on the given user input.
 func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fastly.Version, error) {
-	vs, err := client.ListVersions(&fastly.ListVersionsInput{
+	vs, err := client.ListVersions(context.TODO(), &fastly.ListVersionsInput{
 		ServiceID: sid,
 	})
 	if err != nil {
@@ -159,7 +161,7 @@ type OptionalServiceNameID struct {
 
 // Parse returns a service ID based off the given service name.
 func (sv *OptionalServiceNameID) Parse(client api.Interface) (serviceID string, err error) {
-	paginator := client.GetServices(&fastly.GetServicesInput{})
+	paginator := client.GetServices(context.TODO(), &fastly.GetServicesInput{})
 	var services []*fastly.Service
 	for paginator.HasNext() {
 		data, err := paginator.GetNext()
@@ -228,7 +230,7 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 		}
 	}
 	if ac.Value && (v.Active != nil && *v.Active || v.Locked != nil && *v.Locked) {
-		version, err := client.CloneVersion(&fastly.CloneVersionInput{
+		version, err := client.CloneVersion(context.TODO(), &fastly.CloneVersionInput{
 			ServiceID:      sid,
 			ServiceVersion: fastly.ToValue(v.Number),
 		})

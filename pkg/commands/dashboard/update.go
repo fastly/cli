@@ -1,9 +1,10 @@
 package dashboard
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -45,7 +46,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput()
-	dashboard, err := c.Globals.APIClient.UpdateObservabilityCustomDashboard(input)
+	dashboard, err := c.Globals.APIClient.UpdateObservabilityCustomDashboard(context.TODO(), input)
 	if err != nil {
 		return err
 	}

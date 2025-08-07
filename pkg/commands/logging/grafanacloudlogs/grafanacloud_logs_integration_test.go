@@ -2,6 +2,7 @@ package grafanacloudlogs_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
@@ -11,7 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 )
 
 func TestGrafanaCloudLogsCreate(t *testing.T) {
@@ -271,7 +272,7 @@ func TestGrafanaCloudLogsDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createGrafanaCloudLogsOK(i *fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+func createGrafanaCloudLogsOK(_ context.Context, i *fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return &fastly.GrafanaCloudLogs{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -279,11 +280,11 @@ func createGrafanaCloudLogsOK(i *fastly.CreateGrafanaCloudLogsInput) (*fastly.Gr
 	}, nil
 }
 
-func createGrafanaCloudLogsError(_ *fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+func createGrafanaCloudLogsError(_ context.Context, _ *fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return nil, errTest
 }
 
-func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
+func listGrafanaCloudLogsOK(_ context.Context, i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
 	return []*fastly.GrafanaCloudLogs{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -318,7 +319,7 @@ func listGrafanaCloudLogsOK(i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.Graf
 	}, nil
 }
 
-func listGrafanaCloudLogsError(_ *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
+func listGrafanaCloudLogsError(_ context.Context, _ *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
 	return nil, errTest
 }
 
@@ -365,7 +366,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getGrafanaCloudLogsOK(i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+func getGrafanaCloudLogsOK(_ context.Context, i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return &fastly.GrafanaCloudLogs{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -383,7 +384,7 @@ func getGrafanaCloudLogsOK(i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaC
 	}, nil
 }
 
-func getGrafanaCloudLogsError(_ *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+func getGrafanaCloudLogsError(_ context.Context, _ *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return nil, errTest
 }
 
@@ -403,7 +404,7 @@ User: 123456
 Version: 1
 `) + "\n"
 
-func updateGrafanaCloudLogsOK(i *fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+func updateGrafanaCloudLogsOK(_ context.Context, i *fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return &fastly.GrafanaCloudLogs{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -420,14 +421,14 @@ func updateGrafanaCloudLogsOK(i *fastly.UpdateGrafanaCloudLogsInput) (*fastly.Gr
 	}, nil
 }
 
-func updateGrafanaCloudLogsError(_ *fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
+func updateGrafanaCloudLogsError(_ context.Context, _ *fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return nil, errTest
 }
 
-func deleteGrafanaCloudLogsOK(_ *fastly.DeleteGrafanaCloudLogsInput) error {
+func deleteGrafanaCloudLogsOK(_ context.Context, _ *fastly.DeleteGrafanaCloudLogsInput) error {
 	return nil
 }
 
-func deleteGrafanaCloudLogsError(_ *fastly.DeleteGrafanaCloudLogsInput) error {
+func deleteGrafanaCloudLogsError(_ context.Context, _ *fastly.DeleteGrafanaCloudLogsInput) error {
 	return errTest
 }

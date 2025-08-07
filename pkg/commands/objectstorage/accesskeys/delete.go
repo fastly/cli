@@ -1,11 +1,13 @@
 package accesskeys
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/objectstorage/accesskeys"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	"github.com/fastly/go-fastly/v11/fastly/objectstorage/accesskeys"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -52,7 +54,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	err := accesskeys.Delete(fc, &accesskeys.DeleteInput{
+	err := accesskeys.Delete(context.TODO(), fc, &accesskeys.DeleteInput{
 		AccessKeyID: &c.id,
 	})
 	if err != nil {

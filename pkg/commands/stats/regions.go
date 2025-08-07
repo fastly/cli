@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -24,7 +25,7 @@ func NewRegionsCommand(parent argparser.Registerer, g *global.Data) *RegionsComm
 
 // Exec implements the command interface.
 func (c *RegionsCommand) Exec(_ io.Reader, out io.Writer) error {
-	resp, err := c.Globals.APIClient.GetRegions()
+	resp, err := c.Globals.APIClient.GetRegions(context.TODO())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("fetching regions: %w", err)

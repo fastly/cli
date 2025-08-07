@@ -27,7 +27,7 @@ require (
 )
 
 require (
-	github.com/fastly/go-fastly/v10 v10.5.1
+	github.com/fastly/go-fastly/v11 v11.2.0
 	github.com/hashicorp/cap v0.9.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/otiai10/copy v1.14.1
@@ -43,7 +43,6 @@ require (
 	github.com/dnaeon/go-vcr v1.2.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
@@ -81,4 +80,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require 4d63.com/optional v0.2.0
+require (
+	4d63.com/optional v0.2.0
+	github.com/mitchellh/go-ps v1.0.0
+)

@@ -1,10 +1,11 @@
 package dictionary
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -81,7 +82,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersionNumber
 
-	o, err := c.Globals.APIClient.ListDictionaries(&c.Input)
+	o, err := c.Globals.APIClient.ListDictionaries(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

@@ -1,9 +1,10 @@
 package snippet_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/vcl"
 	sub "github.com/fastly/cli/pkg/commands/vcl/snippet"
@@ -39,7 +40,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			Name: "validate CreateSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateSnippetFn: func(_ *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
+				CreateSnippetFn: func(_ context.Context, _ *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -50,7 +51,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			Name: "validate CreateSnippet API success for versioned Snippet",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
+				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
@@ -84,7 +85,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			Name: "validate CreateSnippet API success for dynamic Snippet",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
+				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
@@ -118,7 +119,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			Name: "validate Priority set",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
+				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
@@ -153,7 +154,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
+				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
@@ -187,7 +188,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 			Name: "validate CreateSnippet API success with inline Snippet content",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateSnippetFn: func(i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
+				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
@@ -259,7 +260,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			Name: "validate DeleteSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteSnippetFn: func(_ *fastly.DeleteSnippetInput) error {
+				DeleteSnippetFn: func(_ context.Context, _ *fastly.DeleteSnippetInput) error {
 					return testutil.Err
 				},
 			},
@@ -270,7 +271,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			Name: "validate DeleteSnippet API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteSnippetFn: func(_ *fastly.DeleteSnippetInput) error {
+				DeleteSnippetFn: func(_ context.Context, _ *fastly.DeleteSnippetInput) error {
 					return nil
 				},
 			},
@@ -282,7 +283,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteSnippetFn: func(_ *fastly.DeleteSnippetInput) error {
+				DeleteSnippetFn: func(_ context.Context, _ *fastly.DeleteSnippetInput) error {
 					return nil
 				},
 			},
@@ -325,7 +326,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			Name: "validate GetSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetSnippetFn: func(_ *fastly.GetSnippetInput) (*fastly.Snippet, error) {
+				GetSnippetFn: func(_ context.Context, _ *fastly.GetSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -379,7 +380,7 @@ func TestVCLSnippetList(t *testing.T) {
 			Name: "validate ListSnippets API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListSnippetsFn: func(_ *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
+				ListSnippetsFn: func(_ context.Context, _ *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -482,7 +483,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			Name: "validate UpdateSnippet API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateSnippetFn: func(_ *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+				UpdateSnippetFn: func(_ context.Context, _ *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -493,7 +494,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			Name: "validate UpdateSnippet API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateSnippetFn: func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+				UpdateSnippetFn: func(_ context.Context, i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
 
@@ -515,7 +516,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			Name: "validate UpdateDynamicSnippet API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateDynamicSnippetFn: func(i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
+				UpdateDynamicSnippetFn: func(_ context.Context, i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
 					// Track the contents parsed
 					content = *i.Content
 
@@ -535,7 +536,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				UpdateSnippetFn: func(i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+				UpdateSnippetFn: func(_ context.Context, i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
 
@@ -558,7 +559,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
-func getSnippet(i *fastly.GetSnippetInput) (*fastly.Snippet, error) {
+func getSnippet(_ context.Context, i *fastly.GetSnippetInput) (*fastly.Snippet, error) {
 	t := testutil.Date
 
 	return &fastly.Snippet{
@@ -577,7 +578,7 @@ func getSnippet(i *fastly.GetSnippetInput) (*fastly.Snippet, error) {
 	}, nil
 }
 
-func getDynamicSnippet(i *fastly.GetDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
+func getDynamicSnippet(_ context.Context, i *fastly.GetDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
 	t := testutil.Date
 
 	return &fastly.DynamicSnippet{
@@ -590,7 +591,7 @@ func getDynamicSnippet(i *fastly.GetDynamicSnippetInput) (*fastly.DynamicSnippet
 	}, nil
 }
 
-func listSnippets(i *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
+func listSnippets(_ context.Context, i *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
 	t := testutil.Date
 	vs := []*fastly.Snippet{
 		{

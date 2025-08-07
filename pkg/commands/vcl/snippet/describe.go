@@ -1,10 +1,11 @@
 package snippet
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -95,7 +96,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		o, err := c.Globals.APIClient.GetDynamicSnippet(input)
+		o, err := c.Globals.APIClient.GetDynamicSnippet(context.TODO(), input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
@@ -120,7 +121,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	o, err := c.Globals.APIClient.GetSnippet(input)
+	o, err := c.Globals.APIClient.GetSnippet(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

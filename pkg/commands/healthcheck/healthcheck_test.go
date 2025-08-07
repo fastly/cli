@@ -2,13 +2,14 @@ package healthcheck_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -287,7 +288,7 @@ func TestHealthCheckDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createHealthCheckOK(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
+func createHealthCheckOK(_ context.Context, i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -297,11 +298,11 @@ func createHealthCheckOK(i *fastly.CreateHealthCheckInput) (*fastly.HealthCheck,
 	}, nil
 }
 
-func createHealthCheckError(_ *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
+func createHealthCheckError(_ context.Context, _ *fastly.CreateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
-func listHealthChecksOK(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
+func listHealthChecksOK(_ context.Context, i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
 	return []*fastly.HealthCheck{
 		{
 			ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -324,7 +325,7 @@ func listHealthChecksOK(i *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck,
 	}, nil
 }
 
-func listHealthChecksError(_ *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
+func listHealthChecksError(_ context.Context, _ *fastly.ListHealthChecksInput) ([]*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
@@ -369,7 +370,7 @@ var listHealthChecksVerboseOutput = strings.Join([]string{
 	"		Initial: 0",
 }, "\n") + "\n\n"
 
-func getHealthCheckOK(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
+func getHealthCheckOK(_ context.Context, i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -381,7 +382,7 @@ func getHealthCheckOK(i *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error
 	}, nil
 }
 
-func getHealthCheckError(_ *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
+func getHealthCheckError(_ context.Context, _ *fastly.GetHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
@@ -402,7 +403,7 @@ var describeHealthCheckOutput = "\n" + strings.Join([]string{
 	"Initial: 0",
 }, "\n") + "\n"
 
-func updateHealthCheckOK(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
+func updateHealthCheckOK(_ context.Context, i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return &fastly.HealthCheck{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -410,14 +411,14 @@ func updateHealthCheckOK(i *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck,
 	}, nil
 }
 
-func updateHealthCheckError(_ *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
+func updateHealthCheckError(_ context.Context, _ *fastly.UpdateHealthCheckInput) (*fastly.HealthCheck, error) {
 	return nil, errTest
 }
 
-func deleteHealthCheckOK(_ *fastly.DeleteHealthCheckInput) error {
+func deleteHealthCheckOK(_ context.Context, _ *fastly.DeleteHealthCheckInput) error {
 	return nil
 }
 
-func deleteHealthCheckError(_ *fastly.DeleteHealthCheckInput) error {
+func deleteHealthCheckError(_ context.Context, _ *fastly.DeleteHealthCheckInput) error {
 	return errTest
 }

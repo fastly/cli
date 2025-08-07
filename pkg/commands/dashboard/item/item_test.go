@@ -1,10 +1,11 @@
 package item_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/dashboard"
 	sub "github.com/fastly/cli/pkg/commands/dashboard/item"
@@ -315,18 +316,18 @@ func TestUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
-func getDashboardOK(_ *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+func getDashboardOK(_ context.Context, _ *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 	d := defaultDashboard()
 	return &d, nil
 }
 
-func updateDashboardOK(i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+func updateDashboardOK(_ context.Context, i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 	d := defaultDashboard()
 	d.Items = *i.Items
 	return &d, nil
 }
 
-func updateDashboardEmpty(_ *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
+func updateDashboardEmpty(_ context.Context, _ *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 	d := defaultDashboard()
 	d.Items = []fastly.DashboardItem{}
 	return &d, nil

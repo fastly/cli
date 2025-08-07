@@ -1,10 +1,11 @@
 package condition
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -81,7 +82,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 	input.Name = c.name
 
-	r, err := c.Globals.APIClient.GetCondition(&input)
+	r, err := c.Globals.APIClient.GetCondition(context.TODO(), &input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

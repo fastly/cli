@@ -1,12 +1,13 @@
 package domain_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/mock"
@@ -209,7 +210,7 @@ func TestDomainValidate(t *testing.T) {
 			Name: "validate ValidateDomain API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ValidateDomainFn: func(_ *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
+				ValidateDomainFn: func(_ context.Context, _ *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -220,7 +221,7 @@ func TestDomainValidate(t *testing.T) {
 			Name: "validate ValidateAllDomains API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ValidateAllDomainsFn: func(_ *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error) {
+				ValidateAllDomainsFn: func(_ context.Context, _ *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -261,7 +262,7 @@ func TestDomainValidate(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
+func createDomainOK(_ context.Context, i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -269,11 +270,11 @@ func createDomainOK(i *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	}, nil
 }
 
-func createDomainError(_ *fastly.CreateDomainInput) (*fastly.Domain, error) {
+func createDomainError(_ context.Context, _ *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
-func listDomainsOK(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsOK(_ context.Context, i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{
 		{
 			ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -290,7 +291,7 @@ func listDomainsOK(i *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	}, nil
 }
 
-func listDomainsError(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsError(_ context.Context, _ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, errTest
 }
 
@@ -315,7 +316,7 @@ Version: 1
 		Comment: example
 `) + "\n\n"
 
-func getDomainOK(i *fastly.GetDomainInput) (*fastly.Domain, error) {
+func getDomainOK(_ context.Context, i *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -324,7 +325,7 @@ func getDomainOK(i *fastly.GetDomainInput) (*fastly.Domain, error) {
 	}, nil
 }
 
-func getDomainError(_ *fastly.GetDomainInput) (*fastly.Domain, error) {
+func getDomainError(_ context.Context, _ *fastly.GetDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
@@ -335,7 +336,7 @@ Name: www.test.com
 Comment: test
 `) + "\n"
 
-func updateDomainOK(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
+func updateDomainOK(_ context.Context, i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	return &fastly.Domain{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -343,19 +344,19 @@ func updateDomainOK(i *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	}, nil
 }
 
-func updateDomainError(_ *fastly.UpdateDomainInput) (*fastly.Domain, error) {
+func updateDomainError(_ context.Context, _ *fastly.UpdateDomainInput) (*fastly.Domain, error) {
 	return nil, errTest
 }
 
-func deleteDomainOK(_ *fastly.DeleteDomainInput) error {
+func deleteDomainOK(_ context.Context, _ *fastly.DeleteDomainInput) error {
 	return nil
 }
 
-func deleteDomainError(_ *fastly.DeleteDomainInput) error {
+func deleteDomainError(_ context.Context, _ *fastly.DeleteDomainInput) error {
 	return errTest
 }
 
-func validateDomain(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
+func validateDomain(_ context.Context, i *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
 	return &fastly.DomainValidationResult{
 		Metadata: &fastly.DomainMetadata{
 			ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -367,7 +368,7 @@ func validateDomain(i *fastly.ValidateDomainInput) (*fastly.DomainValidationResu
 	}, nil
 }
 
-func validateAllDomains(i *fastly.ValidateAllDomainsInput) (results []*fastly.DomainValidationResult, err error) {
+func validateAllDomains(_ context.Context, i *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error) {
 	return []*fastly.DomainValidationResult{
 		{
 			Metadata: &fastly.DomainMetadata{

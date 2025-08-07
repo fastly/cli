@@ -9,8 +9,9 @@ import (
 	"github.com/fastly/cli/pkg/commands/tools"
 	"github.com/fastly/cli/pkg/commands/tools/domain"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/domains/v1/tools/suggest"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	"github.com/fastly/go-fastly/v11/fastly/domains/v1/tools/suggest"
 )
 
 func TestNewDomainsV1ToolsSuggestCommand(t *testing.T) {

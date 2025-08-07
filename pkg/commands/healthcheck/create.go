@@ -1,9 +1,10 @@
 package healthcheck
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -148,7 +149,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Initial = &c.initial.Value
 	}
 
-	h, err := c.Globals.APIClient.CreateHealthCheck(&input)
+	h, err := c.Globals.APIClient.CreateHealthCheck(context.TODO(), &input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

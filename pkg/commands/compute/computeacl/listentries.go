@@ -1,11 +1,13 @@
 package computeacl
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/computeacls"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	"github.com/fastly/go-fastly/v11/fastly/computeacls"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -62,7 +64,7 @@ func (c *ListEntriesCommand) Exec(in io.Reader, out io.Writer) error {
 	loadAllPages := c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
 
 	for {
-		o, err := computeacls.ListEntries(fc, &computeacls.ListEntriesInput{
+		o, err := computeacls.ListEntries(context.TODO(), fc, &computeacls.ListEntriesInput{
 			ComputeACLID: &c.id,
 			Cursor:       &c.cursor,
 			Limit:        &c.limit,

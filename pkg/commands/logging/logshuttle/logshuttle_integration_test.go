@@ -2,12 +2,13 @@ package logshuttle_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestLogshuttleDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createLogshuttleOK(i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error) {
+func createLogshuttleOK(_ context.Context, i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error) {
 	s := fastly.Logshuttle{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -285,11 +286,11 @@ func createLogshuttleOK(i *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, er
 	return &s, nil
 }
 
-func createLogshuttleError(_ *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error) {
+func createLogshuttleError(_ context.Context, _ *fastly.CreateLogshuttleInput) (*fastly.Logshuttle, error) {
 	return nil, errTest
 }
 
-func listLogshuttlesOK(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error) {
+func listLogshuttlesOK(_ context.Context, i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error) {
 	return []*fastly.Logshuttle{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -318,7 +319,7 @@ func listLogshuttlesOK(i *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, er
 	}, nil
 }
 
-func listLogshuttlesError(_ *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error) {
+func listLogshuttlesError(_ context.Context, _ *fastly.ListLogshuttlesInput) ([]*fastly.Logshuttle, error) {
 	return nil, errTest
 }
 
@@ -359,7 +360,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getLogshuttleOK(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
+func getLogshuttleOK(_ context.Context, i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
 	return &fastly.Logshuttle{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -374,7 +375,7 @@ func getLogshuttleOK(i *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
 	}, nil
 }
 
-func getLogshuttleError(_ *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
+func getLogshuttleError(_ context.Context, _ *fastly.GetLogshuttleInput) (*fastly.Logshuttle, error) {
 	return nil, errTest
 }
 
@@ -391,7 +392,7 @@ URL: example.com
 Version: 1
 `) + "\n"
 
-func updateLogshuttleOK(i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {
+func updateLogshuttleOK(_ context.Context, i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {
 	return &fastly.Logshuttle{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -405,14 +406,14 @@ func updateLogshuttleOK(i *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, er
 	}, nil
 }
 
-func updateLogshuttleError(_ *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {
+func updateLogshuttleError(_ context.Context, _ *fastly.UpdateLogshuttleInput) (*fastly.Logshuttle, error) {
 	return nil, errTest
 }
 
-func deleteLogshuttleOK(_ *fastly.DeleteLogshuttleInput) error {
+func deleteLogshuttleOK(_ context.Context, _ *fastly.DeleteLogshuttleInput) error {
 	return nil
 }
 
-func deleteLogshuttleError(_ *fastly.DeleteLogshuttleInput) error {
+func deleteLogshuttleError(_ context.Context, _ *fastly.DeleteLogshuttleInput) error {
 	return errTest
 }

@@ -2,6 +2,7 @@ package secretstoreentry
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -150,13 +151,13 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errMaxSecretLength
 	}
 
-	ck, err := c.Globals.APIClient.CreateClientKey()
+	ck, err := c.Globals.APIClient.CreateClientKey(context.TODO())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	sk, err := c.Globals.APIClient.GetSigningKey()
+	sk, err := c.Globals.APIClient.GetSigningKey(context.TODO())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -183,7 +184,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.Secret = wrapped
 	c.Input.ClientKey = ck.PublicKey
 
-	o, err := c.Globals.APIClient.CreateSecret(&c.Input)
+	o, err := c.Globals.APIClient.CreateSecret(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

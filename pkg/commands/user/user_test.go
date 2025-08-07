@@ -1,10 +1,11 @@
 package user_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/mock"
@@ -16,7 +17,7 @@ func TestUserCreate(t *testing.T) {
 		{
 			Name: "validate CreateUser API error",
 			API: mock.API{
-				CreateUserFn: func(_ *fastly.CreateUserInput) (*fastly.User, error) {
+				CreateUserFn: func(_ context.Context, _ *fastly.CreateUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -26,7 +27,7 @@ func TestUserCreate(t *testing.T) {
 		{
 			Name: "validate CreateUser API success",
 			API: mock.API{
-				CreateUserFn: func(i *fastly.CreateUserInput) (*fastly.User, error) {
+				CreateUserFn: func(_ context.Context, i *fastly.CreateUserInput) (*fastly.User, error) {
 					return &fastly.User{
 						Name: i.Name,
 						Role: fastly.ToPointer("user"),
@@ -50,7 +51,7 @@ func TestUserDelete(t *testing.T) {
 		{
 			Name: "validate DeleteUser API error",
 			API: mock.API{
-				DeleteUserFn: func(_ *fastly.DeleteUserInput) error {
+				DeleteUserFn: func(_ context.Context, _ *fastly.DeleteUserInput) error {
 					return testutil.Err
 				},
 			},
@@ -60,7 +61,7 @@ func TestUserDelete(t *testing.T) {
 		{
 			Name: "validate DeleteUser API success",
 			API: mock.API{
-				DeleteUserFn: func(_ *fastly.DeleteUserInput) error {
+				DeleteUserFn: func(_ context.Context, _ *fastly.DeleteUserInput) error {
 					return nil
 				},
 			},
@@ -81,7 +82,7 @@ func TestUserDescribe(t *testing.T) {
 		{
 			Name: "validate GetUser API error",
 			API: mock.API{
-				GetUserFn: func(_ *fastly.GetUserInput) (*fastly.User, error) {
+				GetUserFn: func(_ context.Context, _ *fastly.GetUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -91,7 +92,7 @@ func TestUserDescribe(t *testing.T) {
 		{
 			Name: "validate GetCurrentUser API error",
 			API: mock.API{
-				GetCurrentUserFn: func() (*fastly.User, error) {
+				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -128,7 +129,7 @@ func TestUserList(t *testing.T) {
 		{
 			Name: "validate ListUsers API error",
 			API: mock.API{
-				ListCustomerUsersFn: func(_ *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
+				ListCustomerUsersFn: func(_ context.Context, _ *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -180,7 +181,7 @@ func TestUserUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateUser API error",
 			API: mock.API{
-				UpdateUserFn: func(_ *fastly.UpdateUserInput) (*fastly.User, error) {
+				UpdateUserFn: func(_ context.Context, _ *fastly.UpdateUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -190,7 +191,7 @@ func TestUserUpdate(t *testing.T) {
 		{
 			Name: "validate ResetUserPassword API error",
 			API: mock.API{
-				ResetUserPasswordFn: func(_ *fastly.ResetUserPasswordInput) error {
+				ResetUserPasswordFn: func(_ context.Context, _ *fastly.ResetUserPasswordInput) error {
 					return testutil.Err
 				},
 			},
@@ -200,7 +201,7 @@ func TestUserUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateUser API success",
 			API: mock.API{
-				UpdateUserFn: func(i *fastly.UpdateUserInput) (*fastly.User, error) {
+				UpdateUserFn: func(_ context.Context, i *fastly.UpdateUserInput) (*fastly.User, error) {
 					return &fastly.User{
 						UserID: fastly.ToPointer(i.UserID),
 						Name:   i.Name,
@@ -214,7 +215,7 @@ func TestUserUpdate(t *testing.T) {
 		{
 			Name: "validate ResetUserPassword API success",
 			API: mock.API{
-				ResetUserPasswordFn: func(_ *fastly.ResetUserPasswordInput) error {
+				ResetUserPasswordFn: func(_ context.Context, _ *fastly.ResetUserPasswordInput) error {
 					return nil
 				},
 			},
@@ -226,7 +227,7 @@ func TestUserUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
-func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
+func getUser(_ context.Context, i *fastly.GetUserInput) (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
@@ -247,7 +248,7 @@ func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
 	}, nil
 }
 
-func getCurrentUser() (*fastly.User, error) {
+func getCurrentUser(_ context.Context) (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{
@@ -268,9 +269,9 @@ func getCurrentUser() (*fastly.User, error) {
 	}, nil
 }
 
-func listUsers(_ *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
-	user, _ := getUser(&fastly.GetUserInput{UserID: "123"})
-	userCurrent, _ := getCurrentUser()
+func listUsers(ctx context.Context, _ *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
+	user, _ := getUser(ctx, &fastly.GetUserInput{UserID: "123"})
+	userCurrent, _ := getCurrentUser(ctx)
 	vs := []*fastly.User{
 		user,
 		userCurrent,

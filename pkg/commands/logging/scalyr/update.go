@@ -1,9 +1,10 @@
 package scalyr
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -149,7 +150,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	scalyr, err := c.Globals.APIClient.UpdateScalyr(input)
+	scalyr, err := c.Globals.APIClient.UpdateScalyr(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -1,6 +1,7 @@
 package grafanacloudlogs
 
 import (
+	"context"
 	"io"
 
 	"4d63.com/optional"
@@ -11,7 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a GrafanaCloudLogs logging endpoint.
@@ -159,7 +160,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	d, err := c.Globals.APIClient.CreateGrafanaCloudLogs(input)
+	d, err := c.Globals.APIClient.CreateGrafanaCloudLogs(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

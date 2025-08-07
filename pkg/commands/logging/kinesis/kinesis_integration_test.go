@@ -2,12 +2,13 @@ package kinesis_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -314,7 +315,7 @@ func TestKinesisDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createKinesisOK(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
+func createKinesisOK(_ context.Context, i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -322,11 +323,11 @@ func createKinesisOK(i *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	}, nil
 }
 
-func createKinesisError(_ *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
+func createKinesisError(_ context.Context, _ *fastly.CreateKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
-func listKinesesOK(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
+func listKinesesOK(_ context.Context, i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	return []*fastly.Kinesis{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -359,7 +360,7 @@ func listKinesesOK(i *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	}, nil
 }
 
-func listKinesesError(_ *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
+func listKinesesError(_ context.Context, _ *fastly.ListKinesisInput) ([]*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
@@ -404,7 +405,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getKinesisOK(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
+func getKinesisOK(_ context.Context, i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -421,7 +422,7 @@ func getKinesisOK(i *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	}, nil
 }
 
-func getKinesisError(_ *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
+func getKinesisError(_ context.Context, _ *fastly.GetKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
@@ -440,7 +441,7 @@ Stream name: my-logs
 Version: 1
 `) + "\n"
 
-func updateKinesisOK(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
+func updateKinesisOK(_ context.Context, i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 	return &fastly.Kinesis{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -456,14 +457,14 @@ func updateKinesisOK(i *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 	}, nil
 }
 
-func updateKinesisError(_ *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
+func updateKinesisError(_ context.Context, _ *fastly.UpdateKinesisInput) (*fastly.Kinesis, error) {
 	return nil, errTest
 }
 
-func deleteKinesisOK(_ *fastly.DeleteKinesisInput) error {
+func deleteKinesisOK(_ context.Context, _ *fastly.DeleteKinesisInput) error {
 	return nil
 }
 
-func deleteKinesisError(_ *fastly.DeleteKinesisInput) error {
+func deleteKinesisError(_ context.Context, _ *fastly.DeleteKinesisInput) error {
 	return errTest
 }

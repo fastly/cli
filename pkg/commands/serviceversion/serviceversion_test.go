@@ -1,10 +1,11 @@
 package serviceversion_test
 
 import (
+	"context"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/mock"
@@ -361,7 +362,7 @@ Versions: 4
 		Last edited (UTC): 2000-01-04 01:00
 `) + "\n\n"
 
-func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
+func updateVersionOK(_ context.Context, i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
 		Number:    fastly.ToPointer(i.ServiceVersion),
 		ServiceID: fastly.ToPointer("123"),
@@ -372,11 +373,11 @@ func updateVersionOK(i *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	}, nil
 }
 
-func updateVersionError(_ *fastly.UpdateVersionInput) (*fastly.Version, error) {
+func updateVersionError(_ context.Context, _ *fastly.UpdateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
-func activateVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+func activateVersionOK(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
 		Number:    fastly.ToPointer(i.ServiceVersion),
 		ServiceID: fastly.ToPointer("123"),
@@ -387,11 +388,11 @@ func activateVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) 
 	}, nil
 }
 
-func activateVersionError(_ *fastly.ActivateVersionInput) (*fastly.Version, error) {
+func activateVersionError(_ context.Context, _ *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
-func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
+func deactivateVersionOK(_ context.Context, i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
 		Number:    fastly.ToPointer(i.ServiceVersion),
 		ServiceID: fastly.ToPointer("123"),
@@ -402,11 +403,11 @@ func deactivateVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, err
 	}, nil
 }
 
-func deactivateVersionError(_ *fastly.DeactivateVersionInput) (*fastly.Version, error) {
+func deactivateVersionError(_ context.Context, _ *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
-func stageVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+func stageVersionOK(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
 		Number:    fastly.ToPointer(i.ServiceVersion),
 		ServiceID: fastly.ToPointer("123"),
@@ -418,11 +419,11 @@ func stageVersionOK(i *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	}, nil
 }
 
-func stageVersionError(_ *fastly.ActivateVersionInput) (*fastly.Version, error) {
+func stageVersionError(_ context.Context, _ *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
-func unstageVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
+func unstageVersionOK(_ context.Context, i *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
 		Number:    fastly.ToPointer(i.ServiceVersion),
 		ServiceID: fastly.ToPointer("123"),
@@ -434,11 +435,11 @@ func unstageVersionOK(i *fastly.DeactivateVersionInput) (*fastly.Version, error)
 	}, nil
 }
 
-func unstageVersionError(_ *fastly.DeactivateVersionInput) (*fastly.Version, error) {
+func unstageVersionError(_ context.Context, _ *fastly.DeactivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
-func lockVersionOK(i *fastly.LockVersionInput) (*fastly.Version, error) {
+func lockVersionOK(_ context.Context, i *fastly.LockVersionInput) (*fastly.Version, error) {
 	return &fastly.Version{
 		Number:    fastly.ToPointer(i.ServiceVersion),
 		ServiceID: fastly.ToPointer("123"),
@@ -450,6 +451,6 @@ func lockVersionOK(i *fastly.LockVersionInput) (*fastly.Version, error) {
 	}, nil
 }
 
-func lockVersionError(_ *fastly.LockVersionInput) (*fastly.Version, error) {
+func lockVersionError(_ context.Context, _ *fastly.LockVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }

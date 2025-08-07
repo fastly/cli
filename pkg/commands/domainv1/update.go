@@ -1,12 +1,14 @@
 package domainv1
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	v1 "github.com/fastly/go-fastly/v10/fastly/domains/v1"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	v1 "github.com/fastly/go-fastly/v11/fastly/domains/v1"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -58,7 +60,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	d, err := v1.Update(fc, input)
+	d, err := v1.Update(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Domain ID":  c.domainID,

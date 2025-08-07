@@ -2,13 +2,14 @@ package secretstore_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstore"
@@ -39,7 +40,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("create --name %s", storeName),
 			api: mock.API{
-				CreateSecretStoreFn: func(_ *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+				CreateSecretStoreFn: func(_ context.Context, _ *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -49,7 +50,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("create --name %s", storeName),
 			api: mock.API{
-				CreateSecretStoreFn: func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+				CreateSecretStoreFn: func(_ context.Context, i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 					return &fastly.SecretStore{
 						StoreID: storeID,
 						Name:    i.Name,
@@ -62,7 +63,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("create --name %s --json", storeName),
 			api: mock.API{
-				CreateSecretStoreFn: func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+				CreateSecretStoreFn: func(_ context.Context, i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 					return &fastly.SecretStore{
 						StoreID:   storeID,
 						Name:      i.Name,
@@ -84,9 +85,9 @@ func TestCreateStoreCommand(t *testing.T) {
 
 			f := testcase.api.CreateSecretStoreFn
 			var apiInvoked bool
-			testcase.api.CreateSecretStoreFn = func(i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
+			testcase.api.CreateSecretStoreFn = func(ctx context.Context, i *fastly.CreateSecretStoreInput) (*fastly.SecretStore, error) {
 				apiInvoked = true
-				return f(i)
+				return f(ctx, i)
 			}
 
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
@@ -122,7 +123,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			args: "delete --store-id DOES-NOT-EXIST",
 			api: mock.API{
-				DeleteSecretStoreFn: func(i *fastly.DeleteSecretStoreInput) error {
+				DeleteSecretStoreFn: func(_ context.Context, i *fastly.DeleteSecretStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -135,7 +136,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("delete --store-id %s", storeID),
 			api: mock.API{
-				DeleteSecretStoreFn: func(i *fastly.DeleteSecretStoreInput) error {
+				DeleteSecretStoreFn: func(_ context.Context, i *fastly.DeleteSecretStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -148,7 +149,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("delete --store-id %s --json", storeID),
 			api: mock.API{
-				DeleteSecretStoreFn: func(i *fastly.DeleteSecretStoreInput) error {
+				DeleteSecretStoreFn: func(_ context.Context, i *fastly.DeleteSecretStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -169,9 +170,9 @@ func TestDeleteStoreCommand(t *testing.T) {
 
 			f := testcase.api.DeleteSecretStoreFn
 			var apiInvoked bool
-			testcase.api.DeleteSecretStoreFn = func(i *fastly.DeleteSecretStoreInput) error {
+			testcase.api.DeleteSecretStoreFn = func(ctx context.Context, i *fastly.DeleteSecretStoreInput) error {
 				apiInvoked = true
-				return f(i)
+				return f(ctx, i)
 			}
 
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
@@ -209,7 +210,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("get --store-id %s", storeID),
 			api: mock.API{
-				GetSecretStoreFn: func(_ *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+				GetSecretStoreFn: func(_ context.Context, _ *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -219,7 +220,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("get --store-id %s", storeID),
 			api: mock.API{
-				GetSecretStoreFn: func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+				GetSecretStoreFn: func(_ context.Context, i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 					return &fastly.SecretStore{
 						StoreID: i.StoreID,
 						Name:    storeName,
@@ -235,7 +236,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 		{
 			args: fmt.Sprintf("get --store-id %s --json", storeID),
 			api: mock.API{
-				GetSecretStoreFn: func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+				GetSecretStoreFn: func(_ context.Context, i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 					return &fastly.SecretStore{
 						StoreID: i.StoreID,
 						Name:    storeName,
@@ -259,9 +260,9 @@ func TestDescribeStoreCommand(t *testing.T) {
 
 			f := testcase.api.GetSecretStoreFn
 			var apiInvoked bool
-			testcase.api.GetSecretStoreFn = func(i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
+			testcase.api.GetSecretStoreFn = func(ctx context.Context, i *fastly.GetSecretStoreInput) (*fastly.SecretStore, error) {
 				apiInvoked = true
-				return f(i)
+				return f(ctx, i)
 			}
 
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
@@ -304,7 +305,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			args: "list",
 			api: mock.API{
-				ListSecretStoresFn: func(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+				ListSecretStoresFn: func(_ context.Context, _ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 					return nil, nil
 				},
 			},
@@ -313,7 +314,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			args: "list",
 			api: mock.API{
-				ListSecretStoresFn: func(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+				ListSecretStoresFn: func(_ context.Context, _ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 					return nil, errors.New("unknown error")
 				},
 			},
@@ -323,7 +324,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			args: "list",
 			api: mock.API{
-				ListSecretStoresFn: func(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+				ListSecretStoresFn: func(_ context.Context, _ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 					return stores, nil
 				},
 			},
@@ -333,7 +334,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			args: "list --json",
 			api: mock.API{
-				ListSecretStoresFn: func(_ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+				ListSecretStoresFn: func(_ context.Context, _ *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 					return stores, nil
 				},
 			},
@@ -351,9 +352,9 @@ func TestListStoresCommand(t *testing.T) {
 
 			f := testcase.api.ListSecretStoresFn
 			var apiInvoked bool
-			testcase.api.ListSecretStoresFn = func(i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
+			testcase.api.ListSecretStoresFn = func(ctx context.Context, i *fastly.ListSecretStoresInput) (*fastly.SecretStores, error) {
 				apiInvoked = true
-				return f(i)
+				return f(ctx, i)
 			}
 
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {

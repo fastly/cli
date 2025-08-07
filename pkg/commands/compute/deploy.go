@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -17,7 +18,7 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
@@ -638,13 +639,13 @@ func createService(
 	msg := "Creating service"
 	spinner.Message(msg + "...")
 
-	service, err := apiClient.CreateService(&fastly.CreateServiceInput{
+	service, err := apiClient.CreateService(context.TODO(), &fastly.CreateServiceInput{
 		Name: &serviceName,
 		Type: fastly.ToPointer("wasm"),
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), trialNotActivated) {
-			user, err := apiClient.GetCurrentUser()
+			user, err := apiClient.GetCurrentUser(context.TODO())
 			if err != nil {
 				err = fmt.Errorf("unable to identify user associated with the given token: %w", err)
 				spinner.StopFailMessage(msg)
@@ -712,7 +713,7 @@ func createService(
 // It will also strip the Service ID from the fastly.toml manifest file.
 func (c *DeployCommand) CleanupNewService(serviceID, manifestFilename string, out io.Writer) error {
 	text.Info(out, "\nCleaning up service\n\n")
-	err := c.Globals.APIClient.DeleteService(&fastly.DeleteServiceInput{
+	err := c.Globals.APIClient.DeleteService(context.TODO(), &fastly.DeleteServiceInput{
 		ServiceID: serviceID,
 	})
 	if err != nil {
@@ -771,7 +772,7 @@ func (c *DeployCommand) CompareLocalRemotePackage(serviceID string, version int)
 	if err != nil {
 		return err
 	}
-	p, err := c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
+	p, err := c.Globals.APIClient.GetPackage(context.TODO(), &fastly.GetPackageInput{
 		ServiceID:      serviceID,
 		ServiceVersion: version,
 	})
@@ -789,7 +790,7 @@ func (c *DeployCommand) CompareLocalRemotePackage(serviceID string, version int)
 // UploadPackage uploads the package to the specified service and version.
 func (c *DeployCommand) UploadPackage(spinner text.Spinner, serviceID string, version int) error {
 	return spinner.Process("Uploading package", func(_ *text.SpinnerWrapper) error {
-		_, err := c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
+		_, err := c.Globals.APIClient.UpdatePackage(context.TODO(), &fastly.UpdatePackageInput{
 			ServiceID:      serviceID,
 			ServiceVersion: version,
 			PackagePath:    fastly.ToPointer(c.PackagePath),
@@ -1029,7 +1030,7 @@ func (c *DeployCommand) ProcessService(serviceID string, serviceVersion int, spi
 	}()
 
 	if c.Comment.WasSet {
-		_, err = c.Globals.APIClient.UpdateVersion(&fastly.UpdateVersionInput{
+		_, err = c.Globals.APIClient.UpdateVersion(context.TODO(), &fastly.UpdateVersionInput{
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
 			Comment:        &c.Comment.Value,
@@ -1040,7 +1041,7 @@ func (c *DeployCommand) ProcessService(serviceID string, serviceVersion int, spi
 	}
 
 	return spinner.Process(fmt.Sprintf("Activating service (version %d)", serviceVersion), func(_ *text.SpinnerWrapper) error {
-		_, err = c.Globals.APIClient.ActivateVersion(&fastly.ActivateVersionInput{
+		_, err = c.Globals.APIClient.ActivateVersion(context.TODO(), &fastly.ActivateVersionInput{
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersion,
 		})
@@ -1057,7 +1058,7 @@ func (c *DeployCommand) ProcessService(serviceID string, serviceVersion int, spi
 
 // GetServiceURL returns the service URL.
 func (c *DeployCommand) GetServiceURL(serviceID string, serviceVersion int) (string, error) {
-	latestDomains, err := c.Globals.APIClient.ListDomains(&fastly.ListDomainsInput{
+	latestDomains, err := c.Globals.APIClient.ListDomains(context.TODO(), &fastly.ListDomainsInput{
 		ServiceID:      serviceID,
 		ServiceVersion: serviceVersion,
 	})
@@ -1227,7 +1228,7 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 
 	// Validate that we're dealing with a Compute 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
-	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{ServiceID: serviceID})
+	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceInput{ServiceID: serviceID})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
@@ -1263,7 +1264,7 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 	// already automatically activate a version we should autoclone without
 	// requiring the user to explicitly provide an --autoclone flag.
 	if fastly.ToValue(serviceVersion.Active) || fastly.ToValue(serviceVersion.Locked) {
-		clonedVersion, err := c.Globals.APIClient.CloneVersion(&fastly.CloneVersionInput{
+		clonedVersion, err := c.Globals.APIClient.CloneVersion(context.TODO(), &fastly.CloneVersionInput{
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersionNumber,
 		})

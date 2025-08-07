@@ -1,13 +1,14 @@
 package backend_test
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/backend"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -105,8 +106,8 @@ func TestBackendCreate(t *testing.T) {
 			Args: "--service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -426,7 +427,7 @@ func TestBackendDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendOK(_ context.Context, i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	if i.Name == nil {
 		i.Name = fastly.ToPointer("")
 	}
@@ -437,23 +438,23 @@ func createBackendOK(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	}, nil
 }
 
-func createBackendError(_ *fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendError(_ context.Context, _ *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
-func createBackendWithPort(wantPort int) func(*fastly.CreateBackendInput) (*fastly.Backend, error) {
-	return func(i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendWithPort(wantPort int) func(_ context.Context, _ *fastly.CreateBackendInput) (*fastly.Backend, error) {
+	return func(ctx context.Context, i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 		switch {
 		// if overridehost is set, should be a non "" value
 		case i.Port != nil && *i.Port == wantPort && ((i.OverrideHost == nil) || (i.OverrideHost != nil && *i.OverrideHost != "")):
-			return createBackendOK(i)
+			return createBackendOK(ctx, i)
 		default:
-			return createBackendError(i)
+			return createBackendError(ctx, i)
 		}
 	}
 }
 
-func listBackendsOK(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+func listBackendsOK(_ context.Context, i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return []*fastly.Backend{
 		{
 			Address:        fastly.ToPointer("www.test.com"),
@@ -474,7 +475,7 @@ func listBackendsOK(i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	}, nil
 }
 
-func listBackendsError(_ *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
+func listBackendsError(_ context.Context, _ *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return nil, errTest
 }
 
@@ -636,7 +637,7 @@ var listBackendsVerboseOutput = strings.Join([]string{
 	"		TCP KeepAlive Timeout: 0",
 }, "\n") + "\n\n"
 
-func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
+func getBackendOK(_ context.Context, i *fastly.GetBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -647,7 +648,7 @@ func getBackendOK(i *fastly.GetBackendInput) (*fastly.Backend, error) {
 	}, nil
 }
 
-func getBackendError(_ *fastly.GetBackendInput) (*fastly.Backend, error) {
+func getBackendError(_ context.Context, _ *fastly.GetBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
@@ -685,7 +686,7 @@ var describeBackendOutput = strings.Join([]string{
 	"TCP KeepAlive Timeout: 0",
 }, "\n") + "\n"
 
-func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
+func updateBackendOK(_ context.Context, i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -694,14 +695,14 @@ func updateBackendOK(i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	}, nil
 }
 
-func updateBackendError(_ *fastly.UpdateBackendInput) (*fastly.Backend, error) {
+func updateBackendError(_ context.Context, _ *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	return nil, errTest
 }
 
-func deleteBackendOK(_ *fastly.DeleteBackendInput) error {
+func deleteBackendOK(_ context.Context, _ *fastly.DeleteBackendInput) error {
 	return nil
 }
 
-func deleteBackendError(_ *fastly.DeleteBackendInput) error {
+func deleteBackendError(_ context.Context, _ *fastly.DeleteBackendInput) error {
 	return errTest
 }

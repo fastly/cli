@@ -2,12 +2,13 @@ package s3_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -339,7 +340,7 @@ func TestS3Delete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
+func createS3OK(_ context.Context, i *fastly.CreateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
 		ServiceID:        fastly.ToPointer(i.ServiceID),
 		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
@@ -348,11 +349,11 @@ func createS3OK(i *fastly.CreateS3Input) (*fastly.S3, error) {
 	}, nil
 }
 
-func createS3Error(_ *fastly.CreateS3Input) (*fastly.S3, error) {
+func createS3Error(_ context.Context, _ *fastly.CreateS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
-func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
+func listS3sOK(_ context.Context, i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	return []*fastly.S3{
 		{
 			ServiceID:                    fastly.ToPointer(i.ServiceID),
@@ -405,7 +406,7 @@ func listS3sOK(i *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	}, nil
 }
 
-func listS3sError(_ *fastly.ListS3sInput) ([]*fastly.S3, error) {
+func listS3sError(_ context.Context, _ *fastly.ListS3sInput) ([]*fastly.S3, error) {
 	return nil, errTest
 }
 
@@ -471,7 +472,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
+func getS3OK(_ context.Context, i *fastly.GetS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
 		ServiceID:                    fastly.ToPointer(i.ServiceID),
 		ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
@@ -497,7 +498,7 @@ func getS3OK(i *fastly.GetS3Input) (*fastly.S3, error) {
 	}, nil
 }
 
-func getS3Error(_ *fastly.GetS3Input) (*fastly.S3, error) {
+func getS3Error(_ context.Context, _ *fastly.GetS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
@@ -526,7 +527,7 @@ Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Version: 1
 `) + "\n"
 
-func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
+func updateS3OK(_ context.Context, i *fastly.UpdateS3Input) (*fastly.S3, error) {
 	return &fastly.S3{
 		ServiceID:                    fastly.ToPointer(i.ServiceID),
 		ServiceVersion:               fastly.ToPointer(i.ServiceVersion),
@@ -551,15 +552,15 @@ func updateS3OK(i *fastly.UpdateS3Input) (*fastly.S3, error) {
 	}, nil
 }
 
-func updateS3Error(_ *fastly.UpdateS3Input) (*fastly.S3, error) {
+func updateS3Error(_ context.Context, _ *fastly.UpdateS3Input) (*fastly.S3, error) {
 	return nil, errTest
 }
 
-func deleteS3OK(_ *fastly.DeleteS3Input) error {
+func deleteS3OK(_ context.Context, _ *fastly.DeleteS3Input) error {
 	return nil
 }
 
-func deleteS3Error(_ *fastly.DeleteS3Input) error {
+func deleteS3Error(_ context.Context, _ *fastly.DeleteS3Input) error {
 	return errTest
 }
 

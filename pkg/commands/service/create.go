@@ -1,9 +1,10 @@
 package service
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -49,7 +50,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.stype.WasSet {
 		input.Type = &c.stype.Value
 	}
-	s, err := c.Globals.APIClient.CreateService(&input)
+	s, err := c.Globals.APIClient.CreateService(context.TODO(), &input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service Name": input.Name,

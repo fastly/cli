@@ -1,9 +1,10 @@
 package config
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -34,7 +35,7 @@ type UpdateCommand struct {
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
-	r, err := c.Globals.APIClient.UpdateCustomTLSConfiguration(input)
+	r, err := c.Globals.APIClient.UpdateCustomTLSConfiguration(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Configuration ID": c.id,

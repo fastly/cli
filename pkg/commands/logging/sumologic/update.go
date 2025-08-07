@@ -1,9 +1,10 @@
 package sumologic
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -153,7 +154,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-	sumologic, err := c.Globals.APIClient.UpdateSumologic(input)
+	sumologic, err := c.Globals.APIClient.UpdateSumologic(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

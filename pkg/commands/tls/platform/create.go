@@ -1,9 +1,10 @@
 package platform
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -41,7 +42,7 @@ type CreateCommand struct {
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
-	r, err := c.Globals.APIClient.CreateBulkCertificate(input)
+	r, err := c.Globals.APIClient.CreateBulkCertificate(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Allow Untrusted": c.allowUntrusted.Value,

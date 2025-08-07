@@ -2,12 +2,13 @@ package bigquery_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestBigQueryDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
+func createBigQueryOK(_ context.Context, i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -280,11 +281,11 @@ func createBigQueryOK(i *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	}, nil
 }
 
-func createBigQueryError(_ *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
+func createBigQueryError(_ context.Context, _ *fastly.CreateBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
-func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
+func listBigQueriesOK(_ context.Context, i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
 	return []*fastly.BigQuery{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -321,7 +322,7 @@ func listBigQueriesOK(i *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error)
 	}, nil
 }
 
-func listBigQueriesError(_ *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
+func listBigQueriesError(_ context.Context, _ *fastly.ListBigQueriesInput) ([]*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
@@ -372,7 +373,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
+func getBigQueryOK(_ context.Context, i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -391,7 +392,7 @@ func getBigQueryOK(i *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	}, nil
 }
 
-func getBigQueryError(_ *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
+func getBigQueryError(_ context.Context, _ *fastly.GetBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
@@ -413,7 +414,7 @@ User: service-account@domain.com
 Version: 1
 `) + "\n"
 
-func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
+func updateBigQueryOK(_ context.Context, i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	return &fastly.BigQuery{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -430,14 +431,14 @@ func updateBigQueryOK(i *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	}, nil
 }
 
-func updateBigQueryError(_ *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
+func updateBigQueryError(_ context.Context, _ *fastly.UpdateBigQueryInput) (*fastly.BigQuery, error) {
 	return nil, errTest
 }
 
-func deleteBigQueryOK(_ *fastly.DeleteBigQueryInput) error {
+func deleteBigQueryOK(_ context.Context, _ *fastly.DeleteBigQueryInput) error {
 	return nil
 }
 
-func deleteBigQueryError(_ *fastly.DeleteBigQueryInput) error {
+func deleteBigQueryError(_ context.Context, _ *fastly.DeleteBigQueryInput) error {
 	return errTest
 }
