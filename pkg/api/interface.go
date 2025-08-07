@@ -239,6 +239,8 @@ type Interface interface {
 
 	CreateManagedLogging(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
+	GetGeneratedVCL(i *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
+
 	CreateVCL(*fastly.CreateVCLInput) (*fastly.VCL, error)
 	ListVCLs(*fastly.ListVCLsInput) ([]*fastly.VCL, error)
 	GetVCL(*fastly.GetVCLInput) (*fastly.VCL, error)

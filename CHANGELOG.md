@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(vcl): Allow showing of generated VCL for a service version [#1498](https://github.com/fastly/cli/pull/1498)
 - Add experimental "enable Pushpin" mode ([#1509](https://github.com/fastly/cli/pull/1509))
 
 ### Bug fixes:

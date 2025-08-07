@@ -231,6 +231,8 @@ type API struct {
 
 	CreateManagedLoggingFn func(*fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
+	GetGeneratedVCLFn func(*fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
+
 	CreateVCLFn func(*fastly.CreateVCLInput) (*fastly.VCL, error)
 	ListVCLsFn  func(*fastly.ListVCLsInput) ([]*fastly.VCL, error)
 	GetVCLFn    func(*fastly.GetVCLInput) (*fastly.VCL, error)
@@ -1319,6 +1321,11 @@ func (m API) GetStatsJSON(i *fastly.GetStatsInput, dst any) error {
 // CreateManagedLogging implements Interface.
 func (m API) CreateManagedLogging(i *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error) {
 	return m.CreateManagedLoggingFn(i)
+}
+
+// GetGeneratedVCL implements Interface.
+func (m API) GetGeneratedVCL(i *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {
+	return m.GetGeneratedVCLFn(i)
 }
 
 // CreateVCL implements Interface.
