@@ -38,10 +38,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.CmdClause.Flag("description", "Description of the access key").Required().StringVar(&c.description)
-	c.CmdClause.Flag("permission", "Permissions to be given to the access key").Required().StringVar(&c.permission)
+	c.CmdClause.Flag("permission", "Permissions to be given to the access key (read-write-admin, read-only-admin, read-write-objects, read-only-objects)").Required().StringVar(&c.permission)
 
 	// Optional.
-	c.CmdClause.Flag("bucket", "Bucket to be associated with the access key. Set flag multiple times to include multiple buckets").StringsVar(&c.buckets)
+	c.CmdClause.Flag("bucket", "Bucket to be associated with the access key. Set flag multiple times to include multiple buckets. If omitted, all buckets are associated").StringsVar(&c.buckets)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
