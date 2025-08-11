@@ -28,7 +28,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 		},
 	}
 
-	c.CmdClause = parent.Command("list-access-keys", "List all access keys")
+	c.CmdClause = parent.Command("list", "List all access keys").Alias("list-access-keys")
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
