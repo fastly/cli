@@ -1,6 +1,7 @@
 package kvstoreentry
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,7 +12,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
@@ -86,7 +87,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidKVCombo
 	}
 
-	err := c.Globals.APIClient.InsertKVStoreKey(&c.Input)
+	err := c.Globals.APIClient.InsertKVStoreKey(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -352,7 +353,7 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 		Errors  []*fastly.ErrorObject `json:"errors,omitempty"`
 	}
 
-	if err := c.Globals.APIClient.BatchModifyKVStoreKey(&fastly.BatchModifyKVStoreKeyInput{
+	if err := c.Globals.APIClient.BatchModifyKVStoreKey(context.TODO(), &fastly.BatchModifyKVStoreKeyInput{
 		StoreID: c.Input.StoreID,
 		Body:    in,
 	}); err != nil {
@@ -399,7 +400,7 @@ func (c *CreateCommand) CallBatchEndpoint(in io.Reader, out io.Writer) error {
 }
 
 func insertKey(opts insertKeyOptions) error {
-	return opts.client.InsertKVStoreKey(&fastly.InsertKVStoreKeyInput{
+	return opts.client.InsertKVStoreKey(context.TODO(), &fastly.InsertKVStoreKeyInput{
 		Body:    opts.file,
 		StoreID: opts.id,
 		Key:     opts.key,

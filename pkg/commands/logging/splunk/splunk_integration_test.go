@@ -2,12 +2,13 @@ package splunk_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestSplunkDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createSplunkOK(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
+func createSplunkOK(_ context.Context, i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -280,11 +281,11 @@ func createSplunkOK(i *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	}, nil
 }
 
-func createSplunkError(_ *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
+func createSplunkError(_ context.Context, _ *fastly.CreateSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
-func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
+func listSplunksOK(_ context.Context, i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	return []*fastly.Splunk{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -321,7 +322,7 @@ func listSplunksOK(i *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	}, nil
 }
 
-func listSplunksError(_ *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
+func listSplunksError(_ context.Context, _ *fastly.ListSplunksInput) ([]*fastly.Splunk, error) {
 	return nil, errTest
 }
 
@@ -370,7 +371,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
+func getSplunkOK(_ context.Context, i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -389,7 +390,7 @@ func getSplunkOK(i *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	}, nil
 }
 
-func getSplunkError(_ *fastly.GetSplunkInput) (*fastly.Splunk, error) {
+func getSplunkError(_ context.Context, _ *fastly.GetSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
@@ -410,7 +411,7 @@ URL: example.com
 Version: 1
 `) + "\n"
 
-func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
+func updateSplunkOK(_ context.Context, i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	return &fastly.Splunk{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -428,14 +429,14 @@ func updateSplunkOK(i *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	}, nil
 }
 
-func updateSplunkError(_ *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
+func updateSplunkError(_ context.Context, _ *fastly.UpdateSplunkInput) (*fastly.Splunk, error) {
 	return nil, errTest
 }
 
-func deleteSplunkOK(_ *fastly.DeleteSplunkInput) error {
+func deleteSplunkOK(_ context.Context, _ *fastly.DeleteSplunkInput) error {
 	return nil
 }
 
-func deleteSplunkError(_ *fastly.DeleteSplunkInput) error {
+func deleteSplunkError(_ context.Context, _ *fastly.DeleteSplunkInput) error {
 	return errTest
 }

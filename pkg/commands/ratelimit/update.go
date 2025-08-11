@@ -1,12 +1,13 @@
 package ratelimit
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -83,7 +84,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput()
-	o, err := c.Globals.APIClient.UpdateERL(input)
+	o, err := c.Globals.APIClient.UpdateERL(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

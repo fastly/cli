@@ -1,9 +1,10 @@
 package dictionary
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -83,7 +84,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = serviceVersionNumber
 
-	dictionary, err := c.Globals.APIClient.GetDictionary(&c.Input)
+	dictionary, err := c.Globals.APIClient.GetDictionary(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
@@ -104,7 +105,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 			ServiceVersion: c.Input.ServiceVersion,
 			DictionaryID:   dictionaryID,
 		}
-		info, err = c.Globals.APIClient.GetDictionaryInfo(&infoInput)
+		info, err = c.Globals.APIClient.GetDictionaryInfo(context.TODO(), &infoInput)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
@@ -116,7 +117,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 			ServiceID:    c.Input.ServiceID,
 			DictionaryID: dictionaryID,
 		}
-		items, err = c.Globals.APIClient.ListDictionaryItems(&itemInput)
+		items, err = c.Globals.APIClient.ListDictionaryItems(context.TODO(), &itemInput)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,

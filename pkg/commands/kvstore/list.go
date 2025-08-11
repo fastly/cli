@@ -1,9 +1,10 @@
 package kvstore
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -41,7 +42,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	var cursor string
 
 	for {
-		o, err := c.Globals.APIClient.ListKVStores(&fastly.ListKVStoresInput{
+		o, err := c.Globals.APIClient.ListKVStores(context.TODO(), &fastly.ListKVStoresInput{
 			Cursor: cursor,
 		})
 		if err != nil {

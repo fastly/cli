@@ -2,6 +2,7 @@ package argparser_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/manifest"
@@ -91,7 +92,7 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 //
 // The first element is active, the second is locked, the third is
 // editable, the fourth is staged.
-func listVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+func listVersions(_ context.Context, i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
 			ServiceID: fastly.ToPointer(i.ServiceID),
@@ -364,8 +365,8 @@ func TestServiceID(t *testing.T) {
 				File: manifest.File{ServiceID: "123"},
 			},
 			API: mock.API{
-				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -383,8 +384,8 @@ func TestServiceID(t *testing.T) {
 			ServiceName: argparser.OptionalServiceNameID{argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "bar"}},
 			Data:        manifest.Data{},
 			API: mock.API{
-				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -441,8 +442,8 @@ func TestContent(t *testing.T) {
 }
 
 // cloneVersionResult returns a function which returns a specific cloned version.
-func cloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+func cloneVersionResult(version int) func(_ context.Context, i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return func(_ context.Context, i *fastly.CloneVersionInput) (*fastly.Version, error) {
 		return &fastly.Version{
 			ServiceID: fastly.ToPointer(i.ServiceID),
 			Number:    fastly.ToPointer(version),

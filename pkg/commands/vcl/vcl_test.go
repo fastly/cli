@@ -1,9 +1,10 @@
 package vcl_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/vcl"
 	"github.com/fastly/cli/pkg/mock"
@@ -25,7 +26,7 @@ func TestVCLDescribe(t *testing.T) {
 			Name: "validate DescribeVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetGeneratedVCLFn: func(_ *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {
+				GetGeneratedVCLFn: func(_ context.Context, _ *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -55,7 +56,7 @@ func TestVCLDescribe(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
-func getVCL(i *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {
+func getVCL(_ context.Context, i *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {
 	t := testutil.Date
 
 	return &fastly.VCL{

@@ -2,12 +2,13 @@ package stats_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -87,7 +88,7 @@ Requests:                                        0
 var historicalJSONOK = `{"start_time":0}
 `
 
-func getStatsJSONOK(_ *fastly.GetStatsInput, o any) error {
+func getStatsJSONOK(_ context.Context, _ *fastly.GetStatsInput, o any) error {
 	msg := []byte(`
 {
   "status": "success",
@@ -104,6 +105,6 @@ func getStatsJSONOK(_ *fastly.GetStatsInput, o any) error {
 	return json.Unmarshal(msg, o)
 }
 
-func getStatsJSONError(_ *fastly.GetStatsInput, _ any) error {
+func getStatsJSONError(_ context.Context, _ *fastly.GetStatsInput, _ any) error {
 	return errTest
 }

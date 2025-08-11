@@ -1,9 +1,10 @@
 package serviceauth
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -74,7 +75,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		ID: c.userID,
 	}
 
-	s, err := c.Globals.APIClient.CreateServiceAuthorization(&c.input)
+	s, err := c.Globals.APIClient.CreateServiceAuthorization(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,

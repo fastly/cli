@@ -1,11 +1,12 @@
 package condition_test
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/vcl"
 	sub "github.com/fastly/cli/pkg/commands/vcl/condition"
@@ -227,7 +228,7 @@ Version: 1
 
 var errTest = errors.New("fixture error")
 
-func createConditionOK(i *fastly.CreateConditionInput) (*fastly.Condition, error) {
+func createConditionOK(_ context.Context, i *fastly.CreateConditionInput) (*fastly.Condition, error) {
 	priority := 10
 	if i.Priority != nil {
 		priority = *i.Priority
@@ -248,19 +249,19 @@ func createConditionOK(i *fastly.CreateConditionInput) (*fastly.Condition, error
 	}, nil
 }
 
-func createConditionError(_ *fastly.CreateConditionInput) (*fastly.Condition, error) {
+func createConditionError(_ context.Context, _ *fastly.CreateConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
-func deleteConditionOK(_ *fastly.DeleteConditionInput) error {
+func deleteConditionOK(_ context.Context, _ *fastly.DeleteConditionInput) error {
 	return nil
 }
 
-func deleteConditionError(_ *fastly.DeleteConditionInput) error {
+func deleteConditionError(_ context.Context, _ *fastly.DeleteConditionInput) error {
 	return errTest
 }
 
-func updateConditionOK(i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
+func updateConditionOK(_ context.Context, i *fastly.UpdateConditionInput) (*fastly.Condition, error) {
 	priority := 10
 	if i.Priority != nil {
 		priority = *i.Priority
@@ -286,11 +287,11 @@ func updateConditionOK(i *fastly.UpdateConditionInput) (*fastly.Condition, error
 	}, nil
 }
 
-func updateConditionError(_ *fastly.UpdateConditionInput) (*fastly.Condition, error) {
+func updateConditionError(_ context.Context, _ *fastly.UpdateConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
-func getConditionOK(i *fastly.GetConditionInput) (*fastly.Condition, error) {
+func getConditionOK(_ context.Context, i *fastly.GetConditionInput) (*fastly.Condition, error) {
 	priority := 10
 	conditionType := "CACHE"
 	statement := "false"
@@ -305,11 +306,11 @@ func getConditionOK(i *fastly.GetConditionInput) (*fastly.Condition, error) {
 	}, nil
 }
 
-func getConditionError(_ *fastly.GetConditionInput) (*fastly.Condition, error) {
+func getConditionError(_ context.Context, _ *fastly.GetConditionInput) (*fastly.Condition, error) {
 	return nil, errTest
 }
 
-func listConditionsOK(i *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
+func listConditionsOK(_ context.Context, i *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
 	return []*fastly.Condition{
 		{
 			ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -330,6 +331,6 @@ func listConditionsOK(i *fastly.ListConditionsInput) ([]*fastly.Condition, error
 	}, nil
 }
 
-func listConditionsError(_ *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
+func listConditionsError(_ context.Context, _ *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
 	return nil, errTest
 }

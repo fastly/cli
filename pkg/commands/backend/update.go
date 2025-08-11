@@ -1,10 +1,11 @@
 package backend
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -300,7 +301,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.KeepAliveTime = &c.HTTPKaTime.Value
 	}
 
-	b, err := c.Globals.APIClient.UpdateBackend(input)
+	b, err := c.Globals.APIClient.UpdateBackend(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

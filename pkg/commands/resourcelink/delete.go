@@ -1,9 +1,10 @@
 package resourcelink
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -99,7 +100,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	err = c.Globals.APIClient.DeleteResource(&c.input)
+	err = c.Globals.APIClient.DeleteResource(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"ID":              c.input.ResourceID,

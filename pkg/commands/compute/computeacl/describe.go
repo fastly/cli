@@ -1,11 +1,13 @@
 package computeacl
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/computeacls"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	"github.com/fastly/go-fastly/v11/fastly/computeacls"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -52,7 +54,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	acl, err := computeacls.Describe(fc, &computeacls.DescribeInput{
+	acl, err := computeacls.Describe(context.TODO(), fc, &computeacls.DescribeInput{
 		ComputeACLID: &c.id,
 	})
 	if err != nil {

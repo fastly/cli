@@ -1,11 +1,13 @@
 package domainv1
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	v1 "github.com/fastly/go-fastly/v10/fastly/domains/v1"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	v1 "github.com/fastly/go-fastly/v11/fastly/domains/v1"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -80,7 +82,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	for {
-		cl, err := v1.List(fc, input)
+		cl, err := v1.List(context.TODO(), fc, input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Cursor":     c.cursor.Value,

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -8,8 +9,9 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/domains/v1/tools/status"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	"github.com/fastly/go-fastly/v11/fastly/domains/v1/tools/status"
 )
 
 // GetDomainStatusCommand calls the Fastly API to check the availability of a domain name.
@@ -66,7 +68,7 @@ func (g *GetDomainStatusCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to acquire the Fastly API client")
 	}
 
-	st, err := status.Get(fc, input)
+	st, err := status.Get(context.TODO(), fc, input)
 	if err != nil {
 		g.Globals.ErrLog.Add(err)
 		return err

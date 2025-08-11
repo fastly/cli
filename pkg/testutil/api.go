@@ -1,12 +1,13 @@
 package testutil
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/whoami"
@@ -23,7 +24,7 @@ var Err = errors.New("test error")
 // NOTE: consult the entire test suite before adding any new entries to the
 // returned type as the tests currently use testutil.CloneVersionResult() as a
 // way of making the test output and expectations as accurate as possible.
-func ListVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+func ListVersions(_ context.Context, i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return []*fastly.Version{
 		{
 			ServiceID: fastly.ToPointer(i.ServiceID),
@@ -53,13 +54,13 @@ func ListVersions(i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 
 // ListVersionsError returns a generic error message when attempting to list
 // service versions.
-func ListVersionsError(_ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+func ListVersionsError(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 	return nil, Err
 }
 
 // CloneVersionResult returns a function which returns a specific cloned version.
-func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
-	return func(i *fastly.CloneVersionInput) (*fastly.Version, error) {
+func CloneVersionResult(version int) func(_ context.Context, i *fastly.CloneVersionInput) (*fastly.Version, error) {
+	return func(_ context.Context, i *fastly.CloneVersionInput) (*fastly.Version, error) {
 		return &fastly.Version{
 			ServiceID: fastly.ToPointer(i.ServiceID),
 			Number:    fastly.ToPointer(version),
@@ -69,7 +70,7 @@ func CloneVersionResult(version int) func(i *fastly.CloneVersionInput) (*fastly.
 
 // CloneVersionError returns a generic error message when attempting to clone a
 // service version.
-func CloneVersionError(_ *fastly.CloneVersionInput) (*fastly.Version, error) {
+func CloneVersionError(_ context.Context, _ *fastly.CloneVersionInput) (*fastly.Version, error) {
 	return nil, Err
 }
 

@@ -1,9 +1,10 @@
 package resourcelink
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -86,7 +87,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	o, err := c.Globals.APIClient.GetResource(&c.input)
+	o, err := c.Globals.APIClient.GetResource(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"ID":              c.input.ResourceID,

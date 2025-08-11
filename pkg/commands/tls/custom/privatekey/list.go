@@ -1,10 +1,11 @@
 package privatekey
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -45,7 +46,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 
-	o, err := c.Globals.APIClient.ListPrivateKeys(input)
+	o, err := c.Globals.APIClient.ListPrivateKeys(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Filter In Use": c.filterInUse,

@@ -1,9 +1,10 @@
 package acl_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/mock"
@@ -47,7 +48,7 @@ func TestACLCreate(t *testing.T) {
 			Name: "validate CreateACL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateACLFn: func(_ *fastly.CreateACLInput) (*fastly.ACL, error) {
+				CreateACLFn: func(_ context.Context, _ *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -58,7 +59,7 @@ func TestACLCreate(t *testing.T) {
 			Name: "validate CreateACL API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateACLFn: func(i *fastly.CreateACLInput) (*fastly.ACL, error) {
+				CreateACLFn: func(_ context.Context, i *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
 						ACLID:          fastly.ToPointer("456"),
 						Name:           i.Name,
@@ -75,7 +76,7 @@ func TestACLCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				CreateACLFn: func(i *fastly.CreateACLInput) (*fastly.ACL, error) {
+				CreateACLFn: func(_ context.Context, i *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
 						ACLID:          fastly.ToPointer("456"),
 						Name:           i.Name,
@@ -129,7 +130,7 @@ func TestACLDelete(t *testing.T) {
 			Name: "validate DeleteACL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteACLFn: func(_ *fastly.DeleteACLInput) error {
+				DeleteACLFn: func(_ context.Context, _ *fastly.DeleteACLInput) error {
 					return testutil.Err
 				},
 			},
@@ -140,7 +141,7 @@ func TestACLDelete(t *testing.T) {
 			Name: "validate DeleteACL API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteACLFn: func(_ *fastly.DeleteACLInput) error {
+				DeleteACLFn: func(_ context.Context, _ *fastly.DeleteACLInput) error {
 					return nil
 				},
 			},
@@ -152,7 +153,7 @@ func TestACLDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteACLFn: func(_ *fastly.DeleteACLInput) error {
+				DeleteACLFn: func(_ context.Context, _ *fastly.DeleteACLInput) error {
 					return nil
 				},
 			},
@@ -185,7 +186,7 @@ func TestACLDescribe(t *testing.T) {
 			Name: "validate GetACL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetACLFn: func(_ *fastly.GetACLInput) (*fastly.ACL, error) {
+				GetACLFn: func(_ context.Context, _ *fastly.GetACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -230,7 +231,7 @@ func TestACLList(t *testing.T) {
 			Name: "validate ListACLs API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListACLsFn: func(_ *fastly.ListACLsInput) ([]*fastly.ACL, error) {
+				ListACLsFn: func(_ context.Context, _ *fastly.ListACLsInput) ([]*fastly.ACL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -311,7 +312,7 @@ func TestACLUpdate(t *testing.T) {
 			Name: "validate UpdateACL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateACLFn: func(_ *fastly.UpdateACLInput) (*fastly.ACL, error) {
+				UpdateACLFn: func(_ context.Context, _ *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -322,7 +323,7 @@ func TestACLUpdate(t *testing.T) {
 			Name: "validate UpdateACL API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateACLFn: func(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
+				UpdateACLFn: func(_ context.Context, i *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
 						ACLID:          fastly.ToPointer("456"),
 						Name:           i.NewName,
@@ -339,7 +340,7 @@ func TestACLUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				UpdateACLFn: func(i *fastly.UpdateACLInput) (*fastly.ACL, error) {
+				UpdateACLFn: func(_ context.Context, i *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
 						ACLID:          fastly.ToPointer("456"),
 						Name:           i.NewName,
@@ -356,7 +357,7 @@ func TestACLUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
-func getACL(i *fastly.GetACLInput) (*fastly.ACL, error) {
+func getACL(_ context.Context, i *fastly.GetACLInput) (*fastly.ACL, error) {
 	t := testutil.Date
 
 	return &fastly.ACL{
@@ -371,7 +372,7 @@ func getACL(i *fastly.GetACLInput) (*fastly.ACL, error) {
 	}, nil
 }
 
-func listACLs(i *fastly.ListACLsInput) ([]*fastly.ACL, error) {
+func listACLs(_ context.Context, i *fastly.ListACLsInput) ([]*fastly.ACL, error) {
 	t := testutil.Date
 	vs := []*fastly.ACL{
 		{

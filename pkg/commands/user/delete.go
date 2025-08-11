@@ -1,9 +1,10 @@
 package user
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -30,7 +31,7 @@ type DeleteCommand struct {
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
-	err := c.Globals.APIClient.DeleteUser(input)
+	err := c.Globals.APIClient.DeleteUser(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"User ID": c.id,

@@ -1,9 +1,10 @@
 package domain_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/tls/custom"
 	sub "github.com/fastly/cli/pkg/commands/tls/custom/domain"
@@ -22,7 +23,7 @@ func TestList(t *testing.T) {
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				ListTLSDomainsFn: func(_ *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error) {
+				ListTLSDomainsFn: func(_ context.Context, _ *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -31,7 +32,7 @@ func TestList(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				ListTLSDomainsFn: func(_ *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error) {
+				ListTLSDomainsFn: func(_ context.Context, _ *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error) {
 					return []*fastly.TLSDomain{
 						{
 							ID:   mockResponseID,

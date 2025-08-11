@@ -1,11 +1,12 @@
 package backend
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -297,7 +298,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
-	b, err := c.Globals.APIClient.CreateBackend(&input)
+	b, err := c.Globals.APIClient.CreateBackend(context.TODO(), &input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

@@ -2,12 +2,13 @@ package cloudfiles_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -280,7 +281,7 @@ func TestCloudfilesDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createCloudfilesOK(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
+func createCloudfilesOK(_ context.Context, i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	s := fastly.Cloudfiles{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -293,11 +294,11 @@ func createCloudfilesOK(i *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, er
 	return &s, nil
 }
 
-func createCloudfilesError(_ *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
+func createCloudfilesError(_ context.Context, _ *fastly.CreateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return nil, errTest
 }
 
-func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
+func listCloudfilesOK(_ context.Context, i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
 	return []*fastly.Cloudfiles{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -342,7 +343,7 @@ func listCloudfilesOK(i *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, erro
 	}, nil
 }
 
-func listCloudfilesError(_ *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
+func listCloudfilesError(_ context.Context, _ *fastly.ListCloudfilesInput) ([]*fastly.Cloudfiles, error) {
 	return nil, errTest
 }
 
@@ -399,7 +400,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
+func getCloudfilesOK(_ context.Context, i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return &fastly.Cloudfiles{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -422,7 +423,7 @@ func getCloudfilesOK(i *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 	}, nil
 }
 
-func getCloudfilesError(_ *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
+func getCloudfilesError(_ context.Context, _ *fastly.GetCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return nil, errTest
 }
 
@@ -447,7 +448,7 @@ User: username
 Version: 1
 `) + "\n"
 
-func updateCloudfilesOK(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
+func updateCloudfilesOK(_ context.Context, i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return &fastly.Cloudfiles{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -469,15 +470,15 @@ func updateCloudfilesOK(i *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, er
 	}, nil
 }
 
-func updateCloudfilesError(_ *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
+func updateCloudfilesError(_ context.Context, _ *fastly.UpdateCloudfilesInput) (*fastly.Cloudfiles, error) {
 	return nil, errTest
 }
 
-func deleteCloudfilesOK(_ *fastly.DeleteCloudfilesInput) error {
+func deleteCloudfilesOK(_ context.Context, _ *fastly.DeleteCloudfilesInput) error {
 	return nil
 }
 
-func deleteCloudfilesError(_ *fastly.DeleteCloudfilesInput) error {
+func deleteCloudfilesError(_ context.Context, _ *fastly.DeleteCloudfilesInput) error {
 	return errTest
 }
 

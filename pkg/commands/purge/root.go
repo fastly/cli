@@ -2,13 +2,14 @@ package purge
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -135,7 +136,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
-	p, err := c.Globals.APIClient.PurgeAll(&fastly.PurgeAllInput{
+	p, err := c.Globals.APIClient.PurgeAll(context.TODO(), &fastly.PurgeAllInput{
 		ServiceID: serviceID,
 	})
 	if err != nil {
@@ -157,7 +158,7 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 		return err
 	}
 
-	m, err := c.Globals.APIClient.PurgeKeys(&fastly.PurgeKeysInput{
+	m, err := c.Globals.APIClient.PurgeKeys(context.TODO(), &fastly.PurgeKeysInput{
 		ServiceID: serviceID,
 		Keys:      keys,
 		Soft:      c.soft,
@@ -188,7 +189,7 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 }
 
 func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
-	p, err := c.Globals.APIClient.PurgeKey(&fastly.PurgeKeyInput{
+	p, err := c.Globals.APIClient.PurgeKey(context.TODO(), &fastly.PurgeKeyInput{
 		ServiceID: serviceID,
 		Key:       c.key,
 		Soft:      c.soft,
@@ -206,7 +207,7 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 }
 
 func (c *RootCommand) purgeURL(out io.Writer) error {
-	p, err := c.Globals.APIClient.Purge(&fastly.PurgeInput{
+	p, err := c.Globals.APIClient.Purge(context.TODO(), &fastly.PurgeInput{
 		URL:  c.url,
 		Soft: c.soft,
 	})

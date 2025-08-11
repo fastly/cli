@@ -1,10 +1,11 @@
 package platform_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/tls/platform"
 	"github.com/fastly/cli/pkg/mock"
@@ -33,7 +34,7 @@ func TestTLSPlatformUpload(t *testing.T) {
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				CreateBulkCertificateFn: func(_ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				CreateBulkCertificateFn: func(_ context.Context, _ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -43,7 +44,7 @@ func TestTLSPlatformUpload(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				CreateBulkCertificateFn: func(_ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				CreateBulkCertificateFn: func(_ context.Context, _ *fastly.CreateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return &fastly.BulkCertificate{
 						ID: mockResponseID,
 					}, nil
@@ -66,7 +67,7 @@ func TestTLSPlatformDelete(t *testing.T) {
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				DeleteBulkCertificateFn: func(_ *fastly.DeleteBulkCertificateInput) error {
+				DeleteBulkCertificateFn: func(_ context.Context, _ *fastly.DeleteBulkCertificateInput) error {
 					return testutil.Err
 				},
 			},
@@ -76,7 +77,7 @@ func TestTLSPlatformDelete(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				DeleteBulkCertificateFn: func(_ *fastly.DeleteBulkCertificateInput) error {
+				DeleteBulkCertificateFn: func(_ context.Context, _ *fastly.DeleteBulkCertificateInput) error {
 					return nil
 				},
 			},
@@ -97,7 +98,7 @@ func TestTLSPlatformDescribe(t *testing.T) {
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				GetBulkCertificateFn: func(_ *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				GetBulkCertificateFn: func(_ context.Context, _ *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -107,7 +108,7 @@ func TestTLSPlatformDescribe(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				GetBulkCertificateFn: func(_ *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				GetBulkCertificateFn: func(_ context.Context, _ *fastly.GetBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					t := testutil.Date
 					return &fastly.BulkCertificate{
 						ID:        "123",
@@ -130,7 +131,7 @@ func TestTLSPlatformList(t *testing.T) {
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				ListBulkCertificatesFn: func(_ *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
+				ListBulkCertificatesFn: func(_ context.Context, _ *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -139,7 +140,7 @@ func TestTLSPlatformList(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				ListBulkCertificatesFn: func(_ *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
+				ListBulkCertificatesFn: func(_ context.Context, _ *fastly.ListBulkCertificatesInput) ([]*fastly.BulkCertificate, error) {
 					t := testutil.Date
 					return []*fastly.BulkCertificate{
 						{
@@ -179,7 +180,7 @@ func TestTLSPlatformUpdate(t *testing.T) {
 		{
 			Name: validateAPIError,
 			API: mock.API{
-				UpdateBulkCertificateFn: func(_ *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				UpdateBulkCertificateFn: func(_ context.Context, _ *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -189,7 +190,7 @@ func TestTLSPlatformUpdate(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				UpdateBulkCertificateFn: func(_ *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
+				UpdateBulkCertificateFn: func(_ context.Context, _ *fastly.UpdateBulkCertificateInput) (*fastly.BulkCertificate, error) {
 					return &fastly.BulkCertificate{
 						ID: mockResponseID,
 					}, nil

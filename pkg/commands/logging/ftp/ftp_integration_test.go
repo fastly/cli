@@ -2,12 +2,13 @@ package ftp_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -280,7 +281,7 @@ func TestFTPDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
+func createFTPOK(_ context.Context, i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
 		ServiceID:        fastly.ToPointer(i.ServiceID),
 		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
@@ -289,11 +290,11 @@ func createFTPOK(i *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	}, nil
 }
 
-func createFTPError(_ *fastly.CreateFTPInput) (*fastly.FTP, error) {
+func createFTPError(_ context.Context, _ *fastly.CreateFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
-func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
+func listFTPsOK(_ context.Context, i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	return []*fastly.FTP{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -338,7 +339,7 @@ func listFTPsOK(i *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	}, nil
 }
 
-func listFTPsError(_ *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
+func listFTPsError(_ context.Context, _ *fastly.ListFTPsInput) ([]*fastly.FTP, error) {
 	return nil, errTest
 }
 
@@ -395,7 +396,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
+func getFTPOK(_ context.Context, i *fastly.GetFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -418,7 +419,7 @@ func getFTPOK(i *fastly.GetFTPInput) (*fastly.FTP, error) {
 	}, nil
 }
 
-func getFTPError(_ *fastly.GetFTPInput) (*fastly.FTP, error) {
+func getFTPError(_ context.Context, _ *fastly.GetFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
@@ -443,7 +444,7 @@ Username: anonymous
 Version: 1
 `) + "\n"
 
-func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
+func updateFTPOK(_ context.Context, i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	return &fastly.FTP{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -465,15 +466,15 @@ func updateFTPOK(i *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	}, nil
 }
 
-func updateFTPError(_ *fastly.UpdateFTPInput) (*fastly.FTP, error) {
+func updateFTPError(_ context.Context, _ *fastly.UpdateFTPInput) (*fastly.FTP, error) {
 	return nil, errTest
 }
 
-func deleteFTPOK(_ *fastly.DeleteFTPInput) error {
+func deleteFTPOK(_ context.Context, _ *fastly.DeleteFTPInput) error {
 	return nil
 }
 
-func deleteFTPError(_ *fastly.DeleteFTPInput) error {
+func deleteFTPError(_ context.Context, _ *fastly.DeleteFTPInput) error {
 	return errTest
 }
 

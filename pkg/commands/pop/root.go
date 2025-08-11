@@ -1,10 +1,11 @@
 package pop
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -30,7 +31,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	dcs, err := c.Globals.APIClient.AllDatacenters()
+	dcs, err := c.Globals.APIClient.AllDatacenters(context.TODO())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

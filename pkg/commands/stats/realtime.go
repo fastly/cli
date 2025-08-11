@@ -1,11 +1,12 @@
 package stats
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
@@ -84,7 +85,7 @@ func loopJSON(client api.RealtimeStatsInterface, service string, out io.Writer) 
 			Data      []json.RawMessage `json:"data"`
 		}
 
-		err := client.GetRealtimeStatsJSON(&fastly.GetRealtimeStatsInput{
+		err := client.GetRealtimeStatsJSON(context.TODO(), &fastly.GetRealtimeStatsInput{
 			ServiceID: service,
 			Timestamp: timestamp,
 		}, &envelope)
@@ -109,7 +110,7 @@ func loopText(client api.RealtimeStatsInterface, service string, out io.Writer) 
 	for {
 		var envelope realtimeResponse
 
-		err := client.GetRealtimeStatsJSON(&fastly.GetRealtimeStatsInput{
+		err := client.GetRealtimeStatsJSON(context.TODO(), &fastly.GetRealtimeStatsInput{
 			ServiceID: service,
 			Timestamp: timestamp,
 		}, &envelope)

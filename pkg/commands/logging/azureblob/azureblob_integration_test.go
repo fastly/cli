@@ -2,12 +2,13 @@ package azureblob_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -281,7 +282,7 @@ func TestBlobStorageDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createBlobStorageOK(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
+func createBlobStorageOK(_ context.Context, i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
 	s := fastly.BlobStorage{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -304,11 +305,11 @@ func createBlobStorageOK(i *fastly.CreateBlobStorageInput) (*fastly.BlobStorage,
 	return &s, nil
 }
 
-func createBlobStorageError(_ *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
+func createBlobStorageError(_ context.Context, _ *fastly.CreateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
-func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
+func listBlobStoragesOK(_ context.Context, i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
 	return []*fastly.BlobStorage{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -351,7 +352,7 @@ func listBlobStoragesOK(i *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage,
 	}, nil
 }
 
-func listBlobStoragesError(_ *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
+func listBlobStoragesError(_ context.Context, _ *fastly.ListBlobStoragesInput) ([]*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
@@ -410,7 +411,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
+func getBlobStorageOK(_ context.Context, i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
 	return &fastly.BlobStorage{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -433,7 +434,7 @@ func getBlobStorageOK(i *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error
 	}, nil
 }
 
-func getBlobStorageError(_ *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
+func getBlobStorageError(_ context.Context, _ *fastly.GetBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
@@ -459,7 +460,7 @@ Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Version: 1
 `) + "\n"
 
-func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
+func updateBlobStorageOK(_ context.Context, i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return &fastly.BlobStorage{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -480,15 +481,15 @@ func updateBlobStorageOK(i *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage,
 	}, nil
 }
 
-func updateBlobStorageError(_ *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
+func updateBlobStorageError(_ context.Context, _ *fastly.UpdateBlobStorageInput) (*fastly.BlobStorage, error) {
 	return nil, errTest
 }
 
-func deleteBlobStorageOK(_ *fastly.DeleteBlobStorageInput) error {
+func deleteBlobStorageOK(_ context.Context, _ *fastly.DeleteBlobStorageInput) error {
 	return nil
 }
 
-func deleteBlobStorageError(_ *fastly.DeleteBlobStorageInput) error {
+func deleteBlobStorageError(_ context.Context, _ *fastly.DeleteBlobStorageInput) error {
 	return errTest
 }
 

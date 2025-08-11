@@ -1,9 +1,10 @@
 package newrelicotlp
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -105,7 +106,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput(serviceID, fastly.ToValue(serviceVersion.Number))
 
-	l, err := c.Globals.APIClient.CreateNewRelicOTLP(input)
+	l, err := c.Globals.APIClient.CreateNewRelicOTLP(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

@@ -1,11 +1,12 @@
 package dictionary
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strconv"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -114,7 +115,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.input.WriteOnly = fastly.ToPointer(fastly.Compatibool(writeOnly))
 	}
 
-	d, err := c.Globals.APIClient.UpdateDictionary(&c.input)
+	d, err := c.Globals.APIClient.UpdateDictionary(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

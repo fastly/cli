@@ -1,9 +1,10 @@
 package kinesis
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -85,7 +86,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	if err := c.Globals.APIClient.DeleteKinesis(&c.Input); err != nil {
+	if err := c.Globals.APIClient.DeleteKinesis(context.TODO(), &c.Input); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
