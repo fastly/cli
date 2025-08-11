@@ -1,11 +1,12 @@
 package kvstore
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strconv"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/kvstoreentry"
@@ -78,7 +79,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		text.Break(out)
 	}
 
-	err := c.Globals.APIClient.DeleteKVStore(&c.Input)
+	err := c.Globals.APIClient.DeleteKVStore(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("failed to delete KV store: %w", err)

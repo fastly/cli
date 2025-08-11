@@ -1,11 +1,13 @@
 package accesskeys
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/objectstorage/accesskeys"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	"github.com/fastly/go-fastly/v11/fastly/objectstorage/accesskeys"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -52,7 +54,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	accessKey, err := accesskeys.Get(fc, &accesskeys.GetInput{
+	accessKey, err := accesskeys.Get(context.TODO(), fc, &accesskeys.GetInput{
 		AccessKeyID: &c.accessKeyID,
 	})
 	if err != nil {

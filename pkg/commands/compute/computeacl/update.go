@@ -1,13 +1,15 @@
 package computeacl
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/computeacls"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	"github.com/fastly/go-fastly/v11/fastly/computeacls"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -70,7 +72,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		err = computeacls.Update(fc, input)
+		err = computeacls.Update(context.TODO(), fc, input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -85,7 +87,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = computeacls.Update(fc, input)
+	err = computeacls.Update(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

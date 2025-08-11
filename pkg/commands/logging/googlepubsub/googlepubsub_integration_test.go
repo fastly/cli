@@ -2,12 +2,13 @@ package googlepubsub_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestGooglePubSubDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createGooglePubSubOK(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
+func createGooglePubSubOK(_ context.Context, i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -289,11 +290,11 @@ func createGooglePubSubOK(i *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	}, nil
 }
 
-func createGooglePubSubError(_ *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
+func createGooglePubSubError(_ context.Context, _ *fastly.CreatePubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
-func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
+func listGooglePubSubsOK(_ context.Context, i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	return []*fastly.Pubsub{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -328,7 +329,7 @@ func listGooglePubSubsOK(i *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	}, nil
 }
 
-func listGooglePubSubsError(_ *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
+func listGooglePubSubsError(_ context.Context, _ *fastly.ListPubsubsInput) ([]*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
@@ -375,7 +376,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
+func getGooglePubSubOK(_ context.Context, i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -393,7 +394,7 @@ func getGooglePubSubOK(i *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	}, nil
 }
 
-func getGooglePubSubError(_ *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
+func getGooglePubSubError(_ context.Context, _ *fastly.GetPubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
@@ -413,7 +414,7 @@ User: user@example.com
 Version: 1
 `) + "\n"
 
-func updateGooglePubSubOK(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
+func updateGooglePubSubOK(_ context.Context, i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	return &fastly.Pubsub{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -429,14 +430,14 @@ func updateGooglePubSubOK(i *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	}, nil
 }
 
-func updateGooglePubSubError(_ *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
+func updateGooglePubSubError(_ context.Context, _ *fastly.UpdatePubsubInput) (*fastly.Pubsub, error) {
 	return nil, errTest
 }
 
-func deleteGooglePubSubOK(_ *fastly.DeletePubsubInput) error {
+func deleteGooglePubSubOK(_ context.Context, _ *fastly.DeletePubsubInput) error {
 	return nil
 }
 
-func deleteGooglePubSubError(_ *fastly.DeletePubsubInput) error {
+func deleteGooglePubSubError(_ context.Context, _ *fastly.DeletePubsubInput) error {
 	return errTest
 }

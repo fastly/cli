@@ -1,13 +1,14 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"path/filepath"
 
 	"github.com/kennygrant/sanitize"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -107,7 +108,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	serviceVersionNumber := fastly.ToValue(serviceVersion.Number)
 
 	err = spinner.Process("Uploading package", func(_ *text.SpinnerWrapper) error {
-		_, err = c.Globals.APIClient.UpdatePackage(&fastly.UpdatePackageInput{
+		_, err = c.Globals.APIClient.UpdatePackage(context.TODO(), &fastly.UpdatePackageInput{
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersionNumber,
 			PackagePath:    fastly.ToPointer(packagePath),

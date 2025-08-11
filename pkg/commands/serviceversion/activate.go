@@ -1,9 +1,10 @@
 package serviceversion
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -75,7 +76,7 @@ func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	ver, err := c.Globals.APIClient.ActivateVersion(&c.Input)
+	ver, err := c.Globals.APIClient.ActivateVersion(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

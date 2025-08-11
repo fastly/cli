@@ -2,13 +2,14 @@ package https_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -273,7 +274,7 @@ func TestHTTPSDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
+func createHTTPSOK(_ context.Context, i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -298,11 +299,11 @@ func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func createHTTPSError(_ *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
+func createHTTPSError(_ context.Context, _ *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
-func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
+func listHTTPSsOK(_ context.Context, i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	return []*fastly.HTTPS{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -353,7 +354,7 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	}, nil
 }
 
-func listHTTPSsError(_ *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
+func listHTTPSsError(_ context.Context, _ *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
@@ -416,7 +417,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
+func getHTTPSOK(_ context.Context, i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -442,7 +443,7 @@ func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func getHTTPSError(_ *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
+func getHTTPSError(_ context.Context, _ *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
@@ -470,7 +471,7 @@ URL: example.com
 Version: 1
 `) + "\n"
 
-func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
+func updateHTTPSOK(_ context.Context, i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -495,14 +496,14 @@ func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func updateHTTPSError(_ *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
+func updateHTTPSError(_ context.Context, _ *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
-func deleteHTTPSOK(_ *fastly.DeleteHTTPSInput) error {
+func deleteHTTPSOK(_ context.Context, _ *fastly.DeleteHTTPSInput) error {
 	return nil
 }
 
-func deleteHTTPSError(_ *fastly.DeleteHTTPSInput) error {
+func deleteHTTPSError(_ context.Context, _ *fastly.DeleteHTTPSInput) error {
 	return errTest
 }

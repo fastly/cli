@@ -1,9 +1,10 @@
 package alerts
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -44,7 +45,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput()
-	definition, err := c.Globals.APIClient.GetAlertDefinition(input)
+	definition, err := c.Globals.APIClient.GetAlertDefinition(context.TODO(), input)
 	if err != nil {
 		return err
 	}

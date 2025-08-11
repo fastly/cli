@@ -1,11 +1,13 @@
 package domainv1
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	v1 "github.com/fastly/go-fastly/v10/fastly/domains/v1"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	v1 "github.com/fastly/go-fastly/v11/fastly/domains/v1"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -44,7 +46,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		DomainID: &c.domainID,
 	}
 
-	err := v1.Delete(fc, input)
+	err := v1.Delete(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Domain ID": c.domainID,

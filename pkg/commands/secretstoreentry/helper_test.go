@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 )
 
 func fmtSecret(s *fastly.Secret) string {

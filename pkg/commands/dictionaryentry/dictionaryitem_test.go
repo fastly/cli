@@ -2,6 +2,7 @@ package dictionaryentry_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -80,8 +81,8 @@ func TestDictionaryItemsList(t *testing.T) {
 		},
 		{
 			api: mock.API{
-				GetDictionaryItemsFn: func(_ *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
-					return fastly.NewPaginator[fastly.DictionaryItem](&mock.HTTPClient{
+				GetDictionaryItemsFn: func(ctx context.Context, _ *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
+					return fastly.NewPaginator[fastly.DictionaryItem](ctx, &mock.HTTPClient{
 						Errors: []error{
 							testutil.Err,
 						},
@@ -94,8 +95,8 @@ func TestDictionaryItemsList(t *testing.T) {
 		},
 		{
 			api: mock.API{
-				GetDictionaryItemsFn: func(_ *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
-					return fastly.NewPaginator[fastly.DictionaryItem](&mock.HTTPClient{
+				GetDictionaryItemsFn: func(ctx context.Context, _ *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
+					return fastly.NewPaginator[fastly.DictionaryItem](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -300,7 +301,7 @@ func TestDictionaryItemDelete(t *testing.T) {
 	}
 }
 
-func describeDictionaryItemOK(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
+func describeDictionaryItemOK(_ context.Context, i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    fastly.ToPointer(i.ServiceID),
 		DictionaryID: fastly.ToPointer(i.DictionaryID),
@@ -328,7 +329,7 @@ Created (UTC): 2001-02-03 04:05
 Last edited (UTC): 2001-02-03 04:05
 `
 
-func describeDictionaryItemOKDeleted(i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
+func describeDictionaryItemOKDeleted(_ context.Context, i *fastly.GetDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    fastly.ToPointer(i.ServiceID),
 		DictionaryID: fastly.ToPointer(i.DictionaryID),
@@ -368,7 +369,7 @@ Item: 2/2
 	Deleted (UTC): 2021-06-15 23:00
 `) + "\n\n"
 
-func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
+func createDictionaryItemOK(_ context.Context, i *fastly.CreateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    fastly.ToPointer(i.ServiceID),
 		DictionaryID: fastly.ToPointer(i.DictionaryID),
@@ -379,7 +380,7 @@ func createDictionaryItemOK(i *fastly.CreateDictionaryItemInput) (*fastly.Dictio
 	}, nil
 }
 
-func updateDictionaryItemOK(i *fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error) {
+func updateDictionaryItemOK(_ context.Context, i *fastly.UpdateDictionaryItemInput) (*fastly.DictionaryItem, error) {
 	return &fastly.DictionaryItem{
 		ServiceID:    fastly.ToPointer(i.ServiceID),
 		DictionaryID: fastly.ToPointer(i.DictionaryID),
@@ -390,7 +391,7 @@ func updateDictionaryItemOK(i *fastly.UpdateDictionaryItemInput) (*fastly.Dictio
 	}, nil
 }
 
-func deleteDictionaryItemOK(_ *fastly.DeleteDictionaryItemInput) error {
+func deleteDictionaryItemOK(_ context.Context, _ *fastly.DeleteDictionaryItemInput) error {
 	return nil
 }
 
@@ -419,11 +420,11 @@ var dictionaryItemBatchModifyInputOK = `
 	]
 }`
 
-func batchModifyDictionaryItemsOK(_ *fastly.BatchModifyDictionaryItemsInput) error {
+func batchModifyDictionaryItemsOK(_ context.Context, _ *fastly.BatchModifyDictionaryItemsInput) error {
 	return nil
 }
 
-func batchModifyDictionaryItemsError(_ *fastly.BatchModifyDictionaryItemsInput) error {
+func batchModifyDictionaryItemsError(_ context.Context, _ *fastly.BatchModifyDictionaryItemsInput) error {
 	return errTest
 }
 

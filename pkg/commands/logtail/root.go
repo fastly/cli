@@ -19,7 +19,7 @@ import (
 
 	"github.com/tomnomnom/linkheader"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/debug"
@@ -302,7 +302,7 @@ func (c *RootCommand) adjustTimes() {
 
 // enableManagedLogging enables managed logging in our API.
 func (c *RootCommand) enableManagedLogging(out io.Writer) error {
-	_, err := c.Globals.APIClient.CreateManagedLogging(&c.Input)
+	_, err := c.Globals.APIClient.CreateManagedLogging(context.TODO(), &c.Input)
 	if err != nil && err != fastly.ErrManagedLoggingEnabled {
 		c.Globals.ErrLog.Add(err)
 		return err

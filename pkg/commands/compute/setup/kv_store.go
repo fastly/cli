@@ -1,12 +1,13 @@
 package setup
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
@@ -59,7 +60,7 @@ func (o *KVStores) Configure() error {
 	)
 
 	for {
-		kvs, err := o.APIClient.ListKVStores(&fastly.ListKVStoresInput{
+		kvs, err := o.APIClient.ListKVStores(context.TODO(), &fastly.ListKVStoresInput{
 			Cursor: cursor,
 		})
 		if err != nil {
@@ -214,7 +215,7 @@ func (o *KVStores) Create() error {
 
 		if kvStore.LinkExistingStore {
 			err = o.Spinner.Process(fmt.Sprintf("Retrieving existing KV Store '%s'", kvStore.Name), func(_ *text.SpinnerWrapper) error {
-				store, err = o.APIClient.GetKVStore(&fastly.GetKVStoreInput{
+				store, err = o.APIClient.GetKVStore(context.TODO(), &fastly.GetKVStoreInput{
 					StoreID: kvStore.ExistingStoreID,
 				})
 				if err != nil {
@@ -227,7 +228,7 @@ func (o *KVStores) Create() error {
 			}
 		} else {
 			err = o.Spinner.Process(fmt.Sprintf("Creating KV Store '%s'", kvStore.Name), func(_ *text.SpinnerWrapper) error {
-				store, err = o.APIClient.CreateKVStore(&fastly.CreateKVStoreInput{
+				store, err = o.APIClient.CreateKVStore(context.TODO(), &fastly.CreateKVStoreInput{
 					Name: kvStore.Name,
 				})
 				if err != nil {
@@ -252,7 +253,7 @@ func (o *KVStores) Create() error {
 					} else {
 						input.Value = item.Value
 					}
-					err = o.APIClient.InsertKVStoreKey(input)
+					err = o.APIClient.InsertKVStoreKey(context.TODO(), input)
 					if err != nil {
 						return fmt.Errorf("error creating KV Store key: %w", err)
 					}
@@ -266,7 +267,7 @@ func (o *KVStores) Create() error {
 
 		// IMPORTANT: We need to link the KV Store to the Compute Service.
 		err = o.Spinner.Process(fmt.Sprintf("Creating resource link between service and KV Store '%s'...", kvStore.Name), func(_ *text.SpinnerWrapper) error {
-			_, err = o.APIClient.CreateResource(&fastly.CreateResourceInput{
+			_, err = o.APIClient.CreateResource(context.TODO(), &fastly.CreateResourceInput{
 				ServiceID:      o.ServiceID,
 				ServiceVersion: o.ServiceVersion,
 				Name:           fastly.ToPointer(store.Name),

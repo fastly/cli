@@ -1,10 +1,11 @@
 package s3
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -295,7 +296,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	d, err := c.Globals.APIClient.CreateS3(input)
+	d, err := c.Globals.APIClient.CreateS3(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

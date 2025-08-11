@@ -1,16 +1,25 @@
 package products
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/go-fastly/v11/fastly/products/botmanagement"
+	"github.com/fastly/go-fastly/v11/fastly/products/brotlicompression"
+	"github.com/fastly/go-fastly/v11/fastly/products/domaininspector"
+	"github.com/fastly/go-fastly/v11/fastly/products/fanout"
+	"github.com/fastly/go-fastly/v11/fastly/products/imageoptimizer"
+	"github.com/fastly/go-fastly/v11/fastly/products/logexplorerinsights"
+	"github.com/fastly/go-fastly/v11/fastly/products/origininspector"
+	"github.com/fastly/go-fastly/v11/fastly/products/websockets"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -34,6 +43,18 @@ var ProductEnablementOptions = []string{
 	"log_explorer_insights",
 	"origin_inspector",
 	"websockets",
+}
+
+// ProductStatus indicates the status for each product.
+type ProductStatus struct {
+	BotManagement       bool `json:"bot_management"`
+	BrotliCompression   bool `json:"brotli_compression"`
+	DomainInspector     bool `json:"domain_inspector"`
+	Fanout              bool `json:"fanout"`
+	ImageOptimizer      bool `json:"image_optimizer"`
+	LogExplorerInsights bool `json:"log_explorer_insights"`
+	OriginInspector     bool `json:"origin_inspector"`
+	WebSockets          bool `json:"websockets"`
 }
 
 // CommandName is the string to be used to invoke this command.
@@ -66,8 +87,6 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
-	ac := c.Globals.APIClient
-
 	if c.enableProduct != "" && c.disableProduct != "" {
 		return fsterr.ErrInvalidEnableDisableFlagCombo
 	}
@@ -81,15 +100,33 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("failed to identify Service ID: %w", err)
 	}
 
+	ac, ok := c.Globals.APIClient.(*fastly.Client)
+	if !ok {
+		return errors.New("failed to convert interface to a fastly client")
+	}
+
 	if c.enableProduct != "" {
-		p := identifyProduct(c.enableProduct)
-		if p == fastly.ProductUndefined {
+		switch c.enableProduct {
+		case "bot_management":
+			_, err = botmanagement.Enable(context.TODO(), ac, serviceID)
+		case "brotli_compression":
+			_, err = brotlicompression.Enable(context.TODO(), ac, serviceID)
+		case "domain_inspector":
+			_, err = domaininspector.Enable(context.TODO(), ac, serviceID)
+		case "fanout":
+			_, err = fanout.Enable(context.TODO(), ac, serviceID)
+		case "image_optimizer":
+			_, err = imageoptimizer.Enable(context.TODO(), ac, serviceID)
+		case "log_explorer_insights":
+			_, err = logexplorerinsights.Enable(context.TODO(), ac, serviceID)
+		case "origin_inspector":
+			_, err = origininspector.Enable(context.TODO(), ac, serviceID)
+		case "websockets":
+			_, err = websockets.Enable(context.TODO(), ac, serviceID)
+		default:
 			return errors.New("unrecognised product")
 		}
-		if _, err := ac.EnableProduct(&fastly.ProductEnablementInput{
-			ProductID: p,
-			ServiceID: serviceID,
-		}); err != nil {
+		if err != nil {
 			return fmt.Errorf("failed to enable product '%s': %w", c.enableProduct, err)
 		}
 		text.Success(out, "Successfully enabled product '%s'", c.enableProduct)
@@ -97,14 +134,27 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.disableProduct != "" {
-		p := identifyProduct(c.disableProduct)
-		if p == fastly.ProductUndefined {
+		switch c.disableProduct {
+		case "bot_management":
+			err = botmanagement.Disable(context.TODO(), ac, serviceID)
+		case "brotli_compression":
+			err = brotlicompression.Disable(context.TODO(), ac, serviceID)
+		case "domain_inspector":
+			err = domaininspector.Disable(context.TODO(), ac, serviceID)
+		case "fanout":
+			err = fanout.Disable(context.TODO(), ac, serviceID)
+		case "image_optimizer":
+			err = imageoptimizer.Disable(context.TODO(), ac, serviceID)
+		case "log_explorer_insights":
+			err = logexplorerinsights.Disable(context.TODO(), ac, serviceID)
+		case "origin_inspector":
+			err = origininspector.Disable(context.TODO(), ac, serviceID)
+		case "websockets":
+			err = websockets.Disable(context.TODO(), ac, serviceID)
+		default:
 			return errors.New("unrecognised product")
 		}
-		if err := ac.DisableProduct(&fastly.ProductEnablementInput{
-			ProductID: p,
-			ServiceID: serviceID,
-		}); err != nil {
+		if err != nil {
 			return fmt.Errorf("failed to disable product '%s': %w", c.disableProduct, err)
 		}
 		text.Success(out, "Successfully disabled product '%s'", c.disableProduct)
@@ -113,52 +163,28 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	ps := ProductStatus{}
 
-	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
-		ProductID: fastly.ProductBotManagement,
-		ServiceID: serviceID,
-	}); err == nil {
+	if _, err = botmanagement.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.BotManagement = true
 	}
-	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
-		ProductID: fastly.ProductBrotliCompression,
-		ServiceID: serviceID,
-	}); err == nil {
+	if _, err = brotlicompression.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.BrotliCompression = true
 	}
-	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
-		ProductID: fastly.ProductDomainInspector,
-		ServiceID: serviceID,
-	}); err == nil {
+	if _, err = domaininspector.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.DomainInspector = true
 	}
-	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
-		ProductID: fastly.ProductFanout,
-		ServiceID: serviceID,
-	}); err == nil {
+	if _, err = fanout.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.Fanout = true
 	}
-	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
-		ProductID: fastly.ProductImageOptimizer,
-		ServiceID: serviceID,
-	}); err == nil {
+	if _, err = imageoptimizer.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.ImageOptimizer = true
 	}
-	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
-		ProductID: fastly.ProductLogExplorerInsights,
-		ServiceID: serviceID,
-	}); err == nil {
+	if _, err = logexplorerinsights.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.LogExplorerInsights = true
 	}
-	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
-		ProductID: fastly.ProductOriginInspector,
-		ServiceID: serviceID,
-	}); err == nil {
+	if _, err = origininspector.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.OriginInspector = true
 	}
-	if _, err = ac.GetProduct(&fastly.ProductEnablementInput{
-		ProductID: fastly.ProductWebSockets,
-		ServiceID: serviceID,
-	}); err == nil {
+	if _, err = websockets.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.WebSockets = true
 	}
 
@@ -168,49 +194,14 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	t := text.NewTable(out)
 	t.AddHeader("PRODUCT", "ENABLED")
-	t.AddLine(fastly.ProductBotManagement, ps.BotManagement)
-	t.AddLine(fastly.ProductBrotliCompression, ps.BrotliCompression)
-	t.AddLine(fastly.ProductDomainInspector, ps.DomainInspector)
-	t.AddLine(fastly.ProductFanout, ps.Fanout)
-	t.AddLine(fastly.ProductImageOptimizer, ps.ImageOptimizer)
-	t.AddLine(fastly.ProductLogExplorerInsights, ps.LogExplorerInsights)
-	t.AddLine(fastly.ProductOriginInspector, ps.OriginInspector)
-	t.AddLine(fastly.ProductWebSockets, ps.WebSockets)
+	t.AddLine("Bot Management", ps.BotManagement)
+	t.AddLine("Brotli Compression", ps.BrotliCompression)
+	t.AddLine("Domain Inspector", ps.DomainInspector)
+	t.AddLine("Fanout", ps.Fanout)
+	t.AddLine("Image Optimizer", ps.ImageOptimizer)
+	t.AddLine("Log Explorer & Insights", ps.LogExplorerInsights)
+	t.AddLine("Origin Inspector", ps.OriginInspector)
+	t.AddLine("WebSockets", ps.WebSockets)
 	t.Print()
 	return nil
-}
-
-func identifyProduct(product string) fastly.Product {
-	switch product {
-	case "bot_management":
-		return fastly.ProductBotManagement
-	case "brotli_compression":
-		return fastly.ProductBrotliCompression
-	case "domain_inspector":
-		return fastly.ProductDomainInspector
-	case "fanout":
-		return fastly.ProductFanout
-	case "image_optimizer":
-		return fastly.ProductImageOptimizer
-	case "log_explorer_insights":
-		return fastly.ProductLogExplorerInsights
-	case "origin_inspector":
-		return fastly.ProductOriginInspector
-	case "websockets":
-		return fastly.ProductWebSockets
-	default:
-		return fastly.ProductUndefined
-	}
-}
-
-// ProductStatus indicates the status for each product.
-type ProductStatus struct {
-	BotManagement       bool `json:"bot_management"`
-	BrotliCompression   bool `json:"brotli_compression"`
-	DomainInspector     bool `json:"domain_inspector"`
-	Fanout              bool `json:"fanout"`
-	ImageOptimizer      bool `json:"image_optimizer"`
-	LogExplorerInsights bool `json:"log_explorer_insights"`
-	OriginInspector     bool `json:"origin_inspector"`
-	WebSockets          bool `json:"websockets"`
 }

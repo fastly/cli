@@ -1,12 +1,13 @@
 package alerts
 
 import (
+	"context"
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 )
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -64,7 +65,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput()
-	definition, err := c.Globals.APIClient.CreateAlertDefinition(input)
+	definition, err := c.Globals.APIClient.CreateAlertDefinition(context.TODO(), input)
 	if err != nil {
 		return err
 	}

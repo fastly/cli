@@ -2,12 +2,13 @@ package elasticsearch_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestElasticsearchDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createElasticsearchOK(i *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
+func createElasticsearchOK(_ context.Context, i *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -295,11 +296,11 @@ func createElasticsearchOK(i *fastly.CreateElasticsearchInput) (*fastly.Elastics
 	}, nil
 }
 
-func createElasticsearchError(_ *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
+func createElasticsearchError(_ context.Context, _ *fastly.CreateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
-func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
+func listElasticsearchsOK(_ context.Context, i *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
 	return []*fastly.Elasticsearch{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -346,7 +347,7 @@ func listElasticsearchsOK(i *fastly.ListElasticsearchInput) ([]*fastly.Elasticse
 	}, nil
 }
 
-func listElasticsearchsError(_ *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
+func listElasticsearchsError(_ context.Context, _ *fastly.ListElasticsearchInput) ([]*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
@@ -401,7 +402,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
+func getElasticsearchOK(_ context.Context, i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -425,7 +426,7 @@ func getElasticsearchOK(i *fastly.GetElasticsearchInput) (*fastly.Elasticsearch,
 	}, nil
 }
 
-func getElasticsearchError(_ *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
+func getElasticsearchError(_ context.Context, _ *fastly.GetElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
@@ -449,7 +450,7 @@ User: user
 Version: 1
 `) + "\n"
 
-func updateElasticsearchOK(i *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
+func updateElasticsearchOK(_ context.Context, i *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return &fastly.Elasticsearch{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -472,14 +473,14 @@ func updateElasticsearchOK(i *fastly.UpdateElasticsearchInput) (*fastly.Elastics
 	}, nil
 }
 
-func updateElasticsearchError(_ *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
+func updateElasticsearchError(_ context.Context, _ *fastly.UpdateElasticsearchInput) (*fastly.Elasticsearch, error) {
 	return nil, errTest
 }
 
-func deleteElasticsearchOK(_ *fastly.DeleteElasticsearchInput) error {
+func deleteElasticsearchOK(_ context.Context, _ *fastly.DeleteElasticsearchInput) error {
 	return nil
 }
 
-func deleteElasticsearchError(_ *fastly.DeleteElasticsearchInput) error {
+func deleteElasticsearchError(_ context.Context, _ *fastly.DeleteElasticsearchInput) error {
 	return errTest
 }

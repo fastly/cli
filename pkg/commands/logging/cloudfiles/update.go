@@ -1,9 +1,10 @@
 package cloudfiles
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -211,7 +212,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	cloudfiles, err := c.Globals.APIClient.UpdateCloudfiles(input)
+	cloudfiles, err := c.Globals.APIClient.UpdateCloudfiles(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

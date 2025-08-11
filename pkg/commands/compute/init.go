@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -18,7 +19,7 @@ import (
 
 	cp "github.com/otiai10/copy"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
@@ -275,7 +276,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				serviceVersion int
 			)
 			err = spinner.Process("Fetching service details", func(_ *text.SpinnerWrapper) error {
-				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(&fastly.GetServiceInput{
+				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceInput{
 					ServiceID: c.CloneFrom,
 				})
 				if err != nil {
@@ -295,7 +296,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 
 				if serviceDetails.ActiveVersion != nil {
 					serviceVersion = fastly.ToValue(serviceDetails.ActiveVersion.Number)
-					pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
+					pack, err = c.Globals.APIClient.GetPackage(context.TODO(), &fastly.GetPackageInput{
 						ServiceID:      c.CloneFrom,
 						ServiceVersion: serviceVersion,
 					})
@@ -305,7 +306,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				} else {
 					for i := len(serviceDetails.Versions) - 1; i >= 0; i-- {
 						serviceVersion = fastly.ToValue(serviceDetails.Versions[i].Number)
-						pack, err = c.Globals.APIClient.GetPackage(&fastly.GetPackageInput{
+						pack, err = c.Globals.APIClient.GetPackage(context.TODO(), &fastly.GetPackageInput{
 							ServiceID:      c.CloneFrom,
 							ServiceVersion: serviceVersion,
 						})

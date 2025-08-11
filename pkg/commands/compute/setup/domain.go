@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 
 	petname "github.com/dustinkirkland/golang-petname"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/errors"
@@ -124,7 +125,7 @@ func (d *Domains) Predefined() bool {
 // NOTE: It should set an internal `missing` field (boolean) accordingly so that
 // the Missing() method can report the state of the resource.
 func (d *Domains) Validate() error {
-	available, err := d.APIClient.ListDomains(&fastly.ListDomainsInput{
+	available, err := d.APIClient.ListDomains(context.TODO(), &fastly.ListDomainsInput{
 		ServiceID:      d.ServiceID,
 		ServiceVersion: d.ServiceVersion,
 	})
@@ -163,7 +164,7 @@ func (d *Domains) createDomain(name string, attempt int) error {
 	msg := fmt.Sprintf("Creating domain '%s'", name)
 	d.Spinner.Message(msg + "...")
 
-	_, err = d.APIClient.CreateDomain(&fastly.CreateDomainInput{
+	_, err = d.APIClient.CreateDomain(context.TODO(), &fastly.CreateDomainInput{
 		ServiceID:      d.ServiceID,
 		ServiceVersion: d.ServiceVersion,
 		Name:           &name,

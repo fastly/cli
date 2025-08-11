@@ -1,10 +1,11 @@
 package certificate
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -42,7 +43,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 
-	o, err := c.Globals.APIClient.GetCustomTLSCertificate(input)
+	o, err := c.Globals.APIClient.GetCustomTLSCertificate(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"TLS Certificate ID": c.id,

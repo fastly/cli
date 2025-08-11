@@ -1,11 +1,12 @@
 package dictionary_test
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/mock"
@@ -218,7 +219,7 @@ func TestUpdateDictionary(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
-func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
+func describeDictionaryOK(_ context.Context, i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -230,7 +231,7 @@ func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, err
 	}, nil
 }
 
-func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
+func describeDictionaryOKDeleted(_ context.Context, i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -243,7 +244,7 @@ func describeDictionaryOKDeleted(i *fastly.GetDictionaryInput) (*fastly.Dictiona
 	}, nil
 }
 
-func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
+func createDictionaryOK(_ context.Context, i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
 	if i.WriteOnly == nil {
 		i.WriteOnly = fastly.ToPointer(fastly.Compatibool(false))
 	}
@@ -263,7 +264,7 @@ func createDictionaryOK(i *fastly.CreateDictionaryInput) (*fastly.Dictionary, er
 // that call changes. This function requires i.ID to equal "456" to enforce the
 // input to this call matches the response to GetDictionaryInfo in
 // describeDictionaryOK.
-func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
+func getDictionaryInfoOK(_ context.Context, i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
 	if i.DictionaryID == "456" {
 		return &fastly.DictionaryInfo{
 			ItemCount:   fastly.ToPointer(2),
@@ -277,7 +278,7 @@ func getDictionaryInfoOK(i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryIn
 // listDictionaryItemsOK mocks the response from fastly.ListDictionaryItems
 // which is primarily used in the fastly-cli.dictionaryitem package and will
 // need to be updated here if that call changes.
-func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
+func listDictionaryItemsOK(_ context.Context, i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
 		{
 			ServiceID:    fastly.ToPointer(i.ServiceID),
@@ -299,19 +300,19 @@ func listDictionaryItemsOK(i *fastly.ListDictionaryItemsInput) ([]*fastly.Dictio
 	}, nil
 }
 
-func createDictionaryDuplicate(*fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
+func createDictionaryDuplicate(_ context.Context, _ *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
 	return nil, errors.New("Duplicate record")
 }
 
-func deleteDictionaryOK(*fastly.DeleteDictionaryInput) error {
+func deleteDictionaryOK(_ context.Context, _ *fastly.DeleteDictionaryInput) error {
 	return nil
 }
 
-func deleteDictionaryError(*fastly.DeleteDictionaryInput) error {
+func deleteDictionaryError(_ context.Context, _ *fastly.DeleteDictionaryInput) error {
 	return errTest
 }
 
-func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, error) {
+func listDictionariesOk(_ context.Context, i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, error) {
 	return []*fastly.Dictionary{
 		{
 			ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -334,7 +335,7 @@ func listDictionariesOk(i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, 
 	}, nil
 }
 
-func updateDictionaryNameOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+func updateDictionaryNameOK(_ context.Context, i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -346,7 +347,7 @@ func updateDictionaryNameOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary
 	}, nil
 }
 
-func updateDictionaryWriteOnlyOK(i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+func updateDictionaryWriteOnlyOK(_ context.Context, i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -358,7 +359,7 @@ func updateDictionaryWriteOnlyOK(i *fastly.UpdateDictionaryInput) (*fastly.Dicti
 	}, nil
 }
 
-func updateDictionaryError(_ *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
+func updateDictionaryError(_ context.Context, _ *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return nil, errTest
 }
 

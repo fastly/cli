@@ -1,11 +1,12 @@
 package sso_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
@@ -157,7 +158,7 @@ func TestSSO(t *testing.T) {
 		{
 			Args: "pops",
 			API: mock.API{
-				AllDatacentersFn: func() ([]fastly.Datacenter, error) {
+				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
 							Name:   fastly.ToPointer("Foobar"),
@@ -235,7 +236,7 @@ func TestSSO(t *testing.T) {
 		{
 			Args: "pops",
 			API: mock.API{
-				AllDatacentersFn: func() ([]fastly.Datacenter, error) {
+				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
 							Name:   fastly.ToPointer("Foobar"),

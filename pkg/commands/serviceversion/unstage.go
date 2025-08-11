@@ -1,9 +1,10 @@
 package serviceversion
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -70,7 +71,7 @@ func (c *UnstageCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 	c.Input.Environment = "staging"
 
-	ver, err := c.Globals.APIClient.DeactivateVersion(&c.Input)
+	ver, err := c.Globals.APIClient.DeactivateVersion(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

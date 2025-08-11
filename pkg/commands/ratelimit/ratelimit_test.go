@@ -1,9 +1,10 @@
 package ratelimit_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/ratelimit"
 	"github.com/fastly/cli/pkg/mock"
@@ -15,7 +16,7 @@ func TestRateLimitCreate(t *testing.T) {
 		{
 			Name: "validate CreateERL API error",
 			API: mock.API{
-				CreateERLFn: func(_ *fastly.CreateERLInput) (*fastly.ERL, error) {
+				CreateERLFn: func(_ context.Context, _ *fastly.CreateERLInput) (*fastly.ERL, error) {
 					return nil, testutil.Err
 				},
 				ListVersionsFn: testutil.ListVersions,
@@ -26,7 +27,7 @@ func TestRateLimitCreate(t *testing.T) {
 		{
 			Name: "validate CreateERL API success",
 			API: mock.API{
-				CreateERLFn: func(i *fastly.CreateERLInput) (*fastly.ERL, error) {
+				CreateERLFn: func(_ context.Context, i *fastly.CreateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
 						Name:          i.Name,
 						RateLimiterID: fastly.ToPointer("123"),
@@ -47,7 +48,7 @@ func TestRateLimitDelete(t *testing.T) {
 		{
 			Name: "validate DeleteERL API error",
 			API: mock.API{
-				DeleteERLFn: func(_ *fastly.DeleteERLInput) error {
+				DeleteERLFn: func(_ context.Context, _ *fastly.DeleteERLInput) error {
 					return testutil.Err
 				},
 			},
@@ -57,7 +58,7 @@ func TestRateLimitDelete(t *testing.T) {
 		{
 			Name: "validate DeleteERL API success",
 			API: mock.API{
-				DeleteERLFn: func(_ *fastly.DeleteERLInput) error {
+				DeleteERLFn: func(_ context.Context, _ *fastly.DeleteERLInput) error {
 					return nil
 				},
 			},
@@ -74,7 +75,7 @@ func TestRateLimitDescribe(t *testing.T) {
 		{
 			Name: "validate GetERL API error",
 			API: mock.API{
-				GetERLFn: func(_ *fastly.GetERLInput) (*fastly.ERL, error) {
+				GetERLFn: func(_ context.Context, _ *fastly.GetERLInput) (*fastly.ERL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -84,7 +85,7 @@ func TestRateLimitDescribe(t *testing.T) {
 		{
 			Name: "validate ListERL API success",
 			API: mock.API{
-				GetERLFn: func(_ *fastly.GetERLInput) (*fastly.ERL, error) {
+				GetERLFn: func(_ context.Context, _ *fastly.GetERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
 						RateLimiterID:      fastly.ToPointer("123"),
 						Name:               fastly.ToPointer("example"),
@@ -108,7 +109,7 @@ func TestRateLimitList(t *testing.T) {
 		{
 			Name: "validate ListERL API error",
 			API: mock.API{
-				ListERLsFn: func(_ *fastly.ListERLsInput) ([]*fastly.ERL, error) {
+				ListERLsFn: func(_ context.Context, _ *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 					return nil, testutil.Err
 				},
 				ListVersionsFn: testutil.ListVersions,
@@ -119,7 +120,7 @@ func TestRateLimitList(t *testing.T) {
 		{
 			Name: "validate ListERL API success",
 			API: mock.API{
-				ListERLsFn: func(_ *fastly.ListERLsInput) ([]*fastly.ERL, error) {
+				ListERLsFn: func(_ context.Context, _ *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 					return []*fastly.ERL{
 						{
 							RateLimiterID:      fastly.ToPointer("123"),
@@ -146,7 +147,7 @@ func TesRateLimittUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateERL API error",
 			API: mock.API{
-				UpdateERLFn: func(_ *fastly.UpdateERLInput) (*fastly.ERL, error) {
+				UpdateERLFn: func(_ context.Context, _ *fastly.UpdateERLInput) (*fastly.ERL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -156,7 +157,7 @@ func TesRateLimittUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateERL API success",
 			API: mock.API{
-				UpdateERLFn: func(i *fastly.UpdateERLInput) (*fastly.ERL, error) {
+				UpdateERLFn: func(_ context.Context, i *fastly.UpdateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
 						Name:          i.Name,
 						RateLimiterID: fastly.ToPointer("123"),

@@ -1,9 +1,10 @@
 package secretstore
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -47,7 +48,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	var data []fastly.SecretStore
 
 	for {
-		o, err := c.Globals.APIClient.ListSecretStores(&c.Input)
+		o, err := c.Globals.APIClient.ListSecretStores(context.TODO(), &c.Input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err

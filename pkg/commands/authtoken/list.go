@@ -1,11 +1,12 @@
 package authtoken
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -56,13 +57,13 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n")
 		}
 		input := c.constructInput()
-		o, err = c.Globals.APIClient.ListCustomerTokens(input)
+		o, err = c.Globals.APIClient.ListCustomerTokens(context.TODO(), input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 	} else {
-		o, err = c.Globals.APIClient.ListTokens(&fastly.ListTokensInput{})
+		o, err = c.Globals.APIClient.ListTokens(context.TODO(), &fastly.ListTokensInput{})
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err

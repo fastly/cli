@@ -2,6 +2,7 @@ package compute_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
@@ -505,8 +506,8 @@ func TestInit_ExistingService(t *testing.T) {
 	scenarios := []struct {
 		name              string
 		args              []string
-		getServiceDetails func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error)
-		getPackage        func(*fastly.GetPackageInput) (*fastly.Package, error)
+		getServiceDetails func(context.Context, *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
+		getPackage        func(context.Context, *fastly.GetPackageInput) (*fastly.Package, error)
 		expectInOutput    []string
 		expectInManifest  []string
 		expectNoManifest  bool
@@ -516,7 +517,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "when the service exists",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(gsi *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, gsi *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				if gsi.ServiceID != *serviceID {
 					return nil, &fastly.HTTPError{
 						StatusCode: http.StatusNotFound,
@@ -533,7 +534,7 @@ func TestInit_ExistingService(t *testing.T) {
 					},
 				}, nil
 			},
-			getPackage: func(gpi *fastly.GetPackageInput) (*fastly.Package, error) {
+			getPackage: func(_ context.Context, gpi *fastly.GetPackageInput) (*fastly.Package, error) {
 				if gpi.ServiceID != *serviceID || gpi.ServiceVersion != 1 {
 					return nil, &fastly.HTTPError{
 						StatusCode: http.StatusNotFound,
@@ -565,7 +566,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "when the service doesn't exist",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return nil, &fastly.HTTPError{
 					StatusCode: http.StatusNotFound,
 				}
@@ -579,7 +580,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service has no versions that include package metadata",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID:     serviceID,
 					Name:          fastly.NullString("test-service"),
@@ -596,7 +597,7 @@ func TestInit_ExistingService(t *testing.T) {
 					},
 				}, nil
 			},
-			getPackage: func(_ *fastly.GetPackageInput) (*fastly.Package, error) {
+			getPackage: func(_ context.Context, _ *fastly.GetPackageInput) (*fastly.Package, error) {
 				return nil, &fastly.HTTPError{
 					StatusCode: http.StatusNotFound,
 				}
@@ -606,7 +607,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service is vcl",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Type:      fastly.NullString("vcl"),
@@ -625,7 +626,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service has a cloned_from value",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Name:      fastly.NullString("cloned-service"),
@@ -636,7 +637,7 @@ func TestInit_ExistingService(t *testing.T) {
 					},
 				}, nil
 			},
-			getPackage: func(*fastly.GetPackageInput) (*fastly.Package, error) {
+			getPackage: func(_ context.Context, _ *fastly.GetPackageInput) (*fastly.Package, error) {
 				return &fastly.Package{
 					ServiceID: serviceID,
 					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
@@ -651,7 +652,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service has an unreachable cloned_from value",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Name:      fastly.NullString("cloned-service"),
@@ -662,7 +663,7 @@ func TestInit_ExistingService(t *testing.T) {
 					},
 				}, nil
 			},
-			getPackage: func(*fastly.GetPackageInput) (*fastly.Package, error) {
+			getPackage: func(_ context.Context, _ *fastly.GetPackageInput) (*fastly.Package, error) {
 				return &fastly.Package{
 					ServiceID: serviceID,
 					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
@@ -677,7 +678,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service has active version greater than 1",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(*fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Name:      fastly.NullString("cloned-service"),
@@ -688,7 +689,7 @@ func TestInit_ExistingService(t *testing.T) {
 					},
 				}, nil
 			},
-			getPackage: func(*fastly.GetPackageInput) (*fastly.Package, error) {
+			getPackage: func(_ context.Context, _ *fastly.GetPackageInput) (*fastly.Package, error) {
 				return &fastly.Package{
 					ServiceID: serviceID,
 					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),

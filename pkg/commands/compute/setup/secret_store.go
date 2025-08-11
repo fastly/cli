@@ -1,11 +1,12 @@
 package setup
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	fsterrors "github.com/fastly/cli/pkg/errors"
@@ -63,7 +64,7 @@ func (s *SecretStores) Configure() error {
 	)
 
 	for {
-		o, err := s.APIClient.ListSecretStores(&fastly.ListSecretStoresInput{
+		o, err := s.APIClient.ListSecretStores(context.TODO(), &fastly.ListSecretStoresInput{
 			Cursor: cursor,
 		})
 		if err != nil {
@@ -174,7 +175,7 @@ func (s *SecretStores) Create() error {
 
 		if secretStore.LinkExistingStore {
 			err = s.Spinner.Process(fmt.Sprintf("Retrieving existing Secret Store '%s'", secretStore.Name), func(_ *text.SpinnerWrapper) error {
-				store, err = s.APIClient.GetSecretStore(&fastly.GetSecretStoreInput{
+				store, err = s.APIClient.GetSecretStore(context.TODO(), &fastly.GetSecretStoreInput{
 					StoreID: secretStore.ExistingStoreID,
 				})
 				if err != nil {
@@ -187,7 +188,7 @@ func (s *SecretStores) Create() error {
 			}
 		} else {
 			err = s.Spinner.Process(fmt.Sprintf("Creating Secret Store '%s'", secretStore.Name), func(_ *text.SpinnerWrapper) error {
-				store, err = s.APIClient.CreateSecretStore(&fastly.CreateSecretStoreInput{
+				store, err = s.APIClient.CreateSecretStore(context.TODO(), &fastly.CreateSecretStoreInput{
 					Name: secretStore.Name,
 				})
 				if err != nil {
@@ -202,7 +203,7 @@ func (s *SecretStores) Create() error {
 
 		for _, entry := range secretStore.Entries {
 			err = s.Spinner.Process(fmt.Sprintf("Creating Secret Store entry '%s'...", entry.Name), func(_ *text.SpinnerWrapper) error {
-				_, err = s.APIClient.CreateSecret(&fastly.CreateSecretInput{
+				_, err = s.APIClient.CreateSecret(context.TODO(), &fastly.CreateSecretInput{
 					StoreID: store.StoreID,
 					Name:    entry.Name,
 					Secret:  []byte(entry.Secret),
@@ -220,7 +221,7 @@ func (s *SecretStores) Create() error {
 		err = s.Spinner.Process(fmt.Sprintf("Creating resource link between service and Secret Store '%s'...", store.Name), func(_ *text.SpinnerWrapper) error {
 			// We need to link the secret store to the C@E Service, otherwise the service
 			// will not have access to the store.
-			_, err = s.APIClient.CreateResource(&fastly.CreateResourceInput{
+			_, err = s.APIClient.CreateResource(context.TODO(), &fastly.CreateResourceInput{
 				ServiceID:      s.ServiceID,
 				ServiceVersion: s.ServiceVersion,
 				Name:           fastly.ToPointer(store.Name),

@@ -1,9 +1,10 @@
 package condition
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -87,7 +88,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 	input.Name = c.name
 
-	if err := c.Globals.APIClient.DeleteCondition(&input); err != nil {
+	if err := c.Globals.APIClient.DeleteCondition(context.TODO(), &input); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": fastly.ToValue(serviceVersion.Number),

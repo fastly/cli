@@ -2,12 +2,13 @@ package honeycomb_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestHoneycombDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createHoneycombOK(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
+func createHoneycombOK(_ context.Context, i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
 	s := fastly.Honeycomb{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -285,11 +286,11 @@ func createHoneycombOK(i *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error
 	return &s, nil
 }
 
-func createHoneycombError(_ *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
+func createHoneycombError(_ context.Context, _ *fastly.CreateHoneycombInput) (*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
-func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
+func listHoneycombsOK(_ context.Context, i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
 	return []*fastly.Honeycomb{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -318,7 +319,7 @@ func listHoneycombsOK(i *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error
 	}, nil
 }
 
-func listHoneycombsError(_ *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
+func listHoneycombsError(_ context.Context, _ *fastly.ListHoneycombsInput) ([]*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
@@ -359,7 +360,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getHoneycombOK(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
+func getHoneycombOK(_ context.Context, i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	return &fastly.Honeycomb{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -374,7 +375,7 @@ func getHoneycombOK(i *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	}, nil
 }
 
-func getHoneycombError(_ *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
+func getHoneycombError(_ context.Context, _ *fastly.GetHoneycombInput) (*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
@@ -391,7 +392,7 @@ Token: tkn
 Version: 1
 `) + "\n"
 
-func updateHoneycombOK(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
+func updateHoneycombOK(_ context.Context, i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
 	return &fastly.Honeycomb{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -405,14 +406,14 @@ func updateHoneycombOK(i *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error
 	}, nil
 }
 
-func updateHoneycombError(_ *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
+func updateHoneycombError(_ context.Context, _ *fastly.UpdateHoneycombInput) (*fastly.Honeycomb, error) {
 	return nil, errTest
 }
 
-func deleteHoneycombOK(_ *fastly.DeleteHoneycombInput) error {
+func deleteHoneycombOK(_ context.Context, _ *fastly.DeleteHoneycombInput) error {
 	return nil
 }
 
-func deleteHoneycombError(_ *fastly.DeleteHoneycombInput) error {
+func deleteHoneycombError(_ context.Context, _ *fastly.DeleteHoneycombInput) error {
 	return errTest
 }

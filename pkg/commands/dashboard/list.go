@@ -1,10 +1,11 @@
 package dashboard
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/dashboard/common"
@@ -55,7 +56,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	loadAllPages := c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
 
 	for {
-		o, err := c.Globals.APIClient.ListObservabilityCustomDashboards(input)
+		o, err := c.Globals.APIClient.ListObservabilityCustomDashboards(context.TODO(), input)
 		if err != nil {
 			return err
 		}

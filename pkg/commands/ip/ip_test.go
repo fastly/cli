@@ -1,9 +1,10 @@
 package ip_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/mock"
@@ -15,7 +16,7 @@ func TestAllIPs(t *testing.T) {
 		{
 			Name: "validate listing IP addresses",
 			API: mock.API{
-				AllIPsFn: func() (v4, v6 fastly.IPAddrs, err error) {
+				AllIPsFn: func(_ context.Context) (v4, v6 fastly.IPAddrs, err error) {
 					return []string{
 							"00.123.45.6/78",
 						}, []string{

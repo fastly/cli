@@ -1,9 +1,10 @@
 package newrelic_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/logging"
 	sub "github.com/fastly/cli/pkg/commands/logging/newrelic"
@@ -38,7 +39,7 @@ func TestNewRelicCreate(t *testing.T) {
 			Name: "validate CreateNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateNewRelicFn: func(_ *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
+				CreateNewRelicFn: func(_ context.Context, _ *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -49,7 +50,7 @@ func TestNewRelicCreate(t *testing.T) {
 			Name: "validate CreateNewRelic API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateNewRelicFn: func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
+				CreateNewRelicFn: func(_ context.Context, i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
 						Name:           i.Name,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -65,7 +66,7 @@ func TestNewRelicCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				CreateNewRelicFn: func(i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
+				CreateNewRelicFn: func(_ context.Context, i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
 						Name:           i.Name,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -118,7 +119,7 @@ func TestNewRelicDelete(t *testing.T) {
 			Name: "validate DeleteNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteNewRelicFn: func(_ *fastly.DeleteNewRelicInput) error {
+				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
 					return testutil.Err
 				},
 			},
@@ -129,7 +130,7 @@ func TestNewRelicDelete(t *testing.T) {
 			Name: "validate DeleteNewRelic API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteNewRelicFn: func(_ *fastly.DeleteNewRelicInput) error {
+				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
 					return nil
 				},
 			},
@@ -141,7 +142,7 @@ func TestNewRelicDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteNewRelicFn: func(_ *fastly.DeleteNewRelicInput) error {
+				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
 					return nil
 				},
 			},
@@ -174,7 +175,7 @@ func TestNewRelicDescribe(t *testing.T) {
 			Name: "validate GetNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetNewRelicFn: func(_ *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
+				GetNewRelicFn: func(_ context.Context, _ *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -219,7 +220,7 @@ func TestNewRelicList(t *testing.T) {
 			Name: "validate ListNewRelics API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListNewRelicFn: func(_ *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error) {
+				ListNewRelicFn: func(_ context.Context, _ *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -295,7 +296,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			Name: "validate UpdateNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateNewRelicFn: func(_ *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
+				UpdateNewRelicFn: func(_ context.Context, _ *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -306,7 +307,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			Name: "validate UpdateNewRelic API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateNewRelicFn: func(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
+				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
 						Name:           i.NewName,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -322,7 +323,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				UpdateNewRelicFn: func(i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
+				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
 						Name:           i.NewName,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -338,7 +339,7 @@ func TestNewRelicUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
-func getNewRelic(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
+func getNewRelic(_ context.Context, i *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
 	t := testutil.Date
 
 	return &fastly.NewRelic{
@@ -353,7 +354,7 @@ func getNewRelic(i *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
 	}, nil
 }
 
-func listNewRelic(i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error) {
+func listNewRelic(_ context.Context, i *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error) {
 	t := testutil.Date
 	vs := []*fastly.NewRelic{
 		{

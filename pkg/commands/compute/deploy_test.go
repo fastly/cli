@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -2240,7 +2240,7 @@ func TestDeploy_ActivateBeacon(t *testing.T) {
 	opts := testutil.MockGlobalData(args, &stdout)
 	opts.HTTPClient = recordingHTTP
 	opts.APIClientFactory = mock.APIClient(mock.API{
-		ActivateVersionFn: func(*fastly.ActivateVersionInput) (*fastly.Version, error) {
+		ActivateVersionFn: func(_ context.Context, _ *fastly.ActivateVersionInput) (*fastly.Version, error) {
 			return nil, testutil.Err
 		},
 		CloneVersionFn:      testutil.CloneVersionResult(4),
@@ -2269,7 +2269,7 @@ func TestDeploy_ActivateBeacon(t *testing.T) {
 	testutil.AssertEqual(t, "fastly-notification-relay.edgecompute.app", beaconReq.URL.Hostname())
 }
 
-func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
+func createServiceOK(_ context.Context, i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ServiceID: fastly.ToPointer("12345"),
 		Name:      i.Name,
@@ -2277,47 +2277,47 @@ func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	}, nil
 }
 
-func createServiceError(*fastly.CreateServiceInput) (*fastly.Service, error) {
+func createServiceError(_ context.Context, _ *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return nil, testutil.Err
 }
 
 // NOTE: We don't return testutil.Err but a very specific error message so that
 // the Deploy logic will drop into a nested logic block.
-func createServiceErrorNoTrial(*fastly.CreateServiceInput) (*fastly.Service, error) {
+func createServiceErrorNoTrial(_ context.Context, _ *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return nil, fmt.Errorf("Valid values for 'type' are: 'vcl'")
 }
 
-func getCurrentUser() (*fastly.User, error) {
+func getCurrentUser(_ context.Context) (*fastly.User, error) {
 	return &fastly.User{
 		CustomerID: fastly.ToPointer("abc"),
 	}, nil
 }
 
-func getCurrentUserError() (*fastly.User, error) {
+func getCurrentUserError(_ context.Context) (*fastly.User, error) {
 	return nil, testutil.Err
 }
 
-func deleteServiceOK(_ *fastly.DeleteServiceInput) error {
+func deleteServiceOK(_ context.Context, _ *fastly.DeleteServiceInput) error {
 	return nil
 }
 
-func createDomainError(_ *fastly.CreateDomainInput) (*fastly.Domain, error) {
+func createDomainError(_ context.Context, _ *fastly.CreateDomainInput) (*fastly.Domain, error) {
 	return nil, testutil.Err
 }
 
-func deleteDomainOK(_ *fastly.DeleteDomainInput) error {
+func deleteDomainOK(_ context.Context, _ *fastly.DeleteDomainInput) error {
 	return nil
 }
 
-func createBackendError(_ *fastly.CreateBackendInput) (*fastly.Backend, error) {
+func createBackendError(_ context.Context, _ *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	return nil, testutil.Err
 }
 
-func deleteBackendOK(_ *fastly.DeleteBackendInput) error {
+func deleteBackendOK(_ context.Context, _ *fastly.DeleteBackendInput) error {
 	return nil
 }
 
-func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
+func getPackageIdentical(_ context.Context, i *fastly.GetPackageInput) (*fastly.Package, error) {
 	return &fastly.Package{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -2328,14 +2328,14 @@ func getPackageIdentical(i *fastly.GetPackageInput) (*fastly.Package, error) {
 	}, nil
 }
 
-func activateVersionError(_ *fastly.ActivateVersionInput) (*fastly.Version, error) {
+func activateVersionError(_ context.Context, _ *fastly.ActivateVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
 
-func listDomainsError(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsError(_ context.Context, _ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return nil, testutil.Err
 }
 
-func listDomainsNone(_ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
+func listDomainsNone(_ context.Context, _ *fastly.ListDomainsInput) ([]*fastly.Domain, error) {
 	return []*fastly.Domain{}, nil
 }

@@ -1,10 +1,11 @@
 package serviceversion
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -89,7 +90,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	c.input.Comment = &c.comment.Value
 
-	ver, err := c.Globals.APIClient.UpdateVersion(&c.input)
+	ver, err := c.Globals.APIClient.UpdateVersion(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
