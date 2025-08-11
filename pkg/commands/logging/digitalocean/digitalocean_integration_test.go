@@ -2,12 +2,13 @@ package digitalocean_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -280,7 +281,7 @@ func TestDigitalOceanDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createDigitalOceanOK(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func createDigitalOceanOK(_ context.Context, i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	s := fastly.DigitalOcean{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -293,11 +294,11 @@ func createDigitalOceanOK(i *fastly.CreateDigitalOceanInput) (*fastly.DigitalOce
 	return &s, nil
 }
 
-func createDigitalOceanError(_ *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func createDigitalOceanError(_ context.Context, _ *fastly.CreateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
-func listDigitalOceansOK(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
+func listDigitalOceansOK(_ context.Context, i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
 	return []*fastly.DigitalOcean{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -340,7 +341,7 @@ func listDigitalOceansOK(i *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOce
 	}, nil
 }
 
-func listDigitalOceansError(_ *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
+func listDigitalOceansError(_ context.Context, _ *fastly.ListDigitalOceansInput) ([]*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
@@ -395,7 +396,7 @@ Version: 1
 		Public key: `+pgpPublicKey()+`
 `) + "\n\n"
 
-func getDigitalOceanOK(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func getDigitalOceanOK(_ context.Context, i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return &fastly.DigitalOcean{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -418,7 +419,7 @@ func getDigitalOceanOK(i *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, er
 	}, nil
 }
 
-func getDigitalOceanError(_ *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func getDigitalOceanError(_ context.Context, _ *fastly.GetDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
@@ -443,7 +444,7 @@ Timestamp format: %Y-%m-%dT%H:%M:%S.000
 Version: 1
 `) + "\n"
 
-func updateDigitalOceanOK(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func updateDigitalOceanOK(_ context.Context, i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return &fastly.DigitalOcean{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -465,15 +466,15 @@ func updateDigitalOceanOK(i *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOce
 	}, nil
 }
 
-func updateDigitalOceanError(_ *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
+func updateDigitalOceanError(_ context.Context, _ *fastly.UpdateDigitalOceanInput) (*fastly.DigitalOcean, error) {
 	return nil, errTest
 }
 
-func deleteDigitalOceanOK(_ *fastly.DeleteDigitalOceanInput) error {
+func deleteDigitalOceanOK(_ context.Context, _ *fastly.DeleteDigitalOceanInput) error {
 	return nil
 }
 
-func deleteDigitalOceanError(_ *fastly.DeleteDigitalOceanInput) error {
+func deleteDigitalOceanError(_ context.Context, _ *fastly.DeleteDigitalOceanInput) error {
 	return errTest
 }
 

@@ -2,12 +2,13 @@ package scalyr_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	fsterrs "github.com/fastly/cli/pkg/errors"
@@ -281,7 +282,7 @@ func TestScalyrDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createScalyrOK(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
+func createScalyrOK(_ context.Context, i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	s := fastly.Scalyr{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -316,11 +317,11 @@ func createScalyrOK(i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	return &s, nil
 }
 
-func createScalyrError(_ *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
+func createScalyrError(_ context.Context, _ *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
-func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
+func listScalyrsOK(_ context.Context, i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	return []*fastly.Scalyr{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -351,7 +352,7 @@ func listScalyrsOK(i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	}, nil
 }
 
-func listScalyrsError(_ *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
+func listScalyrsError(_ context.Context, _ *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
@@ -394,7 +395,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
+func getScalyrOK(_ context.Context, i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -410,7 +411,7 @@ func getScalyrOK(i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	}, nil
 }
 
-func getScalyrError(_ *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
+func getScalyrError(_ context.Context, _ *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
@@ -428,7 +429,7 @@ Token: abc
 Version: 1
 `) + "\n"
 
-func updateScalyrOK(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
+func updateScalyrOK(_ context.Context, i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -442,14 +443,14 @@ func updateScalyrOK(i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	}, nil
 }
 
-func updateScalyrError(_ *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
+func updateScalyrError(_ context.Context, _ *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	return nil, errTest
 }
 
-func deleteScalyrOK(_ *fastly.DeleteScalyrInput) error {
+func deleteScalyrOK(_ context.Context, _ *fastly.DeleteScalyrInput) error {
 	return nil
 }
 
-func deleteScalyrError(_ *fastly.DeleteScalyrInput) error {
+func deleteScalyrError(_ context.Context, _ *fastly.DeleteScalyrInput) error {
 	return errTest
 }

@@ -2,12 +2,13 @@ package openstack_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -280,7 +281,7 @@ func TestOpenstackDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createOpenstackOK(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
+func createOpenstackOK(_ context.Context, i *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
 	s := fastly.Openstack{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -293,11 +294,11 @@ func createOpenstackOK(i *fastly.CreateOpenstackInput) (*fastly.Openstack, error
 	return &s, nil
 }
 
-func createOpenstackError(_ *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
+func createOpenstackError(_ context.Context, _ *fastly.CreateOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
-func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
+func listOpenstacksOK(_ context.Context, i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
 	return []*fastly.Openstack{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -344,7 +345,7 @@ func listOpenstacksOK(i *fastly.ListOpenstackInput) ([]*fastly.Openstack, error)
 	}, nil
 }
 
-func listOpenstacksError(_ *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
+func listOpenstacksError(_ context.Context, _ *fastly.ListOpenstackInput) ([]*fastly.Openstack, error) {
 	return nil, errTest
 }
 
@@ -403,7 +404,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
+func getOpenstackOK(_ context.Context, i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	return &fastly.Openstack{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -427,7 +428,7 @@ func getOpenstackOK(i *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	}, nil
 }
 
-func getOpenstackError(_ *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
+func getOpenstackError(_ context.Context, _ *fastly.GetOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
@@ -453,7 +454,7 @@ User: user
 Version: 1
 `) + "\n"
 
-func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
+func updateOpenstackOK(_ context.Context, i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
 	return &fastly.Openstack{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -475,15 +476,15 @@ func updateOpenstackOK(i *fastly.UpdateOpenstackInput) (*fastly.Openstack, error
 	}, nil
 }
 
-func updateOpenstackError(_ *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
+func updateOpenstackError(_ context.Context, _ *fastly.UpdateOpenstackInput) (*fastly.Openstack, error) {
 	return nil, errTest
 }
 
-func deleteOpenstackOK(_ *fastly.DeleteOpenstackInput) error {
+func deleteOpenstackOK(_ context.Context, _ *fastly.DeleteOpenstackInput) error {
 	return nil
 }
 
-func deleteOpenstackError(_ *fastly.DeleteOpenstackInput) error {
+func deleteOpenstackError(_ context.Context, _ *fastly.DeleteOpenstackInput) error {
 	return errTest
 }
 

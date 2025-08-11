@@ -1,11 +1,12 @@
 package stats
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -81,7 +82,7 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	var envelope statsResponse
-	err = c.Globals.APIClient.GetStatsJSON(&input, &envelope)
+	err = c.Globals.APIClient.GetStatsJSON(context.TODO(), &input, &envelope)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,

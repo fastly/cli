@@ -1,9 +1,10 @@
 package newrelicotlp_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/logging"
 	sub "github.com/fastly/cli/pkg/commands/logging/newrelicotlp"
@@ -38,7 +39,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 			Name: "validate CreateNewRelicOTLP API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateNewRelicOTLPFn: func(_ *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				CreateNewRelicOTLPFn: func(_ context.Context, _ *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -49,7 +50,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 			Name: "validate CreateNewRelicOTLP API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateNewRelicOTLPFn: func(i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				CreateNewRelicOTLPFn: func(_ context.Context, i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
 						Name:           i.Name,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -65,7 +66,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				CreateNewRelicOTLPFn: func(i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				CreateNewRelicOTLPFn: func(_ context.Context, i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
 						Name:           i.Name,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -118,7 +119,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 			Name: "validate DeleteNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteNewRelicOTLPFn: func(_ *fastly.DeleteNewRelicOTLPInput) error {
+				DeleteNewRelicOTLPFn: func(_ context.Context, _ *fastly.DeleteNewRelicOTLPInput) error {
 					return testutil.Err
 				},
 			},
@@ -129,7 +130,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 			Name: "validate DeleteNewRelic API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteNewRelicOTLPFn: func(_ *fastly.DeleteNewRelicOTLPInput) error {
+				DeleteNewRelicOTLPFn: func(_ context.Context, _ *fastly.DeleteNewRelicOTLPInput) error {
 					return nil
 				},
 			},
@@ -141,7 +142,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteNewRelicOTLPFn: func(_ *fastly.DeleteNewRelicOTLPInput) error {
+				DeleteNewRelicOTLPFn: func(_ context.Context, _ *fastly.DeleteNewRelicOTLPInput) error {
 					return nil
 				},
 			},
@@ -174,7 +175,7 @@ func TestNewRelicDescribe(t *testing.T) {
 			Name: "validate GetNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetNewRelicOTLPFn: func(_ *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				GetNewRelicOTLPFn: func(_ context.Context, _ *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -219,7 +220,7 @@ func TestNewRelicList(t *testing.T) {
 			Name: "validate ListNewRelics API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListNewRelicOTLPFn: func(_ *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error) {
+				ListNewRelicOTLPFn: func(_ context.Context, _ *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -295,7 +296,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			Name: "validate UpdateNewRelic API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateNewRelicOTLPFn: func(_ *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				UpdateNewRelicOTLPFn: func(_ context.Context, _ *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -306,7 +307,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			Name: "validate UpdateNewRelic API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateNewRelicOTLPFn: func(i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				UpdateNewRelicOTLPFn: func(_ context.Context, i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
 						Name:           i.NewName,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -322,7 +323,7 @@ func TestNewRelicUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				UpdateNewRelicOTLPFn: func(i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+				UpdateNewRelicOTLPFn: func(_ context.Context, i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
 						Name:           i.NewName,
 						ServiceID:      fastly.ToPointer(i.ServiceID),
@@ -338,7 +339,7 @@ func TestNewRelicUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
-func getNewRelic(i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
+func getNewRelic(_ context.Context, i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 	t := testutil.Date
 
 	return &fastly.NewRelicOTLP{
@@ -353,7 +354,7 @@ func getNewRelic(i *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 	}, nil
 }
 
-func listNewRelic(i *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error) {
+func listNewRelic(_ context.Context, i *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error) {
 	t := testutil.Date
 	vs := []*fastly.NewRelicOTLP{
 		{

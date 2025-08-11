@@ -1,10 +1,11 @@
 package condition
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -116,7 +117,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.input.Statement = &c.comment.Value
 	}
 
-	r, err := c.Globals.APIClient.UpdateCondition(&c.input)
+	r, err := c.Globals.APIClient.UpdateCondition(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

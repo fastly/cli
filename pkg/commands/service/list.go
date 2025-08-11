@@ -1,11 +1,12 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strconv"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -53,7 +54,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.Page = &c.page
 	c.input.PerPage = &c.perPage
 	c.input.Sort = &c.sort
-	paginator := c.Globals.APIClient.GetServices(&c.input)
+	paginator := c.Globals.APIClient.GetServices(context.TODO(), &c.input)
 
 	var o []*fastly.Service
 	for paginator.HasNext() {

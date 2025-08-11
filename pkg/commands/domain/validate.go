@@ -1,10 +1,11 @@
 package domain
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -77,7 +78,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.all {
 		input := c.constructInputAll(serviceID, serviceVersionNumber)
 
-		r, err := c.Globals.APIClient.ValidateAllDomains(input)
+		r, err := c.Globals.APIClient.ValidateAllDomains(context.TODO(), input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID":      serviceID,
@@ -95,7 +96,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	r, err := c.Globals.APIClient.ValidateDomain(input)
+	r, err := c.Globals.APIClient.ValidateDomain(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

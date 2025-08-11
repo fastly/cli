@@ -1,10 +1,11 @@
 package dictionaryentry
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -76,7 +77,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.PerPage = &c.perPage
 	c.input.ServiceID = serviceID
 	c.input.Sort = &c.sort
-	paginator := c.Globals.APIClient.GetDictionaryItems(&c.input)
+	paginator := c.Globals.APIClient.GetDictionaryItems(context.TODO(), &c.input)
 
 	var o []*fastly.DictionaryItem
 	for paginator.HasNext() {

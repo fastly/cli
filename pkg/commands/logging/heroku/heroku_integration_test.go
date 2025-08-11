@@ -2,12 +2,13 @@ package heroku_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestHerokuDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createHerokuOK(i *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
+func createHerokuOK(_ context.Context, i *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
 	s := fastly.Heroku{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -285,11 +286,11 @@ func createHerokuOK(i *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
 	return &s, nil
 }
 
-func createHerokuError(_ *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
+func createHerokuError(_ context.Context, _ *fastly.CreateHerokuInput) (*fastly.Heroku, error) {
 	return nil, errTest
 }
 
-func listHerokusOK(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
+func listHerokusOK(_ context.Context, i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 	return []*fastly.Heroku{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -318,7 +319,7 @@ func listHerokusOK(i *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 	}, nil
 }
 
-func listHerokusError(_ *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
+func listHerokusError(_ context.Context, _ *fastly.ListHerokusInput) ([]*fastly.Heroku, error) {
 	return nil, errTest
 }
 
@@ -359,7 +360,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
+func getHerokuOK(_ context.Context, i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 	return &fastly.Heroku{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -374,7 +375,7 @@ func getHerokuOK(i *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 	}, nil
 }
 
-func getHerokuError(_ *fastly.GetHerokuInput) (*fastly.Heroku, error) {
+func getHerokuError(_ context.Context, _ *fastly.GetHerokuInput) (*fastly.Heroku, error) {
 	return nil, errTest
 }
 
@@ -391,7 +392,7 @@ URL: example.com
 Version: 1
 `) + "\n"
 
-func updateHerokuOK(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
+func updateHerokuOK(_ context.Context, i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
 	return &fastly.Heroku{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -405,14 +406,14 @@ func updateHerokuOK(i *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
 	}, nil
 }
 
-func updateHerokuError(_ *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
+func updateHerokuError(_ context.Context, _ *fastly.UpdateHerokuInput) (*fastly.Heroku, error) {
 	return nil, errTest
 }
 
-func deleteHerokuOK(_ *fastly.DeleteHerokuInput) error {
+func deleteHerokuOK(_ context.Context, _ *fastly.DeleteHerokuInput) error {
 	return nil
 }
 
-func deleteHerokuError(_ *fastly.DeleteHerokuInput) error {
+func deleteHerokuError(_ context.Context, _ *fastly.DeleteHerokuInput) error {
 	return errTest
 }

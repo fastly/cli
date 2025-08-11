@@ -1,12 +1,13 @@
 package setup
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net"
 	"strconv"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/commands/backend"
@@ -95,7 +96,7 @@ func (b *Backends) Create() error {
 			opts.SSLSNIHostname = &bk.SSLSNIHostname
 		}
 
-		_, err := b.APIClient.CreateBackend(opts)
+		_, err := b.APIClient.CreateBackend(context.TODO(), opts)
 		if err != nil {
 			if !b.isOriginless() {
 				err = fmt.Errorf("error creating backend: %w", err)

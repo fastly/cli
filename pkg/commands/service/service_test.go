@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -85,8 +86,8 @@ func TestServiceList(t *testing.T) {
 	}{
 		{
 			api: mock.API{
-				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{
 							testutil.Err,
 						},
@@ -99,8 +100,8 @@ func TestServiceList(t *testing.T) {
 		},
 		{
 			api: mock.API{
-				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -136,8 +137,8 @@ func TestServiceList(t *testing.T) {
 		},
 		{
 			api: mock.API{
-				GetServicesFn: func(_ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
-					return fastly.NewPaginator[fastly.Service](&mock.HTTPClient{
+				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
+					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -504,14 +505,14 @@ func TestServiceDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createServiceOK(i *fastly.CreateServiceInput) (*fastly.Service, error) {
+func createServiceOK(_ context.Context, i *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ServiceID: fastly.ToPointer("12345"),
 		Name:      i.Name,
 	}, nil
 }
 
-func createServiceError(*fastly.CreateServiceInput) (*fastly.Service, error) {
+func createServiceError(_ context.Context, _ *fastly.CreateServiceInput) (*fastly.Service, error) {
 	return nil, errTest
 }
 
@@ -576,7 +577,7 @@ Service 3/3
 	Versions: 0
 `) + "\n\n"
 
-func getServiceOK(_ *fastly.GetServiceInput) (*fastly.Service, error) {
+func getServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ServiceID: fastly.ToPointer("12345"),
 		Name:      fastly.ToPointer("Foo"),
@@ -584,7 +585,7 @@ func getServiceOK(_ *fastly.GetServiceInput) (*fastly.Service, error) {
 	}, nil
 }
 
-func describeServiceOK(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
 		ServiceID:  fastly.ToPointer("123"),
 		Name:       fastly.ToPointer("Foo"),
@@ -623,7 +624,7 @@ func describeServiceOK(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
 	}, nil
 }
 
-func describeServiceError(_ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceError(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return nil, errTest
 }
 
@@ -698,7 +699,7 @@ Versions: 2
 		Last edited (UTC): 2001-03-04 04:05
 `) + "\n"
 
-func searchServiceOK(_ *fastly.SearchServiceInput) (*fastly.Service, error) {
+func searchServiceOK(_ context.Context, _ *fastly.SearchServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ServiceID:  fastly.ToPointer("123"),
 		Name:       fastly.ToPointer("Foo"),
@@ -778,20 +779,20 @@ Versions: 2
 		Last edited (UTC): 2001-03-04 04:05
 `) + "\n"
 
-func updateServiceOK(_ *fastly.UpdateServiceInput) (*fastly.Service, error) {
+func updateServiceOK(_ context.Context, _ *fastly.UpdateServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ServiceID: fastly.ToPointer("12345"),
 	}, nil
 }
 
-func updateServiceError(*fastly.UpdateServiceInput) (*fastly.Service, error) {
+func updateServiceError(_ context.Context, _ *fastly.UpdateServiceInput) (*fastly.Service, error) {
 	return nil, errTest
 }
 
-func deleteServiceOK(*fastly.DeleteServiceInput) error {
+func deleteServiceOK(_ context.Context, _ *fastly.DeleteServiceInput) error {
 	return nil
 }
 
-func deleteServiceError(*fastly.DeleteServiceInput) error {
+func deleteServiceError(_ context.Context, _ *fastly.DeleteServiceInput) error {
 	return errTest
 }

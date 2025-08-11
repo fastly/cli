@@ -1,11 +1,12 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -48,7 +49,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 
-	o, err := c.Globals.APIClient.ListCustomTLSConfigurations(input)
+	o, err := c.Globals.APIClient.ListCustomTLSConfigurations(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Filter Bulk": c.filterBulk,

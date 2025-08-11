@@ -1,9 +1,10 @@
 package domain
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"4d63.com/optional"
 
@@ -96,7 +97,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.comment.WasSet {
 		input.Comment = &c.comment.Value
 	}
-	d, err := c.Globals.APIClient.CreateDomain(&input)
+	d, err := c.Globals.APIClient.CreateDomain(context.TODO(), &input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

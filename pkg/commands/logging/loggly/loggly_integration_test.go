@@ -2,12 +2,13 @@ package loggly_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestLogglyDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createLogglyOK(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
+func createLogglyOK(_ context.Context, i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 	s := fastly.Loggly{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -285,11 +286,11 @@ func createLogglyOK(i *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 	return &s, nil
 }
 
-func createLogglyError(_ *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
+func createLogglyError(_ context.Context, _ *fastly.CreateLogglyInput) (*fastly.Loggly, error) {
 	return nil, errTest
 }
 
-func listLogglysOK(i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
+func listLogglysOK(_ context.Context, i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
 	return []*fastly.Loggly{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -316,7 +317,7 @@ func listLogglysOK(i *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
 	}, nil
 }
 
-func listLogglysError(_ *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
+func listLogglysError(_ context.Context, _ *fastly.ListLogglyInput) ([]*fastly.Loggly, error) {
 	return nil, errTest
 }
 
@@ -355,7 +356,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getLogglyOK(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
+func getLogglyOK(_ context.Context, i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	return &fastly.Loggly{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -369,7 +370,7 @@ func getLogglyOK(i *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	}, nil
 }
 
-func getLogglyError(_ *fastly.GetLogglyInput) (*fastly.Loggly, error) {
+func getLogglyError(_ context.Context, _ *fastly.GetLogglyInput) (*fastly.Loggly, error) {
 	return nil, errTest
 }
 
@@ -385,7 +386,7 @@ Token: abc
 Version: 1
 `) + "\n"
 
-func updateLogglyOK(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
+func updateLogglyOK(_ context.Context, i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
 	return &fastly.Loggly{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -397,14 +398,14 @@ func updateLogglyOK(i *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
 	}, nil
 }
 
-func updateLogglyError(_ *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
+func updateLogglyError(_ context.Context, _ *fastly.UpdateLogglyInput) (*fastly.Loggly, error) {
 	return nil, errTest
 }
 
-func deleteLogglyOK(_ *fastly.DeleteLogglyInput) error {
+func deleteLogglyOK(_ context.Context, _ *fastly.DeleteLogglyInput) error {
 	return nil
 }
 
-func deleteLogglyError(_ *fastly.DeleteLogglyInput) error {
+func deleteLogglyError(_ context.Context, _ *fastly.DeleteLogglyInput) error {
 	return errTest
 }

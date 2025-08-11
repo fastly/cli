@@ -1,13 +1,14 @@
 package kvstoreentry
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -94,7 +95,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		Key:     c.key.Value,
 	}
 
-	err := c.Globals.APIClient.DeleteKVStoreKey(&input)
+	err := c.Globals.APIClient.DeleteKVStoreKey(context.TODO(), &input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -135,7 +136,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 	}
 	spinner.Message(spinnerMessage + "...")
 
-	p := c.Globals.APIClient.NewListKVStoreKeysPaginator(&fastly.ListKVStoreKeysInput{
+	p := c.Globals.APIClient.NewListKVStoreKeysPaginator(context.TODO(), &fastly.ListKVStoreKeysInput{
 		StoreID: c.StoreID,
 	})
 
@@ -172,7 +173,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 		go func() {
 			defer wg.Done()
 			for key := range keysCh {
-				err := c.Globals.APIClient.DeleteKVStoreKey(&fastly.DeleteKVStoreKeyInput{StoreID: c.StoreID, Key: key})
+				err := c.Globals.APIClient.DeleteKVStoreKey(context.TODO(), &fastly.DeleteKVStoreKeyInput{StoreID: c.StoreID, Key: key})
 				if err != nil {
 					select {
 					case errorsCh <- key:

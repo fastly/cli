@@ -2,12 +2,13 @@ package papertrail_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestPapertrailDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createPapertrailOK(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
+func createPapertrailOK(_ context.Context, i *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -280,11 +281,11 @@ func createPapertrailOK(i *fastly.CreatePapertrailInput) (*fastly.Papertrail, er
 	}, nil
 }
 
-func createPapertrailError(_ *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
+func createPapertrailError(_ context.Context, _ *fastly.CreatePapertrailInput) (*fastly.Papertrail, error) {
 	return nil, errTest
 }
 
-func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
+func listPapertrailsOK(_ context.Context, i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
 	return []*fastly.Papertrail{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -313,7 +314,7 @@ func listPapertrailsOK(i *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, er
 	}, nil
 }
 
-func listPapertrailsError(_ *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
+func listPapertrailsError(_ context.Context, _ *fastly.ListPapertrailsInput) ([]*fastly.Papertrail, error) {
 	return nil, errTest
 }
 
@@ -354,7 +355,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
+func getPapertrailOK(_ context.Context, i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -369,7 +370,7 @@ func getPapertrailOK(i *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	}, nil
 }
 
-func getPapertrailError(_ *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
+func getPapertrailError(_ context.Context, _ *fastly.GetPapertrailInput) (*fastly.Papertrail, error) {
 	return nil, errTest
 }
 
@@ -386,7 +387,7 @@ Service ID: 123
 Version: 1
 `) + "\n"
 
-func updatePapertrailOK(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
+func updatePapertrailOK(_ context.Context, i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
 	return &fastly.Papertrail{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -400,14 +401,14 @@ func updatePapertrailOK(i *fastly.UpdatePapertrailInput) (*fastly.Papertrail, er
 	}, nil
 }
 
-func updatePapertrailError(_ *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
+func updatePapertrailError(_ context.Context, _ *fastly.UpdatePapertrailInput) (*fastly.Papertrail, error) {
 	return nil, errTest
 }
 
-func deletePapertrailOK(_ *fastly.DeletePapertrailInput) error {
+func deletePapertrailOK(_ context.Context, _ *fastly.DeletePapertrailInput) error {
 	return nil
 }
 
-func deletePapertrailError(_ *fastly.DeletePapertrailInput) error {
+func deletePapertrailError(_ context.Context, _ *fastly.DeletePapertrailInput) error {
 	return errTest
 }

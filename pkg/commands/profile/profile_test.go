@@ -1,12 +1,13 @@
 package profile_test
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/config"
@@ -701,7 +702,7 @@ func TestProfileUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
-func getToken() (*fastly.Token, error) {
+func getToken(_ context.Context) (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
@@ -717,7 +718,7 @@ func getToken() (*fastly.Token, error) {
 	}, nil
 }
 
-func getUser(i *fastly.GetUserInput) (*fastly.User, error) {
+func getUser(_ context.Context, i *fastly.GetUserInput) (*fastly.User, error) {
 	t := testutil.Date
 
 	return &fastly.User{

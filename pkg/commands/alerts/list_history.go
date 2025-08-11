@@ -1,11 +1,12 @@
 package alerts
 
 import (
+	"context"
 	"errors"
 	"io"
 
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -65,7 +66,7 @@ func (c *ListHistoryCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	for {
-		history, err := c.Globals.APIClient.ListAlertHistory(input)
+		history, err := c.Globals.APIClient.ListAlertHistory(context.TODO(), input)
 		if err != nil {
 			return err
 		}

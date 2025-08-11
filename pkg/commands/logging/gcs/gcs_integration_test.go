@@ -2,12 +2,13 @@ package gcs_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -289,7 +290,7 @@ func TestGCSDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createGCSOK(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
+func createGCSOK(_ context.Context, i *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -297,11 +298,11 @@ func createGCSOK(i *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	}, nil
 }
 
-func createGCSError(_ *fastly.CreateGCSInput) (*fastly.GCS, error) {
+func createGCSError(_ context.Context, _ *fastly.CreateGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
-func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
+func listGCSsOK(_ context.Context, i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 	return []*fastly.GCS{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -346,7 +347,7 @@ func listGCSsOK(i *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 	}, nil
 }
 
-func listGCSsError(_ *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
+func listGCSsError(_ context.Context, _ *fastly.ListGCSsInput) ([]*fastly.GCS, error) {
 	return nil, errTest
 }
 
@@ -403,7 +404,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
+func getGCSOK(_ context.Context, i *fastly.GetGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -426,7 +427,7 @@ func getGCSOK(i *fastly.GetGCSInput) (*fastly.GCS, error) {
 	}, nil
 }
 
-func getGCSError(_ *fastly.GetGCSInput) (*fastly.GCS, error) {
+func getGCSError(_ context.Context, _ *fastly.GetGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
@@ -452,7 +453,7 @@ User: foo@example.com
 Version: 1
 `) + "\n"
 
-func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
+func updateGCSOK(_ context.Context, i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 	return &fastly.GCS{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -473,14 +474,14 @@ func updateGCSOK(i *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 	}, nil
 }
 
-func updateGCSError(_ *fastly.UpdateGCSInput) (*fastly.GCS, error) {
+func updateGCSError(_ context.Context, _ *fastly.UpdateGCSInput) (*fastly.GCS, error) {
 	return nil, errTest
 }
 
-func deleteGCSOK(_ *fastly.DeleteGCSInput) error {
+func deleteGCSOK(_ context.Context, _ *fastly.DeleteGCSInput) error {
 	return nil
 }
 
-func deleteGCSError(_ *fastly.DeleteGCSInput) error {
+func deleteGCSError(_ context.Context, _ *fastly.DeleteGCSInput) error {
 	return errTest
 }

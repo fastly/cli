@@ -2,12 +2,13 @@ package kvstore_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/kvstore"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
@@ -31,7 +32,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
-				CreateKVStoreFn: func(_ *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+				CreateKVStoreFn: func(_ context.Context, _ *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -40,7 +41,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
-				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+				CreateKVStoreFn: func(_ context.Context, i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
 						StoreID: storeID,
 						Name:    i.Name,
@@ -52,7 +53,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--name %s --json", storeName),
 			API: mock.API{
-				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+				CreateKVStoreFn: func(_ context.Context, i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
 						StoreID:   storeID,
 						Name:      i.Name,
@@ -73,7 +74,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			// Location/region indicators are not exposed for us to validate.
 			Args: fmt.Sprintf("--name %s --location %s", storeName, storeLocation),
 			API: mock.API{
-				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+				CreateKVStoreFn: func(_ context.Context, i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
 						StoreID: storeID,
 						Name:    i.Name,
@@ -87,7 +88,7 @@ func TestCreateStoreCommand(t *testing.T) {
 			// Location/region indicators are not exposed for us to validate.
 			Args: fmt.Sprintf("--name %s --location %s --json", storeName, storeLocation),
 			API: mock.API{
-				CreateKVStoreFn: func(i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
+				CreateKVStoreFn: func(_ context.Context, i *fastly.CreateKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
 						StoreID:   storeID,
 						Name:      i.Name,
@@ -119,7 +120,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			Args: "--store-id DOES-NOT-EXIST",
 			API: mock.API{
-				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
+				DeleteKVStoreFn: func(_ context.Context, i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -131,7 +132,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
+				DeleteKVStoreFn: func(_ context.Context, i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -143,7 +144,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
-				DeleteKVStoreFn: func(i *fastly.DeleteKVStoreInput) error {
+				DeleteKVStoreFn: func(_ context.Context, i *fastly.DeleteKVStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -172,7 +173,7 @@ func TestGetStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				GetKVStoreFn: func(_ *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
+				GetKVStoreFn: func(_ context.Context, _ *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -181,7 +182,7 @@ func TestGetStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
+				GetKVStoreFn: func(_ context.Context, i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
 						StoreID:   i.StoreID,
 						Name:      storeName,
@@ -202,7 +203,7 @@ func TestGetStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
-				GetKVStoreFn: func(i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
+				GetKVStoreFn: func(_ context.Context, i *fastly.GetKVStoreInput) (*fastly.KVStore, error) {
 					return &fastly.KVStore{
 						StoreID:   i.StoreID,
 						Name:      storeName,
@@ -239,14 +240,14 @@ func TestListStoresCommand(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			API: mock.API{
-				ListKVStoresFn: func(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+				ListKVStoresFn: func(_ context.Context, _ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return nil, nil
 				},
 			},
 		},
 		{
 			API: mock.API{
-				ListKVStoresFn: func(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+				ListKVStoresFn: func(_ context.Context, _ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return nil, errors.New("unknown error")
 				},
 			},
@@ -254,7 +255,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 		{
 			API: mock.API{
-				ListKVStoresFn: func(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+				ListKVStoresFn: func(_ context.Context, _ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return stores, nil
 				},
 			},
@@ -263,7 +264,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			Args: "--json",
 			API: mock.API{
-				ListKVStoresFn: func(_ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
+				ListKVStoresFn: func(_ context.Context, _ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {
 					return stores, nil
 				},
 			},

@@ -1,9 +1,10 @@
 package configstoreentry
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -96,7 +97,7 @@ func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
 		return errMaxValueLen
 	}
 
-	o, err := c.Globals.APIClient.UpdateConfigStoreItem(&c.input)
+	o, err := c.Globals.APIClient.UpdateConfigStoreItem(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

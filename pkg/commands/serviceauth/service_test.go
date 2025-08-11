@@ -2,12 +2,13 @@ package serviceauth_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -269,21 +270,21 @@ func TestServiceAuthDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createServiceAuthError(*fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func createServiceAuthError(_ context.Context, _ *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return nil, errTest
 }
 
-func createServiceAuthOK(_ *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func createServiceAuthOK(_ context.Context, _ *fastly.CreateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 	}, nil
 }
 
-func listServiceAuthError(*fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
+func listServiceAuthError(_ context.Context, _ *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
 	return nil, errTest
 }
 
-func listServiceAuthOK(_ *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
+func listServiceAuthOK(_ context.Context, _ *fastly.ListServiceAuthorizationsInput) (*fastly.ServiceAuthorizations, error) {
 	return &fastly.ServiceAuthorizations{
 		Items: []*fastly.ServiceAuthorization{
 			{
@@ -300,11 +301,11 @@ func listServiceAuthOK(_ *fastly.ListServiceAuthorizationsInput) (*fastly.Servic
 	}, nil
 }
 
-func describeServiceAuthError(*fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func describeServiceAuthError(_ context.Context, _ *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return nil, errTest
 }
 
-func describeServiceAuthOK(_ *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func describeServiceAuthOK(_ context.Context, _ *fastly.GetServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 		User: &fastly.SAUser{
@@ -317,20 +318,20 @@ func describeServiceAuthOK(_ *fastly.GetServiceAuthorizationInput) (*fastly.Serv
 	}, nil
 }
 
-func updateServiceAuthError(*fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func updateServiceAuthError(_ context.Context, _ *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return nil, errTest
 }
 
-func updateServiceAuthOK(_ *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
+func updateServiceAuthOK(_ context.Context, _ *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error) {
 	return &fastly.ServiceAuthorization{
 		ID: "12345",
 	}, nil
 }
 
-func deleteServiceAuthError(*fastly.DeleteServiceAuthorizationInput) error {
+func deleteServiceAuthError(_ context.Context, _ *fastly.DeleteServiceAuthorizationInput) error {
 	return errTest
 }
 
-func deleteServiceAuthOK(_ *fastly.DeleteServiceAuthorizationInput) error {
+func deleteServiceAuthOK(_ context.Context, _ *fastly.DeleteServiceAuthorizationInput) error {
 	return nil
 }

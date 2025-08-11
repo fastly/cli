@@ -1,12 +1,13 @@
 package aclentry_test
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/mock"
@@ -33,7 +34,7 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name: "validate CreateACLEntry API error",
 			API: mock.API{
-				CreateACLEntryFn: func(_ *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
+				CreateACLEntryFn: func(_ context.Context, _ *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -43,7 +44,7 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name: "validate CreateACLEntry API success",
 			API: mock.API{
-				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
+				CreateACLEntryFn: func(_ context.Context, i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return &fastly.ACLEntry{
 						ACLID:     fastly.ToPointer(i.ACLID),
 						EntryID:   fastly.ToPointer("456"),
@@ -58,7 +59,7 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name: "validate CreateACLEntry API success with negated IP",
 			API: mock.API{
-				CreateACLEntryFn: func(i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
+				CreateACLEntryFn: func(_ context.Context, i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return &fastly.ACLEntry{
 						ACLID:     fastly.ToPointer(i.ACLID),
 						EntryID:   fastly.ToPointer("456"),
@@ -96,7 +97,7 @@ func TestACLEntryDelete(t *testing.T) {
 		{
 			Name: "validate DeleteACL API error",
 			API: mock.API{
-				DeleteACLEntryFn: func(_ *fastly.DeleteACLEntryInput) error {
+				DeleteACLEntryFn: func(_ context.Context, _ *fastly.DeleteACLEntryInput) error {
 					return testutil.Err
 				},
 			},
@@ -106,7 +107,7 @@ func TestACLEntryDelete(t *testing.T) {
 		{
 			Name: "validate DeleteACL API success",
 			API: mock.API{
-				DeleteACLEntryFn: func(_ *fastly.DeleteACLEntryInput) error {
+				DeleteACLEntryFn: func(_ context.Context, _ *fastly.DeleteACLEntryInput) error {
 					return nil
 				},
 			},
@@ -138,7 +139,7 @@ func TestACLEntryDescribe(t *testing.T) {
 		{
 			Name: "validate GetACL API error",
 			API: mock.API{
-				GetACLEntryFn: func(_ *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
+				GetACLEntryFn: func(_ context.Context, _ *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -172,8 +173,8 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API error (via GetNext() call)",
 			API: mock.API{
-				GetACLEntriesFn: func(_ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
+				GetACLEntriesFn: func(ctx context.Context, _ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+					return fastly.NewPaginator[fastly.ACLEntry](ctx, &mock.HTTPClient{
 						Errors: []error{
 							testutil.Err,
 						},
@@ -187,8 +188,8 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API success",
 			API: mock.API{
-				GetACLEntriesFn: func(_ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
+				GetACLEntriesFn: func(ctx context.Context, _ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+					return fastly.NewPaginator[fastly.ACLEntry](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -229,8 +230,8 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate --verbose flag",
 			API: mock.API{
-				GetACLEntriesFn: func(_ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
-					return fastly.NewPaginator[fastly.ACLEntry](&mock.HTTPClient{
+				GetACLEntriesFn: func(ctx context.Context, _ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
+					return fastly.NewPaginator[fastly.ACLEntry](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
 						Responses: []*http.Response{
 							{
@@ -326,7 +327,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateACL API error",
 			API: mock.API{
-				UpdateACLEntryFn: func(_ *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error) {
+				UpdateACLEntryFn: func(_ context.Context, _ *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -336,7 +337,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate error from --file set with invalid json",
 			API: mock.API{
-				BatchModifyACLEntriesFn: func(_ *fastly.BatchModifyACLEntriesInput) error {
+				BatchModifyACLEntriesFn: func(_ context.Context, _ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
 			},
@@ -346,7 +347,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate error from --file set with zero json entries",
 			API: mock.API{
-				BatchModifyACLEntriesFn: func(_ *fastly.BatchModifyACLEntriesInput) error {
+				BatchModifyACLEntriesFn: func(_ context.Context, _ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
 			},
@@ -356,7 +357,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate success with --file",
 			API: mock.API{
-				BatchModifyACLEntriesFn: func(_ *fastly.BatchModifyACLEntriesInput) error {
+				BatchModifyACLEntriesFn: func(_ context.Context, _ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
 			},
@@ -370,7 +371,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate success with --file as inline json",
 			API: mock.API{
-				BatchModifyACLEntriesFn: func(_ *fastly.BatchModifyACLEntriesInput) error {
+				BatchModifyACLEntriesFn: func(_ context.Context, _ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
 			},
@@ -382,7 +383,7 @@ func TestACLEntryUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
-func getACLEntry(i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
+func getACLEntry(_ context.Context, i *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 	t := testutil.Date
 
 	return &fastly.ACLEntry{

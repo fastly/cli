@@ -1,12 +1,13 @@
 package configstore_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/configstore"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
@@ -28,7 +29,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
-				CreateConfigStoreFn: func(_ *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
+				CreateConfigStoreFn: func(_ context.Context, _ *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -37,7 +38,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--name %s", storeName),
 			API: mock.API{
-				CreateConfigStoreFn: func(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
+				CreateConfigStoreFn: func(_ context.Context, i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
 						StoreID: storeID,
 						Name:    i.Name,
@@ -49,7 +50,7 @@ func TestCreateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--name %s --json", storeName),
 			API: mock.API{
-				CreateConfigStoreFn: func(i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
+				CreateConfigStoreFn: func(_ context.Context, i *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
 						StoreID:   storeID,
 						Name:      i.Name,
@@ -81,7 +82,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			Args: "--store-id DOES-NOT-EXIST",
 			API: mock.API{
-				DeleteConfigStoreFn: func(i *fastly.DeleteConfigStoreInput) error {
+				DeleteConfigStoreFn: func(_ context.Context, i *fastly.DeleteConfigStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -93,7 +94,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				DeleteConfigStoreFn: func(i *fastly.DeleteConfigStoreInput) error {
+				DeleteConfigStoreFn: func(_ context.Context, i *fastly.DeleteConfigStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -105,7 +106,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
-				DeleteConfigStoreFn: func(i *fastly.DeleteConfigStoreInput) error {
+				DeleteConfigStoreFn: func(_ context.Context, i *fastly.DeleteConfigStoreInput) error {
 					if i.StoreID != storeID {
 						return errStoreNotFound
 					}
@@ -134,7 +135,7 @@ func TestGetStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				GetConfigStoreFn: func(_ *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
+				GetConfigStoreFn: func(_ context.Context, _ *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -143,7 +144,7 @@ func TestGetStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				GetConfigStoreFn: func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
+				GetConfigStoreFn: func(_ context.Context, i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
 						StoreID:   i.StoreID,
 						Name:      storeName,
@@ -163,14 +164,14 @@ func TestGetStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --metadata", storeID),
 			API: mock.API{
-				GetConfigStoreFn: func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
+				GetConfigStoreFn: func(_ context.Context, i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
 						StoreID:   i.StoreID,
 						Name:      storeName,
 						CreatedAt: &now,
 					}, nil
 				},
-				GetConfigStoreMetadataFn: func(_ *fastly.GetConfigStoreMetadataInput) (*fastly.ConfigStoreMetadata, error) {
+				GetConfigStoreMetadataFn: func(_ context.Context, _ *fastly.GetConfigStoreMetadataInput) (*fastly.ConfigStoreMetadata, error) {
 					return &fastly.ConfigStoreMetadata{
 						ItemCount: 42,
 					}, nil
@@ -190,7 +191,7 @@ func TestGetStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
-				GetConfigStoreFn: func(i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
+				GetConfigStoreFn: func(_ context.Context, i *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
 						StoreID:   i.StoreID,
 						Name:      storeName,
@@ -225,7 +226,7 @@ func TestListStoresCommand(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			API: mock.API{
-				ListConfigStoresFn: func(_ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
+				ListConfigStoresFn: func(_ context.Context, _ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return nil, nil
 				},
 			},
@@ -233,7 +234,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 		{
 			API: mock.API{
-				ListConfigStoresFn: func(_ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
+				ListConfigStoresFn: func(_ context.Context, _ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return nil, errors.New("unknown error")
 				},
 			},
@@ -241,7 +242,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 		{
 			API: mock.API{
-				ListConfigStoresFn: func(_ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
+				ListConfigStoresFn: func(_ context.Context, _ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return stores, nil
 				},
 			},
@@ -250,7 +251,7 @@ func TestListStoresCommand(t *testing.T) {
 		{
 			Args: "--json",
 			API: mock.API{
-				ListConfigStoresFn: func(_ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
+				ListConfigStoresFn: func(_ context.Context, _ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
 					return stores, nil
 				},
 			},
@@ -276,7 +277,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				ListConfigStoreServicesFn: func(_ *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
+				ListConfigStoreServicesFn: func(_ context.Context, _ *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
 					return nil, nil
 				},
 			},
@@ -285,7 +286,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				ListConfigStoreServicesFn: func(_ *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
+				ListConfigStoreServicesFn: func(_ context.Context, _ *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
 					return nil, errors.New("unknown error")
 				},
 			},
@@ -294,7 +295,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				ListConfigStoreServicesFn: func(_ *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
+				ListConfigStoreServicesFn: func(_ context.Context, _ *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
 					return services, nil
 				},
 			},
@@ -303,7 +304,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
-				ListConfigStoreServicesFn: func(_ *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
+				ListConfigStoreServicesFn: func(_ context.Context, _ *fastly.ListConfigStoreServicesInput) ([]*fastly.Service, error) {
 					return services, nil
 				},
 			},
@@ -329,7 +330,7 @@ func TestUpdateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --name %s", storeID, storeName),
 			API: mock.API{
-				UpdateConfigStoreFn: func(_ *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
+				UpdateConfigStoreFn: func(_ context.Context, _ *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -338,7 +339,7 @@ func TestUpdateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --name %s", storeID, storeName),
 			API: mock.API{
-				UpdateConfigStoreFn: func(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
+				UpdateConfigStoreFn: func(_ context.Context, i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
 						StoreID:   storeID,
 						Name:      i.Name,
@@ -351,7 +352,7 @@ func TestUpdateStoreCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --name %s --json", storeID, storeName),
 			API: mock.API{
-				UpdateConfigStoreFn: func(i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
+				UpdateConfigStoreFn: func(_ context.Context, i *fastly.UpdateConfigStoreInput) (*fastly.ConfigStore, error) {
 					return &fastly.ConfigStore{
 						StoreID:   storeID,
 						Name:      i.Name,

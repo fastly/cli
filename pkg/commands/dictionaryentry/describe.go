@@ -1,10 +1,11 @@
 package dictionaryentry
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -68,7 +69,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Input.ServiceID = serviceID
 
-	o, err := c.Globals.APIClient.GetDictionaryItem(&c.Input)
+	o, err := c.Globals.APIClient.GetDictionaryItem(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID": serviceID,

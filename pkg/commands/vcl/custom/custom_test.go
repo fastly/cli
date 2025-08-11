@@ -1,9 +1,10 @@
 package custom_test
 
 import (
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/vcl"
 	sub "github.com/fastly/cli/pkg/commands/vcl/custom"
@@ -34,7 +35,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			Name: "validate CreateVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateVCLFn: func(_ *fastly.CreateVCLInput) (*fastly.VCL, error) {
+				CreateVCLFn: func(_ context.Context, _ *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -45,7 +46,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			Name: "validate CreateVCL API success for non-main VCL",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
+				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
@@ -75,7 +76,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			Name: "validate CreateVCL API success for main VCL",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
+				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					// Track the contents parsed
 					content = *i.Content
@@ -107,7 +108,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
+				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
@@ -137,7 +138,7 @@ func TestVCLCustomCreate(t *testing.T) {
 			Name: "validate CreateVCL API success with inline VCL content",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				CreateVCLFn: func(i *fastly.CreateVCLInput) (*fastly.VCL, error) {
+				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					content = *i.Content
 					if i.Content == nil {
@@ -205,7 +206,7 @@ func TestVCLCustomDelete(t *testing.T) {
 			Name: "validate DeleteVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteVCLFn: func(_ *fastly.DeleteVCLInput) error {
+				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
 					return testutil.Err
 				},
 			},
@@ -216,7 +217,7 @@ func TestVCLCustomDelete(t *testing.T) {
 			Name: "validate DeleteVCL API success",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				DeleteVCLFn: func(_ *fastly.DeleteVCLInput) error {
+				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
 					return nil
 				},
 			},
@@ -228,7 +229,7 @@ func TestVCLCustomDelete(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				DeleteVCLFn: func(_ *fastly.DeleteVCLInput) error {
+				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
 					return nil
 				},
 			},
@@ -261,7 +262,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 			Name: "validate GetVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				GetVCLFn: func(_ *fastly.GetVCLInput) (*fastly.VCL, error) {
+				GetVCLFn: func(_ context.Context, _ *fastly.GetVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -306,7 +307,7 @@ func TestVCLCustomList(t *testing.T) {
 			Name: "validate ListVCLs API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				ListVCLsFn: func(_ *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
+				ListVCLsFn: func(_ context.Context, _ *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -383,7 +384,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			Name: "validate UpdateVCL API error",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateVCLFn: func(_ *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+				UpdateVCLFn: func(_ context.Context, _ *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
 			},
@@ -394,7 +395,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			Name: "validate UpdateVCL API success with --new-name",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return &fastly.VCL{
 						Content:        fastly.ToPointer("# untouched"),
 						Main:           fastly.ToPointer(true),
@@ -411,7 +412,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			Name: "validate UpdateVCL API success with --content",
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
-				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					content = *i.Content
 
@@ -433,7 +434,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
-				UpdateVCLFn: func(i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					content = *i.Content
 
@@ -455,7 +456,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
-func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
+func getVCL(_ context.Context, i *fastly.GetVCLInput) (*fastly.VCL, error) {
 	t := testutil.Date
 
 	return &fastly.VCL{
@@ -471,7 +472,7 @@ func getVCL(i *fastly.GetVCLInput) (*fastly.VCL, error) {
 	}, nil
 }
 
-func listVCLs(i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
+func listVCLs(_ context.Context, i *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
 	t := testutil.Date
 	vs := []*fastly.VCL{
 		{

@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -9,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
@@ -176,7 +177,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 			return fmt.Errorf("error regenerating Fastly API client: %w", err)
 		}
 
-		t, err = client.GetTokenSelf()
+		t, err = client.GetTokenSelf(context.TODO())
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return fmt.Errorf("error validating token: %w", err)
@@ -192,7 +193,7 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 
 	var user *fastly.User
 	err = spinner.Process("Getting user data", func(_ *text.SpinnerWrapper) error {
-		user, err = client.GetUser(&fastly.GetUserInput{
+		user, err = client.GetUser(context.TODO(), &fastly.GetUserInput{
 			UserID: fastly.ToValue(t.UserID),
 		})
 		if err != nil {

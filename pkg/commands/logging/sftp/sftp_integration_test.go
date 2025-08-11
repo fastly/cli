@@ -2,12 +2,13 @@ package sftp_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -280,7 +281,7 @@ func TestSFTPDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createSFTPOK(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
+func createSFTPOK(_ context.Context, i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	s := fastly.SFTP{
 		ServiceID:        fastly.ToPointer(i.ServiceID),
 		ServiceVersion:   fastly.ToPointer(i.ServiceVersion),
@@ -294,11 +295,11 @@ func createSFTPOK(i *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	return &s, nil
 }
 
-func createSFTPError(_ *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
+func createSFTPError(_ context.Context, _ *fastly.CreateSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
-func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
+func listSFTPsOK(_ context.Context, i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	return []*fastly.SFTP{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -347,7 +348,7 @@ func listSFTPsOK(i *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	}, nil
 }
 
-func listSFTPsError(_ *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
+func listSFTPsError(_ context.Context, _ *fastly.ListSFTPsInput) ([]*fastly.SFTP, error) {
 	return nil, errTest
 }
 
@@ -410,7 +411,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
+func getSFTPOK(_ context.Context, i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -436,7 +437,7 @@ func getSFTPOK(i *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	}, nil
 }
 
-func getSFTPError(_ *fastly.GetSFTPInput) (*fastly.SFTP, error) {
+func getSFTPError(_ context.Context, _ *fastly.GetSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
@@ -464,7 +465,7 @@ User: user
 Version: 1
 `
 
-func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
+func updateSFTPOK(_ context.Context, i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	return &fastly.SFTP{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -488,15 +489,15 @@ func updateSFTPOK(i *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	}, nil
 }
 
-func updateSFTPError(_ *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
+func updateSFTPError(_ context.Context, _ *fastly.UpdateSFTPInput) (*fastly.SFTP, error) {
 	return nil, errTest
 }
 
-func deleteSFTPOK(_ *fastly.DeleteSFTPInput) error {
+func deleteSFTPOK(_ context.Context, _ *fastly.DeleteSFTPInput) error {
 	return nil
 }
 
-func deleteSFTPError(_ *fastly.DeleteSFTPInput) error {
+func deleteSFTPError(_ context.Context, _ *fastly.DeleteSFTPInput) error {
 	return errTest
 }
 

@@ -1,10 +1,11 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -44,7 +45,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		err = c.Globals.APIClient.ResetUserPassword(input)
+		err = c.Globals.APIClient.ResetUserPassword(context.TODO(), input)
 		if err != nil {
 			return err
 		}
@@ -58,7 +59,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	r, err := c.Globals.APIClient.UpdateUser(input)
+	r, err := c.Globals.APIClient.UpdateUser(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"User ID": c.id,

@@ -1,9 +1,10 @@
 package serviceauth
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -34,7 +35,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
-	s, err := c.Globals.APIClient.UpdateServiceAuthorization(&c.input)
+	s, err := c.Globals.APIClient.UpdateServiceAuthorization(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service Authorization ID": c.input.ID,

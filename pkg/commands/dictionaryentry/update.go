@@ -1,12 +1,13 @@
 package dictionaryentry
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -81,7 +82,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("an empty value is not allowed for either the '--key' or '--value' flags")
 	}
 
-	d, err := c.Globals.APIClient.UpdateDictionaryItem(&c.Input)
+	d, err := c.Globals.APIClient.UpdateDictionaryItem(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -115,7 +116,7 @@ func (c *UpdateCommand) batchModify(out io.Writer) error {
 		return fmt.Errorf("item key not found in file %s", c.file.Value)
 	}
 
-	err = c.Globals.APIClient.BatchModifyDictionaryItems(&c.InputBatch)
+	err = c.Globals.APIClient.BatchModifyDictionaryItems(context.TODO(), &c.InputBatch)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -2,12 +2,13 @@ package datadog_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -272,7 +273,7 @@ func TestDatadogDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createDatadogOK(i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
+func createDatadogOK(_ context.Context, i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 	s := fastly.Datadog{
 		ServiceID:      fastly.ToPointer(i.ServiceID),
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
@@ -285,11 +286,11 @@ func createDatadogOK(i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 	return &s, nil
 }
 
-func createDatadogError(_ *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
+func createDatadogError(_ context.Context, _ *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 	return nil, errTest
 }
 
-func listDatadogsOK(i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
+func listDatadogsOK(_ context.Context, i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 	return []*fastly.Datadog{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -318,7 +319,7 @@ func listDatadogsOK(i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 	}, nil
 }
 
-func listDatadogsError(_ *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
+func listDatadogsError(_ context.Context, _ *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 	return nil, errTest
 }
 
@@ -359,7 +360,7 @@ Version: 1
 		Processing region: us
 `) + "\n\n"
 
-func getDatadogOK(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
+func getDatadogOK(_ context.Context, i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	return &fastly.Datadog{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -374,7 +375,7 @@ func getDatadogOK(i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	}, nil
 }
 
-func getDatadogError(_ *fastly.GetDatadogInput) (*fastly.Datadog, error) {
+func getDatadogError(_ context.Context, _ *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	return nil, errTest
 }
 
@@ -391,7 +392,7 @@ Token: abc
 Version: 1
 `) + "\n"
 
-func updateDatadogOK(i *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
+func updateDatadogOK(_ context.Context, i *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
 	return &fastly.Datadog{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -404,14 +405,14 @@ func updateDatadogOK(i *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
 	}, nil
 }
 
-func updateDatadogError(_ *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
+func updateDatadogError(_ context.Context, _ *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
 	return nil, errTest
 }
 
-func deleteDatadogOK(_ *fastly.DeleteDatadogInput) error {
+func deleteDatadogOK(_ context.Context, _ *fastly.DeleteDatadogInput) error {
 	return nil
 }
 
-func deleteDatadogError(_ *fastly.DeleteDatadogInput) error {
+func deleteDatadogError(_ context.Context, _ *fastly.DeleteDatadogInput) error {
 	return errTest
 }

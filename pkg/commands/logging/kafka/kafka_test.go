@@ -2,9 +2,10 @@ package kafka_test
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/kafka"
@@ -568,7 +569,7 @@ func updateCommandMissingServiceID() *kafka.UpdateCommand {
 	return res
 }
 
-func getKafkaSASL(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
+func getKafkaSASL(_ context.Context, i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),

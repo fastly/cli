@@ -2,12 +2,13 @@ package kafka_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -281,7 +282,7 @@ func TestKafkaDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createKafkaOK(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
+func createKafkaOK(_ context.Context, i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -307,11 +308,11 @@ func createKafkaOK(i *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 	}, nil
 }
 
-func createKafkaError(_ *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
+func createKafkaError(_ context.Context, _ *fastly.CreateKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
-func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
+func listKafkasOK(_ context.Context, i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 	return []*fastly.Kafka{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -364,7 +365,7 @@ func listKafkasOK(i *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 	}, nil
 }
 
-func listKafkasError(_ *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
+func listKafkasError(_ context.Context, _ *fastly.ListKafkasInput) ([]*fastly.Kafka, error) {
 	return nil, errTest
 }
 
@@ -429,7 +430,7 @@ Version: 1
 		Processing region: us
   `) + "\n\n"
 
-func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
+func getKafkaOK(_ context.Context, i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -451,7 +452,7 @@ func getKafkaOK(i *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	}, nil
 }
 
-func getKafkaError(_ *fastly.GetKafkaInput) (*fastly.Kafka, error) {
+func getKafkaError(_ context.Context, _ *fastly.GetKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
@@ -480,7 +481,7 @@ Use TLS: true
 Version: 1
 `
 
-func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
+func updateKafkaOK(_ context.Context, i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -501,7 +502,7 @@ func updateKafkaOK(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	}, nil
 }
 
-func updateKafkaSASL(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
+func updateKafkaSASL(_ context.Context, i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return &fastly.Kafka{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -527,14 +528,14 @@ func updateKafkaSASL(i *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	}, nil
 }
 
-func updateKafkaError(_ *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
+func updateKafkaError(_ context.Context, _ *fastly.UpdateKafkaInput) (*fastly.Kafka, error) {
 	return nil, errTest
 }
 
-func deleteKafkaOK(_ *fastly.DeleteKafkaInput) error {
+func deleteKafkaOK(_ context.Context, _ *fastly.DeleteKafkaInput) error {
 	return nil
 }
 
-func deleteKafkaError(_ *fastly.DeleteKafkaInput) error {
+func deleteKafkaError(_ context.Context, _ *fastly.DeleteKafkaInput) error {
 	return errTest
 }

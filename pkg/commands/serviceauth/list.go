@@ -1,6 +1,7 @@
 package serviceauth
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 )
 
 // ListCommand calls the Fastly API to list service authorizations.
@@ -39,7 +40,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	o, err := c.Globals.APIClient.ListServiceAuthorizations(&c.input)
+	o, err := c.Globals.APIClient.ListServiceAuthorizations(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Page Number": c.input.PageNumber,

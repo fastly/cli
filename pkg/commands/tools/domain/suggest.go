@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -10,8 +11,9 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/domains/v1/tools/suggest"
+	"github.com/fastly/go-fastly/v11/fastly"
+
+	"github.com/fastly/go-fastly/v11/fastly/domains/v1/tools/suggest"
 )
 
 // GetDomainSuggestionsCommand calls the Fastly API and results domain search results for a given query.
@@ -79,7 +81,7 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to acquire the Fastly API client")
 	}
 
-	suggestions, err := suggest.Get(fc, input)
+	suggestions, err := suggest.Get(context.TODO(), fc, input)
 	if err != nil {
 		g.Globals.ErrLog.Add(err)
 		return err

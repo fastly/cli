@@ -1,13 +1,14 @@
 package kvstoreentry_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/kvstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
@@ -30,7 +31,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
 			API: mock.API{
-				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
+				InsertKVStoreKeyFn: func(_ context.Context, _ *fastly.InsertKVStoreKeyInput) error {
 					return errors.New("invalid request")
 				},
 			},
@@ -39,7 +40,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
 			API: mock.API{
-				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
+				InsertKVStoreKeyFn: func(_ context.Context, _ *fastly.InsertKVStoreKeyInput) error {
 					return nil
 				},
 			},
@@ -48,7 +49,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --json", storeID, itemKey, itemValue),
 			API: mock.API{
-				InsertKVStoreKeyFn: func(_ *fastly.InsertKVStoreKeyInput) error {
+				InsertKVStoreKeyFn: func(_ context.Context, _ *fastly.InsertKVStoreKeyInput) error {
 					return nil
 				},
 			},
@@ -58,7 +59,7 @@ func TestCreateCommand(t *testing.T) {
 			Args:  fmt.Sprintf("--store-id %s --stdin", storeID),
 			Stdin: []string{`{"key":"example","value":"VkFMVUU="}`},
 			API: mock.API{
-				BatchModifyKVStoreKeyFn: func(_ *fastly.BatchModifyKVStoreKeyInput) error {
+				BatchModifyKVStoreKeyFn: func(_ context.Context, _ *fastly.BatchModifyKVStoreKeyInput) error {
 					return nil
 				},
 			},
@@ -67,7 +68,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --file %s", storeID, filepath.Join("testdata", "data.json")),
 			API: mock.API{
-				BatchModifyKVStoreKeyFn: func(_ *fastly.BatchModifyKVStoreKeyInput) error {
+				BatchModifyKVStoreKeyFn: func(_ context.Context, _ *fastly.BatchModifyKVStoreKeyInput) error {
 					return nil
 				},
 			},
@@ -77,7 +78,7 @@ func TestCreateCommand(t *testing.T) {
 			Args:  fmt.Sprintf("--store-id %s --dir %s", storeID, filepath.Join("testdata", "example")),
 			Stdin: []string{"y"},
 			API: mock.API{
-				InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if i.Key == "foo.txt" {
 						return nil
 					}
@@ -90,7 +91,7 @@ func TestCreateCommand(t *testing.T) {
 			Args:  fmt.Sprintf("--store-id %s --dir %s --dir-allow-hidden", storeID, filepath.Join("testdata", "example")),
 			Stdin: []string{"y"},
 			API: mock.API{
-				InsertKVStoreKeyFn: func(i *fastly.InsertKVStoreKeyInput) error {
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if i.Key == "foo.txt" || i.Key == ".hiddenfile" {
 						return nil
 					}
@@ -130,7 +131,7 @@ func TestDeleteCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
-				DeleteKVStoreKeyFn: func(_ *fastly.DeleteKVStoreKeyInput) error {
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return errors.New("invalid request")
 				},
 			},
@@ -139,7 +140,7 @@ func TestDeleteCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
-				DeleteKVStoreKeyFn: func(_ *fastly.DeleteKVStoreKeyInput) error {
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return nil
 				},
 			},
@@ -148,7 +149,7 @@ func TestDeleteCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
 			API: mock.API{
-				DeleteKVStoreKeyFn: func(_ *fastly.DeleteKVStoreKeyInput) error {
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return nil
 				},
 			},
@@ -157,13 +158,13 @@ func TestDeleteCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
 			API: mock.API{
-				NewListKVStoreKeysPaginatorFn: func(_ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
+				NewListKVStoreKeysPaginatorFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
 					return &mockKVStoresEntriesPaginator{
 						next: true,
 						keys: []string{"foo", "bar", "baz"},
 					}
 				},
-				DeleteKVStoreKeyFn: func(_ *fastly.DeleteKVStoreKeyInput) error {
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return nil
 				},
 			},
@@ -172,13 +173,13 @@ func TestDeleteCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
 			API: mock.API{
-				NewListKVStoreKeysPaginatorFn: func(_ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
+				NewListKVStoreKeysPaginatorFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
 					return &mockKVStoresEntriesPaginator{
 						next: true,
 						keys: []string{"foo", "bar", "baz"},
 					}
 				},
-				DeleteKVStoreKeyFn: func(_ *fastly.DeleteKVStoreKeyInput) error {
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return errors.New("whoops")
 				},
 			},
@@ -204,7 +205,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
-				GetKVStoreKeyFn: func(_ *fastly.GetKVStoreKeyInput) (string, error) {
+				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
 					return "", errors.New("invalid request")
 				},
 			},
@@ -213,7 +214,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
-				GetKVStoreKeyFn: func(_ *fastly.GetKVStoreKeyInput) (string, error) {
+				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
 					return itemValue, nil
 				},
 			},
@@ -222,7 +223,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
 			API: mock.API{
-				GetKVStoreKeyFn: func(_ *fastly.GetKVStoreKeyInput) (string, error) {
+				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
 					return itemValue, nil
 				},
 			},
@@ -248,7 +249,7 @@ func TestListCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				ListKVStoreKeysFn: func(_ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
+				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return nil, errors.New("invalid request")
 				},
 			},
@@ -257,7 +258,7 @@ func TestListCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: mock.API{
-				ListKVStoreKeysFn: func(_ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
+				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return &fastly.ListKVStoreKeysResponse{Data: testItems}, nil
 				},
 			},
@@ -266,7 +267,7 @@ func TestListCommand(t *testing.T) {
 		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
-				ListKVStoreKeysFn: func(_ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
+				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return &fastly.ListKVStoreKeysResponse{Data: testItems}, nil
 				},
 			},

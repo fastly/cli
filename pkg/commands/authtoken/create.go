@@ -1,11 +1,13 @@
 package authtoken
 
 import (
+	"context"
 	"io"
 	"strings"
 	"time"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v11/fastly"
+
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -63,7 +65,7 @@ type CreateCommand struct {
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := c.constructInput()
 
-	r, err := c.Globals.APIClient.CreateToken(input)
+	r, err := c.Globals.APIClient.CreateToken(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
