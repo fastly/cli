@@ -21,6 +21,13 @@
 - build(deps): `golang.org/x/sync` from 0.15.0 to 0.16.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/text` from 0.26.0 to 0.27.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.14.1 to 3.15.0 ([#1510](https://github.com/fastly/cli/pull/1510))
+- build(deps): `golang.org/x/sys` from 0.34.0 to 0.35.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/term` from 0.33.0 to 0.34.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `github.com/hashicorp/cap` from 0.9.0 to 0.10.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/crypto` from 0.40.0 to 0.41.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/mod` from 0.26.0 to 0.27.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/net` from 0.42.0 to 0.43.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/text` from 0.27.0 to 0.28.0 ([#1516](https://github.com/fastly/cli/pull/1516))
 
 ## [v11.4.0](https://github.com/fastly/cli/releases/tag/v11.4.0) (2025-07-09)
 
