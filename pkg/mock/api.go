@@ -403,6 +403,9 @@ type API struct {
 	GetObservabilityCustomDashboardFn    func(context.Context, *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	UpdateObservabilityCustomDashboardFn func(context.Context, *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	DeleteObservabilityCustomDashboardFn func(context.Context, *fastly.DeleteObservabilityCustomDashboardInput) error
+
+	GetImageOptimizerDefaultSettingsFn    func(context.Context, *fastly.GetImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error)
+	UpdateImageOptimizerDefaultSettingsFn func(context.Context, *fastly.UpdateImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error)
 }
 
 // AllDatacenters implements Interface.
@@ -2043,4 +2046,14 @@ func (m API) ListObservabilityCustomDashboards(ctx context.Context, i *fastly.Li
 // UpdateObservabilityCustomDashboard implements Interface.
 func (m API) UpdateObservabilityCustomDashboard(ctx context.Context, i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 	return m.UpdateObservabilityCustomDashboardFn(ctx, i)
+}
+
+// GetImageOptimizerDefaultSettings implements Interface.
+func (m API) GetImageOptimizerDefaultSettings(ctx context.Context, i *fastly.GetImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
+	return m.GetImageOptimizerDefaultSettingsFn(ctx, i)
+}
+
+// UpdateImageOptimizerDefaultSettings implements Interface.
+func (m API) UpdateImageOptimizerDefaultSettings(ctx context.Context, i *fastly.UpdateImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
+	return m.UpdateImageOptimizerDefaultSettingsFn(ctx, i)
 }

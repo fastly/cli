@@ -23,12 +23,12 @@ type UpdateCommand struct {
 
 	// Image Optimizer setting flags
 	resizeFilter argparser.OptionalString
-	webp         argparser.OptionalBool
+	webp         argparser.OptionalString
 	webpQuality  argparser.OptionalInt
 	jpegType     argparser.OptionalString
 	jpegQuality  argparser.OptionalInt
-	upscale      argparser.OptionalBool
-	allowVideo   argparser.OptionalBool
+	upscale      argparser.OptionalString
+	allowVideo   argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -62,11 +62,11 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Dst:         &c.resizeFilter.Value,
 		Action:      c.resizeFilter.Set,
 	})
-	c.RegisterFlagBool(argparser.BoolFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "webp",
-		Description: "Controls whether or not to default to WebP output when the client supports it",
-		Dst:         &c.webp.Value,
+		Description: "Controls whether or not to default to WebP output when the client supports it [true, false]",
 		Action:      c.webp.Set,
+		Dst:         &c.webp.Value,
 	})
 	c.RegisterFlagInt(argparser.IntFlagOpts{
 		Name:        "webp-quality",
@@ -86,17 +86,17 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Dst:         &c.jpegQuality.Value,
 		Action:      c.jpegQuality.Set,
 	})
-	c.RegisterFlagBool(argparser.BoolFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "upscale",
-		Description: "Whether or not we should allow output images to render at sizes larger than input",
-		Dst:         &c.upscale.Value,
+		Description: "Whether or not we should allow output images to render at sizes larger than input [true, false]",
 		Action:      c.upscale.Set,
+		Dst:         &c.upscale.Value,
 	})
-	c.RegisterFlagBool(argparser.BoolFlagOpts{
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "allow-video",
-		Description: "Enables GIF to MP4 transformations on this service",
-		Dst:         &c.allowVideo.Value,
+		Description: "Enables GIF to MP4 transformations on this service [true, false]",
 		Action:      c.allowVideo.Set,
+		Dst:         &c.allowVideo.Value,
 	})
 
 	// Optional.
@@ -159,7 +159,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 	if c.webp.WasSet {
-		c.Input.Webp = &c.webp.Value
+		var webp bool
+		switch c.webp.Value {
+		case "true":
+			webp = true
+		case "false":
+			webp = false
+		default:
+			return fmt.Errorf("'webp' flag must be one of the following [true, false]")
+		}
+		c.Input.Webp = &webp
 	}
 	if c.webpQuality.WasSet {
 		c.Input.WebpQuality = &c.webpQuality.Value
@@ -184,10 +193,28 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Input.JpegQuality = &c.jpegQuality.Value
 	}
 	if c.upscale.WasSet {
-		c.Input.Upscale = &c.upscale.Value
+		var upscale bool
+		switch c.upscale.Value {
+		case "true":
+			upscale = true
+		case "false":
+			upscale = false
+		default:
+			return fmt.Errorf("'upscale' flag must be one of the following [true, false]")
+		}
+		c.Input.Upscale = &upscale
 	}
 	if c.allowVideo.WasSet {
-		c.Input.AllowVideo = &c.allowVideo.Value
+		var allowVideo bool
+		switch c.allowVideo.Value {
+		case "true":
+			allowVideo = true
+		case "false":
+			allowVideo = false
+		default:
+			return fmt.Errorf("'allow-video' flag must be one of the following [true, false]")
+		}
+		c.Input.AllowVideo = &allowVideo
 	}
 
 	o, err := c.Globals.APIClient.UpdateImageOptimizerDefaultSettings(context.TODO(), &c.Input)
