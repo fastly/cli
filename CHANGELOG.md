@@ -28,6 +28,8 @@
 - build(deps): `golang.org/x/mod` from 0.26.0 to 0.27.0 ([#1516](https://github.com/fastly/cli/pull/1516))
 - build(deps): `golang.org/x/net` from 0.42.0 to 0.43.0 ([#1516](https://github.com/fastly/cli/pull/1516))
 - build(deps): `golang.org/x/text` from 0.27.0 to 0.28.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `actions/checkout` from 4 to 5 ([#1515](https://github.com/fastly/cli/pull/1515))
+- build(deps): `actions/download-artifact` from 4 to 5 ([#1515](https://github.com/fastly/cli/pull/1515))
 
 ## [v11.4.0](https://github.com/fastly/cli/releases/tag/v11.4.0) (2025-07-09)
 
