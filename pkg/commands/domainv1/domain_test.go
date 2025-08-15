@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	v1 "github.com/fastly/go-fastly/v11/fastly/domains/v1"
+	"github.com/fastly/go-fastly/v11/fastly/domainmanagement/v1/domains"
 
 	root "github.com/fastly/cli/pkg/commands/domainv1"
 	"github.com/fastly/cli/pkg/testutil"
@@ -31,7 +31,7 @@ func TestDomainV1Create(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(v1.Data{
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(domains.Data{
 							DomainID:  did,
 							FQDN:      fqdn,
 							ServiceID: &sid,
@@ -48,7 +48,7 @@ func TestDomainV1Create(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(v1.Data{
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(domains.Data{
 							DomainID: did,
 							FQDN:     fqdn,
 						}))),
@@ -89,8 +89,8 @@ func TestDomainV1List(t *testing.T) {
 	did := "domain-id"
 	description := "domain description"
 
-	resp := testutil.GenJSON(v1.Collection{
-		Data: []v1.Data{
+	resp := testutil.GenJSON(domains.Collection{
+		Data: []domains.Data{
 			{
 				DomainID:    did,
 				FQDN:        fqdn,
@@ -141,7 +141,7 @@ func TestDomainV1Describe(t *testing.T) {
 	did := "domain-id"
 	description := "domain description"
 
-	resp := testutil.GenJSON(v1.Data{
+	resp := testutil.GenJSON(domains.Data{
 		DomainID:    did,
 		FQDN:        fqdn,
 		ServiceID:   &sid,
@@ -200,7 +200,7 @@ func TestDomainV1Update(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(v1.Data{
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(domains.Data{
 							DomainID:  did,
 							FQDN:      fqdn,
 							ServiceID: &sid,
@@ -217,7 +217,7 @@ func TestDomainV1Update(t *testing.T) {
 					Response: &http.Response{
 						StatusCode: http.StatusOK,
 						Status:     http.StatusText(http.StatusOK),
-						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(v1.Data{
+						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(domains.Data{
 							DomainID: did,
 							FQDN:     fqdn,
 						}))),

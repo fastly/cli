@@ -6,8 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/go-fastly/v11/fastly"
-
-	v1 "github.com/fastly/go-fastly/v11/fastly/domains/v1"
+	"github.com/fastly/go-fastly/v11/fastly/domainmanagement/v1/domains"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -49,11 +48,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	input := &v1.GetInput{
+	input := &domains.GetInput{
 		DomainID: &c.domainID,
 	}
 
-	d, err := v1.Get(context.TODO(), fc, input)
+	d, err := domains.Get(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Domain ID": c.domainID,
@@ -66,7 +65,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if d != nil {
-		cl := []v1.Data{*d}
+		cl := []domains.Data{*d}
 		if c.Globals.Verbose() {
 			printVerbose(out, cl)
 		} else {
