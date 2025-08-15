@@ -6,8 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/go-fastly/v11/fastly"
-
-	v1 "github.com/fastly/go-fastly/v11/fastly/domains/v1"
+	"github.com/fastly/go-fastly/v11/fastly/domainmanagement/v1/domains"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -58,7 +57,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	input := &v1.ListInput{}
+	input := &domains.ListInput{}
 
 	if c.serviceID.WasSet {
 		input.ServiceID = &c.serviceID.Value
@@ -82,7 +81,7 @@ func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	for {
-		cl, err := v1.List(context.TODO(), fc, input)
+		cl, err := domains.List(context.TODO(), fc, input)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Cursor":     c.cursor.Value,
