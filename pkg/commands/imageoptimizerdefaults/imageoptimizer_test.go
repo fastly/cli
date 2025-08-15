@@ -164,4 +164,58 @@ func updateImageOptimizerDefaultsError(_ context.Context, _ *fastly.UpdateImageO
 	return nil, errTest
 }
 
-var errTest = errors.New("an expected error occurred")
+func TestImageOptimizerDefaultsGet(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
+		{
+			Args:      "--version 1",
+			WantError: "error reading service: no service ID found",
+		},
+		{
+			Args:      "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
+				ListVersionsFn:                        testutil.ListVersions,
+				GetImageOptimizerDefaultSettingsFn:   getImageOptimizerDefaultsOK,
+			},
+			WantOutput: "Allow Video: false\nJPEG Quality: 85\nJPEG Type: auto\nResize Filter: lanczos3\nUpscale: false\nWebP: false\nWebP Quality: 85\n",
+		},
+		{
+			Args: "--service-id 123 --version 1 --json",
+			API: mock.API{
+				ListVersionsFn:                        testutil.ListVersions,
+				GetImageOptimizerDefaultSettingsFn:   getImageOptimizerDefaultsOK,
+			},
+			WantOutput: `{"allow_video":false,"jpeg_quality":85,"jpeg_type":"auto","resize_filter":"lanczos3","upscale":false,"webp":false,"webp_quality":85}`,
+		},
+		{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
+				ListVersionsFn:                        testutil.ListVersions,
+				GetImageOptimizerDefaultSettingsFn:   getImageOptimizerDefaultsError,
+			},
+			WantError: errTest.Error(),
+		},
+	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "get"}, scenarios)
+}
+
+func getImageOptimizerDefaultsOK(_ context.Context, _ *fastly.GetImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
+	return &fastly.ImageOptimizerDefaultSettings{
+		ResizeFilter: "lanczos3",
+		Webp:         false,
+		WebpQuality:  85,
+		JpegType:     "auto",
+		JpegQuality:  85,
+		Upscale:      false,
+		AllowVideo:   false,
+	}, nil
+}
+
+func getImageOptimizerDefaultsError(_ context.Context, _ *fastly.GetImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
+	return nil, errTest
+}
+
+var errTest = errors.New("fixture error")
