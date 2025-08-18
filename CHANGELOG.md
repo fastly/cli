@@ -8,6 +8,7 @@
 - feat(vcl): Allow showing of generated VCL for a service version [#1498](https://github.com/fastly/cli/pull/1498)
 - Add experimental "enable Pushpin" mode ([#1509](https://github.com/fastly/cli/pull/1509))
 - feat(object-storage): improve access-keys list output ([#1513](https://github.com/fastly/cli/pull/1513))
+- refactor(domainv1,tools): use updated go-fastly domainmanagement imports and types ([#1517](https://github.com/fastly/cli/pull/1517))
 
 ### Bug fixes:
 
@@ -28,6 +29,8 @@
 - build(deps): `golang.org/x/mod` from 0.26.0 to 0.27.0 ([#1516](https://github.com/fastly/cli/pull/1516))
 - build(deps): `golang.org/x/net` from 0.42.0 to 0.43.0 ([#1516](https://github.com/fastly/cli/pull/1516))
 - build(deps): `golang.org/x/text` from 0.27.0 to 0.28.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `actions/checkout` from 4 to 5 ([#1515](https://github.com/fastly/cli/pull/1515))
+- build(deps): `actions/download-artifact` from 4 to 5 ([#1515](https://github.com/fastly/cli/pull/1515))
 
 ## [v11.4.0](https://github.com/fastly/cli/releases/tag/v11.4.0) (2025-07-09)
 

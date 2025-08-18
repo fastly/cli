@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v11/fastly/domainmanagement/v1/tools/status"
+
 	"github.com/fastly/cli/pkg/commands/tools"
 	"github.com/fastly/cli/pkg/commands/tools/domain"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v11/fastly"
-
-	"github.com/fastly/go-fastly/v11/fastly/domains/v1/tools/status"
 )
 
 func TestNewDomainsV1ToolsStatusCommand(t *testing.T) {
