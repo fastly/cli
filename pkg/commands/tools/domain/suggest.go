@@ -7,13 +7,13 @@ import (
 	"io"
 	"strings"
 
+	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v11/fastly/domainmanagement/v1/tools/suggest"
+
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v11/fastly"
-
-	"github.com/fastly/go-fastly/v11/fastly/domains/v1/tools/suggest"
 )
 
 // GetDomainSuggestionsCommand calls the Fastly API and results domain search results for a given query.
