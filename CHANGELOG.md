@@ -9,6 +9,7 @@
 - Add experimental "enable Pushpin" mode ([#1509](https://github.com/fastly/cli/pull/1509))
 - feat(object-storage): improve access-keys list output ([#1513](https://github.com/fastly/cli/pull/1513))
 - refactor(domainv1,tools): use updated go-fastly domainmanagement imports and types ([#1517](https://github.com/fastly/cli/pull/1517))
+- feat (imageoptimizerdefaults): Support for retrieving and updating Image Optimizer defaults for a given VCL service ([#1518](https://github.com/fastly/cli/pull/1518))
 
 ### Bug fixes:
 

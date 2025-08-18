@@ -48,6 +48,9 @@ type Interface interface {
 	ValidateDomain(context.Context, *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error)
 	ValidateAllDomains(context.Context, *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error)
 
+	GetImageOptimizerDefaultSettings(context.Context, *fastly.GetImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error)
+	UpdateImageOptimizerDefaultSettings(context.Context, *fastly.UpdateImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error)
+
 	CreateBackend(context.Context, *fastly.CreateBackendInput) (*fastly.Backend, error)
 	ListBackends(context.Context, *fastly.ListBackendsInput) ([]*fastly.Backend, error)
 	GetBackend(context.Context, *fastly.GetBackendInput) (*fastly.Backend, error)
