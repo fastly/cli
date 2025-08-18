@@ -15,38 +15,45 @@ import (
 func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",
 			WantError: "error parsing arguments: required flag --service-id not provided",
 		},
 		{
+			Name:      "validate missing --version flag",
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
+			Name: "validate missing optional flags",
 			Args: "--service-id 123 --version 1",
 			API: mock.API{
-				ListVersionsFn:                             testutil.ListVersions,
-				UpdateImageOptimizerDefaultSettingsFn:      updateImageOptimizerDefaultsOK,
+				ListVersionsFn:                        testutil.ListVersions,
+				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsValidationError,
 			},
-			WantOutput: "Updated Image Optimizer default settings for service 123 (version 1)\n\nAllow Video: false\nJPEG Quality: 85\nJPEG Type: auto\nResize Filter: lanczos3\nUpscale: false\nWebP: false\nWebP Quality: 85\n",
+			// For future clarity, this order is coming from Go-Fastly. We should fix that at some point.
+			WantError: "problem with field 'ResizeFilter, Webp, WebpQuality, JpegType, JpegQuality, Upscale, AllowVideo': at least one of the available optional fields is required",
 		},
 		{
-			Args: "--service-id 123 --version 1 --webp true --upscale false --allow-video true",
+			Name: "valudate sucessfull boolean updates of webp, upscale and allow-video",
+			Args: "--service-id 123 --version 1 --webp=true --upscale=false --allow-video=true",
 			API: mock.API{
-				ListVersionsFn:                             testutil.ListVersions,
-				UpdateImageOptimizerDefaultSettingsFn:      updateImageOptimizerDefaultsWithBoolsOK,
+				ListVersionsFn:                        testutil.ListVersions,
+				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsWithBoolsOK,
 			},
 			WantOutput: "Updated Image Optimizer default settings for service 123 (version 1)\n\nAllow Video: true\nJPEG Quality: 85\nJPEG Type: auto\nResize Filter: lanczos3\nUpscale: false\nWebP: true\nWebP Quality: 85\n",
 		},
 		{
+			Name: "validate sucessfull upate of the --resize, --webp-quality and --jpeg-quality flags",
 			Args: "--service-id 123 --version 1 --resize-filter bicubic --webp-quality 90 --jpeg-quality 80",
 			API: mock.API{
-				ListVersionsFn:                             testutil.ListVersions,
-				UpdateImageOptimizerDefaultSettingsFn:      updateImageOptimizerDefaultsWithOptionsOK,
+				ListVersionsFn:                        testutil.ListVersions,
+				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsWithOptionsOK,
 			},
 			WantOutput: "Updated Image Optimizer default settings for service 123 (version 1)\n\nAllow Video: false\nJPEG Quality: 80\nJPEG Type: auto\nResize Filter: bicubic\nUpscale: false\nWebP: false\nWebP Quality: 90\n",
 		},
 		{
+			Name: "validate incorrect input for the --webp flag",
 			Args: "--service-id 123 --version 1 --webp invalid",
 			API: mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
@@ -55,6 +62,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantError: "'webp' flag must be one of the following [true, false]",
 		},
 		{
+			Name: "validate incorrect input for the --upscale flag",
 			Args: "--service-id 123 --version 1 --upscale invalid",
 			API: mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
@@ -63,6 +71,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantError: "'upscale' flag must be one of the following [true, false]",
 		},
 		{
+			Name: "validate incorrect input for the --allow-video flag",
 			Args: "--service-id 123 --version 1 --allow-video invalid",
 			API: mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
@@ -71,6 +80,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantError: "'allow-video' flag must be one of the following [true, false]",
 		},
 		{
+			Name: "validate incorrect input for the --resize-filter flag",
 			Args: "--service-id 123 --version 1 --resize-filter invalid",
 			API: mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
@@ -79,6 +89,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantError: "invalid resize filter: invalid. Valid options: lanczos3, lanczos2, bicubic, bilinear, nearest",
 		},
 		{
+			Name: "validate incorrect input for the --jpeg-type flag",
 			Args: "--service-id 123 --version 1 --jpeg-type invalid",
 			API: mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
@@ -87,10 +98,11 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantError: "invalid jpeg type: invalid. Valid options: auto, baseline, progressive",
 		},
 		{
-			Args: "--service-id 123 --version 1",
+			Name: "validate API error handling",
+			Args: "--service-id 123 --version 1 --webp true",
 			API: mock.API{
-				ListVersionsFn:                             testutil.ListVersions,
-				UpdateImageOptimizerDefaultSettingsFn:      updateImageOptimizerDefaultsError,
+				ListVersionsFn:                        testutil.ListVersions,
+				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -160,6 +172,10 @@ func updateImageOptimizerDefaultsWithOptionsOK(_ context.Context, i *fastly.Upda
 	}, nil
 }
 
+func updateImageOptimizerDefaultsValidationError(_ context.Context, _ *fastly.UpdateImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
+	return nil, errors.New("problem with field 'ResizeFilter, Webp, WebpQuality, JpegType, JpegQuality, Upscale, AllowVideo': at least one of the available optional fields is required")
+}
+
 func updateImageOptimizerDefaultsError(_ context.Context, _ *fastly.UpdateImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
 	return nil, errTest
 }
@@ -167,34 +183,39 @@ func updateImageOptimizerDefaultsError(_ context.Context, _ *fastly.UpdateImageO
 func TestImageOptimizerDefaultsGet(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",
-			WantError: "error reading service: no service ID found",
+			WantError: "error parsing arguments: required flag --service-id not provided",
 		},
 		{
+			Name:      "validate missing --version flag",
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
+			Name: "validate successful get with no flags",
 			Args: "--service-id 123 --version 1",
 			API: mock.API{
-				ListVersionsFn:                        testutil.ListVersions,
-				GetImageOptimizerDefaultSettingsFn:   getImageOptimizerDefaultsOK,
+				ListVersionsFn:                     testutil.ListVersions,
+				GetImageOptimizerDefaultSettingsFn: getImageOptimizerDefaultsOK,
 			},
 			WantOutput: "Allow Video: false\nJPEG Quality: 85\nJPEG Type: auto\nResize Filter: lanczos3\nUpscale: false\nWebP: false\nWebP Quality: 85\n",
 		},
 		{
+			Name: "validate successful get with --json flag",
 			Args: "--service-id 123 --version 1 --json",
 			API: mock.API{
-				ListVersionsFn:                        testutil.ListVersions,
-				GetImageOptimizerDefaultSettingsFn:   getImageOptimizerDefaultsOK,
+				ListVersionsFn:                     testutil.ListVersions,
+				GetImageOptimizerDefaultSettingsFn: getImageOptimizerDefaultsOK,
 			},
-			WantOutput: `{"allow_video":false,"jpeg_quality":85,"jpeg_type":"auto","resize_filter":"lanczos3","upscale":false,"webp":false,"webp_quality":85}`,
+			WantOutput: "{\n  \"resize_filter\": \"lanczos3\",\n  \"webp\": false,\n  \"webp_quality\": 85,\n  \"jpeg_type\": \"auto\",\n  \"jpeg_quality\": 85,\n  \"upscale\": false,\n  \"allow_video\": false\n}\n",
 		},
 		{
+			Name: "validate API error handling",
 			Args: "--service-id 123 --version 1",
 			API: mock.API{
-				ListVersionsFn:                        testutil.ListVersions,
-				GetImageOptimizerDefaultSettingsFn:   getImageOptimizerDefaultsError,
+				ListVersionsFn:                     testutil.ListVersions,
+				GetImageOptimizerDefaultSettingsFn: getImageOptimizerDefaultsError,
 			},
 			WantError: errTest.Error(),
 		},

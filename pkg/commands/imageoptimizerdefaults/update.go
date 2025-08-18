@@ -22,13 +22,13 @@ type UpdateCommand struct {
 	serviceVersion argparser.OptionalServiceVersion
 
 	// Image Optimizer setting flags
+	allowVideo   argparser.OptionalString
+	jpegQuality  argparser.OptionalInt
+	jpegType     argparser.OptionalString
 	resizeFilter argparser.OptionalString
+	upscale      argparser.OptionalString
 	webp         argparser.OptionalString
 	webpQuality  argparser.OptionalInt
-	jpegType     argparser.OptionalString
-	jpegQuality  argparser.OptionalInt
-	upscale      argparser.OptionalString
-	allowVideo   argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -57,10 +57,34 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 	// Optional flags for Image Optimizer settings
 	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        "allow-video",
+		Description: "Enables GIF to MP4 transformations on this service [true, false]",
+		Action:      c.allowVideo.Set,
+		Dst:         &c.allowVideo.Value,
+	})
+	c.RegisterFlagInt(argparser.IntFlagOpts{
+		Name:        "jpeg-quality",
+		Description: "The default quality to use with JPEG output (1-100)",
+		Dst:         &c.jpegQuality.Value,
+		Action:      c.jpegQuality.Set,
+	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        "jpeg-type",
+		Description: "The default type of JPEG output to use (auto, baseline, progressive)",
+		Dst:         &c.jpegType.Value,
+		Action:      c.jpegType.Set,
+	})
+	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "resize-filter",
 		Description: "The type of filter to use while resizing an image (lanczos3, lanczos2, bicubic, bilinear, nearest)",
 		Dst:         &c.resizeFilter.Value,
 		Action:      c.resizeFilter.Set,
+	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        "upscale",
+		Description: "Whether or not we should allow output images to render at sizes larger than input [true, false]",
+		Action:      c.upscale.Set,
+		Dst:         &c.upscale.Value,
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "webp",
@@ -73,30 +97,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Description: "The default quality to use with WebP output (1-100)",
 		Dst:         &c.webpQuality.Value,
 		Action:      c.webpQuality.Set,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "jpeg-type",
-		Description: "The default type of JPEG output to use (auto, baseline, progressive)",
-		Dst:         &c.jpegType.Value,
-		Action:      c.jpegType.Set,
-	})
-	c.RegisterFlagInt(argparser.IntFlagOpts{
-		Name:        "jpeg-quality",
-		Description: "The default quality to use with JPEG output (1-100)",
-		Dst:         &c.jpegQuality.Value,
-		Action:      c.jpegQuality.Set,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "upscale",
-		Description: "Whether or not we should allow output images to render at sizes larger than input [true, false]",
-		Action:      c.upscale.Set,
-		Dst:         &c.upscale.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        "allow-video",
-		Description: "Enables GIF to MP4 transformations on this service [true, false]",
-		Action:      c.allowVideo.Set,
-		Dst:         &c.allowVideo.Value,
 	})
 
 	// Optional.
@@ -174,7 +174,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Input.WebpQuality = &c.webpQuality.Value
 	}
 	if c.jpegType.WasSet {
-		// Convert string to ImageOptimizerJpegType constant
+		// Convert string to JPEG type constant
 		switch c.jpegType.Value {
 		case "auto":
 			jpegType := fastly.ImageOptimizerAuto
