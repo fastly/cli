@@ -411,6 +411,11 @@ type Interface interface {
 	GetObservabilityCustomDashboard(context.Context, *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	UpdateObservabilityCustomDashboard(context.Context, *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error)
 	DeleteObservabilityCustomDashboard(context.Context, *fastly.DeleteObservabilityCustomDashboardInput) error
+
+	ListAutomationTokens(context.Context, *fastly.GetAutomationTokensInput) (*fastly.GetAutomationTokensInput, error)
+	CreateAutomationToken(context.Context, *fastly.CreateAutomationTokenInput) (*fastly., error)
+	GetAutmationtoken(context.Context, *fastly.GetAutomationTokenInput) (*fastly., error)
+	Delete(context.Context, *fastly.DeleteAutomationTokenInput) error
 }
 
 // RealtimeStatsInterface is the subset of go-fastly's realtime stats API used here.
