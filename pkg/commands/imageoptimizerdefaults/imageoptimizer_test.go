@@ -35,7 +35,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantError: "problem with field 'ResizeFilter, Webp, WebpQuality, JpegType, JpegQuality, Upscale, AllowVideo': at least one of the available optional fields is required",
 		},
 		{
-			Name: "valudate sucessfull boolean updates of webp, upscale and allow-video",
+			Name: "valudate successful boolean updates of webp, upscale and allow-video",
 			Args: "--service-id 123 --version 1 --webp=true --upscale=false --allow-video=true",
 			API: mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
@@ -44,7 +44,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantOutput: "Updated Image Optimizer default settings for service 123 (version 1)\n\nAllow Video: true\nJPEG Quality: 85\nJPEG Type: auto\nResize Filter: lanczos3\nUpscale: false\nWebP: true\nWebP Quality: 85\n",
 		},
 		{
-			Name: "validate sucessfull upate of the --resize, --webp-quality and --jpeg-quality flags",
+			Name: "validate successful upate of the --resize, --webp-quality and --jpeg-quality flags",
 			Args: "--service-id 123 --version 1 --resize-filter bicubic --webp-quality 90 --jpeg-quality 80",
 			API: mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
@@ -110,7 +110,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
-func updateImageOptimizerDefaultsOK(_ context.Context, i *fastly.UpdateImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
+func updateImageOptimizerDefaultsOK(_ context.Context, _ *fastly.UpdateImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
 	return &fastly.ImageOptimizerDefaultSettings{
 		ResizeFilter: "lanczos3",
 		Webp:         false,
