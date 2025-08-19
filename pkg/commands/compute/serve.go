@@ -816,8 +816,6 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 
 	pushpinCtx := pushpinContext{}
 
-	var cleanup func()
-
 	// Generate a non-zero instance ID to represent this Pushpin instance and build temporary
 	// files
 	for {
@@ -908,12 +906,12 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 		"--verbose",
 	}
 
-	// Set up a context that can be canceled (prevent rogue Pushpin process)
+	// Set up a context that can be canceled (prevent zombie Pushpin process)
 	var pushpinCmd *exec.Cmd
 	ctx, cancel := context.WithCancel(context.Background())
 
 	var once sync.Once
-	cleanup = func() {
+	pushpinCtx.cleanup = func() {
 		once.Do(func() {
 			if pushpinCmd != nil && pushpinCmd.Process != nil {
 				if c.Globals.Verbose() {
@@ -942,7 +940,7 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT)
 	go func() {
 		<-sigCh
-		cleanup()
+		pushpinCtx.Close()
 	}()
 
 	// gosec flagged this:
