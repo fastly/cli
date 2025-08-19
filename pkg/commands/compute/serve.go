@@ -106,7 +106,7 @@ func NewServeCommand(parent argparser.Registerer, g *global.Data, build *BuildCo
 	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
 	c.CmdClause.Flag("metadata-show", "Inspect the Wasm binary metadata").Action(c.metadataShow.Set).BoolVar(&c.metadataShow.Value)
 	c.CmdClause.Flag("package-name", "Package name").Action(c.packageName.Set).StringVar(&c.packageName.Value)
-	c.CmdClause.Flag("experimental-enable-pushpin", "Enable experimental Pushpin support for local testing of Fanout and WebSockets").BoolVar(&c.enablePushpin)
+	c.CmdClause.Flag("experimental-enable-pushpin", "Enable experimental Pushpin support for local testing of Fanout").BoolVar(&c.enablePushpin)
 	c.CmdClause.Flag("pushpin-path", "The path to a user installed version of the Pushpin runner binary").StringVar(&c.pushpinRunnerBinPath)
 	c.CmdClause.Flag("pushpin-proxy-port", "The port to run the Pushpin runner on. Overrides 'local_server.pushpin.proxy_port' from 'fastly.toml', and if not specified there, defaults to 7677.").StringVar(&c.pushpinProxyPort)
 	c.CmdClause.Flag("pushpin-publish-port", "The port to run the Pushpin publish handler on. Overrides 'local_server.pushpin.publish_port' from 'fastly.toml', and if not specified there, defaults to 5561.").StringVar(&c.pushpinPublishPort)
@@ -810,6 +810,9 @@ func (c *pushpinContext) buildPushpinConf() string {
 // command line and/or fastly.toml. The cleanup function on the returned pushpinContext
 // needs to eventually be called by the caller to shut down Pushpin.
 func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpinContext, error) {
+	text.Output(out, "%s: %s", text.BoldYellow("EXPERIMENTAL"), "Enabling Pushpin support for local testing of Fanout.")
+	text.Break(out)
+
 	pushpinCtx := pushpinContext{}
 
 	var cleanup func()
