@@ -600,7 +600,7 @@ func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) (uint16, error) {
 		}
 		pushpinProxyPort = uint16(pushpinProxyPortInt)
 		if c.Globals.Verbose() {
-			text.Output(out, "DEBUG: Using Pushpin proxy port from --pushpin-proxy-port flag: %d", pushpinProxyPort)
+			text.Info(out, "Using Pushpin proxy port from --pushpin-proxy-port flag: %d", pushpinProxyPort)
 		}
 		return pushpinProxyPort, nil
 	}
@@ -608,14 +608,14 @@ func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) (uint16, error) {
 	pushpinProxyPort = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinProxyPort
 	if pushpinProxyPort != 0 {
 		if c.Globals.Verbose() {
-			text.Output(out, "DEBUG: Using Pushpin proxy port via `local_server.pushpin.proxy_port` setting: %d", pushpinProxyPort)
+			text.Info(out, "Using Pushpin proxy port via `local_server.pushpin.proxy_port` setting: %d", pushpinProxyPort)
 		}
 		return pushpinProxyPort, nil
 	}
 
 	pushpinProxyPort = 7677
 	if c.Globals.Verbose() {
-		text.Output(out, "DEBUG: Using default Pushpin proxy port %d", pushpinProxyPort)
+		text.Info(out, "Using default Pushpin proxy port %d", pushpinProxyPort)
 	}
 	return pushpinProxyPort, nil
 }
@@ -640,7 +640,7 @@ func (c *ServeCommand) GetPushpinPublishPort(out io.Writer) (uint16, error) {
 		}
 		pushpinPublishPort = uint16(pushpinPublishPortInt)
 		if c.Globals.Verbose() {
-			text.Output(out, "DEBUG: Using Pushpin publish handler port from --pushpin-publish-port flag: %d", pushpinPublishPort)
+			text.Info(out, "Using Pushpin publish handler port from --pushpin-publish-port flag: %d", pushpinPublishPort)
 		}
 		return pushpinPublishPort, nil
 	}
@@ -648,14 +648,14 @@ func (c *ServeCommand) GetPushpinPublishPort(out io.Writer) (uint16, error) {
 	pushpinPublishPort = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPublishPort
 	if pushpinPublishPort != 0 {
 		if c.Globals.Verbose() {
-			text.Output(out, "DEBUG: Using Pushpin publish handler port via `local_server.pushpin.publish_port` setting: %d", pushpinPublishPort)
+			text.Info(out, "Using Pushpin publish handler port via `local_server.pushpin.publish_port` setting: %d", pushpinPublishPort)
 		}
 		return pushpinPublishPort, nil
 	}
 
 	pushpinPublishPort = 5561
 	if c.Globals.Verbose() {
-		text.Output(out, "DEBUG: Using default Pushpin publish handler port %d", pushpinPublishPort)
+		text.Info(out, "Using default Pushpin publish handler port %d", pushpinPublishPort)
 	}
 	return pushpinPublishPort, nil
 }
@@ -669,7 +669,7 @@ func (c *ServeCommand) GetPushpinRunner(out io.Writer) (bin string, err error) {
 	pushpinRunnerBinPath := c.pushpinRunnerBinPath
 	if pushpinRunnerBinPath != "" {
 		if c.Globals.Verbose() {
-			text.Output(out, "DEBUG: Using user provided install of Pushpin runner via --pushpin-path flag: %s", pushpinRunnerBinPath)
+			text.Info(out, "Using user provided install of Pushpin runner via --pushpin-path flag: %s", pushpinRunnerBinPath)
 		}
 		return filepath.Abs(pushpinRunnerBinPath)
 	}
@@ -677,13 +677,13 @@ func (c *ServeCommand) GetPushpinRunner(out io.Writer) (bin string, err error) {
 	pushpinRunnerBinPath = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPath
 	if pushpinRunnerBinPath != "" {
 		if c.Globals.Verbose() {
-			text.Output(out, "DEBUG: Using user provided install of Pushpin runner via `local_server.pushpin.pushpin_path` setting: %s", pushpinRunnerBinPath)
+			text.Info(out, "Using user provided install of Pushpin runner via `local_server.pushpin.pushpin_path` setting: %s", pushpinRunnerBinPath)
 		}
 		return filepath.Abs(pushpinRunnerBinPath)
 	}
 
 	if c.Globals.Verbose() {
-		text.Output(out, "DEBUG: No --pushpin-path provided, attempting to find 'pushpin' in your PATH...")
+		text.Info(out, "No --pushpin-path provided, attempting to find 'pushpin' in your PATH...")
 	}
 	pushpinRunnerBinPath, err = exec.LookPath("pushpin")
 	if err != nil {
@@ -694,7 +694,7 @@ func (c *ServeCommand) GetPushpinRunner(out io.Writer) (bin string, err error) {
 	}
 
 	if c.Globals.Verbose() {
-		text.Output(out, "DEBUG: Found Pushpin runner via $PATH lookup: %s", pushpinRunnerBinPath)
+		text.Info(out, "Found Pushpin runner via $PATH lookup: %s", pushpinRunnerBinPath)
 	}
 	return filepath.Abs(pushpinRunnerBinPath)
 }
@@ -812,7 +812,7 @@ func (c *pushpinContext) buildPushpinConf() string {
 // command line and/or fastly.toml. The cleanup function on the returned pushpinContext
 // needs to eventually be called by the caller to shut down Pushpin.
 func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpinContext, error) {
-	text.Output(out, "%s: %s", text.BoldYellow("EXPERIMENTAL"), "Enabling Pushpin support for local testing of Fanout.")
+	text.Info(out, "Enabling experimental Pushpin support for local testing of Fanout.")
 
 	pushpinCtx := pushpinContext{}
 
@@ -863,7 +863,7 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 	if err != nil {
 		return pushpinCtx, err
 	}
-	msg := "Running local Pushpin"
+	msg := "Starting Pushpin"
 	spinner.Message(msg + "...")
 
 	spinner.StopMessage(msg)
@@ -1007,7 +1007,7 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 		}
 	}
 
-	text.Success(out, "Local Pushpin started.")
+	text.Success(out, "Pushpin started.")
 	text.Break(out)
 
 	return pushpinCtx, nil
