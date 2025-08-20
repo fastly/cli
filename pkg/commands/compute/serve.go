@@ -218,6 +218,8 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	enablePushpin := c.enablePushpin || c.Globals.Manifest.File.LocalServer.Pushpin.EnablePushpin
 	var pushpinCtx pushpinContext
 	if enablePushpin {
+		// The function checks for nil, so the semgrep warning is falsely triggered
+		// nosemgrep: trailofbits.go.invalid-usage-of-modified-variable.invalid-usage-of-modified-variable
 		pushpinCtx, err = c.startPushpin(spinner, out)
 		if err != nil {
 			pushpinCtx.Close()
@@ -591,7 +593,7 @@ func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) (uint16, error) {
 	pushpinProxyPortStr := c.pushpinProxyPort
 	var pushpinProxyPort uint16
 	if pushpinProxyPortStr != "" {
-		pushpinProxyPortInt, err := strconv.Atoi(pushpinProxyPortStr)
+		pushpinProxyPortInt, err := strconv.ParseUint(pushpinProxyPortStr, 10, 16)
 		if err != nil {
 			return 0, fmt.Errorf("can't parse --pushpin-proxy-port value as a number: %s", pushpinProxyPortStr)
 		}
@@ -631,7 +633,7 @@ func (c *ServeCommand) GetPushpinPublishPort(out io.Writer) (uint16, error) {
 	pushpinPublishPortStr := c.pushpinPublishPort
 	var pushpinPublishPort uint16
 	if pushpinPublishPortStr != "" {
-		pushpinPublishPortInt, err := strconv.Atoi(pushpinPublishPortStr)
+		pushpinPublishPortInt, err := strconv.ParseUint(pushpinPublishPortStr, 10, 16)
 		if err != nil {
 			return 0, fmt.Errorf("can't parse --pushpin-publish-port value as a number: %s", pushpinPublishPortStr)
 		}
