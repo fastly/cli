@@ -5,13 +5,19 @@
 ### Breaking:
 
 ### Enhancements:
+
+### Bug fixes:
+
+### Dependencies:
+
+## [v11.5.0](https://github.com/fastly/cli/releases/tag/v11.5.0) (2025-08-20)
+
+### Enhancements:
 - feat(vcl): Allow showing of generated VCL for a service version [#1498](https://github.com/fastly/cli/pull/1498)
 - feat(compute/serve): Add experimental "enable Pushpin" mode ([#1509](https://github.com/fastly/cli/pull/1509), [#1520](https://github.com/fastly/cli/pull/1520))
 - feat(object-storage): improve access-keys list output ([#1513](https://github.com/fastly/cli/pull/1513))
 - refactor(domainv1,tools): use updated go-fastly domainmanagement imports and types ([#1517](https://github.com/fastly/cli/pull/1517))
-- feat (imageoptimizerdefaults): Support for retrieving and updating Image Optimizer defaults for a given VCL service ([#1518](https://github.com/fastly/cli/pull/1518))
-
-### Bug fixes:
+- feat(imageoptimizerdefaults): Support for retrieving and updating Image Optimizer defaults for a given VCL service ([#1518](https://github.com/fastly/cli/pull/1518))
 
 ### Dependencies:
 - build(deps): `github.com/fastly/go-fastly/v11` from 10 to 111 ([#14XX](https://github.com/fastly/cli/pull/14XX))
