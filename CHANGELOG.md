@@ -9,6 +9,7 @@
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `github.com/ulikunitz/xz` from 0.5.12 to 0.5.13 ([#1524](https://github.com/fastly/cli/pull/1524))
 
 ## [v11.5.0](https://github.com/fastly/cli/releases/tag/v11.5.0) (2025-08-20)
 
