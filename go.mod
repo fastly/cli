@@ -21,7 +21,7 @@ require (
 	github.com/nicksnyder/go-i18n v1.10.3 // indirect
 	github.com/pelletier/go-toml v1.9.5
 	github.com/segmentio/textio v1.2.0
-	github.com/tomnomnom/linkheader v0.0.0-20250811210735-e5fe3b51442e
+	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/term v0.34.0
 )
