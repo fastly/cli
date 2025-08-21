@@ -8,6 +8,7 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -15,6 +16,8 @@ import (
 // CloneCommand calls the Fastly API to clone a service version.
 type CloneCommand struct {
 	argparser.Base
+	argparser.JSONOutput
+
 	Input          fastly.CloneVersionInput
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
@@ -25,6 +28,7 @@ func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand 
 	var c CloneCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -48,6 +52,9 @@ func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand 
 
 // Exec invokes the application logic for the command.
 func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
@@ -56,6 +63,7 @@ func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
+
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
@@ -76,6 +84,11 @@ func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Cloned service %s version %d to version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion, fastly.ToValue(ver.Number))
-	return nil
+	if ok, err := c.WriteJSON(out, ver); ok {
+		return err
+	} else {
+
+		text.Success(out, "Cloned service %s version %d to version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion, fastly.ToValue(ver.Number))
+		return nil
+	}
 }
