@@ -43,6 +43,14 @@ func TestHTTPSCreate(t *testing.T) {
 			},
 			wantError: errTest.Error(),
 		},
+		{
+			args: args("logging https create --service-id 123 --version 1 --name log --url example.com --compression-codec zstd --gzip-level 9 --autoclone"),
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+			},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
+		},
 	}
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
@@ -284,7 +292,9 @@ func createHTTPSOK(_ context.Context, i *fastly.CreateHTTPSInput) (*fastly.HTTPS
 		URL:               fastly.ToPointer("example.com"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		CompressionCodec:  fastly.ToPointer(""),
 		ContentType:       fastly.ToPointer("application/json"),
+		GzipLevel:         fastly.ToPointer(0),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),
@@ -314,7 +324,9 @@ func listHTTPSsOK(_ context.Context, i *fastly.ListHTTPSInput) ([]*fastly.HTTPS,
 			URL:               fastly.ToPointer("example.com"),
 			RequestMaxEntries: fastly.ToPointer(2),
 			RequestMaxBytes:   fastly.ToPointer(2),
+			CompressionCodec:  fastly.ToPointer(""),
 			ContentType:       fastly.ToPointer("application/json"),
+			GzipLevel:         fastly.ToPointer(0),
 			HeaderName:        fastly.ToPointer("name"),
 			HeaderValue:       fastly.ToPointer("value"),
 			Method:            fastly.ToPointer(http.MethodGet),
@@ -337,7 +349,9 @@ func listHTTPSsOK(_ context.Context, i *fastly.ListHTTPSInput) ([]*fastly.HTTPS,
 			URL:               fastly.ToPointer("analytics.example.com"),
 			RequestMaxEntries: fastly.ToPointer(2),
 			RequestMaxBytes:   fastly.ToPointer(2),
+			CompressionCodec:  fastly.ToPointer(""),
 			ContentType:       fastly.ToPointer("application/json"),
+			GzipLevel:         fastly.ToPointer(0),
 			HeaderName:        fastly.ToPointer("name"),
 			HeaderValue:       fastly.ToPointer("value"),
 			Method:            fastly.ToPointer(http.MethodGet),
@@ -376,7 +390,9 @@ Version: 1
 		Version: 1
 		Name: logs
 		URL: example.com
+		Compression codec: 
 		Content type: application/json
+		GZip level: 0
 		Header name: name
 		Header value: value
 		Method: GET
@@ -398,7 +414,9 @@ Version: 1
 		Version: 1
 		Name: analytics
 		URL: analytics.example.com
+		Compression codec: 
 		Content type: application/json
+		GZip level: 0
 		Header name: name
 		Header value: value
 		Method: GET
@@ -427,7 +445,9 @@ func getHTTPSOK(_ context.Context, i *fastly.GetHTTPSInput) (*fastly.HTTPS, erro
 		URL:               fastly.ToPointer("example.com"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		CompressionCodec:  fastly.ToPointer(""),
 		ContentType:       fastly.ToPointer("application/json"),
+		GzipLevel:         fastly.ToPointer(0),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),
@@ -448,9 +468,11 @@ func getHTTPSError(_ context.Context, _ *fastly.GetHTTPSInput) (*fastly.HTTPS, e
 }
 
 var describeHTTPSOutput = "\n" + strings.TrimSpace(`
+Compression codec: 
 Content type: application/json
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
+GZip level: 0
 Header name: name
 Header value: value
 JSON format: 1
@@ -481,7 +503,9 @@ func updateHTTPSOK(_ context.Context, i *fastly.UpdateHTTPSInput) (*fastly.HTTPS
 		URL:               fastly.ToPointer("example.com"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		CompressionCodec:  fastly.ToPointer(""),
 		ContentType:       fastly.ToPointer("application/json"),
+		GzipLevel:         fastly.ToPointer(7),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),

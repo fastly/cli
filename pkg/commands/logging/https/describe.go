@@ -93,9 +93,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
+		"Compression codec":      fastly.ToValue(o.CompressionCodec),
 		"Content type":           fastly.ToValue(o.ContentType),
 		"Format version":         fastly.ToValue(o.FormatVersion),
 		"Format":                 fastly.ToValue(o.Format),
+		"GZip level":             fastly.ToValue(o.GzipLevel),
 		"Header name":            fastly.ToValue(o.HeaderName),
 		"Header value":           fastly.ToValue(o.HeaderValue),
 		"JSON format":            fastly.ToValue(o.JSONFormat),

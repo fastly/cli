@@ -2,6 +2,7 @@ package https
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/fastly/go-fastly/v11/fastly"
@@ -27,10 +28,12 @@ type CreateCommand struct {
 
 	// Optional.
 	AutoClone         argparser.OptionalAutoClone
+	CompressionCodec  argparser.OptionalString
 	ContentType       argparser.OptionalString
 	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
+	GzipLevel         argparser.OptionalInt
 	HeaderName        argparser.OptionalString
 	HeaderValue       argparser.OptionalString
 	JSONFormat        argparser.OptionalString
@@ -72,8 +75,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("content-type", "Content type of the header sent with the request").Action(c.ContentType.Set).StringVar(&c.ContentType.Value)
+	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	common.Format(c.CmdClause, &c.Format)
 	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	common.GzipLevel(c.CmdClause, &c.GzipLevel)
 	c.CmdClause.Flag("header-name", "Name of the custom header sent with the request").Action(c.HeaderName.Set).StringVar(&c.HeaderName.Value)
 	c.CmdClause.Flag("header-value", "Value of the custom header sent with the request").Action(c.HeaderValue.Set).StringVar(&c.HeaderValue.Value)
 	c.CmdClause.Flag("json-format", "Enforces valid JSON formatting for log entries. Can be disabled 0, array of json (wraps JSON log batches in an array) 1, or newline delimited json (places each JSON log entry onto a new line in a batch) 2").Action(c.JSONFormat.Set).StringVar(&c.JSONFormat.Value)
@@ -108,6 +113,12 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreateHTTPSInput, error) {
 	var input fastly.CreateHTTPSInput
 
+	// The following blocks enforces the mutual exclusivity of the
+	// CompressionCodec and GzipLevel flags.
+	if c.CompressionCodec.WasSet && c.GzipLevel.WasSet {
+		return nil, fmt.Errorf("error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag")
+	}
+
 	input.ServiceID = serviceID
 	if c.EndpointName.WasSet {
 		input.Name = &c.EndpointName.Value
@@ -117,8 +128,15 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	input.ServiceVersion = serviceVersion
 
+	if c.CompressionCodec.WasSet {
+		input.CompressionCodec = &c.CompressionCodec.Value
+	}
+
 	if c.ContentType.WasSet {
 		input.ContentType = &c.ContentType.Value
+	}
+	if c.GzipLevel.WasSet {
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.HeaderName.WasSet {
