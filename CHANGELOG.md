@@ -6,6 +6,7 @@
 
 ### Enhancements:
 - feat(logging): Add support for 'CompressionCodec' and 'GzipLevel' attribute to the HTTPS endpoint.
+- feat(kvstoreentry): Add support for the 'prefix' parameter for List operations ([#1526](https://github.com/fastly/cli/pull/1526))
 
 ### Bug fixes:
 
