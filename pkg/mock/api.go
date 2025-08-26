@@ -357,6 +357,7 @@ type API struct {
 	DeleteKVStoreFn         func(context.Context, *fastly.DeleteKVStoreInput) error
 	ListKVStoreKeysFn       func(context.Context, *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error)
 	GetKVStoreKeyFn         func(context.Context, *fastly.GetKVStoreKeyInput) (string, error)
+	GetKVStoreItemFn        func(context.Context, *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error)
 	InsertKVStoreKeyFn      func(context.Context, *fastly.InsertKVStoreKeyInput) error
 	DeleteKVStoreKeyFn      func(context.Context, *fastly.DeleteKVStoreKeyInput) error
 	BatchModifyKVStoreKeyFn func(context.Context, *fastly.BatchModifyKVStoreKeyInput) error
