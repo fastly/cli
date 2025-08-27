@@ -1594,6 +1594,11 @@ func (m API) NewListKVStoreKeysPaginator(ctx context.Context, i *fastly.ListKVSt
 	return m.NewListKVStoreKeysPaginatorFn(ctx, i)
 }
 
+// GetKVStoreItem implements Interface.
+func (m API) GetKVStoreItem(ctx context.Context, i *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+	return m.GetKVStoreItemFn(ctx, i)
+}
+
 // GetCustomTLSConfiguration implements Interface.
 func (m API) GetCustomTLSConfiguration(ctx context.Context, i *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 	return m.GetCustomTLSConfigurationFn(ctx, i)

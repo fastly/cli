@@ -2,6 +2,7 @@ package kvstoreentry_test
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -203,6 +204,7 @@ func TestGetCommand(t *testing.T) {
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
+			Name: "validate lack of flag error",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
@@ -212,6 +214,7 @@ func TestGetCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
+			Name: "validate expected KV response",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
 				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
@@ -221,13 +224,26 @@ func TestGetCommand(t *testing.T) {
 			WantOutput: itemValue,
 		},
 		{
+			Name: "validate --json flag output",
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
 			API: mock.API{
 				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
 					return itemValue, nil
 				},
 			},
-			WantOutput: fmt.Sprintf(`{"%s": "%s"}`, itemKey, itemValue) + "\n",
+			// Encoding the 'itemValue' variable to match the encoding we are doing for --json flags.
+			WantOutput: fmt.Sprintf(`{"%s": "%s"}`, itemKey, base64.StdEncoding.EncodeToString([]byte(itemValue))) + "\n",
+		},
+		{
+			Name: "validate --verbose flag output",
+			Args: fmt.Sprintf("--store-id %s --key %s --verbose", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
+					return itemValue, nil
+				},
+			},
+			// Encoding the 'itemValue' variable to match the encoding we are doing for --verbose flags.
+			WantOutput: fmt.Sprintf("Key: %s\nValue: \"%s\"\n", itemKey, base64.StdEncoding.EncodeToString([]byte(itemValue))),
 		},
 	}
 
