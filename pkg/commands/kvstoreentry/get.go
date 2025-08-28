@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/fastly/go-fastly/v11/fastly"
 
@@ -19,7 +20,8 @@ type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	Input fastly.GetKVStoreKeyInput
+	Input      fastly.GetKVStoreItemInput
+	Generation string
 }
 
 // NewGetCommand returns a usable command registered under the parent.
@@ -36,6 +38,7 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
+	c.CmdClause.Flag("generation", "Compares if the provided generastion market matches that of the object").StringVar(&c.Generation)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
@@ -47,10 +50,38 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	value, err := c.Globals.APIClient.GetKVStoreKey(context.TODO(), &c.Input)
+	result, err := c.Globals.APIClient.GetKVStoreItem(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
+	}
+
+	// Check if the generation marker provided matches the API.
+	if c.Generation != "" {
+		inputGeneration, err := strconv.ParseUint(c.Generation, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid generation value: %s", c.Generation)
+		}
+
+		if inputGeneration != result.Generation {
+			return fmt.Errorf("generation value does not match: expected %d, got %d", result.Generation, inputGeneration)
+		}
+	}
+
+	// Ensure we close the value reader.
+	if result.Value != nil {
+		defer result.Value.Close()
+	}
+
+	// Read the value from ReadCloser.
+	var value string
+	if result.Value != nil {
+		valueBytes, err := io.ReadAll(result.Value)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		value = string(valueBytes)
 	}
 
 	if c.JSONOutput.Enabled {

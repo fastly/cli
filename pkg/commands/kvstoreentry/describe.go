@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/fastly/go-fastly/v11/fastly"
 
@@ -19,8 +18,7 @@ type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	Input      fastly.GetKVStoreItemInput
-	Generation bool
+	Input fastly.GetKVStoreItemInput
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -30,14 +28,13 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("describe", "Get the value associated with a key").Alias("get")
+	c.CmdClause = parent.Command("describe", "Get the associated attributes of a key")
 
 	// Required.
 	c.CmdClause.Flag("key", "Key name").Short('k').Required().StringVar(&c.Input.Key)
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
-	c.CmdClause.Flag("generation", "Determines whether the generation marker emits").BoolVar(&c.Generation)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
@@ -55,34 +52,23 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	value, err := item.ValueAsString()
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
-	}
-
 	if c.JSONOutput.Enabled {
-		if c.Generation {
-			text.Output(out, `{"%s": "%s", "generation": %d}`, c.Input.Key, value, item.Generation)
-		} else {
-			text.Output(out, `{"%s": "%s"}`, c.Input.Key, value)
-		}
+		text.Output(out, `{"key": "%s", "generation": "%d", "metadata": "%s"}`, c.Input.Key, item.Generation, item.Metadata)
 		return nil
 	}
 
 	if c.Globals.Flags.Verbose {
-		text.PrintKVStoreKeyValue(out, "", c.Input.Key, value)
-		if c.Generation {
-			fmt.Fprintf(out, "Generation: %d\n", item.Generation)
-		}
+		// Print the key attributes.
+		fmt.Fprintf(out, "Key: %s\n", c.Input.Key)
+		fmt.Fprintf(out, "Generation: %d\n", item.Generation)
+		fmt.Fprintf(out, "Metadata: %s\n", item.Metadata)
 		return nil
 	}
 
 	// IMPORTANT: Don't use `text` package as binary data can be messed up.
-	fmt.Fprint(out, value)
-	// Print the Generation ID if the flag is present.
-	if c.Generation {
-		fmt.Fprintf(os.Stderr, "\nGeneration: %d\n", item.Generation)
-	}
+	// Print the key attributes.
+	fmt.Fprintf(out, "Key: %s\n", c.Input.Key)
+	fmt.Fprintf(out, "Generation: %d\n", item.Generation)
+	fmt.Fprintf(out, "Metadata: %s\n", item.Metadata)
 	return nil
 }
