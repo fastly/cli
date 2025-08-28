@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -42,7 +43,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("dir-allow-hidden", "Allow hidden files (e.g. dot files) to be included (skipped by default)").BoolVar(&c.dirAllowHidden)
 	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
 	c.CmdClause.Flag("file", `Path to a file containing individual JSON objects (e.g., {"key":"...","value":"base64_encoded_value"}) separated by new-line delimiter`).StringVar(&c.filePath)
-	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for an update operation to proceed").IntVar(&c.ifGenMatch)
+	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for an update operation to proceed").StringVar(&c.ifGenMatch)
 	c.CmdClause.Flag("metadata", "An arbitrary data field which can contain up to 2000 bytes of data").StringVar(&c.metadata)
 	c.CmdClause.Flag("prepend", "If an item with the specified key exists, the value provided in the operation is prepended to the existing value instead of replacing it (Default: false)").Default("false").BoolVar(&c.prepend)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
@@ -65,7 +66,7 @@ type CreateCommand struct {
 	dirConcurrency int
 	dirPath        string
 	filePath       string
-	ifGenMatch     int
+	ifGenMatch     string
 	metadata       string
 	prepend        bool
 	stdin          bool
@@ -103,7 +104,16 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.Add = c.add
 	c.Input.Append = c.append
 	c.Input.BackgroundFetch = c.backFetch
-	c.Input.IfGenerationMatch = uint64(c.ifGenMatch)
+	
+	// Parse generation match if provided.
+	if c.ifGenMatch != "" {
+		inputGeneration, err := strconv.ParseUint(c.ifGenMatch, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid generation value: %s", c.ifGenMatch)
+		}
+		c.Input.IfGenerationMatch = inputGeneration
+	}
+	
 	c.Input.Metadata = &c.metadata
 	c.Input.Prepend = c.prepend
 

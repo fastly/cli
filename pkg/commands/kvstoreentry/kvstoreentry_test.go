@@ -123,6 +123,11 @@ func TestCreateCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
 		},
 		{
+			Name: "validate --if-generation-match with invalid value",
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --if-generation-match invalid", storeID, itemKey, itemValue),
+			WantError: "invalid generation value: invalid",
+		},
+		{
 			Name: "validate --metadata flag",
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --metadata %s", storeID, itemKey, itemValue, "test-metadata"),
 			API: mock.API{
