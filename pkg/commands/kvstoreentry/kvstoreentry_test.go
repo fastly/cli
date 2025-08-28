@@ -123,8 +123,8 @@ func TestCreateCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
 		},
 		{
-			Name: "validate --if-generation-match with invalid value",
-			Args: fmt.Sprintf("--store-id %s --key %s --value %s --if-generation-match invalid", storeID, itemKey, itemValue),
+			Name:      "validate --if-generation-match flag with invalid value",
+			Args:      fmt.Sprintf("--store-id %s --key %s --value %s --if-generation-match invalid", storeID, itemKey, itemValue),
 			WantError: "invalid generation value: invalid",
 		},
 		{

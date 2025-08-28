@@ -104,7 +104,6 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	c.Input.Add = c.add
 	c.Input.Append = c.append
 	c.Input.BackgroundFetch = c.backFetch
-	
 	// Parse generation match if provided.
 	if c.ifGenMatch != "" {
 		inputGeneration, err := strconv.ParseUint(c.ifGenMatch, 10, 64)
@@ -113,7 +112,7 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		c.Input.IfGenerationMatch = inputGeneration
 	}
-	
+
 	c.Input.Metadata = &c.metadata
 	c.Input.Prepend = c.prepend
 
