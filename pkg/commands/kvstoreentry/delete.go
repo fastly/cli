@@ -33,7 +33,7 @@ type DeleteCommand struct {
 	// NOTE: Public fields can be set via `kv-store delete`.
 	DeleteAll         bool
 	Force             bool
-	IfGenerationMatch uint64
+	IfGenerationMatch string
 	MaxErrors         int
 	PoolSize          int
 	StoreID           string
@@ -55,7 +55,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.DeleteAll)
 	c.CmdClause.Flag("concurrency", "The thread pool size (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysPoolSize)).Short('r').IntVar(&c.PoolSize)
 	c.CmdClause.Flag("force", "Return a successful result from a 'delete' operation even if the specified key was not found").BoolVar(&c.Force)
-	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for an update operation to proceed").Uint64Var(&c.IfGenerationMatch)
+	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for an update operation to proceed").StringVar(&c.IfGenerationMatch)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').Action(c.key.Set).StringVar(&c.key.Value)
 	c.CmdClause.Flag("max-errors", "The number of errors to accept before stopping (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysMaxErrors)).Short('m').IntVar(&c.MaxErrors)
@@ -95,10 +95,37 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	}
 
 	input := fastly.DeleteKVStoreKeyInput{
-		StoreID:           c.StoreID,
-		Force:             c.Force,
-		Key:               c.key.Value,
-		IfGenerationMatch: c.IfGenerationMatch,
+		StoreID: c.StoreID,
+		Force:   c.Force,
+		Key:     c.key.Value,
+	}
+
+	// Check if the generation marker provided matches the API.
+	if c.IfGenerationMatch != "" {
+		getInput := fastly.GetKVStoreItemInput{
+			StoreID: c.StoreID,
+			Key:     c.key.Value,
+		}
+
+		result, err := c.Globals.APIClient.GetKVStoreItem(context.TODO(), &getInput)
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+
+		// Ensure we close the value reader.
+		if result.Value != nil {
+			defer result.Value.Close()
+		}
+
+		inputGeneration, err := strconv.ParseUint(c.IfGenerationMatch, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid generation value: %s", c.IfGenerationMatch)
+		}
+
+		if inputGeneration != result.Generation {
+			return fmt.Errorf("generation value does not match: expected %d, got %d", result.Generation, inputGeneration)
+		}
 	}
 
 	err := c.Globals.APIClient.DeleteKVStoreKey(context.TODO(), &input)

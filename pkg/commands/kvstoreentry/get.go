@@ -38,7 +38,7 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
-	c.CmdClause.Flag("generation", "Compares if the provided generastion market matches that of the object").StringVar(&c.Generation)
+	c.CmdClause.Flag("if-generation-match", "Compares if the provided generation marker matches that of the object").StringVar(&c.Generation)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
