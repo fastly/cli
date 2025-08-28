@@ -35,10 +35,16 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.Input.StoreID)
 
 	// Optional.
+	c.CmdClause.Flag("add", "Limit the operation to adding a new item. If an existing item with the specified key exists, the operation will fail (default: false)").Default("false").BoolVar(&c.add)
+	c.CmdClause.Flag("append", "If an item with the specified key exists, the value provided in the operation is appended to the existing value instead of replacing it (default: false)").Default("false").BoolVar(&c.append)
+	c.CmdClause.Flag("background-fetch", "If set to true, the new value for the item will not be immediately visible to other users of the KV store; they will receive the existing (stale) value while the platform updates cached copies. Setting this to true ensures that other users of the KV store will receive responses to 'get' operations for this item quickly, although they will be slightly out of date (default: false)").Default("false").BoolVar(&c.backFetch)
 	c.CmdClause.Flag("dir", "Path to a directory containing individual files where the filename is the key and the file contents is the value").StringVar(&c.dirPath)
 	c.CmdClause.Flag("dir-allow-hidden", "Allow hidden files (e.g. dot files) to be included (skipped by default)").BoolVar(&c.dirAllowHidden)
 	c.CmdClause.Flag("dir-concurrency", "Limit the number of concurrent network resources allocated").Default("50").IntVar(&c.dirConcurrency)
 	c.CmdClause.Flag("file", `Path to a file containing individual JSON objects (e.g., {"key":"...","value":"base64_encoded_value"}) separated by new-line delimiter`).StringVar(&c.filePath)
+	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for an update operation to proceed").IntVar(&c.ifGenMatch)
+	c.CmdClause.Flag("metadata", "An arbitrary data field which can contain up to 2000 bytes of data").StringVar(&c.metadata)
+	c.CmdClause.Flag("prepend", "If an item with the specified key exists, the value provided in the operation is prepended to the existing value instead of replacing it (Default: false)").Default("false").BoolVar(&c.prepend)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').StringVar(&c.Input.Key)
 	c.CmdClause.Flag("stdin", "Read new-line separated JSON stream via STDIN").BoolVar(&c.stdin)
@@ -52,10 +58,16 @@ type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
+	add            bool
+	append         bool
+	backFetch      bool
 	dirAllowHidden bool
 	dirConcurrency int
 	dirPath        string
 	filePath       string
+	ifGenMatch     int
+	metadata       string
+	prepend        bool
 	stdin          bool
 
 	Input fastly.InsertKVStoreKeyInput
@@ -86,6 +98,14 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if c.Input.Key == "" || c.Input.Value == "" {
 		return fsterr.ErrInvalidKVCombo
 	}
+
+	// Append optional params.
+	c.Input.Add = c.add
+	c.Input.Append = c.append
+	c.Input.BackgroundFetch = c.backFetch
+	c.Input.IfGenerationMatch = uint64(c.ifGenMatch)
+	c.Input.Metadata = &c.metadata
+	c.Input.Prepend = c.prepend
 
 	err := c.Globals.APIClient.InsertKVStoreKey(context.TODO(), &c.Input)
 	if err != nil {
