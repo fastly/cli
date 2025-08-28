@@ -19,6 +19,7 @@ type ListCommand struct {
 	argparser.JSONOutput
 
 	consistency string
+	prefix      string
 	Input       fastly.ListKVStoreKeysInput
 }
 
@@ -43,6 +44,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 	// Optional.
 	c.CmdClause.Flag("consistency", "Determines accuracy of results. i.e. 'eventual' uses caching to improve performance").Default("strong").HintOptions(ConsistencyOptions...).EnumVar(&c.consistency, ConsistencyOptions...)
+	c.CmdClause.Flag("prefix", "Restrict results to items whose keys match this prefix").StringVar(&c.prefix)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
@@ -82,6 +84,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	case "strong":
 		c.Input.Consistency = fastly.ConsistencyStrong
 	}
+
+	c.Input.Prefix = c.prefix
 
 	for {
 		o, err := c.Globals.APIClient.ListKVStoreKeys(context.TODO(), &c.Input)

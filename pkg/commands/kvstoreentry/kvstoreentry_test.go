@@ -558,6 +558,16 @@ func TestListCommand(t *testing.T) {
 			WantOutput: strings.Join(testItems, "\n") + "\n",
 		},
 		{
+			Name: "validate --prefix param",
+			Args: fmt.Sprintf("--store-id %s --prefix=foo", storeID),
+			API: mock.API{
+				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
+					return &fastly.ListKVStoreKeysResponse{Data: []string{"foo-key1", "foo-key2"}}, nil
+				},
+			},
+			WantOutput: "✓ Getting data\nfoo-key1\nfoo-key2\n",
+		},
+		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
 			API: mock.API{
 				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
