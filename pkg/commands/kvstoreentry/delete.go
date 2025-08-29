@@ -100,32 +100,13 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		Key:     c.key.Value,
 	}
 
-	// Check if the generation marker provided matches the API.
+	// Validate generation value if provided.
 	if c.IfGenerationMatch != "" {
-		getInput := fastly.GetKVStoreItemInput{
-			StoreID: c.StoreID,
-			Key:     c.key.Value,
-		}
-
-		result, err := c.Globals.APIClient.GetKVStoreItem(context.TODO(), &getInput)
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return err
-		}
-
-		// Ensure we close the value reader.
-		if result.Value != nil {
-			defer result.Value.Close()
-		}
-
-		inputGeneration, err := strconv.ParseUint(c.IfGenerationMatch, 10, 64)
+		_, err := strconv.ParseUint(c.IfGenerationMatch, 10, 64)
 		if err != nil {
 			return fmt.Errorf("invalid generation value: %s", c.IfGenerationMatch)
 		}
-
-		if inputGeneration != result.Generation {
-			return fmt.Errorf("generation value does not match: expected %d, got %d", result.Generation, inputGeneration)
-		}
+		input.IfGenerationMatch, _ = strconv.ParseUint(c.IfGenerationMatch, 10, 64)
 	}
 
 	err := c.Globals.APIClient.DeleteKVStoreKey(context.TODO(), &input)

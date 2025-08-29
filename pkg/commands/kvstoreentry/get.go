@@ -29,6 +29,8 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 	c := GetCommand{
 		Base: argparser.Base{
 			Globals: g,
+			// This argument suppresses the 'Fastly API' output from the global verbose command.
+			SuppressVerbose: true,
 		},
 	}
 	c.CmdClause = parent.Command("get", "Get the value associated with a key")
@@ -46,6 +48,12 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 
 // Exec invokes the application logic for the command.
 func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
+	// As the 'describe' command provides the object attributes,
+	// we won't be supporting a --verbose flag here.
+	if c.Globals.Flags.Verbose {
+		return fmt.Errorf("the 'get' command does not support the --verbose flag")
+	}
+
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -89,14 +97,6 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		// output for binary content along with other outputs.
 		encodedValue := base64.StdEncoding.EncodeToString([]byte(value))
 		text.Output(out, `{"%s": "%s"}`, c.Input.Key, encodedValue)
-		return nil
-	}
-
-	if c.Globals.Flags.Verbose {
-		// We are encoding the value of the key here to ensure safe
-		// output for binary content along with other outputs.
-		encodedValue := base64.StdEncoding.EncodeToString([]byte(value))
-		text.PrintKVStoreKeyValue(out, "", c.Input.Key, encodedValue)
 		return nil
 	}
 

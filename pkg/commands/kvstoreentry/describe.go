@@ -10,7 +10,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
@@ -53,7 +52,14 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.JSONOutput.Enabled {
-		text.Output(out, `{"key": "%s", "generation": "%d", "metadata": "%s"}`, c.Input.Key, item.Generation, item.Metadata)
+		o := map[string]interface{}{
+			"key":        c.Input.Key,
+			"generation": fmt.Sprintf("%d", item.Generation),
+			"metadata":   item.Metadata,
+		}
+		if ok, err := c.WriteJSON(out, o); ok {
+			return err
+		}
 		return nil
 	}
 
