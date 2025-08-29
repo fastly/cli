@@ -373,17 +373,9 @@ func TestGetCommand(t *testing.T) {
 			WantOutput: fmt.Sprintf(`{"%s": "%s"}`, itemKey, base64.StdEncoding.EncodeToString([]byte(itemValue))) + "\n",
 		},
 		{
-			Name: "validate --verbose flag output",
-			Args: fmt.Sprintf("--store-id %s --key %s --verbose", storeID, itemKey),
-			API: mock.API{
-				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
-					return fastly.GetKVStoreItemOutput{
-						Generation: 123,
-						Value:      io.NopCloser(strings.NewReader(itemValue)),
-					}, nil
-				},
-			},
-			WantOutput: fmt.Sprintf("Key: %s\nValue: \"%s\"\n", itemKey, base64.StdEncoding.EncodeToString([]byte(itemValue))),
+			Name:      "validate --verbose flag error",
+			Args:      fmt.Sprintf("--store-id %s --key %s --verbose", storeID, itemKey),
+			WantError: "the 'get' command does not support the --verbose flag",
 		},
 		{
 			Name: "validate --if-generation-match with matching generation",
