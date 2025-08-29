@@ -113,7 +113,9 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		c.Input.IfGenerationMatch = inputGeneration
 	}
 
-	c.Input.Metadata = &c.metadata
+	if c.metadata != "" {
+		c.Input.Metadata = &c.metadata
+	}
 	c.Input.Prepend = c.prepend
 
 	err := c.Globals.APIClient.InsertKVStoreKey(context.TODO(), &c.Input)
