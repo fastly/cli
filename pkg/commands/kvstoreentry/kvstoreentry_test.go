@@ -476,7 +476,7 @@ func TestDescribeCommand(t *testing.T) {
 					}, nil
 				},
 			},
-			WantOutput: fmt.Sprintf(`{"key": "%s", "generation": "%d", "metadata": "%s"}`, itemKey, 123, itemMetadata) + "\n",
+			WantOutput: fmt.Sprintf("{\n  \"generation\": \"%d\",\n  \"key\": \"%s\",\n  \"metadata\": \"%s\"\n}\n", 123, itemKey, itemMetadata),
 		},
 		{
 			Name: "validate --verbose flag output",
