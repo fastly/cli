@@ -19,6 +19,8 @@
 - build(deps): `github.com/ulikunitz/xz` from 0.5.12 to 0.5.13 ([#1524](https://github.com/fastly/cli/pull/1524))
 - build(deps): `github.com/stretchr/testify` from 1.10.0 to 1.11.0 ([#1527](https://github.com/fastly/cli/pull/1527))
 - build(deps): `github.com/ulikunitz/xz` from 0.5.13 to 0.5.14 ([#1528](https://github.com/fastly/cli/pull/1528))
+- build(deps): `github.com/stretchr/testify` from 1.11.0 to 1.11.1 ([#1530](https://github.com/fastly/cli/pull/1530))
+- build(deps): `github.com/ulikunitz/xz` from 0.5.14 to 0.5.15 ([#1530](https://github.com/fastly/cli/pull/1530))
 
 ## [v11.5.0](https://github.com/fastly/cli/releases/tag/v11.5.0) (2025-08-20)
 
