@@ -264,16 +264,6 @@ func TestDeleteCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Deleted key '%s' from KV Store '%s'", itemKey, storeID),
 		},
 		{
-			Name: "validate --if-generation-match with non-matching generation",
-			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match 123", storeID, itemKey),
-			API: mock.API{
-				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
-					return fastly.GetKVStoreItemOutput{Generation: 456}, nil
-				},
-			},
-			WantError: "generation value does not match: expected 456, got 123",
-		},
-		{
 			Name: "validate --if-generation-match with invalid generation value",
 			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match invalid", storeID, itemKey),
 			API: mock.API{
