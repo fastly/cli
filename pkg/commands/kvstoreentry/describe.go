@@ -10,7 +10,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/text"
 )
 
 // DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
@@ -18,7 +17,7 @@ type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	Input fastly.GetKVStoreKeyInput
+	Input fastly.GetKVStoreItemInput
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -28,7 +27,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("describe", "Get the value associated with a key").Alias("get")
+	c.CmdClause = parent.Command("describe", "Get the associated attributes of a key")
 
 	// Required.
 	c.CmdClause.Flag("key", "Key name").Short('k').Required().StringVar(&c.Input.Key)
@@ -46,23 +45,36 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	value, err := c.Globals.APIClient.GetKVStoreKey(context.TODO(), &c.Input)
+	item, err := c.Globals.APIClient.GetKVStoreItem(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
 	if c.JSONOutput.Enabled {
-		text.Output(out, `{"%s": "%s"}`, c.Input.Key, value)
+		o := map[string]interface{}{
+			"key":        c.Input.Key,
+			"generation": fmt.Sprintf("%d", item.Generation),
+			"metadata":   item.Metadata,
+		}
+		if ok, err := c.WriteJSON(out, o); ok {
+			return err
+		}
 		return nil
 	}
 
 	if c.Globals.Flags.Verbose {
-		text.PrintKVStoreKeyValue(out, "", c.Input.Key, value)
+		// Print the key attributes.
+		fmt.Fprintf(out, "Key: %s\n", c.Input.Key)
+		fmt.Fprintf(out, "Generation: %d\n", item.Generation)
+		fmt.Fprintf(out, "Metadata: %s\n", item.Metadata)
 		return nil
 	}
 
 	// IMPORTANT: Don't use `text` package as binary data can be messed up.
-	fmt.Fprint(out, value)
+	// Print the key attributes.
+	fmt.Fprintf(out, "Key: %s\n", c.Input.Key)
+	fmt.Fprintf(out, "Generation: %d\n", item.Generation)
+	fmt.Fprintf(out, "Metadata: %s\n", item.Metadata)
 	return nil
 }

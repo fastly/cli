@@ -85,7 +85,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Input.Consistency = fastly.ConsistencyStrong
 	}
 
-	c.Input.Prefix = c.prefix
+	if c.prefix != "" {
+		c.Input.Prefix = c.prefix
+	}
 
 	for {
 		o, err := c.Globals.APIClient.ListKVStoreKeys(context.TODO(), &c.Input)

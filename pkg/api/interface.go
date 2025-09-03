@@ -368,6 +368,7 @@ type Interface interface {
 	GetKVStore(context.Context, *fastly.GetKVStoreInput) (*fastly.KVStore, error)
 	ListKVStoreKeys(context.Context, *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error)
 	GetKVStoreKey(context.Context, *fastly.GetKVStoreKeyInput) (string, error)
+	GetKVStoreItem(context.Context, *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error)
 	DeleteKVStoreKey(context.Context, *fastly.DeleteKVStoreKeyInput) error
 	InsertKVStoreKey(context.Context, *fastly.InsertKVStoreKeyInput) error
 	BatchModifyKVStoreKey(context.Context, *fastly.BatchModifyKVStoreKeyInput) error
