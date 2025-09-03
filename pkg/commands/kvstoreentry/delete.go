@@ -55,7 +55,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.DeleteAll)
 	c.CmdClause.Flag("concurrency", "The thread pool size (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysPoolSize)).Short('r').IntVar(&c.PoolSize)
 	c.CmdClause.Flag("force", "Return a successful result from a 'delete' operation even if the specified key was not found").BoolVar(&c.Force)
-	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for an update operation to proceed").StringVar(&c.IfGenerationMatch)
+	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for a delete operation to proceed").StringVar(&c.IfGenerationMatch)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').Action(c.key.Set).StringVar(&c.key.Value)
 	c.CmdClause.Flag("max-errors", "The number of errors to accept before stopping (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysMaxErrors)).Short('m').IntVar(&c.MaxErrors)
