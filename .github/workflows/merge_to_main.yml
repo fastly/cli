@@ -16,13 +16,13 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
       - name: "Install Node"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 18
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@1.83.0 # to install tq via `make config`
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.24.x
       - name: "Install dependencies"

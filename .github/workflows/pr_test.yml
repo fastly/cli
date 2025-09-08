@@ -42,7 +42,7 @@ jobs:
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@stable
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.24.x
       - name: "Install dependencies"
@@ -72,7 +72,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
       - name: "Install Go"
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go-version }}
           # IMPORTANT: Disable caching to prevent cache restore errors later.
@@ -88,7 +88,7 @@ jobs:
         run: rustup show && rustup target list --installed --toolchain stable
         shell: bash
       - name: "Install Node"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Config Artifact"
