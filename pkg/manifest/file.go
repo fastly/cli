@@ -92,6 +92,23 @@ func (f *File) MarshalTOML() ([]byte, error) {
 		localServer["kv_stores"] = kvStores
 	}
 
+	if f.LocalServer.Pushpin != nil {
+		pushpin := make(map[string]any)
+		if f.LocalServer.Pushpin.EnablePushpin != nil {
+			pushpin["enable"] = *f.LocalServer.Pushpin.EnablePushpin
+		}
+		if f.LocalServer.Pushpin.PushpinPath != nil {
+			pushpin["pushpin_path"] = *f.LocalServer.Pushpin.PushpinPath
+		}
+		if f.LocalServer.Pushpin.PushpinProxyPort != nil {
+			pushpin["proxy_port"] = *f.LocalServer.Pushpin.PushpinProxyPort
+		}
+		if f.LocalServer.Pushpin.PushpinPublishPort != nil {
+			pushpin["publish_port"] = *f.LocalServer.Pushpin.PushpinPublishPort
+		}
+		localServer["pushpin"] = pushpin
+	}
+
 	if f.LocalServer.SecretStores != nil {
 		secretStores := make(map[string]any)
 		for key, entry := range f.LocalServer.SecretStores {
