@@ -59,6 +59,7 @@ func TestCreateHTTPSInput(t *testing.T) {
 				MessageType:       fastly.ToPointer("classic"),
 				FormatVersion:     fastly.ToPointer(2),
 				ProcessingRegion:  fastly.ToPointer("eu"),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -288,6 +289,7 @@ func createCommandAll() *https.CreateCommand {
 		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
 		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -379,6 +381,7 @@ func updateCommandAll() *https.UpdateCommand {
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new15"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 

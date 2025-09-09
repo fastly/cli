@@ -28,9 +28,11 @@ type UpdateCommand struct {
 
 	// Optional.
 	AutoClone         argparser.OptionalAutoClone
+	CompressionCodec  argparser.OptionalString
 	ContentType       argparser.OptionalString
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
+	GzipLevel         argparser.OptionalInt
 	HeaderName        argparser.OptionalString
 	HeaderValue       argparser.OptionalString
 	JSONFormat        argparser.OptionalString

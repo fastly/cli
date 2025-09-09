@@ -22,21 +22,21 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/term v0.34.0
+	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/term v0.35.0
 )
 
 require (
-	github.com/fastly/go-fastly/v11 v11.3.0
+	github.com/fastly/go-fastly/v11 v11.3.1
 	github.com/hashicorp/cap v0.10.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/otiai10/copy v1.14.1
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/theckman/yacspin v0.13.12
-	golang.org/x/crypto v0.41.0
+	golang.org/x/crypto v0.42.0
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
-	golang.org/x/mod v0.27.0
+	golang.org/x/mod v0.28.0
 )
 
 require (
@@ -45,7 +45,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
@@ -70,12 +70,12 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/ulikunitz/xz v0.5.12 // indirect
+	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/text v0.28.0
+	golang.org/x/oauth2 v0.31.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/text v0.29.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
