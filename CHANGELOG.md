@@ -8,6 +8,8 @@
 
 ### Bug fixes:
 
+- fix(manifest): Ensure pushpin section is persisted during manifest file update ([#1535](https://github.com/fastly/cli/pull/1535))
+
 ### Dependencies:
 
 ## [v11.5.0](https://github.com/fastly/cli/releases/tag/v11.5.0) (2025-08-20)
