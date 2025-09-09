@@ -215,7 +215,10 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	enablePushpin := c.enablePushpin || c.Globals.Manifest.File.LocalServer.Pushpin.EnablePushpin
+	enablePushpin := c.enablePushpin ||
+		(c.Globals.Manifest.File.LocalServer.Pushpin != nil &&
+			c.Globals.Manifest.File.LocalServer.Pushpin.EnablePushpin != nil &&
+			*c.Globals.Manifest.File.LocalServer.Pushpin.EnablePushpin)
 	var pushpinCtx pushpinContext
 	if enablePushpin {
 		// The function checks for nil, so the semgrep warning is falsely triggered
@@ -607,12 +610,15 @@ func (c *ServeCommand) GetPushpinProxyPort(out io.Writer) (uint16, error) {
 		return pushpinProxyPort, nil
 	}
 
-	pushpinProxyPort = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinProxyPort
-	if pushpinProxyPort != 0 {
-		if c.Globals.Verbose() {
-			text.Info(out, "Using Pushpin proxy port via `local_server.pushpin.proxy_port` setting: %d", pushpinProxyPort)
+	if c.Globals.Manifest.File.LocalServer.Pushpin != nil &&
+		c.Globals.Manifest.File.LocalServer.Pushpin.PushpinProxyPort != nil {
+		pushpinProxyPort = *c.Globals.Manifest.File.LocalServer.Pushpin.PushpinProxyPort
+		if pushpinProxyPort != 0 {
+			if c.Globals.Verbose() {
+				text.Info(out, "Using Pushpin proxy port via `local_server.pushpin.proxy_port` setting: %d", pushpinProxyPort)
+			}
+			return pushpinProxyPort, nil
 		}
-		return pushpinProxyPort, nil
 	}
 
 	pushpinProxyPort = 7677
@@ -647,12 +653,15 @@ func (c *ServeCommand) GetPushpinPublishPort(out io.Writer) (uint16, error) {
 		return pushpinPublishPort, nil
 	}
 
-	pushpinPublishPort = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPublishPort
-	if pushpinPublishPort != 0 {
-		if c.Globals.Verbose() {
-			text.Info(out, "Using Pushpin publish handler port via `local_server.pushpin.publish_port` setting: %d", pushpinPublishPort)
+	if c.Globals.Manifest.File.LocalServer.Pushpin != nil &&
+		c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPublishPort != nil {
+		pushpinPublishPort = *c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPublishPort
+		if pushpinPublishPort != 0 {
+			if c.Globals.Verbose() {
+				text.Info(out, "Using Pushpin publish handler port via `local_server.pushpin.publish_port` setting: %d", pushpinPublishPort)
+			}
+			return pushpinPublishPort, nil
 		}
-		return pushpinPublishPort, nil
 	}
 
 	pushpinPublishPort = 5561
@@ -676,12 +685,15 @@ func (c *ServeCommand) GetPushpinRunner(out io.Writer) (bin string, err error) {
 		return filepath.Abs(pushpinRunnerBinPath)
 	}
 
-	pushpinRunnerBinPath = c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPath
-	if pushpinRunnerBinPath != "" {
-		if c.Globals.Verbose() {
-			text.Info(out, "Using user provided install of Pushpin runner via `local_server.pushpin.pushpin_path` setting: %s", pushpinRunnerBinPath)
+	if c.Globals.Manifest.File.LocalServer.Pushpin != nil &&
+		c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPath != nil {
+		pushpinRunnerBinPath = *c.Globals.Manifest.File.LocalServer.Pushpin.PushpinPath
+		if pushpinRunnerBinPath != "" {
+			if c.Globals.Verbose() {
+				text.Info(out, "Using user provided install of Pushpin runner via `local_server.pushpin.pushpin_path` setting: %s", pushpinRunnerBinPath)
+			}
+			return filepath.Abs(pushpinRunnerBinPath)
 		}
-		return filepath.Abs(pushpinRunnerBinPath)
 	}
 
 	if c.Globals.Verbose() {

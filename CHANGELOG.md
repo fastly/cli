@@ -15,12 +15,24 @@
 
 ### Bug fixes:
 
+- fix(manifest): Ensure pushpin section is persisted during manifest file update ([#1535](https://github.com/fastly/cli/pull/1535))
+
 ### Dependencies:
 - build(deps): `github.com/ulikunitz/xz` from 0.5.12 to 0.5.13 ([#1524](https://github.com/fastly/cli/pull/1524))
 - build(deps): `github.com/stretchr/testify` from 1.10.0 to 1.11.0 ([#1527](https://github.com/fastly/cli/pull/1527))
 - build(deps): `github.com/ulikunitz/xz` from 0.5.13 to 0.5.14 ([#1528](https://github.com/fastly/cli/pull/1528))
 - build(deps): `github.com/stretchr/testify` from 1.11.0 to 1.11.1 ([#1530](https://github.com/fastly/cli/pull/1530))
 - build(deps): `github.com/ulikunitz/xz` from 0.5.14 to 0.5.15 ([#1530](https://github.com/fastly/cli/pull/1530))
+- build(deps): `actions/setup-node` from 4 to 5 ([#1534](https://github.com/fastly/cli/pull/1534))
+- build(deps): `actions/setup-go` from 5 to 6 ([#1534](https://github.com/fastly/cli/pull/1534))
+- build(deps): `golang.org/x/sys` from 0.35.0 to 0.36.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/term` from 0.34.0 to 0.35.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `github.com/fastly/go-fastly/v11` from 11.3.0 to 11.3.1 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/crypto` from 0.41.0 to 0.42.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/mod` from 0.27.0 to 0.28.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/oauth2` from 0.30.0 to 0.31.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/sync` from 0.16.0 to 0.17.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/text` from 0.28.0 to 0.29.0 ([#1533](https://github.com/fastly/cli/pull/1533))
 
 ## [v11.5.0](https://github.com/fastly/cli/releases/tag/v11.5.0) (2025-08-20)
 
