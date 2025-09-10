@@ -39,6 +39,7 @@ type UpdateCommand struct {
 	MessageType       argparser.OptionalString
 	Method            argparser.OptionalString
 	NewName           argparser.OptionalString
+	Period            argparser.OptionalInt
 	Placement         argparser.OptionalString
 	ProcessingRegion  argparser.OptionalString
 	RequestMaxBytes   argparser.OptionalInt
@@ -83,6 +84,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	common.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("method", "HTTP method used for request. Can be POST or PUT. Defaults to POST if not specified").Action(c.Method.Set).StringVar(&c.Method.Value)
 	c.CmdClause.Flag("new-name", "New name of the HTTPS logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
+	common.Period(c.CmdClause, &c.Period)
 	common.Placement(c.CmdClause, &c.Placement)
 	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "HTTPS")
 	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
@@ -178,6 +180,10 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 
 	if c.ResponseCondition.WasSet {
 		input.ResponseCondition = &c.ResponseCondition.Value
+	}
+
+	if c.Period.WasSet {
+		input.Period = &c.Period.Value
 	}
 
 	if c.Placement.WasSet {
