@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Breaking:
+
+### Enhancements:
+
+### Bug fixes:
+
+### Dependencies:
+
+## [v12.0.0](https://github.com/fastly/cli/releases/tag/v12.0.0) (2025-09-10)
+
+### Breaking:
 - breaking(kvstoreentry): The 'describe' command now returns only key attributes (ie: generation, metadata) instead of a given key's value ([#1529](https://github.com/fastly/cli/pull/1529))
 
 ### Enhancements:
@@ -14,7 +24,6 @@
 - feat(kvstoreentry): Add the 'get' command operation which obtains the value of the item ([#1529](https://github.com/fastly/cli/pull/1529))
 
 ### Bug fixes:
-
 - fix(manifest): Ensure pushpin section is persisted during manifest file update ([#1535](https://github.com/fastly/cli/pull/1535))
 
 ### Dependencies:
