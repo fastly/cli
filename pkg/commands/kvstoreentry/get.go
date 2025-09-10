@@ -58,21 +58,26 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
+	// Validate generation value before making API call
+	var inputGeneration uint64
+	if c.Generation != "" {
+		var err error
+		inputGeneration, err = strconv.ParseUint(c.Generation, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid generation value: %s", c.Generation)
+		}
+	}
+
 	result, err := c.Globals.APIClient.GetKVStoreItem(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	// Check if the generation marker provided matches the API.
+	// Check if the generation marker matches the API result
 	if c.Generation != "" {
-		inputGeneration, err := strconv.ParseUint(c.Generation, 10, 64)
 		if inputGeneration != result.Generation {
 			return fmt.Errorf("generation value does not match: expected %d, got %d", result.Generation, inputGeneration)
-		}
-
-		if err != nil {
-			return fmt.Errorf("invalid generation value: %s", c.Generation)
 		}
 	}
 
