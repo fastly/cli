@@ -479,17 +479,9 @@ func TestDescribeCommand(t *testing.T) {
 			WantOutput: fmt.Sprintf("{\n  \"generation\": \"%d\",\n  \"key\": \"%s\",\n  \"metadata\": \"%s\"\n}\n", 123, itemKey, itemMetadata),
 		},
 		{
-			Name: "validate --verbose flag output",
-			Args: fmt.Sprintf("--store-id %s --key %s --verbose", storeID, itemKey),
-			API: mock.API{
-				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
-					return fastly.GetKVStoreItemOutput{
-						Generation: 123,
-						Metadata:   itemMetadata,
-					}, nil
-				},
-			},
-			WantOutput: fmt.Sprintf("Key: %s\nGeneration: %d\nMetadata: %s\n", itemKey, 123, itemMetadata),
+			Name:      "validate --verbose flag error",
+			Args:      fmt.Sprintf("--store-id %s --key %s --verbose", storeID, itemKey),
+			WantError: "the 'describe' command does not support the --verbose flag",
 		},
 		{
 			Name: "validate handling of empty metadata",
