@@ -25,6 +25,8 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	c := DescribeCommand{
 		Base: argparser.Base{
 			Globals: g,
+			// This argument suppresses the 'Fastly API' output from the global verbose command.
+			SuppressVerbose: true,
 		},
 	}
 	c.CmdClause = parent.Command("describe", "Get the associated attributes of a key")
@@ -64,11 +66,8 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.Globals.Flags.Verbose {
-		// Print the key attributes.
-		fmt.Fprintf(out, "Key: %s\n", c.Input.Key)
-		fmt.Fprintf(out, "Generation: %d\n", item.Generation)
-		fmt.Fprintf(out, "Metadata: %s\n", item.Metadata)
-		return nil
+		// We won't be supporting a --verbose flag here as there wouldn't be any additional output to provide.
+		return fmt.Errorf("the 'describe' command does not support the --verbose flag")
 	}
 
 	// IMPORTANT: Don't use `text` package as binary data can be messed up.

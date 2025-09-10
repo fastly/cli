@@ -67,12 +67,12 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Check if the generation marker provided matches the API.
 	if c.Generation != "" {
 		inputGeneration, err := strconv.ParseUint(c.Generation, 10, 64)
-		if err != nil {
-			return fmt.Errorf("invalid generation value: %s", c.Generation)
-		}
-
 		if inputGeneration != result.Generation {
 			return fmt.Errorf("generation value does not match: expected %d, got %d", result.Generation, inputGeneration)
+		}
+
+		if err != nil {
+			return fmt.Errorf("invalid generation value: %s", c.Generation)
 		}
 	}
 
@@ -93,7 +93,7 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.JSONOutput.Enabled {
-		// We are encoding the value of the key here to ensure safe
+		// We are encoding the value of the item here to ensure safe
 		// output for binary content along with other outputs.
 		encodedValue := base64.StdEncoding.EncodeToString([]byte(value))
 		text.Output(out, `{"%s": "%s"}`, c.Input.Key, encodedValue)
