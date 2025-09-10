@@ -226,6 +226,7 @@ func Define( // nolint:revive // function-length
 	kvstoreentryCmdRoot := kvstoreentry.NewRootCommand(app, data)
 	kvstoreentryCreate := kvstoreentry.NewCreateCommand(kvstoreentryCmdRoot.CmdClause, data)
 	kvstoreentryDelete := kvstoreentry.NewDeleteCommand(kvstoreentryCmdRoot.CmdClause, data)
+	kvstoreentryGet := kvstoreentry.NewGetCommand(kvstoreentryCmdRoot.CmdClause, data)
 	kvstoreentryDescribe := kvstoreentry.NewDescribeCommand(kvstoreentryCmdRoot.CmdClause, data)
 	kvstoreentryList := kvstoreentry.NewListCommand(kvstoreentryCmdRoot.CmdClause, data)
 	logtailCmdRoot := logtail.NewRootCommand(app, data)
@@ -644,6 +645,7 @@ func Define( // nolint:revive // function-length
 		kvstoreList,
 		kvstoreentryCreate,
 		kvstoreentryDelete,
+		kvstoreentryGet,
 		kvstoreentryDescribe,
 		kvstoreentryList,
 		logtailCmdRoot,

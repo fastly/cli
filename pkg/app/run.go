@@ -236,7 +236,7 @@ func Exec(data *global.Data) error {
 	}
 
 	apiEndpoint, endpointSource := data.APIEndpoint()
-	if data.Verbose() {
+	if data.Verbose() && !commandSuppressesVerbose(command) {
 		displayAPIEndpoint(apiEndpoint, endpointSource, data.Output)
 	}
 
@@ -281,7 +281,7 @@ func Exec(data *global.Data) error {
 			return fmt.Errorf("failed to process token: %w", err)
 		}
 
-		if data.Verbose() {
+		if data.Verbose() && !commandSuppressesVerbose(command) {
 			displayToken(tokenSource, data)
 		}
 		if !data.Flags.Quiet {
@@ -760,4 +760,18 @@ func accountEndpoint(args []string, e config.Environment, cfg config.File) strin
 	}
 	// Otherwise return the default account endpoint.
 	return global.DefaultAccountEndpoint
+}
+
+// commandSuppressesVerbose checks if the given command suppresses verbose output.
+// This uses type assertion to check if the command has an embedded Base struct with SuppressVerbose set.
+func commandSuppressesVerbose(command argparser.Command) bool {
+	// Try to access the SuppressesVerbose method which is available on commands that embed argparser.Base
+	type verboseSuppressor interface {
+		SuppressesVerbose() bool
+	}
+	if vs, ok := command.(verboseSuppressor); ok {
+		return vs.SuppressesVerbose()
+	}
+
+	return false
 }
