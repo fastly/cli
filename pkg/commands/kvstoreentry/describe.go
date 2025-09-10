@@ -47,6 +47,11 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
+	if c.Globals.Flags.Verbose {
+		// We won't be supporting a --verbose flag here as there wouldn't be any additional output to provide.
+		return fmt.Errorf("the 'describe' command does not support the --verbose flag")
+	}
+
 	item, err := c.Globals.APIClient.GetKVStoreItem(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -63,11 +68,6 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 		return nil
-	}
-
-	if c.Globals.Flags.Verbose {
-		// We won't be supporting a --verbose flag here as there wouldn't be any additional output to provide.
-		return fmt.Errorf("the 'describe' command does not support the --verbose flag")
 	}
 
 	// IMPORTANT: Don't use `text` package as binary data can be messed up.
