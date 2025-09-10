@@ -11,7 +11,7 @@
 - feat(kvstoreentry): Add support for the add, append, prepend, metadata, if_generation_match, and background_fetch 'create' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
 - feat(kvstoreentry): Add support for the if_generation_match and metadata 'describe' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
 - feat(kvstoreentry): Add support for the if_generation_match and force 'delete' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
-- feat(kvstoreentry): Add support for the if_generation_match 'get' command operation ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(kvstoreentry): Add the 'get' command operation which obtains the value of the item ([#1529](https://github.com/fastly/cli/pull/1529))
 
 ### Bug fixes:
 
