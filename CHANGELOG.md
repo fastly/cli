@@ -5,12 +5,27 @@
 ### Breaking:
 
 ### Enhancements:
-- feat(logging): Add support for 'CompressionCodec' and 'GzipLevel' attribute to the HTTPS endpoint.
-- feat(kvstoreentry): Add support for the 'prefix' parameter for List operations ([#1526](https://github.com/fastly/cli/pull/1526))
-- feat(logging): Add support for 'Period' attribute to the HTTPS endpoint.
 
 ### Bug fixes:
 
+### Dependencies:
+- build(deps): `golang.org/x/net` from 0.43.0 to 0.44.0 ([#1538](https://github.com/fastly/cli/pull/1538))
+
+## [v12.0.0](https://github.com/fastly/cli/releases/tag/v12.0.0) (2025-09-10)
+
+### Breaking:
+- breaking(kvstoreentry): The 'describe' command now returns only key attributes (ie: generation, metadata) instead of a given key's value ([#1529](https://github.com/fastly/cli/pull/1529))
+
+### Enhancements:
+- feat(logging): Add support for 'CompressionCodec' and 'GzipLevel' attribute to the HTTPS endpoint.
+- feat(kvstoreentry): Add support for the 'prefix' parameter for List operations ([#1526](https://github.com/fastly/cli/pull/1526))
+- feat(kvstoreentry): Add support for the add, append, prepend, metadata, if_generation_match, and background_fetch 'create' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(kvstoreentry): Add support for the if_generation_match and metadata 'describe' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(kvstoreentry): Add support for the if_generation_match and force 'delete' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(kvstoreentry): Add the 'get' command operation which obtains the value of the item ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(logging): Add support for 'Period' attribute to the HTTPS endpoint.
+
+### Bug fixes:
 - fix(manifest): Ensure pushpin section is persisted during manifest file update ([#1535](https://github.com/fastly/cli/pull/1535))
 
 ### Dependencies:

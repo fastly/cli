@@ -2,8 +2,10 @@ package kvstoreentry_test
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -54,6 +56,89 @@ func TestCreateCommand(t *testing.T) {
 				},
 			},
 			WantOutput: fstfmt.JSON(`{"id": %q, "key": %q}`, storeID, itemKey),
+		},
+		{
+			Name: "validate --add flag",
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --add", storeID, itemKey, itemValue),
+			API: mock.API{
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
+					if !i.Add {
+						return errors.New("expected Add flag to be true")
+					}
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
+		},
+		{
+			Name: "validate --append flag",
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --append", storeID, itemKey, itemValue),
+			API: mock.API{
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
+					if !i.Append {
+						return errors.New("expected Append flag to be true")
+					}
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
+		},
+		{
+			Name: "validate --prepend flag",
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --prepend", storeID, itemKey, itemValue),
+			API: mock.API{
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
+					if !i.Prepend {
+						return errors.New("expected Prepend flag to be true")
+					}
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
+		},
+		{
+			Name: "validate --background-fetch flag",
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --background-fetch", storeID, itemKey, itemValue),
+			API: mock.API{
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
+					if !i.BackgroundFetch {
+						return errors.New("expected BackgroundFetch flag to be true")
+					}
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
+		},
+		{
+			Name: "validate --if-generation-match flag",
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --if-generation-match 42", storeID, itemKey, itemValue),
+			API: mock.API{
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
+					if i.IfGenerationMatch != 42 {
+						return fmt.Errorf("expected IfGenerationMatch to be 42, got %d", i.IfGenerationMatch)
+					}
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
+		},
+		{
+			Name:      "validate --if-generation-match flag with invalid value",
+			Args:      fmt.Sprintf("--store-id %s --key %s --value %s --if-generation-match invalid", storeID, itemKey, itemValue),
+			WantError: "invalid generation value: invalid",
+		},
+		{
+			Name: "validate --metadata flag",
+			Args: fmt.Sprintf("--store-id %s --key %s --value %s --metadata %s", storeID, itemKey, itemValue, "test-metadata"),
+			API: mock.API{
+				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
+					if i.Metadata == nil || *i.Metadata != "test-metadata" {
+						return errors.New("expected Metadata to be 'test-metadata'")
+					}
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Created key '%s' in KV Store '%s'", itemKey, storeID),
 		},
 		{
 			Args:  fmt.Sprintf("--store-id %s --stdin", storeID),
@@ -156,6 +241,39 @@ func TestDeleteCommand(t *testing.T) {
 			WantOutput: fstfmt.JSON(`{"key": "%s", "store_id": "%s", "deleted": true}`, itemKey, storeID),
 		},
 		{
+			Name: "validate --force flag with any key",
+			Args: fmt.Sprintf("--store-id %s --key %s --force", storeID, "myFakeKey"),
+			API: mock.API{
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Deleted key '%s' from KV Store '%s'", "myFakeKey", storeID),
+		},
+		{
+			Name: "validate --if-generation-match with matching generation",
+			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match 123", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{Generation: 123}, nil
+				},
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Deleted key '%s' from KV Store '%s'", itemKey, storeID),
+		},
+		{
+			Name: "validate --if-generation-match with invalid generation value",
+			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match invalid", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{Generation: 123}, nil
+				},
+			},
+			WantError: `invalid generation value: invalid`,
+		},
+		{
 			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
 			API: mock.API{
 				NewListKVStoreKeysPaginatorFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
@@ -199,39 +317,188 @@ func TestGetCommand(t *testing.T) {
 
 	scenarios := []testutil.CLIScenario{
 		{
+			Name:      "validate missing --store-id flag",
 			Args:      "--key a-key",
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
 		{
+			Name:      "validate missing --key flag",
+			Args:      "--store-id " + storeID,
+			WantError: "error parsing arguments: required flag --key not provided",
+		},
+		{
+			Name: "validate API error handling",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
-				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
-					return "", errors.New("invalid request")
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{}, errors.New("invalid request")
 				},
 			},
 			WantError: "invalid request",
 		},
 		{
+			Name: "validate successful get operation",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
 			API: mock.API{
-				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
-					return itemValue, nil
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 123,
+						Value:      io.NopCloser(strings.NewReader(itemValue)),
+					}, nil
 				},
 			},
 			WantOutput: itemValue,
 		},
 		{
+			Name: "validate --json flag output",
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
 			API: mock.API{
-				GetKVStoreKeyFn: func(_ context.Context, _ *fastly.GetKVStoreKeyInput) (string, error) {
-					return itemValue, nil
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 123,
+						Value:      io.NopCloser(strings.NewReader(itemValue)),
+					}, nil
 				},
 			},
-			WantOutput: fmt.Sprintf(`{"%s": "%s"}`, itemKey, itemValue) + "\n",
+			WantOutput: fmt.Sprintf(`{"%s": "%s"}`, itemKey, base64.StdEncoding.EncodeToString([]byte(itemValue))) + "\n",
+		},
+		{
+			Name:      "validate --verbose flag error",
+			Args:      fmt.Sprintf("--store-id %s --key %s --verbose", storeID, itemKey),
+			WantError: "the 'get' command does not support the --verbose flag",
+		},
+		{
+			Name: "validate --if-generation-match with matching generation",
+			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match 123", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 123,
+						Value:      io.NopCloser(strings.NewReader(itemValue)),
+					}, nil
+				},
+			},
+			WantOutput: itemValue,
+		},
+		{
+			Name: "validate --if-generation-match with non-matching generation",
+			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match 123", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 456,
+						Value:      io.NopCloser(strings.NewReader(itemValue)),
+					}, nil
+				},
+			},
+			WantError: "generation value does not match: expected 456, got 123",
+		},
+		{
+			Name: "validate --if-generation-match with invalid generation value",
+			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match invalid", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 123,
+						Value:      io.NopCloser(strings.NewReader(itemValue)),
+					}, nil
+				},
+			},
+			WantError: "invalid generation value: invalid",
+		},
+		{
+			Name: "validate handling of nil value reader",
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 123,
+						Value:      nil,
+					}, nil
+				},
+			},
+			WantOutput: "",
 		},
 	}
 
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "get"}, scenarios)
+}
+
+func TestDescribeCommand(t *testing.T) {
+	const (
+		storeID      = "store-id-123"
+		itemKey      = "foo"
+		itemMetadata = "test-metadata"
+	)
+
+	scenarios := []testutil.CLIScenario{
+		{
+			Name:      "validate missing --store-id flag",
+			Args:      "--key a-key",
+			WantError: "error parsing arguments: required flag --store-id not provided",
+		},
+		{
+			Name:      "validate missing --key flag",
+			Args:      "--store-id " + storeID,
+			WantError: "error parsing arguments: required flag --key not provided",
+		},
+		{
+			Name: "validate API error handling",
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{}, errors.New("invalid request")
+				},
+			},
+			WantError: "invalid request",
+		},
+		{
+			Name: "validate successful describe operation",
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 123,
+						Metadata:   itemMetadata,
+					}, nil
+				},
+			},
+			WantOutput: fmt.Sprintf("Key: %s\nGeneration: %d\nMetadata: %s\n", itemKey, 123, itemMetadata),
+		},
+		{
+			Name: "validate --json flag output",
+			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 123,
+						Metadata:   itemMetadata,
+					}, nil
+				},
+			},
+			WantOutput: fmt.Sprintf("{\n  \"generation\": \"%d\",\n  \"key\": \"%s\",\n  \"metadata\": \"%s\"\n}\n", 123, itemKey, itemMetadata),
+		},
+		{
+			Name:      "validate --verbose flag error",
+			Args:      fmt.Sprintf("--store-id %s --key %s --verbose", storeID, itemKey),
+			WantError: "the 'describe' command does not support the --verbose flag",
+		},
+		{
+			Name: "validate handling of empty metadata",
+			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
+			API: mock.API{
+				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+					return fastly.GetKVStoreItemOutput{
+						Generation: 456,
+						Metadata:   "",
+					}, nil
+				},
+			},
+			WantOutput: fmt.Sprintf("Key: %s\nGeneration: %d\nMetadata: \n", itemKey, 456),
+		},
+	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestListCommand(t *testing.T) {

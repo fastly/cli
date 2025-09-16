@@ -357,6 +357,7 @@ type API struct {
 	DeleteKVStoreFn         func(context.Context, *fastly.DeleteKVStoreInput) error
 	ListKVStoreKeysFn       func(context.Context, *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error)
 	GetKVStoreKeyFn         func(context.Context, *fastly.GetKVStoreKeyInput) (string, error)
+	GetKVStoreItemFn        func(context.Context, *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error)
 	InsertKVStoreKeyFn      func(context.Context, *fastly.InsertKVStoreKeyInput) error
 	DeleteKVStoreKeyFn      func(context.Context, *fastly.DeleteKVStoreKeyInput) error
 	BatchModifyKVStoreKeyFn func(context.Context, *fastly.BatchModifyKVStoreKeyInput) error
@@ -1591,6 +1592,11 @@ func (m API) ListTokens(ctx context.Context, i *fastly.ListTokensInput) ([]*fast
 // NewListKVStoreKeysPaginator implements Interface.
 func (m API) NewListKVStoreKeysPaginator(ctx context.Context, i *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
 	return m.NewListKVStoreKeysPaginatorFn(ctx, i)
+}
+
+// GetKVStoreItem implements Interface.
+func (m API) GetKVStoreItem(ctx context.Context, i *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
+	return m.GetKVStoreItemFn(ctx, i)
 }
 
 // GetCustomTLSConfiguration implements Interface.
