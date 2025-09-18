@@ -9,7 +9,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -58,11 +58,11 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Action: c.autoClone.Set,
 		Dst:    &c.autoClone.Value,
 	})
-	common.Format(c.CmdClause, &c.format)
-	common.FormatVersion(c.CmdClause, &c.formatVersion)
+	logflags.Format(c.CmdClause, &c.format)
+	logflags.FormatVersion(c.CmdClause, &c.formatVersion)
 	c.CmdClause.Flag("key", "The Insert API key from the Account page of your New Relic account").Action(c.key.Set).StringVar(&c.key.Value)
 	c.CmdClause.Flag("placement", "Where in the generated VCL the logging call should be placed").Action(c.placement.Set).StringVar(&c.placement.Value)
-	common.ProcessingRegion(c.CmdClause, &c.processingregion, "New Relic")
+	logflags.ProcessingRegion(c.CmdClause, &c.processingregion, "New Relic")
 	c.CmdClause.Flag("region", "The region where logs are received and stored by New Relic").Action(c.region.Set).StringVar(&c.region.Value)
 	c.CmdClause.Flag("response-condition", "The name of an existing condition in the configured endpoint").Action(c.responseCondition.Set).StringVar(&c.responseCondition.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{

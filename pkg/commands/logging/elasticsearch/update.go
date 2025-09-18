@@ -9,7 +9,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -70,16 +70,16 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("index", `The name of the Elasticsearch index to send documents (logs) to. The index must follow the Elasticsearch index format rules (https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html). We support strftime (http://man7.org/linux/man-pages/man3/strftime.3.html) interpolated variables inside braces prefixed with a pound symbol. For example, #{%F} will interpolate as YYYY-MM-DD with today's date`).Action(c.Index.Set).StringVar(&c.Index.Value)
 	c.CmdClause.Flag("new-name", "New name of the Elasticsearch logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("pipeline", "The ID of the Elasticsearch ingest pipeline to apply pre-process transformations to before indexing. For example my_pipeline_id. Learn more about creating a pipeline in the Elasticsearch docs (https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)").Action(c.Password.Set).StringVar(&c.Pipeline.Value)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Elasticsearch")
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Elasticsearch")
 	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
 	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -92,10 +92,10 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.TLSCACert(c.CmdClause, &c.TLSCACert)
-	common.TLSClientCert(c.CmdClause, &c.TLSClientCert)
-	common.TLSClientKey(c.CmdClause, &c.TLSClientKey)
-	common.TLSHostname(c.CmdClause, &c.TLSHostname)
+	logflags.TLSCACert(c.CmdClause, &c.TLSCACert)
+	logflags.TLSClientCert(c.CmdClause, &c.TLSClientCert)
+	logflags.TLSClientKey(c.CmdClause, &c.TLSClientKey)
+	logflags.TLSHostname(c.CmdClause, &c.TLSHostname)
 	c.CmdClause.Flag("url", "The URL to stream logs to. Must use HTTPS.").Action(c.URL.Set).StringVar(&c.URL.Value)
 	return &c
 }

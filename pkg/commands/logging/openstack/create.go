@@ -10,7 +10,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -72,18 +72,18 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("bucket", "The name of your OpenStack container").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
-	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.GzipLevel(c.CmdClause, &c.GzipLevel)
-	common.MessageType(c.CmdClause, &c.MessageType)
-	common.Path(c.CmdClause, &c.Path)
-	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.PublicKey(c.CmdClause, &c.PublicKey)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "OpenStack")
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
+	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
+	logflags.MessageType(c.CmdClause, &c.MessageType)
+	logflags.Path(c.CmdClause, &c.Path)
+	logflags.Period(c.CmdClause, &c.Period)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.PublicKey(c.CmdClause, &c.PublicKey)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "OpenStack")
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,

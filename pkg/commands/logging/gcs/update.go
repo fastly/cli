@@ -9,7 +9,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -66,24 +66,24 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	})
 
 	// Optional.
-	common.AccountName(c.CmdClause, &c.AccountName)
+	logflags.AccountName(c.CmdClause, &c.AccountName)
 	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("bucket", "The bucket of the GCS bucket").Action(c.Bucket.Set).StringVar(&c.Bucket.Value)
-	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.GzipLevel(c.CmdClause, &c.GzipLevel)
-	common.MessageType(c.CmdClause, &c.MessageType)
+	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
+	logflags.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("new-name", "New name of the GCS logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	c.CmdClause.Flag("path", "The path to upload logs to (default '/')").Action(c.Path.Set).StringVar(&c.Path.Value)
-	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "GCS")
+	logflags.Period(c.CmdClause, &c.Period)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "GCS")
 	c.CmdClause.Flag("project-id", "The google project ID").Action(c.ProjectID.Set).StringVar(&c.ProjectID.Value)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your GCS account secret key. The private_key field in your service account authentication JSON").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -98,7 +98,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("user", "Your GCS service account email address. The client_email field in your service account authentication JSON").Action(c.User.Set).StringVar(&c.User.Value)
-	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
+	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	return &c
 }
 
