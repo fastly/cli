@@ -10,7 +10,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -72,12 +72,12 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("region", "The region where logs are received and stored by Kinesis").Action(c.Region.Set).StringVar(&c.Region.Value)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Kinesis")
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Kinesis")
 	c.CmdClause.Flag("stream-name", "The Amazon Kinesis stream to send logs to").Action(c.StreamName.Set).StringVar(&c.StreamName.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,

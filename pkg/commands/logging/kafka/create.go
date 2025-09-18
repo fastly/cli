@@ -10,7 +10,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -77,15 +77,15 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("auth-method", "SASL authentication method. Valid values are: plain, scram-sha-256, scram-sha-512").Action(c.AuthMethod.Set).HintOptions("plain", "scram-sha-256", "scram-sha-512").EnumVar(&c.AuthMethod.Value, "plain", "scram-sha-256", "scram-sha-512")
 	c.CmdClause.Flag("brokers", "A comma-separated list of IP addresses or hostnames of Kafka brokers").Action(c.Brokers.Set).StringVar(&c.Brokers.Value)
 	c.CmdClause.Flag("compression-codec", "The codec used for compression of your logs. One of: gzip, snappy, lz4").Action(c.CompressionCodec.Set).StringVar(&c.CompressionCodec.Value)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("max-batch-size", "The maximum size of the log batch in bytes").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
 	c.CmdClause.Flag("parse-log-keyvals", "Parse key-value pairs within the log format").Action(c.ParseLogKeyvals.Set).BoolVar(&c.ParseLogKeyvals.Value)
 	c.CmdClause.Flag("password", "SASL authentication password. Required if --auth-method is specified").Action(c.Password.Set).StringVar(&c.Password.Value)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Kafka")
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Kafka")
 	c.CmdClause.Flag("required-acks", "The Number of acknowledgements a leader must receive before a write is considered successful. One of: 1 (default) One server needs to respond. 0	No servers need to respond. -1	Wait for all in-sync replicas to respond").Action(c.RequiredACKs.Set).StringVar(&c.RequiredACKs.Value)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -98,10 +98,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.TLSCACert(c.CmdClause, &c.TLSCACert)
-	common.TLSClientCert(c.CmdClause, &c.TLSClientCert)
-	common.TLSClientKey(c.CmdClause, &c.TLSClientKey)
-	common.TLSHostname(c.CmdClause, &c.TLSHostname)
+	logflags.TLSCACert(c.CmdClause, &c.TLSCACert)
+	logflags.TLSClientCert(c.CmdClause, &c.TLSClientCert)
+	logflags.TLSClientKey(c.CmdClause, &c.TLSClientKey)
+	logflags.TLSHostname(c.CmdClause, &c.TLSHostname)
 	c.CmdClause.Flag("topic", "The Kafka topic to send logs to").Action(c.Topic.Set).StringVar(&c.Topic.Value)
 	c.CmdClause.Flag("use-sasl", "Enable SASL authentication. Requires --auth-method, --username, and --password to be specified").Action(c.UseSASL.Set).BoolVar(&c.UseSASL.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)

@@ -9,7 +9,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -75,23 +75,23 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
 	})
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.MessageType(c.CmdClause, &c.MessageType)
-	common.Placement(c.CmdClause, &c.Placement)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.MessageType(c.CmdClause, &c.MessageType)
+	logflags.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "syslog")
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "syslog")
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Action:      c.ServiceName.Set,
 		Name:        argparser.FlagServiceName,
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.TLSCACert(c.CmdClause, &c.TLSCACert)
-	common.TLSClientCert(c.CmdClause, &c.TLSClientCert)
-	common.TLSClientKey(c.CmdClause, &c.TLSClientKey)
-	common.TLSHostname(c.CmdClause, &c.TLSHostname)
+	logflags.TLSCACert(c.CmdClause, &c.TLSCACert)
+	logflags.TLSClientCert(c.CmdClause, &c.TLSClientCert)
+	logflags.TLSClientKey(c.CmdClause, &c.TLSClientKey)
+	logflags.TLSHostname(c.CmdClause, &c.TLSHostname)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
 	return &c
 }

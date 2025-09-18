@@ -1,4 +1,4 @@
-package common
+package logflags
 
 import (
 	"github.com/fastly/kingpin"

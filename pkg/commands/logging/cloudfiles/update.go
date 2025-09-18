@@ -9,7 +9,7 @@ import (
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -72,20 +72,20 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	})
 	c.CmdClause.Flag("access-key", "Your Cloudfile account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
 	c.CmdClause.Flag("bucket", "The name of your Cloudfiles container").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
-	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.GzipLevel(c.CmdClause, &c.GzipLevel)
-	common.MessageType(c.CmdClause, &c.MessageType)
+	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
+	logflags.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("new-name", "New name of the Cloudfiles logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	common.Path(c.CmdClause, &c.Path)
-	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Cloud Files")
-	common.PublicKey(c.CmdClause, &c.PublicKey)
+	logflags.Path(c.CmdClause, &c.Path)
+	logflags.Period(c.CmdClause, &c.Period)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Cloud Files")
+	logflags.PublicKey(c.CmdClause, &c.PublicKey)
 	c.CmdClause.Flag("region", "The region where logs are received and stored by Cloud Files. One of: DFW-Dallas, ORD-Chicago, IAD-Northern Virginia, LON-London, SYD-Sydney, HKG-Hong Kong").Action(c.Region.Set).StringVar(&c.Region.Value)
 	c.CmdClause.Flag("user", "The username for your Cloudfile account").Action(c.User.Set).StringVar(&c.User.Value)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -98,7 +98,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
+	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	return &c
 }
 
