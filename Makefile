@@ -31,6 +31,11 @@ else
 	CONFIG_FILE = pkg/config/config.toml
 endif
 
+# Tooling versions
+GOLANGCI_LINT_VERSION = v2.4.0
+BIN_DIR := $(CURDIR)/bin
+GOLANGCI_LINT := $(BIN_DIR)/golangci-lint
+
 # Build executables using goreleaser (useful for local testing purposes).
 #
 # You can pass flags to goreleaser via GORELEASER_ARGS
@@ -85,8 +90,9 @@ semgrep: ## Run semgrep
 	fi
 
 .PHONY: lint
-lint: ## Run golangci-lint
-	golangci-lint run --verbose
+lint: install-linter check-linter-version ## Run golangci-lint
+	@echo "==> Running golangci-lint"
+	@$(GOLANGCI_LINT) run --verbose
 
 # Run tests
 .PHONY: test
@@ -136,3 +142,25 @@ help:
 .PHONY: run
 run: config
 	$(GO_BIN) run cmd/fastly/main.go $(GO_ARGS)
+
+.PHONY: install-linter
+install-linter: ## Installs golangci-lint via go install
+	@echo "==> Installing golangci-lint $(GOLANGCI_LINT_VERSION)"
+	@mkdir -p $(BIN_DIR)
+	@GOBIN=$(BIN_DIR) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+
+.PHONY: check-linter-version
+check-linter-version: ## Verifies installed golangci-lint version matches expected
+	@echo "==> Checking golangci-lint version"
+	@EXPECTED="$(GOLANGCI_LINT_VERSION)"; \
+	EXPECTED=$${EXPECTED#v}; \
+	INSTALLED=$$($(GOLANGCI_LINT) version --short); \
+	if [ "$$INSTALLED" != "$$EXPECTED" ]; then \
+		echo "Expected golangci-lint v$$EXPECTED but found $$INSTALLED"; \
+		exit 1; \
+	fi
+
+.PHONY: clean-bin
+clean-bin: ## Removes locally installed binaries
+	@echo "==> Cleaning ./bin directory"
+	@rm -rf $(BIN_DIR)
