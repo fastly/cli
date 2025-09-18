@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/go-fastly/v11/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/dashboard/common"
+	"github.com/fastly/cli/pkg/commands/dashboard/printer"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
@@ -63,7 +63,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 	} else {
-		common.PrintItem(out, 0, di)
+		printer.PrintItem(out, 0, di)
 	}
 
 	return nil

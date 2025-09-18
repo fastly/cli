@@ -1,5 +1,5 @@
-// Package common contains functions used by both dashboard and dashboard/item packages
-package common
+// Package printer contains functions used by both dashboard and dashboard/item packages
+package printer
 
 import (
 	"fmt"
