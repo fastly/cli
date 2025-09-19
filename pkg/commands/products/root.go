@@ -6,20 +6,20 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v11/fastly/products/botmanagement"
-	"github.com/fastly/go-fastly/v11/fastly/products/brotlicompression"
-	"github.com/fastly/go-fastly/v11/fastly/products/domaininspector"
-	"github.com/fastly/go-fastly/v11/fastly/products/fanout"
-	"github.com/fastly/go-fastly/v11/fastly/products/imageoptimizer"
-	"github.com/fastly/go-fastly/v11/fastly/products/logexplorerinsights"
-	"github.com/fastly/go-fastly/v11/fastly/products/origininspector"
-	"github.com/fastly/go-fastly/v11/fastly/products/websockets"
+	"github.com/fastly/go-fastly/v12/fastly/products/botmanagement"
+	"github.com/fastly/go-fastly/v12/fastly/products/brotlicompression"
+	"github.com/fastly/go-fastly/v12/fastly/products/domaininspector"
+	"github.com/fastly/go-fastly/v12/fastly/products/fanout"
+	"github.com/fastly/go-fastly/v12/fastly/products/imageoptimizer"
+	"github.com/fastly/go-fastly/v12/fastly/products/logexplorerinsights"
+	"github.com/fastly/go-fastly/v12/fastly/products/origininspector"
+	"github.com/fastly/go-fastly/v12/fastly/products/websockets"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
