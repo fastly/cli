@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- fix(manifest): Enable loading Secret Store configuration through environment variables ([#1540](https://github.com/fastly/cli/pull/1540))
 
 ### Bug fixes:
 
