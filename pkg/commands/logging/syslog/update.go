@@ -4,12 +4,12 @@ import (
 	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -70,12 +70,12 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
 	c.CmdClause.Flag("new-name", "New name of the Syslog logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	common.MessageType(c.CmdClause, &c.MessageType)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "syslog")
+	logflags.MessageType(c.CmdClause, &c.MessageType)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "syslog")
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -89,10 +89,10 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	common.TLSCACert(c.CmdClause, &c.TLSCACert)
-	common.TLSClientCert(c.CmdClause, &c.TLSClientCert)
-	common.TLSClientKey(c.CmdClause, &c.TLSClientKey)
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.TLSCACert(c.CmdClause, &c.TLSCACert)
+	logflags.TLSClientCert(c.CmdClause, &c.TLSClientCert)
+	logflags.TLSClientKey(c.CmdClause, &c.TLSClientKey)
 	c.CmdClause.Flag("tls-hostname", "Used during the TLS handshake to validate the certificate").Action(c.TLSHostname.Set).StringVar(&c.TLSHostname.Value)
 	c.CmdClause.Flag("use-tls", "Whether to use TLS for secure logging. Can be either true or false").Action(c.UseTLS.Set).BoolVar(&c.UseTLS.Value)
 	return &c

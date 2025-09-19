@@ -127,6 +127,9 @@ func (f *File) MarshalTOML() ([]byte, error) {
 					if e.Data != "" {
 						obj["data"] = e.Data
 					}
+					if e.Env != "" {
+						obj["env"] = e.Env
+					}
 					items = append(items, obj)
 				}
 				secretStores[key] = items

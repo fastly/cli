@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/configstoreentry"
 	fstfmt "github.com/fastly/cli/pkg/fmt"

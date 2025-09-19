@@ -4,12 +4,12 @@ import (
 	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -61,13 +61,13 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	common.Format(c.CmdClause, &c.Format)
+	logflags.Format(c.CmdClause, &c.Format)
 	c.CmdClause.Flag("format-version", "The version of the custom logging format used for the configured endpoint. Can be either 2 (the default, version 2 log format) or 1 (the version 1 log format). The logging call gets placed by default in vcl_log if format_version is set to 2 and in vcl_deliver if format_version is set to 1").Action(c.FormatVersion.Set).IntVar(&c.FormatVersion.Value)
-	common.MessageType(c.CmdClause, &c.MessageType)
+	logflags.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("new-name", "New name of the Sumologic logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Sumologic")
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Sumologic")
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,

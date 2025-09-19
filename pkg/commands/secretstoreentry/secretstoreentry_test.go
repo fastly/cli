@@ -18,7 +18,7 @@ import (
 
 	"golang.org/x/crypto/nacl/box"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"

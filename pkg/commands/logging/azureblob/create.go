@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -70,20 +70,20 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	c.CmdClause.Flag("container", "The name of the Azure Blob Storage container in which to store logs").Action(c.Container.Set).StringVar(&c.Container.Value)
 	c.CmdClause.Flag("file-max-bytes", "The maximum size of a log file in bytes").Action(c.FileMaxBytes.Set).IntVar(&c.FileMaxBytes.Value)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.GzipLevel(c.CmdClause, &c.GzipLevel)
-	common.MessageType(c.CmdClause, &c.MessageType)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
+	logflags.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("name", "The name of the Azure Blob Storage logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	common.Path(c.CmdClause, &c.Path)
-	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Azure Blob Storage")
-	common.PublicKey(c.CmdClause, &c.PublicKey)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.Path(c.CmdClause, &c.Path)
+	logflags.Period(c.CmdClause, &c.Period)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Azure Blob Storage")
+	logflags.PublicKey(c.CmdClause, &c.PublicKey)
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("sas-token", "The Azure shared access signature providing write access to the blob service objects. Be sure to update your token before it expires or the logging functionality will not work").Action(c.SASToken.Set).StringVar(&c.SASToken.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -97,7 +97,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
+	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	return &c
 }
 

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -71,19 +71,19 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	})
 	c.CmdClause.Flag("access-key", "Your DigitalOcean Spaces account access key").Action(c.AccessKey.Set).StringVar(&c.AccessKey.Value)
 	c.CmdClause.Flag("bucket", "The name of the DigitalOcean Space").Action(c.BucketName.Set).StringVar(&c.BucketName.Value)
-	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	c.CmdClause.Flag("domain", "The domain of the DigitalOcean Spaces endpoint (default 'nyc3.digitaloceanspaces.com')").Action(c.Domain.Set).StringVar(&c.Domain.Value)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.GzipLevel(c.CmdClause, &c.GzipLevel)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
 	c.CmdClause.Flag("name", "The name of the DigitalOcean Spaces logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	common.MessageType(c.CmdClause, &c.MessageType)
-	common.Path(c.CmdClause, &c.Path)
-	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "DigitalOcean Spaces")
-	common.PublicKey(c.CmdClause, &c.PublicKey)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.MessageType(c.CmdClause, &c.MessageType)
+	logflags.Path(c.CmdClause, &c.Path)
+	logflags.Period(c.CmdClause, &c.Period)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "DigitalOcean Spaces")
+	logflags.PublicKey(c.CmdClause, &c.PublicKey)
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.CmdClause.Flag("secret-key", "Your DigitalOcean Spaces account secret key").Action(c.SecretKey.Set).StringVar(&c.SecretKey.Value)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
@@ -97,7 +97,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
+	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	return &c
 }
 

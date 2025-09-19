@@ -1,12 +1,12 @@
-// Package common contains functions used by both dashboard and dashboard/item packages
-package common
+// Package printer contains functions used by both dashboard and dashboard/item packages
+package printer
 
 import (
 	"fmt"
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/text"
 )

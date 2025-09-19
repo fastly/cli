@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/imageoptimizerdefaults"
 	"github.com/fastly/cli/pkg/mock"
