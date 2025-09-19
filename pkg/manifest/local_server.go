@@ -119,6 +119,7 @@ type SecretStoreArrayEntry struct {
 	Key  string `toml:"key"`
 	File string `toml:"file,omitempty"`
 	Data string `toml:"data,omitempty"`
+	Env  string `toml:"env,omitempty"`
 }
 
 // SecretStoreExternalFile represents the external key/value store,
