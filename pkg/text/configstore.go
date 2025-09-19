@@ -8,7 +8,7 @@ import (
 
 	"github.com/segmentio/textio"
 
-	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	fsttime "github.com/fastly/cli/pkg/time"
 )
