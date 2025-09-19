@@ -130,6 +130,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(https.Format))
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(https.FormatVersion))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(https.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPeriod: %d\n", fastly.ToValue(https.Period))
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(https.Placement))
 		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(https.ProcessingRegion))
 	}
