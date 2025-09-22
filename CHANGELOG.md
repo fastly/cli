@@ -28,7 +28,7 @@
 - feat(kvstoreentry): Add support for the if_generation_match and metadata 'describe' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
 - feat(kvstoreentry): Add support for the if_generation_match and force 'delete' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
 - feat(kvstoreentry): Add the 'get' command operation which obtains the value of the item ([#1529](https://github.com/fastly/cli/pull/1529))
-- feat(logging): Add support for 'Period' attribute to the HTTPS endpoint.
+- feat(logging/https): Add support for 'Period' attribute. ([#1537](https://github.com/fastly/cli/pull/1537))
 
 ### Bug fixes:
 
