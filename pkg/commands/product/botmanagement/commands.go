@@ -1,12 +1,13 @@
 package botmanagement
 
 import (
+	"context"
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/go-fastly/v9/fastly"
-	product "github.com/fastly/go-fastly/v9/fastly/products/botmanagement"
+	"github.com/fastly/go-fastly/v11/fastly"
+	product "github.com/fastly/go-fastly/v11/fastly/products/botmanagement"
 
 	"github.com/fastly/cli/internal/productcore"
 	"github.com/fastly/cli/pkg/api"
@@ -16,13 +17,13 @@ import (
 // by unit tests to provide mock behaviors
 var EnablementHooks = productcore.EnablementHookFuncs[product.EnableOutput]{
 	DisableFunc: func(client api.Interface, serviceID string) error {
-		return product.Disable(client.(*fastly.Client), serviceID)
+		return product.Disable(context.TODO(), client.(*fastly.Client), serviceID)
 	},
 	EnableFunc: func(client api.Interface, serviceID string) (product.EnableOutput, error) {
-		return product.Enable(client.(*fastly.Client), serviceID)
+		return product.Enable(context.TODO(), client.(*fastly.Client), serviceID)
 	},
 	GetFunc: func(client api.Interface, serviceID string) (product.EnableOutput, error) {
-		return product.Get(client.(*fastly.Client), serviceID)
+		return product.Get(context.TODO(), client.(*fastly.Client), serviceID)
 	},
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v9/fastly/products"
+	"github.com/fastly/go-fastly/v11/fastly/products"
 )
 
 // Disable is a base type for all 'disable' commands.

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v9/fastly"
-	"github.com/fastly/go-fastly/v9/fastly/products"
+	"github.com/fastly/go-fastly/v11/fastly"
+	"github.com/fastly/go-fastly/v11/fastly/products"
 
 	"github.com/fastly/cli/internal/productcore"
 	"github.com/fastly/cli/pkg/api"

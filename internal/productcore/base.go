@@ -7,7 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/go-fastly/v9/fastly/products"
+	"github.com/fastly/go-fastly/v11/fastly/products"
 )
 
 // Base is a base type for all product commands.

@@ -6,7 +6,7 @@ import (
 	"github.com/fastly/cli/internal/productcore_test"
 	root "github.com/fastly/cli/pkg/commands/product"
 	sub "github.com/fastly/cli/pkg/commands/product/botmanagement"
-	product "github.com/fastly/go-fastly/v9/fastly/products/botmanagement"
+	product "github.com/fastly/go-fastly/v11/fastly/products/botmanagement"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
