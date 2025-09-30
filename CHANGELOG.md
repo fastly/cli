@@ -5,7 +5,9 @@
 ### Breaking:
 
 ### Enhancements:
-- fix(manifest): Enable loading Secret Store configuration through environment variables ([#1540](https://github.com/fastly/cli/pull/1540))
+
+- feat(manifest): Enable loading Secret Store configuration through environment variables ([#1540](https://github.com/fastly/cli/pull/1540))
+- feat(products): Add enable/disable support for API Discovery ([#1543](https://github.com/fastly/go-fastly/pull/1543))
 
 ### Bug fixes:
 
