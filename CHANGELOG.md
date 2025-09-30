@@ -6,6 +6,17 @@
 
 ### Enhancements:
 
+### Bug fixes:
+
+### Dependencies:
+
+
+## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)
+
+### Breaking:
+
+### Enhancements:
+
 - feat(manifest): Enable loading Secret Store configuration through environment variables ([#1540](https://github.com/fastly/cli/pull/1540))
 - feat(products): Add enable/disable support for API Discovery ([#1543](https://github.com/fastly/go-fastly/pull/1543))
 
