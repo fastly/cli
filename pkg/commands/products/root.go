@@ -12,6 +12,7 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
+	"github.com/fastly/go-fastly/v12/fastly/products/apidiscovery"
 	"github.com/fastly/go-fastly/v12/fastly/products/botmanagement"
 	"github.com/fastly/go-fastly/v12/fastly/products/brotlicompression"
 	"github.com/fastly/go-fastly/v12/fastly/products/domaininspector"
@@ -35,6 +36,7 @@ type RootCommand struct {
 
 // ProductEnablementOptions is a list of products that can be enabled/disabled.
 var ProductEnablementOptions = []string{
+	"api_discovery",
 	"bot_management",
 	"brotli_compression",
 	"domain_inspector",
@@ -47,6 +49,7 @@ var ProductEnablementOptions = []string{
 
 // ProductStatus indicates the status for each product.
 type ProductStatus struct {
+	APIDiscovery        bool `json:"api_discovery"`
 	BotManagement       bool `json:"bot_management"`
 	BrotliCompression   bool `json:"brotli_compression"`
 	DomainInspector     bool `json:"domain_inspector"`
@@ -107,6 +110,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if c.enableProduct != "" {
 		switch c.enableProduct {
+		case "api_discovery":
+			_, err = apidiscovery.Enable(context.TODO(), ac, serviceID)
 		case "bot_management":
 			_, err = botmanagement.Enable(context.TODO(), ac, serviceID)
 		case "brotli_compression":
@@ -135,6 +140,8 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if c.disableProduct != "" {
 		switch c.disableProduct {
+		case "api_discovery":
+			err = apidiscovery.Disable(context.TODO(), ac, serviceID)
 		case "bot_management":
 			err = botmanagement.Disable(context.TODO(), ac, serviceID)
 		case "brotli_compression":
@@ -163,6 +170,9 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	ps := ProductStatus{}
 
+	if _, err = apidiscovery.Get(context.TODO(), ac, serviceID); err == nil {
+		ps.APIDiscovery = true
+	}
 	if _, err = botmanagement.Get(context.TODO(), ac, serviceID); err == nil {
 		ps.BotManagement = true
 	}
@@ -194,6 +204,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	t := text.NewTable(out)
 	t.AddHeader("PRODUCT", "ENABLED")
+	t.AddLine("API Discovery", ps.APIDiscovery)
 	t.AddLine("Bot Management", ps.BotManagement)
 	t.AddLine("Brotli Compression", ps.BrotliCompression)
 	t.AddLine("Domain Inspector", ps.DomainInspector)

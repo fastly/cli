@@ -21,12 +21,12 @@ func TestProductEnablement(t *testing.T) {
 		{
 			Name:      "validate flag parsing error for enabling product",
 			Args:      "--service-id 123 --enable foo",
-			WantError: "error parsing arguments: enum value must be one of bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,log_explorer_insights,origin_inspector,websockets, got 'foo'",
+			WantError: "error parsing arguments: enum value must be one of api_discovery,bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,log_explorer_insights,origin_inspector,websockets, got 'foo'",
 		},
 		{
 			Name:      "validate flag parsing error for disabling product",
 			Args:      "--service-id 123 --disable foo",
-			WantError: "error parsing arguments: enum value must be one of bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,log_explorer_insights,origin_inspector,websockets, got 'foo'",
+			WantError: "error parsing arguments: enum value must be one of api_discovery,bot_management,brotli_compression,domain_inspector,fanout,image_optimizer,log_explorer_insights,origin_inspector,websockets, got 'foo'",
 		},
 		{
 			Name:      "validate invalid json/verbose flag combo",
