@@ -46,7 +46,7 @@ GOLANGCI_LINT := $(BIN_DIR)/golangci-lint
 #
 # EXAMPLE:
 # make release GORELEASER_ARGS="--clean --skip=post-hooks --skip=validate"
-release: dependencies $(GO_FILES) ## Build executables using goreleaser
+release: $(GO_FILES) ## Build executables using goreleaser
 	$(GO_BIN) tool -modfile=tools.mod goreleaser build ${GORELEASER_ARGS}
 
 # Useful for attaching a debugger such as https://github.com/go-delve/delve
