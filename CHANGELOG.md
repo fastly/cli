@@ -12,8 +12,9 @@
 ### Bug fixes:
 
 ### Dependencies:
-
 - build(deps): `golang.org/x/net` from 0.43.0 to 0.44.0 ([#1538](https://github.com/fastly/cli/pull/1538))
+- build(deps): `github.com/fastly/go-fastly/v11` from 11.3.1 to 12.0.0 ([#1541](https://github.com/fastly/cli/pull/1541))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.16 to 0.0.19 ([#1542](https://github.com/fastly/cli/pull/1542))
 - build(deps): `github.com/fastly/go-fastly/v11` from 11.3.1 to 12.0.0 ([#1541](https://github.com/fastly/cli/pull/1541))
 
 ## [v12.0.0](https://github.com/fastly/cli/releases/tag/v12.0.0) (2025-09-10)
@@ -30,6 +31,7 @@
 - feat(kvstoreentry): Add support for the if_generation_match and metadata 'describe' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
 - feat(kvstoreentry): Add support for the if_generation_match and force 'delete' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
 - feat(kvstoreentry): Add the 'get' command operation which obtains the value of the item ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(logging/https): Add support for 'Period' attribute. ([#1537](https://github.com/fastly/cli/pull/1537))
 
 ### Bug fixes:
 
