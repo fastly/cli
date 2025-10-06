@@ -9,6 +9,8 @@
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.15.0 to 3.16.0 ([#1546](https://github.com/fastly/cli/pull/1546))
 
 
 ## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)
