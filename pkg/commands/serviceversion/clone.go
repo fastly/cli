@@ -86,9 +86,7 @@ func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if ok, err := c.WriteJSON(out, ver); ok {
 		return err
-	} else {
-
-		text.Success(out, "Cloned service %s version %d to version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion, fastly.ToValue(ver.Number))
-		return nil
 	}
+	text.Success(out, "Cloned service %s version %d to version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion, fastly.ToValue(ver.Number))
+	return nil
 }
