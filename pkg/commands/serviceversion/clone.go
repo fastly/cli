@@ -63,7 +63,6 @@ func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
-
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

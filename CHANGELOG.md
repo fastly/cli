@@ -9,7 +9,6 @@
 ### Bug fixes:
 - fix(service-version): Add JSON support to service-version clone command to address issue ([#1353](https://github.com/fastly/cli/issues/1353))
 
-
 ### Dependencies:
 - build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.15.0 to 3.16.0 ([#1546](https://github.com/fastly/cli/pull/1546))
