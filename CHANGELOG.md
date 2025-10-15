@@ -12,6 +12,13 @@
 - build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.15.0 to 3.16.0 ([#1546](https://github.com/fastly/cli/pull/1546))
 - build(deps): `stefanzweifel/git-auto-commit-action` from 6 to 7 ([#1549](https://github.com/fastly/cli/pull/1549))
+- build(deps): `golang.org/x/sys` from 0.36.0 to 0.37.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/term` from 0.35.0 to 0.36.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/crypto` from 0.42.0 to 0.43.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/mod` from 0.28.0 to 0.29.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/net` from 0.44.0 to 0.45.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/oauth2` from 0.31.0 to 0.32.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/text` from 0.29.0 to 0.30.0 ([#1548](https://github.com/fastly/cli/pull/1548))
 
 
 ## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)
