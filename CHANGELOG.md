@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
 
 ### Bug fixes:
 
