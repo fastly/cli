@@ -127,11 +127,22 @@ jobs:
           for dockerFile in Dockerfile*; do docker build -f $dockerFile . ; done
   golangci-latest:
     name: lint-latest (informational)
+    needs: [config]
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Download config artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: config-artifact-${{ github.sha }}
+          path: pkg/config
+      - name: Verify embedded config exists
+        run: |
+          test -f pkg/config/config.toml || { echo "missing pkg/config/config.toml"; ls -la pkg/config; exit 1; }
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
