@@ -8,6 +8,7 @@
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
 
 ### Bug fixes:
+- fix(service-version): Add JSON support to service-version clone command to address issue ([#1353](https://github.com/fastly/cli/issues/1353))
 
 ### Dependencies:
 - build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
