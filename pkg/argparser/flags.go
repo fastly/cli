@@ -198,6 +198,26 @@ func (sv *OptionalCustomerID) Parse() error {
 	return nil
 }
 
+// OptionalWorkspaceID represents a Fastly NGWAF Workspace ID.
+type OptionalWorkspaceID struct {
+	OptionalString
+}
+
+// Parse returns a workspace ID either from a flag or from a user defined
+// environment variable (see pkg/env/env.go).
+//
+// NOTE: Will fallback to FASTLY_WORKSPACE_ID environment variable if no flag value set.
+func (sv *OptionalWorkspaceID) Parse() error {
+	if sv.Value == "" {
+		if e := os.Getenv(env.WorkspaceID); e != "" {
+			sv.Value = e
+			return nil
+		}
+		return fsterr.ErrNoWorkspaceID
+	}
+	return nil
+}
+
 // AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined
 // via the RegisterAutoCloneFlag constructor.
 type AutoCloneFlagOpts struct {
