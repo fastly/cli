@@ -20,6 +20,8 @@
 - build(deps): `golang.org/x/net` from 0.44.0 to 0.45.0 ([#1548](https://github.com/fastly/cli/pull/1548))
 - build(deps): `golang.org/x/oauth2` from 0.31.0 to 0.32.0 ([#1548](https://github.com/fastly/cli/pull/1548))
 - build(deps): `golang.org/x/text` from 0.29.0 to 0.30.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `actions/setup-node` from 5 to 6 ([#1559](https://github.com/fastly/cli/pull/1559))
+- build(deps): `actions/download-artifact` from 4 to 5 ([#1559](https://github.com/fastly/cli/pull/1559))
 
 
 ## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)
