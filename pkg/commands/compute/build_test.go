@@ -40,7 +40,7 @@ func TestBuildRust(t *testing.T) {
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute build"),
-			wantError:            "error reading fastly.toml",
+			wantError:            "error reading fastly.toml: file not found",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
@@ -300,7 +300,7 @@ func TestBuildGo(t *testing.T) {
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute build"),
-			wantError:            "error reading fastly.toml",
+			wantError:            "error reading fastly.toml: file not found",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
@@ -494,7 +494,7 @@ func TestBuildJavaScript(t *testing.T) {
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute build"),
-			wantError:            "error reading fastly.toml",
+			wantError:            "error reading fastly.toml: file not found",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
 		{
