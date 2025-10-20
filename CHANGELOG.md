@@ -8,6 +8,7 @@
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
 
 ### Bug fixes:
+- fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
 
 ### Dependencies:
 - build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
@@ -22,6 +23,8 @@
 - build(deps): `golang.org/x/text` from 0.29.0 to 0.30.0 ([#1548](https://github.com/fastly/cli/pull/1548))
 - build(deps): `actions/setup-node` from 5 to 6 ([#1559](https://github.com/fastly/cli/pull/1559))
 - build(deps): `actions/download-artifact` from 4 to 5 ([#1559](https://github.com/fastly/cli/pull/1559))
+- build(deps): `github.com/klauspost/compress` from 1.18.0 to 1.18.1 ([#1558](https://github.com/fastly/cli/pull/1558))
+- build(deps): `golang.org/x/net` from 0.45.0 to 0.46.0 ([#1558](https://github.com/fastly/cli/pull/1558))
 
 
 ## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)

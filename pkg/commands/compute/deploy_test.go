@@ -112,7 +112,7 @@ func TestDeploy(t *testing.T) {
 		{
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute deploy --token 123"),
-			wantError:            "error reading fastly.toml",
+			wantError:            "error reading fastly.toml: file not found",
 			wantRemediationError: errors.ComputeInitRemediation,
 			noManifest:           true,
 		},
