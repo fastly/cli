@@ -75,7 +75,7 @@ var ErrNoID = RemediationError{
 
 // ErrReadingManifest means there was a problem reading the fastly.toml.
 var ErrReadingManifest = RemediationError{
-	Inner:       fmt.Errorf("error reading fastly.toml"),
+	Inner:       fmt.Errorf("error reading fastly.toml: file not found"),
 	Remediation: "Ensure the Fastly CLI is being run within a directory containing a fastly.toml file. " + ComputeInitRemediation,
 }
 
