@@ -276,11 +276,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
-	if c.noUseSSL.WasSet {
+	switch {
+	case c.noUseSSL.WasSet:
 		input.UseSSL = fastly.ToPointer(fastly.Compatibool(false))
-	} else if c.useSSL.WasSet {
+	case c.useSSL.WasSet:
 		input.UseSSL = fastly.ToPointer(fastly.Compatibool(c.useSSL.Value))
-	} else {
+	default:
 		// Default to true
 		input.UseSSL = fastly.ToPointer(fastly.Compatibool(true))
 	}
