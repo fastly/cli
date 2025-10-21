@@ -205,6 +205,32 @@ func TestBackendCreate(t *testing.T) {
 			},
 			WantError: "'prefer-ipv6' flag must be one of the following [true, false]",
 		},
+		// The following test verifies that --use-ssl defaults to true and port defaults to 443
+		{
+			Args: "--service-id 123 --version 3 --address http-me.fastly.dev --name my_backend",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendWithSSL(true, 443),
+			},
+			WantOutput: "Created backend my_backend (service 123 version 3)",
+		},
+		// The following test verifies that --no-use-ssl disables SSL
+		{
+			Args: "--service-id 123 --version 3 --address http-me.fastly.dev --name my_backend --no-use-ssl --port 80",
+			API: mock.API{
+				ListVersionsFn:  testutil.ListVersions,
+				CreateBackendFn: createBackendWithSSL(false, 80),
+			},
+			WantOutput: "Created backend my_backend (service 123 version 3)",
+		},
+		// The following test verifies that both --use-ssl and --no-use-ssl results in an error
+		{
+			Args: "--service-id 123 --version 3 --address http-me.fastly.dev --name my_backend --use-ssl --no-use-ssl",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			WantError: "cannot specify both --use-ssl and --no-use-ssl",
+		},
 	}
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
@@ -451,6 +477,18 @@ func createBackendWithPort(wantPort int) func(_ context.Context, _ *fastly.Creat
 		default:
 			return createBackendError(ctx, i)
 		}
+	}
+}
+
+func createBackendWithSSL(wantSSL bool, wantPort int) func(_ context.Context, _ *fastly.CreateBackendInput) (*fastly.Backend, error) {
+	return func(ctx context.Context, i *fastly.CreateBackendInput) (*fastly.Backend, error) {
+		useSSL := i.UseSSL != nil && bool(*i.UseSSL)
+		port := i.Port != nil && *i.Port == wantPort
+
+		if useSSL == wantSSL && port {
+			return createBackendOK(ctx, i)
+		}
+		return createBackendError(ctx, i)
 	}
 }
 

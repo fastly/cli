@@ -56,6 +56,7 @@ type CreateCommand struct {
 	tcpKaTime           argparser.OptionalInt
 	httpKaTime          argparser.OptionalInt
 	useSSL              argparser.OptionalBool
+	noUseSSL            argparser.OptionalBool
 	weight              argparser.OptionalInt
 }
 
@@ -123,7 +124,8 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("tcp-ka-probes", "Configure how many unacknowledged TCP keepalive probes to send before considering the connection dead.").Action(c.tcpKaProbes.Set).IntVar(&c.tcpKaProbes.Value)
 	c.CmdClause.Flag("tcp-ka-time", "Configure how long to wait after the last sent data before sending TCP keepalive probes.").Action(c.tcpKaTime.Set).IntVar(&c.tcpKaTime.Value)
 	c.CmdClause.Flag("http-ka-time", "Configure how long to keep idle HTTP keepalive connections in the connection pool.").Action(c.httpKaTime.Set).IntVar(&c.httpKaTime.Value)
-	c.CmdClause.Flag("use-ssl", "Whether or not to use SSL to reach the backend").Action(c.useSSL.Set).BoolVar(&c.useSSL.Value)
+	c.CmdClause.Flag("use-ssl", "Whether or not to use SSL to reach the backend (default: true)").Action(c.useSSL.Set).BoolVar(&c.useSSL.Value)
+	c.CmdClause.Flag("no-use-ssl", "Disable SSL for the backend (overrides default)").Action(c.noUseSSL.Set).BoolVar(&c.noUseSSL.Value)
 	c.CmdClause.Flag("weight", "Weight used to load balance this backend against others").Action(c.weight.Set).IntVar(&c.weight.Value)
 
 	return &c
@@ -268,14 +270,35 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.weight.WasSet {
 		input.Weight = &c.weight.Value
 	}
+	// Set UseSSL: handle --use-ssl, --no-use-ssl, and default behavior
+	if c.noUseSSL.WasSet && c.useSSL.WasSet {
+		err := errors.New("cannot specify both --use-ssl and --no-use-ssl")
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	if c.noUseSSL.WasSet {
+		input.UseSSL = fastly.ToPointer(fastly.Compatibool(false))
+	} else if c.useSSL.WasSet {
+		input.UseSSL = fastly.ToPointer(fastly.Compatibool(c.useSSL.Value))
+	} else {
+		// Default to true
+		input.UseSSL = fastly.ToPointer(fastly.Compatibool(true))
+	}
 
 	switch {
 	case c.port.WasSet:
 		input.Port = &c.port.Value
+	case c.noUseSSL.WasSet:
+		// If --no-use-ssl is set, don't set a default port
+		// User should specify --port explicitly
 	case c.useSSL.WasSet && c.useSSL.Value:
+		// If use-ssl is explicitly set to true and no port is specified, use 443
 		if c.Globals.Flags.Verbose {
 			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443\n\n")
 		}
+		input.Port = fastly.ToPointer(443)
+	case !c.useSSL.WasSet && !c.noUseSSL.WasSet:
+		// If neither flag is set (defaults to SSL true), use 443
 		input.Port = fastly.ToPointer(443)
 	}
 
