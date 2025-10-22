@@ -9,6 +9,10 @@ var (
 	FlagJSONName = "json"
 	// FlagJSONDesc is the flag description.
 	FlagJSONDesc = "Render output as JSON"
+	// FlagNGWAFWorkspaceID is the workspace ID.
+	FlagNGWAFWorkspaceID = "workspace-id"
+	// FlagNGWAFWorkspaceIDDesc is the workspace ID flag description.
+	FlagNGWAFWorkspaceIDDesc = "Alphanumeric string identifying the NGWAF Workspace (falls back to FASTLY_WORKSPACE_ID)"
 	// FlagServiceIDName is the flag name.
 	FlagServiceIDName = "service-id"
 	// FlagServiceIDDesc is the flag description.
