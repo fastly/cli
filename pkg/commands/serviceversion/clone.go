@@ -8,7 +8,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
-	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -53,7 +52,7 @@ func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand 
 // Exec invokes the application logic for the command.
 func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
-		return fsterr.ErrInvalidVerboseJSONCombo
+		return errors.ErrInvalidVerboseJSONCombo
 	}
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
