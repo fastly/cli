@@ -49,6 +49,9 @@ const (
 	// collection related to a Wasm binary.
 	// Set to "true" to disable all forms of data collection.
 	WasmMetadataDisable = "FASTLY_WASM_METADATA_DISABLE"
+
+	// WorkspaceID is the env we look for in Workspace related commands if none is provided.
+	WorkspaceID = "FASTLY_WORKSPACE_ID"
 )
 
 // Parse transforms the local environment data structure into a map type.

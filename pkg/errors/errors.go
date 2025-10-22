@@ -47,6 +47,13 @@ var ErrNoCustomerID = RemediationError{
 	Remediation: CustomerIDRemediation,
 }
 
+// ErrNoWorkspaceID means no --workspace-id or FASTLY_WORKSPACE_ID environment
+// variable found.
+var ErrNoWorkspaceID = RemediationError{
+	Inner:       fmt.Errorf("error reading workspace ID: no workspace ID found"),
+	Remediation: WorkspaceIDRemediation,
+}
+
 // ErrMissingManifestVersion means an invalid manifest (fastly.toml) has been used.
 var ErrMissingManifestVersion = RemediationError{
 	Inner:       fmt.Errorf("no manifest_version found in the fastly.toml"),
