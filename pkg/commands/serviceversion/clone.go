@@ -15,6 +15,8 @@ import (
 // CloneCommand calls the Fastly API to clone a service version.
 type CloneCommand struct {
 	argparser.Base
+	argparser.JSONOutput
+
 	Input          fastly.CloneVersionInput
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
@@ -25,6 +27,7 @@ func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand 
 	var c CloneCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -48,6 +51,9 @@ func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand 
 
 // Exec invokes the application logic for the command.
 func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return errors.ErrInvalidVerboseJSONCombo
+	}
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
@@ -76,6 +82,9 @@ func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
+	if ok, err := c.WriteJSON(out, ver); ok {
+		return err
+	}
 	text.Success(out, "Cloned service %s version %d to version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion, fastly.ToValue(ver.Number))
 	return nil
 }

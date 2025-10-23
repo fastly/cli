@@ -34,6 +34,15 @@ func TestVersionClone(t *testing.T) {
 			WantOutput: "Cloned service 123 version 1 to version 4",
 		},
 		{
+			Name: "validate successful clone json output",
+			Args: "--service-id 123 --version 1 --json",
+			API: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+			},
+			WantOutput: cloneServiceVersionJSONOutput,
+		},
+		{
 			Name: "validate error will be passed through if cloning fails",
 			Args: "--service-id 456 --version 1",
 			API: mock.API{
@@ -325,6 +334,23 @@ func TestVersionUnstage(t *testing.T) {
 
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "unstage"}, scenarios)
 }
+
+var cloneServiceVersionJSONOutput = strings.TrimSpace(`
+{
+  "Active": null,
+  "Comment": null,
+  "CreatedAt": null,
+  "DeletedAt": null,
+  "Deployed": null,
+  "Locked": null,
+  "Number": 4,
+  "ServiceID": "123",
+  "Staging": null,
+  "Testing": null,
+  "UpdatedAt": null,
+  "Environments": null
+}
+`) + "\n"
 
 var listVersionsShortOutput = strings.TrimSpace(`
 NUMBER  ACTIVE  STAGED  LAST EDITED (UTC)

@@ -10,6 +10,7 @@
 - feat(env): add detection for workspace ID ([#1560](https://github.com/fastly/cli/pull/1560))
 
 ### Bug fixes:
+- fix(service-version): Add JSON support to service-version clone command to address issue ([#1353](https://github.com/fastly/cli/issues/1353))
 - fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
 
 ### Dependencies:
