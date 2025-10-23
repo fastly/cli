@@ -19,7 +19,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.CmdClause.Flag("cert-id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.certID)
-	c.CmdClause.Flag("tls-config-id", "Alphanumeric string identifying a TLS configuration").Required().StringVar(&c.tlsConfigId)
+	c.CmdClause.Flag("tls-config-id", "Alphanumeric string identifying a TLS configuration").Required().StringVar(&c.tlsConfigID)
 	c.CmdClause.Flag("tls-domain", "The domain name associated with the TLS activation").Required().StringVar(&c.tlsDomain)
 
 	return &c
@@ -30,7 +30,7 @@ type CreateCommand struct {
 	argparser.Base
 
 	certID      string
-	tlsConfigId string
+	tlsConfigID string
 	tlsDomain   string
 }
 
@@ -41,14 +41,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	r, err := c.Globals.APIClient.CreateTLSActivation(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"TLS Configuration ID":          c.tlsConfigId,
+			"TLS Configuration ID":          c.tlsConfigID,
 			"TLS Activation Certificate ID": c.certID,
 			"TLS Domain":                    c.tlsDomain,
 		})
 		return err
 	}
 
-	text.Success(out, "Enabled TLS Activation '%s' (Certificate '%s', Configuration '%s')", r.ID, c.certID, c.tlsConfigId)
+	text.Success(out, "Enabled TLS Activation '%s' (Certificate '%s', Configuration '%s')", r.ID, c.certID, c.tlsConfigID)
 	return nil
 }
 
@@ -56,7 +56,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 func (c *CreateCommand) constructInput() *fastly.CreateTLSActivationInput {
 	var input fastly.CreateTLSActivationInput
 
-	input.Configuration = &fastly.TLSConfiguration{ID: c.tlsConfigId}
+	input.Configuration = &fastly.TLSConfiguration{ID: c.tlsConfigID}
 	input.Certificate = &fastly.CustomTLSCertificate{ID: c.certID}
 	input.Domain = &fastly.TLSDomain{ID: c.tlsDomain}
 

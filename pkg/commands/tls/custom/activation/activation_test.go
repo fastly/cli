@@ -53,7 +53,7 @@ func TestTLSCustomActivationEnable(t *testing.T) {
 		{
 			Name: validateAPISuccess,
 			API: mock.API{
-				CreateTLSActivationFn: func(_ context.Context, i *fastly.CreateTLSActivationInput) (*fastly.TLSActivation, error) {
+				CreateTLSActivationFn: func(_ context.Context, _ *fastly.CreateTLSActivationInput) (*fastly.TLSActivation, error) {
 					return &fastly.TLSActivation{
 						ID: mockResponseID,
 					}, nil
