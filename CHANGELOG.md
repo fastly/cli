@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Breaking:
+- breaking(tls-custom): correct 'tls-custom activation enable' command parameters to reflect expected input from API ([#1562](https://github.com/fastly/cli/pull/1562))
 
 ### Enhancements:
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
