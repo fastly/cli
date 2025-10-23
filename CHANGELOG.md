@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Breaking:
+- feat(backend): `backend create` now enables SSL by default. Backends will use HTTPS on port 443 unless explicitly disabled with `--no-use-ssl`. Users who need non-SSL backends must now use the `--no-use-ssl` flag and specify `--port`.
 
 ### Enhancements:
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
