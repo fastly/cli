@@ -20,7 +20,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	// Required.
 	c.CmdClause.Flag("cert-id", "Alphanumeric string identifying a TLS certificate").Required().StringVar(&c.certID)
 	c.CmdClause.Flag("tls-config-id", "Alphanumeric string identifying a TLS configuration").Required().StringVar(&c.tlsConfigID)
-	c.CmdClause.Flag("tls-domain", "The domain name associated with the TLS activation").Required().StringVar(&c.tlsDomain)
+	c.CmdClause.Flag("tls-domain", "The domain name associated with the TLS certificate").Required().StringVar(&c.tlsDomain)
 
 	return &c
 }
