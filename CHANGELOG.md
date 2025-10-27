@@ -11,6 +11,7 @@
 
 ### Bug fixes:
 - fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
+- fix(compute): add default ignore patterns for node_modules/ and target/ to the serve command ([1563](https://github.com/fastly/cli/pull/1563))
 
 ### Dependencies:
 - build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
