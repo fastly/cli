@@ -11,6 +11,7 @@
 
 ### Bug fixes:
 - fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
+- fix(compute): add default ignore patterns for node_modules/ and target/ to the serve command ([1563](https://github.com/fastly/cli/pull/1563))
 - fix(purge/key): single purge requests now use the bulk endpoint to avoid serialization scenarios. ([#1566](https://github.com/fastly/cli/pull/1566))
 
 ### Dependencies:
@@ -28,6 +29,9 @@
 - build(deps): `actions/download-artifact` from 4 to 5 ([#1559](https://github.com/fastly/cli/pull/1559))
 - build(deps): `github.com/klauspost/compress` from 1.18.0 to 1.18.1 ([#1558](https://github.com/fastly/cli/pull/1558))
 - build(deps): `golang.org/x/net` from 0.45.0 to 0.46.0 ([#1558](https://github.com/fastly/cli/pull/1558))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.2.0 to 2.3.0 ([#1564](https://github.com/fastly/cli/pull/1564))
+- build(deps): `actions/upload-artifact` from 4 to 5 ([#1565](https://github.com/fastly/cli/pull/1565))
+- build(deps): `actions/download-artifact` from 5 to 6 ([#1565](https://github.com/fastly/cli/pull/1565))
 
 
 ## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)
