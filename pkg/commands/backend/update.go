@@ -32,6 +32,8 @@ type UpdateCommand struct {
 	HealthCheck         argparser.OptionalString
 	Hostname            argparser.OptionalString
 	MaxConn             argparser.OptionalInt
+	MaxUse              argparser.OptionalInt
+	MaxLifetime         argparser.OptionalInt
 	MaxTLSVersion       argparser.OptionalString
 	MinTLSVersion       argparser.OptionalString
 	NewName             argparser.OptionalString
@@ -88,6 +90,8 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.FirstByteTimeout.Set).IntVar(&c.FirstByteTimeout.Value)
 	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").Action(c.HealthCheck.Set).StringVar(&c.HealthCheck.Value)
 	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.MaxConn.Set).IntVar(&c.MaxConn.Value)
+	c.CmdClause.Flag("max-use", "Maximum number of times an HTTP keepalive connection can be used").Action(c.maxUse.Set).IntVar(&c.maxUse.Value)
+	c.CmdClause.Flag("max-lifetime", "Upper bound in milliseconds for how long an HTTP keepalive connection can be open before it is no longer used").Action(c.maxLifetime.Set).IntVar(&c.maxLifetime.Value)
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.MaxTLSVersion.Set).StringVar(&c.MaxTLSVersion.Value)
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.MinTLSVersion.Set).StringVar(&c.MinTLSVersion.Value)
 	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
@@ -196,6 +200,14 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	if c.MaxConn.WasSet {
 		input.MaxConn = &c.MaxConn.Value
+	}
+
+	if c.MaxUse.WasSet {
+		input.MaxUse = &c.MaxUse.Value
+	}
+
+	if c.MaxLifetime.WasSet {
+		input.MaxLifetime = &c.MaxLifetime.Value
 	}
 
 	if c.FirstByteTimeout.WasSet {
