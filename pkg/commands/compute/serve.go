@@ -1350,8 +1350,6 @@ func ignoreFiles(watchDir argparser.OptionalString) *ignore.GitIgnore {
 	}
 
 	patterns = append(patterns, ".git/")
-	patterns = append(patterns, "node_modules/")
-	patterns = append(patterns, "target/")
 
 	return ignore.CompileIgnoreLines(patterns...)
 }
