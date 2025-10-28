@@ -11,7 +11,6 @@
 
 ### Bug fixes:
 - fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
-- fix(compute): add default ignore patterns for node_modules/ and target/ to the serve command ([1563](https://github.com/fastly/cli/pull/1563))
 - fix(purge/key): single purge requests now use the bulk endpoint to avoid serialization scenarios. ([#1566](https://github.com/fastly/cli/pull/1566))
 
 ### Dependencies:
