@@ -82,6 +82,7 @@ kv-store
 kv-store-entry
 log-tail
 logging
+ngwaf
 object-storage
 pops
 products
