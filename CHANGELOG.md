@@ -6,6 +6,7 @@
 - breaking(tls-custom): correct 'tls-custom activation enable' command parameters to reflect expected input from API ([#1562](https://github.com/fastly/cli/pull/1562))
 
 ### Enhancements:
+- feat(compute/serve): set sig_iss and sig_key to allow client code to test Grip-Sig signing
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
 - feat(env): add detection for workspace ID ([#1560](https://github.com/fastly/cli/pull/1560))
 
