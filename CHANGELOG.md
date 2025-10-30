@@ -26,6 +26,7 @@
 - feat(compute/serve): set sig_iss and sig_key to allow client code to test Grip-Sig signing ([#1569](https://github.com/fastly/cli/pull/1569))
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
 - feat(env): add detection for workspace ID ([#1560](https://github.com/fastly/cli/pull/1560))
+- feat(commands/ngwaf/workspaces): add support for CRUD operations for NGWAF workspaces ([#1570](https://github.com/fastly/cli/pull/1570))
 
 ### Bug fixes:
 - fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
