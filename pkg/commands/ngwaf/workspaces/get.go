@@ -15,7 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GetCommand calls the Fastly API to get a workspace
+// GetCommand calls the Fastly API to get a workspace.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
