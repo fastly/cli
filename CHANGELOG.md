@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Breaking:
+
+### Enhancements:
+
+### Bug fixes:
+
+### Dependencies:
+
+## [v13.0.0](https://github.com/fastly/cli/releases/tag/v13.0.0) (2025-10-30)
+
+### Breaking:
 - breaking(tls-custom): correct 'tls-custom activation enable' command parameters to reflect expected input from API ([#1562](https://github.com/fastly/cli/pull/1562))
 - breaking(compute/build): Block version 1.91.0 of Rust as it produces broken WASM packages. ([#1571](https://github.com/fastly/cli/pull/1571))
 
