@@ -166,13 +166,13 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 		})
 		return err
 	}
-	// The bulk purge endpoint doesn't return a 'Status' field like the single-key
-	// endpoint did. To avoid a breaking change in the CLI output, we hardcode
-	// 'Status: ok' in the success message to maintain consistent behavior.
 	purgeID, ok := m[c.key]
 	if !ok {
 		return fmt.Errorf("no purge ID returned for key: %s", c.key)
 	}
+	// The bulk purge endpoint doesn't return a 'Status' field like the single-key
+	// endpoint did. To avoid a breaking change in the CLI output, we hardcode
+	// 'Status: ok' in the success message to maintain consistent behavior.
 	text.Success(out, "Purged key: %s (soft: %t). Status: ok, ID: %s", c.key, c.soft, purgeID)
 	return nil
 }
