@@ -17,6 +17,7 @@
 - breaking(compute/build): Block version 1.91.0 of Rust as it produces broken WASM packages. ([#1571](https://github.com/fastly/cli/pull/1571))
 
 ### Enhancements:
+- feat(compute/serve): set sig_iss and sig_key to allow client code to test Grip-Sig signing ([#1569](https://github.com/fastly/cli/pull/1569))
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
 - feat(env): add detection for workspace ID ([#1560](https://github.com/fastly/cli/pull/1560))
 
