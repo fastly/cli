@@ -3,7 +3,18 @@
 ## [Unreleased]
 
 ### Breaking:
+
+### Enhancements:
+
+### Bug fixes:
+
+### Dependencies:
+
+## [v13.0.0](https://github.com/fastly/cli/releases/tag/v13.0.0) (2025-10-30)
+
+### Breaking:
 - breaking(tls-custom): correct 'tls-custom activation enable' command parameters to reflect expected input from API ([#1562](https://github.com/fastly/cli/pull/1562))
+- breaking(compute/build): Block version 1.91.0 of Rust as it produces broken WASM packages. ([#1571](https://github.com/fastly/cli/pull/1571))
 
 ### Enhancements:
 - feat(compute/serve): set sig_iss and sig_key to allow client code to test Grip-Sig signing ([#1569](https://github.com/fastly/cli/pull/1569))
@@ -12,6 +23,7 @@
 
 ### Bug fixes:
 - fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
+- fix(purge/key): ensures that single-key purges will work even if the key contains URL-unsafe characters ([#1566](https://github.com/fastly/cli/pull/1566))
 
 ### Dependencies:
 - build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
