@@ -30,7 +30,7 @@ jobs:
       - name: "Generate static app config"
         run: make config
       - name: "Config Artifact"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
@@ -50,7 +50,7 @@ jobs:
         run: make mod-download
         shell: bash
       - name: "Config Artifact"
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
@@ -89,11 +89,11 @@ jobs:
         run: rustup show && rustup target list --installed --toolchain stable
         shell: bash
       - name: "Install Node"
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Config Artifact"
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
@@ -127,11 +127,22 @@ jobs:
           for dockerFile in Dockerfile*; do docker build -f $dockerFile . ; done
   golangci-latest:
     name: lint-latest (informational)
+    needs: [config]
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Download config artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: config-artifact-${{ github.sha }}
+          path: pkg/config
+      - name: Verify embedded config exists
+        run: |
+          test -f pkg/config/config.toml || { echo "missing pkg/config/config.toml"; ls -la pkg/config; exit 1; }
       - name: Setup Go
         uses: actions/setup-go@v6
         with:

@@ -10,8 +10,40 @@
 ### Bug fixes:
 
 ### Dependencies:
+
+## [v13.0.0](https://github.com/fastly/cli/releases/tag/v13.0.0) (2025-10-30)
+
+### Breaking:
+- breaking(tls-custom): correct 'tls-custom activation enable' command parameters to reflect expected input from API ([#1562](https://github.com/fastly/cli/pull/1562))
+- breaking(compute/build): Block version 1.91.0 of Rust as it produces broken WASM packages. ([#1571](https://github.com/fastly/cli/pull/1571))
+
+### Enhancements:
+- feat(compute/serve): set sig_iss and sig_key to allow client code to test Grip-Sig signing ([#1569](https://github.com/fastly/cli/pull/1569))
+- build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
+- feat(env): add detection for workspace ID ([#1560](https://github.com/fastly/cli/pull/1560))
+
+### Bug fixes:
+- fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
+- fix(purge/key): ensures that single-key purges will work even if the key contains URL-unsafe characters ([#1566](https://github.com/fastly/cli/pull/1566))
+
+### Dependencies:
 - build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.15.0 to 3.16.0 ([#1546](https://github.com/fastly/cli/pull/1546))
+- build(deps): `stefanzweifel/git-auto-commit-action` from 6 to 7 ([#1549](https://github.com/fastly/cli/pull/1549))
+- build(deps): `golang.org/x/sys` from 0.36.0 to 0.37.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/term` from 0.35.0 to 0.36.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/crypto` from 0.42.0 to 0.43.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/mod` from 0.28.0 to 0.29.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/net` from 0.44.0 to 0.45.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/oauth2` from 0.31.0 to 0.32.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/text` from 0.29.0 to 0.30.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `actions/setup-node` from 5 to 6 ([#1559](https://github.com/fastly/cli/pull/1559))
+- build(deps): `actions/download-artifact` from 4 to 5 ([#1559](https://github.com/fastly/cli/pull/1559))
+- build(deps): `github.com/klauspost/compress` from 1.18.0 to 1.18.1 ([#1558](https://github.com/fastly/cli/pull/1558))
+- build(deps): `golang.org/x/net` from 0.45.0 to 0.46.0 ([#1558](https://github.com/fastly/cli/pull/1558))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.2.0 to 2.3.0 ([#1564](https://github.com/fastly/cli/pull/1564))
+- build(deps): `actions/upload-artifact` from 4 to 5 ([#1565](https://github.com/fastly/cli/pull/1565))
+- build(deps): `actions/download-artifact` from 5 to 6 ([#1565](https://github.com/fastly/cli/pull/1565))
 
 
 ## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)
