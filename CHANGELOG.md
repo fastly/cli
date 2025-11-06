@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(service-version): Add JSON support to service-version clone command ([#1550](https://github.com/fastly/cli/pull/1550))
 
 ### Bug fixes:
 
