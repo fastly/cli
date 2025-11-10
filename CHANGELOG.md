@@ -11,6 +11,9 @@
 
 ### Dependencies:
 - build(deps): `golangci/golangci-lint-action` from 8 to 9 ([#1575](https://github.com/fastly/cli/pull/1575))
+- build(deps): `golang.org/x/sys` from 0.37.0 to 0.38.0 ([#1574](https://github.com/fastly/cli/pull/1574))
+- build(deps): `golang.org/x/oauth2` from 0.32.0 to 0.33.0 ([#1574](https://github.com/fastly/cli/pull/1574))
+- build(deps): `golang.org/x/sync` from 0.17.0 to 0.18.0 ([#1574](https://github.com/fastly/cli/pull/1574))
 
 ## [v13.0.0](https://github.com/fastly/cli/releases/tag/v13.0.0) (2025-10-30)
 
