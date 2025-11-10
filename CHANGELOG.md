@@ -10,6 +10,7 @@
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `golangci/golangci-lint-action` from 8 to 9 ([#1575](https://github.com/fastly/cli/pull/1575))
 
 ## [v13.0.0](https://github.com/fastly/cli/releases/tag/v13.0.0) (2025-10-30)
 
