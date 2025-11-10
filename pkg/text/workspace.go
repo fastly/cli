@@ -28,7 +28,7 @@ func PrintWorkspace(out io.Writer, workspaceToPrint *workspaces.Workspace) {
 	if workspaceToPrint.IPAnonymization != "" {
 		fmt.Fprintf(out, "IP Anonymization: %s\n", workspaceToPrint.IPAnonymization)
 	}
-	fmt.Fprintf(out, "Created (UTC): %s\n", workspaceToPrint.CreatedAt.UTC().Format(time.Format))
+	fmt.Fprintf(out, "Updated (UTC): %s\n", workspaceToPrint.UpdatedAt.UTC().Format(time.Format))
 }
 
 // PrintWorkspaceTbl displays workspaces in a table format.
