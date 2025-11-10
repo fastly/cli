@@ -6,6 +6,7 @@
 
 ### Enhancements:
 - feat(service-version): Add JSON support to service-version clone command ([#1550](https://github.com/fastly/cli/pull/1550))
+- feat(compute/build): Allow usage of Rust 1.91.1 and later patch releases ([#](https://github.com/fastly/cli/pull/)
 
 ### Bug fixes:
 
