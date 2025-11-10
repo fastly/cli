@@ -49,7 +49,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Optional.
 	c.CmdClause.Flag("attackThresholds", "Attack threshold parameters for system site alerts. Each threshold value is the number of attack signals per IP address that must be detected during the interval before the related IP address is flagged. Input accepted as colon separated string: Immediate:OneMinute:TenMinutes:OneHour").Action(c.attackThresholds.Set).StringVar(&c.attackThresholds.Value)
-	c.CmdClause.Flag("clientIPHeaders", "Specify the request header containing the client IP address. Input accepted as comma separated string.").Action(c.clientIPHeaders.Set).StringVar(&c.clientIPHeaders.Value)
+	c.CmdClause.Flag("clientIPHeaders", "Specify the request header containing the client IP address. Input accepted as colon separated string.").Action(c.clientIPHeaders.Set).StringVar(&c.clientIPHeaders.Value)
 	c.CmdClause.Flag("defaultBlockingCode", "Default status code that is returned when a request to your web application is blocked.").Action(c.defaultBlockingCode.Set).IntVar(&c.defaultBlockingCode.Value)
 	c.CmdClause.Flag("defaultRedirectURL", "Redirect url to be used if code 301 or 302 is used.").Action(c.defaultRedirectURL.Set).StringVar(&c.defaultRedirectURL.Value)
 	c.CmdClause.Flag("ipAnonimization", "Agents will anonymize IP addresses according to the option selected.").Action(c.ipAnonimization.Set).StringVar(&c.ipAnonimization.Value)
@@ -73,7 +73,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 	if c.clientIPHeaders.WasSet {
-		input.ClientIPHeaders = strings.Split(c.clientIPHeaders.Value, ",")
+		input.ClientIPHeaders = strings.Split(c.clientIPHeaders.Value, ":")
 	}
 	if c.defaultBlockingCode.WasSet {
 		input.DefaultBlockingResponseCode = &c.defaultBlockingCode.Value
@@ -105,6 +105,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 func parseAttackSignalThresholds(thresholds string) (*workspaces.AttackSignalThresholdsCreateInput, error) {
 	thresholdsArray := strings.Split(thresholds, ":")
+	if len(thresholdsArray) != 4 {
+		return nil, errors.New("wrong number of inputs for Attack Signal Thresholds")
+	}
 	immediate, err := strconv.ParseBool(thresholdsArray[0])
 	if err != nil {
 		return nil, err

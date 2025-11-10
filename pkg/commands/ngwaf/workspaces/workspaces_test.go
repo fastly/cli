@@ -16,10 +16,11 @@ import (
 )
 
 const (
-	workspaceDescription = "NGWAFCLIWorkspace"
-	workspaceID          = "someID"
-	workspaceMode        = "log"
-	workspaceName        = "CLIWorkspace"
+	workspaceDescription     = "NGWAFCLIWorkspace"
+	workspaceClientIPHeaders = "these:are:headers"
+	workspaceID              = "someID"
+	workspaceMode            = "log"
+	workspaceName            = "CLIWorkspace"
 )
 
 var workspace = workspaces.Workspace{
@@ -29,11 +30,12 @@ var workspace = workspaces.Workspace{
 		TenMinutes: 0,
 		OneHour:    0,
 	},
-	CreatedAt:   testutil.Date,
-	Description: workspaceDescription,
-	Mode:        workspaceMode,
-	Name:        workspaceName,
-	WorkspaceID: workspaceID,
+	ClientIPHeaders: []string{"these", "are", "headers"},
+	CreatedAt:       testutil.Date,
+	Description:     workspaceDescription,
+	Mode:            workspaceMode,
+	Name:            workspaceName,
+	WorkspaceID:     workspaceID,
 }
 
 func TestWorkspacesCreate(t *testing.T) {
@@ -68,7 +70,7 @@ func TestWorkspacesCreate(t *testing.T) {
 		},
 		{
 			Name: "validate API success",
-			Args: fmt.Sprintf("--description %s --name %s --blockingMode %s", workspaceDescription, workspaceName, workspaceMode),
+			Args: fmt.Sprintf("--description %s --name %s --blockingMode %s --clientIPHeaders %s", workspaceDescription, workspaceName, workspaceMode, workspaceClientIPHeaders),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -82,7 +84,7 @@ func TestWorkspacesCreate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --json flag",
-			Args: fmt.Sprintf("--description %s --name %s --blockingMode %s --json", workspaceDescription, workspaceName, workspaceMode),
+			Args: fmt.Sprintf("--description %s --name %s --blockingMode %s --clientIPHeaders %s --json", workspaceDescription, workspaceName, workspaceMode, workspaceClientIPHeaders),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
