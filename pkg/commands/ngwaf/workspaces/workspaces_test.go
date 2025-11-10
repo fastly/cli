@@ -320,5 +320,6 @@ Name: CLIWorkspace
 Description: NGWAFCLIWorkspace
 Mode: log
 Attack Signal Thresholds: Immediate false, One Minute 0, Ten Minutes 0, One Hour 0
+Client IP Headers: these, are, headers
 Created (UTC): 2021-06-15 23:00
 `)
