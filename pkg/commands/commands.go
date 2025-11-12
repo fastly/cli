@@ -55,6 +55,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/sumologic"
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
+	"github.com/fastly/cli/pkg/commands/ngwaf"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspaces"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
@@ -393,6 +395,12 @@ func Define( // nolint:revive // function-length
 	loggingSyslogDescribe := syslog.NewDescribeCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, data)
+	ngwafRoot := ngwaf.NewRootCommand(app, data)
+	ngwafWorkspacesRoot := workspaces.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafWorkspacesCreate := workspaces.NewCreateCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesDelete := workspaces.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesGet := workspaces.NewGetCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesList := workspaces.NewListCommand(ngwafWorkspacesRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
@@ -812,6 +820,12 @@ func Define( // nolint:revive // function-length
 		loggingSyslogDescribe,
 		loggingSyslogList,
 		loggingSyslogUpdate,
+		ngwafRoot,
+		ngwafWorkspacesRoot,
+		ngwafWorkspacesCreate,
+		ngwafWorkspacesDelete,
+		ngwafWorkspacesGet,
+		ngwafWorkspacesList,
 		objectStorageRoot,
 		objectStorageAccesskeysRoot,
 		objectStorageAccesskeysCreate,
