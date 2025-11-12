@@ -5,10 +5,17 @@
 ### Breaking:
 
 ### Enhancements:
-- feat(service-version): Add JSON support to service-version clone command ([#1550](https://github.com/fastly/cli/pull/1550))
-- feat(compute/build): Allow usage of Rust 1.91.1 and later patch releases ([#1576](https://github.com/fastly/cli/pull/1576)
 
 ### Bug fixes:
+
+### Dependencies:
+
+## [v13.1.0](https://github.com/fastly/cli/releases/tag/v13.1.0) (2025-11-12)
+
+### Enhancements:
+- feat(service-version): Add JSON support to service-version clone command ([#1550](https://github.com/fastly/cli/pull/1550))
+- feat(compute/build): Allow usage of Rust 1.91.1 and later patch releases ([#1576](https://github.com/fastly/cli/pull/1576))
+- feat(commands/ngwaf/workspaces): add support for CRUD operations for NGWAF workspaces ([#1570](https://github.com/fastly/cli/pull/1570))
 
 ### Dependencies:
 - build(deps): `golangci/golangci-lint-action` from 8 to 9 ([#1575](https://github.com/fastly/cli/pull/1575))
@@ -26,7 +33,6 @@
 - feat(compute/serve): set sig_iss and sig_key to allow client code to test Grip-Sig signing ([#1569](https://github.com/fastly/cli/pull/1569))
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
 - feat(env): add detection for workspace ID ([#1560](https://github.com/fastly/cli/pull/1560))
-- feat(commands/ngwaf/workspaces): add support for CRUD operations for NGWAF workspaces ([#1570](https://github.com/fastly/cli/pull/1570))
 
 ### Bug fixes:
 - fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
