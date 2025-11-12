@@ -361,6 +361,12 @@ func (r *Rust) toolchainConstraint() (*semver.Version, error) {
 			if strings.Contains(e.Error(), "is greater than") {
 				err = fmt.Errorf("version '%s' of Rust has not been validated for use with Fastly Compute", v)
 			}
+			// if an 'exact version' constraint was
+			// violated, generate an error message
+			// specific to that situation
+			if strings.Contains(e.Error(), "is equal to") {
+				err = fmt.Errorf("version '%s' of Rust is not compatible with Fastly Compute", v)
+			}
 		}
 		if err == nil {
 			err = fmt.Errorf("the Rust version requirement was not satisfied: '%w'", errors.Join(errs...))
