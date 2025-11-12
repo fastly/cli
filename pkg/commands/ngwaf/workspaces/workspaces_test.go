@@ -319,7 +319,11 @@ ID: someID
 Name: CLIWorkspace
 Description: NGWAFCLIWorkspace
 Mode: log
-Attack Signal Thresholds: Immediate false, One Minute 0, Ten Minutes 0, One Hour 0
+Attack Signal Thresholds:
+	Immediate: false
+	One Minute: 0
+	Ten Minutes: 0
+	One Hour: 0
 Client IP Headers: these, are, headers
 Updated (UTC): 0001-01-01 00:00
 `)

@@ -15,7 +15,11 @@ func PrintWorkspace(out io.Writer, workspaceToPrint *workspaces.Workspace) {
 	fmt.Fprintf(out, "Name: %s\n", workspaceToPrint.Name)
 	fmt.Fprintf(out, "Description: %s\n", workspaceToPrint.Description)
 	fmt.Fprintf(out, "Mode: %s\n", workspaceToPrint.Mode)
-	fmt.Fprintf(out, "Attack Signal Thresholds: Immediate %t, One Minute %d, Ten Minutes %d, One Hour %d\n", workspaceToPrint.AttackSignalThresholds.Immediate, workspaceToPrint.AttackSignalThresholds.OneMinute, workspaceToPrint.AttackSignalThresholds.TenMinutes, workspaceToPrint.AttackSignalThresholds.OneHour)
+	fmt.Fprint(out, "Attack Signal Thresholds:\n")
+	fmt.Fprintf(out, "	Immediate: %t\n", workspaceToPrint.AttackSignalThresholds.Immediate)
+	fmt.Fprintf(out, "	One Minute: %d\n", workspaceToPrint.AttackSignalThresholds.OneMinute)
+	fmt.Fprintf(out, "	Ten Minutes: %d\n", workspaceToPrint.AttackSignalThresholds.TenMinutes)
+	fmt.Fprintf(out, "	One Hour: %d\n", workspaceToPrint.AttackSignalThresholds.OneHour)
 	if len(workspaceToPrint.ClientIPHeaders) != 0 {
 		fmt.Fprintf(out, "Client IP Headers: %s\n", strings.Join(workspaceToPrint.ClientIPHeaders, ", "))
 	}
