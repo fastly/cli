@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(commands/ngwaf/workspaces): add support for update operation for NGWAF workspaces ([#1578](https://github.com/fastly/cli/pull/1578))
 
 ### Bug fixes:
 
