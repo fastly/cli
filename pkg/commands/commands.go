@@ -56,6 +56,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/ngwaf"
+	"github.com/fastly/cli/pkg/commands/ngwaf/virtualpatch"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspaces"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
@@ -396,6 +397,10 @@ func Define( // nolint:revive // function-length
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, data)
 	ngwafRoot := ngwaf.NewRootCommand(app, data)
+	ngwafVirtualpatchRoot := virtualpatch.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
+	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
+	ngwafVirtualpatchRetrieve := virtualpatch.NewRetrieveCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafWorkspacesRoot := workspaces.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafWorkspacesCreate := workspaces.NewCreateCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesDelete := workspaces.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
@@ -821,6 +826,10 @@ func Define( // nolint:revive // function-length
 		loggingSyslogList,
 		loggingSyslogUpdate,
 		ngwafRoot,
+		ngwafVirtualpatchList,
+		ngwafVirtualpatchRetrieve,
+		ngwafVirtualpatchRoot,
+		ngwafVirtualpatchUpdate,
 		ngwafWorkspacesRoot,
 		ngwafWorkspacesCreate,
 		ngwafWorkspacesDelete,
