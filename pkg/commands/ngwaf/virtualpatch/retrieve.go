@@ -35,7 +35,7 @@ func NewRetrieveCommand(parent argparser.Registerer, g *global.Data) *GetCommand
 	c.CmdClause = parent.Command("retrieve", "Retrieve a vitual patch")
 
 	// Required.
-	c.CmdClause.Flag("virtualpatch-id", "Virtual Patch ID").Required().StringVar(&c.virtualpatchID)
+	c.CmdClause.Flag("virtual-patch-id", "Virtual Patch ID").Required().StringVar(&c.virtualpatchID)
 	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
 
 	// Optional.

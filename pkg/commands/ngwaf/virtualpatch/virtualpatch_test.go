@@ -34,17 +34,17 @@ func TestVirtualPatchRetrieve(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--virtualpatch-id %s", virtualpatchID),
+			Args:      fmt.Sprintf("--virtual-patch-id %s", virtualpatchID),
 			WantError: "error parsing arguments: required flag --workspace-id not provided",
 		},
 		{
-			Name:      "validate missing --virtualpatch-id flag",
+			Name:      "validate missing --virtual-patch-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
-			WantError: "error parsing arguments: required flag --virtualpatch-id not provided",
+			WantError: "error parsing arguments: required flag --virtual-patch-id not provided",
 		},
 		{
 			Name: "validate not found",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id invalid", workspaceID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id invalid", workspaceID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -63,7 +63,7 @@ func TestVirtualPatchRetrieve(t *testing.T) {
 		},
 		{
 			Name: "validate API success",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id %s", workspaceID, virtualpatchID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id %s", workspaceID, virtualpatchID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -77,7 +77,7 @@ func TestVirtualPatchRetrieve(t *testing.T) {
 		},
 		{
 			Name: "validate optional --json flag",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id %s --json", workspaceID, virtualpatchID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id %s --json", workspaceID, virtualpatchID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -191,17 +191,17 @@ func TestVirtualPatchUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--virtualpatch-id %s", virtualpatchID),
+			Args:      fmt.Sprintf("--virtual-patch-id %s", virtualpatchID),
 			WantError: "error parsing arguments: required flag --workspace-id not provided",
 		},
 		{
-			Name:      "validate missing --virtualpatch-id flag",
+			Name:      "validate missing --virtual-patch-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
-			WantError: "error parsing arguments: required flag --virtualpatch-id not provided",
+			WantError: "error parsing arguments: required flag --virtual-patch-id not provided",
 		},
 		{
 			Name: "validate not found",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id invalid --enabled true", workspaceID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id invalid --enabled true", workspaceID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -220,7 +220,7 @@ func TestVirtualPatchUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate invalid enabled flag value",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id %s --enabled maybe", workspaceID, virtualpatchID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id %s --enabled maybe", workspaceID, virtualpatchID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -234,7 +234,7 @@ func TestVirtualPatchUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate API success with enabled flag",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id %s --enabled true", workspaceID, virtualpatchID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id %s --enabled true", workspaceID, virtualpatchID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -248,7 +248,7 @@ func TestVirtualPatchUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate API success with mode flag",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id %s --mode block", workspaceID, virtualpatchID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id %s --mode block", workspaceID, virtualpatchID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -262,7 +262,7 @@ func TestVirtualPatchUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate API success with both flags",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id %s --enabled true --mode block", workspaceID, virtualpatchID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id %s --enabled true --mode block", workspaceID, virtualpatchID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -276,7 +276,7 @@ func TestVirtualPatchUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --json flag",
-			Args: fmt.Sprintf("--workspace-id %s --virtualpatch-id %s --enabled true --mode block --json", workspaceID, virtualpatchID),
+			Args: fmt.Sprintf("--workspace-id %s --virtual-patch-id %s --enabled true --mode block --json", workspaceID, virtualpatchID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{

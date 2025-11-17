@@ -38,7 +38,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause = parent.Command("update", "Update a virtual patch")
 
 	// Required.
-	c.CmdClause.Flag("virtualpatch-id", "Virtual Patch ID").Required().StringVar(&c.virtualpatchID)
+	c.CmdClause.Flag("virtual-patch-id", "Virtual Patch ID").Required().StringVar(&c.virtualpatchID)
 	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
 
 	// Optional.
