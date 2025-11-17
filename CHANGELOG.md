@@ -17,6 +17,7 @@
 - feat(service-version): Add JSON support to service-version clone command ([#1550](https://github.com/fastly/cli/pull/1550))
 - feat(compute/build): Allow usage of Rust 1.91.1 and later patch releases ([#1576](https://github.com/fastly/cli/pull/1576))
 - feat(commands/ngwaf/workspaces): add support for CRUD operations for NGWAF workspaces ([#1570](https://github.com/fastly/cli/pull/1570))
+- feat(commands/ngwaf/virtualpatch): add support for CRUD operations for NGWAF virtual patches ([#1579](https://github.com/fastly/cli/pull/1579))
 
 ### Dependencies:
 - build(deps): `golangci/golangci-lint-action` from 8 to 9 ([#1575](https://github.com/fastly/cli/pull/1575))
