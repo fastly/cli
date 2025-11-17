@@ -25,7 +25,7 @@ type GetCommand struct {
 }
 
 // NewGetCommand returns a usable command registered under the parent.
-func NewRetreiveCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
+func NewRetrieveCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 	c := GetCommand{
 		Base: argparser.Base{
 			Globals: g,

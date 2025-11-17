@@ -400,7 +400,7 @@ func Define( // nolint:revive // function-length
 	ngwafVirtualpatchRoot := virtualpatch.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
-	ngwafVirtualpatchRetreive := virtualpatch.NewRetreiveCommand(ngwafVirtualpatchRoot.CmdClause, data)
+	ngwafVirtualpatchRetrieve := virtualpatch.NewRetrieveCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafWorkspacesRoot := workspaces.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafWorkspacesCreate := workspaces.NewCreateCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesDelete := workspaces.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
@@ -827,7 +827,7 @@ func Define( // nolint:revive // function-length
 		loggingSyslogUpdate,
 		ngwafRoot,
 		ngwafVirtualpatchList,
-		ngwafVirtualpatchRetreive,
+		ngwafVirtualpatchRetrieve,
 		ngwafVirtualpatchRoot,
 		ngwafVirtualpatchUpdate,
 		ngwafWorkspacesRoot,
