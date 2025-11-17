@@ -406,6 +406,7 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspacesDelete := workspace.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesGet := workspace.NewGetCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesList := workspace.NewListCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesUpdate := workspace.NewUpdateCommand(ngwafWorkspacesRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
@@ -835,6 +836,7 @@ func Define( // nolint:revive // function-length
 		ngwafWorkspacesDelete,
 		ngwafWorkspacesGet,
 		ngwafWorkspacesList,
+		ngwafWorkspacesUpdate,
 		objectStorageRoot,
 		objectStorageAccesskeysRoot,
 		objectStorageAccesskeysCreate,

@@ -304,6 +304,53 @@ func TestWorkspaceList(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
+func TestWorkspaceUpdate(t *testing.T) {
+	workspacesObject := workspaces.Workspace{
+		CreatedAt:   testutil.Date,
+		Description: workspaceDescription,
+		Mode:        workspaceMode,
+		Name:        workspaceName,
+		WorkspaceID: workspaceID,
+	}
+
+	scenarios := []testutil.CLIScenario{
+		{
+			Name:      "validate missing --workspace-id flag",
+			Args:      "",
+			WantError: "error parsing arguments: required flag --workspace-id not provided",
+		},
+		{
+			Name: "validate API success",
+			Args: fmt.Sprintf("--workspace-id %s --description %s --name %s --blockingMode %s --clientIPHeaders %s", workspaceID, workspaceDescription, workspaceName, workspaceMode, workspaceClientIPHeaders),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspacesObject))),
+					},
+				},
+			},
+			WantOutput: fstfmt.Success("Updated workspace '%s' (workspace-id: %s)", workspaceName, workspaceID),
+		},
+		{
+			Name: "validate optional --json flag",
+			Args: fmt.Sprintf("--workspace-id %s --description %s --name %s --blockingMode %s --clientIPHeaders %s --json", workspaceID, workspaceDescription, workspaceName, workspaceMode, workspaceClientIPHeaders),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspace))),
+					},
+				},
+			},
+			WantOutput: fstfmt.EncodeJSON(workspace),
+		},
+	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+}
+
 var listWorkspaceString = strings.TrimSpace(`
 ID       Name           Description        Mode  Created At
 someID   CLIWorkspace   NGWAFCLIWorkspace  log   2021-06-15 23:00:00 +0000 UTC
