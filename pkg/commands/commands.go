@@ -57,7 +57,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/ngwaf"
 	"github.com/fastly/cli/pkg/commands/ngwaf/virtualpatch"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspaces"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
@@ -401,12 +401,12 @@ func Define( // nolint:revive // function-length
 	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchRetrieve := virtualpatch.NewRetrieveCommand(ngwafVirtualpatchRoot.CmdClause, data)
-	ngwafWorkspacesRoot := workspaces.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafWorkspacesCreate := workspaces.NewCreateCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesDelete := workspaces.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesGet := workspaces.NewGetCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesList := workspaces.NewListCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesUpdate := workspaces.NewUpdateCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesRoot := workspace.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafWorkspacesCreate := workspace.NewCreateCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesDelete := workspace.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesGet := workspace.NewGetCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesList := workspace.NewListCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesUpdate := workspace.NewUpdateCommand(ngwafWorkspacesRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)

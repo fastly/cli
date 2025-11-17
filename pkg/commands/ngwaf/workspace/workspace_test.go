@@ -1,4 +1,4 @@
-package workspaces_test
+package workspace_test
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	root "github.com/fastly/cli/pkg/commands/ngwaf"
-	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspaces"
+	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces"
