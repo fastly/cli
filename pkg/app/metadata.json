@@ -159,8 +159,18 @@
       "examples": [
         {
           "cmd": "fastly backend create --name example --address example.com --version active --autoclone",
-          "description": "Create a backend with a hostname assigned to the `--address` flag. The `--override-host`, `--ssl-cert-hostname` and `--ssl-sni-hostname` will default to the same hostname assigned to `--address`.",
+          "description": "Create a backend with a hostname assigned to the `--address` flag. The `--override-host`, `--ssl-cert-hostname` and `--ssl-sni-hostname` will default to the same hostname assigned to `--address`. SSL is enabled by default with port 443.",
           "title": "Create a backend on the currently active service version"
+        },
+        {
+          "cmd": "fastly backend create --name my_backend --address http-me.fastly.dev --version latest --autoclone",
+          "description": "Create a backend with SSL enabled by default. The backend will use port 443 unless explicitly specified with `--port`.",
+          "title": "Create a backend with default SSL settings"
+        },
+        {
+          "cmd": "fastly backend create --name my_backend --address http-me.fastly.dev --version latest --autoclone --no-use-ssl --port 80",
+          "description": "Create a backend without SSL using the `--no-use-ssl` flag. When SSL is disabled, you should explicitly specify the port.",
+          "title": "Create a backend without SSL"
         }
       ],
       "apis": [

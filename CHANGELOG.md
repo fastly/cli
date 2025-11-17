@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Breaking:
+- feat(backend): `backend create` now enables SSL by default. Backends will use HTTPS on port 443 unless explicitly disabled with `--no-use-ssl`. Users who need non-SSL backends must now use the `--no-use-ssl` flag and specify `--port`.
 
 ### Enhancements:
 - feat(commands/ngwaf/workspaces): add support for update operation for NGWAF workspaces ([#1578](https://github.com/fastly/cli/pull/1578))
