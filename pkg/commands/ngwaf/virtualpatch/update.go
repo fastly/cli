@@ -48,7 +48,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Action:      c.enabled.Set,
 		Dst:         &c.enabled.Value,
 	})
-	//c.RegisterFlag(argparser.StringFlagOpts("enabled", " Specify the the toggle status indicator of the VirtualPatch.").Action(c.enabled.Set).BoolVar(&c.enabled.Value))
 	c.CmdClause.Flag("mode", "Specify the action to take when a signal for virtual patch is detected.").Action(c.mode.Set).StringVar(&c.mode.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
