@@ -21,7 +21,7 @@ type DeleteCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	workspaceID string
+	workspaceID argparser.OptionalWorkspaceID
 	redactionID string
 }
 
@@ -37,7 +37,12 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 
 	// Required.
 	c.CmdClause.Flag("redaction-id", "Workspace ID").Required().StringVar(&c.redactionID)
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagNGWAFWorkspaceID,
+		Description: argparser.FlagNGWAFWorkspaceIDDesc,
+		Dst:         &c.workspaceID.Value,
+		Action:      c.workspaceID.Set,
+	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
@@ -47,6 +52,12 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
+	// Call Parse() to ensure that we check if workspaceID
+	// is set or to throw the appropriate error.
+	if err := c.workspaceID.Parse(); err != nil {
+		return err
+	}
+
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -58,7 +69,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	err := redactions.Delete(context.TODO(), fc, &redactions.DeleteInput{
 		RedactionID: &c.redactionID,
-		WorkspaceID: &c.workspaceID,
+		WorkspaceID: &c.workspaceID.Value,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)

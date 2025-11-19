@@ -20,7 +20,7 @@ type UpdateCommand struct {
 
 	// Required.
 	redactionID string
-	workspaceID string
+	workspaceID argparser.OptionalWorkspaceID
 
 	// Optional.
 	field         argparser.OptionalString
@@ -38,7 +38,12 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 	// Required.
 	c.CmdClause.Flag("redaction-id", "A base62-encoded representation of a UUID used to uniquely identify a redaction.").Required().StringVar(&c.redactionID)
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagNGWAFWorkspaceID,
+		Description: argparser.FlagNGWAFWorkspaceIDDesc,
+		Dst:         &c.workspaceID.Value,
+		Action:      c.workspaceID.Set,
+	})
 
 	// Optional.
 	c.CmdClause.Flag("field", "The name of the field that should be redacted.").Action(c.field.Set).StringVar(&c.field.Value)
@@ -50,10 +55,16 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
+	// Call Parse() to ensure that we check if workspaceID
+	// is set or to throw the appropriate error.
+	if err := c.workspaceID.Parse(); err != nil {
+		return err
+	}
+
 	var err error
 	input := &redactions.UpdateInput{
 		RedactionID: &c.redactionID,
-		WorkspaceID: &c.workspaceID,
+		WorkspaceID: &c.workspaceID.Value,
 	}
 
 	if c.field.WasSet {

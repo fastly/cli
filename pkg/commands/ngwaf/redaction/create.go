@@ -21,7 +21,7 @@ type CreateCommand struct {
 	// Required.
 	field         string
 	redactionType string
-	workspaceID   string
+	workspaceID   argparser.OptionalWorkspaceID
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -36,7 +36,12 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	// Required.
 	c.CmdClause.Flag("field", "The name of the field that should be redacted.").Required().StringVar(&c.field)
 	c.CmdClause.Flag("type", "The type of field that is being redacted.").Required().StringVar(&c.redactionType)
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagNGWAFWorkspaceID,
+		Description: argparser.FlagNGWAFWorkspaceIDDesc,
+		Dst:         &c.workspaceID.Value,
+		Action:      c.workspaceID.Set,
+	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
@@ -46,11 +51,17 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
+	// Call Parse() to ensure that we check if workspaceID
+	// is set or to throw the appropriate error.
+	if err := c.workspaceID.Parse(); err != nil {
+		return err
+	}
+
 	var err error
 	input := &redactions.CreateInput{
 		Field:       &c.field,
 		Type:        &c.redactionType,
-		WorkspaceID: &c.workspaceID,
+		WorkspaceID: &c.workspaceID.Value,
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

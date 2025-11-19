@@ -44,7 +44,7 @@ func TestRedactionCreate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--field %s --type %s", redactionField, redactionType),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -102,7 +102,7 @@ func TestRedactionDelete(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--redaction-id %s", redactionID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate bad request",
@@ -164,7 +164,7 @@ func TestRedactionRetrieve(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--redaction-id %s", redactionID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate bad request",
@@ -241,7 +241,7 @@ func TestRedactionList(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -323,7 +323,7 @@ func TestRedactionUpdate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--redaction-id %s", redactionID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate API success",

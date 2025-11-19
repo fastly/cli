@@ -20,7 +20,7 @@ type ListCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	workspaceID string
+	workspaceID argparser.OptionalWorkspaceID
 
 	// Optional.
 	limit argparser.OptionalInt
@@ -37,7 +37,12 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause = parent.Command("list", "List redactions in a workspace")
 
 	// Required.
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagNGWAFWorkspaceID,
+		Description: argparser.FlagNGWAFWorkspaceIDDesc,
+		Dst:         &c.workspaceID.Value,
+		Action:      c.workspaceID.Set,
+	})
 
 	// Optional.
 	c.CmdClause.Flag("limit", "Limit how many results are returned").Action(c.limit.Set).IntVar(&c.limit.Value)
@@ -48,6 +53,12 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+	// Call Parse() to ensure that we check if workspaceID
+	// is set or to throw the appropriate error.
+	if err := c.workspaceID.Parse(); err != nil {
+		return err
+	}
+
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -58,7 +69,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := &redactions.ListInput{
-		WorkspaceID: &c.workspaceID,
+		WorkspaceID: &c.workspaceID.Value,
 	}
 
 	if c.limit.WasSet {
