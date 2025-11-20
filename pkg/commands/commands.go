@@ -56,6 +56,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/ngwaf"
+	"github.com/fastly/cli/pkg/commands/ngwaf/redaction"
 	"github.com/fastly/cli/pkg/commands/ngwaf/virtualpatch"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
@@ -397,6 +398,12 @@ func Define( // nolint:revive // function-length
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, data)
 	ngwafRoot := ngwaf.NewRootCommand(app, data)
+	ngwafRedactionRoot := redaction.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafRedactionCreate := redaction.NewCreateCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafRedactionDelete := redaction.NewDeleteCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafRedactionList := redaction.NewListCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafRedactionRetrieve := redaction.NewRetrieveCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafRedactionUpdate := redaction.NewUpdateCommand(ngwafRedactionRoot.CmdClause, data)
 	ngwafVirtualpatchRoot := virtualpatch.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
@@ -827,6 +834,12 @@ func Define( // nolint:revive // function-length
 		loggingSyslogList,
 		loggingSyslogUpdate,
 		ngwafRoot,
+		ngwafRedactionCreate,
+		ngwafRedactionDelete,
+		ngwafRedactionList,
+		ngwafRedactionRetrieve,
+		ngwafRedactionUpdate,
+		ngwafRedactionRoot,
 		ngwafVirtualpatchList,
 		ngwafVirtualpatchRetrieve,
 		ngwafVirtualpatchRoot,
