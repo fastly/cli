@@ -56,19 +56,19 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/ngwaf"
-	"github.com/fastly/cli/pkg/commands/ngwaf/accountcountrylist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/accountiplist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/accountsignallist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/accountstringlist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/accountwildcardlist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/countrylist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/iplist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/redaction"
+	"github.com/fastly/cli/pkg/commands/ngwaf/signallist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/stringlist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/virtualpatch"
+	"github.com/fastly/cli/pkg/commands/ngwaf/wildcardlist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspacecountrylist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspaceiplist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspacesignallist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspacestringlist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspacewildcardlist"
+	wscountrylist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/countrylist"
+	wsiplist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/iplist"
+	wssignallistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/signallist"
+	wsstringlistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/stringlist"
+	wswildcardlistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/wildcardlist"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
@@ -414,76 +414,76 @@ func Define( // nolint:revive // function-length
 	ngwafRedactionList := redaction.NewListCommand(ngwafRedactionRoot.CmdClause, data)
 	ngwafRedactionRetrieve := redaction.NewRetrieveCommand(ngwafRedactionRoot.CmdClause, data)
 	ngwafRedactionUpdate := redaction.NewUpdateCommand(ngwafRedactionRoot.CmdClause, data)
-	ngwafAccountCountryListRoot := accountcountrylist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafAccountCountryListCreate := accountcountrylist.NewCreateCommand(ngwafAccountCountryListRoot.CmdClause, data)
-	ngwafAccountCountryListDelete := accountcountrylist.NewDeleteCommand(ngwafAccountCountryListRoot.CmdClause, data)
-	ngwafAccountCountryListGet := accountcountrylist.NewGetCommand(ngwafAccountCountryListRoot.CmdClause, data)
-	ngwafAccountCountryListList := accountcountrylist.NewListCommand(ngwafAccountCountryListRoot.CmdClause, data)
-	ngwafAccountCountryListUpdate := accountcountrylist.NewUpdateCommand(ngwafAccountCountryListRoot.CmdClause, data)
-	ngwafAccountIPListRoot := accountiplist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafAccountIPListCreate := accountiplist.NewCreateCommand(ngwafAccountIPListRoot.CmdClause, data)
-	ngwafAccountIPListDelete := accountiplist.NewDeleteCommand(ngwafAccountIPListRoot.CmdClause, data)
-	ngwafAccountIPListGet := accountiplist.NewGetCommand(ngwafAccountIPListRoot.CmdClause, data)
-	ngwafAccountIPListList := accountiplist.NewListCommand(ngwafAccountIPListRoot.CmdClause, data)
-	ngwafAccountIPListUpdate := accountiplist.NewUpdateCommand(ngwafAccountIPListRoot.CmdClause, data)
-	ngwafAccountSignalListRoot := accountsignallist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafAccountSignalListCreate := accountsignallist.NewCreateCommand(ngwafAccountSignalListRoot.CmdClause, data)
-	ngwafAccountSignalListDelete := accountsignallist.NewDeleteCommand(ngwafAccountSignalListRoot.CmdClause, data)
-	ngwafAccountSignalListGet := accountsignallist.NewGetCommand(ngwafAccountSignalListRoot.CmdClause, data)
-	ngwafAccountSignalListList := accountsignallist.NewListCommand(ngwafAccountSignalListRoot.CmdClause, data)
-	ngwafAccountSignalListUpdate := accountsignallist.NewUpdateCommand(ngwafAccountSignalListRoot.CmdClause, data)
-	ngwafAccountStringListRoot := accountstringlist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafAccountStringListCreate := accountstringlist.NewCreateCommand(ngwafAccountStringListRoot.CmdClause, data)
-	ngwafAccountStringListDelete := accountstringlist.NewDeleteCommand(ngwafAccountStringListRoot.CmdClause, data)
-	ngwafAccountStringListGet := accountstringlist.NewGetCommand(ngwafAccountStringListRoot.CmdClause, data)
-	ngwafAccountStringListList := accountstringlist.NewListCommand(ngwafAccountStringListRoot.CmdClause, data)
-	ngwafAccountStringListUpdate := accountstringlist.NewUpdateCommand(ngwafAccountStringListRoot.CmdClause, data)
-	ngwafAccountWildcardListRoot := accountwildcardlist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafAccountWildcardListCreate := accountwildcardlist.NewCreateCommand(ngwafAccountWildcardListRoot.CmdClause, data)
-	ngwafAccountWildcardListDelete := accountwildcardlist.NewDeleteCommand(ngwafAccountWildcardListRoot.CmdClause, data)
-	ngwafAccountWildcardListGet := accountwildcardlist.NewGetCommand(ngwafAccountWildcardListRoot.CmdClause, data)
-	ngwafAccountWildcardListList := accountwildcardlist.NewListCommand(ngwafAccountWildcardListRoot.CmdClause, data)
-	ngwafAccountWildcardListUpdate := accountwildcardlist.NewUpdateCommand(ngwafAccountWildcardListRoot.CmdClause, data)
-	ngwafWorkspaceCountryListRoot := workspacecountrylist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafWorkspaceCountryListCreate := workspacecountrylist.NewCreateCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
-	ngwafWorkspaceCountryListDelete := workspacecountrylist.NewDeleteCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
-	ngwafWorkspaceCountryListGet := workspacecountrylist.NewGetCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
-	ngwafWorkspaceCountryListList := workspacecountrylist.NewListCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
-	ngwafWorkspaceCountryListUpdate := workspacecountrylist.NewUpdateCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
-	ngwafWorkspaceIPListRoot := workspaceiplist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafWorkspaceIPListCreate := workspaceiplist.NewCreateCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
-	ngwafWorkspaceIPListDelete := workspaceiplist.NewDeleteCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
-	ngwafWorkspaceIPListGet := workspaceiplist.NewGetCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
-	ngwafWorkspaceIPListList := workspaceiplist.NewListCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
-	ngwafWorkspaceIPListUpdate := workspaceiplist.NewUpdateCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
-	ngwafWorkspaceSignalListRoot := workspacesignallist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafWorkspaceSignalListCreate := workspacesignallist.NewCreateCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
-	ngwafWorkspaceSignalListDelete := workspacesignallist.NewDeleteCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
-	ngwafWorkspaceSignalListGet := workspacesignallist.NewGetCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
-	ngwafWorkspaceSignalListList := workspacesignallist.NewListCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
-	ngwafWorkspaceSignalListUpdate := workspacesignallist.NewUpdateCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
-	ngwafWorkspaceStringListRoot := workspacestringlist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafWorkspaceStringListCreate := workspacestringlist.NewCreateCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
-	ngwafWorkspaceStringListDelete := workspacestringlist.NewDeleteCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
-	ngwafWorkspaceStringListGet := workspacestringlist.NewGetCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
-	ngwafWorkspaceStringListList := workspacestringlist.NewListCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
-	ngwafWorkspaceStringListUpdate := workspacestringlist.NewUpdateCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
-	ngwafWorkspaceWildcardListRoot := workspacewildcardlist.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafWorkspaceWildcardListCreate := workspacewildcardlist.NewCreateCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
-	ngwafWorkspaceWildcardListDelete := workspacewildcardlist.NewDeleteCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
-	ngwafWorkspaceWildcardListGet := workspacewildcardlist.NewGetCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
-	ngwafWorkspaceWildcardListList := workspacewildcardlist.NewListCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
-	ngwafWorkspaceWildcardListUpdate := workspacewildcardlist.NewUpdateCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
+	ngwafCountryListRoot := countrylist.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafCountryListCreate := countrylist.NewCreateCommand(ngwafCountryListRoot.CmdClause, data)
+	ngwafCountryListDelete := countrylist.NewDeleteCommand(ngwafCountryListRoot.CmdClause, data)
+	ngwafCountryListGet := countrylist.NewGetCommand(ngwafCountryListRoot.CmdClause, data)
+	ngwafCountryListList := countrylist.NewListCommand(ngwafCountryListRoot.CmdClause, data)
+	ngwafCountryListUpdate := countrylist.NewUpdateCommand(ngwafCountryListRoot.CmdClause, data)
+	ngwafIPListRoot := iplist.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafIPListCreate := iplist.NewCreateCommand(ngwafIPListRoot.CmdClause, data)
+	ngwafIPListDelete := iplist.NewDeleteCommand(ngwafIPListRoot.CmdClause, data)
+	ngwafIPListGet := iplist.NewGetCommand(ngwafIPListRoot.CmdClause, data)
+	ngwafIPListList := iplist.NewListCommand(ngwafIPListRoot.CmdClause, data)
+	ngwafIPListUpdate := iplist.NewUpdateCommand(ngwafIPListRoot.CmdClause, data)
+	ngwafSignalListRoot := signallist.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafSignalListCreate := signallist.NewCreateCommand(ngwafSignalListRoot.CmdClause, data)
+	ngwafSignalListDelete := signallist.NewDeleteCommand(ngwafSignalListRoot.CmdClause, data)
+	ngwafSignalListGet := signallist.NewGetCommand(ngwafSignalListRoot.CmdClause, data)
+	ngwafSignalListList := signallist.NewListCommand(ngwafSignalListRoot.CmdClause, data)
+	ngwafSignalListUpdate := signallist.NewUpdateCommand(ngwafSignalListRoot.CmdClause, data)
+	ngwafStringListRoot := stringlist.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafStringListCreate := stringlist.NewCreateCommand(ngwafStringListRoot.CmdClause, data)
+	ngwafStringListDelete := stringlist.NewDeleteCommand(ngwafStringListRoot.CmdClause, data)
+	ngwafStringListGet := stringlist.NewGetCommand(ngwafStringListRoot.CmdClause, data)
+	ngwafStringListList := stringlist.NewListCommand(ngwafStringListRoot.CmdClause, data)
+	ngwafStringListUpdate := stringlist.NewUpdateCommand(ngwafStringListRoot.CmdClause, data)
+	ngwafWildcardListRoot := wildcardlist.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafWildcardListCreate := wildcardlist.NewCreateCommand(ngwafWildcardListRoot.CmdClause, data)
+	ngwafWildcardListDelete := wildcardlist.NewDeleteCommand(ngwafWildcardListRoot.CmdClause, data)
+	ngwafWildcardListGet := wildcardlist.NewGetCommand(ngwafWildcardListRoot.CmdClause, data)
+	ngwafWildcardListList := wildcardlist.NewListCommand(ngwafWildcardListRoot.CmdClause, data)
+	ngwafWildcardListUpdate := wildcardlist.NewUpdateCommand(ngwafWildcardListRoot.CmdClause, data)
+	ngwafWorkspaceRoot := workspace.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafWorkspaceCreate := workspace.NewCreateCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceDelete := workspace.NewDeleteCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceGet := workspace.NewGetCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceList := workspace.NewListCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceUpdate := workspace.NewUpdateCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceCountryListRoot := wscountrylist.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceCountryListCreate := wscountrylist.NewCreateCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
+	ngwafWorkspaceCountryListDelete := wscountrylist.NewDeleteCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
+	ngwafWorkspaceCountryListGet := wscountrylist.NewGetCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
+	ngwafWorkspaceCountryListList := wscountrylist.NewListCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
+	ngwafWorkspaceCountryListUpdate := wscountrylist.NewUpdateCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
+	ngwafWorkspaceIPListRoot := wsiplist.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceIPListCreate := wsiplist.NewCreateCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
+	ngwafWorkspaceIPListDelete := wsiplist.NewDeleteCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
+	ngwafWorkspaceIPListGet := wsiplist.NewGetCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
+	ngwafWorkspaceIPListList := wsiplist.NewListCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
+	ngwafWorkspaceIPListUpdate := wsiplist.NewUpdateCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
+	ngwafWorkspaceSignalListRoot := wssignallistlist.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceSignalListCreate := wssignallistlist.NewCreateCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
+	ngwafWorkspaceSignalListDelete := wssignallistlist.NewDeleteCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
+	ngwafWorkspaceSignalListGet := wssignallistlist.NewGetCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
+	ngwafWorkspaceSignalListList := wssignallistlist.NewListCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
+	ngwafWorkspaceSignalListUpdate := wssignallistlist.NewUpdateCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
+	ngwafWorkspaceStringListRoot := wsstringlistlist.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceStringListCreate := wsstringlistlist.NewCreateCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
+	ngwafWorkspaceStringListDelete := wsstringlistlist.NewDeleteCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
+	ngwafWorkspaceStringListGet := wsstringlistlist.NewGetCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
+	ngwafWorkspaceStringListList := wsstringlistlist.NewListCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
+	ngwafWorkspaceStringListUpdate := wsstringlistlist.NewUpdateCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
+	ngwafWorkspaceWildcardListRoot := wildcardlist.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceWildcardListCreate := wswildcardlistlist.NewCreateCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
+	ngwafWorkspaceWildcardListDelete := wswildcardlistlist.NewDeleteCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
+	ngwafWorkspaceWildcardListGet := wswildcardlistlist.NewGetCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
+	ngwafWorkspaceWildcardListList := wswildcardlistlist.NewListCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
+	ngwafWorkspaceWildcardListUpdate := wswildcardlistlist.NewUpdateCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
 	ngwafVirtualpatchRoot := virtualpatch.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchRetrieve := virtualpatch.NewRetrieveCommand(ngwafVirtualpatchRoot.CmdClause, data)
-	ngwafWorkspacesRoot := workspace.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafWorkspacesCreate := workspace.NewCreateCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesDelete := workspace.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesGet := workspace.NewGetCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesList := workspace.NewListCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesUpdate := workspace.NewUpdateCommand(ngwafWorkspacesRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
@@ -910,35 +910,35 @@ func Define( // nolint:revive // function-length
 		ngwafRedactionRetrieve,
 		ngwafRedactionUpdate,
 		ngwafRedactionRoot,
-		ngwafAccountCountryListRoot,
-		ngwafAccountCountryListCreate,
-		ngwafAccountCountryListDelete,
-		ngwafAccountCountryListGet,
-		ngwafAccountCountryListList,
-		ngwafAccountCountryListUpdate,
-		ngwafAccountIPListRoot,
-		ngwafAccountIPListCreate,
-		ngwafAccountIPListDelete,
-		ngwafAccountIPListGet,
-		ngwafAccountIPListList,
-		ngwafAccountIPListUpdate,
-		ngwafAccountSignalListRoot,
-		ngwafAccountSignalListCreate,
-		ngwafAccountSignalListDelete,
-		ngwafAccountSignalListGet,
-		ngwafAccountSignalListList,
-		ngwafAccountSignalListUpdate,
-		ngwafAccountStringListRoot,
-		ngwafAccountStringListCreate,
-		ngwafAccountStringListDelete,
-		ngwafAccountStringListGet,
-		ngwafAccountStringListList,
-		ngwafAccountStringListUpdate,
-		ngwafAccountWildcardListCreate,
-		ngwafAccountWildcardListDelete,
-		ngwafAccountWildcardListGet,
-		ngwafAccountWildcardListList,
-		ngwafAccountWildcardListUpdate,
+		ngwafCountryListRoot,
+		ngwafCountryListCreate,
+		ngwafCountryListDelete,
+		ngwafCountryListGet,
+		ngwafCountryListList,
+		ngwafCountryListUpdate,
+		ngwafIPListRoot,
+		ngwafIPListCreate,
+		ngwafIPListDelete,
+		ngwafIPListGet,
+		ngwafIPListList,
+		ngwafIPListUpdate,
+		ngwafSignalListRoot,
+		ngwafSignalListCreate,
+		ngwafSignalListDelete,
+		ngwafSignalListGet,
+		ngwafSignalListList,
+		ngwafSignalListUpdate,
+		ngwafStringListRoot,
+		ngwafStringListCreate,
+		ngwafStringListDelete,
+		ngwafStringListGet,
+		ngwafStringListList,
+		ngwafStringListUpdate,
+		ngwafWildcardListCreate,
+		ngwafWildcardListDelete,
+		ngwafWildcardListGet,
+		ngwafWildcardListList,
+		ngwafWildcardListUpdate,
 		ngwafWorkspaceCountryListRoot,
 		ngwafWorkspaceCountryListCreate,
 		ngwafWorkspaceCountryListDelete,
@@ -972,12 +972,12 @@ func Define( // nolint:revive // function-length
 		ngwafVirtualpatchRetrieve,
 		ngwafVirtualpatchRoot,
 		ngwafVirtualpatchUpdate,
-		ngwafWorkspacesRoot,
-		ngwafWorkspacesCreate,
-		ngwafWorkspacesDelete,
-		ngwafWorkspacesGet,
-		ngwafWorkspacesList,
-		ngwafWorkspacesUpdate,
+		ngwafWorkspaceRoot,
+		ngwafWorkspaceCreate,
+		ngwafWorkspaceDelete,
+		ngwafWorkspaceGet,
+		ngwafWorkspaceList,
+		ngwafWorkspaceUpdate,
 		objectStorageRoot,
 		objectStorageAccesskeysRoot,
 		objectStorageAccesskeysCreate,
