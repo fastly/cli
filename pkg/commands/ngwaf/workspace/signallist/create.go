@@ -45,7 +45,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Description: argparser.FlagNGWAFWorkspaceIDDesc,
 		Dst:         &c.workspaceID.Value,
 		Action:      c.workspaceID.Set,
-		Required:    true,
 	})
 
 	// Optional.

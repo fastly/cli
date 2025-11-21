@@ -44,7 +44,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Description: argparser.FlagNGWAFWorkspaceIDDesc,
 		Dst:         &c.workspaceID.Value,
 		Action:      c.workspaceID.Set,
-		Required:    true,
 	})
 
 	// Optional.

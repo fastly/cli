@@ -41,7 +41,6 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 		Description: argparser.FlagNGWAFWorkspaceIDDesc,
 		Dst:         &c.workspaceID.Value,
 		Action:      c.workspaceID.Set,
-		Required:    true,
 	})
 
 	// Optional.
