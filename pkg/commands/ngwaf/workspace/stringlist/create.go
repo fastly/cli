@@ -38,7 +38,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause = parent.Command("create", "Create a workspace-level string list").Alias("add")
 
 	// Required.
-	c.CmdClause.Flag("entries", "Entries for the list. Can either a comma separated list or a path to a file.").Required().StringVar(&c.entries)
+	c.CmdClause.Flag("entries", "Entries for the list. Can either be a comma separated list or a path to a file.").Required().StringVar(&c.entries)
 	c.CmdClause.Flag("name", "User submitted display name of a list.").Required().StringVar(&c.name)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagNGWAFWorkspaceID,

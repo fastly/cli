@@ -41,7 +41,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 	// Optional.
 	c.CmdClause.Flag("description", "User submitted description of the list.").Action(c.description.Set).StringVar(&c.description.Value)
-	c.CmdClause.Flag("entries", "Entries for the list. Can either a comma separated list or a path to a file.").Action(c.entries.Set).StringVar(&c.entries.Value)
+	c.CmdClause.Flag("entries", "Entries for the list. Can either be a comma separated list or a path to a file.").Action(c.entries.Set).StringVar(&c.entries.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
