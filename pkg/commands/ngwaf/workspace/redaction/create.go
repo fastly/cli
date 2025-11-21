@@ -24,7 +24,7 @@ type CreateCommand struct {
 	workspaceID   argparser.OptionalWorkspaceID
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
+// NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
 		Base: argparser.Base{

@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GetCommand calls the Fastly API to get a workspace.
+// GetCommand calls the Fastly API to get a virtual patch.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -32,7 +32,7 @@ func NewRetrieveCommand(parent argparser.Registerer, g *global.Data) *GetCommand
 		},
 	}
 
-	c.CmdClause = parent.Command("retrieve", "Retrieve a vitual patch").Alias("get")
+	c.CmdClause = parent.Command("retrieve", "Retrieve a virtual patch").Alias("get")
 
 	// Required.
 	c.CmdClause.Flag("virtual-patch-id", "Virtual Patch ID").Required().StringVar(&c.virtualpatchID)

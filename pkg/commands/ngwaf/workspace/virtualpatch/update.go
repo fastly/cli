@@ -44,7 +44,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	// Optional.
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        "enabled",
-		Description: "Specify the the toggle status indicator of the VirtualPatch.",
+		Description: "Specify the toggle status indicator of the virtual patch.",
 		Action:      c.enabled.Set,
 		Dst:         &c.enabled.Value,
 	})
