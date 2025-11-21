@@ -31,7 +31,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 		},
 	}
 
-	c.CmdClause = parent.Command("list", "List vitual patches in a workspace")
+	c.CmdClause = parent.Command("list", "List virtual patches in a workspace")
 
 	// Required.
 	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)

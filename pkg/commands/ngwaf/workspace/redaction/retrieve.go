@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GetCommand calls the Fastly API to get a workspace.
+// GetCommand calls the Fastly API to get a redaction.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -32,7 +32,7 @@ func NewRetrieveCommand(parent argparser.Registerer, g *global.Data) *GetCommand
 		},
 	}
 
-	c.CmdClause = parent.Command("retrieve", "Retrieve a redaction")
+	c.CmdClause = parent.Command("retrieve", "Retrieve a redaction").Alias("get")
 
 	// Required.
 	c.CmdClause.Flag("redaction-id", "Redaction ID").Required().StringVar(&c.redactionID)

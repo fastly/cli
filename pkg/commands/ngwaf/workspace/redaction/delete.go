@@ -15,7 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeleteCommand calls the Fastly API to delete a workspace.
+// DeleteCommand calls the Fastly API to delete a redaction.
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -36,7 +36,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.CmdClause = parent.Command("delete", "Delete a redaction")
 
 	// Required.
-	c.CmdClause.Flag("redaction-id", "Workspace ID").Required().StringVar(&c.redactionID)
+	c.CmdClause.Flag("redaction-id", "Redaction ID").Required().StringVar(&c.redactionID)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagNGWAFWorkspaceID,
 		Description: argparser.FlagNGWAFWorkspaceIDDesc,

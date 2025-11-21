@@ -58,16 +58,16 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf"
 	"github.com/fastly/cli/pkg/commands/ngwaf/countrylist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/iplist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/redaction"
 	"github.com/fastly/cli/pkg/commands/ngwaf/signallist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/stringlist"
-	"github.com/fastly/cli/pkg/commands/ngwaf/virtualpatch"
 	"github.com/fastly/cli/pkg/commands/ngwaf/wildcardlist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	wscountrylist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/countrylist"
 	wsiplist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/iplist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/redaction"
 	wssignallistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/signallist"
 	wsstringlistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/stringlist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/virtualpatch"
 	wswildcardlistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/wildcardlist"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
@@ -408,7 +408,8 @@ func Define( // nolint:revive // function-length
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, data)
 	ngwafRoot := ngwaf.NewRootCommand(app, data)
-	ngwafRedactionRoot := redaction.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafWorkspacesRoot := workspace.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafRedactionRoot := redaction.NewRootCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafRedactionCreate := redaction.NewCreateCommand(ngwafRedactionRoot.CmdClause, data)
 	ngwafRedactionDelete := redaction.NewDeleteCommand(ngwafRedactionRoot.CmdClause, data)
 	ngwafRedactionList := redaction.NewListCommand(ngwafRedactionRoot.CmdClause, data)
@@ -480,7 +481,7 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspaceWildcardListGet := wswildcardlistlist.NewGetCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
 	ngwafWorkspaceWildcardListList := wswildcardlistlist.NewListCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
 	ngwafWorkspaceWildcardListUpdate := wswildcardlistlist.NewUpdateCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
-	ngwafVirtualpatchRoot := virtualpatch.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafVirtualpatchRoot := virtualpatch.NewRootCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchRetrieve := virtualpatch.NewRetrieveCommand(ngwafVirtualpatchRoot.CmdClause, data)

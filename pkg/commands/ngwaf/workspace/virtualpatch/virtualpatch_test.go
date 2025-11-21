@@ -9,7 +9,8 @@ import (
 	"testing"
 
 	root "github.com/fastly/cli/pkg/commands/ngwaf"
-	sub "github.com/fastly/cli/pkg/commands/ngwaf/virtualpatch"
+	workspace "github.com/fastly/cli/pkg/commands/ngwaf/workspace"
+	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace/virtualpatch"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/virtualpatches"
@@ -91,7 +92,7 @@ func TestVirtualPatchRetrieve(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "retrieve"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, workspace.CommandName, sub.CommandName, "retrieve"}, scenarios)
 }
 
 func TestVirtualPatchList(t *testing.T) {
@@ -177,7 +178,7 @@ func TestVirtualPatchList(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, workspace.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestVirtualPatchUpdate(t *testing.T) {
@@ -290,7 +291,7 @@ func TestVirtualPatchUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, workspace.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 var virtualpatchString = strings.TrimSpace(`
