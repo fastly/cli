@@ -56,9 +56,9 @@ import (
 	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/ngwaf"
-	"github.com/fastly/cli/pkg/commands/ngwaf/redaction"
-	"github.com/fastly/cli/pkg/commands/ngwaf/virtualpatch"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/redaction"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/virtualpatch"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
@@ -398,22 +398,22 @@ func Define( // nolint:revive // function-length
 	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, data)
 	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, data)
 	ngwafRoot := ngwaf.NewRootCommand(app, data)
-	ngwafRedactionRoot := redaction.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafRedactionCreate := redaction.NewCreateCommand(ngwafRedactionRoot.CmdClause, data)
-	ngwafRedactionDelete := redaction.NewDeleteCommand(ngwafRedactionRoot.CmdClause, data)
-	ngwafRedactionList := redaction.NewListCommand(ngwafRedactionRoot.CmdClause, data)
-	ngwafRedactionRetrieve := redaction.NewRetrieveCommand(ngwafRedactionRoot.CmdClause, data)
-	ngwafRedactionUpdate := redaction.NewUpdateCommand(ngwafRedactionRoot.CmdClause, data)
-	ngwafVirtualpatchRoot := virtualpatch.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
-	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
-	ngwafVirtualpatchRetrieve := virtualpatch.NewRetrieveCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafWorkspacesRoot := workspace.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafWorkspacesCreate := workspace.NewCreateCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesDelete := workspace.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesGet := workspace.NewGetCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesList := workspace.NewListCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesUpdate := workspace.NewUpdateCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafRedactionRoot := redaction.NewRootCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafRedactionCreate := redaction.NewCreateCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafRedactionDelete := redaction.NewDeleteCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafRedactionList := redaction.NewListCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafRedactionRetrieve := redaction.NewRetrieveCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafRedactionUpdate := redaction.NewUpdateCommand(ngwafRedactionRoot.CmdClause, data)
+	ngwafVirtualpatchRoot := virtualpatch.NewRootCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
+	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
+	ngwafVirtualpatchRetrieve := virtualpatch.NewRetrieveCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)

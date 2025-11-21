@@ -24,14 +24,14 @@ type CreateCommand struct {
 	workspaceID   argparser.OptionalWorkspaceID
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
+// NewCreateCommand returns a usable command registered under the parent.
 func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	c := CreateCommand{
 		Base: argparser.Base{
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create a redaction")
+	c.CmdClause = parent.Command("create", "Create a redaction").Alias("add")
 
 	// Required.
 	c.CmdClause.Flag("field", "The name of the field that should be redacted.").Required().StringVar(&c.field)

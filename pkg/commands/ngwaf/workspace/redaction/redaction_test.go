@@ -9,7 +9,8 @@ import (
 	"testing"
 
 	root "github.com/fastly/cli/pkg/commands/ngwaf"
-	sub "github.com/fastly/cli/pkg/commands/ngwaf/redaction"
+	workspace "github.com/fastly/cli/pkg/commands/ngwaf/workspace"
+	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace/redaction"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/redactions"
@@ -89,7 +90,7 @@ func TestRedactionCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, workspace.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestRedactionDelete(t *testing.T) {
@@ -151,7 +152,7 @@ func TestRedactionDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, workspace.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestRedactionRetrieve(t *testing.T) {
@@ -215,7 +216,7 @@ func TestRedactionRetrieve(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "retrieve"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, workspace.CommandName, sub.CommandName, "retrieve"}, scenarios)
 }
 
 func TestRedactionList(t *testing.T) {
@@ -303,7 +304,7 @@ func TestRedactionList(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, workspace.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestRedactionUpdate(t *testing.T) {
@@ -354,7 +355,7 @@ func TestRedactionUpdate(t *testing.T) {
 			WantOutput: fstfmt.EncodeJSON(redaction),
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, workspace.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 var listRedactionString = strings.TrimSpace(`
