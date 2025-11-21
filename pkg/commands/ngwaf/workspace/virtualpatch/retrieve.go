@@ -32,7 +32,7 @@ func NewRetrieveCommand(parent argparser.Registerer, g *global.Data) *GetCommand
 		},
 	}
 
-	c.CmdClause = parent.Command("retrieve", "Retrieve a vitual patch")
+	c.CmdClause = parent.Command("retrieve", "Retrieve a vitual patch").Alias("get")
 
 	// Required.
 	c.CmdClause.Flag("virtual-patch-id", "Virtual Patch ID").Required().StringVar(&c.virtualpatchID)
