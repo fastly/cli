@@ -65,9 +65,17 @@ func TestIPListCreate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--entries %s --name %s", listEntries, listName),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Name: "validate missing --workspace-id flag",
+			Args: fmt.Sprintf("--entries %s --name %s", listEntries, listName),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     http.StatusText(http.StatusNoContent),
+					},
+				},
+			},
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -123,9 +131,17 @@ func TestIPListDelete(t *testing.T) {
 			WantError: "error parsing arguments: required flag --list-id not provided",
 		},
 		{
-			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--list-id %s", listID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Name: "validate missing --workspace-id flag",
+			Args: fmt.Sprintf("--list-id %s", listID),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     http.StatusText(http.StatusNoContent),
+					},
+				},
+			},
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate bad request",
@@ -185,9 +201,17 @@ func TestIPListGet(t *testing.T) {
 			WantError: "error parsing arguments: required flag --list-id not provided",
 		},
 		{
-			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--list-id %s", listID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Name: "validate missing --workspace-id flag",
+			Args: fmt.Sprintf("--list-id %s", listID),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     http.StatusText(http.StatusNoContent),
+					},
+				},
+			},
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate bad request",
@@ -252,9 +276,17 @@ func TestIPListList(t *testing.T) {
 
 	scenarios := []testutil.CLIScenario{
 		{
-			Name:      "validate missing --workspace-id flag",
-			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Name: "validate missing --workspace-id flag",
+			Args: "",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     http.StatusText(http.StatusNoContent),
+					},
+				},
+			},
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -339,9 +371,17 @@ func TestIPListUpdate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --list-id not provided",
 		},
 		{
-			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--list-id %s", listID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Name: "validate missing --workspace-id flag",
+			Args: fmt.Sprintf("--list-id %s", listID),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusNoContent,
+						Status:     http.StatusText(http.StatusNoContent),
+					},
+				},
+			},
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate API success",
