@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	root "github.com/fastly/cli/pkg/commands/ngwaf"
-	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	sub2 "github.com/fastly/cli/pkg/commands/ngwaf/stringlist"
+	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/lists"
@@ -376,13 +376,13 @@ func TestStringListUpdate(t *testing.T) {
 }
 
 var listListsString = strings.TrimSpace(`
-ID           Name       Description    Type    Scope      Entries  Created At
-someListID   listName   NGWAFCLIList   string  workspace  1.0.0.0  2021-06-15 23:00:00 +0000 UTC
-someListID2  listName2  NGWAFCLIList2  string  workspace  1.0.0.0  2021-06-15 23:00:00 +0000 UTC
+ID           Name       Description    Type    Scope      Entries  Updated At                     Created At
+someListID   listName   NGWAFCLIList   string  workspace  1.0.0.0  2021-06-15 23:00:00 +0000 UTC  2021-06-15 23:00:00 +0000 UTC
+someListID2  listName2  NGWAFCLIList2  string  workspace  1.0.0.0  2021-06-15 23:00:00 +0000 UTC  2021-06-15 23:00:00 +0000 UTC
 `) + "\n"
 
 var zeroListString = strings.TrimSpace(`
-ID  Name  Description  Type  Scope  Entries  Created At
+ID  Name  Description  Type  Scope  Entries  Updated At  Created At
 `) + "\n"
 
 var listString = strings.TrimSpace(`

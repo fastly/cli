@@ -349,13 +349,13 @@ func TestStringListUpdate(t *testing.T) {
 }
 
 var listListsString = strings.TrimSpace(`
-ID           Name       Description    Type    Scope    Entries  Created At
-someListID   listName   NGWAFCLIList   string  account  1.0.0.0  2021-06-15 23:00:00 +0000 UTC
-someListID2  listName2  NGWAFCLIList2  string  account  1.0.0.0  2021-06-15 23:00:00 +0000 UTC
+ID           Name       Description    Type    Scope    Entries  Updated At                     Created At
+someListID   listName   NGWAFCLIList   string  account  1.0.0.0  2021-06-15 23:00:00 +0000 UTC  2021-06-15 23:00:00 +0000 UTC
+someListID2  listName2  NGWAFCLIList2  string  account  1.0.0.0  2021-06-15 23:00:00 +0000 UTC  2021-06-15 23:00:00 +0000 UTC
 `) + "\n"
 
 var zeroListString = strings.TrimSpace(`
-ID  Name  Description  Type  Scope  Entries  Created At
+ID  Name  Description  Type  Scope  Entries  Updated At  Created At
 `) + "\n"
 
 var listString = strings.TrimSpace(`
