@@ -35,7 +35,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("update", "Update a workspace level signal list")
+	c.CmdClause = parent.Command("update", "Update a workspace-level signal list")
 
 	// Required.
 	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)
@@ -66,7 +66,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		Entries:      c.entries,
 		ListID:       c.listID,
 		WorkspaceID:  &c.workspaceID,
-		Out:          out,
 	}
 
 	var ok bool

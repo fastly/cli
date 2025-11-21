@@ -47,7 +47,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		CommandScope: scope.ScopeTypeAccount,
 		Type:         "ip",
 		WorkspaceID:  nil,
-		Out:          out,
 	}
 
 	var ok bool

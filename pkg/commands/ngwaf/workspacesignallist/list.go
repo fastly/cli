@@ -59,7 +59,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		CommandScope: scope.ScopeTypeWorkspace,
 		Type:         "signal",
 		WorkspaceID:  &c.workspaceID,
-		Out:          out,
 	}
 
 	var ok bool

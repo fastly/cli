@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeleteCommand calls the Fastly API to delete an account level wildcardip list.
+// DeleteCommand calls the Fastly API to delete an account-level wildcardip list.
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -52,7 +52,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		CommandScope: scope.ScopeTypeAccount,
 		ListID:       c.listID,
 		WorkspaceID:  nil,
-		Out:          out,
 	}
 
 	var ok bool

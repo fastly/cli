@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeleteCommand calls the Fastly API to delete an workspace level string list.
+// DeleteCommand calls the Fastly API to delete an workspace-level string list.
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -60,7 +60,6 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		CommandScope: scope.ScopeTypeWorkspace,
 		ListID:       c.listID,
 		WorkspaceID:  &c.workspaceID,
-		Out:          out,
 	}
 
 	var ok bool

@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
 )
 
-// GetCommand calls the Fastly API to get an account level signal list.
+// GetCommand calls the Fastly API to get an account-level signal list.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -30,7 +30,7 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 		},
 	}
 
-	c.CmdClause = parent.Command("get", "Get an account level signal list")
+	c.CmdClause = parent.Command("get", "Get an account-level signal list")
 
 	// Required.
 	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)
@@ -51,7 +51,6 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		CommandScope: scope.ScopeTypeAccount,
 		ListID:       c.listID,
 		WorkspaceID:  nil,
-		Out:          out,
 	}
 
 	var ok bool

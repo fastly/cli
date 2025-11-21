@@ -2,7 +2,6 @@ package ngwaflist
 
 import (
 	"context"
-	"io"
 	"strings"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -21,7 +20,6 @@ type ListCreateInput struct {
 	Type         string
 	WorkspaceID  *argparser.OptionalWorkspaceID
 	FC           *fastly.Client
-	Out          io.Writer
 }
 
 func ListCreate(argsInput ListCreateInput) (*lists.List, error) {
@@ -55,7 +53,6 @@ type ListDeleteInput struct {
 	ListID       string
 	WorkspaceID  *argparser.OptionalWorkspaceID
 	FC           *fastly.Client
-	Out          io.Writer
 }
 
 func ListDelete(argsInput ListDeleteInput) error {
@@ -83,7 +80,6 @@ type ListGetInput struct {
 	ListID       string
 	WorkspaceID  *argparser.OptionalWorkspaceID
 	FC           *fastly.Client
-	Out          io.Writer
 }
 
 func ListGet(argsInput ListGetInput) (*lists.List, error) {
@@ -112,7 +108,6 @@ type ListListInput struct {
 	Type         string
 	WorkspaceID  *argparser.OptionalWorkspaceID
 	FC           *fastly.Client
-	Out          io.Writer
 }
 
 func ListList(argsInput ListListInput) (*lists.Lists, error) {
@@ -154,7 +149,6 @@ type ListUpdateInput struct {
 	ListID       string
 	WorkspaceID  *argparser.OptionalWorkspaceID
 	FC           *fastly.Client
-	Out          io.Writer
 }
 
 func ListUpdate(argsInput ListUpdateInput) (*lists.List, error) {

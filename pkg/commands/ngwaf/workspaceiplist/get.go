@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
 )
 
-// GetCommand calls the Fastly API to get a workspace level ip list.
+// GetCommand calls the Fastly API to get a workspace-level ip list.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -31,7 +31,7 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 		},
 	}
 
-	c.CmdClause = parent.Command("get", "Get a workspace level ip list")
+	c.CmdClause = parent.Command("get", "Get a workspace-level ip list")
 
 	// Required.
 	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)
@@ -59,7 +59,6 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		CommandScope: scope.ScopeTypeWorkspace,
 		ListID:       c.listID,
 		WorkspaceID:  &c.workspaceID,
-		Out:          out,
 	}
 
 	var ok bool

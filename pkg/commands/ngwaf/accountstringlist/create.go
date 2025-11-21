@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// CreateCommand calls the Fastly API to create account level string lists.
+// CreateCommand calls the Fastly API to create account-level string lists.
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -34,7 +34,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create an account level string list").Alias("add")
+	c.CmdClause = parent.Command("create", "Create an account-level string list").Alias("add")
 
 	// Required.
 	c.CmdClause.Flag("entries", "Entries for the list. Can either a comma separated list or a path to a file.").Required().StringVar(&c.entries)
@@ -59,7 +59,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		Name:         c.name,
 		Type:         "string",
 		WorkspaceID:  nil,
-		Out:          out,
 	}
 
 	var ok bool
