@@ -6,6 +6,7 @@
 
 ### Enhancements:
 - feat(commands/ngwaf/workspaces): add support for update operation for NGWAF workspaces ([#1578](https://github.com/fastly/cli/pull/1578))
+- feat(commands/ngwaf/lists): add support for CRUD operations for NGWAF Lists ([#1582](https://github.com/fastly/cli/pull/1582))
 
 ### Bug fixes:
 

@@ -1,11 +1,10 @@
-package ngwaf
+package countrylist
 
 import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -16,13 +15,13 @@ type RootCommand struct {
 }
 
 // CommandName is the string to be used to invoke this command.
-const CommandName = "ngwaf"
+const CommandName = "country-list"
 
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage NGWAF")
+	c.CmdClause = parent.Command(CommandName, "Manage NGWAF Account Country Lists")
 	return &c
 }
 
@@ -30,7 +29,3 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
 }
-
-var ScopeTypes = []string{string(scope.ScopeTypeAccount), string(scope.ScopeTypeWorkspace)}
-
-var DefaultAccountScope = []string{"*"}
