@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
 )
 
-// GetCommand calls the Fastly API to get an workspace-level string list.
+// GetCommand calls the Fastly API to get a workspace-level string list.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -31,7 +31,7 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 		},
 	}
 
-	c.CmdClause = parent.Command("get", "Get an workspace-level string list")
+	c.CmdClause = parent.Command("get", "Get a workspace-level string list")
 
 	// Required.
 	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)

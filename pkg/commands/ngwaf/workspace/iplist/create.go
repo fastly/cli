@@ -35,7 +35,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create an workspace-level ip list").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a workspace-level ip list").Alias("add")
 
 	// Required.
 	c.CmdClause.Flag("entries", "Entries for the list. Can either a comma separated list or a path to a file.").Required().StringVar(&c.entries)

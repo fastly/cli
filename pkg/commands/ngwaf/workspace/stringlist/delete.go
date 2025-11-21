@@ -14,7 +14,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeleteCommand calls the Fastly API to delete an workspace-level string list.
+// DeleteCommand calls the Fastly API to delete a workspace-level string list.
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
