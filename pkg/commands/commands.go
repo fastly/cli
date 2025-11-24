@@ -58,6 +58,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf"
 	"github.com/fastly/cli/pkg/commands/ngwaf/virtualpatch"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
+	workspaceAlertDatadog "github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/datadog"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
@@ -407,6 +409,13 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspacesGet := workspace.NewGetCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesList := workspace.NewListCommand(ngwafWorkspacesRoot.CmdClause, data)
 	ngwafWorkspacesUpdate := workspace.NewUpdateCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesAlertRoot := alert.NewRootCommand(ngwafWorkspacesRoot.CmdClause, data)
+	ngwafWorkspacesAlertDatadogRoot := workspaceAlertDatadog.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
+	ngwafWorkspacesAlertDatadogCreate := workspaceAlertDatadog.NewCreateCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspacesAlertDatadogDelete := workspaceAlertDatadog.NewDeleteCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspacesAlertDatadogGet := workspaceAlertDatadog.NewGetCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspacesAlertDatadogList := workspaceAlertDatadog.NewListCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspacesAlertDatadogUpdate := workspaceAlertDatadog.NewUpdateCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
@@ -837,6 +846,13 @@ func Define( // nolint:revive // function-length
 		ngwafWorkspacesGet,
 		ngwafWorkspacesList,
 		ngwafWorkspacesUpdate,
+		ngwafWorkspacesAlertRoot,
+		ngwafWorkspacesAlertDatadogRoot,
+		ngwafWorkspacesAlertDatadogCreate,
+		ngwafWorkspacesAlertDatadogDelete,
+		ngwafWorkspacesAlertDatadogGet,
+		ngwafWorkspacesAlertDatadogList,
+		ngwafWorkspacesAlertDatadogUpdate,
 		objectStorageRoot,
 		objectStorageAccesskeysRoot,
 		objectStorageAccesskeysCreate,
