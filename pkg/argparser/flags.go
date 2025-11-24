@@ -30,10 +30,11 @@ var (
 
 // StringFlagOpts enables easy configuration of a flag.
 type StringFlagOpts struct {
-	Action        kingpin.Action
-	Description   string
-	Dst           *string
-	ForceRequired bool // Shows as required in help text without enforcing at parse time
+	Action      kingpin.Action
+	Description string
+	Dst         *string
+	// Shows as required in help text without enforcing at parse time
+	ForceRequired bool
 	Name          string
 	Required      bool
 	Short         rune
