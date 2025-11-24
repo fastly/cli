@@ -30,12 +30,13 @@ var (
 
 // StringFlagOpts enables easy configuration of a flag.
 type StringFlagOpts struct {
-	Action      kingpin.Action
-	Description string
-	Dst         *string
-	Name        string
-	Required    bool
-	Short       rune
+	Action        kingpin.Action
+	Description   string
+	Dst           *string
+	ForceRequired bool // Shows as required in help text without enforcing at parse time
+	Name          string
+	Required      bool
+	Short         rune
 }
 
 // RegisterFlag defines a flag.
@@ -44,7 +45,15 @@ func (b Base) RegisterFlag(opts StringFlagOpts) {
 	if opts.Short > 0 {
 		clause = clause.Short(opts.Short)
 	}
-	if opts.Required {
+	// ForceRequired makes the flag show as required and uses env var as fallback
+	if opts.ForceRequired {
+		// For workspace-id, use FASTLY_WORKSPACE_ID env var as fallback
+		if opts.Name == FlagNGWAFWorkspaceID {
+			clause = clause.Required().Envar(env.WorkspaceID)
+		} else {
+			clause = clause.Required()
+		}
+	} else if opts.Required {
 		clause = clause.Required()
 	}
 	if opts.Action != nil {

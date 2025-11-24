@@ -60,6 +60,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 	workspaceAlertDatadog "github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/datadog"
+	workspaceAlertJira "github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/jira"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
@@ -416,6 +417,12 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspacesAlertDatadogGet := workspaceAlertDatadog.NewGetCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
 	ngwafWorkspacesAlertDatadogList := workspaceAlertDatadog.NewListCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
 	ngwafWorkspacesAlertDatadogUpdate := workspaceAlertDatadog.NewUpdateCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspacesAlertJiraRoot := workspaceAlertJira.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
+	ngwafWorkspacesAlertJiraCreate := workspaceAlertJira.NewCreateCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
+	ngwafWorkspacesAlertJiraDelete := workspaceAlertJira.NewDeleteCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
+	ngwafWorkspacesAlertJiraGet := workspaceAlertJira.NewGetCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
+	ngwafWorkspacesAlertJiraList := workspaceAlertJira.NewListCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
+	ngwafWorkspacesAlertJiraUpdate := workspaceAlertJira.NewUpdateCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
@@ -853,6 +860,12 @@ func Define( // nolint:revive // function-length
 		ngwafWorkspacesAlertDatadogGet,
 		ngwafWorkspacesAlertDatadogList,
 		ngwafWorkspacesAlertDatadogUpdate,
+		ngwafWorkspacesAlertJiraRoot,
+		ngwafWorkspacesAlertJiraCreate,
+		ngwafWorkspacesAlertJiraDelete,
+		ngwafWorkspacesAlertJiraGet,
+		ngwafWorkspacesAlertJiraList,
+		ngwafWorkspacesAlertJiraUpdate,
 		objectStorageRoot,
 		objectStorageAccesskeysRoot,
 		objectStorageAccesskeysCreate,

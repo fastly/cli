@@ -1,4 +1,4 @@
-package datadog
+package jira
 
 import (
 	"context"
@@ -12,17 +12,17 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v12/fastly"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/alerts/datadog"
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/alerts/jira"
 )
 
-// CreateCommand calls the Fastly API to create Datadog alerts.
+// CreateCommand calls the Fastly API to create Jira alerts.
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
 	common.BaseAlertFlags
-	common.DatadogConfigFlags
+	common.JiraCreateConfigFlags
 
 	// Optional.
 	common.AlertDataFlags
@@ -35,17 +35,21 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create a Datadog alert").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a Jira alert").Alias("add")
 
 	// Required.
 	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.WorkspaceID.Value,
-		Action:      c.WorkspaceID.Set,
+		Name:          argparser.FlagNGWAFWorkspaceID,
+		Description:   argparser.FlagNGWAFWorkspaceIDDesc,
+		Dst:           &c.WorkspaceID.Value,
+		Action:        c.WorkspaceID.Set,
+		ForceRequired: true,
 	})
-	c.CmdClause.Flag("key", "Datadog integration key.").Required().StringVar(&c.Key)
-	c.CmdClause.Flag("site", "Datadog site.").Required().StringVar(&c.Site)
+	c.CmdClause.Flag("host", "Host name of the Jira instance.").Required().StringVar(&c.Host)
+	c.CmdClause.Flag("issue-type", "The Jira issue type associated with the ticket. (Default Task)").Required().StringVar(&c.IssueType)
+	c.CmdClause.Flag("key", "Jira API key.").Required().StringVar(&c.Key)
+	c.CmdClause.Flag("project", "Specifies the Jira project where the issue will be created.").Required().StringVar(&c.Project)
+	c.CmdClause.Flag("username", "Jira username of the user who created the ticket.").Required().StringVar(&c.Username)
 
 	// Optional.
 	c.CmdClause.Flag("description", "An optional description for the alert.").Action(c.Description.Set).StringVar(&c.Description.Value)
@@ -65,11 +69,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	input := &datadog.CreateInput{
+	input := &jira.CreateInput{
 		WorkspaceID: &c.WorkspaceID.Value,
-		Config: &datadog.CreateConfig{
-			Key:  &c.Key,
-			Site: &c.Site,
+		Config: &jira.CreateConfig{
+			Host:      &c.Host,
+			IssueType: &c.IssueType,
+			Key:       &c.Key,
+			Project:   &c.Project,
+			Username:  &c.Username,
 		},
 		// Set 'Events' to the only possible value, 'flag'
 		Events: common.GetDefaultEvents(),
@@ -83,7 +90,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	data, err := datadog.Create(context.TODO(), fc, input)
+	data, err := jira.Create(context.TODO(), fc, input)
 	if err != nil {
 		return err
 	}
