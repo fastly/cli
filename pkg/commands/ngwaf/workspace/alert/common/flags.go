@@ -23,26 +23,30 @@ type DatadogConfigFlags struct {
 	Site string
 }
 
-// JiraCreateConfigFlags contains Jira create specific configuration flags.
-type JiraCreateConfigFlags struct {
-	Host      string
+// JiraOptConfigFlags contains optional Jira specific configuration flags.
+type JiraOptConfigFlags struct {
 	IssueType string
-	Key       string
-	Project   string
-	Username  string
 }
 
-// JiraUpdateConfigFlags contains Jira update specific configuration flags.
-// The `IssueType` field is removed here, as it's not a required field for
-// update operations.
-type JiraUpdateConfigFlags struct {
+// JiraConfigFlags contains Jira specific configuration flags.
+type JiraConfigFlags struct {
 	Host     string
 	Key      string
 	Project  string
 	Username string
 }
 
-// WebhookConfigFlags contains webhook URL configrations (used by webhook, slack, etc...)
+// AddressConfigFlags contains Address configurations used by mailing lists.
+type AddressConfigFlags struct {
+	Address string
+}
+
+// KeyConfigFlags contains the Key configuration (used by opsgenie, pagerduty, etc...).
+type KeyConfigFlags struct {
+	Key string
+}
+
+// WebhookConfigFlags contains the Webhook configuration (used by webhook, slack, etc...).
 type WebhookConfigFlags struct {
 	Webhook string
 }

@@ -207,11 +207,17 @@ func getConfigSummary(alertType string, config any) string {
 			if cfg.Host != nil {
 				parts = append(parts, fmt.Sprintf("Host: %s", *cfg.Host))
 			}
-			if cfg.Project != nil {
-				parts = append(parts, fmt.Sprintf("Project: %s", *cfg.Project))
+			if cfg.IssueType != nil {
+				parts = append(parts, fmt.Sprintf("Issue Type: %s", *cfg.IssueType))
 			}
 			if cfg.Key != nil {
 				parts = append(parts, "Key: <redacted>")
+			}
+			if cfg.Project != nil {
+				parts = append(parts, fmt.Sprintf("Project: %s", *cfg.Project))
+			}
+			if cfg.Username != nil {
+				parts = append(parts, fmt.Sprintf("Username: %s", *cfg.Username))
 			}
 			return strings.Join(parts, ", ")
 		}

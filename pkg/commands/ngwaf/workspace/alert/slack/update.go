@@ -1,4 +1,4 @@
-package jira
+package slack
 
 import (
 	"context"
@@ -12,10 +12,10 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v12/fastly"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/alerts/jira"
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/alerts/slack"
 )
 
-// UpdateCommand calls the Fastly API to update Jira alerts.
+// UpdateCommand calls the Fastly API to update Slack alerts.
 type UpdateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -23,10 +23,7 @@ type UpdateCommand struct {
 	// Required.
 	common.AlertIDFlags
 	common.BaseAlertFlags
-	common.JiraConfigFlags
-
-	// Optional
-	common.JiraOptConfigFlags
+	common.WebhookConfigFlags
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -36,7 +33,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("update", "Update a Jira alert")
+	c.CmdClause = parent.Command("update", "Update a Slack alert")
 
 	// Required.
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -52,13 +49,9 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Dst:         &c.AlertID,
 		Required:    true,
 	})
-	c.CmdClause.Flag("host", "Host name of the Jira instance.").Required().StringVar(&c.Host)
-	c.CmdClause.Flag("key", "Jira API key.").Required().StringVar(&c.Key)
-	c.CmdClause.Flag("project", "Specifies the Jira project where the issue will be created.").Required().StringVar(&c.Project)
-	c.CmdClause.Flag("username", "Jira username of the user who created the ticket.").Required().StringVar(&c.Username)
+	c.CmdClause.Flag("webhook", "Slack webhook.").Required().StringVar(&c.Webhook)
 
 	// Optional.
-	c.CmdClause.Flag("issue-type", "An optional Jira issue type associated with the ticket. (Default Task)").StringVar(&c.IssueType)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -75,20 +68,14 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	input := &jira.UpdateInput{
+	input := &slack.UpdateInput{
 		AlertID:     &c.AlertID,
 		WorkspaceID: &c.WorkspaceID.Value,
-		Config: &jira.UpdateConfig{
-			Host:     &c.Host,
-			Key:      &c.Key,
-			Project:  &c.Project,
-			Username: &c.Username,
+		Config: &slack.UpdateConfig{
+			Webhook: &c.Webhook,
 		},
 		// Set 'Events' to the only possible value, 'flag'
 		Events: common.GetDefaultEvents(),
-	}
-	if c.IssueType != "" {
-		input.Config.IssueType = &c.IssueType
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -96,7 +83,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	data, err := jira.Update(context.TODO(), fc, input)
+	data, err := slack.Update(context.TODO(), fc, input)
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-package jira
+package opsgenie
 
 import (
 	"context"
@@ -12,31 +12,27 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v12/fastly"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/alerts/jira"
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/alerts/opsgenie"
 )
 
-// UpdateCommand calls the Fastly API to update Jira alerts.
-type UpdateCommand struct {
+// GetCommand calls the Fastly API to get Opsgenie alerts.
+type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
 	common.AlertIDFlags
 	common.BaseAlertFlags
-	common.JiraConfigFlags
-
-	// Optional
-	common.JiraOptConfigFlags
 }
 
-// NewUpdateCommand returns a usable command registered under the parent.
-func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
-	c := UpdateCommand{
+// NewGetCommand returns a usable command registered under the parent.
+func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
+	c := GetCommand{
 		Base: argparser.Base{
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("update", "Update a Jira alert")
+	c.CmdClause = parent.Command("get", "Get a Opsgenie alert")
 
 	// Required.
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -52,20 +48,15 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Dst:         &c.AlertID,
 		Required:    true,
 	})
-	c.CmdClause.Flag("host", "Host name of the Jira instance.").Required().StringVar(&c.Host)
-	c.CmdClause.Flag("key", "Jira API key.").Required().StringVar(&c.Key)
-	c.CmdClause.Flag("project", "Specifies the Jira project where the issue will be created.").Required().StringVar(&c.Project)
-	c.CmdClause.Flag("username", "Jira username of the user who created the ticket.").Required().StringVar(&c.Username)
 
 	// Optional.
-	c.CmdClause.Flag("issue-type", "An optional Jira issue type associated with the ticket. (Default Task)").StringVar(&c.IssueType)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 	// Call Parse() to ensure that we check if workspaceID
 	// is set or to throw the appropriate error.
 	if err := c.WorkspaceID.Parse(); err != nil {
@@ -74,21 +65,9 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-
-	input := &jira.UpdateInput{
+	input := &opsgenie.GetInput{
 		AlertID:     &c.AlertID,
 		WorkspaceID: &c.WorkspaceID.Value,
-		Config: &jira.UpdateConfig{
-			Host:     &c.Host,
-			Key:      &c.Key,
-			Project:  &c.Project,
-			Username: &c.Username,
-		},
-		// Set 'Events' to the only possible value, 'flag'
-		Events: common.GetDefaultEvents(),
-	}
-	if c.IssueType != "" {
-		input.Config.IssueType = &c.IssueType
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -96,7 +75,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	data, err := jira.Update(context.TODO(), fc, input)
+	data, err := opsgenie.Get(context.TODO(), fc, input)
 	if err != nil {
 		return err
 	}
@@ -105,6 +84,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated '%s' alert '%s' (workspace-id: %s)", data.Type, data.ID, c.WorkspaceID.Value)
+	text.PrintAlert(out, data)
 	return nil
 }
