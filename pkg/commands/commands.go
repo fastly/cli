@@ -493,63 +493,57 @@ func Define( // nolint:revive // function-length
 	ngwafVirtualpatchList := virtualpatch.NewListCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchUpdate := virtualpatch.NewUpdateCommand(ngwafVirtualpatchRoot.CmdClause, data)
 	ngwafVirtualpatchRetrieve := virtualpatch.NewRetrieveCommand(ngwafVirtualpatchRoot.CmdClause, data)
-	ngwafWorkspacesRoot := workspace.NewRootCommand(ngwafRoot.CmdClause, data)
-	ngwafWorkspacesCreate := workspace.NewCreateCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesDelete := workspace.NewDeleteCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesGet := workspace.NewGetCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesList := workspace.NewListCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesUpdate := workspace.NewUpdateCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesAlertRoot := alert.NewRootCommand(ngwafWorkspacesRoot.CmdClause, data)
-	ngwafWorkspacesAlertDatadogRoot := workspaceAlertDatadog.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
-	ngwafWorkspacesAlertDatadogCreate := workspaceAlertDatadog.NewCreateCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
-	ngwafWorkspacesAlertDatadogDelete := workspaceAlertDatadog.NewDeleteCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
-	ngwafWorkspacesAlertDatadogGet := workspaceAlertDatadog.NewGetCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
-	ngwafWorkspacesAlertDatadogList := workspaceAlertDatadog.NewListCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
-	ngwafWorkspacesAlertDatadogUpdate := workspaceAlertDatadog.NewUpdateCommand(ngwafWorkspacesAlertDatadogRoot.CmdClause, data)
-	ngwafWorkspacesAlertJiraRoot := workspaceAlertJira.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
-	ngwafWorkspacesAlertJiraCreate := workspaceAlertJira.NewCreateCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
-	ngwafWorkspacesAlertJiraDelete := workspaceAlertJira.NewDeleteCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
-	ngwafWorkspacesAlertJiraGet := workspaceAlertJira.NewGetCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
-	ngwafWorkspacesAlertJiraList := workspaceAlertJira.NewListCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
-	ngwafWorkspacesAlertJiraUpdate := workspaceAlertJira.NewUpdateCommand(ngwafWorkspacesAlertJiraRoot.CmdClause, data)
-	ngwafWorkspacesAlertMailinglistRoot := workspaceAlertMailinglist.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
-	ngwafWorkspacesAlertMailinglistCreate := workspaceAlertMailinglist.NewCreateCommand(ngwafWorkspacesAlertMailinglistRoot.CmdClause, data)
-	ngwafWorkspacesAlertMailinglistDelete := workspaceAlertMailinglist.NewDeleteCommand(ngwafWorkspacesAlertMailinglistRoot.CmdClause, data)
-	ngwafWorkspacesAlertMailinglistGet := workspaceAlertMailinglist.NewGetCommand(ngwafWorkspacesAlertMailinglistRoot.CmdClause, data)
-	ngwafWorkspacesAlertMailinglistList := workspaceAlertMailinglist.NewListCommand(ngwafWorkspacesAlertMailinglistRoot.CmdClause, data)
-	ngwafWorkspacesAlertMailinglistUpdate := workspaceAlertMailinglist.NewUpdateCommand(ngwafWorkspacesAlertMailinglistRoot.CmdClause, data)
-	ngwafWorkspacesAlertMicrosoftteamsRoot := workspaceAlertMicrosoftteams.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
-	ngwafWorkspacesAlertMicrosoftteamsCreate := workspaceAlertMicrosoftteams.NewCreateCommand(ngwafWorkspacesAlertMicrosoftteamsRoot.CmdClause, data)
-	ngwafWorkspacesAlertMicrosoftteamsDelete := workspaceAlertMicrosoftteams.NewDeleteCommand(ngwafWorkspacesAlertMicrosoftteamsRoot.CmdClause, data)
-	ngwafWorkspacesAlertMicrosoftteamsGet := workspaceAlertMicrosoftteams.NewGetCommand(ngwafWorkspacesAlertMicrosoftteamsRoot.CmdClause, data)
-	ngwafWorkspacesAlertMicrosoftteamsList := workspaceAlertMicrosoftteams.NewListCommand(ngwafWorkspacesAlertMicrosoftteamsRoot.CmdClause, data)
-	ngwafWorkspacesAlertMicrosoftteamsUpdate := workspaceAlertMicrosoftteams.NewUpdateCommand(ngwafWorkspacesAlertMicrosoftteamsRoot.CmdClause, data)
-	ngwafWorkspacesAlertOpsgenieRoot := workspaceAlertOpsgenie.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
-	ngwafWorkspacesAlertOpsgenieCreate := workspaceAlertOpsgenie.NewCreateCommand(ngwafWorkspacesAlertOpsgenieRoot.CmdClause, data)
-	ngwafWorkspacesAlertOpsgenieDelete := workspaceAlertOpsgenie.NewDeleteCommand(ngwafWorkspacesAlertOpsgenieRoot.CmdClause, data)
-	ngwafWorkspacesAlertOpsgenieGet := workspaceAlertOpsgenie.NewGetCommand(ngwafWorkspacesAlertOpsgenieRoot.CmdClause, data)
-	ngwafWorkspacesAlertOpsgenieList := workspaceAlertOpsgenie.NewListCommand(ngwafWorkspacesAlertOpsgenieRoot.CmdClause, data)
-	ngwafWorkspacesAlertOpsgenieUpdate := workspaceAlertOpsgenie.NewUpdateCommand(ngwafWorkspacesAlertOpsgenieRoot.CmdClause, data)
-	ngwafWorkspacesAlertPagerdutyRoot := workspaceAlertPagerduty.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
-	ngwafWorkspacesAlertPagerdutyCreate := workspaceAlertPagerduty.NewCreateCommand(ngwafWorkspacesAlertPagerdutyRoot.CmdClause, data)
-	ngwafWorkspacesAlertPagerdutyDelete := workspaceAlertPagerduty.NewDeleteCommand(ngwafWorkspacesAlertPagerdutyRoot.CmdClause, data)
-	ngwafWorkspacesAlertPagerdutyGet := workspaceAlertPagerduty.NewGetCommand(ngwafWorkspacesAlertPagerdutyRoot.CmdClause, data)
-	ngwafWorkspacesAlertPagerdutyList := workspaceAlertPagerduty.NewListCommand(ngwafWorkspacesAlertPagerdutyRoot.CmdClause, data)
-	ngwafWorkspacesAlertPagerdutyUpdate := workspaceAlertPagerduty.NewUpdateCommand(ngwafWorkspacesAlertPagerdutyRoot.CmdClause, data)
-	ngwafWorkspacesAlertSlackRoot := workspaceAlertSlack.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
-	ngwafWorkspacesAlertSlackCreate := workspaceAlertSlack.NewCreateCommand(ngwafWorkspacesAlertSlackRoot.CmdClause, data)
-	ngwafWorkspacesAlertSlackDelete := workspaceAlertSlack.NewDeleteCommand(ngwafWorkspacesAlertSlackRoot.CmdClause, data)
-	ngwafWorkspacesAlertSlackGet := workspaceAlertSlack.NewGetCommand(ngwafWorkspacesAlertSlackRoot.CmdClause, data)
-	ngwafWorkspacesAlertSlackList := workspaceAlertSlack.NewListCommand(ngwafWorkspacesAlertSlackRoot.CmdClause, data)
-	ngwafWorkspacesAlertSlackUpdate := workspaceAlertSlack.NewUpdateCommand(ngwafWorkspacesAlertSlackRoot.CmdClause, data)
-	ngwafWorkspacesAlertWebhookRoot := workspaceAlertWebhook.NewRootCommand(ngwafWorkspacesAlertRoot.CmdClause, data)
-	ngwafWorkspacesAlertWebhookCreate := workspaceAlertWebhook.NewCreateCommand(ngwafWorkspacesAlertWebhookRoot.CmdClause, data)
-	ngwafWorkspacesAlertWebhookDelete := workspaceAlertWebhook.NewDeleteCommand(ngwafWorkspacesAlertWebhookRoot.CmdClause, data)
-	ngwafWorkspacesAlertWebhookGet := workspaceAlertWebhook.NewGetCommand(ngwafWorkspacesAlertWebhookRoot.CmdClause, data)
-	ngwafWorkspacesAlertWebhookGetSigningKey := workspaceAlertWebhook.NewGetSigningKeyCommand(ngwafWorkspacesAlertWebhookRoot.CmdClause, data)
-	ngwafWorkspacesAlertWebhookList := workspaceAlertWebhook.NewListCommand(ngwafWorkspacesAlertWebhookRoot.CmdClause, data)
-	ngwafWorkspacesAlertWebhookRotateSigningKey := workspaceAlertWebhook.NewRotateSigningKeyCommand(ngwafWorkspacesAlertWebhookRoot.CmdClause, data)
-	ngwafWorkspacesAlertWebhookUpdate := workspaceAlertWebhook.NewUpdateCommand(ngwafWorkspacesAlertWebhookRoot.CmdClause, data)
+	ngwafWorkspaceAlertRoot := alert.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceAlertDatadogRoot := workspaceAlertDatadog.NewRootCommand(ngwafWorkspaceAlertRoot.CmdClause, data)
+	ngwafWorkspaceAlertDatadogCreate := workspaceAlertDatadog.NewCreateCommand(ngwafWorkspaceAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspaceAlertDatadogDelete := workspaceAlertDatadog.NewDeleteCommand(ngwafWorkspaceAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspaceAlertDatadogGet := workspaceAlertDatadog.NewGetCommand(ngwafWorkspaceAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspaceAlertDatadogList := workspaceAlertDatadog.NewListCommand(ngwafWorkspaceAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspaceAlertDatadogUpdate := workspaceAlertDatadog.NewUpdateCommand(ngwafWorkspaceAlertDatadogRoot.CmdClause, data)
+	ngwafWorkspaceAlertJiraRoot := workspaceAlertJira.NewRootCommand(ngwafWorkspaceAlertRoot.CmdClause, data)
+	ngwafWorkspaceAlertJiraCreate := workspaceAlertJira.NewCreateCommand(ngwafWorkspaceAlertJiraRoot.CmdClause, data)
+	ngwafWorkspaceAlertJiraDelete := workspaceAlertJira.NewDeleteCommand(ngwafWorkspaceAlertJiraRoot.CmdClause, data)
+	ngwafWorkspaceAlertJiraGet := workspaceAlertJira.NewGetCommand(ngwafWorkspaceAlertJiraRoot.CmdClause, data)
+	ngwafWorkspaceAlertJiraList := workspaceAlertJira.NewListCommand(ngwafWorkspaceAlertJiraRoot.CmdClause, data)
+	ngwafWorkspaceAlertJiraUpdate := workspaceAlertJira.NewUpdateCommand(ngwafWorkspaceAlertJiraRoot.CmdClause, data)
+	ngwafWorkspaceAlertMailinglistRoot := workspaceAlertMailinglist.NewRootCommand(ngwafWorkspaceAlertRoot.CmdClause, data)
+	ngwafWorkspaceAlertMailinglistCreate := workspaceAlertMailinglist.NewCreateCommand(ngwafWorkspaceAlertMailinglistRoot.CmdClause, data)
+	ngwafWorkspaceAlertMailinglistDelete := workspaceAlertMailinglist.NewDeleteCommand(ngwafWorkspaceAlertMailinglistRoot.CmdClause, data)
+	ngwafWorkspaceAlertMailinglistGet := workspaceAlertMailinglist.NewGetCommand(ngwafWorkspaceAlertMailinglistRoot.CmdClause, data)
+	ngwafWorkspaceAlertMailinglistList := workspaceAlertMailinglist.NewListCommand(ngwafWorkspaceAlertMailinglistRoot.CmdClause, data)
+	ngwafWorkspaceAlertMailinglistUpdate := workspaceAlertMailinglist.NewUpdateCommand(ngwafWorkspaceAlertMailinglistRoot.CmdClause, data)
+	ngwafWorkspaceAlertMicrosoftteamsRoot := workspaceAlertMicrosoftteams.NewRootCommand(ngwafWorkspaceAlertRoot.CmdClause, data)
+	ngwafWorkspaceAlertMicrosoftteamsCreate := workspaceAlertMicrosoftteams.NewCreateCommand(ngwafWorkspaceAlertMicrosoftteamsRoot.CmdClause, data)
+	ngwafWorkspaceAlertMicrosoftteamsDelete := workspaceAlertMicrosoftteams.NewDeleteCommand(ngwafWorkspaceAlertMicrosoftteamsRoot.CmdClause, data)
+	ngwafWorkspaceAlertMicrosoftteamsGet := workspaceAlertMicrosoftteams.NewGetCommand(ngwafWorkspaceAlertMicrosoftteamsRoot.CmdClause, data)
+	ngwafWorkspaceAlertMicrosoftteamsList := workspaceAlertMicrosoftteams.NewListCommand(ngwafWorkspaceAlertMicrosoftteamsRoot.CmdClause, data)
+	ngwafWorkspaceAlertMicrosoftteamsUpdate := workspaceAlertMicrosoftteams.NewUpdateCommand(ngwafWorkspaceAlertMicrosoftteamsRoot.CmdClause, data)
+	ngwafWorkspaceAlertOpsgenieRoot := workspaceAlertOpsgenie.NewRootCommand(ngwafWorkspaceAlertRoot.CmdClause, data)
+	ngwafWorkspaceAlertOpsgenieCreate := workspaceAlertOpsgenie.NewCreateCommand(ngwafWorkspaceAlertOpsgenieRoot.CmdClause, data)
+	ngwafWorkspaceAlertOpsgenieDelete := workspaceAlertOpsgenie.NewDeleteCommand(ngwafWorkspaceAlertOpsgenieRoot.CmdClause, data)
+	ngwafWorkspaceAlertOpsgenieGet := workspaceAlertOpsgenie.NewGetCommand(ngwafWorkspaceAlertOpsgenieRoot.CmdClause, data)
+	ngwafWorkspaceAlertOpsgenieList := workspaceAlertOpsgenie.NewListCommand(ngwafWorkspaceAlertOpsgenieRoot.CmdClause, data)
+	ngwafWorkspaceAlertOpsgenieUpdate := workspaceAlertOpsgenie.NewUpdateCommand(ngwafWorkspaceAlertOpsgenieRoot.CmdClause, data)
+	ngwafWorkspaceAlertPagerdutyRoot := workspaceAlertPagerduty.NewRootCommand(ngwafWorkspaceAlertRoot.CmdClause, data)
+	ngwafWorkspaceAlertPagerdutyCreate := workspaceAlertPagerduty.NewCreateCommand(ngwafWorkspaceAlertPagerdutyRoot.CmdClause, data)
+	ngwafWorkspaceAlertPagerdutyDelete := workspaceAlertPagerduty.NewDeleteCommand(ngwafWorkspaceAlertPagerdutyRoot.CmdClause, data)
+	ngwafWorkspaceAlertPagerdutyGet := workspaceAlertPagerduty.NewGetCommand(ngwafWorkspaceAlertPagerdutyRoot.CmdClause, data)
+	ngwafWorkspaceAlertPagerdutyList := workspaceAlertPagerduty.NewListCommand(ngwafWorkspaceAlertPagerdutyRoot.CmdClause, data)
+	ngwafWorkspaceAlertPagerdutyUpdate := workspaceAlertPagerduty.NewUpdateCommand(ngwafWorkspaceAlertPagerdutyRoot.CmdClause, data)
+	ngwafWorkspaceAlertSlackRoot := workspaceAlertSlack.NewRootCommand(ngwafWorkspaceAlertRoot.CmdClause, data)
+	ngwafWorkspaceAlertSlackCreate := workspaceAlertSlack.NewCreateCommand(ngwafWorkspaceAlertSlackRoot.CmdClause, data)
+	ngwafWorkspaceAlertSlackDelete := workspaceAlertSlack.NewDeleteCommand(ngwafWorkspaceAlertSlackRoot.CmdClause, data)
+	ngwafWorkspaceAlertSlackGet := workspaceAlertSlack.NewGetCommand(ngwafWorkspaceAlertSlackRoot.CmdClause, data)
+	ngwafWorkspaceAlertSlackList := workspaceAlertSlack.NewListCommand(ngwafWorkspaceAlertSlackRoot.CmdClause, data)
+	ngwafWorkspaceAlertSlackUpdate := workspaceAlertSlack.NewUpdateCommand(ngwafWorkspaceAlertSlackRoot.CmdClause, data)
+	ngwafWorkspaceAlertWebhookRoot := workspaceAlertWebhook.NewRootCommand(ngwafWorkspaceAlertRoot.CmdClause, data)
+	ngwafWorkspaceAlertWebhookCreate := workspaceAlertWebhook.NewCreateCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
+	ngwafWorkspaceAlertWebhookDelete := workspaceAlertWebhook.NewDeleteCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
+	ngwafWorkspaceAlertWebhookGet := workspaceAlertWebhook.NewGetCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
+	ngwafWorkspaceAlertWebhookGetSigningKey := workspaceAlertWebhook.NewGetSigningKeyCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
+	ngwafWorkspaceAlertWebhookList := workspaceAlertWebhook.NewListCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
+	ngwafWorkspaceAlertWebhookRotateSigningKey := workspaceAlertWebhook.NewRotateSigningKeyCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
+	ngwafWorkspaceAlertWebhookUpdate := workspaceAlertWebhook.NewUpdateCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
@@ -1038,63 +1032,57 @@ func Define( // nolint:revive // function-length
 		ngwafVirtualpatchRetrieve,
 		ngwafVirtualpatchRoot,
 		ngwafVirtualpatchUpdate,
-		ngwafWorkspacesRoot,
-		ngwafWorkspacesCreate,
-		ngwafWorkspacesDelete,
-		ngwafWorkspacesGet,
-		ngwafWorkspacesList,
-		ngwafWorkspacesUpdate,
-		ngwafWorkspacesAlertRoot,
-		ngwafWorkspacesAlertDatadogRoot,
-		ngwafWorkspacesAlertDatadogCreate,
-		ngwafWorkspacesAlertDatadogDelete,
-		ngwafWorkspacesAlertDatadogGet,
-		ngwafWorkspacesAlertDatadogList,
-		ngwafWorkspacesAlertDatadogUpdate,
-		ngwafWorkspacesAlertJiraRoot,
-		ngwafWorkspacesAlertJiraCreate,
-		ngwafWorkspacesAlertJiraDelete,
-		ngwafWorkspacesAlertJiraGet,
-		ngwafWorkspacesAlertJiraList,
-		ngwafWorkspacesAlertJiraUpdate,
-		ngwafWorkspacesAlertMailinglistRoot,
-		ngwafWorkspacesAlertMailinglistCreate,
-		ngwafWorkspacesAlertMailinglistDelete,
-		ngwafWorkspacesAlertMailinglistGet,
-		ngwafWorkspacesAlertMailinglistList,
-		ngwafWorkspacesAlertMailinglistUpdate,
-		ngwafWorkspacesAlertMicrosoftteamsRoot,
-		ngwafWorkspacesAlertMicrosoftteamsCreate,
-		ngwafWorkspacesAlertMicrosoftteamsDelete,
-		ngwafWorkspacesAlertMicrosoftteamsGet,
-		ngwafWorkspacesAlertMicrosoftteamsList,
-		ngwafWorkspacesAlertMicrosoftteamsUpdate,
-		ngwafWorkspacesAlertOpsgenieRoot,
-		ngwafWorkspacesAlertOpsgenieCreate,
-		ngwafWorkspacesAlertOpsgenieDelete,
-		ngwafWorkspacesAlertOpsgenieGet,
-		ngwafWorkspacesAlertOpsgenieList,
-		ngwafWorkspacesAlertOpsgenieUpdate,
-		ngwafWorkspacesAlertPagerdutyRoot,
-		ngwafWorkspacesAlertPagerdutyCreate,
-		ngwafWorkspacesAlertPagerdutyDelete,
-		ngwafWorkspacesAlertPagerdutyGet,
-		ngwafWorkspacesAlertPagerdutyList,
-		ngwafWorkspacesAlertPagerdutyUpdate,
-		ngwafWorkspacesAlertSlackRoot,
-		ngwafWorkspacesAlertSlackCreate,
-		ngwafWorkspacesAlertSlackDelete,
-		ngwafWorkspacesAlertSlackGet,
-		ngwafWorkspacesAlertSlackList,
-		ngwafWorkspacesAlertSlackUpdate,
-		ngwafWorkspacesAlertWebhookRoot,
-		ngwafWorkspacesAlertWebhookCreate,
-		ngwafWorkspacesAlertWebhookDelete,
-		ngwafWorkspacesAlertWebhookGet,
-		ngwafWorkspacesAlertWebhookGetSigningKey,
-		ngwafWorkspacesAlertWebhookList,
-		ngwafWorkspacesAlertWebhookRotateSigningKey,
-		ngwafWorkspacesAlertWebhookUpdate,
+		ngwafWorkspaceAlertRoot,
+		ngwafWorkspaceAlertDatadogRoot,
+		ngwafWorkspaceAlertDatadogCreate,
+		ngwafWorkspaceAlertDatadogDelete,
+		ngwafWorkspaceAlertDatadogGet,
+		ngwafWorkspaceAlertDatadogList,
+		ngwafWorkspaceAlertDatadogUpdate,
+		ngwafWorkspaceAlertJiraRoot,
+		ngwafWorkspaceAlertJiraCreate,
+		ngwafWorkspaceAlertJiraDelete,
+		ngwafWorkspaceAlertJiraGet,
+		ngwafWorkspaceAlertJiraList,
+		ngwafWorkspaceAlertJiraUpdate,
+		ngwafWorkspaceAlertMailinglistRoot,
+		ngwafWorkspaceAlertMailinglistCreate,
+		ngwafWorkspaceAlertMailinglistDelete,
+		ngwafWorkspaceAlertMailinglistGet,
+		ngwafWorkspaceAlertMailinglistList,
+		ngwafWorkspaceAlertMailinglistUpdate,
+		ngwafWorkspaceAlertMicrosoftteamsRoot,
+		ngwafWorkspaceAlertMicrosoftteamsCreate,
+		ngwafWorkspaceAlertMicrosoftteamsDelete,
+		ngwafWorkspaceAlertMicrosoftteamsGet,
+		ngwafWorkspaceAlertMicrosoftteamsList,
+		ngwafWorkspaceAlertMicrosoftteamsUpdate,
+		ngwafWorkspaceAlertOpsgenieRoot,
+		ngwafWorkspaceAlertOpsgenieCreate,
+		ngwafWorkspaceAlertOpsgenieDelete,
+		ngwafWorkspaceAlertOpsgenieGet,
+		ngwafWorkspaceAlertOpsgenieList,
+		ngwafWorkspaceAlertOpsgenieUpdate,
+		ngwafWorkspaceAlertPagerdutyRoot,
+		ngwafWorkspaceAlertPagerdutyCreate,
+		ngwafWorkspaceAlertPagerdutyDelete,
+		ngwafWorkspaceAlertPagerdutyGet,
+		ngwafWorkspaceAlertPagerdutyList,
+		ngwafWorkspaceAlertPagerdutyUpdate,
+		ngwafWorkspaceAlertSlackRoot,
+		ngwafWorkspaceAlertSlackCreate,
+		ngwafWorkspaceAlertSlackDelete,
+		ngwafWorkspaceAlertSlackGet,
+		ngwafWorkspaceAlertSlackList,
+		ngwafWorkspaceAlertSlackUpdate,
+		ngwafWorkspaceAlertWebhookRoot,
+		ngwafWorkspaceAlertWebhookCreate,
+		ngwafWorkspaceAlertWebhookDelete,
+		ngwafWorkspaceAlertWebhookGet,
+		ngwafWorkspaceAlertWebhookGetSigningKey,
+		ngwafWorkspaceAlertWebhookList,
+		ngwafWorkspaceAlertWebhookRotateSigningKey,
+		ngwafWorkspaceAlertWebhookUpdate,
 		ngwafWorkspaceRoot,
 		ngwafWorkspaceCreate,
 		ngwafWorkspaceDelete,
