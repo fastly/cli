@@ -291,27 +291,17 @@ func TestWebhookAlertUpdate(t *testing.T) {
 			Name: "validate API success with webhook",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --webhook https://example.com/webhook/updated", workspaceID, alertID),
 			Client: &http.Client{
-
 				Transport: &testutil.MultiResponseRoundTripper{
-
 					Responses: []*http.Response{
-
 						{
-
 							StatusCode: http.StatusOK,
-
-							Status: http.StatusText(http.StatusOK),
-
-							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(webhookAlert))),
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(webhookAlert))),
 						},
-
 						{
-
 							StatusCode: http.StatusOK,
-
-							Status: http.StatusText(http.StatusOK),
-
-							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
 						},
 					},
 				},
@@ -322,27 +312,17 @@ func TestWebhookAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --webhook https://example.com/webhook/updated --json", workspaceID, alertID),
 			Client: &http.Client{
-
 				Transport: &testutil.MultiResponseRoundTripper{
-
 					Responses: []*http.Response{
-
 						{
-
 							StatusCode: http.StatusOK,
-
-							Status: http.StatusText(http.StatusOK),
-
-							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(webhookAlert))),
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(webhookAlert))),
 						},
-
 						{
-
 							StatusCode: http.StatusOK,
-
-							Status: http.StatusText(http.StatusOK),
-
-							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
 						},
 					},
 				},
