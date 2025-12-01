@@ -5,6 +5,7 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
 )
 
 // RootCommand is the parent command for all subcommands in this package.
@@ -29,3 +30,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
 }
+
+var ScopeTypes = []string{string(scope.ScopeTypeAccount), string(scope.ScopeTypeWorkspace)}
+
+var DefaultAccountScope = []string{"*"}

@@ -1,4 +1,4 @@
-package virtualpatch
+package redaction
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/virtualpatches"
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/redactions"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -14,14 +14,14 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GetCommand calls the Fastly API to get a workspace.
+// GetCommand calls the Fastly API to get a redaction.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
-	virtualpatchID string
-	workspaceID    string
+	redactionID string
+	workspaceID argparser.OptionalWorkspaceID
 }
 
 // NewGetCommand returns a usable command registered under the parent.
@@ -32,11 +32,16 @@ func NewRetrieveCommand(parent argparser.Registerer, g *global.Data) *GetCommand
 		},
 	}
 
-	c.CmdClause = parent.Command("retrieve", "Retrieve a vitual patch")
+	c.CmdClause = parent.Command("retrieve", "Retrieve a redaction").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("virtual-patch-id", "Virtual Patch ID").Required().StringVar(&c.virtualpatchID)
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.CmdClause.Flag("redaction-id", "Redaction ID").Required().StringVar(&c.redactionID)
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagNGWAFWorkspaceID,
+		Description: argparser.FlagNGWAFWorkspaceIDDesc,
+		Dst:         &c.workspaceID.Value,
+		Action:      c.workspaceID.Set,
+	})
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
@@ -46,6 +51,12 @@ func NewRetrieveCommand(parent argparser.Registerer, g *global.Data) *GetCommand
 
 // Exec invokes the application logic for the command.
 func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
+	// Call Parse() to ensure that we check if workspaceID
+	// is set or to throw the appropriate error.
+	if err := c.workspaceID.Parse(); err != nil {
+		return err
+	}
+
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
@@ -55,9 +66,9 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	data, err := virtualpatches.Get(context.TODO(), fc, &virtualpatches.GetInput{
-		VirtualPatchID: &c.virtualpatchID,
-		WorkspaceID:    &c.workspaceID,
+	data, err := redactions.Get(context.TODO(), fc, &redactions.GetInput{
+		RedactionID: &c.redactionID,
+		WorkspaceID: &c.workspaceID.Value,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
@@ -68,6 +79,6 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.PrintVirtualPatch(out, data)
+	text.PrintRedaction(out, data)
 	return nil
 }

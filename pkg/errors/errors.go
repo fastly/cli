@@ -184,3 +184,9 @@ var ErrInvalidComputeACLCombo = RemediationError{
 	Inner:       fmt.Errorf("--operation, --prefix, and --action are required"),
 	Remediation: "Please add all three flags or or alternatively use --file.",
 }
+
+// ErrInvalidComputeACLCombo means the user omitted either the operation, prefix, or action flag.
+var ErrInvalidNGWAFScopeType = RemediationError{
+	Inner:       fmt.Errorf("--scope must be either `account` or `workspace`"),
+	Remediation: "please set the account flag to either `account` or `workspace`.",
+}

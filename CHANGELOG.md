@@ -6,10 +6,15 @@
 
 ### Enhancements:
 - feat(commands/ngwaf/workspaces): add support for update operation for NGWAF workspaces ([#1578](https://github.com/fastly/cli/pull/1578))
+- feat(commands/ngwaf/lists): add support for CRUD operations for NGWAF Lists ([#1582](https://github.com/fastly/cli/pull/1582))
 
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `golang.org/x/crypto` from 0.43.0 to 0.45.0 ([#1584](https://github.com/fastly/cli/pull/1584))
+- build(deps): `actions/checkout` from 5 to 6 ([#1587](https://github.com/fastly/cli/pull/1587))
+- build(deps): `golang.org/x/mod` from 0.29.0 to 0.30.0 ([#1588](https://github.com/fastly/cli/pull/1588))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.16.0 to 3.17.0 ([#1588](https://github.com/fastly/cli/pull/1588))
 
 ## [v13.1.0](https://github.com/fastly/cli/releases/tag/v13.1.0) (2025-11-12)
 
@@ -18,6 +23,7 @@
 - feat(compute/build): Allow usage of Rust 1.91.1 and later patch releases ([#1576](https://github.com/fastly/cli/pull/1576))
 - feat(commands/ngwaf/workspaces): add support for CRUD operations for NGWAF workspaces ([#1570](https://github.com/fastly/cli/pull/1570))
 - feat(commands/ngwaf/virtualpatch): add support for CRUD operations for NGWAF virtual patches ([#1579](https://github.com/fastly/cli/pull/1579))
+- feat(commands/ngwaf/redaction): add support for CRUD operations for NGWAF redactions ([#1581](https://github.com/fastly/cli/pull/1581))
 
 ### Dependencies:
 - build(deps): `golangci/golangci-lint-action` from 8 to 9 ([#1575](https://github.com/fastly/cli/pull/1575))
