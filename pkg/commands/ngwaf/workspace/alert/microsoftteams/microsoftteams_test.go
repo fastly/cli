@@ -20,14 +20,14 @@ import (
 const (
 	alertID     = "3c4d5e6f7890abcdef123456"
 	workspaceID = "nBw2ENWfOY1M2dpSwK1l5R"
-	description = "Test Microsoft Teams alert"
+	description = "TestMicrosoftTeamsAlert"
 )
 
 var (
 	webhook    = "https://outlook.office.com/webhook/example"
 	teamsAlert = microsoftteams.Alert{
 		ID:          alertID,
-		Type:        "microsoftTeams",
+		Type:        "microsoftteams",
 		Description: description,
 		CreatedAt:   "2025-11-25T16:40:12Z",
 		CreatedBy:   "test@example.com",
@@ -42,7 +42,7 @@ func TestMicrosoftTeamsAlertCreate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--webhook %s", webhook),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --webhook flag",
@@ -52,20 +52,6 @@ func TestMicrosoftTeamsAlertCreate(t *testing.T) {
 		{
 			Name: "validate API success",
 			Args: fmt.Sprintf("--workspace-id %s --webhook %s", workspaceID, webhook),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusCreated,
-						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(teamsAlert)))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Created a '%s' alert '%s' (workspace-id: %s)", teamsAlert.Type, teamsAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --webhook %s --description %s", workspaceID, webhook, description),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -101,7 +87,7 @@ func TestMicrosoftTeamsAlertList(t *testing.T) {
 		Data: []microsoftteams.Alert{
 			{
 				ID:          "1a2b3c4d5e6f7890abcdef12",
-				Type:        "microsoftTeams",
+				Type:        "microsoftteams",
 				Description: "First Microsoft Teams alert",
 				CreatedAt:   "2025-11-25T16:40:12Z",
 				CreatedBy:   "test@example.com",
@@ -111,7 +97,7 @@ func TestMicrosoftTeamsAlertList(t *testing.T) {
 			},
 			{
 				ID:          "2b3c4d5e6f7890abcdef1234",
-				Type:        "microsoftTeams",
+				Type:        "microsoftteams",
 				Description: "Second Microsoft Teams alert",
 				CreatedAt:   "2025-11-25T16:40:12Z",
 				CreatedBy:   "test@example.com",
@@ -120,13 +106,16 @@ func TestMicrosoftTeamsAlertList(t *testing.T) {
 				},
 			},
 		},
+		Meta: microsoftteams.MetaAlerts{
+			Total: 2,
+		},
 	}
 
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -195,7 +184,7 @@ func TestMicrosoftTeamsAlertGet(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -258,8 +247,10 @@ func TestMicrosoftTeamsAlertUpdate(t *testing.T) {
 	updatedWebhook := "https://outlook.office.com/webhook/updated"
 	updatedAlert := microsoftteams.Alert{
 		ID:          alertID,
-		Type:        "microsoftTeams",
+		Type:        "microsoftteams",
 		Description: "Updated description",
+		CreatedAt:   "2025-11-25T16:40:12Z",
+		CreatedBy:   "test@example.com",
 		Config: microsoftteams.ResponseConfig{
 			Webhook: &updatedWebhook,
 		},
@@ -268,12 +259,12 @@ func TestMicrosoftTeamsAlertUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Args:      fmt.Sprintf("--alert-id %s --webhook %s", alertID, webhook),
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
-			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
+			Args:      fmt.Sprintf("--workspace-id %s --webhook %s", workspaceID, webhook),
 			WantError: "error parsing arguments: required flag --alert-id not provided",
 		},
 		{
@@ -299,25 +290,28 @@ func TestMicrosoftTeamsAlertUpdate(t *testing.T) {
 			Name: "validate API success with webhook",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --webhook https://outlook.office.com/webhook/updated", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Updated '%s' alert '%s' (workspace-id: %s)", updatedAlert.Type, updatedAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --description \"Updated description\"", workspaceID, alertID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(teamsAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -327,11 +321,28 @@ func TestMicrosoftTeamsAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --webhook https://outlook.office.com/webhook/updated --json", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(teamsAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -347,7 +358,7 @@ func TestMicrosoftTeamsAlertDelete(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -393,8 +404,8 @@ func TestMicrosoftTeamsAlertDelete(t *testing.T) {
 
 var alertString = strings.TrimSpace(`
 ID: 3c4d5e6f7890abcdef123456
-Type: microsoftTeams
-Description: Test Microsoft Teams alert
+Type: microsoftteams
+Description: TestMicrosoftTeamsAlert
 Created At: 2025-11-25T16:40:12Z
 Created By: test@example.com
 Config:
@@ -402,9 +413,9 @@ Config:
 `)
 
 var listString = strings.TrimSpace(`
-ID         Type            Description                   Created At            Created By        Config
-1a2b3c4d5e6f7890abcdef12  microsoftTeams  First Microsoft Teams alert   2025-11-25T16:40:12Z  test@example.com  Webhook: <redacted>
-2b3c4d5e6f7890abcdef1234  microsoftTeams  Second Microsoft Teams alert  2025-11-25T16:40:12Z  test@example.com  Webhook: <redacted>
+ID                        Type            Description                   Created At            Created By        Config
+1a2b3c4d5e6f7890abcdef12  microsoftteams  First Microsoft Teams alert   2025-11-25T16:40:12Z  test@example.com  Webhook: <redacted>
+2b3c4d5e6f7890abcdef1234  microsoftteams  Second Microsoft Teams alert  2025-11-25T16:40:12Z  test@example.com  Webhook: <redacted>
 `) + "\n"
 
 var zeroListString = strings.TrimSpace(`

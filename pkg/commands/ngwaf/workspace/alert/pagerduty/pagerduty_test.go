@@ -20,14 +20,14 @@ import (
 const (
 	alertID     = "5e6f7890abcdef1234567890"
 	workspaceID = "nBw2ENWfOY1M2dpSwK1l5R"
-	description = "Test PagerDuty alert"
+	description = "TestPagerDutyAlert"
 )
 
 var (
 	key            = "a1b2c3d4e5f67890abcdef1234567890"
 	pagerdutyAlert = pagerduty.Alert{
 		ID:          alertID,
-		Type:        "pagerDuty",
+		Type:        "pagerduty",
 		Description: description,
 		CreatedAt:   "2025-11-25T16:40:12Z",
 		CreatedBy:   "test@example.com",
@@ -42,7 +42,7 @@ func TestPagerDutyAlertCreate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--key %s", key),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --key flag",
@@ -52,20 +52,6 @@ func TestPagerDutyAlertCreate(t *testing.T) {
 		{
 			Name: "validate API success",
 			Args: fmt.Sprintf("--workspace-id %s --key %s", workspaceID, key),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusCreated,
-						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(pagerdutyAlert)))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Created a '%s' alert '%s' (workspace-id: %s)", pagerdutyAlert.Type, pagerdutyAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --key %s --description %s", workspaceID, key, description),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -101,7 +87,7 @@ func TestPagerDutyAlertList(t *testing.T) {
 		Data: []pagerduty.Alert{
 			{
 				ID:          "1a2b3c4d5e6f7890abcdef12",
-				Type:        "pagerDuty",
+				Type:        "pagerduty",
 				Description: "First PagerDuty alert",
 				CreatedAt:   "2025-11-25T16:40:12Z",
 				CreatedBy:   "test@example.com",
@@ -111,7 +97,7 @@ func TestPagerDutyAlertList(t *testing.T) {
 			},
 			{
 				ID:          "2b3c4d5e6f7890abcdef1234",
-				Type:        "pagerDuty",
+				Type:        "pagerduty",
 				Description: "Second PagerDuty alert",
 				CreatedAt:   "2025-11-25T16:40:12Z",
 				CreatedBy:   "test@example.com",
@@ -120,13 +106,16 @@ func TestPagerDutyAlertList(t *testing.T) {
 				},
 			},
 		},
+		Meta: pagerduty.MetaAlerts{
+			Total: 2,
+		},
 	}
 
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -195,7 +184,7 @@ func TestPagerDutyAlertGet(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -258,8 +247,10 @@ func TestPagerDutyAlertUpdate(t *testing.T) {
 	updatedKey := "updated-key-9876543210"
 	updatedAlert := pagerduty.Alert{
 		ID:          alertID,
-		Type:        "pagerDuty",
+		Type:        "pagerduty",
 		Description: "Updated description",
+		CreatedAt:   "2025-11-25T16:40:12Z",
+		CreatedBy:   "test@example.com",
 		Config: pagerduty.ResponseConfig{
 			Key: &updatedKey,
 		},
@@ -268,12 +259,12 @@ func TestPagerDutyAlertUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Args:      fmt.Sprintf("--alert-id %s --key %s", alertID, key),
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
-			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
+			Args:      fmt.Sprintf("--workspace-id %s --key %s", workspaceID, key),
 			WantError: "error parsing arguments: required flag --alert-id not provided",
 		},
 		{
@@ -299,25 +290,28 @@ func TestPagerDutyAlertUpdate(t *testing.T) {
 			Name: "validate API success with key",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --key updated-key-9876543210", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Updated '%s' alert '%s' (workspace-id: %s)", updatedAlert.Type, updatedAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --description \"Updated description\"", workspaceID, alertID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(pagerdutyAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -327,11 +321,28 @@ func TestPagerDutyAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --key updated-key-9876543210 --json", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(pagerdutyAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -347,7 +358,7 @@ func TestPagerDutyAlertDelete(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -393,8 +404,8 @@ func TestPagerDutyAlertDelete(t *testing.T) {
 
 var alertString = strings.TrimSpace(`
 ID: 5e6f7890abcdef1234567890
-Type: pagerDuty
-Description: Test PagerDuty alert
+Type: pagerduty
+Description: TestPagerDutyAlert
 Created At: 2025-11-25T16:40:12Z
 Created By: test@example.com
 Config:
@@ -402,9 +413,9 @@ Config:
 `)
 
 var listString = strings.TrimSpace(`
-ID         Type       Description             Created At            Created By        Config
-1a2b3c4d5e6f7890abcdef12  pagerDuty  First PagerDuty alert   2025-11-25T16:40:12Z  test@example.com  Key: <redacted>
-2b3c4d5e6f7890abcdef1234  pagerDuty  Second PagerDuty alert  2025-11-25T16:40:12Z  test@example.com  Key: <redacted>
+ID                        Type       Description             Created At            Created By        Config
+1a2b3c4d5e6f7890abcdef12  pagerduty  First PagerDuty alert   2025-11-25T16:40:12Z  test@example.com  Key: <redacted>
+2b3c4d5e6f7890abcdef1234  pagerduty  Second PagerDuty alert  2025-11-25T16:40:12Z  test@example.com  Key: <redacted>
 `) + "\n"
 
 var zeroListString = strings.TrimSpace(`

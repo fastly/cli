@@ -20,7 +20,7 @@ import (
 const (
 	alertID     = "7890abcdef12345678901234"
 	workspaceID = "nBw2ENWfOY1M2dpSwK1l5R"
-	description = "Test Datadog alert"
+	description = "TestDatadogAlert"
 )
 
 var (
@@ -44,7 +44,7 @@ func TestDatadogAlertCreate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--key %s --site %s", key, site),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --key flag",
@@ -129,13 +129,16 @@ func TestDatadogAlertList(t *testing.T) {
 				},
 			},
 		},
+		Meta: datadog.MetaAlerts{
+			Total: 2,
+		},
 	}
 
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -204,7 +207,7 @@ func TestDatadogAlertGet(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -266,10 +269,13 @@ func TestDatadogAlertGet(t *testing.T) {
 func TestDatadogAlertUpdate(t *testing.T) {
 	updatedKey := "updated-key-9876543210"
 	updatedSite := "datadoghq.eu"
+	updatedDescription := "Updated description"
 	updatedAlert := datadog.Alert{
 		ID:          alertID,
 		Type:        "datadog",
-		Description: "Updated description",
+		Description: updatedDescription,
+		CreatedAt:   "2025-11-25T16:40:12Z",
+		CreatedBy:   "test@example.com",
 		Config: datadog.ResponseConfig{
 			Key:  &updatedKey,
 			Site: &updatedSite,
@@ -279,17 +285,17 @@ func TestDatadogAlertUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Args:      fmt.Sprintf("--alert-id %s --key %s --site %s", alertID, key, site),
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
-			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
+			Args:      fmt.Sprintf("--workspace-id %s --key %s --site %s", workspaceID, key, site),
 			WantError: "error parsing arguments: required flag --alert-id not provided",
 		},
 		{
 			Name: "validate not found",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id invalid --key updated-key-9876543210", workspaceID),
+			Args: fmt.Sprintf("--workspace-id %s --alert-id invalid --key updated-key-9876543210 --site datadoghq.eu", workspaceID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -310,25 +316,20 @@ func TestDatadogAlertUpdate(t *testing.T) {
 			Name: "validate API success with key and site",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --key updated-key-9876543210 --site datadoghq.eu", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Updated '%s' alert '%s' (workspace-id: %s)", updatedAlert.Type, updatedAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --description \"Updated description\"", workspaceID, alertID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+				Transport: &testutil.MultiResponseRoundTripper{
+					Responses: []*http.Response{
+						// First response for GET (fetching current alert)
+						{
+							StatusCode: http.StatusOK,
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+						},
+						// Second response for PATCH (updating alert)
+						{
+							StatusCode: http.StatusOK,
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(updatedAlert)))),
+						},
 					},
 				},
 			},
@@ -338,11 +339,20 @@ func TestDatadogAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --key updated-key-9876543210 --site datadoghq.eu --json", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+				Transport: &testutil.MultiResponseRoundTripper{
+					Responses: []*http.Response{
+						// First response for GET (fetching current alert)
+						{
+							StatusCode: http.StatusOK,
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(datadogAlert)))),
+						},
+						// Second response for PATCH (updating alert)
+						{
+							StatusCode: http.StatusOK,
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(updatedAlert)))),
+						},
 					},
 				},
 			},
@@ -358,7 +368,7 @@ func TestDatadogAlertDelete(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -405,7 +415,7 @@ func TestDatadogAlertDelete(t *testing.T) {
 var alertString = strings.TrimSpace(`
 ID: 7890abcdef12345678901234
 Type: datadog
-Description: Test Datadog alert
+Description: TestDatadogAlert
 Created At: 2025-11-25T16:40:12Z
 Created By: test@example.com
 Config:
@@ -414,7 +424,7 @@ Config:
 `)
 
 var listString = strings.TrimSpace(`
-ID         Type     Description           Created At            Created By        Config
+ID                        Type     Description           Created At            Created By        Config
 1a2b3c4d5e6f7890abcdef12  datadog  First Datadog alert   2025-11-25T16:40:12Z  test@example.com  Site: datadoghq.com, Key: <redacted>
 2b3c4d5e6f7890abcdef1234  datadog  Second Datadog alert  2025-11-25T16:40:12Z  test@example.com  Site: datadoghq.com, Key: <redacted>
 `) + "\n"

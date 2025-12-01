@@ -40,11 +40,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:          argparser.FlagNGWAFWorkspaceID,
-		Description:   argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:           &c.WorkspaceID.Value,
-		Action:        c.WorkspaceID.Set,
-		ForceRequired: true,
+		Name:        argparser.FlagNGWAFWorkspaceID,
+		Description: argparser.FlagNGWAFWorkspaceIDDesc,
+		Dst:         &c.WorkspaceID.Value,
+		Action:      c.WorkspaceID.Set,
 	})
 	c.CmdClause.Flag("host", "Host name of the Jira instance.").Required().StringVar(&c.Host)
 	c.CmdClause.Flag("key", "Jira API key.").Required().StringVar(&c.Key)

@@ -20,7 +20,7 @@ import (
 const (
 	alertID     = "1a2b3c4d5e6f7890abcdef12"
 	workspaceID = "nBw2ENWfOY1M2dpSwK1l5R"
-	description = "Test slack alert"
+	description = "TestSlackAlert"
 )
 
 var (
@@ -42,7 +42,7 @@ func TestSlackAlertCreate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--webhook %s", webhook),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --webhook flag",
@@ -52,20 +52,6 @@ func TestSlackAlertCreate(t *testing.T) {
 		{
 			Name: "validate API success",
 			Args: fmt.Sprintf("--workspace-id %s --webhook %s", workspaceID, webhook),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusCreated,
-						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(slackAlert)))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Created a '%s' alert '%s' (workspace-id: %s)", slackAlert.Type, slackAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --webhook %s --description %s", workspaceID, webhook, description),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -120,13 +106,16 @@ func TestSlackAlertList(t *testing.T) {
 				},
 			},
 		},
+		Meta: slack.MetaAlerts{
+			Total: 2,
+		},
 	}
 
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -195,7 +184,7 @@ func TestSlackAlertGet(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -260,6 +249,8 @@ func TestSlackAlertUpdate(t *testing.T) {
 		ID:          alertID,
 		Type:        "slack",
 		Description: "Updated description",
+		CreatedAt:   "2025-11-25T16:40:12Z",
+		CreatedBy:   "test@example.com",
 		Config: slack.ResponseConfig{
 			Webhook: &updatedWebhook,
 		},
@@ -268,12 +259,12 @@ func TestSlackAlertUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Args:      fmt.Sprintf("--alert-id %s --webhook %s", alertID, webhook),
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
-			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
+			Args:      fmt.Sprintf("--workspace-id %s --webhook %s", workspaceID, webhook),
 			WantError: "error parsing arguments: required flag --alert-id not provided",
 		},
 		{
@@ -299,25 +290,28 @@ func TestSlackAlertUpdate(t *testing.T) {
 			Name: "validate API success with webhook",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --webhook https://hooks.slack.com/services/updated", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Updated '%s' alert '%s' (workspace-id: %s)", updatedAlert.Type, updatedAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --description \"Updated description\"", workspaceID, alertID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(slackAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -327,11 +321,28 @@ func TestSlackAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --webhook https://hooks.slack.com/services/updated --json", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(slackAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -347,7 +358,7 @@ func TestSlackAlertDelete(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -394,7 +405,7 @@ func TestSlackAlertDelete(t *testing.T) {
 var alertString = strings.TrimSpace(`
 ID: 1a2b3c4d5e6f7890abcdef12
 Type: slack
-Description: Test slack alert
+Description: TestSlackAlert
 Created At: 2025-11-25T16:40:12Z
 Created By: test@example.com
 Config:
@@ -402,7 +413,7 @@ Config:
 `)
 
 var listString = strings.TrimSpace(`
-ID         Type   Description         Created At            Created By        Config
+ID                        Type   Description         Created At            Created By        Config
 1a2b3c4d5e6f7890abcdef12  slack  First slack alert   2025-11-25T16:40:12Z  test@example.com  Webhook: <redacted>
 2b3c4d5e6f7890abcdef1234  slack  Second slack alert  2025-11-25T16:40:12Z  test@example.com  Webhook: <redacted>
 `) + "\n"

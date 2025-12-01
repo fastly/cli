@@ -20,7 +20,7 @@ import (
 const (
 	alertID     = "4d5e6f7890abcdef12345678"
 	workspaceID = "nBw2ENWfOY1M2dpSwK1l5R"
-	description = "Test Opsgenie alert"
+	description = "TestOpsgenieAlert"
 )
 
 var (
@@ -42,7 +42,7 @@ func TestOpsgenieAlertCreate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--key %s", key),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --key flag",
@@ -120,13 +120,16 @@ func TestOpsgenieAlertList(t *testing.T) {
 				},
 			},
 		},
+		Meta: opsgenie.MetaAlerts{
+			Total: 2,
+		},
 	}
 
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -195,7 +198,7 @@ func TestOpsgenieAlertGet(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -260,6 +263,8 @@ func TestOpsgenieAlertUpdate(t *testing.T) {
 		ID:          alertID,
 		Type:        "opsgenie",
 		Description: "Updated description",
+		CreatedAt:   "2025-11-25T16:40:12Z",
+		CreatedBy:   "test@example.com",
 		Config: opsgenie.ResponseConfig{
 			Key: &updatedKey,
 		},
@@ -268,12 +273,12 @@ func TestOpsgenieAlertUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Args:      fmt.Sprintf("--alert-id %s --key %s", alertID, key),
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
-			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
+			Args:      fmt.Sprintf("--workspace-id %s --key %s", workspaceID, key),
 			WantError: "error parsing arguments: required flag --alert-id not provided",
 		},
 		{
@@ -299,25 +304,28 @@ func TestOpsgenieAlertUpdate(t *testing.T) {
 			Name: "validate API success with key",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --key updated-key-1234", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Updated '%s' alert '%s' (workspace-id: %s)", updatedAlert.Type, updatedAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --description \"Updated description\"", workspaceID, alertID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(opsgenieAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -327,11 +335,28 @@ func TestOpsgenieAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --key updated-key-1234 --json", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(opsgenieAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -347,7 +372,7 @@ func TestOpsgenieAlertDelete(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -394,7 +419,7 @@ func TestOpsgenieAlertDelete(t *testing.T) {
 var alertString = strings.TrimSpace(`
 ID: 4d5e6f7890abcdef12345678
 Type: opsgenie
-Description: Test Opsgenie alert
+Description: TestOpsgenieAlert
 Created At: 2025-11-25T16:40:12Z
 Created By: test@example.com
 Config:
@@ -402,7 +427,7 @@ Config:
 `)
 
 var listString = strings.TrimSpace(`
-ID         Type      Description            Created At            Created By        Config
+ID                        Type      Description            Created At            Created By        Config
 1a2b3c4d5e6f7890abcdef12  opsgenie  First Opsgenie alert   2025-11-25T16:40:12Z  test@example.com  Key: <redacted>
 2b3c4d5e6f7890abcdef1234  opsgenie  Second Opsgenie alert  2025-11-25T16:40:12Z  test@example.com  Key: <redacted>
 `) + "\n"

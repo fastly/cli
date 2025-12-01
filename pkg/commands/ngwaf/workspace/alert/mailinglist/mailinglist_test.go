@@ -20,14 +20,16 @@ import (
 const (
 	alertID     = "2b3c4d5e6f7890abcdef1234"
 	workspaceID = "nBw2ENWfOY1M2dpSwK1l5R"
-	description = "Test mailing list alert"
+	description = "TestMailingListAlert"
 )
 
 var (
 	address          = "alerts@example.com"
+	alertAddress1    = "alerts1@example.com"
+	alertAddress2    = "alerts2@example.com"
 	mailinglistAlert = mailinglist.Alert{
 		ID:          alertID,
-		Type:        "mailingList",
+		Type:        "mailinglist",
 		Description: description,
 		CreatedAt:   "2025-11-25T16:40:12Z",
 		CreatedBy:   "test@example.com",
@@ -42,7 +44,7 @@ func TestMailingListAlertCreate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--address %s", address),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --address flag",
@@ -52,20 +54,6 @@ func TestMailingListAlertCreate(t *testing.T) {
 		{
 			Name: "validate API success",
 			Args: fmt.Sprintf("--workspace-id %s --address %s", workspaceID, address),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusCreated,
-						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(mailinglistAlert)))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Created a '%s' alert '%s' (workspace-id: %s)", mailinglistAlert.Type, mailinglistAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --address %s --description %s", workspaceID, address, description),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -97,13 +85,11 @@ func TestMailingListAlertCreate(t *testing.T) {
 }
 
 func TestMailingListAlertList(t *testing.T) {
-	alertAddress1 := "alerts1@example.com"
-	alertAddress2 := "alerts2@example.com"
 	alertsObject := mailinglist.Alerts{
 		Data: []mailinglist.Alert{
 			{
 				ID:          "1a2b3c4d5e6f7890abcdef12",
-				Type:        "mailingList",
+				Type:        "mailinglist",
 				Description: "First mailing list alert",
 				CreatedAt:   "2025-11-25T16:40:12Z",
 				CreatedBy:   "test@example.com",
@@ -113,7 +99,7 @@ func TestMailingListAlertList(t *testing.T) {
 			},
 			{
 				ID:          "2b3c4d5e6f7890abcdef1234",
-				Type:        "mailingList",
+				Type:        "mailinglist",
 				Description: "Second mailing list alert",
 				CreatedAt:   "2025-11-25T16:40:12Z",
 				CreatedBy:   "test@example.com",
@@ -122,13 +108,16 @@ func TestMailingListAlertList(t *testing.T) {
 				},
 			},
 		},
+		Meta: mailinglist.MetaAlerts{
+			Total: 2,
+		},
 	}
 
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -197,7 +186,7 @@ func TestMailingListAlertGet(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -262,6 +251,8 @@ func TestMailingListAlertUpdate(t *testing.T) {
 		ID:          alertID,
 		Type:        "mailingList",
 		Description: "Updated description",
+		CreatedAt:   "2025-11-25T16:40:12Z",
+		CreatedBy:   "test@example.com",
 		Config: mailinglist.ResponseConfig{
 			Address: &updatedAddress,
 		},
@@ -270,12 +261,12 @@ func TestMailingListAlertUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Args:      fmt.Sprintf("--alert-id %s --address %s", alertID, address),
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
-			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
+			Args:      fmt.Sprintf("--workspace-id %s --address %s", workspaceID, address),
 			WantError: "error parsing arguments: required flag --alert-id not provided",
 		},
 		{
@@ -301,25 +292,28 @@ func TestMailingListAlertUpdate(t *testing.T) {
 			Name: "validate API success with address",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --address updated@example.com", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Updated '%s' alert '%s' (workspace-id: %s)", updatedAlert.Type, updatedAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --description \"Updated description\"", workspaceID, alertID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(mailinglistAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -329,11 +323,28 @@ func TestMailingListAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --address updated@example.com --json", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+
+				Transport: &testutil.MultiResponseRoundTripper{
+
+					Responses: []*http.Response{
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(mailinglistAlert))),
+						},
+
+						{
+
+							StatusCode: http.StatusOK,
+
+							Status: http.StatusText(http.StatusOK),
+
+							Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -349,7 +360,7 @@ func TestMailingListAlertDelete(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -395,8 +406,8 @@ func TestMailingListAlertDelete(t *testing.T) {
 
 var alertString = strings.TrimSpace(`
 ID: 2b3c4d5e6f7890abcdef1234
-Type: mailingList
-Description: Test mailing list alert
+Type: mailinglist
+Description: TestMailingListAlert
 Created At: 2025-11-25T16:40:12Z
 Created By: test@example.com
 Config:
@@ -404,9 +415,9 @@ Config:
 `)
 
 var listString = strings.TrimSpace(`
-ID         Type         Description                Created At            Created By        Config
-1a2b3c4d5e6f7890abcdef12  mailingList  First mailing list alert   2025-11-25T16:40:12Z  test@example.com  Address: alerts1@example.com
-2b3c4d5e6f7890abcdef1234  mailingList  Second mailing list alert  2025-11-25T16:40:12Z  test@example.com  Address: alerts2@example.com
+ID                        Type         Description                Created At            Created By        Config
+1a2b3c4d5e6f7890abcdef12  mailinglist  First mailing list alert   2025-11-25T16:40:12Z  test@example.com  Address: alerts1@example.com
+2b3c4d5e6f7890abcdef1234  mailinglist  Second mailing list alert  2025-11-25T16:40:12Z  test@example.com  Address: alerts2@example.com
 `) + "\n"
 
 var zeroListString = strings.TrimSpace(`

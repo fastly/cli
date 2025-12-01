@@ -39,11 +39,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:          argparser.FlagNGWAFWorkspaceID,
-		Description:   argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:           &c.WorkspaceID.Value,
-		Action:        c.WorkspaceID.Set,
-		ForceRequired: true,
+		Name:        argparser.FlagNGWAFWorkspaceID,
+		Description: argparser.FlagNGWAFWorkspaceIDDesc,
+		Dst:         &c.WorkspaceID.Value,
+		Action:      c.WorkspaceID.Set,
 	})
 	c.CmdClause.Flag("webhook", "Slack webhook.").Required().StringVar(&c.Webhook)
 

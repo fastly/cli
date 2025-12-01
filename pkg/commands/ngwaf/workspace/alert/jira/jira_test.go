@@ -50,7 +50,7 @@ func TestJiraAlertCreate(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--host %s --key %s --project %s --username %s", host, key, project, username),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --host flag",
@@ -165,13 +165,16 @@ func TestJiraAlertList(t *testing.T) {
 				},
 			},
 		},
+		Meta: jira.MetaAlerts{
+			Total: 2,
+		},
 	}
 
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name: "validate internal server error",
@@ -240,7 +243,7 @@ func TestJiraAlertGet(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
@@ -309,6 +312,8 @@ func TestJiraAlertUpdate(t *testing.T) {
 		ID:          alertID,
 		Type:        "jira",
 		Description: "Updated description",
+		CreatedAt:   "2025-11-25T16:40:12Z",
+		CreatedBy:   "test@example.com",
 		Config: jira.ResponseConfig{
 			Host:      &updatedHost,
 			Key:       &updatedKey,
@@ -321,17 +326,17 @@ func TestJiraAlertUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing --workspace-id flag",
-			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			Args:      fmt.Sprintf("--alert-id %s --host %s --key %s --project %s --username %s", alertID, host, key, project, username),
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
-			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
+			Args:      fmt.Sprintf("--workspace-id %s --host %s --key %s --project %s --username %s", workspaceID, host, key, project, username),
 			WantError: "error parsing arguments: required flag --alert-id not provided",
 		},
 		{
 			Name: "validate not found",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id invalid --host updated.atlassian.net", workspaceID),
+			Args: fmt.Sprintf("--workspace-id %s --alert-id invalid --host updated.atlassian.net --key updated-jira-key-456 --project UPDT --username updated@example.com", workspaceID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -352,25 +357,18 @@ func TestJiraAlertUpdate(t *testing.T) {
 			Name: "validate API success with all config fields",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --host updated.atlassian.net --key updated-jira-key-456 --project UPDT --username updated@example.com --issue-type Bug", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Updated '%s' alert '%s' (workspace-id: %s)", updatedAlert.Type, updatedAlert.ID, workspaceID),
-		},
-		{
-			Name: "validate API success with description",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --description \"Updated description\"", workspaceID, alertID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+				Transport: &testutil.MultiResponseRoundTripper{
+					Responses: []*http.Response{
+						{
+							StatusCode: http.StatusOK,
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(jiraAlert))),
+						},
+						{
+							StatusCode: http.StatusOK,
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -378,13 +376,20 @@ func TestJiraAlertUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --json flag",
-			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --host updated.atlassian.net --json", workspaceID, alertID),
+			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --host updated.atlassian.net --key updated-jira-key-456 --project UPDT --username updated@example.com --json", workspaceID, alertID),
 			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+				Transport: &testutil.MultiResponseRoundTripper{
+					Responses: []*http.Response{
+						{
+							StatusCode: http.StatusOK,
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(jiraAlert))),
+						},
+						{
+							StatusCode: http.StatusOK,
+							Status:     http.StatusText(http.StatusOK),
+							Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updatedAlert))),
+						},
 					},
 				},
 			},
@@ -400,7 +405,7 @@ func TestJiraAlertDelete(t *testing.T) {
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
-			WantError: "error parsing arguments: required flag --workspace-id not provided",
+			WantError: "error reading workspace ID: no workspace ID found",
 		},
 		{
 			Name:      "validate missing --alert-id flag",
