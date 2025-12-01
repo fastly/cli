@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/common"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/alertutil"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -21,12 +21,12 @@ type UpdateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	common.AlertIDFlags
-	common.BaseAlertFlags
-	common.JiraConfigFlags
+	alertutil.AlertIDFlags
+	alertutil.BaseAlertFlags
+	alertutil.JiraConfigFlags
 
 	// Optional
-	common.JiraOptConfigFlags
+	alertutil.JiraOptConfigFlags
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -84,7 +84,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			Username: &c.Username,
 		},
 		// Set 'Events' to the only possible value, 'flag'
-		Events: common.GetDefaultEvents(),
+		Events: alertutil.GetDefaultEvents(),
 	}
 	if c.IssueType != "" {
 		input.Config.IssueType = &c.IssueType

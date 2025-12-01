@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/common"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/alertutil"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -21,11 +21,11 @@ type CreateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	common.BaseAlertFlags
-	common.DatadogConfigFlags
+	alertutil.BaseAlertFlags
+	alertutil.DatadogConfigFlags
 
 	// Optional.
-	common.AlertDataFlags
+	alertutil.AlertDataFlags
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -72,7 +72,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 			Site: &c.Site,
 		},
 		// Set 'Events' to the only possible value, 'flag'
-		Events: common.GetDefaultEvents(),
+		Events: alertutil.GetDefaultEvents(),
 	}
 	if c.Description.WasSet {
 		input.Description = &c.Description.Value

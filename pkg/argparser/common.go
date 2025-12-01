@@ -11,7 +11,7 @@ var (
 	FlagJSONDesc = "Render output as JSON"
 	// FlagNGWAFAlertID is the alert ID.
 	FlagNGWAFAlertID = "alert-id"
-	// FlagNGWAFAlertIDDesc
+	// FlagNGWAFAlertIDDesc is the alert ID flag description.
 	FlagNGWAFAlertIDDesc = "Alphanumeric string identifying the alert"
 	// FlagNGWAFWorkspaceID is the workspace ID.
 	FlagNGWAFWorkspaceID = "workspace-id"

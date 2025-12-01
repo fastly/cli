@@ -1,4 +1,4 @@
-package common
+package alertutil
 
 // GetDefaultEvents returns the hardcoded events value for all alerts.
 // Currently the only supported value is "flag".

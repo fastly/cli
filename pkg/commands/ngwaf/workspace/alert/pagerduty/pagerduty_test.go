@@ -290,13 +290,9 @@ func TestPagerDutyAlertUpdate(t *testing.T) {
 			Name: "validate API success with key",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --key updated-key-9876543210", workspaceID, alertID),
 			Client: &http.Client{
-
 				Transport: &testutil.MultiResponseRoundTripper{
-
 					Responses: []*http.Response{
-
 						{
-
 							StatusCode: http.StatusOK,
 
 							Status: http.StatusText(http.StatusOK),
@@ -305,7 +301,6 @@ func TestPagerDutyAlertUpdate(t *testing.T) {
 						},
 
 						{
-
 							StatusCode: http.StatusOK,
 
 							Status: http.StatusText(http.StatusOK),
@@ -321,13 +316,9 @@ func TestPagerDutyAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --key updated-key-9876543210 --json", workspaceID, alertID),
 			Client: &http.Client{
-
 				Transport: &testutil.MultiResponseRoundTripper{
-
 					Responses: []*http.Response{
-
 						{
-
 							StatusCode: http.StatusOK,
 
 							Status: http.StatusText(http.StatusOK),
@@ -336,7 +327,6 @@ func TestPagerDutyAlertUpdate(t *testing.T) {
 						},
 
 						{
-
 							StatusCode: http.StatusOK,
 
 							Status: http.StatusText(http.StatusOK),

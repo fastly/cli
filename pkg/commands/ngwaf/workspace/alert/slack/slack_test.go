@@ -290,13 +290,9 @@ func TestSlackAlertUpdate(t *testing.T) {
 			Name: "validate API success with webhook",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --webhook https://hooks.slack.com/services/updated", workspaceID, alertID),
 			Client: &http.Client{
-
 				Transport: &testutil.MultiResponseRoundTripper{
-
 					Responses: []*http.Response{
-
 						{
-
 							StatusCode: http.StatusOK,
 
 							Status: http.StatusText(http.StatusOK),
@@ -305,7 +301,6 @@ func TestSlackAlertUpdate(t *testing.T) {
 						},
 
 						{
-
 							StatusCode: http.StatusOK,
 
 							Status: http.StatusText(http.StatusOK),
@@ -321,13 +316,9 @@ func TestSlackAlertUpdate(t *testing.T) {
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--workspace-id %s --alert-id %s --webhook https://hooks.slack.com/services/updated --json", workspaceID, alertID),
 			Client: &http.Client{
-
 				Transport: &testutil.MultiResponseRoundTripper{
-
 					Responses: []*http.Response{
-
 						{
-
 							StatusCode: http.StatusOK,
 
 							Status: http.StatusText(http.StatusOK),
@@ -336,7 +327,6 @@ func TestSlackAlertUpdate(t *testing.T) {
 						},
 
 						{
-
 							StatusCode: http.StatusOK,
 
 							Status: http.StatusText(http.StatusOK),

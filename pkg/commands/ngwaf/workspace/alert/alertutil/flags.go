@@ -1,4 +1,4 @@
-package common
+package alertutil
 
 import "github.com/fastly/cli/pkg/argparser"
 
