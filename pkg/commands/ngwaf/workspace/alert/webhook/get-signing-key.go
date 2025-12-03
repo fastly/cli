@@ -21,7 +21,7 @@ type GetSigningKeyCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alert.AlertIDFlags
+	alert.IDFlags
 	alert.WorkspaceIDFlags
 }
 

@@ -30,15 +30,15 @@ func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
 }
 
-// JiraConfigFlags contains Jira specific configuration flags.
-type JiraConfigFlags struct {
+// ConfigFlags contains Jira specific configuration flags.
+type ConfigFlags struct {
 	Host     string
 	Key      string
 	Project  string
 	Username string
 }
 
-// JiraOptConfigFlags contains optional Jira specific configuration flags.
-type JiraOptConfigFlags struct {
+// OptConfigFlags contains optional Jira specific configuration flags.
+type OptConfigFlags struct {
 	IssueType string
 }

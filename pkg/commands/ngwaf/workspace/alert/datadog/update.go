@@ -21,9 +21,9 @@ type UpdateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alert.AlertIDFlags
+	alert.IDFlags
 	alert.WorkspaceIDFlags
-	DatadogConfigFlags
+	ConfigFlags
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.

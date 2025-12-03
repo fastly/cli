@@ -22,10 +22,10 @@ type CreateCommand struct {
 
 	// Required.
 	alert.WorkspaceIDFlags
-	DatadogConfigFlags
+	ConfigFlags
 
 	// Optional.
-	alert.AlertDataFlags
+	alert.DataFlags
 }
 
 // NewCreateCommand returns a usable command registered under the parent.

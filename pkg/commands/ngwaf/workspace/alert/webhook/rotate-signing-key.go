@@ -21,7 +21,7 @@ type RotateSigningKeyCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alert.AlertIDFlags
+	alert.IDFlags
 	alert.WorkspaceIDFlags
 }
 

@@ -20,12 +20,12 @@ type UpdateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alert.AlertIDFlags
+	alert.IDFlags
 	alert.WorkspaceIDFlags
-	JiraConfigFlags
+	ConfigFlags
 
 	// Optional
-	JiraOptConfigFlags
+	OptConfigFlags
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.

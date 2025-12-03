@@ -21,7 +21,7 @@ type UpdateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alert.AlertIDFlags
+	alert.IDFlags
 	alert.WorkspaceIDFlags
 	alert.WebhookConfigFlags
 }

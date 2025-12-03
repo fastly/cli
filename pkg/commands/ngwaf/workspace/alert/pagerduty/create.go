@@ -25,7 +25,7 @@ type CreateCommand struct {
 	alert.KeyConfigFlags
 
 	// Optional.
-	alert.AlertDataFlags
+	alert.DataFlags
 }
 
 // NewCreateCommand returns a usable command registered under the parent.

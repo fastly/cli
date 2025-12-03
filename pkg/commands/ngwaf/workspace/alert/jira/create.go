@@ -21,11 +21,11 @@ type CreateCommand struct {
 
 	// Required.
 	alert.WorkspaceIDFlags
-	JiraConfigFlags
+	ConfigFlags
 
 	// Optional.
-	alert.AlertDataFlags
-	JiraOptConfigFlags
+	alert.DataFlags
+	OptConfigFlags
 }
 
 // NewCreateCommand returns a usable command registered under the parent.

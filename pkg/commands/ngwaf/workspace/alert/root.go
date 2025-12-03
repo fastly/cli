@@ -35,13 +35,13 @@ type WorkspaceIDFlags struct {
 	WorkspaceID argparser.OptionalWorkspaceID
 }
 
-// AlertIDFlags contains flags for identifying a specific alert (used in update/delete/get).
-type AlertIDFlags struct {
+// IDFlags contains flags for identifying a specific alert (used in update/delete/get).
+type IDFlags struct {
 	AlertID string
 }
 
-// AlertDataFlags contains optional data fields for alerts (used in create/update).
-type AlertDataFlags struct {
+// DataFlags contains optional data fields for alerts (used in create/update).
+type DataFlags struct {
 	Description argparser.OptionalString
 }
 
