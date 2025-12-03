@@ -29,3 +29,16 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
 }
+
+// JiraConfigFlags contains Jira specific configuration flags.
+type JiraConfigFlags struct {
+	Host     string
+	Key      string
+	Project  string
+	Username string
+}
+
+// JiraOptConfigFlags contains optional Jira specific configuration flags.
+type JiraOptConfigFlags struct {
+	IssueType string
+}

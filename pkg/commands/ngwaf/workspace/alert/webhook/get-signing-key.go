@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/alertutil"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -21,8 +21,8 @@ type GetSigningKeyCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alertutil.AlertIDFlags
-	alertutil.BaseAlertFlags
+	alert.AlertIDFlags
+	alert.WorkspaceIDFlags
 }
 
 // NewGetSigningKeyCommand returns a usable command registered under the parent.

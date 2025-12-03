@@ -6,8 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/alertutil"
-
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -21,12 +20,12 @@ type CreateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alertutil.BaseAlertFlags
-	alertutil.JiraConfigFlags
+	alert.WorkspaceIDFlags
+	JiraConfigFlags
 
 	// Optional.
-	alertutil.AlertDataFlags
-	alertutil.JiraOptConfigFlags
+	alert.AlertDataFlags
+	JiraOptConfigFlags
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -78,7 +77,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 			Username: &c.Username,
 		},
 		// Set 'Events' to the only possible value, 'flag'
-		Events: alertutil.GetDefaultEvents(),
+		Events: alert.GetDefaultEvents(),
 	}
 	if c.IssueType != "" {
 		input.Config.IssueType = &c.IssueType

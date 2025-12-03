@@ -29,3 +29,9 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
 }
+
+// DatadogConfigFlags contains Datadog specific configuration flags.
+type DatadogConfigFlags struct {
+	Key  string
+	Site string
+}

@@ -6,8 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/alertutil"
-
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -21,7 +20,7 @@ type ListCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alertutil.BaseAlertFlags
+	alert.WorkspaceIDFlags
 }
 
 // NewListCommand returns a usable command registered under the parent.

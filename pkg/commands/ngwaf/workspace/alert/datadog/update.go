@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/alertutil"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -21,9 +21,9 @@ type UpdateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alertutil.AlertIDFlags
-	alertutil.BaseAlertFlags
-	alertutil.DatadogConfigFlags
+	alert.AlertIDFlags
+	alert.WorkspaceIDFlags
+	DatadogConfigFlags
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -75,7 +75,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			Site: &c.Site,
 		},
 		// Set 'Events' to the only possible value, 'flag'
-		Events: alertutil.GetDefaultEvents(),
+		Events: alert.GetDefaultEvents(),
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

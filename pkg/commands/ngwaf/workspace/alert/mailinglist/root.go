@@ -29,3 +29,8 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
 }
+
+// AddressConfigFlags contains Address configurations used by mailing lists.
+type AddressConfigFlags struct {
+	Address string
+}
