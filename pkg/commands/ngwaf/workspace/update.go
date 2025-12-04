@@ -16,7 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// UpdateCommand calls the Fastly API to create domains.
+// UpdateCommand calls the Fastly API to update workspaces.
 type UpdateCommand struct {
 	argparser.Base
 	argparser.JSONOutput

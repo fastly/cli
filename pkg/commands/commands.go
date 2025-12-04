@@ -57,6 +57,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/ngwaf"
 	"github.com/fastly/cli/pkg/commands/ngwaf/countrylist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/customsignal"
 	"github.com/fastly/cli/pkg/commands/ngwaf/iplist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/signallist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/stringlist"
@@ -72,6 +73,7 @@ import (
 	workspaceAlertSlack "github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/slack"
 	workspaceAlertWebhook "github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/webhook"
 	wscountrylist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/countrylist"
+	wscustomsignal "github.com/fastly/cli/pkg/commands/ngwaf/workspace/customsignal"
 	wsiplist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/iplist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/redaction"
 	wssignallistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/signallist"
@@ -435,6 +437,12 @@ func Define( // nolint:revive // function-length
 	ngwafCountryListGet := countrylist.NewGetCommand(ngwafCountryListRoot.CmdClause, data)
 	ngwafCountryListList := countrylist.NewListCommand(ngwafCountryListRoot.CmdClause, data)
 	ngwafCountryListUpdate := countrylist.NewUpdateCommand(ngwafCountryListRoot.CmdClause, data)
+	ngwafCustomSignalRoot := customsignal.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafCustomSignalCreate := customsignal.NewCreateCommand(ngwafCustomSignalRoot.CmdClause, data)
+	ngwafCustomSignalDelete := customsignal.NewDeleteCommand(ngwafCustomSignalRoot.CmdClause, data)
+	ngwafCustomSignalGet := customsignal.NewGetCommand(ngwafCustomSignalRoot.CmdClause, data)
+	ngwafCustomSignalList := customsignal.NewListCommand(ngwafCustomSignalRoot.CmdClause, data)
+	ngwafCustomSignalUpdate := customsignal.NewUpdateCommand(ngwafCustomSignalRoot.CmdClause, data)
 	ngwafIPListRoot := iplist.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafIPListCreate := iplist.NewCreateCommand(ngwafIPListRoot.CmdClause, data)
 	ngwafIPListDelete := iplist.NewDeleteCommand(ngwafIPListRoot.CmdClause, data)
@@ -465,6 +473,12 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspaceCountryListGet := wscountrylist.NewGetCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
 	ngwafWorkspaceCountryListList := wscountrylist.NewListCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
 	ngwafWorkspaceCountryListUpdate := wscountrylist.NewUpdateCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
+	ngwafWorkspaceCustomSignalRoot := wscustomsignal.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceCustomSignalCreate := wscustomsignal.NewCreateCommand(ngwafWorkspaceCustomSignalRoot.CmdClause, data)
+	ngwafWorkspaceCustomSignalDelete := wscustomsignal.NewDeleteCommand(ngwafWorkspaceCustomSignalRoot.CmdClause, data)
+	ngwafWorkspaceCustomSignalGet := wscustomsignal.NewGetCommand(ngwafWorkspaceCustomSignalRoot.CmdClause, data)
+	ngwafWorkspaceCustomSignalList := wscustomsignal.NewListCommand(ngwafWorkspaceCustomSignalRoot.CmdClause, data)
+	ngwafWorkspaceCustomSignalUpdate := wscustomsignal.NewUpdateCommand(ngwafWorkspaceCustomSignalRoot.CmdClause, data)
 	ngwafWorkspaceIPListRoot := wsiplist.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
 	ngwafWorkspaceIPListCreate := wsiplist.NewCreateCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
 	ngwafWorkspaceIPListDelete := wsiplist.NewDeleteCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
@@ -976,6 +990,12 @@ func Define( // nolint:revive // function-length
 		ngwafCountryListGet,
 		ngwafCountryListList,
 		ngwafCountryListUpdate,
+		ngwafCustomSignalRoot,
+		ngwafCustomSignalCreate,
+		ngwafCustomSignalDelete,
+		ngwafCustomSignalGet,
+		ngwafCustomSignalList,
+		ngwafCustomSignalUpdate,
 		ngwafIPListRoot,
 		ngwafIPListCreate,
 		ngwafIPListDelete,
@@ -1005,6 +1025,12 @@ func Define( // nolint:revive // function-length
 		ngwafWorkspaceCountryListGet,
 		ngwafWorkspaceCountryListList,
 		ngwafWorkspaceCountryListUpdate,
+		ngwafWorkspaceCustomSignalRoot,
+		ngwafWorkspaceCustomSignalCreate,
+		ngwafWorkspaceCustomSignalDelete,
+		ngwafWorkspaceCustomSignalGet,
+		ngwafWorkspaceCustomSignalList,
+		ngwafWorkspaceCustomSignalUpdate,
 		ngwafWorkspaceIPListRoot,
 		ngwafWorkspaceIPListCreate,
 		ngwafWorkspaceIPListDelete,
