@@ -16,6 +16,7 @@
 - build(deps): `actions/checkout` from 5 to 6 ([#1587](https://github.com/fastly/cli/pull/1587))
 - build(deps): `golang.org/x/mod` from 0.29.0 to 0.30.0 ([#1588](https://github.com/fastly/cli/pull/1588))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.16.0 to 3.17.0 ([#1588](https://github.com/fastly/cli/pull/1588))
+- build(deps): `github.com/klauspost/compress` from 1.18.1 to 1.18.2 ([#1593](https://github.com/fastly/cli/pull/1593))
 
 ## [v13.1.0](https://github.com/fastly/cli/releases/tag/v13.1.0) (2025-11-12)
 
