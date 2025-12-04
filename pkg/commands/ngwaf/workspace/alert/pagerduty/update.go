@@ -21,9 +21,9 @@ type UpdateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alert.IDFlags
-	alert.WorkspaceIDFlags
-	alert.KeyConfigFlags
+	AlertID     string
+	WorkspaceID argparser.OptionalWorkspaceID
+	Key         string
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.

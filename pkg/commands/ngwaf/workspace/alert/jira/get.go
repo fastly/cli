@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -20,8 +19,8 @@ type GetCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alert.IDFlags
-	alert.WorkspaceIDFlags
+	AlertID     string
+	WorkspaceID argparser.OptionalWorkspaceID
 }
 
 // NewGetCommand returns a usable command registered under the parent.

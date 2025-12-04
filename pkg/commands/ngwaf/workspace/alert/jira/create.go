@@ -20,12 +20,15 @@ type CreateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	alert.WorkspaceIDFlags
-	ConfigFlags
+	WorkspaceID argparser.OptionalWorkspaceID
+	Host        string
+	Key         string
+	Project     string
+	Username    string
 
 	// Optional.
-	alert.DataFlags
-	OptConfigFlags
+	Description argparser.OptionalString
+	IssueType   string
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
