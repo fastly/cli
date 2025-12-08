@@ -6,7 +6,8 @@
 
 ### Enhancements:
 - feat(commands/ngwaf/workspaces): add support for update operation for NGWAF workspaces ([#1578](https://github.com/fastly/cli/pull/1578))
-- feat(commands/ngwaf/lists): add support for CRUD operations for NGWAF Lists ([#1582](https://github.com/fastly/cli/pull/1582))
+- feat(commands/ngwaf/lists): add support for CRUD operations for NGWAF Lists at account and workspace levels ([#1582](https://github.com/fastly/cli/pull/1582))
+- feat(commands/ngwaf/workspaces/alerts): add support for operations for NGWAF alerts ([#1589](https://github.com/fastly/cli/pull/1589))
 - feat(commands/ngwaf/customsignals): add support for CRUD operations for NGWAF Custom Signals ([#1592](https://github.com/fastly/cli/pull/1592))
 
 ### Bug fixes:
