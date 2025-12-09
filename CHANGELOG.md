@@ -9,6 +9,7 @@
 - feat(commands/ngwaf/lists): add support for CRUD operations for NGWAF Lists at account and workspace levels ([#1582](https://github.com/fastly/cli/pull/1582))
 - feat(commands/ngwaf/workspaces/alerts): add support for operations for NGWAF alerts ([#1589](https://github.com/fastly/cli/pull/1589))
 - feat(commands/ngwaf/customsignals): add support for CRUD operations for NGWAF Custom Signals ([#1592](https://github.com/fastly/cli/pull/1592))
+- feat(commands/ngwaf/customsignals): add support for CRUD operations for NGWAF Thresholds ([#1595](https://github.com/fastly/cli/pull/1595))
 
 ### Bug fixes:
 

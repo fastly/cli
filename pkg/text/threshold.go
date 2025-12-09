@@ -18,7 +18,6 @@ func PrintThreshold(out io.Writer, thresholdToPrint *thresholds.Threshold) {
 	fmt.Fprintf(out, "Enabled: %t\n", thresholdToPrint.Enabled)
 	fmt.Fprintf(out, "Interval: %d\n", thresholdToPrint.Interval)
 	fmt.Fprintf(out, "Limit: %d\n", thresholdToPrint.Limit)
-
 }
 
 // PrintThresholdTbl prints a table of thresholds.
