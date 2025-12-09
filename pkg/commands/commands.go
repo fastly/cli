@@ -78,6 +78,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/redaction"
 	wssignallistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/signallist"
 	wsstringlistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/stringlist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/threshold"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/virtualpatch"
 	wswildcardlistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/wildcardlist"
 	"github.com/fastly/cli/pkg/commands/objectstorage"
@@ -497,6 +498,12 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspaceStringListGet := wsstringlistlist.NewGetCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
 	ngwafWorkspaceStringListList := wsstringlistlist.NewListCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
 	ngwafWorkspaceStringListUpdate := wsstringlistlist.NewUpdateCommand(ngwafWorkspaceStringListRoot.CmdClause, data)
+	ngwafWorkspaceThresholdRoot := threshold.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceThresholdCreate := threshold.NewCreateCommand(ngwafWorkspaceThresholdRoot.CmdClause, data)
+	ngwafWorkspaceThresholdDelete := threshold.NewDeleteCommand(ngwafWorkspaceThresholdRoot.CmdClause, data)
+	ngwafWorkspaceThresholdGet := threshold.NewGetCommand(ngwafWorkspaceThresholdRoot.CmdClause, data)
+	ngwafWorkspaceThresholdList := threshold.NewListCommand(ngwafWorkspaceThresholdRoot.CmdClause, data)
+	ngwafWorkspaceThresholdUpdate := threshold.NewUpdateCommand(ngwafWorkspaceThresholdRoot.CmdClause, data)
 	ngwafWorkspaceWildcardListRoot := wildcardlist.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
 	ngwafWorkspaceWildcardListCreate := wswildcardlistlist.NewCreateCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
 	ngwafWorkspaceWildcardListDelete := wswildcardlistlist.NewDeleteCommand(ngwafWorkspaceWildcardListRoot.CmdClause, data)
@@ -1049,6 +1056,12 @@ func Define( // nolint:revive // function-length
 		ngwafWorkspaceStringListGet,
 		ngwafWorkspaceStringListList,
 		ngwafWorkspaceStringListUpdate,
+		ngwafWorkspaceThresholdRoot,
+		ngwafWorkspaceThresholdCreate,
+		ngwafWorkspaceThresholdDelete,
+		ngwafWorkspaceThresholdGet,
+		ngwafWorkspaceThresholdList,
+		ngwafWorkspaceThresholdUpdate,
 		ngwafWorkspaceWildcardListCreate,
 		ngwafWorkspaceWildcardListDelete,
 		ngwafWorkspaceWildcardListGet,
