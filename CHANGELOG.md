@@ -12,6 +12,8 @@
 - feat(commands/ngwaf/customsignals): add support for CRUD operations for NGWAF Thresholds ([#1595](https://github.com/fastly/cli/pull/1595))
 
 ### Bug fixes:
+- fix(commands/ngwaf/virtualpatch): ensured a check was in place for the 'update' command that disallowed the --json and --verbose flag to be ran at the same time. ([#1596](https://github.com/fastly/cli/pull/1596))
+- fix(commands/ngwaf/redaction): ensured a check was in place for the 'create' and 'update' commands that disallowed the --json and --verbose flag to be ran at the same time.  ([#1596](https://github.com/fastly/cli/pull/1596))
 
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.43.0 to 0.45.0 ([#1584](https://github.com/fastly/cli/pull/1584))
