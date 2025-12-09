@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/redactions"
 
 	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -55,6 +56,10 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	// is set or to throw the appropriate error.
 	if err := c.workspaceID.Parse(); err != nil {
 		return err
+	}
+
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	var err error
