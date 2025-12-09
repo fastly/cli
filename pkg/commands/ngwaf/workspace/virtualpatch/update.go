@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/virtualpatches"
 
 	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -56,6 +57,10 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
+	if c.Globals.Verbose() && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
 	var err error
 	input := &virtualpatches.UpdateInput{
 		VirtualPatchID: &c.virtualpatchID,
