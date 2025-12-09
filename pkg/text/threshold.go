@@ -8,7 +8,7 @@ import (
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/thresholds"
 )
 
-// PrintThreshold displays a single redaction.
+// PrintThreshold displays a single threshold.
 func PrintThreshold(out io.Writer, thresholdToPrint *thresholds.Threshold) {
 	fmt.Fprintf(out, "Signal: %s\n", thresholdToPrint.Signal)
 	fmt.Fprintf(out, "Name: %s\n", thresholdToPrint.Name)

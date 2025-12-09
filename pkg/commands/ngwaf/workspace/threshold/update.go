@@ -25,9 +25,9 @@ type UpdateCommand struct {
 
 	// Optional.
 	action     argparser.OptionalString
-	dontNotify argparser.OptionalBool
+	dontNotify argparser.OptionalString
 	duration   argparser.OptionalInt
-	enabled    argparser.OptionalBool
+	enabled    argparser.OptionalString
 	interval   argparser.OptionalInt
 	limit      argparser.OptionalInt
 	name       argparser.OptionalString
@@ -50,12 +50,13 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Dst:         &c.workspaceID.Value,
 		Action:      c.workspaceID.Set,
 	})
+	c.CmdClause.Flag("threshold-id", "Threshold ID").Required().StringVar(&c.thresholdID)
 
 	// Optional.
-	c.CmdClause.Flag("action", "The action to take when the threshold is exceeded. Options include 'block' or 'log'.").Action(c.action.Set).StringVar(&c.action.Value)
-	c.CmdClause.Flag("do-not-notify", "Whether to silence notifications when action is taken.").Action(c.dontNotify.Set).BoolVar(&c.dontNotify.Value)
+	c.CmdClause.Flag("action", "The action to take when the threshold is exceeded. [block, log]").Action(c.action.Set).StringVar(&c.action.Value)
+	c.CmdClause.Flag("do-not-notify", "Whether to silence notifications when action is taken. [true, false]").Action(c.dontNotify.Set).StringVar(&c.dontNotify.Value)
 	c.CmdClause.Flag("duration", "The duration the action is in place in seconds. Default duration is 86,400 seconds (1 day).").Action(c.duration.Set).IntVar(&c.duration.Value)
-	c.CmdClause.Flag("enabled", "Whether the threshold is active. Options include 'true' or 'false'.").Action(c.enabled.Set).BoolVar(&c.enabled.Value)
+	c.CmdClause.Flag("enabled", "Whether the threshold is active. [true, false]").Action(c.enabled.Set).StringVar(&c.enabled.Value)
 	c.CmdClause.Flag("interval", "The threshold interval in seconds. The default interval is 3600 seconds (1 hour).").Action(c.interval.Set).IntVar(&c.interval.Value)
 	c.CmdClause.Flag("limit", "The threshold limit. Input must be between 1 and 10000. Default limit is 10.").Action(c.limit.Set).IntVar(&c.limit.Value)
 	c.CmdClause.Flag("name", "User submitted display name of a signal threshold. Input must be between 3 and 50 characters").Action(c.name.Set).StringVar(&c.name.Value)
@@ -83,13 +84,35 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Action = &c.action.Value
 	}
 	if c.dontNotify.WasSet {
-		input.DontNotify = &c.dontNotify.Value
+		var dontNotify bool
+		switch c.dontNotify.Value {
+		case "true":
+			dontNotify = true
+		case "false":
+			dontNotify = false
+		default:
+			err := errors.New("'do-not-notify' flag must be one of the following [true, false]")
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		input.DontNotify = &dontNotify
 	}
 	if c.duration.WasSet {
 		input.Duration = &c.duration.Value
 	}
 	if c.enabled.WasSet {
-		input.Enabled = &c.enabled.Value
+		var enabled bool
+		switch c.enabled.Value {
+		case "true":
+			enabled = true
+		case "false":
+			enabled = false
+		default:
+			err := errors.New("'enabled' flag must be one of the following [true, false]")
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		input.Enabled = &enabled
 	}
 	if c.interval.WasSet {
 		input.Interval = &c.interval.Value

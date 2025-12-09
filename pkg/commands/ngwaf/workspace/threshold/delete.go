@@ -33,7 +33,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("delete", "Delets a workspace threshold")
+	c.CmdClause = parent.Command("delete", "Deletes a workspace threshold")
 
 	// Required.
 	c.RegisterFlag(argparser.StringFlagOpts{
