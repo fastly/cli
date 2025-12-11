@@ -5,11 +5,15 @@
 ### Breaking:
 
 ### Enhancements:
-- feat(toml/rust): add support for Rust 1.9.2 ([#1599](https://github.com/fastly/cli/pull/1599))
 
 ### Bug fixes:
 
 ### Dependencies:
+
+## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
+
+### Enhancements:
+- feat(toml/rust): add support for Rust 1.9.2 ([#1599](https://github.com/fastly/cli/pull/1599))
 
 ## [v13.2.0](https://github.com/fastly/cli/releases/tag/v13.2.0) (2025-12-10)
 
@@ -18,7 +22,7 @@
 - feat(commands/ngwaf/lists): add support for CRUD operations for NGWAF Lists at account and workspace levels ([#1582](https://github.com/fastly/cli/pull/1582))
 - feat(commands/ngwaf/workspaces/alerts): add support for operations for NGWAF alerts ([#1589](https://github.com/fastly/cli/pull/1589))
 - feat(commands/ngwaf/customsignals): add support for CRUD operations for NGWAF Custom Signals ([#1592](https://github.com/fastly/cli/pull/1592))
-- feat(commands/ngwaf/customsignals): add support for CRUD operations for NGWAF Thresholds ([#1595](https://github.com/fastly/cli/pull/1595))
+- feat(commands/ngwaf/threshold): add support for CRUD operations for NGWAF Thresholds ([#1595](https://github.com/fastly/cli/pull/1595))
 
 ### Bug fixes:
 - fix(commands/ngwaf/virtualpatch): ensured a check was in place for the 'update' command that disallowed the --json and --verbose flag to be ran at the same time. ([#1596](https://github.com/fastly/cli/pull/1596))
