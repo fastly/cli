@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(toml/rust): add support for Rust 1.9.2 ([#1599](https://github.com/fastly/cli/pull/1599))
 
 ### Bug fixes:
 
