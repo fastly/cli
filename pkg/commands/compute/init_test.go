@@ -1,7 +1,6 @@
 package compute_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -454,7 +453,7 @@ func TestInit(t *testing.T) {
 				}
 			}
 
-			var stdout bytes.Buffer
+			var stdout threadsafe.Buffer
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts := testutil.MockGlobalData(testcase.args, &stdout)
 				opts.Config = testcase.configFile
