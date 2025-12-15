@@ -30,7 +30,7 @@ jobs:
       - name: "Generate static app config"
         run: make config
       - name: "Config Artifact"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
@@ -50,7 +50,7 @@ jobs:
         run: make mod-download
         shell: bash
       - name: "Config Artifact"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
@@ -93,7 +93,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Config Artifact"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
@@ -136,7 +136,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download config artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config
