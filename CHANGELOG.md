@@ -9,6 +9,8 @@
 ### Bug fixes:
 
 ### Dependencies:
+- build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
+- build(deps): `actions/download-artifact` from 6 to 7 ([#1603](https://github.com/fastly/cli/pull/1603))
 - build(deps): `golang.org/x/term` from 0.37.0 to 0.38.0 ([#1602](https://github.com/fastly/cli/pull/1602))
 - build(deps): `golang.org/x/crypto` from 0.45.0 to 0.46.0 ([#1602](https://github.com/fastly/cli/pull/1602))
 - build(deps): `golang.org/x/mod` from 0.30.0 to 0.31.0 ([#1602](https://github.com/fastly/cli/pull/1602))
