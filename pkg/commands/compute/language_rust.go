@@ -351,6 +351,11 @@ func (r *Rust) toolchainConstraint() (*semver.Version, error) {
 		return nil, fmt.Errorf("the 'toolchain_constraint' value '%s' (from the config.toml file) is not a valid version constraint", r.config.ToolchainConstraint)
 	}
 
+	// Even though most users shouldn't be using Rust prereleases, it is
+	// useful for Fastly to be able to test with Rust prereleases, so we
+	// shouldn't outright prohibit them.
+	c.IncludePrerelease = true
+
 	valid, errs := c.Validate(v)
 	if !valid {
 		err = nil
