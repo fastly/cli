@@ -16,7 +16,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeleteCommand calls the Fastly API to delete an workspace-level custom signal.
+// DeleteCommand calls the Fastly API to delete a workspace-level custom signal.
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
@@ -34,7 +34,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 		},
 	}
 
-	c.CmdClause = parent.Command("delete", "Delete an workspace-level custom signal")
+	c.CmdClause = parent.Command("delete", "Delete a workspace-level custom signal")
 
 	// Required.
 	c.CmdClause.Flag("signal-id", "Custom Signal ID").Required().StringVar(&c.signalID)

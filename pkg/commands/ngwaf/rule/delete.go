@@ -1,27 +1,28 @@
-package stringlist
+package rule
 
 import (
+	"context"
 	"errors"
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
+
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/rules"
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeleteCommand calls the Fastly API to delete a workspace-level string list.
+// DeleteCommand calls the Fastly API to delete an account-level rule.
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
-	listID      string
-	workspaceID argparser.OptionalWorkspaceID
+	ruleID string
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -32,16 +33,10 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 		},
 	}
 
-	c.CmdClause = parent.Command("delete", "Delete a workspace string list")
+	c.CmdClause = parent.Command("delete", "Delete an account-level rule")
 
 	// Required.
-	c.CmdClause.Flag("list-id", "List ID").Required().StringVar(&c.listID)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-	})
+	c.CmdClause.Flag("rule-id", "Rule ID").Required().StringVar(&c.ruleID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
@@ -55,18 +50,18 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	input := ngwaflist.ListDeleteInput{
-		CommandScope: scope.ScopeTypeWorkspace,
-		ListID:       c.listID,
-		WorkspaceID:  &c.workspaceID,
-	}
-
-	var ok bool
-	input.FC, ok = c.Globals.APIClient.(*fastly.Client)
+	fc, ok := c.Globals.APIClient.(*fastly.Client)
 	if !ok {
 		return errors.New("failed to convert interface to a fastly client")
 	}
-	err := ngwaflist.ListDelete(input)
+
+	err := rules.Delete(context.TODO(), fc, &rules.DeleteInput{
+		RuleID: &c.ruleID,
+		Scope: &scope.Scope{
+			Type:      scope.ScopeTypeAccount,
+			AppliesTo: []string{"*"},
+		},
+	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -77,13 +72,13 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 			ID      string `json:"id"`
 			Deleted bool   `json:"deleted"`
 		}{
-			c.listID,
+			c.ruleID,
 			true,
 		}
 		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.Success(out, "Deleted Workspace String List (list id: %s)", c.listID)
+	text.Success(out, "Deleted account-level rule with id: %s", c.ruleID)
 	return nil
 }

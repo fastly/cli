@@ -1,4 +1,4 @@
-package customsignal
+package rule
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/rules"
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/signals"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -16,34 +16,33 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GetCommand calls the Fastly API to get a workspace-level custom signal.
-type GetCommand struct {
+// DeleteCommand calls the Fastly API to delete a workspace-level rule.
+type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
-	signalID    string
+	ruleID      string
 	workspaceID argparser.OptionalWorkspaceID
 }
 
-// NewGetCommand returns a usable command registered under the parent.
-func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
-	c := GetCommand{
+// NewDeleteCommand returns a usable command registered under the parent.
+func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
+	c := DeleteCommand{
 		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 
-	c.CmdClause = parent.Command("get", "Get a custom signal")
+	c.CmdClause = parent.Command("delete", "Delete a workspace-level rule")
 
 	// Required.
-	c.CmdClause.Flag("signal-id", "Custom Signal ID").Required().StringVar(&c.signalID)
+	c.CmdClause.Flag("rule-id", "Rule ID").Required().StringVar(&c.ruleID)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagNGWAFWorkspaceID,
 		Description: argparser.FlagNGWAFWorkspaceIDDesc,
 		Dst:         &c.workspaceID.Value,
 		Action:      c.workspaceID.Set,
-		Required:    true,
 	})
 
 	// Optional.
@@ -53,9 +52,12 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 }
 
 // Exec invokes the application logic for the command.
-func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+	if err := c.workspaceID.Parse(); err != nil {
+		return err
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -63,28 +65,30 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	input := &signals.GetInput{
-		SignalID: &c.signalID,
+	err := rules.Delete(context.TODO(), fc, &rules.DeleteInput{
+		RuleID: &c.ruleID,
 		Scope: &scope.Scope{
-			Type: scope.ScopeTypeWorkspace,
+			Type:      scope.ScopeTypeWorkspace,
+			AppliesTo: []string{c.workspaceID.Value},
 		},
-	}
-
-	if err := c.workspaceID.Parse(); err != nil {
-		return err
-	}
-	input.Scope.AppliesTo = []string{c.workspaceID.Value}
-
-	data, err := signals.Get(context.TODO(), fc, input)
+	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, data); ok {
+	if c.JSONOutput.Enabled {
+		o := struct {
+			ID      string `json:"id"`
+			Deleted bool   `json:"deleted"`
+		}{
+			c.ruleID,
+			true,
+		}
+		_, err := c.WriteJSON(out, o)
 		return err
 	}
 
-	text.PrintCustomSignal(out, data)
+	text.Success(out, "Deleted workspace-level rule with id: %s", c.ruleID)
 	return nil
 }
