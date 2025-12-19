@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -72,11 +71,11 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 		byteValue, err := io.ReadAll(jsonFile)
 		if err != nil {
-			log.Fatalf("failed to read json file: %v", err)
+			return fmt.Errorf("failed to read json file: %v", err)
 		}
 
 		if err := json.Unmarshal(byteValue, input); err != nil {
-			log.Fatalf("failed to unmarshal json data: %v", err)
+			return fmt.Errorf("failed to unmarshal json data: %v", err)
 		}
 	}
 	input.Scope = &scope.Scope{
