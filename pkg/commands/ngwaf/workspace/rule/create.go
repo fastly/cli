@@ -1,13 +1,18 @@
-package customsignal
+package rule
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/rules"
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/signals"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -15,17 +20,14 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// CreateCommand calls the Fastly API to create workspace-level custom signals.
+// CreateCommand calls the Fastly API to create workspace-level rules.
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
-	name        string
+	path        string
 	workspaceID argparser.OptionalWorkspaceID
-
-	// Optional.
-	description argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -35,20 +37,18 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create a workspace-level custom signal").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a workspace-level rule").Alias("add")
 
 	// Required.
-	c.CmdClause.Flag("name", "User submitted display name of a custom signal. Is immutable and must be between 3 and 25 characters").Required().StringVar(&c.name)
+	c.CmdClause.Flag("path", "Path to a json file that contains the rule schema.").Required().StringVar(&c.path)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagNGWAFWorkspaceID,
 		Description: argparser.FlagNGWAFWorkspaceIDDesc,
 		Dst:         &c.workspaceID.Value,
 		Action:      c.workspaceID.Set,
-		Required:    true,
 	})
 
 	// Optional.
-	c.CmdClause.Flag("description", "User submitted description of a custom signal.").Action(c.description.Set).StringVar(&c.description.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -59,21 +59,34 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	var err error
-	input := &signals.CreateInput{
-		Name: &c.name,
-		Scope: &scope.Scope{
-			Type: scope.ScopeTypeWorkspace,
-		},
-	}
-
 	if err := c.workspaceID.Parse(); err != nil {
 		return err
 	}
-	input.Scope.AppliesTo = []string{c.workspaceID.Value}
+	input := &rules.CreateInput{}
+	if c.path != "" {
+		path, err := filepath.Abs(c.path)
+		if err != nil {
+			return fmt.Errorf("error parsing path '%s': %q", c.path, err)
+		}
 
-	if c.description.WasSet {
-		input.Description = &c.description.Value
+		jsonFile, err := os.Open(path)
+		if err != nil {
+			return fmt.Errorf("error reading cert-path '%s': %q", c.path, err)
+		}
+		defer jsonFile.Close()
+
+		byteValue, err := io.ReadAll(jsonFile)
+		if err != nil {
+			log.Fatalf("failed to read json file: %v", err)
+		}
+
+		if err := json.Unmarshal(byteValue, input); err != nil {
+			log.Fatalf("failed to unmarshal json data: %v", err)
+		}
+	}
+	input.Scope = &scope.Scope{
+		Type:      scope.ScopeTypeWorkspace,
+		AppliesTo: []string{c.workspaceID.Value},
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
@@ -81,7 +94,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	data, err := signals.Create(context.TODO(), fc, input)
+	data, err := rules.Create(context.TODO(), fc, input)
 	if err != nil {
 		return err
 	}
@@ -90,6 +103,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Created workspace-level custom signal '%s' (signal-id: %s)", data.Name, data.SignalID)
+	text.Success(out, "Created workspace-level rule with ID %s", data.RuleID)
 	return nil
 }

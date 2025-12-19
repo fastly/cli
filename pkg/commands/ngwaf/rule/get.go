@@ -1,4 +1,4 @@
-package customsignal
+package rule
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
+	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/rules"
 	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/signals"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -16,14 +16,13 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GetCommand calls the Fastly API to get a workspace-level custom signal.
+// GetCommand calls the Fastly API to get an account-level rule.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
-	signalID    string
-	workspaceID argparser.OptionalWorkspaceID
+	ruleID string
 }
 
 // NewGetCommand returns a usable command registered under the parent.
@@ -34,17 +33,10 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 		},
 	}
 
-	c.CmdClause = parent.Command("get", "Get a custom signal")
+	c.CmdClause = parent.Command("get", "Get an account-level rule")
 
 	// Required.
-	c.CmdClause.Flag("signal-id", "Custom Signal ID").Required().StringVar(&c.signalID)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagNGWAFWorkspaceID,
-		Description: argparser.FlagNGWAFWorkspaceIDDesc,
-		Dst:         &c.workspaceID.Value,
-		Action:      c.workspaceID.Set,
-		Required:    true,
-	})
+	c.CmdClause.Flag("rule-id", "Rule ID").Required().StringVar(&c.ruleID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
@@ -63,19 +55,13 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	input := &signals.GetInput{
-		SignalID: &c.signalID,
+	data, err := rules.Get(context.TODO(), fc, &rules.GetInput{
+		RuleID: &c.ruleID,
 		Scope: &scope.Scope{
-			Type: scope.ScopeTypeWorkspace,
+			Type:      scope.ScopeTypeAccount,
+			AppliesTo: []string{"*"},
 		},
-	}
-
-	if err := c.workspaceID.Parse(); err != nil {
-		return err
-	}
-	input.Scope.AppliesTo = []string{c.workspaceID.Value}
-
-	data, err := signals.Get(context.TODO(), fc, input)
+	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -85,6 +71,6 @@ func (c *GetCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.PrintCustomSignal(out, data)
+	text.PrintRule(out, data)
 	return nil
 }
