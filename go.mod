@@ -68,7 +68,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
-	github.com/pierrec/lz4/v4 v4.1.22 // indirect
+	github.com/pierrec/lz4/v4 v4.1.23 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
