@@ -1,0 +1,20 @@
+{
+    "type": "request",
+    "enabled": true,
+    "description": "Utility requests",
+    "group_operator": "all",
+    "request_logging": "sampled",
+    "conditions": [
+        {
+            "type": "single",
+            "field": "path",
+            "operator": "equals",
+            "value": "/echo.json"
+        }
+    ],
+    "actions": [
+        {
+            "type": "allow"
+        }
+    ]
+}
