@@ -6,6 +6,7 @@
 
 ### Enhancements:
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
+- feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
 
 ### Bug fixes:
 

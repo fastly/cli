@@ -175,7 +175,6 @@ func Define( // nolint:revive // function-length
 	computeBuild := compute.NewBuildCommand(computeCmdRoot.CmdClause, data)
 	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, data)
 	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, data, computeBuild)
-	computeHashsum := compute.NewHashsumCommand(computeCmdRoot.CmdClause, data, computeBuild)
 	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, data)
 	computeMetadata := compute.NewMetadataCommand(computeCmdRoot.CmdClause, data)
 	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, data)
@@ -742,7 +741,6 @@ func Define( // nolint:revive // function-length
 		computeBuild,
 		computeDeploy,
 		computeHashFiles,
-		computeHashsum,
 		computeInit,
 		computeMetadata,
 		computePack,

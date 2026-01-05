@@ -60,7 +60,7 @@ type BuildCommand struct {
 	argparser.Base
 
 	// NOTE: Composite commands require these build flags to be public.
-	// e.g. serve, publish, hashsum, hash-files
+	// e.g. serve, publish, hash-files
 	// This is so they can set values appropriately before calling Build.Exec().
 	Flags                 Flags
 	MetadataDisable       bool
@@ -874,7 +874,7 @@ func bytesToMB(bytes uint64) uint64 {
 }
 
 // bucketMB determines a consistent bucket size for heap allocation.
-// NOTE: This is to avoid building a package with a fluctuating hashsum.
+// NOTE: This is to avoid building a package with a fluctuating hash.
 // e.g. `fastly compute hash-files` should be consistent unless memory increase is significant.
 func bucketMB(mb uint64) string {
 	switch {
