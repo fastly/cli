@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 
 ### Bug fixes:
 - fix(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
@@ -17,6 +18,8 @@
 - build(deps): `golang.org/x/mod` from 0.30.0 to 0.31.0 ([#1602](https://github.com/fastly/cli/pull/1602))
 - build(deps): `golang.org/x/net` from 0.47.0 to 0.48.0 ([#1602](https://github.com/fastly/cli/pull/1602))
 - build(deps): `golang.org/x/text` from 0.31.0 to 0.32.0 ([#1602](https://github.com/fastly/cli/pull/1602))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.22 to 4.1.23 ([#1606](https://github.com/fastly/cli/pull/1606))
+- build(deps): `github.com/google/go-querystring` from 1.1.0 to 1.2.0 ([#1607](https://github.com/fastly/cli/pull/1607))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
 
