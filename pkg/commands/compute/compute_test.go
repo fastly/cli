@@ -129,60 +129,9 @@ func TestFlagDivergenceServe(t *testing.T) {
 	}
 }
 
-// TestFlagDivergenceHashSum validates that the manually curated list of flags
-// within the `compute hashsum` command doesn't fall out of sync with the
-// `compute build` command as `compute hashsum` delegates to build.
-func TestFlagDivergenceHashSum(t *testing.T) {
-	var cfg global.Data
-	acmd := kingpin.New("foo", "bar")
-
-	rcmd := compute.NewRootCommand(acmd, &cfg)
-	bcmd := compute.NewBuildCommand(rcmd.CmdClause, &cfg)
-	hcmd := compute.NewHashsumCommand(rcmd.CmdClause, &cfg, bcmd)
-
-	buildFlags := getFlags(bcmd.CmdClause)
-	hashsumFlags := getFlags(hcmd.CmdClause)
-
-	var (
-		expect = make(map[string]int)
-		have   = make(map[string]int)
-	)
-
-	// Some flags on `compute build` are unique to it.
-	// NOTE: There are no flags to ignore but I'm keeping the logic for future.
-	ignoreBuildFlags := []string{}
-
-	iter := buildFlags.MapRange()
-	for iter.Next() {
-		flag := iter.Key().String()
-		if !ignoreFlag(ignoreBuildFlags, flag) {
-			expect[flag] = 1
-		}
-	}
-
-	// Some flags on `compute hashsum` are unique to it.
-	// We only want to be sure hashsum contains all build flags.
-	ignoreHashsumFlags := []string{
-		"package",
-		"skip-build",
-	}
-
-	iter = hashsumFlags.MapRange()
-	for iter.Next() {
-		flag := iter.Key().String()
-		if !ignoreFlag(ignoreHashsumFlags, flag) {
-			have[flag] = 1
-		}
-	}
-
-	if !reflect.DeepEqual(expect, have) {
-		t.Fatalf("the flags between build and hashsum don't match\n\nexpect: %+v\nhave:   %+v\n\n", expect, have)
-	}
-}
-
 // TestFlagDivergenceHashFiles validates that the manually curated list of flags
-// within the `compute hashsum` command doesn't fall out of sync with the
-// `compute build` command as `compute hashsum` delegates to build.
+// within the `compute hash-files` command doesn't fall out of sync with the
+// `compute build` command as `compute hash-files` delegates to build.
 func TestFlagDivergenceHashFiles(t *testing.T) {
 	var cfg global.Data
 	acmd := kingpin.New("foo", "bar")
@@ -211,8 +160,8 @@ func TestFlagDivergenceHashFiles(t *testing.T) {
 		}
 	}
 
-	// Some flags on `compute hashsum` are unique to it.
-	// We only want to be sure hashsum contains all build flags.
+	// Some flags on `compute hash-files` are unique to it.
+	// We only want to be sure hash-files contains all build flags.
 	ignoreHashfilesFlags := []string{
 		"package",
 		"skip-build",
