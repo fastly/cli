@@ -85,6 +85,10 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		Type:               &rule.Type,
 		GroupOperator:      &rule.GroupOperator,
 		RequestLogging:     &rule.RequestLogging,
+		Scope: &scope.Scope{
+			Type:      scope.ScopeTypeAccount,
+			AppliesTo: []string{"*"},
+		},
 	}
 
 	for _, action := range rule.Actions {
@@ -167,11 +171,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		default:
 			return fmt.Errorf("unknown condition type: %s", jsonCondition.Type)
 		}
-	}
-
-	input.Scope = &scope.Scope{
-		Type:      scope.ScopeTypeAccount,
-		AppliesTo: []string{"*"},
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
