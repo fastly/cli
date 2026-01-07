@@ -114,7 +114,7 @@ func TestRuleCreate(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fstfmt.Success("Created account-level rule with ID %s", complexRuleID),
+			WantOutput: fstfmt.Success("Created workspace-level rule with ID %s", complexRuleID),
 		},
 		{
 			Name: "validate optional --json flag",
