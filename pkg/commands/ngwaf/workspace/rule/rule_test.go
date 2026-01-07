@@ -18,6 +18,8 @@ import (
 )
 
 const (
+	complexRulePath = "testdata/test_complex_rule.json"
+	complexRuleID   = "someComplexID"
 	ruleDescription = "Utility requests"
 	ruleEnabled     = true
 	ruleAction      = "allow"
@@ -32,6 +34,23 @@ var rule = rules.Rule{
 	Description: ruleDescription,
 	Enabled:     ruleEnabled,
 	RuleID:      ruleID,
+	Actions: []rules.Action{
+		{
+			Type: ruleAction,
+		},
+	},
+	Type: ruleType,
+	Scope: rules.Scope{
+		Type:      string(scope.ScopeTypeWorkspace),
+		AppliesTo: []string{ruleWorkspaceID},
+	},
+}
+
+var complexRule = rules.Rule{
+	CreatedAt:   testutil.Date,
+	Description: ruleDescription,
+	Enabled:     ruleEnabled,
+	RuleID:      complexRuleID,
 	Actions: []rules.Action{
 		{
 			Type: ruleAction,
@@ -82,6 +101,20 @@ func TestRuleCreate(t *testing.T) {
 				},
 			},
 			WantOutput: fstfmt.Success("Created workspace-level rule with ID %s", ruleID),
+		},
+		{
+			Name: "validate API success with complex rule",
+			Args: fmt.Sprintf("--path %s --workspace-id %s", complexRulePath, ruleWorkspaceID),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(complexRule)))),
+					},
+				},
+			},
+			WantOutput: fstfmt.Success("Created account-level rule with ID %s", complexRuleID),
 		},
 		{
 			Name: "validate optional --json flag",

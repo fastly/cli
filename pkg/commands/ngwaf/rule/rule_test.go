@@ -17,14 +17,14 @@ import (
 )
 
 const (
+	complexRulePath = "testdata/test_complex_rule.json"
+	complexRuleID   = "someComplexID"
 	ruleDescription = "Utility requests"
 	ruleEnabled     = true
 	ruleAction      = "allow"
 	ruleID          = "someID"
 	rulePath        = "testdata/test_rule.json"
-	complexRulePath = "testdata/test_complex_rule.json"
-	complexRuleID   = "someComplexID"
-	ruleType        = "request"
+	ruleType = "request"
 )
 
 var rule = rules.Rule{

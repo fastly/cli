@@ -74,6 +74,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return fmt.Errorf("failed to unmarshal json data: %v", err)
 		}
 	}
+
 	input := &rules.CreateInput{
 		Actions:            []*rules.CreateAction{},
 		Conditions:         []*rules.CreateCondition{},
