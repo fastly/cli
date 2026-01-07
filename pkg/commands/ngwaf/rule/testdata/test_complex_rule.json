@@ -1,0 +1,63 @@
+{
+    "type": "request",
+    "description": "complex_test",
+    "enabled": true,
+    "expires_at": "",
+    "group_operator": "all",
+    "conditions": [
+        {
+            "type": "single",
+            "field": "ip",
+            "operator": "equals",
+            "value": "1.2.3.4"
+        },
+        {
+            "type": "single",
+            "field": "country",
+            "operator": "equals",
+            "value": "AE"
+        },
+        {
+            "type": "group",
+            "group_operator": "all",
+            "conditions": [
+                {
+                    "type": "single",
+                    "field": "ip",
+                    "operator": "equals",
+                    "value": "2.4.5.6"
+                },
+                {
+                    "type": "single",
+                    "field": "country",
+                    "operator": "equals",
+                    "value": "AD"
+                }
+            ]
+        },
+        {
+            "type": "group",
+            "group_operator": "all",
+            "conditions": [
+                {
+                    "type": "single",
+                    "field": "domain",
+                    "operator": "equals",
+                    "value": "test.com"
+                },
+                {
+                    "type": "single",
+                    "field": "agent_name",
+                    "operator": "equals",
+                    "value": "test"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "allow"
+        }
+    ],
+    "request_logging": "none"
+}

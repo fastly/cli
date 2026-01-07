@@ -28,14 +28,14 @@ func PrintCustomSignalTbl(out io.Writer, customSignalsToPrint []signals.Signal) 
 		return
 	}
 
-	for _, listToPrint := range customSignalsToPrint {
+	for _, customSignalToPrint := range customSignalsToPrint {
 		tbl.AddLine(
-			listToPrint.SignalID,
-			listToPrint.Name,
-			listToPrint.Description,
-			listToPrint.Scope.Type,
-			listToPrint.UpdatedAt,
-			listToPrint.CreatedAt,
+			customSignalToPrint.SignalID,
+			customSignalToPrint.Name,
+			customSignalToPrint.Description,
+			customSignalToPrint.Scope.Type,
+			customSignalToPrint.UpdatedAt,
+			customSignalToPrint.CreatedAt,
 		)
 	}
 	tbl.Print()

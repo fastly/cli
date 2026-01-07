@@ -59,6 +59,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf/countrylist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/customsignal"
 	"github.com/fastly/cli/pkg/commands/ngwaf/iplist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/rule"
 	"github.com/fastly/cli/pkg/commands/ngwaf/signallist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/stringlist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/wildcardlist"
@@ -76,6 +77,7 @@ import (
 	wscustomsignal "github.com/fastly/cli/pkg/commands/ngwaf/workspace/customsignal"
 	wsiplist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/iplist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/redaction"
+	workspaceRule "github.com/fastly/cli/pkg/commands/ngwaf/workspace/rule"
 	wssignallistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/signallist"
 	wsstringlistlist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/stringlist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/threshold"
@@ -449,6 +451,12 @@ func Define( // nolint:revive // function-length
 	ngwafIPListGet := iplist.NewGetCommand(ngwafIPListRoot.CmdClause, data)
 	ngwafIPListList := iplist.NewListCommand(ngwafIPListRoot.CmdClause, data)
 	ngwafIPListUpdate := iplist.NewUpdateCommand(ngwafIPListRoot.CmdClause, data)
+	ngwafRuleRoot := rule.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafRuleCreate := rule.NewCreateCommand(ngwafRuleRoot.CmdClause, data)
+	ngwafRuleDelete := rule.NewDeleteCommand(ngwafRuleRoot.CmdClause, data)
+	ngwafRuleGet := rule.NewGetCommand(ngwafRuleRoot.CmdClause, data)
+	ngwafRuleList := rule.NewListCommand(ngwafRuleRoot.CmdClause, data)
+	ngwafRuleUpdate := rule.NewUpdateCommand(ngwafRuleRoot.CmdClause, data)
 	ngwafSignalListRoot := signallist.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafSignalListCreate := signallist.NewCreateCommand(ngwafSignalListRoot.CmdClause, data)
 	ngwafSignalListDelete := signallist.NewDeleteCommand(ngwafSignalListRoot.CmdClause, data)
@@ -485,6 +493,12 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspaceIPListGet := wsiplist.NewGetCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
 	ngwafWorkspaceIPListList := wsiplist.NewListCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
 	ngwafWorkspaceIPListUpdate := wsiplist.NewUpdateCommand(ngwafWorkspaceIPListRoot.CmdClause, data)
+	ngwafWorkspaceRuleRoot := workspaceRule.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceRuleCreate := workspaceRule.NewCreateCommand(ngwafWorkspaceRuleRoot.CmdClause, data)
+	ngwafWorkspaceRuleDelete := workspaceRule.NewDeleteCommand(ngwafWorkspaceRuleRoot.CmdClause, data)
+	ngwafWorkspaceRuleGet := workspaceRule.NewGetCommand(ngwafWorkspaceRuleRoot.CmdClause, data)
+	ngwafWorkspaceRuleList := workspaceRule.NewListCommand(ngwafWorkspaceRuleRoot.CmdClause, data)
+	ngwafWorkspaceRuleUpdate := workspaceRule.NewUpdateCommand(ngwafWorkspaceRuleRoot.CmdClause, data)
 	ngwafWorkspaceSignalListRoot := wssignallistlist.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
 	ngwafWorkspaceSignalListCreate := wssignallistlist.NewCreateCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
 	ngwafWorkspaceSignalListDelete := wssignallistlist.NewDeleteCommand(ngwafWorkspaceSignalListRoot.CmdClause, data)
@@ -1007,6 +1021,12 @@ func Define( // nolint:revive // function-length
 		ngwafIPListGet,
 		ngwafIPListList,
 		ngwafIPListUpdate,
+		ngwafRuleRoot,
+		ngwafRuleCreate,
+		ngwafRuleDelete,
+		ngwafRuleGet,
+		ngwafRuleList,
+		ngwafRuleUpdate,
 		ngwafSignalListRoot,
 		ngwafSignalListCreate,
 		ngwafSignalListDelete,
@@ -1042,6 +1062,12 @@ func Define( // nolint:revive // function-length
 		ngwafWorkspaceIPListGet,
 		ngwafWorkspaceIPListList,
 		ngwafWorkspaceIPListUpdate,
+		ngwafWorkspaceRuleRoot,
+		ngwafWorkspaceRuleCreate,
+		ngwafWorkspaceRuleDelete,
+		ngwafWorkspaceRuleGet,
+		ngwafWorkspaceRuleList,
+		ngwafWorkspaceRuleUpdate,
 		ngwafWorkspaceSignalListRoot,
 		ngwafWorkspaceSignalListCreate,
 		ngwafWorkspaceSignalListDelete,

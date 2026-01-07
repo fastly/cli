@@ -35,7 +35,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create an workspace-level custom signal").Alias("add")
+	c.CmdClause = parent.Command("create", "Create a workspace-level custom signal").Alias("add")
 
 	// Required.
 	c.CmdClause.Flag("name", "User submitted display name of a custom signal. Is immutable and must be between 3 and 25 characters").Required().StringVar(&c.name)
