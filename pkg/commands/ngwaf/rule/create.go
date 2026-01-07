@@ -52,7 +52,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 	var err error
-	input := &rules.CreateInput{}
+	rule := &rules.Rule{}
 	if c.path != "" {
 		path, err := filepath.Abs(c.path)
 		if err != nil {
@@ -70,10 +70,104 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return fmt.Errorf("failed to read json file: %v", err)
 		}
 
-		if err := json.Unmarshal(byteValue, input); err != nil {
+		if err := json.Unmarshal(byteValue, rule); err != nil {
 			return fmt.Errorf("failed to unmarshal json data: %v", err)
 		}
 	}
+	input := &rules.CreateInput{
+		Actions:            []*rules.CreateAction{},
+		Conditions:         []*rules.CreateCondition{},
+		Description:        &rule.Description,
+		GroupConditions:    []*rules.CreateGroupCondition{},
+		MultivalConditions: []*rules.CreateMultivalCondition{},
+		Enabled:            &rule.Enabled,
+		Type:               &rule.Type,
+		GroupOperator:      &rule.GroupOperator,
+		RequestLogging:     &rule.RequestLogging,
+	}
+
+	for _, action := range rule.Actions {
+		input.Actions = append(input.Actions, &rules.CreateAction{
+			AllowInteractive: action.AllowInteractive,
+			DeceptionType:    &action.DeceptionType,
+			RedirectURL:      &action.RedirectURL,
+			ResponseCode:     &action.ResponseCode,
+			Signal:           &action.Signal,
+			Type:             &action.Type,
+		})
+	}
+
+	if rule.RateLimit != nil {
+		input.RateLimit = &rules.CreateRateLimit{
+			ClientIdentifiers: []*rules.CreateClientIdentifier{},
+			Duration:          &rule.RateLimit.Duration,
+			Interval:          &rule.RateLimit.Interval,
+			Signal:            &rule.RateLimit.Signal,
+			Threshold:         &rule.RateLimit.Threshold,
+		}
+
+		for _, rateLimit := range rule.RateLimit.ClientIdentifiers {
+			input.RateLimit.ClientIdentifiers = append(input.RateLimit.ClientIdentifiers, &rules.CreateClientIdentifier{
+				Key:  &rateLimit.Key,
+				Name: &rateLimit.Name,
+				Type: &rateLimit.Type,
+			})
+		}
+	}
+
+	for _, jsonCondition := range rule.Conditions {
+		switch jsonCondition.Type {
+		case "single":
+			if sc, ok := jsonCondition.Fields.(rules.SingleCondition); ok {
+				input.Conditions = append(input.Conditions, &rules.CreateCondition{
+					Field:    &sc.Field,
+					Operator: &sc.Operator,
+					Value:    &sc.Value,
+				})
+			} else {
+				return fmt.Errorf("expected SingleCondition, got %T", jsonCondition.Fields)
+			}
+		case "group":
+			if gc, ok := jsonCondition.Fields.(rules.GroupCondition); ok {
+				parsedGroupCondition := &rules.CreateGroupCondition{
+					GroupOperator: &gc.GroupOperator,
+					Conditions:    []*rules.CreateCondition{},
+				}
+				for _, groupSingleCondition := range gc.Conditions {
+					parsedGroupCondition.Conditions = append(parsedGroupCondition.Conditions, &rules.CreateCondition{
+						Field:    &groupSingleCondition.Field,
+						Operator: &groupSingleCondition.Operator,
+						Value:    &groupSingleCondition.Value,
+					})
+				}
+				input.GroupConditions = append(input.GroupConditions, parsedGroupCondition)
+			} else {
+				return fmt.Errorf("expected GroupCondition, got %T", jsonCondition.Fields)
+			}
+		case "multival":
+			if mvc, ok := jsonCondition.Fields.(rules.CreateMultivalCondition); ok {
+				parsedMultiValCondition := &rules.CreateMultivalCondition{
+					Field:         mvc.Field,
+					GroupOperator: mvc.GroupOperator,
+					Operator:      mvc.Operator,
+					Conditions:    []*rules.CreateConditionMult{},
+				}
+				for _, multiSingleCondition := range mvc.Conditions {
+					parsedMultiValCondition.Conditions = append(parsedMultiValCondition.Conditions, &rules.CreateConditionMult{
+						Field:    multiSingleCondition.Field,
+						Operator: multiSingleCondition.Operator,
+						Value:    multiSingleCondition.Value,
+					})
+				}
+				input.MultivalConditions = append(input.MultivalConditions, parsedMultiValCondition)
+			} else {
+				return fmt.Errorf("expected MultivalCondition, got %T", jsonCondition.Fields)
+			}
+		default:
+			return fmt.Errorf("unknown condition type: %s", jsonCondition.Type)
+		}
+	}
+
 	input.Scope = &scope.Scope{
 		Type:      scope.ScopeTypeAccount,
 		AppliesTo: []string{"*"},
