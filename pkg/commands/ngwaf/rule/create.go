@@ -61,7 +61,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 		jsonFile, err := os.Open(path)
 		if err != nil {
-			return fmt.Errorf("error reading cert-path '%s': %q", c.path, err)
+			return fmt.Errorf("error reading path '%s': %q", c.path, err)
 		}
 		defer jsonFile.Close()
 
