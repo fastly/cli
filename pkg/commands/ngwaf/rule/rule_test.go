@@ -24,7 +24,7 @@ const (
 	ruleAction      = "allow"
 	ruleID          = "someID"
 	rulePath        = "testdata/test_rule.json"
-	ruleType = "request"
+	ruleType        = "request"
 )
 
 var rule = rules.Rule{
