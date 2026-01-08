@@ -26,17 +26,18 @@ var domainNameRegEx = regexp.MustCompile(`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])
 // NOTE: It implements the setup.Interface interface.
 type Domains struct {
 	// Public
-	APIClient      api.Interface
-	AcceptDefaults bool
-	NonInteractive bool
-	PackageDomain  string
-	Spinner        text.Spinner
-	RetryLimit     int
-	ServiceID      string
-	ServiceVersion int
-	Stdin          io.Reader
-	Stdout         io.Writer
-	Verbose        bool
+	APIClient       api.Interface
+	AcceptDefaults  bool
+	NoDefaultDomain bool
+	NonInteractive  bool
+	PackageDomain   string
+	Spinner         text.Spinner
+	RetryLimit      int
+	ServiceID       string
+	ServiceVersion  int
+	Stdin           io.Reader
+	Stdout          io.Writer
+	Verbose         bool
 
 	// Private
 	available []*fastly.Domain
@@ -54,6 +55,12 @@ type Domain struct {
 //
 // NOTE: If --domain flag is used we'll use that as the domain to create.
 func (d *Domains) Configure() error {
+	// Don't generate a domain if --no-default-domain is set and no domain is provided
+	if d.NoDefaultDomain && d.PackageDomain == "" {
+		d.missing = false
+		return nil
+	}
+
 	// PackageDomain is the --domain flag value.
 	if d.PackageDomain != "" {
 		d.required = append(d.required, Domain{
@@ -134,7 +141,10 @@ func (d *Domains) Validate() error {
 	}
 	d.available = available
 	if len(d.available) == 0 {
-		d.missing = true
+		// Only mark as missing if we're not intentionally skipping domain creation
+		if !(d.NoDefaultDomain && d.PackageDomain == "") {
+			d.missing = true
+		}
 	}
 	return nil
 }
