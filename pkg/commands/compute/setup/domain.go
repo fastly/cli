@@ -142,7 +142,7 @@ func (d *Domains) Validate() error {
 	d.available = available
 	if len(d.available) == 0 {
 		// Only mark as missing if we're not intentionally skipping domain creation
-		if !(d.NoDefaultDomain && d.PackageDomain == "") {
+		if !d.NoDefaultDomain || d.PackageDomain != "" {
 			d.missing = true
 		}
 	}
