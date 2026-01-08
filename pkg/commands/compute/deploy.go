@@ -94,7 +94,7 @@ func NewDeployCommand(parent argparser.Registerer, g *global.Data) *DeployComman
 	c.CmdClause.Flag("dir", "Project directory (default: current directory)").Short('C').StringVar(&c.Dir)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Env)
-	c.CmdClause.Flag("no-default-domain", "Skip automatic default domain creation").Action(c.NoDefaultDomain.Set).BoolVar(&c.NoDefaultDomain.Value)
+	c.CmdClause.Flag("no-default-domain", "Skip default domain creation").Action(c.NoDefaultDomain.Set).BoolVar(&c.NoDefaultDomain.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
 	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check").IntVar(&c.StatusCheckCode)
 	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.StatusCheckOff)
