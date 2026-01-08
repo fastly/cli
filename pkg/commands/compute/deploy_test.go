@@ -697,6 +697,79 @@ func TestDeploy(t *testing.T) {
 				"Deployed package (service 123, version 4)",
 			},
 		},
+		{
+			name: "success with --no-default-domain flag for new service",
+			args: args("compute deploy --no-default-domain --token 123"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateServiceFn:   createServiceOK,
+				DeleteServiceFn:   deleteServiceOK,
+				GetPackageFn:      getPackageOk,
+				ListDomainsFn:     listDomainsNone,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Deployed package (service 12345, version 1)",
+			},
+			dontWantOutput: []string{
+				"Creating domain",
+				"Domain:",
+			},
+		},
+		{
+			name: "success with --no-default-domain but explicit --domain provided",
+			args: args("compute deploy --token 123 --no-default-domain --domain example.com"),
+			api: mock.API{
+				ActivateVersionFn: activateVersionOk,
+				CreateBackendFn:   createBackendOK,
+				CreateDomainFn:    createDomainOK,
+				CreateServiceFn:   createServiceOK,
+				GetPackageFn:      getPackageOk,
+				ListDomainsFn:     listDomainsNone,
+				UpdatePackageFn:   updatePackageOk,
+			},
+			httpClientRes: []*http.Response{
+				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
+				mock.NewHTTPResponse(http.StatusOK, nil, io.NopCloser(strings.NewReader("success"))),
+			},
+			httpClientErr: []error{
+				nil,
+				nil,
+			},
+			stdin: []string{
+				"Y", // when prompted to create a new service
+			},
+			wantOutput: []string{
+				"Creating domain 'example.com'",
+				"Deployed package (service 12345, version 1)",
+			},
+		},
+		{
+			name: "success with --no-default-domain and existing service",
+			args: args("compute deploy --service-id 123 --token 123 --no-default-domain"),
+			api: mock.API{
+				ActivateVersionFn:   activateVersionOk,
+				CloneVersionFn:      testutil.CloneVersionResult(4),
+				GetPackageFn:        getPackageOk,
+				GetServiceDetailsFn: getServiceDetailsWasm,
+				GetServiceFn:        getServiceOK,
+				ListDomainsFn:       listDomainsOk,
+				ListVersionsFn:      testutil.ListVersions,
+				UpdatePackageFn:     updatePackageOk,
+			},
+			wantOutput: []string{
+				"Uploading package",
+				"Activating service",
+				"Deployed package (service 123, version 4)",
+			},
+			dontWantOutput: []string{
+				"Creating domain",
+			},
+		},
 		// The following test doesn't provide a Service ID by either a flag nor the
 		// manifest, so this will result in the deploy script attempting to create
 		// a new service. Our fastly.toml is configured with a [setup] section so

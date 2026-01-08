@@ -53,6 +53,7 @@ type DeployCommand struct {
 	Dir                string
 	Domain             string
 	Env                string
+	NoDefaultDomain    argparser.OptionalBool
 	PackagePath        string
 	ServiceName        argparser.OptionalServiceNameID
 	ServiceVersion     argparser.OptionalServiceVersion
@@ -93,6 +94,7 @@ func NewDeployCommand(parent argparser.Registerer, g *global.Data) *DeployComman
 	c.CmdClause.Flag("dir", "Project directory (default: current directory)").Short('C').StringVar(&c.Dir)
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").StringVar(&c.Domain)
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").StringVar(&c.Env)
+	c.CmdClause.Flag("no-default-domain", "Skip default domain creation").Action(c.NoDefaultDomain.Set).BoolVar(&c.NoDefaultDomain.Value)
 	c.CmdClause.Flag("package", "Path to a package tar.gz").Short('p').StringVar(&c.PackagePath)
 	c.CmdClause.Flag("status-check-code", "Set the expected status response for the service availability check").IntVar(&c.StatusCheckCode)
 	c.CmdClause.Flag("status-check-off", "Disable the service availability check").BoolVar(&c.StatusCheckOff)
@@ -233,16 +235,17 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// It's part of the implementation so that we can utilise the same interface.
 	// A domain is required regardless of whether it's a new service or existing.
 	sr.domains = &setup.Domains{
-		APIClient:      c.Globals.APIClient,
-		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
-		NonInteractive: c.Globals.Flags.NonInteractive,
-		PackageDomain:  c.Domain,
-		RetryLimit:     5,
-		ServiceID:      serviceID,
-		ServiceVersion: serviceVersionNumber,
-		Stdin:          in,
-		Stdout:         out,
-		Verbose:        c.Globals.Verbose(),
+		APIClient:       c.Globals.APIClient,
+		AcceptDefaults:  c.Globals.Flags.AcceptDefaults,
+		NoDefaultDomain: c.NoDefaultDomain.WasSet,
+		NonInteractive:  c.Globals.Flags.NonInteractive,
+		PackageDomain:   c.Domain,
+		RetryLimit:      5,
+		ServiceID:       serviceID,
+		ServiceVersion:  serviceVersionNumber,
+		Stdin:           in,
+		Stdout:          out,
+		Verbose:         c.Globals.Verbose(),
 	}
 	if err = sr.domains.Validate(); err != nil {
 		errLogService(c.Globals.ErrLog, err, serviceID, serviceVersionNumber)
@@ -304,7 +307,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	if !c.StatusCheckOff && noExistingService {
+	if !c.StatusCheckOff && noExistingService && serviceURL != "" {
 		c.StatusCheck(serviceURL, spinner, out)
 	}
 
@@ -345,7 +348,9 @@ func (c *DeployCommand) StatusCheck(serviceURL string, spinner text.Spinner, out
 
 func displayDeployOutput(out io.Writer, manageServiceBaseURL, serviceID, serviceURL string, serviceVersion int) {
 	text.Description(out, "Manage this service at", fmt.Sprintf("%s%s", manageServiceBaseURL, serviceID))
-	text.Description(out, "View this service at", serviceURL)
+	if serviceURL != "" {
+		text.Description(out, "View this service at", serviceURL)
+	}
 	text.Success(out, "Deployed package (service %s, version %v)", serviceID, serviceVersion)
 }
 
@@ -1064,6 +1069,9 @@ func (c *DeployCommand) GetServiceURL(serviceID string, serviceVersion int) (str
 	})
 	if err != nil {
 		return "", err
+	}
+	if len(latestDomains) == 0 {
+		return "", nil
 	}
 	name := fastly.ToValue(latestDomains[0].Name)
 	if segs := strings.Split(name, "*."); len(segs) > 1 {
