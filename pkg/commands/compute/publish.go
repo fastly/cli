@@ -30,6 +30,7 @@ type PublishCommand struct {
 	comment            argparser.OptionalString
 	domain             argparser.OptionalString
 	env                argparser.OptionalString
+	noDefaultDomain    argparser.OptionalBool
 	pkg                argparser.OptionalString
 	serviceName        argparser.OptionalServiceNameID
 	serviceVersion     argparser.OptionalServiceVersion
@@ -55,6 +56,7 @@ func NewPublishCommand(parent argparser.Registerer, g *global.Data, build *Build
 	c.CmdClause.Flag("domain", "The name of the domain associated to the package").Action(c.domain.Set).StringVar(&c.domain.Value)
 	c.CmdClause.Flag("env", "The manifest environment config to use (e.g. 'stage' will attempt to read 'fastly.stage.toml')").Action(c.env.Set).StringVar(&c.env.Value)
 	c.CmdClause.Flag("include-source", "Include source code in built package").Action(c.includeSrc.Set).BoolVar(&c.includeSrc.Value)
+	c.CmdClause.Flag("no-default-domain", "Skip automatic default domain creation").Action(c.noDefaultDomain.Set).BoolVar(&c.noDefaultDomain.Value)
 	c.CmdClause.Flag("language", "Language type").Action(c.lang.Set).StringVar(&c.lang.Value)
 	c.CmdClause.Flag("metadata-disable", "Disable Wasm binary metadata annotations").Action(c.metadataDisable.Set).BoolVar(&c.metadataDisable.Value)
 	c.CmdClause.Flag("metadata-filter-envvars", "Redact specified environment variables from [scripts.env_vars] using comma-separated list").Action(c.metadataFilterEnvVars.Set).StringVar(&c.metadataFilterEnvVars.Value)
@@ -186,6 +188,9 @@ func (c *PublishCommand) Deploy(in io.Reader, out io.Writer) error {
 	}
 	if c.env.WasSet {
 		c.deploy.Env = c.env.Value
+	}
+	if c.noDefaultDomain.WasSet {
+		c.deploy.NoDefaultDomain = c.noDefaultDomain
 	}
 	if c.comment.WasSet {
 		c.deploy.Comment = c.comment
