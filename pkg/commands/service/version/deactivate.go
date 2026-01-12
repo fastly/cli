@@ -1,4 +1,4 @@
-package serviceversion
+package version
 
 import (
 	"context"
@@ -6,28 +6,27 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
+	"4d63.com/optional"
+
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
 
-// CloneCommand calls the Fastly API to clone a service version.
-type CloneCommand struct {
+// DeactivateCommand calls the Fastly API to deactivate a service version.
+type DeactivateCommand struct {
 	argparser.Base
-	argparser.JSONOutput
-
-	Input          fastly.CloneVersionInput
+	Input          fastly.DeactivateVersionInput
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
 }
 
-// NewCloneCommand returns a usable command registered under the parent.
-func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand {
-	var c CloneCommand
+// NewDeactivateCommand returns a usable command registered under the parent.
+func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *DeactivateCommand {
+	var c DeactivateCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("clone", "Clone a Fastly service version")
-	c.RegisterFlagBool(c.JSONFlag()) // --json
+	c.CmdClause = parent.Command("deactivate", "Deactivate a Fastly service version")
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -50,11 +49,9 @@ func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand 
 }
 
 // Exec invokes the application logic for the command.
-func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
-	if c.Globals.Verbose() && c.JSONOutput.Enabled {
-		return errors.ErrInvalidVerboseJSONCombo
-	}
+func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
+		Active:             optional.Of(true),
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
@@ -73,7 +70,7 @@ func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	ver, err := c.Globals.APIClient.CloneVersion(context.TODO(), &c.Input)
+	ver, err := c.Globals.APIClient.DeactivateVersion(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
@@ -82,9 +79,6 @@ func (c *CloneCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, ver); ok {
-		return err
-	}
-	text.Success(out, "Cloned service %s version %d to version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion, fastly.ToValue(ver.Number))
+	text.Success(out, "Deactivated service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
 	return nil
 }
