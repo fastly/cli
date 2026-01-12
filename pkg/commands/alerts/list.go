@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/fastly/cli/pkg/flagconversion"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/v12/fastly"
 
@@ -114,12 +115,10 @@ func (c *ListCommand) constructInput() (*fastly.ListAlertDefinitionsInput, error
 		input.ServiceID = &c.serviceID.Value
 	}
 	var sign string
+	var err error
 	if c.order.WasSet {
-		switch c.order.Value {
-		case "asc":
-		case "desc":
-			sign = "-"
-		default:
+		sign, err = flagconversion.ConvertOrderFromStringFlag(c.order.Value)
+		if err != nil {
 			err := errors.New("'order' flag must be one of the following [asc, desc]")
 			c.Globals.ErrLog.Add(err)
 			return nil, err

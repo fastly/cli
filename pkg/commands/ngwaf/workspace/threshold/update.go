@@ -10,6 +10,7 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/flagconversion"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -84,35 +85,25 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Action = &c.action.Value
 	}
 	if c.dontNotify.WasSet {
-		var dontNotify bool
-		switch c.dontNotify.Value {
-		case "true":
-			dontNotify = true
-		case "false":
-			dontNotify = false
-		default:
+		dontNotify, err := flagconversion.ConvertBoolFromStringFlag(c.dontNotify.Value)
+		if err != nil {
 			err := errors.New("'do-not-notify' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
-		input.DontNotify = &dontNotify
+		input.DontNotify = dontNotify
 	}
 	if c.duration.WasSet {
 		input.Duration = &c.duration.Value
 	}
 	if c.enabled.WasSet {
-		var enabled bool
-		switch c.enabled.Value {
-		case "true":
-			enabled = true
-		case "false":
-			enabled = false
-		default:
+		enabled, err := flagconversion.ConvertBoolFromStringFlag(c.enabled.Value)
+		if err != nil {
 			err := errors.New("'enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
-		input.Enabled = &enabled
+		input.Enabled = enabled
 	}
 	if c.interval.WasSet {
 		input.Interval = &c.interval.Value

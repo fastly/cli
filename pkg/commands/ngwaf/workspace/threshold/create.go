@@ -10,6 +10,7 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/flagconversion"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -75,25 +76,15 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	var enabled bool
-	switch c.enabled.Value {
-	case "true":
-		enabled = true
-	case "false":
-		enabled = false
-	default:
+	enabled, err := flagconversion.ConvertBoolFromStringFlag(c.enabled.Value)
+	if err != nil {
 		err := errors.New("'enabled' flag must be one of the following [true, false]")
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	var dontNotify bool
-	switch c.dontNotify.Value {
-	case "true":
-		dontNotify = true
-	case "false":
-		dontNotify = false
-	default:
+	dontNotify, err := flagconversion.ConvertBoolFromStringFlag(c.dontNotify.Value)
+	if err != nil {
 		err := errors.New("'do-not-notify' flag must be one of the following [true, false]")
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -102,11 +93,11 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	input := &thresholds.CreateInput{
 		Action:      &c.action,
 		Duration:    &c.duration,
-		Enabled:     &enabled,
+		Enabled:     enabled,
 		Interval:    &c.interval,
 		Limit:       &c.limit,
 		Name:        &c.name,
-		DontNotify:  &dontNotify,
+		DontNotify:  dontNotify,
 		Signal:      &c.signal,
 		WorkspaceID: &c.workspaceID.Value,
 	}

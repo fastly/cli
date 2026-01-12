@@ -3,7 +3,6 @@ package virtualpatch
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/flagconversion"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -67,16 +67,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		WorkspaceID:    &c.workspaceID,
 	}
 	if c.enabled.WasSet {
-		var enableToggle bool
-		switch c.enabled.Value {
-		case "true":
-			enableToggle = true
-		case "false":
-			enableToggle = false
-		default:
-			return fmt.Errorf("'enabled' flag must be one of the following [true, false]")
+		enabled, err := flagconversion.ConvertBoolFromStringFlag(c.enabled.Value)
+		if err != nil {
+			err := errors.New("'enabled' flag must be one of the following [true, false]")
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
-		input.Enabled = &enableToggle
+		input.Enabled = enabled
 	}
 	if c.mode.WasSet {
 		input.Mode = &c.mode.Value

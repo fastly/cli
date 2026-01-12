@@ -11,6 +11,7 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/flagconversion"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -174,20 +175,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.preferIPv6.WasSet {
-		var preferIPv6 bool
-
-		switch c.preferIPv6.Value {
-		case "true":
-			preferIPv6 = true
-		case "false":
-			preferIPv6 = false
-		default:
+		preferIPv6, err := flagconversion.ConvertBoolFromStringFlag(c.preferIPv6.Value)
+		if err != nil {
 			err := errors.New("'prefer-ipv6' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
-
-		input.PreferIPv6 = fastly.ToPointer(fastly.Compatibool(preferIPv6))
+		input.PreferIPv6 = fastly.ToPointer(fastly.Compatibool(*preferIPv6))
 	}
 
 	if c.ConnectTimeout.WasSet {
@@ -272,20 +266,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.TCPKaEnable.WasSet {
-		var tcpKaEnable bool
-
-		switch c.TCPKaEnable.Value {
-		case "true":
-			tcpKaEnable = true
-		case "false":
-			tcpKaEnable = false
-		default:
+		tcpKaEnable, err := flagconversion.ConvertBoolFromStringFlag(c.TCPKaEnable.Value)
+		if err != nil {
 			err := errors.New("'tcp-ka-enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
-
-		input.TCPKeepAliveEnable = &tcpKaEnable
+		input.TCPKeepAliveEnable = tcpKaEnable
 	}
 	if c.TCPKaInterval.WasSet {
 		input.TCPKeepAliveIntvl = &c.TCPKaInterval.Value
