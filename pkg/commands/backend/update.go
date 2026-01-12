@@ -11,7 +11,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/flagconversion"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -175,7 +174,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.preferIPv6.WasSet {
-		preferIPv6, err := flagconversion.ConvertBoolFromStringFlag(c.preferIPv6.Value)
+		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.preferIPv6.Value)
 		if err != nil {
 			err := errors.New("'prefer-ipv6' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
@@ -266,7 +265,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.TCPKaEnable.WasSet {
-		tcpKaEnable, err := flagconversion.ConvertBoolFromStringFlag(c.TCPKaEnable.Value)
+		tcpKaEnable, err := argparser.ConvertBoolFromStringFlag(c.TCPKaEnable.Value)
 		if err != nil {
 			err := errors.New("'tcp-ka-enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)

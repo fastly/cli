@@ -10,7 +10,6 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/dashboard/printer"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/flagconversion"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -124,7 +123,7 @@ func (c *ListCommand) constructInput() (*fastly.ListObservabilityCustomDashboard
 	var sign string
 	var err error
 	if c.order.WasSet {
-		sign, err = flagconversion.ConvertOrderFromStringFlag(c.order.Value)
+		sign, err = argparser.ConvertOrderFromStringFlag(c.order.Value)
 		if err != nil {
 			err := errors.New("'order' flag must be one of the following [asc, desc]")
 			c.Globals.ErrLog.Add(err)

@@ -10,7 +10,6 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/flagconversion"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -76,14 +75,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	enabled, err := flagconversion.ConvertBoolFromStringFlag(c.enabled.Value)
+	enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value)
 	if err != nil {
 		err := errors.New("'enabled' flag must be one of the following [true, false]")
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	dontNotify, err := flagconversion.ConvertBoolFromStringFlag(c.dontNotify.Value)
+	dontNotify, err := argparser.ConvertBoolFromStringFlag(c.dontNotify.Value)
 	if err != nil {
 		err := errors.New("'do-not-notify' flag must be one of the following [true, false]")
 		c.Globals.ErrLog.Add(err)
