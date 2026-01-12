@@ -21,9 +21,22 @@ import (
 // CommandName is the string to be used to invoke this command.
 const CommandName = "purge"
 
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
+// PurgeCommand calls the Fastly API to purge items from the cache.
+type PurgeCommand struct { //revive:disable:exported
+	argparser.Base
+
+	all         bool
+	file        string
+	key         string
+	serviceName argparser.OptionalServiceNameID
+	soft        bool
+	url         string
+}
+
+// NewPurgeCommand returns a usable command registered under the parent.
+func NewPurgeCommand(parent argparser.Registerer, g *global.Data) *PurgeCommand {
+	var c PurgeCommand
+
 	c.CmdClause = parent.Command(CommandName, "Invalidate objects in the Fastly cache")
 	c.Globals = g
 
@@ -49,21 +62,8 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	return &c
 }
 
-// RootCommand is the parent command for all subcommands in this package.
-// It should be installed under the primary root command.
-type RootCommand struct {
-	argparser.Base
-
-	all         bool
-	file        string
-	key         string
-	serviceName argparser.OptionalServiceNameID
-	soft        bool
-	url         string
-}
-
 // Exec implements the command interface.
-func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *PurgeCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -135,7 +135,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	return nil
 }
 
-func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
+func (c *PurgeCommand) purgeAll(serviceID string, out io.Writer) error {
 	p, err := c.Globals.APIClient.PurgeAll(context.TODO(), &fastly.PurgeAllInput{
 		ServiceID: serviceID,
 	})
@@ -152,7 +152,7 @@ func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
 // purgeKey now uses the bulk purge endpoint to avoid serialization of the 'key' field values.
 // This serialization occurs due to the nature of the POST /service/{service_id}/purge/{surrogate_key}
 // endpoint storing the 'key' as part of the URL.
-func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
+func (c *PurgeCommand) purgeKey(serviceID string, out io.Writer) error {
 	m, err := c.Globals.APIClient.PurgeKeys(context.TODO(), &fastly.PurgeKeysInput{
 		ServiceID: serviceID,
 		Keys:      []string{c.key},
@@ -177,7 +177,7 @@ func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
 	return nil
 }
 
-func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
+func (c *PurgeCommand) purgeKeys(serviceID string, out io.Writer) error {
 	keys, err := populateKeys(c.file, c.Globals.ErrLog)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -189,7 +189,7 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 	return c.purgeBulkKeys(serviceID, keys, out)
 }
 
-func (c *RootCommand) purgeBulkKeys(serviceID string, keys []string, out io.Writer) error {
+func (c *PurgeCommand) purgeBulkKeys(serviceID string, keys []string, out io.Writer) error {
 	m, err := c.Globals.APIClient.PurgeKeys(context.TODO(), &fastly.PurgeKeysInput{
 		ServiceID: serviceID,
 		Keys:      keys,
@@ -220,7 +220,7 @@ func (c *RootCommand) purgeBulkKeys(serviceID string, keys []string, out io.Writ
 	return nil
 }
 
-func (c *RootCommand) purgeURL(out io.Writer) error {
+func (c *PurgeCommand) purgeURL(out io.Writer) error {
 	p, err := c.Globals.APIClient.Purge(context.TODO(), &fastly.PurgeInput{
 		URL:  c.url,
 		Soft: c.soft,

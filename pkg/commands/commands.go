@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/commands/alerts"
+	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -88,12 +89,12 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
-	"github.com/fastly/cli/pkg/commands/purge"
 	"github.com/fastly/cli/pkg/commands/ratelimit"
 	"github.com/fastly/cli/pkg/commands/resourcelink"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
+	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
@@ -593,7 +594,6 @@ func Define( // nolint:revive // function-length
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, data)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
-	purgeCmdRoot := purge.NewRootCommand(app, data)
 	rateLimitCmdRoot := ratelimit.NewRootCommand(app, data)
 	rateLimitCreate := ratelimit.NewCreateCommand(rateLimitCmdRoot.CmdClause, data)
 	rateLimitDelete := ratelimit.NewDeleteCommand(rateLimitCmdRoot.CmdClause, data)
@@ -623,6 +623,7 @@ func Define( // nolint:revive // function-length
 	serviceList := service.NewListCommand(serviceCmdRoot.CmdClause, data)
 	serviceSearch := service.NewSearchCommand(serviceCmdRoot.CmdClause, data)
 	serviceUpdate := service.NewUpdateCommand(serviceCmdRoot.CmdClause, data)
+	servicePurge := servicepurge.NewPurgeCommand(serviceCmdRoot.CmdClause, data)
 	serviceauthCmdRoot := serviceauth.NewRootCommand(app, data)
 	serviceauthCreate := serviceauth.NewCreateCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthDelete := serviceauth.NewDeleteCommand(serviceauthCmdRoot.CmdClause, data)
@@ -711,6 +712,9 @@ func Define( // nolint:revive // function-length
 	vclSnippetUpdate := snippet.NewUpdateCommand(vclSnippetCmdRoot.CmdClause, data)
 	versionCmdRoot := version.NewRootCommand(app, data)
 	whoamiCmdRoot := whoami.NewRootCommand(app, data)
+
+	// Aliases for deprecated commands
+	aliasPurge := aliaspurge.NewCommand(app, data)
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
@@ -1167,7 +1171,6 @@ func Define( // nolint:revive // function-length
 		profileSwitch,
 		profileToken,
 		profileUpdate,
-		purgeCmdRoot,
 		rateLimitCmdRoot,
 		rateLimitCreate,
 		rateLimitDelete,
@@ -1195,6 +1198,7 @@ func Define( // nolint:revive // function-length
 		serviceList,
 		serviceSearch,
 		serviceUpdate,
+		servicePurge,
 		serviceauthCmdRoot,
 		serviceauthCreate,
 		serviceauthDelete,
@@ -1284,5 +1288,6 @@ func Define( // nolint:revive // function-length
 		vclSnippetUpdate,
 		versionCmdRoot,
 		whoamiCmdRoot,
+		aliasPurge,
 	}
 }
