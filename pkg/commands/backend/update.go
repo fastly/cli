@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"errors"
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
@@ -174,9 +173,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.preferIPv6.WasSet {
-		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.preferIPv6.Value)
+		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.preferIPv6.Value, "prefer-ipv6")
 		if err != nil {
-			err := errors.New("'prefer-ipv6' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
@@ -265,9 +263,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.TCPKaEnable.WasSet {
-		tcpKaEnable, err := argparser.ConvertBoolFromStringFlag(c.TCPKaEnable.Value)
+		tcpKaEnable, err := argparser.ConvertBoolFromStringFlag(c.TCPKaEnable.Value, "tcp-ka-enabled")
 		if err != nil {
-			err := errors.New("'tcp-ka-enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}

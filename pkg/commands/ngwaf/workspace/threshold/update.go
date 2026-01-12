@@ -84,9 +84,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Action = &c.action.Value
 	}
 	if c.dontNotify.WasSet {
-		dontNotify, err := argparser.ConvertBoolFromStringFlag(c.dontNotify.Value)
+		dontNotify, err := argparser.ConvertBoolFromStringFlag(c.dontNotify.Value, "do-not-notify")
 		if err != nil {
-			err := errors.New("'do-not-notify' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
@@ -96,9 +95,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Duration = &c.duration.Value
 	}
 	if c.enabled.WasSet {
-		enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value)
+		enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value, "enabled")
 		if err != nil {
-			err := errors.New("'enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}

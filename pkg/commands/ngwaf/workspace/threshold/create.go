@@ -75,16 +75,14 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value)
+	enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value, "enabled")
 	if err != nil {
-		err := errors.New("'enabled' flag must be one of the following [true, false]")
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	dontNotify, err := argparser.ConvertBoolFromStringFlag(c.dontNotify.Value)
+	dontNotify, err := argparser.ConvertBoolFromStringFlag(c.dontNotify.Value, "do-not-notify")
 	if err != nil {
-		err := errors.New("'do-not-notify' flag must be one of the following [true, false]")
 		c.Globals.ErrLog.Add(err)
 		return err
 	}

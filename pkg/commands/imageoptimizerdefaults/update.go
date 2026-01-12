@@ -2,7 +2,6 @@ package imageoptimizerdefaults
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 
@@ -160,9 +159,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 	if c.webp.WasSet {
-		webp, err := argparser.ConvertBoolFromStringFlag(c.webp.Value)
+		webp, err := argparser.ConvertBoolFromStringFlag(c.webp.Value, "webp")
 		if err != nil {
-			err := errors.New("'webp' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
@@ -191,18 +189,16 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Input.JpegQuality = &c.jpegQuality.Value
 	}
 	if c.upscale.WasSet {
-		upscale, err := argparser.ConvertBoolFromStringFlag(c.upscale.Value)
+		upscale, err := argparser.ConvertBoolFromStringFlag(c.upscale.Value, "upscale")
 		if err != nil {
-			err := errors.New("'upscale' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 		c.Input.Upscale = upscale
 	}
 	if c.allowVideo.WasSet {
-		allowVideo, err := argparser.ConvertBoolFromStringFlag(c.allowVideo.Value)
+		allowVideo, err := argparser.ConvertBoolFromStringFlag(c.allowVideo.Value, "allow-video")
 		if err != nil {
-			err := errors.New("'allow-video' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}

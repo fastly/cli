@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net"
 
@@ -194,9 +193,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.OverrideHost = &c.overrideHost.Value
 	}
 	if c.preferIPv6.WasSet {
-		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.preferIPv6.Value)
+		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.preferIPv6.Value, "prefer-ipv6")
 		if err != nil {
-			err := errors.New("'prefer-ipv6' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
@@ -232,9 +230,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.SSLSNIHostname = &c.sslSNIHostname.Value
 	}
 	if c.tcpKaEnable.WasSet {
-		tcpKaEnable, err := argparser.ConvertBoolFromStringFlag(c.tcpKaEnable.Value)
+		tcpKaEnable, err := argparser.ConvertBoolFromStringFlag(c.tcpKaEnable.Value, "tcp-ka-enabled")
 		if err != nil {
-			err := errors.New("'tcp-ka-enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}

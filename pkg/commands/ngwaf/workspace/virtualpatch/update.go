@@ -66,9 +66,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		WorkspaceID:    &c.workspaceID,
 	}
 	if c.enabled.WasSet {
-		enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value)
+		enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value, "enabled")
 		if err != nil {
-			err := errors.New("'enabled' flag must be one of the following [true, false]")
 			c.Globals.ErrLog.Add(err)
 			return err
 		}

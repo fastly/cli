@@ -2,7 +2,6 @@ package alerts
 
 import (
 	"context"
-	"errors"
 	"io"
 
 	"github.com/fastly/cli/pkg/text"
@@ -116,9 +115,8 @@ func (c *ListHistoryCommand) constructInput() (*fastly.ListAlertHistoryInput, er
 	var sign string
 	var err error
 	if c.order.WasSet {
-		sign, err = argparser.ConvertOrderFromStringFlag(c.order.Value)
+		sign, err = argparser.ConvertOrderFromStringFlag(c.order.Value, "order")
 		if err != nil {
-			err := errors.New("'order' flag must be one of the following [asc, desc]")
 			c.Globals.ErrLog.Add(err)
 			return nil, err
 		}
