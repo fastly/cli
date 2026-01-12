@@ -22,6 +22,13 @@
 - build(deps): `golang.org/x/text` from 0.31.0 to 0.32.0 ([#1602](https://github.com/fastly/cli/pull/1602))
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.22 to 4.1.23 ([#1606](https://github.com/fastly/cli/pull/1606))
 - build(deps): `github.com/google/go-querystring` from 1.1.0 to 1.2.0 ([#1607](https://github.com/fastly/cli/pull/1607))
+- build(deps): `golang.org/x/sys` from 0.39.0 to 0.40.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/term` from 0.38.0 to 0.39.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/crypto` from 0.46.0 to 0.47.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/mod` from 0.31.0 to 0.32.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/net` from 0.48.0 to 0.49.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/text` from 0.32.0 to 0.33.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `github.com/fastly/go-fastly/v12` from 12.1.0 to 12.1.1 ([#1613](https://github.com/fastly/cli/pull/1613))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
 
