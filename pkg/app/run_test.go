@@ -87,7 +87,6 @@ object-storage
 pops
 products
 profile
-purge
 rate-limit
 resource-link
 secret-store
