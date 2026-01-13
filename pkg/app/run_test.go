@@ -73,7 +73,6 @@ dashboard
 dictionary
 dictionary-entry
 domain
-domain-v1
 healthcheck
 imageoptimizer
 install
@@ -93,6 +92,7 @@ secret-store
 secret-store-entry
 service
 service-auth
+service-domain
 service-version
 stats
 tls-config
