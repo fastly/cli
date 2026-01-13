@@ -84,35 +84,23 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Action = &c.action.Value
 	}
 	if c.dontNotify.WasSet {
-		var dontNotify bool
-		switch c.dontNotify.Value {
-		case "true":
-			dontNotify = true
-		case "false":
-			dontNotify = false
-		default:
-			err := errors.New("'do-not-notify' flag must be one of the following [true, false]")
+		dontNotify, err := argparser.ConvertBoolFromStringFlag(c.dontNotify.Value, "do-not-notify")
+		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
-		input.DontNotify = &dontNotify
+		input.DontNotify = dontNotify
 	}
 	if c.duration.WasSet {
 		input.Duration = &c.duration.Value
 	}
 	if c.enabled.WasSet {
-		var enabled bool
-		switch c.enabled.Value {
-		case "true":
-			enabled = true
-		case "false":
-			enabled = false
-		default:
-			err := errors.New("'enabled' flag must be one of the following [true, false]")
+		enabled, err := argparser.ConvertBoolFromStringFlag(c.enabled.Value, "enabled")
+		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
-		input.Enabled = &enabled
+		input.Enabled = enabled
 	}
 	if c.interval.WasSet {
 		input.Interval = &c.interval.Value

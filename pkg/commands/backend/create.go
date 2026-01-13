@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net"
 
@@ -194,20 +193,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.OverrideHost = &c.overrideHost.Value
 	}
 	if c.preferIPv6.WasSet {
-		var preferIPv6 bool
-
-		switch c.preferIPv6.Value {
-		case "true":
-			preferIPv6 = true
-		case "false":
-			preferIPv6 = false
-		default:
-			err := errors.New("'prefer-ipv6' flag must be one of the following [true, false]")
+		preferIPv6, err := argparser.ConvertBoolFromStringFlag(c.preferIPv6.Value, "prefer-ipv6")
+		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 
-		input.PreferIPv6 = fastly.ToPointer(fastly.Compatibool(preferIPv6))
+		input.PreferIPv6 = fastly.ToPointer(fastly.Compatibool(*preferIPv6))
 	}
 	if c.requestCondition.WasSet {
 		input.RequestCondition = &c.requestCondition.Value
@@ -238,20 +230,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.SSLSNIHostname = &c.sslSNIHostname.Value
 	}
 	if c.tcpKaEnable.WasSet {
-		var tcpKaEnable bool
-
-		switch c.tcpKaEnable.Value {
-		case "true":
-			tcpKaEnable = true
-		case "false":
-			tcpKaEnable = false
-		default:
-			err := errors.New("'tcp-ka-enabled' flag must be one of the following [true, false]")
+		tcpKaEnable, err := argparser.ConvertBoolFromStringFlag(c.tcpKaEnable.Value, "tcp-ka-enabled")
+		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 
-		input.TCPKeepAliveEnable = &tcpKaEnable
+		input.TCPKeepAliveEnable = tcpKaEnable
 	}
 	if c.tcpKaInterval.WasSet {
 		input.TCPKeepAliveIntvl = &c.tcpKaInterval.Value

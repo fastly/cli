@@ -159,16 +159,12 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 	if c.webp.WasSet {
-		var webp bool
-		switch c.webp.Value {
-		case "true":
-			webp = true
-		case "false":
-			webp = false
-		default:
-			return fmt.Errorf("'webp' flag must be one of the following [true, false]")
+		webp, err := argparser.ConvertBoolFromStringFlag(c.webp.Value, "webp")
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
-		c.Input.Webp = &webp
+		c.Input.Webp = webp
 	}
 	if c.webpQuality.WasSet {
 		c.Input.WebpQuality = &c.webpQuality.Value
@@ -193,28 +189,20 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Input.JpegQuality = &c.jpegQuality.Value
 	}
 	if c.upscale.WasSet {
-		var upscale bool
-		switch c.upscale.Value {
-		case "true":
-			upscale = true
-		case "false":
-			upscale = false
-		default:
-			return fmt.Errorf("'upscale' flag must be one of the following [true, false]")
+		upscale, err := argparser.ConvertBoolFromStringFlag(c.upscale.Value, "upscale")
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
-		c.Input.Upscale = &upscale
+		c.Input.Upscale = upscale
 	}
 	if c.allowVideo.WasSet {
-		var allowVideo bool
-		switch c.allowVideo.Value {
-		case "true":
-			allowVideo = true
-		case "false":
-			allowVideo = false
-		default:
-			return fmt.Errorf("'allow-video' flag must be one of the following [true, false]")
+		allowVideo, err := argparser.ConvertBoolFromStringFlag(c.allowVideo.Value, "allow-video")
+		if err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
 		}
-		c.Input.AllowVideo = &allowVideo
+		c.Input.AllowVideo = allowVideo
 	}
 
 	o, err := c.Globals.APIClient.UpdateImageOptimizerDefaultSettings(context.TODO(), &c.Input)
