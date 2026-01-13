@@ -6,6 +6,7 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
+	top "github.com/fastly/cli/pkg/commands/service"
 	root "github.com/fastly/cli/pkg/commands/service/vcl"
 	sub "github.com/fastly/cli/pkg/commands/service/vcl/snippet"
 	"github.com/fastly/cli/pkg/mock"
@@ -220,7 +221,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestVCLSnippetDelete(t *testing.T) {
@@ -292,7 +293,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestVCLSnippetDescribe(t *testing.T) {
@@ -362,7 +363,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestVCLSnippetList(t *testing.T) {
@@ -416,7 +417,7 @@ func TestVCLSnippetList(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestVCLSnippetUpdate(t *testing.T) {
@@ -556,7 +557,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func getSnippet(_ context.Context, i *fastly.GetSnippetInput) (*fastly.Snippet, error) {

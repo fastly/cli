@@ -6,7 +6,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/service/vcl"
+	root "github.com/fastly/cli/pkg/commands/service"
+	sub "github.com/fastly/cli/pkg/commands/service/vcl"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -53,7 +54,7 @@ func TestVCLDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func getVCL(_ context.Context, i *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {

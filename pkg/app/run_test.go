@@ -102,7 +102,6 @@ tls-subscription
 tools
 update
 user
-vcl
 version
 whoami
 `,
