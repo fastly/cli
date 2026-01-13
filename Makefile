@@ -74,7 +74,7 @@ tidy:
 # Run formatter.
 .PHONY: fmt
 fmt:
-	golangci-lint fmt
+	$(GOLANGCI_LINT) fmt
 
 # Run semgrep checker.
 # NOTE: We can only exclude the import-text-template rule via a semgrep CLI flag
