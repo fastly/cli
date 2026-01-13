@@ -9,7 +9,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/domain"
+	root "github.com/fastly/cli/pkg/commands/service"
+	sub "github.com/fastly/cli/pkg/commands/service/domain"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -39,7 +40,7 @@ func TestDomainCreate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestDomainList(t *testing.T) {
@@ -93,7 +94,7 @@ func TestDomainList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestDomainDescribe(t *testing.T) {
@@ -119,7 +120,7 @@ func TestDomainDescribe(t *testing.T) {
 			WantOutput: describeDomainOutput,
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestDomainUpdate(t *testing.T) {
@@ -156,7 +157,7 @@ func TestDomainUpdate(t *testing.T) {
 			WantOutput: "Updated domain www.example.com (service 123 version 4)",
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestDomainDelete(t *testing.T) {
@@ -184,7 +185,7 @@ func TestDomainDelete(t *testing.T) {
 			WantOutput: "Deleted domain www.test.com (service 123 version 4)",
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestDomainValidate(t *testing.T) {
@@ -257,7 +258,7 @@ func TestDomainValidate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "validate"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "validate"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")

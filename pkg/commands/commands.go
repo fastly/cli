@@ -18,7 +18,6 @@ import (
 	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
-	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/domainv1"
 	"github.com/fastly/cli/pkg/commands/healthcheck"
 	"github.com/fastly/cli/pkg/commands/imageoptimizerdefaults"
@@ -94,6 +93,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
+	"github.com/fastly/cli/pkg/commands/service/domain"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
@@ -221,13 +221,6 @@ func Define( // nolint:revive // function-length
 	dictionaryEntryUpdate := dictionaryentry.NewUpdateCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryList := dictionary.NewListCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryUpdate := dictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, data)
-	domainCmdRoot := domain.NewRootCommand(app, data)
-	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, data)
-	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, data)
-	domainDescribe := domain.NewDescribeCommand(domainCmdRoot.CmdClause, data)
-	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, data)
-	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, data)
-	domainValidate := domain.NewValidateCommand(domainCmdRoot.CmdClause, data)
 	domainv1CmdRoot := domainv1.NewRootCommand(app, data)
 	domainv1Create := domainv1.NewCreateCommand(domainv1CmdRoot.CmdClause, data)
 	domainv1Delete := domainv1.NewDeleteCommand(domainv1CmdRoot.CmdClause, data)
@@ -638,6 +631,13 @@ func Define( // nolint:revive // function-length
 	serviceVersionStage := serviceversion.NewStageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUnstage := serviceversion.NewUnstageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUpdate := serviceversion.NewUpdateCommand(serviceVersionCmdRoot.CmdClause, data)
+	servicedomainCmdRoot := domain.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicedomainCreate := domain.NewCreateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainDelete := domain.NewDeleteCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainDescribe := domain.NewDescribeCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainList := domain.NewListCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainUpdate := domain.NewUpdateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainValidate := domain.NewValidateCommand(servicedomainCmdRoot.CmdClause, data)
 	statsCmdRoot := stats.NewRootCommand(app, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
@@ -799,13 +799,6 @@ func Define( // nolint:revive // function-length
 		dictionaryEntryUpdate,
 		dictionaryList,
 		dictionaryUpdate,
-		domainCmdRoot,
-		domainCreate,
-		domainDelete,
-		domainDescribe,
-		domainList,
-		domainUpdate,
-		domainValidate,
 		domainv1CmdRoot,
 		domainv1Create,
 		domainv1Delete,
@@ -1201,6 +1194,13 @@ func Define( // nolint:revive // function-length
 		serviceauthDescribe,
 		serviceauthList,
 		serviceauthUpdate,
+		servicedomainCmdRoot,
+		servicedomainCreate,
+		servicedomainDelete,
+		servicedomainDescribe,
+		servicedomainList,
+		servicedomainUpdate,
+		servicedomainValidate,
 		serviceVersionActivate,
 		serviceVersionClone,
 		serviceVersionCmdRoot,
