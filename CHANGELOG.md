@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Breaking:
+- breaking(vcl): moved the `vcl` command under the `service` command ([#1616](https://github.com/fastly/cli/pull/1616))
 
 ### Enhancements:
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
