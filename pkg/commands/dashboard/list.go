@@ -2,7 +2,6 @@ package dashboard
 
 import (
 	"context"
-	"errors"
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
@@ -121,13 +120,10 @@ func (c *ListCommand) constructInput() (*fastly.ListObservabilityCustomDashboard
 		input.Limit = &c.limit.Value
 	}
 	var sign string
+	var err error
 	if c.order.WasSet {
-		switch c.order.Value {
-		case "asc":
-		case "desc":
-			sign = "-"
-		default:
-			err := errors.New("'order' flag must be one of the following [asc, desc]")
+		sign, err = argparser.ConvertOrderFromStringFlag(c.order.Value, "order")
+		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return nil, err
 		}
