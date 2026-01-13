@@ -95,6 +95,10 @@ import (
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
 	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
+	servicevcl "github.com/fastly/cli/pkg/commands/service/vcl"
+	servicevclcondition "github.com/fastly/cli/pkg/commands/service/vcl/condition"
+	servicevclcustom "github.com/fastly/cli/pkg/commands/service/vcl/custom"
+	servicevclsnippet "github.com/fastly/cli/pkg/commands/service/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
 	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
@@ -112,10 +116,6 @@ import (
 	domainTools "github.com/fastly/cli/pkg/commands/tools/domain"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
-	"github.com/fastly/cli/pkg/commands/vcl"
-	"github.com/fastly/cli/pkg/commands/vcl/condition"
-	"github.com/fastly/cli/pkg/commands/vcl/custom"
-	"github.com/fastly/cli/pkg/commands/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
 	"github.com/fastly/cli/pkg/global"
@@ -630,6 +630,26 @@ func Define( // nolint:revive // function-length
 	serviceauthDescribe := serviceauth.NewDescribeCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthList := serviceauth.NewListCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthUpdate := serviceauth.NewUpdateCommand(serviceauthCmdRoot.CmdClause, data)
+	servicevclCmdRoot := servicevcl.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicevclDescribe := servicevcl.NewDescribeCommand(servicevclCmdRoot.CmdClause, data)
+	servicevclConditionCmdRoot := servicevclcondition.NewRootCommand(servicevclCmdRoot.CmdClause, data)
+	servicevclConditionCreate := servicevclcondition.NewCreateCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclConditionDelete := servicevclcondition.NewDeleteCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclConditionDescribe := servicevclcondition.NewDescribeCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclConditionList := servicevclcondition.NewListCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclConditionUpdate := servicevclcondition.NewUpdateCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclCustomCmdRoot := servicevclcustom.NewRootCommand(servicevclCmdRoot.CmdClause, data)
+	servicevclCustomCreate := servicevclcustom.NewCreateCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclCustomDelete := servicevclcustom.NewDeleteCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclCustomDescribe := servicevclcustom.NewDescribeCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclCustomList := servicevclcustom.NewListCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclCustomUpdate := servicevclcustom.NewUpdateCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclSnippetCmdRoot := servicevclsnippet.NewRootCommand(servicevclCmdRoot.CmdClause, data)
+	servicevclSnippetCreate := servicevclsnippet.NewCreateCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	servicevclSnippetDelete := servicevclsnippet.NewDeleteCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	servicevclSnippetDescribe := servicevclsnippet.NewDescribeCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	servicevclSnippetList := servicevclsnippet.NewListCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	serviceVersionCmdRoot := serviceversion.NewRootCommand(app, data)
 	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, data)
@@ -690,26 +710,6 @@ func Define( // nolint:revive // function-length
 	userDescribe := user.NewDescribeCommand(userCmdRoot.CmdClause, data)
 	userList := user.NewListCommand(userCmdRoot.CmdClause, data)
 	userUpdate := user.NewUpdateCommand(userCmdRoot.CmdClause, data)
-	vclCmdRoot := vcl.NewRootCommand(app, data)
-	vclDescribe := vcl.NewDescribeCommand(vclCmdRoot.CmdClause, data)
-	vclConditionCmdRoot := condition.NewRootCommand(vclCmdRoot.CmdClause, data)
-	vclConditionCreate := condition.NewCreateCommand(vclConditionCmdRoot.CmdClause, data)
-	vclConditionDelete := condition.NewDeleteCommand(vclConditionCmdRoot.CmdClause, data)
-	vclConditionDescribe := condition.NewDescribeCommand(vclConditionCmdRoot.CmdClause, data)
-	vclConditionList := condition.NewListCommand(vclConditionCmdRoot.CmdClause, data)
-	vclConditionUpdate := condition.NewUpdateCommand(vclConditionCmdRoot.CmdClause, data)
-	vclCustomCmdRoot := custom.NewRootCommand(vclCmdRoot.CmdClause, data)
-	vclCustomCreate := custom.NewCreateCommand(vclCustomCmdRoot.CmdClause, data)
-	vclCustomDelete := custom.NewDeleteCommand(vclCustomCmdRoot.CmdClause, data)
-	vclCustomDescribe := custom.NewDescribeCommand(vclCustomCmdRoot.CmdClause, data)
-	vclCustomList := custom.NewListCommand(vclCustomCmdRoot.CmdClause, data)
-	vclCustomUpdate := custom.NewUpdateCommand(vclCustomCmdRoot.CmdClause, data)
-	vclSnippetCmdRoot := snippet.NewRootCommand(vclCmdRoot.CmdClause, data)
-	vclSnippetCreate := snippet.NewCreateCommand(vclSnippetCmdRoot.CmdClause, data)
-	vclSnippetDelete := snippet.NewDeleteCommand(vclSnippetCmdRoot.CmdClause, data)
-	vclSnippetDescribe := snippet.NewDescribeCommand(vclSnippetCmdRoot.CmdClause, data)
-	vclSnippetList := snippet.NewListCommand(vclSnippetCmdRoot.CmdClause, data)
-	vclSnippetUpdate := snippet.NewUpdateCommand(vclSnippetCmdRoot.CmdClause, data)
 	versionCmdRoot := version.NewRootCommand(app, data)
 	whoamiCmdRoot := whoami.NewRootCommand(app, data)
 
@@ -1205,6 +1205,26 @@ func Define( // nolint:revive // function-length
 		serviceauthDescribe,
 		serviceauthList,
 		serviceauthUpdate,
+		servicevclCmdRoot,
+		servicevclDescribe,
+		servicevclConditionCmdRoot,
+		servicevclConditionCreate,
+		servicevclConditionDelete,
+		servicevclConditionDescribe,
+		servicevclConditionList,
+		servicevclConditionUpdate,
+		servicevclCustomCmdRoot,
+		servicevclCustomCreate,
+		servicevclCustomDelete,
+		servicevclCustomDescribe,
+		servicevclCustomList,
+		servicevclCustomUpdate,
+		servicevclSnippetCmdRoot,
+		servicevclSnippetCreate,
+		servicevclSnippetDelete,
+		servicevclSnippetDescribe,
+		servicevclSnippetList,
+		servicevclSnippetUpdate,
 		serviceVersionActivate,
 		serviceVersionClone,
 		serviceVersionCmdRoot,
@@ -1266,26 +1286,6 @@ func Define( // nolint:revive // function-length
 		userDescribe,
 		userList,
 		userUpdate,
-		vclCmdRoot,
-		vclDescribe,
-		vclConditionCmdRoot,
-		vclConditionCreate,
-		vclConditionDelete,
-		vclConditionDescribe,
-		vclConditionList,
-		vclConditionUpdate,
-		vclCustomCmdRoot,
-		vclCustomCreate,
-		vclCustomDelete,
-		vclCustomDescribe,
-		vclCustomList,
-		vclCustomUpdate,
-		vclSnippetCmdRoot,
-		vclSnippetCreate,
-		vclSnippetDelete,
-		vclSnippetDescribe,
-		vclSnippetList,
-		vclSnippetUpdate,
 		versionCmdRoot,
 		whoamiCmdRoot,
 		aliasPurge,

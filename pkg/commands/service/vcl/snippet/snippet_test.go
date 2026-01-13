@@ -6,8 +6,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/vcl"
-	sub "github.com/fastly/cli/pkg/commands/vcl/snippet"
+	root "github.com/fastly/cli/pkg/commands/service/vcl"
+	sub "github.com/fastly/cli/pkg/commands/service/vcl/snippet"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
