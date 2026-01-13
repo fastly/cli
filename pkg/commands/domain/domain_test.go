@@ -1,4 +1,4 @@
-package domainv1_test
+package domain_test
 
 import (
 	"bytes"
@@ -10,11 +10,11 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly/domainmanagement/v1/domains"
 
-	root "github.com/fastly/cli/pkg/commands/domainv1"
+	root "github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-func TestDomainV1Create(t *testing.T) {
+func TestDomainCreate(t *testing.T) {
 	fqdn := "www.example.com"
 	sid := "123"
 	did := "domain-id"
@@ -83,7 +83,7 @@ func TestDomainV1Create(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
-func TestDomainV1List(t *testing.T) {
+func TestDomainList(t *testing.T) {
 	fqdn := "www.example.com"
 	sid := "123"
 	did := "domain-id"
@@ -135,7 +135,7 @@ func TestDomainV1List(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
-func TestDomainV1Describe(t *testing.T) {
+func TestDomainDescribe(t *testing.T) {
 	fqdn := "www.example.com"
 	sid := "123"
 	did := "domain-id"
@@ -183,7 +183,7 @@ func TestDomainV1Describe(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
-func TestDomainV1Update(t *testing.T) {
+func TestDomainUpdate(t *testing.T) {
 	fqdn := "www.example.com"
 	sid := "123"
 	did := "domain-id"
@@ -252,7 +252,7 @@ func TestDomainV1Update(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
-func TestDomainV1Delete(t *testing.T) {
+func TestDomainDelete(t *testing.T) {
 	did := "domain-id"
 
 	scenarios := []testutil.CLIScenario{
