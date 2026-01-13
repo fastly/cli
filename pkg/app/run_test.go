@@ -92,7 +92,6 @@ secret-store
 secret-store-entry
 service
 service-auth
-service-domain
 service-version
 stats
 tls-config
