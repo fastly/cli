@@ -73,7 +73,6 @@ dashboard
 dictionary
 dictionary-entry
 domain
-domain-v1
 healthcheck
 imageoptimizer
 install

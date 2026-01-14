@@ -2,14 +2,13 @@ package domain
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
-
-	"4d63.com/optional"
+	"github.com/fastly/go-fastly/v12/fastly/domainmanagement/v1/domains"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -17,10 +16,7 @@ import (
 // DeleteCommand calls the Fastly API to delete domains.
 type DeleteCommand struct {
 	argparser.Base
-	Input          fastly.DeleteDomainInput
-	serviceName    argparser.OptionalServiceNameID
-	serviceVersion argparser.OptionalServiceVersion
-	autoClone      argparser.OptionalAutoClone
+	domainID string
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -30,69 +26,33 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("delete", "Delete a domain on a Fastly service version").Alias("remove")
+	c.CmdClause = parent.Command("delete", "Delete a domain").Alias("remove")
 
 	// Required.
-	c.CmdClause.Flag("name", "Domain name").Short('n').Required().StringVar(&c.Input.Name)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	c.CmdClause.Flag("domain-id", "The Domain Identifier (UUID)").Required().StringVar(&c.domainID)
 
-	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		Active:             optional.Of(false),
-		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
-		APIClient:          c.Globals.APIClient,
-		Manifest:           *c.Globals.Manifest,
-		Out:                out,
-		ServiceNameFlag:    c.serviceName,
-		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flags.Verbose,
-	})
+	fc, ok := c.Globals.APIClient.(*fastly.Client)
+	if !ok {
+		return errors.New("failed to convert interface to a fastly client")
+	}
+
+	input := &domains.DeleteInput{
+		DomainID: &c.domainID,
+	}
+
+	err := domains.Delete(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Domain ID": c.domainID,
 		})
 		return err
 	}
 
-	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
-
-	if err := c.Globals.APIClient.DeleteDomain(context.TODO(), &c.Input); err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": fastly.ToValue(serviceVersion.Number),
-		})
-		return err
-	}
-
-	text.Success(out, "Deleted domain %s (service %s version %d)", c.Input.Name, c.Input.ServiceID, c.Input.ServiceVersion)
+	text.Success(out, "Deleted domain (domain-id: %s)", c.domainID)
 	return nil
 }
