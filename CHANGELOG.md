@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Breaking:
+- breaking(domain) - service version oriented `domain` commands have been moved under the `service  domain` command. Versionless `domainv1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
 
 ### Enhancements:
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))

@@ -1,2 +1,2 @@
-// Package domain contains commands to inspect and manipulate Fastly service domains.
+// Package domainv1 contains commands to inspect and manipulate Fastly domains.
 package domain
