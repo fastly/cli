@@ -47,7 +47,7 @@ type Products struct {
 // Product represents the configuration parameters for creating a KV Store via
 // the API client.
 type Product struct {
-	ApiDiscovery        *ProductSettingsEnable
+	APIDiscovery        *ProductSettingsEnable
 	BotManagement       *ProductSettingsEnable
 	BrotliCompression   *ProductSettingsEnable
 	DdosProtection      *ProductSettingsEnable
@@ -103,9 +103,7 @@ func (p *Products) Configure() error {
 	text.Info(p.Stdout, "The package code will attempt to enable the following products on the service.\n\n")
 
 	type productSpec struct {
-		path  string
-		title string
-		run   func() error // validates, prints, assigns required
+		run func() error
 	}
 
 	specs := []productSpec{
@@ -113,8 +111,8 @@ func (p *Products) Configure() error {
 			run: func() error {
 				return configureIfEnabled(
 					p.Stdout,
-					p.Setup.ApiDiscovery,
-					&p.required.ApiDiscovery,
+					p.Setup.APIDiscovery,
+					&p.required.APIDiscovery,
 					apidiscovery.ProductName,
 					"setup.products."+apidiscovery.ProductID,
 				)
@@ -289,7 +287,7 @@ func (p *Products) Create() error {
 	specs := []enableSpec{
 		{
 			id:      apidiscovery.ProductID,
-			enabled: func() bool { return p.required.ApiDiscovery.Enabled() },
+			enabled: func() bool { return p.required.APIDiscovery.Enabled() },
 			enable: func(fc *fastly.Client, serviceID string) error {
 				_, err := apidiscovery.Enable(context.TODO(), fc, serviceID)
 				return err

@@ -97,7 +97,7 @@ type SetupSecretStoreEntry struct {
 }
 
 type SetupProducts struct {
-	ApiDiscovery        *SetupProductEnable `toml:"api_discovery,omitempty"`
+	APIDiscovery        *SetupProductEnable `toml:"api_discovery,omitempty"`
 	BotManagement       *SetupProductEnable `toml:"bot_management,omitempty"`
 	BrotliCompression   *SetupProductEnable `toml:"brotli_compression,omitempty"`
 	DdosProtection      *SetupProductEnable `toml:"ddos_protection,omitempty"`
@@ -124,6 +124,7 @@ var _ SetupProduct = (*SetupProductEnable)(nil)
 func (p *SetupProductEnable) Enabled() bool {
 	return p != nil && p.Enable
 }
+
 func (p *SetupProductEnable) Validate() error {
 	return nil
 }
@@ -141,6 +142,7 @@ func (p *SetupProductNgwaf) Enabled() bool {
 	}
 	return p.SetupProductEnable.Enabled()
 }
+
 func (p *SetupProductNgwaf) Validate() error {
 	if p == nil || !p.Enable {
 		return nil
@@ -157,7 +159,7 @@ func (p *SetupProducts) AllSettings() []SetupProduct {
 	}
 
 	return []SetupProduct{
-		p.ApiDiscovery,
+		p.APIDiscovery,
 		p.BotManagement,
 		p.BrotliCompression,
 		p.DdosProtection,
