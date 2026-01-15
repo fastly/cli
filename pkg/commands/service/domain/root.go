@@ -1,4 +1,4 @@
-package domainv1
+package domain
 
 import (
 	"io"
@@ -15,13 +15,13 @@ type RootCommand struct {
 }
 
 // CommandName is the string to be used to invoke this command.
-const CommandName = "domain-v1"
+const CommandName = "domain"
 
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly domains")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version domains")
 	return &c
 }
 

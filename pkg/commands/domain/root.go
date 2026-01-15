@@ -21,7 +21,7 @@ const CommandName = "domain"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version domains")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly domains")
 	return &c
 }
 
