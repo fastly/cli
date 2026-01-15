@@ -8,8 +8,9 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/vcl"
-	sub "github.com/fastly/cli/pkg/commands/vcl/condition"
+	top "github.com/fastly/cli/pkg/commands/service"
+	root "github.com/fastly/cli/pkg/commands/service/vcl"
+	sub "github.com/fastly/cli/pkg/commands/service/vcl/condition"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -40,7 +41,7 @@ func TestConditionCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestConditionDelete(t *testing.T) {
@@ -69,7 +70,7 @@ func TestConditionDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestConditionUpdate(t *testing.T) {
@@ -107,7 +108,7 @@ func TestConditionUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestConditionDescribe(t *testing.T) {
@@ -134,7 +135,7 @@ func TestConditionDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestConditionList(t *testing.T) {
@@ -189,7 +190,7 @@ func TestConditionList(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 var describeConditionOutput = "\n" + strings.TrimSpace(`
