@@ -1,4 +1,4 @@
-package serviceversion
+package version
 
 import (
 	"context"
@@ -14,19 +14,20 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// LockCommand calls the Fastly API to lock a service version.
-type LockCommand struct {
+// ActivateCommand calls the Fastly API to activate a service version.
+type ActivateCommand struct {
 	argparser.Base
-	Input          fastly.LockVersionInput
+	Input          fastly.ActivateVersionInput
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
+	autoClone      argparser.OptionalAutoClone
 }
 
-// NewLockCommand returns a usable command registered under the parent.
-func NewLockCommand(parent argparser.Registerer, g *global.Data) *LockCommand {
-	var c LockCommand
+// NewActivateCommand returns a usable command registered under the parent.
+func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCommand {
+	var c ActivateCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("lock", "Lock a Fastly service version")
+	c.CmdClause = parent.Command("activate", "Activate a Fastly service version")
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -45,13 +46,18 @@ func NewLockCommand(parent argparser.Registerer, g *global.Data) *LockCommand {
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *ActivateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		Locked:             optional.Of(false),
+		Active:             optional.Of(false),
+		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
@@ -70,15 +76,15 @@ func (c *LockCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	ver, err := c.Globals.APIClient.LockVersion(context.TODO(), &c.Input)
+	ver, err := c.Globals.APIClient.ActivateVersion(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": fastly.ToValue(serviceVersion.Number),
+			"Service Version": serviceVersion.Number,
 		})
 		return err
 	}
 
-	text.Success(out, "Locked service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
+	text.Success(out, "Activated service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
 	return nil
 }

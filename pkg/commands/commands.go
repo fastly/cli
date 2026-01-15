@@ -12,6 +12,7 @@ import (
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
 	aliasvclcustom "github.com/fastly/cli/pkg/commands/alias/vcl/custom"
 	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
+	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -103,8 +104,8 @@ import (
 	servicevclcondition "github.com/fastly/cli/pkg/commands/service/vcl/condition"
 	servicevclcustom "github.com/fastly/cli/pkg/commands/service/vcl/custom"
 	servicevclsnippet "github.com/fastly/cli/pkg/commands/service/vcl/snippet"
+	serviceversion "github.com/fastly/cli/pkg/commands/service/version"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
-	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/stats"
@@ -648,6 +649,7 @@ func Define( // nolint:revive // function-length
 	servicevclSnippetList := servicevclsnippet.NewListCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	serviceVersionCmdRoot := serviceversion.NewRootCommand(app, data)
+	serviceVersionCmdRoot := serviceversion.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionDeactivate := serviceversion.NewDeactivateCommand(serviceVersionCmdRoot.CmdClause, data)
@@ -739,6 +741,15 @@ func Define( // nolint:revive // function-length
 	aliasVclSnippetDescribe := aliasvclsnippet.NewDescribeCommand(aliasVclSnippetRoot.CmdClause, data)
 	aliasVclSnippetList := aliasvclsnippet.NewListCommand(aliasVclSnippetRoot.CmdClause, data)
 	aliasVclSnippetUpdate := aliasvclsnippet.NewUpdateCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasServiceVersionRoot := aliasserviceversion.NewRootCommand(app, data)
+	aliasServiceVersionActivate := aliasserviceversion.NewActivateCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionClone := aliasserviceversion.NewCloneCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionDeactivate := aliasserviceversion.NewDeactivateCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionList := aliasserviceversion.NewListCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionLock := aliasserviceversion.NewLockCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionStage := aliasserviceversion.NewStageCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionUnstage := aliasserviceversion.NewUnstageCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionUpdate := aliasserviceversion.NewUpdateCommand(aliasServiceVersionRoot.CmdClause, data)
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
@@ -1333,5 +1344,13 @@ func Define( // nolint:revive // function-length
 		aliasVclSnippetDescribe,
 		aliasVclSnippetList,
 		aliasVclSnippetUpdate,
+		aliasServiceVersionActivate,
+		aliasServiceVersionClone,
+		aliasServiceVersionDeactivate,
+		aliasServiceVersionList,
+		aliasServiceVersionLock,
+		aliasServiceVersionStage,
+		aliasServiceVersionUnstage,
+		aliasServiceVersionUpdate,
 	}
 }

@@ -1,4 +1,4 @@
-package serviceversion
+package version
 
 import (
 	"context"
@@ -14,19 +14,19 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeactivateCommand calls the Fastly API to deactivate a service version.
-type DeactivateCommand struct {
+// StageCommand calls the Fastly API to stage a service version.
+type StageCommand struct {
 	argparser.Base
-	Input          fastly.DeactivateVersionInput
+	Input          fastly.ActivateVersionInput
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
 }
 
-// NewDeactivateCommand returns a usable command registered under the parent.
-func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *DeactivateCommand {
-	var c DeactivateCommand
+// NewStageCommand returns a usable command registered under the parent.
+func NewStageCommand(parent argparser.Registerer, g *global.Data) *StageCommand {
+	var c StageCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("deactivate", "Deactivate a Fastly service version")
+	c.CmdClause = parent.Command("stage", "Stage a Fastly service version")
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -49,9 +49,10 @@ func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *Deactiva
 }
 
 // Exec invokes the application logic for the command.
-func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *StageCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		Active:             optional.Of(true),
+		Active:             optional.Of(false),
+		Locked:             optional.Of(false),
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
@@ -69,16 +70,17 @@ func (c *DeactivateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
+	c.Input.Environment = "staging"
 
-	ver, err := c.Globals.APIClient.DeactivateVersion(context.TODO(), &c.Input)
+	ver, err := c.Globals.APIClient.ActivateVersion(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": fastly.ToValue(serviceVersion.Number),
+			"Service Version": serviceVersion.Number,
 		})
 		return err
 	}
 
-	text.Success(out, "Deactivated service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
+	text.Success(out, "Staged service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
 	return nil
 }
