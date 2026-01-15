@@ -8,6 +8,10 @@ import (
 	"github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/commands/alerts"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
+	aliasvcl "github.com/fastly/cli/pkg/commands/alias/vcl"
+	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
+	aliasvclcustom "github.com/fastly/cli/pkg/commands/alias/vcl/custom"
+	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -715,6 +719,26 @@ func Define( // nolint:revive // function-length
 
 	// Aliases for deprecated commands
 	aliasPurge := aliaspurge.NewCommand(app, data)
+	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
+	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
+	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclConditionCreate := aliasvclcondition.NewCreateCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclConditionDelete := aliasvclcondition.NewDeleteCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclConditionDescribe := aliasvclcondition.NewDescribeCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclConditionList := aliasvclcondition.NewListCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclConditionUpdate := aliasvclcondition.NewUpdateCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclCustomRoot := aliasvclcustom.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclCustomCreate := aliasvclcustom.NewCreateCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclCustomDelete := aliasvclcustom.NewDeleteCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclCustomDescribe := aliasvclcustom.NewDescribeCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclCustomList := aliasvclcustom.NewListCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclCustomUpdate := aliasvclcustom.NewUpdateCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclSnippetRoot := aliasvclsnippet.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclSnippetCreate := aliasvclsnippet.NewCreateCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasVclSnippetDelete := aliasvclsnippet.NewDeleteCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasVclSnippetDescribe := aliasvclsnippet.NewDescribeCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasVclSnippetList := aliasvclsnippet.NewListCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasVclSnippetUpdate := aliasvclsnippet.NewUpdateCommand(aliasVclSnippetRoot.CmdClause, data)
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
@@ -1289,5 +1313,25 @@ func Define( // nolint:revive // function-length
 		versionCmdRoot,
 		whoamiCmdRoot,
 		aliasPurge,
+		aliasVclRoot,
+		aliasVclDescribe,
+		aliasVclConditionRoot,
+		aliasVclConditionCreate,
+		aliasVclConditionDelete,
+		aliasVclConditionDescribe,
+		aliasVclConditionList,
+		aliasVclConditionUpdate,
+		aliasVclCustomRoot,
+		aliasVclCustomCreate,
+		aliasVclCustomDelete,
+		aliasVclCustomDescribe,
+		aliasVclCustomList,
+		aliasVclCustomUpdate,
+		aliasVclSnippetRoot,
+		aliasVclSnippetCreate,
+		aliasVclSnippetDelete,
+		aliasVclSnippetDescribe,
+		aliasVclSnippetList,
+		aliasVclSnippetUpdate,
 	}
 }
