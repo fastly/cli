@@ -826,7 +826,6 @@ func Define( // nolint:revive // function-length
 		domainDescribe,
 		domainList,
 		domainUpdate,
-		healthcheckCmdRoot,
 		healthcheckCreate,
 		healthcheckDelete,
 		healthcheckDescribe,
