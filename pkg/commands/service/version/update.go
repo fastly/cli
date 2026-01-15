@@ -1,12 +1,11 @@
-package serviceversion
+package version
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
-
-	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -14,19 +13,25 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// UnstageCommand calls the Fastly API to unstage a service version.
-type UnstageCommand struct {
+// UpdateCommand calls the Fastly API to update a service version.
+type UpdateCommand struct {
 	argparser.Base
-	Input          fastly.DeactivateVersionInput
+	input          fastly.UpdateVersionInput
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
+	autoClone      argparser.OptionalAutoClone
+
+	comment argparser.OptionalString
 }
 
-// NewUnstageCommand returns a usable command registered under the parent.
-func NewUnstageCommand(parent argparser.Registerer, g *global.Data) *UnstageCommand {
-	var c UnstageCommand
-	c.Globals = g
-	c.CmdClause = parent.Command("unstage", "Unstage a Fastly service version")
+// NewUpdateCommand returns a usable command registered under the parent.
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
+	c := UpdateCommand{
+		Base: argparser.Base{
+			Globals: g,
+		},
+	}
+	c.CmdClause = parent.Command("update", "Update a Fastly service version")
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -45,13 +50,24 @@ func NewUnstageCommand(parent argparser.Registerer, g *global.Data) *UnstageComm
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
+
+	// TODO(integralist):
+	// Make 'comment' field mandatory once we roll out a new release of Go-Fastly
+	// which will hopefully have better/more correct consistency as far as which
+	// fields are supposed to be optional and which should be 'required'.
+	//
+	c.CmdClause.Flag("comment", "Human-readable comment").Action(c.comment.Set).StringVar(&c.comment.Value)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
-func (c *UnstageCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		Staging:            optional.Of(true),
+		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
@@ -67,19 +83,23 @@ func (c *UnstageCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
-	c.Input.Environment = "staging"
+	c.input.ServiceID = serviceID
+	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
+	if !c.comment.WasSet {
+		return fmt.Errorf("error parsing arguments: required flag --comment not provided")
+	}
+	c.input.Comment = &c.comment.Value
 
-	ver, err := c.Globals.APIClient.DeactivateVersion(context.TODO(), &c.Input)
+	ver, err := c.Globals.APIClient.UpdateVersion(context.TODO(), &c.input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
 			"Service Version": fastly.ToValue(serviceVersion.Number),
+			"Comment":         c.comment.Value,
 		})
 		return err
 	}
 
-	text.Success(out, "Unstaged service %s version %d", fastly.ToValue(ver.ServiceID), c.Input.ServiceVersion)
+	text.Success(out, "Updated service %s version %d", fastly.ToValue(ver.ServiceID), c.input.ServiceVersion)
 	return nil
 }

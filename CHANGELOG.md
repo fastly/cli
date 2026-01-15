@@ -12,6 +12,7 @@
 - feat(compute/deploy): added the  `--no-default-domain` flag to allow for the skipping of automatic domain creation when  deploying a Compute service([#1610](https://github.com/fastly/cli/pull/1610))
 - refactor(argparser/flags.go): add flag conversion utilities for converting string flags to bools and checking ascending and desecnding flags ([#1611](https://github.com/fastly/cli/pull/1611))
 - feat(commands/service/purge): Add 'service purge' command as replacement for 'purge', with an unlisted and deprecated alias of 'purge'. ([#1612](https://github.com/fastly/cli/pull/1612))
+- feat(commands/service/version): Add 'service version ...' commands as replacements for 'service-version ...', with unlisted and deprecated aliases of 'service-version ...'. ([#1614](https://github.com/fastly/cli/pull/1614))
 
 ### Bug fixes:
 

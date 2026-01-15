@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/alerts"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
+	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -96,8 +97,8 @@ import (
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
+	serviceversion "github.com/fastly/cli/pkg/commands/service/version"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
-	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/stats"
@@ -624,7 +625,7 @@ func Define( // nolint:revive // function-length
 	serviceauthDescribe := serviceauth.NewDescribeCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthList := serviceauth.NewListCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthUpdate := serviceauth.NewUpdateCommand(serviceauthCmdRoot.CmdClause, data)
-	serviceVersionCmdRoot := serviceversion.NewRootCommand(app, data)
+	serviceVersionCmdRoot := serviceversion.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionDeactivate := serviceversion.NewDeactivateCommand(serviceVersionCmdRoot.CmdClause, data)
@@ -722,6 +723,15 @@ func Define( // nolint:revive // function-length
 
 	// Aliases for deprecated commands
 	aliasPurge := aliaspurge.NewCommand(app, data)
+	aliasServiceVersionRoot := aliasserviceversion.NewRootCommand(app, data)
+	aliasServiceVersionActivate := aliasserviceversion.NewActivateCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionClone := aliasserviceversion.NewCloneCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionDeactivate := aliasserviceversion.NewDeactivateCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionList := aliasserviceversion.NewListCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionLock := aliasserviceversion.NewLockCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionStage := aliasserviceversion.NewStageCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionUnstage := aliasserviceversion.NewUnstageCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionUpdate := aliasserviceversion.NewUpdateCommand(aliasServiceVersionRoot.CmdClause, data)
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
@@ -1302,5 +1312,13 @@ func Define( // nolint:revive // function-length
 		versionCmdRoot,
 		whoamiCmdRoot,
 		aliasPurge,
+		aliasServiceVersionActivate,
+		aliasServiceVersionClone,
+		aliasServiceVersionDeactivate,
+		aliasServiceVersionList,
+		aliasServiceVersionLock,
+		aliasServiceVersionStage,
+		aliasServiceVersionUnstage,
+		aliasServiceVersionUpdate,
 	}
 }
