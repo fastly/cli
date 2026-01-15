@@ -73,7 +73,6 @@ dashboard
 dictionary
 dictionary-entry
 domain
-healthcheck
 imageoptimizer
 install
 ip-list

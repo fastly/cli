@@ -186,7 +186,7 @@ func TestHealthCheckDelete(t *testing.T) {
 			WantOutput: "Deleted healthcheck www.test.com (service 123 version 4)",
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "Delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")
