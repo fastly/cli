@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/commands/alerts"
+	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
 	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	"github.com/fastly/cli/pkg/commands/authtoken"
@@ -229,6 +230,12 @@ func Define( // nolint:revive // function-length
 	domainDescribe := domain.NewDescribeCommand(domainCmdRoot.CmdClause, data)
 	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, data)
 	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, data)
+	healthcheckCmdRoot := aliashealthcheck.NewRootCommand(app, data)
+	healthcheckCreate := aliashealthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckDelete := aliashealthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckDescribe := aliashealthcheck.NewDescribeCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckList := aliashealthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckUpdate := aliashealthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, data)
 	imageoptimizerdefaultsCmdRoot := imageoptimizerdefaults.NewRootCommand(app, data)
 	imageoptimizerdefaultsGet := imageoptimizerdefaults.NewGetCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
 	imageoptimizerdefaultsUpdate := imageoptimizerdefaults.NewUpdateCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
@@ -819,6 +826,12 @@ func Define( // nolint:revive // function-length
 		domainDescribe,
 		domainList,
 		domainUpdate,
+		healthcheckCmdRoot,
+		healthcheckCreate,
+		healthcheckDelete,
+		healthcheckDescribe,
+		healthcheckList,
+		healthcheckUpdate,
 		imageoptimizerdefaultsCmdRoot,
 		imageoptimizerdefaultsGet,
 		imageoptimizerdefaultsUpdate,
