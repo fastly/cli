@@ -3,7 +3,6 @@
 ## [Unreleased]
 
 ### Breaking:
-- breaking(vcl): moved the `vcl` command under the `service` command ([#1616](https://github.com/fastly/cli/pull/1616))
 - breaking(domain) - service version oriented `domain` commands have been moved under the `service  domain` command. Versionless `domainv1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
 
 ### Enhancements:
@@ -14,6 +13,7 @@
 - refactor(argparser/flags.go): add flag conversion utilities for converting string flags to bools and checking ascending and desecnding flags ([#1611](https://github.com/fastly/cli/pull/1611))
 - feat(commands/service/purge): Add 'service purge' command as replacement for 'purge', with an unlisted and deprecated alias of 'purge'. ([#1612](https://github.com/fastly/cli/pull/1612))
 - feat(commands/service/version): Add 'service version ...' commands as replacements for 'service-version ...', with unlisted and deprecated aliases of 'service-version ...'. ([#1614](https://github.com/fastly/cli/pull/1614))
+- feat(vcl): moved the `vcl` command under the `service` command ([#1616](https://github.com/fastly/cli/pull/1616))
 
 ### Bug fixes:
 

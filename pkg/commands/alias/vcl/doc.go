@@ -1,2 +1,2 @@
-// Package vcl contains deprecated aliases for the service vcl commands.
+// Package vcl contains deprecated aliases for the 'service vcl' commands.
 package vcl
