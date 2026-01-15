@@ -648,7 +648,6 @@ func Define( // nolint:revive // function-length
 	servicevclSnippetDescribe := servicevclsnippet.NewDescribeCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	servicevclSnippetList := servicevclsnippet.NewListCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
-	serviceVersionCmdRoot := serviceversion.NewRootCommand(app, data)
 	serviceVersionCmdRoot := serviceversion.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, data)
