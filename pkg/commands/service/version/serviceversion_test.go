@@ -1,4 +1,4 @@
-package serviceversion_test
+package version_test
 
 import (
 	"context"
@@ -7,7 +7,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/serviceversion"
+	root "github.com/fastly/cli/pkg/commands/service"
+	sub "github.com/fastly/cli/pkg/commands/service/version"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -53,7 +54,7 @@ func TestVersionClone(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "clone"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "clone"}, scenarios)
 }
 
 func TestVersionList(t *testing.T) {
@@ -90,7 +91,7 @@ func TestVersionList(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestVersionUpdate(t *testing.T) {
@@ -123,7 +124,7 @@ func TestVersionUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestVersionActivate(t *testing.T) {
@@ -176,7 +177,7 @@ func TestVersionActivate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "activate"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "activate"}, scenarios)
 }
 
 func TestVersionDeactivate(t *testing.T) {
@@ -211,7 +212,7 @@ func TestVersionDeactivate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "deactivate"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "deactivate"}, scenarios)
 }
 
 func TestVersionLock(t *testing.T) {
@@ -238,7 +239,7 @@ func TestVersionLock(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "lock"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "lock"}, scenarios)
 }
 
 func TestVersionStage(t *testing.T) {
@@ -289,7 +290,7 @@ func TestVersionStage(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "stage"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "stage"}, scenarios)
 }
 
 func TestVersionUnstage(t *testing.T) {
@@ -332,7 +333,7 @@ func TestVersionUnstage(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "unstage"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "unstage"}, scenarios)
 }
 
 var cloneServiceVersionJSONOutput = strings.TrimSpace(`
