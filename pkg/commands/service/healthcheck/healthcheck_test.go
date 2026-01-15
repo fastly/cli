@@ -1,289 +1,192 @@
 package healthcheck_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"net/http"
 	"strings"
 	"testing"
 
+	root "github.com/fastly/cli/pkg/commands/service"
+	sub "github.com/fastly/cli/pkg/commands/service/healthcheck"
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestHealthCheckCreate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("healthcheck create --version 1"),
-			wantError: "error reading service: no service ID found",
+			Args:      "--version 1",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args: args("healthcheck create --service-id 123 --version 1 --name www.test.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateHealthCheckFn: createHealthCheckError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		// NOTE: Added --timeout flag to validate that a nil pointer dereference is
 		// not triggered at runtime when parsing the arguments.
 		{
-			args: args("healthcheck create --service-id 123 --version 1 --name www.test.com --autoclone --timeout 10"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone --timeout 10",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateHealthCheckFn: createHealthCheckOK,
 			},
-			wantOutput: "Created healthcheck www.test.com (service 123 version 4)",
+			WantOutput: "Created healthcheck www.test.com (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestHealthCheckList(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("healthcheck list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
-			wantOutput: listHealthChecksShortOutput,
+			WantOutput: listHealthChecksShortOutput,
 		},
 		{
-			args: args("healthcheck list --service-id 123 --version 1 --verbose"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --verbose",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
-			wantOutput: listHealthChecksVerboseOutput,
+			WantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args: args("healthcheck list --service-id 123 --version 1 -v"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 -v",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
-			wantOutput: listHealthChecksVerboseOutput,
+			WantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args: args("healthcheck --verbose list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--verbose --service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
-			wantOutput: listHealthChecksVerboseOutput,
+			WantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args: args("-v healthcheck list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "-v --service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
-			wantOutput: listHealthChecksVerboseOutput,
+			WantOutput: listHealthChecksVerboseOutput,
 		},
 		{
-			args: args("healthcheck list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListHealthChecksFn: listHealthChecksError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestHealthCheckDescribe(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("healthcheck describe --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("healthcheck describe --service-id 123 --version 1 --name www.test.com"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com",
+			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				GetHealthCheckFn: getHealthCheckError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("healthcheck describe --service-id 123 --version 1 --name www.test.com"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com",
+			API: mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				GetHealthCheckFn: getHealthCheckOK,
 			},
-			wantOutput: describeHealthCheckOutput,
+			WantOutput: describeHealthCheckOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestHealthCheckUpdate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("healthcheck update --service-id 123 --version 1 --new-name www.test.com --comment "),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      "--service-id 123 --version 1 --new-name www.test.com --comment ",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("healthcheck update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				UpdateHealthCheckFn: updateHealthCheckOK,
 			},
 		},
 		{
-			args: args("healthcheck update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				UpdateHealthCheckFn: updateHealthCheckError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("healthcheck update --service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				UpdateHealthCheckFn: updateHealthCheckOK,
 			},
-			wantOutput: "Updated healthcheck www.example.com (service 123 version 4)",
+			WantOutput: "Updated healthcheck www.example.com (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestHealthCheckDelete(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("healthcheck delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      ("--service-id 123 --version 1"),
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("healthcheck delete --service-id 123 --version 1 --name www.test.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				DeleteHealthCheckFn: deleteHealthCheckError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("healthcheck delete --service-id 123 --version 1 --name www.test.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				DeleteHealthCheckFn: deleteHealthCheckOK,
 			},
-			wantOutput: "Deleted healthcheck www.test.com (service 123 version 4)",
+			WantOutput: "Deleted healthcheck www.test.com (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "Delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")
