@@ -6,8 +6,9 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/vcl"
-	sub "github.com/fastly/cli/pkg/commands/vcl/custom"
+	top "github.com/fastly/cli/pkg/commands/service"
+	root "github.com/fastly/cli/pkg/commands/service/vcl"
+	sub "github.com/fastly/cli/pkg/commands/service/vcl/custom"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -166,7 +167,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestVCLCustomDelete(t *testing.T) {
@@ -238,7 +239,7 @@ func TestVCLCustomDelete(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestVCLCustomDescribe(t *testing.T) {
@@ -289,7 +290,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestVCLCustomList(t *testing.T) {
@@ -343,7 +344,7 @@ func TestVCLCustomList(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestVCLCustomUpdate(t *testing.T) {
@@ -453,7 +454,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func getVCL(_ context.Context, i *fastly.GetVCLInput) (*fastly.VCL, error) {
