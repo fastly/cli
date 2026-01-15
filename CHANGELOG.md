@@ -3,16 +3,16 @@
 ## [Unreleased]
 
 ### Breaking:
-- breaking(domain) - service version oriented `domain` commands have been moved under the `service  domain` command. Versionless `domainv1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
+- breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
 
 ### Enhancements:
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
-- feat(commands/ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1605](https://github.com/fastly/cli/pull/1605))
+- feat(ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1605](https://github.com/fastly/cli/pull/1605))
 - feat(compute/deploy): added the  `--no-default-domain` flag to allow for the skipping of automatic domain creation when  deploying a Compute service([#1610](https://github.com/fastly/cli/pull/1610))
 - refactor(argparser/flags.go): add flag conversion utilities for converting string flags to bools and checking ascending and desecnding flags ([#1611](https://github.com/fastly/cli/pull/1611))
-- feat(commands/service/purge): Add 'service purge' command as replacement for 'purge', with an unlisted and deprecated alias of 'purge'. ([#1612](https://github.com/fastly/cli/pull/1612))
-- feat(commands/service/version): Add 'service version ...' commands as replacements for 'service-version ...', with unlisted and deprecated aliases of 'service-version ...'. ([#1614](https://github.com/fastly/cli/pull/1614))
+- feat(service/purge): Add 'service purge' command as replacement for 'purge', with an unlisted and deprecated alias of 'purge'. ([#1612](https://github.com/fastly/cli/pull/1612))
+- feat(service/version): Add 'service version ...' commands as replacements for 'service-version ...', with unlisted and deprecated aliases of 'service-version ...'. ([#1614](https://github.com/fastly/cli/pull/1614))
 
 ### Bug fixes:
 
