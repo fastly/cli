@@ -10,7 +10,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/backend"
+	root "github.com/fastly/cli/pkg/commands/service"
+	sub "github.com/fastly/cli/pkg/commands/service/backend"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -206,7 +207,7 @@ func TestBackendCreate(t *testing.T) {
 			WantError: "'prefer-ipv6' flag must be one of the following [true, false]",
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestBackendList(t *testing.T) {
@@ -276,7 +277,7 @@ func TestBackendList(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestBackendDescribe(t *testing.T) {
@@ -302,7 +303,7 @@ func TestBackendDescribe(t *testing.T) {
 			WantOutput: describeBackendOutput,
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestBackendUpdate(t *testing.T) {
@@ -394,7 +395,7 @@ func TestBackendUpdate(t *testing.T) {
 			WantError: "'prefer-ipv6' flag must be one of the following [true, false]",
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestBackendDelete(t *testing.T) {
@@ -422,7 +423,7 @@ func TestBackendDelete(t *testing.T) {
 			WantOutput: "Deleted backend www.test.com (service 123 version 4)",
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")
