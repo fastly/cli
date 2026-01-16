@@ -736,18 +736,18 @@ func Define( // nolint:revive // function-length
 	aliasBackendList := aliasbackend.NewListCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendUpdate := aliasbackend.NewUpdateCommand(aliasBackendRoot.CmdClause, data)
 	aliasPurge := aliaspurge.NewCommand(app, data)
-	aliasAclRoot := aliasacl.NewRootCommand(app, data)
-	aliasAclCreate := aliasacl.NewCreateCommand(aliasAclRoot.CmdClause, data)
-	aliasAclDelete := aliasacl.NewDeleteCommand(aliasAclRoot.CmdClause, data)
-	aliasAclDescribe := aliasacl.NewDescribeCommand(aliasAclRoot.CmdClause, data)
-	aliasAclList := aliasacl.NewListCommand(aliasAclRoot.CmdClause, data)
-	aliasAclUpdate := aliasacl.NewUpdateCommand(aliasAclRoot.CmdClause, data)
-	aliasAclEntryRoot := aliasaclentry.NewRootCommand(app, data)
-	aliasAclEntryCreate := aliasaclentry.NewCreateCommand(aliasAclEntryRoot.CmdClause, data)
-	aliasAclEntryDelete := aliasaclentry.NewDeleteCommand(aliasAclEntryRoot.CmdClause, data)
-	aliasAclEntryDescribe := aliasaclentry.NewDescribeCommand(aliasAclEntryRoot.CmdClause, data)
-	aliasAclEntryList := aliasaclentry.NewListCommand(aliasAclEntryRoot.CmdClause, data)
-	aliasAclEntryUpdate := aliasaclentry.NewUpdateCommand(aliasAclEntryRoot.CmdClause, data)
+	aliasACLRoot := aliasacl.NewRootCommand(app, data)
+	aliasACLCreate := aliasacl.NewCreateCommand(aliasACLRoot.CmdClause, data)
+	aliasACLDelete := aliasacl.NewDeleteCommand(aliasACLRoot.CmdClause, data)
+	aliasACLDescribe := aliasacl.NewDescribeCommand(aliasACLRoot.CmdClause, data)
+	aliasACLList := aliasacl.NewListCommand(aliasACLRoot.CmdClause, data)
+	aliasACLUpdate := aliasacl.NewUpdateCommand(aliasACLRoot.CmdClause, data)
+	aliasACLEntryRoot := aliasaclentry.NewRootCommand(app, data)
+	aliasACLEntryCreate := aliasaclentry.NewCreateCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryDelete := aliasaclentry.NewDeleteCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryDescribe := aliasaclentry.NewDescribeCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryList := aliasaclentry.NewListCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryUpdate := aliasaclentry.NewUpdateCommand(aliasACLEntryRoot.CmdClause, data)
 	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
 	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
 	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(aliasVclRoot.CmdClause, data)
@@ -1361,16 +1361,16 @@ func Define( // nolint:revive // function-length
 		aliasBackendList,
 		aliasBackendUpdate,
 		aliasPurge,
-		aliasAclCreate,
-		aliasAclDelete,
-		aliasAclDescribe,
-		aliasAclList,
-		aliasAclUpdate,
-		aliasAclEntryCreate,
-		aliasAclEntryDelete,
-		aliasAclEntryDescribe,
-		aliasAclEntryList,
-		aliasAclEntryUpdate,
+		aliasACLCreate,
+		aliasACLDelete,
+		aliasACLDescribe,
+		aliasACLList,
+		aliasACLUpdate,
+		aliasACLEntryCreate,
+		aliasACLEntryDelete,
+		aliasACLEntryDescribe,
+		aliasACLEntryList,
+		aliasACLEntryUpdate,
 		aliasVclDescribe,
 		aliasVclConditionCreate,
 		aliasVclConditionDelete,
