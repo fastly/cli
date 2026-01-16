@@ -66,6 +66,12 @@ func CheckAsync(
 			fmt.Fprintf(w, "A new version of the Fastly CLI is available.\n")
 			fmt.Fprintf(w, "Current version: %s\n", result.current)
 			fmt.Fprintf(w, "Latest version: %s\n", result.latest)
+			if result.latest.Major != result.current.Major {
+				fmt.Fprintf(w, "\nNote: Please review the release notes for the major version(s) listed below before upgrading.\n")
+				for ver := result.current.Major + 1; ver <= result.latest.Major; ver++ {
+					fmt.Fprintf(w, "Version %d.0.0: https://github.com/fastly/cli/releases/tag/v%d.0.0\n", ver, ver)
+				}
+			}
 			fmt.Fprintf(w, "Run `fastly update` to get the latest version.\n")
 			fmt.Fprintf(w, "\n")
 		}
