@@ -167,12 +167,6 @@ func Define( // nolint:revive // function-length
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenDescribe := authtoken.NewDescribeCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenList := authtoken.NewListCommand(authtokenCmdRoot.CmdClause, data)
-	backendCmdRoot := aliasbackend.NewRootCommand(app, data)
-	backendCreate := aliasbackend.NewCreateCommand(backendCmdRoot.CmdClause, data)
-	backendDelete := aliasbackend.NewDeleteCommand(backendCmdRoot.CmdClause, data)
-	backendDescribe := aliasbackend.NewDescribeCommand(backendCmdRoot.CmdClause, data)
-	backendList := aliasbackend.NewListCommand(backendCmdRoot.CmdClause, data)
-	backendUpdate := aliasbackend.NewUpdateCommand(backendCmdRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -733,6 +727,12 @@ func Define( // nolint:revive // function-length
 	whoamiCmdRoot := whoami.NewRootCommand(app, data)
 
 	// Aliases for deprecated commands
+	aliasBackendRoot := aliasbackend.NewRootCommand(app, data)
+	aliasBackendCreate := aliasbackend.NewCreateCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendDelete := aliasbackend.NewDeleteCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendDescribe := aliasbackend.NewDescribeCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendList := aliasbackend.NewListCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendUpdate := aliasbackend.NewUpdateCommand(aliasBackendRoot.CmdClause, data)
 	aliasPurge := aliaspurge.NewCommand(app, data)
 	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
 	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
@@ -789,11 +789,6 @@ func Define( // nolint:revive // function-length
 		authtokenDelete,
 		authtokenDescribe,
 		authtokenList,
-		backendCreate,
-		backendDelete,
-		backendDescribe,
-		backendList,
-		backendUpdate,
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
@@ -1346,6 +1341,11 @@ func Define( // nolint:revive // function-length
 		userUpdate,
 		versionCmdRoot,
 		whoamiCmdRoot,
+		aliasBackendCreate,
+		aliasBackendDelete,
+		aliasBackendDescribe,
+		aliasBackendList,
+		aliasBackendUpdate,
 		aliasPurge,
 		aliasVclDescribe,
 		aliasVclConditionCreate,
