@@ -229,12 +229,6 @@ func Define( // nolint:revive // function-length
 	domainDescribe := domain.NewDescribeCommand(domainCmdRoot.CmdClause, data)
 	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, data)
 	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, data)
-	healthcheckCmdRoot := aliashealthcheck.NewRootCommand(app, data)
-	healthcheckCreate := aliashealthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckDelete := aliashealthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckDescribe := aliashealthcheck.NewDescribeCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckList := aliashealthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckUpdate := aliashealthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, data)
 	imageoptimizerdefaultsCmdRoot := imageoptimizerdefaults.NewRootCommand(app, data)
 	imageoptimizerdefaultsGet := imageoptimizerdefaults.NewGetCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
 	imageoptimizerdefaultsUpdate := imageoptimizerdefaults.NewUpdateCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
@@ -733,6 +727,12 @@ func Define( // nolint:revive // function-length
 	aliasBackendDescribe := aliasbackend.NewDescribeCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendList := aliasbackend.NewListCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendUpdate := aliasbackend.NewUpdateCommand(aliasBackendRoot.CmdClause, data)
+	aliasHealthcheckRoot := aliashealthcheck.NewRootCommand(app, data)
+	aliasHealthcheckCreate := aliashealthcheck.NewCreateCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasHealthcheckDelete := aliashealthcheck.NewDeleteCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasHealthcheckDescribe := aliashealthcheck.NewDescribeCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasHealthcheckList := aliashealthcheck.NewListCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasHealthcheckUpdate := aliashealthcheck.NewUpdateCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasPurge := aliaspurge.NewCommand(app, data)
 	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
 	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
@@ -851,11 +851,6 @@ func Define( // nolint:revive // function-length
 		domainDescribe,
 		domainList,
 		domainUpdate,
-		healthcheckCreate,
-		healthcheckDelete,
-		healthcheckDescribe,
-		healthcheckList,
-		healthcheckUpdate,
 		imageoptimizerdefaultsCmdRoot,
 		imageoptimizerdefaultsGet,
 		imageoptimizerdefaultsUpdate,
@@ -1346,6 +1341,11 @@ func Define( // nolint:revive // function-length
 		aliasBackendDescribe,
 		aliasBackendList,
 		aliasBackendUpdate,
+		aliasHealthcheckCreate,
+		aliasHealthcheckDelete,
+		aliasHealthcheckDescribe,
+		aliasHealthcheckList,
+		aliasHealthcheckUpdate,
 		aliasPurge,
 		aliasVclDescribe,
 		aliasVclConditionCreate,
