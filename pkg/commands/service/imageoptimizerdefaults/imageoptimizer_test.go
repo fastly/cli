@@ -7,7 +7,7 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/imageoptimizerdefaults"
+	root "github.com/fastly/cli/pkg/commands/service"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
