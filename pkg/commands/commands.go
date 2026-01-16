@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/commands/alerts"
+	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
 	aliasvcl "github.com/fastly/cli/pkg/commands/alias/vcl"
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
@@ -25,7 +26,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
-	"github.com/fastly/cli/pkg/commands/healthcheck"
 	"github.com/fastly/cli/pkg/commands/imageoptimizerdefaults"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
@@ -99,6 +99,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
+	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
 	servicevcl "github.com/fastly/cli/pkg/commands/service/vcl"
 	servicevclcondition "github.com/fastly/cli/pkg/commands/service/vcl/condition"
@@ -233,12 +234,12 @@ func Define( // nolint:revive // function-length
 	domainDescribe := domain.NewDescribeCommand(domainCmdRoot.CmdClause, data)
 	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, data)
 	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, data)
-	healthcheckCmdRoot := healthcheck.NewRootCommand(app, data)
-	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckDescribe := healthcheck.NewDescribeCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckList := healthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckCmdRoot := aliashealthcheck.NewRootCommand(app, data)
+	healthcheckCreate := aliashealthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckDelete := aliashealthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckDescribe := aliashealthcheck.NewDescribeCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckList := aliashealthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, data)
+	healthcheckUpdate := aliashealthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, data)
 	imageoptimizerdefaultsCmdRoot := imageoptimizerdefaults.NewRootCommand(app, data)
 	imageoptimizerdefaultsGet := imageoptimizerdefaults.NewGetCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
 	imageoptimizerdefaultsUpdate := imageoptimizerdefaults.NewUpdateCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
@@ -664,6 +665,12 @@ func Define( // nolint:revive // function-length
 	servicedomainList := servicedomain.NewListCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainUpdate := servicedomain.NewUpdateCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainValidate := servicedomain.NewValidateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicehealthcheckCmdRoot := servicehealthcheck.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicehealthcheckCreate := servicehealthcheck.NewCreateCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	servicehealthcheckDelete := servicehealthcheck.NewDeleteCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	servicehealthcheckDescribe := servicehealthcheck.NewDescribeCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	servicehealthcheckList := servicehealthcheck.NewListCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	servicehealthcheckUpdate := servicehealthcheck.NewUpdateCommand(servicehealthcheckCmdRoot.CmdClause, data)
 	statsCmdRoot := stats.NewRootCommand(app, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
@@ -843,7 +850,6 @@ func Define( // nolint:revive // function-length
 		domainDescribe,
 		domainList,
 		domainUpdate,
-		healthcheckCmdRoot,
 		healthcheckCreate,
 		healthcheckDelete,
 		healthcheckDescribe,
@@ -1259,6 +1265,12 @@ func Define( // nolint:revive // function-length
 		servicedomainList,
 		servicedomainUpdate,
 		servicedomainValidate,
+		servicehealthcheckCmdRoot,
+		servicehealthcheckCreate,
+		servicehealthcheckDelete,
+		servicehealthcheckDescribe,
+		servicehealthcheckList,
+		servicehealthcheckUpdate,
 		serviceVersionActivate,
 		serviceVersionClone,
 		serviceVersionCmdRoot,
