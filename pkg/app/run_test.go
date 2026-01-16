@@ -64,7 +64,6 @@ acl
 acl-entry
 alerts
 auth-token
-backend
 compute
 config
 config-store
