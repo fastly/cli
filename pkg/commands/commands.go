@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/acl"
 	"github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/commands/alerts"
+	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
 	aliasvcl "github.com/fastly/cli/pkg/commands/alias/vcl"
@@ -15,7 +16,6 @@ import (
 	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
 	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	"github.com/fastly/cli/pkg/commands/authtoken"
-	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/computeacl"
 	"github.com/fastly/cli/pkg/commands/config"
@@ -98,6 +98,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
+	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
@@ -166,12 +167,6 @@ func Define( // nolint:revive // function-length
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenDescribe := authtoken.NewDescribeCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenList := authtoken.NewListCommand(authtokenCmdRoot.CmdClause, data)
-	backendCmdRoot := backend.NewRootCommand(app, data)
-	backendCreate := backend.NewCreateCommand(backendCmdRoot.CmdClause, data)
-	backendDelete := backend.NewDeleteCommand(backendCmdRoot.CmdClause, data)
-	backendDescribe := backend.NewDescribeCommand(backendCmdRoot.CmdClause, data)
-	backendList := backend.NewListCommand(backendCmdRoot.CmdClause, data)
-	backendUpdate := backend.NewUpdateCommand(backendCmdRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -665,6 +660,12 @@ func Define( // nolint:revive // function-length
 	servicedomainList := servicedomain.NewListCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainUpdate := servicedomain.NewUpdateCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainValidate := servicedomain.NewValidateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicebackendCmdRoot := servicebackend.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicebackendCreate := servicebackend.NewCreateCommand(servicebackendCmdRoot.CmdClause, data)
+	servicebackendDelete := servicebackend.NewDeleteCommand(servicebackendCmdRoot.CmdClause, data)
+	servicebackendDescribe := servicebackend.NewDescribeCommand(servicebackendCmdRoot.CmdClause, data)
+	servicebackendList := servicebackend.NewListCommand(servicebackendCmdRoot.CmdClause, data)
+	servicebackendUpdate := servicebackend.NewUpdateCommand(servicebackendCmdRoot.CmdClause, data)
 	servicehealthcheckCmdRoot := servicehealthcheck.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	servicehealthcheckCreate := servicehealthcheck.NewCreateCommand(servicehealthcheckCmdRoot.CmdClause, data)
 	servicehealthcheckDelete := servicehealthcheck.NewDeleteCommand(servicehealthcheckCmdRoot.CmdClause, data)
@@ -726,6 +727,12 @@ func Define( // nolint:revive // function-length
 	whoamiCmdRoot := whoami.NewRootCommand(app, data)
 
 	// Aliases for deprecated commands
+	aliasBackendRoot := aliasbackend.NewRootCommand(app, data)
+	aliasBackendCreate := aliasbackend.NewCreateCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendDelete := aliasbackend.NewDeleteCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendDescribe := aliasbackend.NewDescribeCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendList := aliasbackend.NewListCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendUpdate := aliasbackend.NewUpdateCommand(aliasBackendRoot.CmdClause, data)
 	aliasPurge := aliaspurge.NewCommand(app, data)
 	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
 	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
@@ -782,12 +789,6 @@ func Define( // nolint:revive // function-length
 		authtokenDelete,
 		authtokenDescribe,
 		authtokenList,
-		backendCmdRoot,
-		backendCreate,
-		backendDelete,
-		backendDescribe,
-		backendList,
-		backendUpdate,
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
@@ -1265,6 +1266,12 @@ func Define( // nolint:revive // function-length
 		servicedomainList,
 		servicedomainUpdate,
 		servicedomainValidate,
+		servicebackendCmdRoot,
+		servicebackendCreate,
+		servicebackendDelete,
+		servicebackendDescribe,
+		servicebackendList,
+		servicebackendUpdate,
 		servicehealthcheckCmdRoot,
 		servicehealthcheckCreate,
 		servicehealthcheckDelete,
@@ -1334,6 +1341,11 @@ func Define( // nolint:revive // function-length
 		userUpdate,
 		versionCmdRoot,
 		whoamiCmdRoot,
+		aliasBackendCreate,
+		aliasBackendDelete,
+		aliasBackendDescribe,
+		aliasBackendList,
+		aliasBackendUpdate,
 		aliasPurge,
 		aliasVclDescribe,
 		aliasVclConditionCreate,

@@ -10,7 +10,7 @@ import (
 	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/api"
-	"github.com/fastly/cli/pkg/commands/backend"
+	"github.com/fastly/cli/pkg/commands/service/backend"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
