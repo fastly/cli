@@ -4,17 +4,17 @@ import (
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/acl"
-	"github.com/fastly/cli/pkg/commands/aclentry"
 	"github.com/fastly/cli/pkg/commands/alerts"
+	aliasacl "github.com/fastly/cli/pkg/commands/alias/acl"
+	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
 	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
+	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	aliasvcl "github.com/fastly/cli/pkg/commands/alias/vcl"
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
 	aliasvclcustom "github.com/fastly/cli/pkg/commands/alias/vcl/custom"
 	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
-	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/computeacl"
@@ -98,6 +98,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
+	serviceacl "github.com/fastly/cli/pkg/commands/service/acl"
+	serviceaclentry "github.com/fastly/cli/pkg/commands/service/aclentry"
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
@@ -143,18 +145,6 @@ func Define( // nolint:revive // function-length
 	// beginning of the list of commands.
 	ssoCmdRoot := sso.NewRootCommand(app, data)
 
-	aclCmdRoot := acl.NewRootCommand(app, data)
-	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, data)
-	aclDelete := acl.NewDeleteCommand(aclCmdRoot.CmdClause, data)
-	aclDescribe := acl.NewDescribeCommand(aclCmdRoot.CmdClause, data)
-	aclList := acl.NewListCommand(aclCmdRoot.CmdClause, data)
-	aclUpdate := acl.NewUpdateCommand(aclCmdRoot.CmdClause, data)
-	aclEntryCmdRoot := aclentry.NewRootCommand(app, data)
-	aclEntryCreate := aclentry.NewCreateCommand(aclEntryCmdRoot.CmdClause, data)
-	aclEntryDelete := aclentry.NewDeleteCommand(aclEntryCmdRoot.CmdClause, data)
-	aclEntryDescribe := aclentry.NewDescribeCommand(aclEntryCmdRoot.CmdClause, data)
-	aclEntryList := aclentry.NewListCommand(aclEntryCmdRoot.CmdClause, data)
-	aclEntryUpdate := aclentry.NewUpdateCommand(aclEntryCmdRoot.CmdClause, data)
 	alertsCmdRoot := alerts.NewRootCommand(app, data)
 	alertsCreate := alerts.NewCreateCommand(alertsCmdRoot.CmdClause, data)
 	alertsDelete := alerts.NewDeleteCommand(alertsCmdRoot.CmdClause, data)
@@ -612,6 +602,18 @@ func Define( // nolint:revive // function-length
 	serviceSearch := service.NewSearchCommand(serviceCmdRoot.CmdClause, data)
 	serviceUpdate := service.NewUpdateCommand(serviceCmdRoot.CmdClause, data)
 	servicePurge := servicepurge.NewPurgeCommand(serviceCmdRoot.CmdClause, data)
+	serviceaclCmdRoot := serviceacl.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceaclCreate := serviceacl.NewCreateCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclDelete := serviceacl.NewDeleteCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclDescribe := serviceacl.NewDescribeCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclList := serviceacl.NewListCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclUpdate := serviceacl.NewUpdateCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclentryCmdRoot := serviceaclentry.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceaclentryCreate := serviceaclentry.NewCreateCommand(serviceaclentryCmdRoot.CmdClause, data)
+	serviceaclentryDelete := serviceaclentry.NewDeleteCommand(serviceaclentryCmdRoot.CmdClause, data)
+	serviceaclentryDescribe := serviceaclentry.NewDescribeCommand(serviceaclentryCmdRoot.CmdClause, data)
+	serviceaclentryList := serviceaclentry.NewListCommand(serviceaclentryCmdRoot.CmdClause, data)
+	serviceaclentryUpdate := serviceaclentry.NewUpdateCommand(serviceaclentryCmdRoot.CmdClause, data)
 	serviceauthCmdRoot := serviceauth.NewRootCommand(app, data)
 	serviceauthCreate := serviceauth.NewCreateCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthDelete := serviceauth.NewDeleteCommand(serviceauthCmdRoot.CmdClause, data)
@@ -734,6 +736,18 @@ func Define( // nolint:revive // function-length
 	aliasHealthcheckList := aliashealthcheck.NewListCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasHealthcheckUpdate := aliashealthcheck.NewUpdateCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasPurge := aliaspurge.NewCommand(app, data)
+	aliasACLRoot := aliasacl.NewRootCommand(app, data)
+	aliasACLCreate := aliasacl.NewCreateCommand(aliasACLRoot.CmdClause, data)
+	aliasACLDelete := aliasacl.NewDeleteCommand(aliasACLRoot.CmdClause, data)
+	aliasACLDescribe := aliasacl.NewDescribeCommand(aliasACLRoot.CmdClause, data)
+	aliasACLList := aliasacl.NewListCommand(aliasACLRoot.CmdClause, data)
+	aliasACLUpdate := aliasacl.NewUpdateCommand(aliasACLRoot.CmdClause, data)
+	aliasACLEntryRoot := aliasaclentry.NewRootCommand(app, data)
+	aliasACLEntryCreate := aliasaclentry.NewCreateCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryDelete := aliasaclentry.NewDeleteCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryDescribe := aliasaclentry.NewDescribeCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryList := aliasaclentry.NewListCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryUpdate := aliasaclentry.NewUpdateCommand(aliasACLEntryRoot.CmdClause, data)
 	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
 	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
 	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(aliasVclRoot.CmdClause, data)
@@ -766,18 +780,6 @@ func Define( // nolint:revive // function-length
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
-		aclCmdRoot,
-		aclCreate,
-		aclDelete,
-		aclDescribe,
-		aclList,
-		aclUpdate,
-		aclEntryCmdRoot,
-		aclEntryCreate,
-		aclEntryDelete,
-		aclEntryDescribe,
-		aclEntryList,
-		aclEntryUpdate,
 		alertsCreate,
 		alertsDelete,
 		alertsDescribe,
@@ -1228,6 +1230,18 @@ func Define( // nolint:revive // function-length
 		serviceSearch,
 		serviceUpdate,
 		servicePurge,
+		serviceaclCmdRoot,
+		serviceaclCreate,
+		serviceaclDelete,
+		serviceaclDescribe,
+		serviceaclList,
+		serviceaclUpdate,
+		serviceaclentryCmdRoot,
+		serviceaclentryCreate,
+		serviceaclentryDelete,
+		serviceaclentryDescribe,
+		serviceaclentryList,
+		serviceaclentryUpdate,
 		serviceauthCmdRoot,
 		serviceauthCreate,
 		serviceauthDelete,
@@ -1347,6 +1361,16 @@ func Define( // nolint:revive // function-length
 		aliasHealthcheckList,
 		aliasHealthcheckUpdate,
 		aliasPurge,
+		aliasACLCreate,
+		aliasACLDelete,
+		aliasACLDescribe,
+		aliasACLList,
+		aliasACLUpdate,
+		aliasACLEntryCreate,
+		aliasACLEntryDelete,
+		aliasACLEntryDescribe,
+		aliasACLEntryList,
+		aliasACLEntryUpdate,
 		aliasVclDescribe,
 		aliasVclConditionCreate,
 		aliasVclConditionDelete,
