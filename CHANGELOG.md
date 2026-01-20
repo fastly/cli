@@ -37,6 +37,9 @@
 - build(deps): `golang.org/x/net` from 0.48.0 to 0.49.0 ([#1613](https://github.com/fastly/cli/pull/1613))
 - build(deps): `golang.org/x/text` from 0.32.0 to 0.33.0 ([#1613](https://github.com/fastly/cli/pull/1613))
 - build(deps): `github.com/fastly/go-fastly/v12` from 12.1.0 to 12.1.1 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.3.0 to 2.3.1 ([#1625](https://github.com/fastly/cli/pull/1625))
+- build(deps): `github.com/klauspost/compress` from 1.18.2 to 1.18.3 ([#1625](https://github.com/fastly/cli/pull/1625))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.23 to 4.1.25 ([#1625](https://github.com/fastly/cli/pull/1625))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
 
