@@ -9,6 +9,7 @@
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
 - feat(commands/ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1578](https://github.com/fastly/cli/pull/1605))
 - feat(compute/deploy): added the  `--no-default-domain` flag to allow for the skipping of automatic domain creation when  deploying a Compute service([#1610](https://github.com/fastly/cli/pull/1610))
+- feat(compute/deploy): Apply \[setup.products] for enabling products during initial deploy ([#1617](https://github.com/fastly/cli/pull/1617))
 
 ### Bug fixes:
 
