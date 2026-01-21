@@ -15,7 +15,7 @@ type RootCommand struct {
 }
 
 // CommandName is the string to be used to invoke this command.
-const CommandName = "alert"
+const CommandName = "alerts"
 
 // NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
