@@ -60,7 +60,6 @@ complete -F _fastly_bash_autocomplete fastly
 			Args: "--completion-bash",
 			WantOutput: `help
 sso
-alerts
 auth-token
 compute
 config

@@ -1,9 +1,9 @@
-package acl
+package alerts
 
 import (
 	"io"
 
-	newcmd "github.com/fastly/cli/pkg/commands/service/acl"
+	newcmd "github.com/fastly/cli/pkg/commands/service/alert"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -25,7 +25,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 // Exec implements the command interface.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if !c.JSONOutput.Enabled {
-		text.Deprecated(out, "Use the 'service acl list' command instead.")
+		text.Deprecated(out, "Use the 'service alert list' command instead.")
 	}
 	return c.ListCommand.Exec(in, out)
 }
