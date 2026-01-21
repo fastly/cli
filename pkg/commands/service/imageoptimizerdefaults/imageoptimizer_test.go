@@ -7,7 +7,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/imageoptimizerdefaults"
+	root "github.com/fastly/cli/pkg/commands/service"
+	sub "github.com/fastly/cli/pkg/commands/service/imageoptimizerdefaults"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -107,7 +108,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func updateImageOptimizerDefaultsOK(_ context.Context, _ *fastly.UpdateImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
@@ -220,7 +221,7 @@ func TestImageOptimizerDefaultsGet(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "get"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "get"}, scenarios)
 }
 
 func getImageOptimizerDefaultsOK(_ context.Context, _ *fastly.GetImageOptimizerDefaultSettingsInput) (*fastly.ImageOptimizerDefaultSettings, error) {
