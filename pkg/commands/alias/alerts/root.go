@@ -21,7 +21,7 @@ const CommandName = "alerts"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly Alerts")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly Alerts").Hidden()
 	return &c
 }
 

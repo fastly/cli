@@ -4,9 +4,9 @@ import (
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/alerts"
 	aliasacl "github.com/fastly/cli/pkg/commands/alias/acl"
 	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
+	aliasalerts "github.com/fastly/cli/pkg/commands/alias/alerts"
 	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
@@ -100,6 +100,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/service"
 	serviceacl "github.com/fastly/cli/pkg/commands/service/acl"
 	serviceaclentry "github.com/fastly/cli/pkg/commands/service/aclentry"
+	servicealert "github.com/fastly/cli/pkg/commands/service/alert"
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
@@ -145,13 +146,6 @@ func Define( // nolint:revive // function-length
 	// beginning of the list of commands.
 	ssoCmdRoot := sso.NewRootCommand(app, data)
 
-	alertsCmdRoot := alerts.NewRootCommand(app, data)
-	alertsCreate := alerts.NewCreateCommand(alertsCmdRoot.CmdClause, data)
-	alertsDelete := alerts.NewDeleteCommand(alertsCmdRoot.CmdClause, data)
-	alertsDescribe := alerts.NewDescribeCommand(alertsCmdRoot.CmdClause, data)
-	alertsList := alerts.NewListCommand(alertsCmdRoot.CmdClause, data)
-	alertsListHistory := alerts.NewListHistoryCommand(alertsCmdRoot.CmdClause, data)
-	alertsUpdate := alerts.NewUpdateCommand(alertsCmdRoot.CmdClause, data)
 	authtokenCmdRoot := authtoken.NewRootCommand(app, data)
 	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, data)
@@ -602,6 +596,13 @@ func Define( // nolint:revive // function-length
 	serviceSearch := service.NewSearchCommand(serviceCmdRoot.CmdClause, data)
 	serviceUpdate := service.NewUpdateCommand(serviceCmdRoot.CmdClause, data)
 	servicePurge := servicepurge.NewPurgeCommand(serviceCmdRoot.CmdClause, data)
+	servicealertCmdRoot := servicealert.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicealertCreate := servicealert.NewCreateCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertDelete := servicealert.NewDeleteCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertDescribe := servicealert.NewDescribeCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertList := servicealert.NewListCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertListHistory := servicealert.NewListHistoryCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertUpdate := servicealert.NewUpdateCommand(servicealertCmdRoot.CmdClause, data)
 	serviceaclCmdRoot := serviceacl.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceaclCreate := serviceacl.NewCreateCommand(serviceaclCmdRoot.CmdClause, data)
 	serviceaclDelete := serviceacl.NewDeleteCommand(serviceaclCmdRoot.CmdClause, data)
@@ -736,6 +737,13 @@ func Define( // nolint:revive // function-length
 	aliasHealthcheckList := aliashealthcheck.NewListCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasHealthcheckUpdate := aliashealthcheck.NewUpdateCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasPurge := aliaspurge.NewCommand(app, data)
+	aliasAlertRoot := aliasalerts.NewRootCommand(app, data)
+	aliasAlertCreate := aliasalerts.NewCreateCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertDelete := aliasalerts.NewDeleteCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertDescribe := aliasalerts.NewDescribeCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertList := aliasalerts.NewListCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertListHistory := aliasalerts.NewListHistoryCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertUpdate := aliasalerts.NewUpdateCommand(aliasAlertRoot.CmdClause, data)
 	aliasACLRoot := aliasacl.NewRootCommand(app, data)
 	aliasACLCreate := aliasacl.NewCreateCommand(aliasACLRoot.CmdClause, data)
 	aliasACLDelete := aliasacl.NewDeleteCommand(aliasACLRoot.CmdClause, data)
@@ -780,12 +788,6 @@ func Define( // nolint:revive // function-length
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
-		alertsCreate,
-		alertsDelete,
-		alertsDescribe,
-		alertsList,
-		alertsListHistory,
-		alertsUpdate,
 		authtokenCmdRoot,
 		authtokenCreate,
 		authtokenDelete,
@@ -1230,6 +1232,12 @@ func Define( // nolint:revive // function-length
 		serviceSearch,
 		serviceUpdate,
 		servicePurge,
+		servicealertCreate,
+		servicealertDelete,
+		servicealertDescribe,
+		servicealertList,
+		servicealertListHistory,
+		servicealertUpdate,
 		serviceaclCmdRoot,
 		serviceaclCreate,
 		serviceaclDelete,
@@ -1361,6 +1369,13 @@ func Define( // nolint:revive // function-length
 		aliasHealthcheckList,
 		aliasHealthcheckUpdate,
 		aliasPurge,
+		aliasAlertRoot,
+		aliasAlertCreate,
+		aliasAlertDelete,
+		aliasAlertDescribe,
+		aliasAlertList,
+		aliasAlertListHistory,
+		aliasAlertUpdate,
 		aliasACLCreate,
 		aliasACLDelete,
 		aliasACLDescribe,
