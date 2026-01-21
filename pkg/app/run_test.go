@@ -70,7 +70,6 @@ dashboard
 dictionary
 dictionary-entry
 domain
-imageoptimizer
 install
 ip-list
 kv-store

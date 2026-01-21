@@ -9,6 +9,7 @@ import (
 	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
 	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
+	aliasimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/alias/imageoptimizerdefaults"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
 	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	aliasvcl "github.com/fastly/cli/pkg/commands/alias/vcl"
@@ -26,7 +27,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
-	"github.com/fastly/cli/pkg/commands/imageoptimizerdefaults"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/commands/kvstore"
@@ -103,6 +103,7 @@ import (
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
+	serviceimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/service/imageoptimizerdefaults"
 	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
 	servicevcl "github.com/fastly/cli/pkg/commands/service/vcl"
 	servicevclcondition "github.com/fastly/cli/pkg/commands/service/vcl/condition"
@@ -219,9 +220,6 @@ func Define( // nolint:revive // function-length
 	domainDescribe := domain.NewDescribeCommand(domainCmdRoot.CmdClause, data)
 	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, data)
 	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, data)
-	imageoptimizerdefaultsCmdRoot := imageoptimizerdefaults.NewRootCommand(app, data)
-	imageoptimizerdefaultsGet := imageoptimizerdefaults.NewGetCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
-	imageoptimizerdefaultsUpdate := imageoptimizerdefaults.NewUpdateCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
 	installRoot := install.NewRootCommand(app, data)
 	ipCmdRoot := ip.NewRootCommand(app, data)
 	kvstoreCmdRoot := kvstore.NewRootCommand(app, data)
@@ -668,6 +666,9 @@ func Define( // nolint:revive // function-length
 	servicehealthcheckDescribe := servicehealthcheck.NewDescribeCommand(servicehealthcheckCmdRoot.CmdClause, data)
 	servicehealthcheckList := servicehealthcheck.NewListCommand(servicehealthcheckCmdRoot.CmdClause, data)
 	servicehealthcheckUpdate := servicehealthcheck.NewUpdateCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	serviceimageoptimizerdefaultsCmdRoot := serviceimageoptimizerdefaults.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceimageoptimizerdefaultsGet := serviceimageoptimizerdefaults.NewGetCommand(serviceimageoptimizerdefaultsCmdRoot.CmdClause, data)
+	serviceimageoptimizerdefaultsUpdate := serviceimageoptimizerdefaults.NewUpdateCommand(serviceimageoptimizerdefaultsCmdRoot.CmdClause, data)
 	statsCmdRoot := stats.NewRootCommand(app, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
@@ -735,6 +736,9 @@ func Define( // nolint:revive // function-length
 	aliasHealthcheckDescribe := aliashealthcheck.NewDescribeCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasHealthcheckList := aliashealthcheck.NewListCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasHealthcheckUpdate := aliashealthcheck.NewUpdateCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasimageoptimizerdefaultsRoot := aliasimageoptimizerdefaults.NewRootCommand(app, data)
+	aliasimageoptimizerdefaultsGet := aliasimageoptimizerdefaults.NewGetCommand(aliasimageoptimizerdefaultsRoot.CmdClause, data)
+	aliasimageoptimizerdefaultsUpdate := aliasimageoptimizerdefaults.NewUpdateCommand(aliasimageoptimizerdefaultsRoot.CmdClause, data)
 	aliasPurge := aliaspurge.NewCommand(app, data)
 	aliasACLRoot := aliasacl.NewRootCommand(app, data)
 	aliasACLCreate := aliasacl.NewCreateCommand(aliasACLRoot.CmdClause, data)
@@ -853,9 +857,6 @@ func Define( // nolint:revive // function-length
 		domainDescribe,
 		domainList,
 		domainUpdate,
-		imageoptimizerdefaultsCmdRoot,
-		imageoptimizerdefaultsGet,
-		imageoptimizerdefaultsUpdate,
 		installRoot,
 		ipCmdRoot,
 		kvstoreCreate,
@@ -1287,6 +1288,9 @@ func Define( // nolint:revive // function-length
 		servicehealthcheckDescribe,
 		servicehealthcheckList,
 		servicehealthcheckUpdate,
+		serviceimageoptimizerdefaultsCmdRoot,
+		serviceimageoptimizerdefaultsGet,
+		serviceimageoptimizerdefaultsUpdate,
 		serviceVersionActivate,
 		serviceVersionClone,
 		serviceVersionCmdRoot,
@@ -1360,6 +1364,8 @@ func Define( // nolint:revive // function-length
 		aliasHealthcheckDescribe,
 		aliasHealthcheckList,
 		aliasHealthcheckUpdate,
+		aliasimageoptimizerdefaultsGet,
+		aliasimageoptimizerdefaultsUpdate,
 		aliasPurge,
 		aliasACLCreate,
 		aliasACLDelete,
