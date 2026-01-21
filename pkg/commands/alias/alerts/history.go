@@ -1,4 +1,4 @@
-package alert
+package alerts
 
 import (
 	"io"
@@ -24,6 +24,8 @@ func NewListHistoryCommand(parent argparser.Registerer, g *global.Data) *ListHis
 
 // Exec implements the command interface.
 func (c *ListHistoryCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service alert list history' command instead.")
+	if !c.JSONOutput.Enabled {
+		text.Deprecated(out, "Use the 'service alert list history' command instead.")
+	}
 	return c.ListHistoryCommand.Exec(in, out)
 }

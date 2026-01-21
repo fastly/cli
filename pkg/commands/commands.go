@@ -6,7 +6,7 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	aliasacl "github.com/fastly/cli/pkg/commands/alias/acl"
 	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
-	aliasalert "github.com/fastly/cli/pkg/commands/alias/alert"
+	aliasalerts "github.com/fastly/cli/pkg/commands/alias/alerts"
 	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
@@ -737,13 +737,13 @@ func Define( // nolint:revive // function-length
 	aliasHealthcheckList := aliashealthcheck.NewListCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasHealthcheckUpdate := aliashealthcheck.NewUpdateCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasPurge := aliaspurge.NewCommand(app, data)
-	aliasAlertRoot := aliasalert.NewRootCommand(app, data)
-	aliasAlertCreate := aliasalert.NewCreateCommand(aliasAlertRoot.CmdClause, data)
-	aliasAlertDelete := aliasalert.NewDeleteCommand(aliasAlertRoot.CmdClause, data)
-	aliasAlertDescribe := aliasalert.NewDescribeCommand(aliasAlertRoot.CmdClause, data)
-	aliasAlertList := aliasalert.NewListCommand(aliasAlertRoot.CmdClause, data)
-	aliasAlertListHistory := aliasalert.NewListHistoryCommand(aliasAlertRoot.CmdClause, data)
-	aliasAlertUpdate := aliasalert.NewUpdateCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertRoot := aliasalerts.NewRootCommand(app, data)
+	aliasAlertCreate := aliasalerts.NewCreateCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertDelete := aliasalerts.NewDeleteCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertDescribe := aliasalerts.NewDescribeCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertList := aliasalerts.NewListCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertListHistory := aliasalerts.NewListHistoryCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertUpdate := aliasalerts.NewUpdateCommand(aliasAlertRoot.CmdClause, data)
 	aliasACLRoot := aliasacl.NewRootCommand(app, data)
 	aliasACLCreate := aliasacl.NewCreateCommand(aliasACLRoot.CmdClause, data)
 	aliasACLDelete := aliasacl.NewDeleteCommand(aliasACLRoot.CmdClause, data)
