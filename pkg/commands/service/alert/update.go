@@ -4,24 +4,26 @@ import (
 	"context"
 	"io"
 
+	"github.com/fastly/go-fastly/v12/fastly"
+
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/go-fastly/v12/fastly"
 )
 
-// NewCreateCommand returns a usable command registered under the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
-	c := CreateCommand{
+// NewUpdateCommand returns a usable command registered under the parent.
+func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateCommand {
+	c := UpdateCommand{
 		Base: argparser.Base{
 			Globals: g,
 		},
 	}
 
-	c.CmdClause = parent.Command("create", "Create Alerts")
+	c.CmdClause = parent.Command("update", "Update Alert")
 
 	// Required.
 	c.CmdClause.Flag("description", "Additional text that is included in the alert notification.").Required().StringVar(&c.description)
+	c.CmdClause.Flag("id", "A unique identifier for a definition.").Required().StringVar(&c.definitionID)
 	c.CmdClause.Flag("metric", "Metric name to alert on for a specific source.").Required().StringVar(&c.metric)
 	c.CmdClause.Flag("name", "Name of the alert definition.").Required().StringVar(&c.name)
 	c.CmdClause.Flag("period", "Period of time to evaluate whether the conditions have been met. The data is polled every minute.").Required().HintOptions(evaluationPeriod...).EnumVar(&c.period, evaluationPeriod...)
@@ -33,39 +35,38 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("dimensions", "Dimensions filters depending on the source type.").Action(c.dimensions.Set).StringsVar(&c.dimensions.Value)
 	c.CmdClause.Flag("ignoreBelow", "IgnoreBelow is the threshold for the denominator value used in evaluations that calculate a rate or ratio. Usually used to filter out noise.").Action(c.ignoreBelow.Set).Float64Var(&c.ignoreBelow.Value)
 	c.CmdClause.Flag("integrations", "Integrations are a list of integrations used to notify when alert fires.").Action(c.integrations.Set).StringsVar(&c.integrations.Value)
-	c.RegisterFlagBool(c.JSONFlag())                                                                                                   // --json
-	c.CmdClause.Flag(argparser.FlagServiceIDName, "ServiceID of the definition").Action(c.serviceID.Set).StringVar(&c.serviceID.Value) // --service-id
+	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
 }
 
-// CreateCommand calls the Fastly API to list appropriate resources.
-type CreateCommand struct {
+// UpdateCommand calls the Fastly API to list appropriate resources.
+type UpdateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	description string
-	eType       string
-	metric      string
-	name        string
-	period      string
-	source      string
-	threshold   float64
+	definitionID string
+	description  string
+	eType        string
+	metric       string
+	name         string
+	period       string
+	source       string
+	threshold    float64
 
 	dimensions   argparser.OptionalStringSlice
 	ignoreBelow  argparser.OptionalFloat64
 	integrations argparser.OptionalStringSlice
-	serviceID    argparser.OptionalString
 }
 
 // Exec invokes the application logic for the command.
-func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
 	input := c.constructInput()
-	definition, err := c.Globals.APIClient.CreateAlertDefinition(context.TODO(), input)
+	definition, err := c.Globals.APIClient.UpdateAlertDefinition(context.TODO(), input)
 	if err != nil {
 		return err
 	}
@@ -84,8 +85,9 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 // constructInput transforms values parsed from CLI flags into an object to be used by the API client library.
-func (c *CreateCommand) constructInput() *fastly.CreateAlertDefinitionInput {
-	input := fastly.CreateAlertDefinitionInput{
+func (c *UpdateCommand) constructInput() *fastly.UpdateAlertDefinitionInput {
+	input := fastly.UpdateAlertDefinitionInput{
+		ID:          &c.definitionID,
 		Description: &c.description,
 		EvaluationStrategy: map[string]any{
 			"type":      c.eType,
@@ -94,15 +96,10 @@ func (c *CreateCommand) constructInput() *fastly.CreateAlertDefinitionInput {
 		},
 		Metric: &c.metric,
 		Name:   &c.name,
-		Source: &c.source,
 	}
 
 	if c.ignoreBelow.WasSet {
 		input.EvaluationStrategy["ignore_below"] = c.ignoreBelow.Value
-	}
-
-	if c.serviceID.WasSet {
-		input.ServiceID = &c.serviceID.Value
 	}
 
 	dimensions := map[string][]string{}
