@@ -16,7 +16,7 @@
 - feat(service/vcl): moved the `vcl` command under the `service` command, with an unlisted and deprecated alias of `vcl` ([#1616](https://github.com/fastly/cli/pull/1616))
 - feat(service/healthcheck): moved the `healthcheck` command under the `service` command, with an unlisted and deprecated alias of `healthcheck` ([#1619](https://github.com/fastly/cli/pull/1619))
 - feat(service/backend): moved the `backend` command under the `service` command, with an unlisted and deprecated alias of `backend` ([#1621](https://github.com/fastly/cli/pull/1621))
-- feat(service/backend): moved the `acl` and `aclentry` commands under the `service` command, with a unlisted and deprecated aliases of `acl` and `aclentry` ([#1621](https://github.com/fastly/cli/pull/1624))
+- feat(service/acl): moved the `acl` and `aclentry` commands under the `service` command, with a unlisted and deprecated aliases of `acl` and `aclentry` ([#1621](https://github.com/fastly/cli/pull/1624))
 - feat(version): If the latest version is at least one major version higher than the current version, provide links to the release notes for the major version(s) so the user can review them before upgrading. ([#1623](https://github.com/fastly/cli/pull/1623))
 - feat(service/imageoptimizerdefaults): moved the `imageoptimizerdefaults` commands under the `service` command, with an unlisted and deprecated alias of `imageoptimizerdefaults` ([#1627](https://github.com/fastly/cli/pull/1627))
 - feat(service/alert): moved the `alerts` command to the `service alert` command, with an unlisted and deprecated alias of `alerts` ([#1616](https://github.com/fastly/cli/pull/1626))
