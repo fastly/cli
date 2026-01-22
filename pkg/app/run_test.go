@@ -79,7 +79,6 @@ object-storage
 pops
 products
 profile
-rate-limit
 resource-link
 secret-store
 secret-store-entry
