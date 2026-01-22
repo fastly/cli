@@ -3,25 +3,29 @@ package healthcheck
 import (
 	"io"
 
-	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
-
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 )
 
-// RootCommand wraps the RootCommand from the servicehealthcheck package.
+// RootCommand is the parent command for all subcommands in this package.
+// It should be installed under the primary root command.
 type RootCommand struct {
-	*servicehealthcheck.RootCommand
+	argparser.Base
+	// no flags
 }
 
-// NewRootCommand returns a usable command registered under the parent.
+// CommandName is the string to be used to invoke this command.
+const CommandName = "healthcheck"
+
+// NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	c := RootCommand{servicehealthcheck.NewRootCommand(parent, g)}
-	c.CmdClause.Hidden()
+	var c RootCommand
+	c.Globals = g
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version healthchecks").Hidden()
 	return &c
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	return c.RootCommand.Exec(in, out)
+func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
+	panic("unreachable")
 }

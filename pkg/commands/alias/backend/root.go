@@ -3,25 +3,29 @@ package backend
 import (
 	"io"
 
-	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
-
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
 )
 
-// RootCommand wraps the RootCommand from the servicebackend package.
+// RootCommand is the parent command for all subcommands in this package.
+// It should be installed under the primary root command.
 type RootCommand struct {
-	*servicebackend.RootCommand
+	argparser.Base
+	// no flags
 }
 
-// NewRootCommand returns a usable command registered under the parent.
+// CommandName is the string to be used to invoke this command.
+const CommandName = "backend"
+
+// NewRootCommand returns a new command registered in the parent.
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	c := RootCommand{servicebackend.NewRootCommand(parent, g)}
-	c.CmdClause.Hidden()
+	var c RootCommand
+	c.Globals = g
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version backends").Hidden()
 	return &c
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	return c.RootCommand.Exec(in, out)
+func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
+	panic("unreachable")
 }
