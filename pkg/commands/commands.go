@@ -8,6 +8,7 @@ import (
 	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
 	aliasalerts "github.com/fastly/cli/pkg/commands/alias/alerts"
 	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
+	aliasdictionaryentry "github.com/fastly/cli/pkg/commands/alias/dictionaryentry"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliasimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/alias/imageoptimizerdefaults"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
@@ -25,7 +26,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/dashboard"
 	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
 	"github.com/fastly/cli/pkg/commands/dictionary"
-	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
@@ -102,6 +102,7 @@ import (
 	serviceaclentry "github.com/fastly/cli/pkg/commands/service/aclentry"
 	servicealert "github.com/fastly/cli/pkg/commands/service/alert"
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
+	servicedictionaryentry "github.com/fastly/cli/pkg/commands/service/dictionaryentry"
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 	serviceimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/service/imageoptimizerdefaults"
@@ -200,12 +201,6 @@ func Define( // nolint:revive // function-length
 	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryDescribe := dictionary.NewDescribeCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryEntryCmdRoot := dictionaryentry.NewRootCommand(app, data)
-	dictionaryEntryCreate := dictionaryentry.NewCreateCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryDelete := dictionaryentry.NewDeleteCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryDescribe := dictionaryentry.NewDescribeCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryList := dictionaryentry.NewListCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryUpdate := dictionaryentry.NewUpdateCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryList := dictionary.NewListCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryUpdate := dictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, data)
 	domainCmdRoot := domain.NewRootCommand(app, data)
@@ -655,6 +650,12 @@ func Define( // nolint:revive // function-length
 	servicedomainList := servicedomain.NewListCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainUpdate := servicedomain.NewUpdateCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainValidate := servicedomain.NewValidateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedictionaryentryCmdRoot := servicedictionaryentry.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicedictionaryentryCreate := servicedictionaryentry.NewCreateCommand(servicedictionaryentryCmdRoot.CmdClause, data)
+	servicedictionaryentryDelete := servicedictionaryentry.NewDeleteCommand(servicedictionaryentryCmdRoot.CmdClause, data)
+	servicedictionaryentryDescribe := servicedictionaryentry.NewDescribeCommand(servicedictionaryentryCmdRoot.CmdClause, data)
+	servicedictionaryentryList := servicedictionaryentry.NewListCommand(servicedictionaryentryCmdRoot.CmdClause, data)
+	servicedictionaryentryUpdate := servicedictionaryentry.NewUpdateCommand(servicedictionaryentryCmdRoot.CmdClause, data)
 	servicebackendCmdRoot := servicebackend.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	servicebackendCreate := servicebackend.NewCreateCommand(servicebackendCmdRoot.CmdClause, data)
 	servicebackendDelete := servicebackend.NewDeleteCommand(servicebackendCmdRoot.CmdClause, data)
@@ -731,6 +732,12 @@ func Define( // nolint:revive // function-length
 	aliasBackendDescribe := aliasbackend.NewDescribeCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendList := aliasbackend.NewListCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendUpdate := aliasbackend.NewUpdateCommand(aliasBackendRoot.CmdClause, data)
+	aliasDictionaryEntryRoot := aliasdictionaryentry.NewRootCommand(app, data)
+	aliasDictionaryEntryCreate := aliasdictionaryentry.NewCreateCommand(aliasDictionaryEntryRoot.CmdClause, data)
+	aliasDictionaryEntryDelete := aliasdictionaryentry.NewDeleteCommand(aliasDictionaryEntryRoot.CmdClause, data)
+	aliasDictionaryEntryDescribe := aliasdictionaryentry.NewDescribeCommand(aliasDictionaryEntryRoot.CmdClause, data)
+	aliasDictionaryEntryList := aliasdictionaryentry.NewListCommand(aliasDictionaryEntryRoot.CmdClause, data)
+	aliasDictionaryEntryUpdate := aliasdictionaryentry.NewUpdateCommand(aliasDictionaryEntryRoot.CmdClause, data)
 	aliasHealthcheckRoot := aliashealthcheck.NewRootCommand(app, data)
 	aliasHealthcheckCreate := aliashealthcheck.NewCreateCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasHealthcheckDelete := aliashealthcheck.NewDeleteCommand(aliasHealthcheckRoot.CmdClause, data)
@@ -845,12 +852,6 @@ func Define( // nolint:revive // function-length
 		dictionaryCreate,
 		dictionaryDelete,
 		dictionaryDescribe,
-		dictionaryEntryCmdRoot,
-		dictionaryEntryCreate,
-		dictionaryEntryDelete,
-		dictionaryEntryDescribe,
-		dictionaryEntryList,
-		dictionaryEntryUpdate,
 		dictionaryList,
 		dictionaryUpdate,
 		domainCmdRoot,
@@ -1284,6 +1285,12 @@ func Define( // nolint:revive // function-length
 		servicedomainList,
 		servicedomainUpdate,
 		servicedomainValidate,
+		servicedictionaryentryCmdRoot,
+		servicedictionaryentryCreate,
+		servicedictionaryentryDelete,
+		servicedictionaryentryDescribe,
+		servicedictionaryentryList,
+		servicedictionaryentryUpdate,
 		servicebackendCmdRoot,
 		servicebackendCreate,
 		servicebackendDelete,
@@ -1367,6 +1374,11 @@ func Define( // nolint:revive // function-length
 		aliasBackendDescribe,
 		aliasBackendList,
 		aliasBackendUpdate,
+		aliasDictionaryEntryCreate,
+		aliasDictionaryEntryDelete,
+		aliasDictionaryEntryDescribe,
+		aliasDictionaryEntryList,
+		aliasDictionaryEntryUpdate,
 		aliasHealthcheckCreate,
 		aliasHealthcheckDelete,
 		aliasHealthcheckDescribe,
