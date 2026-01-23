@@ -21,6 +21,7 @@
 - feat(service/imageoptimizerdefaults): moved the `imageoptimizerdefaults` commands under the `service` command, with an unlisted and deprecated alias of `imageoptimizerdefaults` ([#1627](https://github.com/fastly/cli/pull/1627))
 - feat(service/alert): moved the `alerts` command to the `service alert` command, with an unlisted and deprecated alias of `alerts` ([#1616](https://github.com/fastly/cli/pull/1626))
 - feat(service/dictionary): moved the `dictionary` command under the `service` command, with an unlisted and deprecated alias of `dictionary` ([#1621](https://github.com/fastly/cli/pull/1630))
+- feat(service/ratelimit): moved the `rate-limit` commands under the `service` command, with an unlisted and deprecated alias of `rate-limit` ([#1632](https://github.com/fastly/cli/pull/1632))
 
 ### Bug fixes:
 
