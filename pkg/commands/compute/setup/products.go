@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
+	"strings"
 
 	"github.com/fastly/cli/pkg/api"
 	fsterrors "github.com/fastly/cli/pkg/errors"
@@ -41,227 +43,305 @@ type Products struct {
 	Stdout         io.Writer
 
 	// Private
-	required Product
+	required ProductsMap
 }
 
-// Product represents the configuration parameters for creating a KV Store via
-// the API client.
-type Product struct {
-	APIDiscovery        *ProductSettingsEnable
-	BotManagement       *ProductSettingsEnable
-	BrotliCompression   *ProductSettingsEnable
-	DdosProtection      *ProductSettingsEnable
-	DomainInspector     *ProductSettingsEnable
-	Fanout              *ProductSettingsEnable
-	ImageOptimizer      *ProductSettingsEnable
-	LogExplorerInsights *ProductSettingsEnable
-	Ngwaf               *ProductSettingsNgwaf
-	OriginInspector     *ProductSettingsEnable
-	WebSockets          *ProductSettingsEnable
+// ProductsMap represents the configuration parameters for enabling specified products
+// for a service
+type ProductsMap struct {
+	APIDiscovery        ProductSettings
+	BotManagement       ProductSettings
+	BrotliCompression   ProductSettings
+	DdosProtection      ProductSettings
+	DomainInspector     ProductSettings
+	Fanout              ProductSettings
+	ImageOptimizer      ProductSettings
+	LogExplorerInsights ProductSettings
+	Ngwaf               ProductSettings
+	OriginInspector     ProductSettings
+	WebSockets          ProductSettings
 }
 
 type ProductSettings interface {
 	Enabled() bool
 }
 
-type ProductSettingsEnable struct {
+type Product struct {
 	Enable bool
 }
 
-var _ ProductSettings = (*ProductSettingsEnable)(nil)
+func NewProductEnabled() *Product {
+	return &Product{Enable: true}
+}
 
-func (p *ProductSettingsEnable) Enabled() bool {
+var _ ProductSettings = (*Product)(nil)
+
+func (p *Product) Enabled() bool {
 	return p != nil && p.Enable
 }
 
-type ProductSettingsNgwaf struct {
-	ProductSettingsEnable
+type ProductNgwaf struct {
+	Product
 	WorkspaceID string
 }
 
-var _ ProductSettings = (*ProductSettingsNgwaf)(nil)
-
-func (p *ProductSettingsNgwaf) Enabled() bool {
-	if p == nil {
-		return false
+func NewProductNgWaf(workspaceID string) *ProductNgwaf {
+	return &ProductNgwaf{
+		Product:     *NewProductEnabled(),
+		WorkspaceID: workspaceID,
 	}
-	return p.ProductSettingsEnable.Enabled()
+}
+
+var _ ProductSettings = (*ProductNgwaf)(nil)
+
+type productsSpec struct {
+	id                   string
+	name                 string
+	getSetupProduct      func(*manifest.SetupProducts) manifest.SetupProductSettings
+	configure            func(io.Writer, *ProductsMap, manifest.SetupProductSettings) error
+	getConfiguredProduct func(*ProductsMap) ProductSettings
+	enable               func(*fastly.Client, ProductSettings, string) error
+}
+
+var productsSpecs []productsSpec
+
+func init() {
+	productsSpecs = []productsSpec{
+		{
+			id:   apidiscovery.ProductID,
+			name: apidiscovery.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.APIDiscovery
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.APIDiscovery = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.APIDiscovery
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := apidiscovery.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   botmanagement.ProductID,
+			name: botmanagement.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.BotManagement
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.BotManagement = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.BotManagement
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := botmanagement.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   brotlicompression.ProductID,
+			name: brotlicompression.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.BrotliCompression
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.BrotliCompression = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.BrotliCompression
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := brotlicompression.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   ddosprotection.ProductID,
+			name: ddosprotection.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.DdosProtection
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.DdosProtection = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.DdosProtection
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := ddosprotection.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   domaininspector.ProductID,
+			name: domaininspector.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.DomainInspector
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.DomainInspector = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.DomainInspector
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := domaininspector.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   fanout.ProductID,
+			name: fanout.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.Fanout
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.Fanout = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.Fanout
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := fanout.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   imageoptimizer.ProductID,
+			name: imageoptimizer.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.ImageOptimizer
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.ImageOptimizer = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.ImageOptimizer
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := imageoptimizer.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   logexplorerinsights.ProductID,
+			name: logexplorerinsights.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.LogExplorerInsights
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.LogExplorerInsights = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.LogExplorerInsights
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := logexplorerinsights.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   ngwaf.ProductID,
+			name: ngwaf.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.Ngwaf
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				ngwafSetupProduct, ok := sp.(*manifest.SetupProductNgwaf)
+				if !ok {
+					return fmt.Errorf("unexpected: Incorrect type for setupProduct")
+				}
+				if strings.TrimSpace(ngwafSetupProduct.WorkspaceID) == "" {
+					return fmt.Errorf("workspace_id is required")
+				}
+				text.Output(w, "  workspace_id: %s", ngwafSetupProduct.WorkspaceID)
+				p.Ngwaf = NewProductNgWaf(ngwafSetupProduct.WorkspaceID)
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.Ngwaf
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				ngwafProduct, ok := product.(*ProductNgwaf)
+				if !ok {
+					return fmt.Errorf("unexpected: Incorrect type for product")
+				}
+				_, err := ngwaf.Enable(context.TODO(), fc, serviceID, ngwaf.EnableInput{WorkspaceID: ngwafProduct.WorkspaceID})
+				return err
+			},
+		},
+		{
+			id:   origininspector.ProductID,
+			name: origininspector.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.OriginInspector
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.OriginInspector = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.OriginInspector
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := origininspector.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+		{
+			id:   websockets.ProductID,
+			name: websockets.ProductName,
+			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
+				return setupProducts.WebSockets
+			},
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				p.WebSockets = NewProductEnabled()
+				return nil
+			},
+			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
+				return products.WebSockets
+			},
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				_, err := websockets.Enable(context.TODO(), fc, serviceID)
+				return err
+			},
+		},
+	}
 }
 
 // Predefined indicates if the service resource has been specified within the
 // fastly.toml file using a [setup] configuration block.
 func (p *Products) Predefined() bool {
-	return p != nil && p.Setup != nil && p.Setup.AnyEnabled()
+	return p != nil && p.Setup != nil && p.Setup.AnyDefined()
 }
 
 // Configure prompts the user for specific values related to the service resource.
 func (p *Products) Configure() error {
-	if !p.Predefined() {
-		return nil
-	}
+	text.Info(p.Stdout, "The package code will attempt to enable the following products on the service.\n")
 
-	text.Info(p.Stdout, "The package code will attempt to enable the following products on the service.\n\n")
-
-	type productSpec struct {
-		run func() error
-	}
-
-	specs := []productSpec{
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.APIDiscovery,
-					&p.required.APIDiscovery,
-					apidiscovery.ProductName,
-					"setup.products."+apidiscovery.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.BotManagement,
-					&p.required.BotManagement,
-					botmanagement.ProductName,
-					"setup.products."+botmanagement.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.BrotliCompression,
-					&p.required.BrotliCompression,
-					brotlicompression.ProductName,
-					"setup.products."+brotlicompression.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.DdosProtection,
-					&p.required.DdosProtection,
-					ddosprotection.ProductName,
-					"setup.products."+ddosprotection.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.DomainInspector,
-					&p.required.DomainInspector,
-					domaininspector.ProductName,
-					"setup.products."+domaininspector.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.Fanout,
-					&p.required.Fanout,
-					fanout.ProductName,
-					"setup.products."+fanout.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.ImageOptimizer,
-					&p.required.ImageOptimizer,
-					imageoptimizer.ProductName,
-					"setup.products."+imageoptimizer.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.LogExplorerInsights,
-					&p.required.LogExplorerInsights,
-					logexplorerinsights.ProductName,
-					"setup.products."+logexplorerinsights.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return whenEnabledDo(
-					p.Stdout,
-					p.Setup.Ngwaf,
-					func(productSettingsEnable ProductSettingsEnable) error {
-						text.Output(p.Stdout, "  %s", p.Setup.Ngwaf.WorkspaceID)
-						p.required.Ngwaf = &ProductSettingsNgwaf{
-							ProductSettingsEnable: productSettingsEnable,
-							WorkspaceID:           p.Setup.Ngwaf.WorkspaceID,
-						}
-						return nil
-					},
-					ngwaf.ProductName,
-					"setup.products."+ngwaf.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.OriginInspector,
-					&p.required.OriginInspector,
-					origininspector.ProductName,
-					"setup.products."+origininspector.ProductID,
-				)
-			},
-		},
-		{
-			run: func() error {
-				return configureIfEnabled(
-					p.Stdout,
-					p.Setup.WebSockets,
-					&p.required.WebSockets,
-					websockets.ProductName,
-					"setup.products."+websockets.ProductID,
-				)
-			},
-		},
-	}
-
-	for _, spec := range specs {
-		if err := spec.run(); err != nil {
-			return err
+	for _, spec := range productsSpecs {
+		product := normalizeIfacePtr(spec.getSetupProduct(p.Setup))
+		if product == nil || !product.Enabled() {
+			continue
+		}
+		text.Output(p.Stdout, "%s", text.Bold(spec.name))
+		if err := spec.configure(p.Stdout, &p.required, product); err != nil {
+			return fmt.Errorf("%s: %w", "setup.products."+spec.id, err)
 		}
 	}
 
 	return nil
-}
-
-func whenEnabledDo(w io.Writer, s manifest.SetupProduct, fn func(productSettingsEnable ProductSettingsEnable) error, label string, path string) error {
-	if s == nil || !s.Enabled() {
-		return nil
-	}
-	if err := s.Validate(); err != nil {
-		return fmt.Errorf("%s: %w", path, err)
-	}
-	text.Output(w, "%s", text.Bold(label))
-	return fn(ProductSettingsEnable{Enable: true})
-}
-
-func configureIfEnabled(w io.Writer, setupProduct manifest.SetupProduct, product **ProductSettingsEnable, label string, path string) error {
-	return whenEnabledDo(w, setupProduct, func(productSettingsEnable ProductSettingsEnable) error {
-		*product = &productSettingsEnable
-		return nil
-	}, label, path)
 }
 
 // Create calls the relevant API to create the service resource(s).
@@ -278,128 +358,34 @@ func (p *Products) Create() error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	type enableSpec struct {
-		id      string
-		enabled func() bool
-		enable  func(fc *fastly.Client, serviceID string) error
-	}
-
-	specs := []enableSpec{
-		{
-			id:      apidiscovery.ProductID,
-			enabled: func() bool { return p.required.APIDiscovery.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := apidiscovery.Enable(context.TODO(), fc, serviceID)
-				return err
+	for _, spec := range productsSpecs {
+		product := normalizeIfacePtr(spec.getConfiguredProduct(&p.required))
+		if product == nil || !product.Enabled() {
+			continue
+		}
+		err := p.Spinner.Process(
+			fmt.Sprintf("Enabling product '%s'...", spec.id),
+			func(_ *text.SpinnerWrapper) error {
+				if err := spec.enable(fc, product, p.ServiceID); err != nil {
+					return fmt.Errorf("error enabling product [%s]: %w", spec.id, err)
+				}
+				return nil
 			},
-		},
-		{
-			id:      botmanagement.ProductID,
-			enabled: func() bool { return p.required.BotManagement.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := botmanagement.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-		{
-			id:      brotlicompression.ProductID,
-			enabled: func() bool { return p.required.BrotliCompression.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := brotlicompression.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-		{
-			id:      ddosprotection.ProductID,
-			enabled: func() bool { return p.required.DdosProtection.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := ddosprotection.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-		{
-			id:      domaininspector.ProductID,
-			enabled: func() bool { return p.required.DomainInspector.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := domaininspector.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-		{
-			id:      fanout.ProductID,
-			enabled: func() bool { return p.required.Fanout.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := fanout.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-		{
-			id:      imageoptimizer.ProductID,
-			enabled: func() bool { return p.required.ImageOptimizer.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := imageoptimizer.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-		{
-			id:      logexplorerinsights.ProductID,
-			enabled: func() bool { return p.required.LogExplorerInsights.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := logexplorerinsights.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-		{
-			id:      ngwaf.ProductID,
-			enabled: func() bool { return p.required.Ngwaf.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := ngwaf.Enable(context.TODO(), fc, serviceID, ngwaf.EnableInput{WorkspaceID: p.required.Ngwaf.WorkspaceID})
-				return err
-			},
-		},
-		{
-			id:      origininspector.ProductID,
-			enabled: func() bool { return p.required.OriginInspector.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := origininspector.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-		{
-			id:      websockets.ProductID,
-			enabled: func() bool { return p.required.WebSockets.Enabled() },
-			enable: func(fc *fastly.Client, serviceID string) error {
-				_, err := websockets.Enable(context.TODO(), fc, serviceID)
-				return err
-			},
-		},
-	}
-
-	for _, s := range specs {
-		if err := p.enableRequiredProduct(fc, s.id, s.enabled(), s.enable); err != nil {
+		)
+		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (p *Products) enableRequiredProduct(
-	fc *fastly.Client,
-	productID string,
-	isEnabled bool,
-	enableFn func(*fastly.Client, string) error,
-) error {
-	if !isEnabled {
-		return nil
+// normalizeIfacePtr converts an interface holding a typed-nil pointer into a real nil interface.
+// Works for any interface type parameter I.
+func normalizeIfacePtr[I any](v I) I {
+	rv := reflect.ValueOf(v)
+	if !rv.IsValid() || (rv.Kind() == reflect.Ptr && rv.IsNil()) {
+		var zero I
+		return zero
 	}
-
-	return p.Spinner.Process(
-		fmt.Sprintf("Enabling product '%s'...", productID),
-		func(_ *text.SpinnerWrapper) error {
-			if err := enableFn(fc, p.ServiceID); err != nil {
-				return fmt.Errorf("error enabling product [%s]: %w", productID, err)
-			}
-			return nil
-		},
-	)
+	return v
 }

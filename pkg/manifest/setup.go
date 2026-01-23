@@ -1,9 +1,6 @@
 package manifest
 
-import (
-	"fmt"
-	"strings"
-)
+import "reflect"
 
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://www.fastly.com/documentation/reference/compute/fastly-toml.
@@ -30,16 +27,10 @@ func (s Setup) Defined() bool {
 	if len(s.Loggers) > 0 {
 		defined = true
 	}
-	if len(s.ObjectStores) > 0 {
-		defined = true
-	}
 	if len(s.KVStores) > 0 {
 		defined = true
 	}
-	if len(s.SecretStores) > 0 {
-		defined = true
-	}
-	if s.Products != nil && s.Products.AnyEnabled() {
+	if s.Products != nil && s.Products.AnyDefined() {
 		defined = true
 	}
 	return defined
@@ -97,87 +88,58 @@ type SetupSecretStoreEntry struct {
 }
 
 type SetupProducts struct {
-	APIDiscovery        *SetupProductEnable `toml:"api_discovery,omitempty"`
-	BotManagement       *SetupProductEnable `toml:"bot_management,omitempty"`
-	BrotliCompression   *SetupProductEnable `toml:"brotli_compression,omitempty"`
-	DdosProtection      *SetupProductEnable `toml:"ddos_protection,omitempty"`
-	DomainInspector     *SetupProductEnable `toml:"domain_inspector,omitempty"`
-	Fanout              *SetupProductEnable `toml:"fanout,omitempty"`
-	ImageOptimizer      *SetupProductEnable `toml:"image_optimizer,omitempty"`
-	LogExplorerInsights *SetupProductEnable `toml:"log_explorer_insights,omitempty"`
-	Ngwaf               *SetupProductNgwaf  `toml:"ngwaf,omitempty"`
-	OriginInspector     *SetupProductEnable `toml:"origin_inspector,omitempty"`
-	WebSockets          *SetupProductEnable `toml:"websockets,omitempty"`
+	APIDiscovery        *SetupProduct      `toml:"api_discovery,omitempty"`
+	BotManagement       *SetupProduct      `toml:"bot_management,omitempty"`
+	BrotliCompression   *SetupProduct      `toml:"brotli_compression,omitempty"`
+	DdosProtection      *SetupProduct      `toml:"ddos_protection,omitempty"`
+	DomainInspector     *SetupProduct      `toml:"domain_inspector,omitempty"`
+	Fanout              *SetupProduct      `toml:"fanout,omitempty"`
+	ImageOptimizer      *SetupProduct      `toml:"image_optimizer,omitempty"`
+	LogExplorerInsights *SetupProduct      `toml:"log_explorer_insights,omitempty"`
+	Ngwaf               *SetupProductNgwaf `toml:"ngwaf,omitempty"`
+	OriginInspector     *SetupProduct      `toml:"origin_inspector,omitempty"`
+	WebSockets          *SetupProduct      `toml:"websockets,omitempty"`
 }
 
-type SetupProduct interface {
-	Enabled() bool
-	Validate() error
-}
-
-type SetupProductEnable struct {
-	Enable bool `toml:"enable,omitempty"`
-}
-
-var _ SetupProduct = (*SetupProductEnable)(nil)
-
-func (p *SetupProductEnable) Enabled() bool {
-	return p != nil && p.Enable
-}
-
-func (p *SetupProductEnable) Validate() error {
-	return nil
-}
-
-type SetupProductNgwaf struct {
-	SetupProductEnable
-	WorkspaceID string `toml:"workspace_id,omitempty"`
-}
-
-var _ SetupProduct = (*SetupProductNgwaf)(nil)
-
-func (p *SetupProductNgwaf) Enabled() bool {
+func (p *SetupProducts) AnyDefined() bool {
 	if p == nil {
 		return false
 	}
-	return p.SetupProductEnable.Enabled()
-}
 
-func (p *SetupProductNgwaf) Validate() error {
-	if p == nil || !p.Enable {
-		return nil
-	}
-	if strings.TrimSpace(p.WorkspaceID) == "" {
-		return fmt.Errorf("workspace_id is required when enable = true")
-	}
-	return nil
-}
+	rv := reflect.ValueOf(p).Elem() // SetupProducts
+	settingsT := reflect.TypeOf((*SetupProductSettings)(nil)).Elem()
 
-func (p *SetupProducts) AllSettings() []SetupProduct {
-	if p == nil {
-		return nil
-	}
+	for i := 0; i < rv.NumField(); i++ {
+		fv := rv.Field(i)
+		if fv.Kind() != reflect.Ptr || fv.IsNil() {
+			continue
+		}
 
-	return []SetupProduct{
-		p.APIDiscovery,
-		p.BotManagement,
-		p.BrotliCompression,
-		p.DdosProtection,
-		p.DomainInspector,
-		p.Fanout,
-		p.ImageOptimizer,
-		p.LogExplorerInsights,
-		p.Ngwaf,
-		p.OriginInspector,
-		p.WebSockets,
-	}
-}
-
-func (p *SetupProducts) AnyEnabled() bool {
-	for _, s := range p.AllSettings() {
-		if s != nil && s.Enabled() {
+		if fv.Type().Implements(settingsT) {
 			return true
 		}
 	}
+
 	return false
 }
+
+type SetupProductSettings interface {
+	Enabled() bool
+}
+
+type SetupProduct struct {
+	Enable bool `toml:"enable,omitempty"`
+}
+
+var _ SetupProductSettings = (*SetupProduct)(nil)
+
+func (p *SetupProduct) Enabled() bool {
+	return p != nil && p.Enable
+}
+
+type SetupProductNgwaf struct {
+	SetupProduct
+	WorkspaceID string `toml:"workspace_id,omitempty"`
+}
+
+var _ SetupProductSettings = (*SetupProductNgwaf)(nil)
