@@ -1,2 +1,2 @@
-// Package ratelimit contains commands to inspect and manipulate Fastly rate-limiters.
+// Package ratelimit contains deprecated aliases for the 'service ratelimit' commands.
 package ratelimit

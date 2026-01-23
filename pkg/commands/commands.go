@@ -1411,7 +1411,6 @@ func Define( // nolint:revive // function-length
 		aliasACLEntryDescribe,
 		aliasACLEntryList,
 		aliasACLEntryUpdate,
-		aliasRateLimitRoot,
 		aliasRateLimitCreate,
 		aliasRateLimitDelete,
 		aliasRateLimitDescribe,
