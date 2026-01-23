@@ -11,6 +11,7 @@
 - feat(compute/deploy): added the  `--no-default-domain` flag to allow for the skipping of automatic domain creation when  deploying a Compute service([#1610](https://github.com/fastly/cli/pull/1610))
 
 ### Bug fixes:
+- fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
 
 ### Dependencies:
 - build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
