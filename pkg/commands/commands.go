@@ -1374,7 +1374,6 @@ func Define( // nolint:revive // function-length
 		aliasBackendDescribe,
 		aliasBackendList,
 		aliasBackendUpdate,
-		aliasDictionaryRoot,
 		aliasDictionaryCreate,
 		aliasDictionaryDelete,
 		aliasDictionaryDescribe,
