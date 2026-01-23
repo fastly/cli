@@ -8,7 +8,8 @@ import (
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	root "github.com/fastly/cli/pkg/commands/dictionary"
+	root "github.com/fastly/cli/pkg/commands/service"
+	sub "github.com/fastly/cli/pkg/commands/service/dictionary"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -46,7 +47,7 @@ func TestDictionaryDescribe(t *testing.T) {
 			WantOutput: describeDictionaryOutputVerbose,
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestDictionaryCreate(t *testing.T) {
@@ -91,7 +92,7 @@ func TestDictionaryCreate(t *testing.T) {
 			WantError: "Duplicate record",
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestDeleteDictionary(t *testing.T) {
@@ -119,7 +120,7 @@ func TestDeleteDictionary(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "delete"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 func TestListDictionary(t *testing.T) {
@@ -145,7 +146,7 @@ func TestListDictionary(t *testing.T) {
 			WantOutput: listDictionariesOutput,
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestUpdateDictionary(t *testing.T) {
@@ -216,7 +217,7 @@ func TestUpdateDictionary(t *testing.T) {
 			WantError: errTest.Error(),
 		},
 	}
-	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func describeDictionaryOK(_ context.Context, i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {

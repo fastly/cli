@@ -8,6 +8,7 @@ import (
 	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
 	aliasalerts "github.com/fastly/cli/pkg/commands/alias/alerts"
 	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
+	aliasdictionary "github.com/fastly/cli/pkg/commands/alias/dictionary"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliasimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/alias/imageoptimizerdefaults"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
@@ -24,7 +25,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	"github.com/fastly/cli/pkg/commands/dashboard"
 	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
-	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/install"
@@ -102,6 +102,7 @@ import (
 	serviceaclentry "github.com/fastly/cli/pkg/commands/service/aclentry"
 	servicealert "github.com/fastly/cli/pkg/commands/service/alert"
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
+	servicedictionary "github.com/fastly/cli/pkg/commands/service/dictionary"
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 	serviceimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/service/imageoptimizerdefaults"
@@ -196,18 +197,12 @@ func Define( // nolint:revive // function-length
 	dashboardItemDescribe := dashboardItem.NewDescribeCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemUpdate := dashboardItem.NewUpdateCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemDelete := dashboardItem.NewDeleteCommand(dashboardItemCmdRoot.CmdClause, data)
-	dictionaryCmdRoot := dictionary.NewRootCommand(app, data)
-	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryDescribe := dictionary.NewDescribeCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryEntryCmdRoot := dictionaryentry.NewRootCommand(app, data)
 	dictionaryEntryCreate := dictionaryentry.NewCreateCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryEntryDelete := dictionaryentry.NewDeleteCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryEntryDescribe := dictionaryentry.NewDescribeCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryEntryList := dictionaryentry.NewListCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryEntryUpdate := dictionaryentry.NewUpdateCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryList := dictionary.NewListCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryUpdate := dictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, data)
 	domainCmdRoot := domain.NewRootCommand(app, data)
 	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, data)
 	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, data)
@@ -619,6 +614,12 @@ func Define( // nolint:revive // function-length
 	serviceauthDescribe := serviceauth.NewDescribeCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthList := serviceauth.NewListCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthUpdate := serviceauth.NewUpdateCommand(serviceauthCmdRoot.CmdClause, data)
+	servicedictionaryCmdRoot := servicedictionary.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicedictionaryCreate := servicedictionary.NewCreateCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicedictionaryDelete := servicedictionary.NewDeleteCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicedictionaryDescribe := servicedictionary.NewDescribeCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicedictionaryList := servicedictionary.NewListCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicedictionaryUpdate := servicedictionary.NewUpdateCommand(servicedictionaryCmdRoot.CmdClause, data)
 	servicevclCmdRoot := servicevcl.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	servicevclDescribe := servicevcl.NewDescribeCommand(servicevclCmdRoot.CmdClause, data)
 	servicevclConditionCmdRoot := servicevclcondition.NewRootCommand(servicevclCmdRoot.CmdClause, data)
@@ -731,6 +732,12 @@ func Define( // nolint:revive // function-length
 	aliasBackendDescribe := aliasbackend.NewDescribeCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendList := aliasbackend.NewListCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendUpdate := aliasbackend.NewUpdateCommand(aliasBackendRoot.CmdClause, data)
+	aliasDictionaryRoot := aliasdictionary.NewRootCommand(app, data)
+	aliasDictionaryCreate := aliasdictionary.NewCreateCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasDictionaryDelete := aliasdictionary.NewDeleteCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasDictionaryDescribe := aliasdictionary.NewDescribeCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasDictionaryList := aliasdictionary.NewListCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasDictionaryUpdate := aliasdictionary.NewUpdateCommand(aliasDictionaryRoot.CmdClause, data)
 	aliasHealthcheckRoot := aliashealthcheck.NewRootCommand(app, data)
 	aliasHealthcheckCreate := aliashealthcheck.NewCreateCommand(aliasHealthcheckRoot.CmdClause, data)
 	aliasHealthcheckDelete := aliashealthcheck.NewDeleteCommand(aliasHealthcheckRoot.CmdClause, data)
@@ -841,18 +848,12 @@ func Define( // nolint:revive // function-length
 		dashboardItemDescribe,
 		dashboardItemUpdate,
 		dashboardItemDelete,
-		dictionaryCmdRoot,
-		dictionaryCreate,
-		dictionaryDelete,
-		dictionaryDescribe,
 		dictionaryEntryCmdRoot,
 		dictionaryEntryCreate,
 		dictionaryEntryDelete,
 		dictionaryEntryDescribe,
 		dictionaryEntryList,
 		dictionaryEntryUpdate,
-		dictionaryList,
-		dictionaryUpdate,
 		domainCmdRoot,
 		domainCreate,
 		domainDelete,
@@ -1257,6 +1258,12 @@ func Define( // nolint:revive // function-length
 		serviceauthDescribe,
 		serviceauthList,
 		serviceauthUpdate,
+		servicedictionaryCmdRoot,
+		servicedictionaryCreate,
+		servicedictionaryDelete,
+		servicedictionaryDescribe,
+		servicedictionaryList,
+		servicedictionaryUpdate,
 		servicevclCmdRoot,
 		servicevclDescribe,
 		servicevclConditionCmdRoot,
@@ -1367,6 +1374,11 @@ func Define( // nolint:revive // function-length
 		aliasBackendDescribe,
 		aliasBackendList,
 		aliasBackendUpdate,
+		aliasDictionaryCreate,
+		aliasDictionaryDelete,
+		aliasDictionaryDescribe,
+		aliasDictionaryList,
+		aliasDictionaryUpdate,
 		aliasHealthcheckCreate,
 		aliasHealthcheckDelete,
 		aliasHealthcheckDescribe,
