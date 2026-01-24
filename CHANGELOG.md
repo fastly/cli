@@ -24,6 +24,7 @@
 - feat(service/ratelimit): moved the `rate-limit` commands under the `service` command, with an unlisted and deprecated alias of `rate-limit` ([#1632](https://github.com/fastly/cli/pull/1632))
 
 ### Bug fixes:
+- fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
 
 ### Dependencies:
 - build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
