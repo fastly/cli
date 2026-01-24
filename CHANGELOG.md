@@ -3,12 +3,25 @@
 ## [Unreleased]
 
 ### Breaking:
+- breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
 
 ### Enhancements:
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
-- feat(commands/ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1578](https://github.com/fastly/cli/pull/1605))
+- feat(ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1605](https://github.com/fastly/cli/pull/1605))
 - feat(compute/deploy): added the  `--no-default-domain` flag to allow for the skipping of automatic domain creation when  deploying a Compute service([#1610](https://github.com/fastly/cli/pull/1610))
+- refactor(argparser/flags.go): add flag conversion utilities for converting string flags to bools and checking ascending and desecnding flags ([#1611](https://github.com/fastly/cli/pull/1611))
+- feat(service/purge): Add 'service purge' command as replacement for 'purge', with an unlisted and deprecated alias of 'purge'. ([#1612](https://github.com/fastly/cli/pull/1612))
+- feat(service/version): Add 'service version ...' commands as replacements for 'service-version ...', with unlisted and deprecated aliases of 'service-version ...'. ([#1614](https://github.com/fastly/cli/pull/1614))
+- feat(service/vcl): moved the `vcl` command under the `service` command, with an unlisted and deprecated alias of `vcl` ([#1616](https://github.com/fastly/cli/pull/1616))
+- feat(service/healthcheck): moved the `healthcheck` command under the `service` command, with an unlisted and deprecated alias of `healthcheck` ([#1619](https://github.com/fastly/cli/pull/1619))
+- feat(service/backend): moved the `backend` command under the `service` command, with an unlisted and deprecated alias of `backend` ([#1621](https://github.com/fastly/cli/pull/1621))
+- feat(service/backend): moved the `acl` and `aclentry` commands under the `service` command, with a unlisted and deprecated aliases of `acl` and `aclentry` ([#1621](https://github.com/fastly/cli/pull/1624))
+- feat(version): If the latest version is at least one major version higher than the current version, provide links to the release notes for the major version(s) so the user can review them before upgrading. ([#1623](https://github.com/fastly/cli/pull/1623))
+- feat(service/imageoptimizerdefaults): moved the `imageoptimizerdefaults` commands under the `service` command, with an unlisted and deprecated alias of `imageoptimizerdefaults` ([#1627](https://github.com/fastly/cli/pull/1627))
+- feat(service/alert): moved the `alerts` command to the `service alert` command, with an unlisted and deprecated alias of `alerts` ([#1616](https://github.com/fastly/cli/pull/1626))
+- feat(service/dictionary): moved the `dictionary` command under the `service` command, with an unlisted and deprecated alias of `dictionary` ([#1621](https://github.com/fastly/cli/pull/1630))
+- feat(service/ratelimit): moved the `rate-limit` commands under the `service` command, with an unlisted and deprecated alias of `rate-limit` ([#1632](https://github.com/fastly/cli/pull/1632))
 
 ### Bug fixes:
 - fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
@@ -23,6 +36,16 @@
 - build(deps): `golang.org/x/text` from 0.31.0 to 0.32.0 ([#1602](https://github.com/fastly/cli/pull/1602))
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.22 to 4.1.23 ([#1606](https://github.com/fastly/cli/pull/1606))
 - build(deps): `github.com/google/go-querystring` from 1.1.0 to 1.2.0 ([#1607](https://github.com/fastly/cli/pull/1607))
+- build(deps): `golang.org/x/sys` from 0.39.0 to 0.40.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/term` from 0.38.0 to 0.39.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/crypto` from 0.46.0 to 0.47.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/mod` from 0.31.0 to 0.32.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/net` from 0.48.0 to 0.49.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `golang.org/x/text` from 0.32.0 to 0.33.0 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `github.com/fastly/go-fastly/v12` from 12.1.0 to 12.1.1 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.3.0 to 2.3.1 ([#1625](https://github.com/fastly/cli/pull/1625))
+- build(deps): `github.com/klauspost/compress` from 1.18.2 to 1.18.3 ([#1625](https://github.com/fastly/cli/pull/1625))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.23 to 4.1.25 ([#1625](https://github.com/fastly/cli/pull/1625))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
 

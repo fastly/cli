@@ -2,10 +2,11 @@ package domain
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v12/fastly/domainmanagement/v1/domains"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -16,10 +17,7 @@ import (
 type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
-
-	Input          fastly.GetDomainInput
-	serviceName    argparser.OptionalServiceNameID
-	serviceVersion argparser.OptionalServiceVersion
+	domainID string
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -29,31 +27,13 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("describe", "Show detailed information about a domain on a Fastly service version").Alias("get")
+	c.CmdClause = parent.Command("describe", "Show detailed information about a domain").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("name", "Name of domain").Short('n').Required().StringVar(&c.Input.Name)
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	c.CmdClause.Flag("domain-id", "The Domain Identifier (UUID)").Required().StringVar(&c.domainID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag()) // --json
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
-	})
 	return &c
 }
 
@@ -63,44 +43,34 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		APIClient:          c.Globals.APIClient,
-		Manifest:           *c.Globals.Manifest,
-		Out:                out,
-		ServiceNameFlag:    c.serviceName,
-		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flags.Verbose,
-	})
+	fc, ok := c.Globals.APIClient.(*fastly.Client)
+	if !ok {
+		return errors.New("failed to convert interface to a fastly client")
+	}
+
+	input := &domains.GetInput{
+		DomainID: &c.domainID,
+	}
+
+	d, err := domains.Get(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": fsterr.ServiceVersion(serviceVersion),
+			"Domain ID": c.domainID,
 		})
 		return err
 	}
 
-	c.Input.ServiceID = serviceID
-	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
-
-	o, err := c.Globals.APIClient.GetDomain(context.TODO(), &c.Input)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": fastly.ToValue(serviceVersion.Number),
-		})
+	if ok, err := c.WriteJSON(out, d); ok {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, o); ok {
-		return err
+	if d != nil {
+		cl := []domains.Data{*d}
+		if c.Globals.Verbose() {
+			printVerbose(out, cl)
+		} else {
+			printSummary(out, cl)
+		}
 	}
-
-	if !c.Globals.Verbose() {
-		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(o.ServiceID))
-	}
-	fmt.Fprintf(out, "Version: %d\n", fastly.ToValue(o.ServiceVersion))
-	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(o.Name))
-	fmt.Fprintf(out, "Comment: %v\n", fastly.ToValue(o.Comment))
-
 	return nil
 }

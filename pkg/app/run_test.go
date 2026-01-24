@@ -60,22 +60,14 @@ complete -F _fastly_bash_autocomplete fastly
 			Args: "--completion-bash",
 			WantOutput: `help
 sso
-acl
-acl-entry
-alerts
 auth-token
-backend
 compute
 config
 config-store
 config-store-entry
 dashboard
-dictionary
 dictionary-entry
 domain
-domain-v1
-healthcheck
-imageoptimizer
 install
 ip-list
 kv-store
@@ -87,14 +79,11 @@ object-storage
 pops
 products
 profile
-purge
-rate-limit
 resource-link
 secret-store
 secret-store-entry
 service
 service-auth
-service-version
 stats
 tls-config
 tls-custom
@@ -103,7 +92,6 @@ tls-subscription
 tools
 update
 user
-vcl
 version
 whoami
 `,

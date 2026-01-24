@@ -2,14 +2,14 @@ package domain
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 
 	"github.com/fastly/go-fastly/v12/fastly"
-
-	"4d63.com/optional"
+	"github.com/fastly/go-fastly/v12/fastly/domainmanagement/v1/domains"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -19,13 +19,11 @@ type CreateCommand struct {
 	argparser.Base
 
 	// Required.
-	serviceVersion argparser.OptionalServiceVersion
+	fqdn      string
+	serviceID string
 
 	// Optional.
-	autoClone   argparser.OptionalAutoClone
-	comment     argparser.OptionalString
-	name        argparser.OptionalString
-	serviceName argparser.OptionalServiceNameID
+	description argparser.OptionalString
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -35,77 +33,52 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("create", "Create a domain on a Fastly service version").Alias("add")
-
-	// Required.
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
+	c.CmdClause = parent.Command("create", "Create a domain").Alias("add")
 
 	// Optional.
-	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
-		Action: c.autoClone.Set,
-		Dst:    &c.autoClone.Value,
-	})
-	c.CmdClause.Flag("comment", "A descriptive note").Action(c.comment.Set).StringVar(&c.comment.Value)
-	c.CmdClause.Flag("name", "Domain name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
+	c.CmdClause.Flag("description", "The description for the domain").Action(c.description.Set).StringVar(&c.description.Value)
+	c.CmdClause.Flag("fqdn", "The fully qualified domain name").Required().StringVar(&c.fqdn)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
+		Description: "The service_id associated with your domain",
+		Dst:         &c.serviceID,
 		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Action:      c.serviceName.Set,
-		Name:        argparser.FlagServiceName,
-		Description: argparser.FlagServiceNameDesc,
-		Dst:         &c.serviceName.Value,
 	})
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
-		Active:             optional.Of(false),
-		Locked:             optional.Of(false),
-		AutoCloneFlag:      c.autoClone,
-		APIClient:          c.Globals.APIClient,
-		Manifest:           *c.Globals.Manifest,
-		Out:                out,
-		ServiceNameFlag:    c.serviceName,
-		ServiceVersionFlag: c.serviceVersion,
-		VerboseMode:        c.Globals.Flags.Verbose,
-	})
+	input := &domains.CreateInput{
+		FQDN: &c.fqdn,
+	}
+	if c.serviceID != "" {
+		input.ServiceID = &c.serviceID
+	}
+
+	if c.description.WasSet {
+		input.Description = &c.description.Value
+	}
+
+	fc, ok := c.Globals.APIClient.(*fastly.Client)
+	if !ok {
+		return errors.New("failed to convert interface to a fastly client")
+	}
+
+	d, err := domains.Create(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
-		})
-		return err
-	}
-	input := fastly.CreateDomainInput{
-		ServiceID:      serviceID,
-		ServiceVersion: fastly.ToValue(serviceVersion.Number),
-	}
-	if c.name.WasSet {
-		input.Name = &c.name.Value
-	}
-	if c.comment.WasSet {
-		input.Comment = &c.comment.Value
-	}
-	d, err := c.Globals.APIClient.CreateDomain(context.TODO(), &input)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID":      serviceID,
-			"Service Version": fastly.ToValue(serviceVersion.Number),
+			"FQDN":       c.fqdn,
+			"Service ID": c.serviceID,
 		})
 		return err
 	}
 
-	text.Success(out, "Created domain %s (service %s version %d)", fastly.ToValue(d.Name), fastly.ToValue(d.ServiceID), fastly.ToValue(d.ServiceVersion))
+	serviceOutput := ""
+	if d.ServiceID != nil {
+		serviceOutput = fmt.Sprintf(", service-id: %s", *d.ServiceID)
+	}
+
+	text.Success(out, "Created domain '%s' (domain-id: %s%s)", d.FQDN, d.DomainID, serviceOutput)
 	return nil
 }

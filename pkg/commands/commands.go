@@ -4,11 +4,21 @@ import (
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/acl"
-	"github.com/fastly/cli/pkg/commands/aclentry"
-	"github.com/fastly/cli/pkg/commands/alerts"
+	aliasacl "github.com/fastly/cli/pkg/commands/alias/acl"
+	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
+	aliasalerts "github.com/fastly/cli/pkg/commands/alias/alerts"
+	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
+	aliasdictionary "github.com/fastly/cli/pkg/commands/alias/dictionary"
+	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
+	aliasimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/alias/imageoptimizerdefaults"
+	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
+	aliasratelimit "github.com/fastly/cli/pkg/commands/alias/ratelimit"
+	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
+	aliasvcl "github.com/fastly/cli/pkg/commands/alias/vcl"
+	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
+	aliasvclcustom "github.com/fastly/cli/pkg/commands/alias/vcl/custom"
+	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/authtoken"
-	"github.com/fastly/cli/pkg/commands/backend"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/computeacl"
 	"github.com/fastly/cli/pkg/commands/config"
@@ -16,12 +26,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	"github.com/fastly/cli/pkg/commands/dashboard"
 	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
-	"github.com/fastly/cli/pkg/commands/dictionary"
 	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
-	"github.com/fastly/cli/pkg/commands/domainv1"
-	"github.com/fastly/cli/pkg/commands/healthcheck"
-	"github.com/fastly/cli/pkg/commands/imageoptimizerdefaults"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/commands/kvstore"
@@ -88,14 +94,26 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
-	"github.com/fastly/cli/pkg/commands/purge"
-	"github.com/fastly/cli/pkg/commands/ratelimit"
 	"github.com/fastly/cli/pkg/commands/resourcelink"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
+	serviceacl "github.com/fastly/cli/pkg/commands/service/acl"
+	serviceaclentry "github.com/fastly/cli/pkg/commands/service/aclentry"
+	servicealert "github.com/fastly/cli/pkg/commands/service/alert"
+	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
+	servicedictionary "github.com/fastly/cli/pkg/commands/service/dictionary"
+	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
+	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
+	serviceimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/service/imageoptimizerdefaults"
+	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
+	serviceratelimit "github.com/fastly/cli/pkg/commands/service/ratelimit"
+	servicevcl "github.com/fastly/cli/pkg/commands/service/vcl"
+	servicevclcondition "github.com/fastly/cli/pkg/commands/service/vcl/condition"
+	servicevclcustom "github.com/fastly/cli/pkg/commands/service/vcl/custom"
+	servicevclsnippet "github.com/fastly/cli/pkg/commands/service/vcl/snippet"
+	serviceversion "github.com/fastly/cli/pkg/commands/service/version"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
-	"github.com/fastly/cli/pkg/commands/serviceversion"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/stats"
@@ -111,10 +129,6 @@ import (
 	domainTools "github.com/fastly/cli/pkg/commands/tools/domain"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
-	"github.com/fastly/cli/pkg/commands/vcl"
-	"github.com/fastly/cli/pkg/commands/vcl/condition"
-	"github.com/fastly/cli/pkg/commands/vcl/custom"
-	"github.com/fastly/cli/pkg/commands/vcl/snippet"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
 	"github.com/fastly/cli/pkg/global"
@@ -135,36 +149,11 @@ func Define( // nolint:revive // function-length
 	// beginning of the list of commands.
 	ssoCmdRoot := sso.NewRootCommand(app, data)
 
-	aclCmdRoot := acl.NewRootCommand(app, data)
-	aclCreate := acl.NewCreateCommand(aclCmdRoot.CmdClause, data)
-	aclDelete := acl.NewDeleteCommand(aclCmdRoot.CmdClause, data)
-	aclDescribe := acl.NewDescribeCommand(aclCmdRoot.CmdClause, data)
-	aclList := acl.NewListCommand(aclCmdRoot.CmdClause, data)
-	aclUpdate := acl.NewUpdateCommand(aclCmdRoot.CmdClause, data)
-	aclEntryCmdRoot := aclentry.NewRootCommand(app, data)
-	aclEntryCreate := aclentry.NewCreateCommand(aclEntryCmdRoot.CmdClause, data)
-	aclEntryDelete := aclentry.NewDeleteCommand(aclEntryCmdRoot.CmdClause, data)
-	aclEntryDescribe := aclentry.NewDescribeCommand(aclEntryCmdRoot.CmdClause, data)
-	aclEntryList := aclentry.NewListCommand(aclEntryCmdRoot.CmdClause, data)
-	aclEntryUpdate := aclentry.NewUpdateCommand(aclEntryCmdRoot.CmdClause, data)
-	alertsCmdRoot := alerts.NewRootCommand(app, data)
-	alertsCreate := alerts.NewCreateCommand(alertsCmdRoot.CmdClause, data)
-	alertsDelete := alerts.NewDeleteCommand(alertsCmdRoot.CmdClause, data)
-	alertsDescribe := alerts.NewDescribeCommand(alertsCmdRoot.CmdClause, data)
-	alertsList := alerts.NewListCommand(alertsCmdRoot.CmdClause, data)
-	alertsListHistory := alerts.NewListHistoryCommand(alertsCmdRoot.CmdClause, data)
-	alertsUpdate := alerts.NewUpdateCommand(alertsCmdRoot.CmdClause, data)
 	authtokenCmdRoot := authtoken.NewRootCommand(app, data)
 	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenDescribe := authtoken.NewDescribeCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenList := authtoken.NewListCommand(authtokenCmdRoot.CmdClause, data)
-	backendCmdRoot := backend.NewRootCommand(app, data)
-	backendCreate := backend.NewCreateCommand(backendCmdRoot.CmdClause, data)
-	backendDelete := backend.NewDeleteCommand(backendCmdRoot.CmdClause, data)
-	backendDescribe := backend.NewDescribeCommand(backendCmdRoot.CmdClause, data)
-	backendList := backend.NewListCommand(backendCmdRoot.CmdClause, data)
-	backendUpdate := backend.NewUpdateCommand(backendCmdRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -209,40 +198,18 @@ func Define( // nolint:revive // function-length
 	dashboardItemDescribe := dashboardItem.NewDescribeCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemUpdate := dashboardItem.NewUpdateCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemDelete := dashboardItem.NewDeleteCommand(dashboardItemCmdRoot.CmdClause, data)
-	dictionaryCmdRoot := dictionary.NewRootCommand(app, data)
-	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryDescribe := dictionary.NewDescribeCommand(dictionaryCmdRoot.CmdClause, data)
 	dictionaryEntryCmdRoot := dictionaryentry.NewRootCommand(app, data)
 	dictionaryEntryCreate := dictionaryentry.NewCreateCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryEntryDelete := dictionaryentry.NewDeleteCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryEntryDescribe := dictionaryentry.NewDescribeCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryEntryList := dictionaryentry.NewListCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	dictionaryEntryUpdate := dictionaryentry.NewUpdateCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryList := dictionary.NewListCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryUpdate := dictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, data)
 	domainCmdRoot := domain.NewRootCommand(app, data)
 	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, data)
 	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, data)
 	domainDescribe := domain.NewDescribeCommand(domainCmdRoot.CmdClause, data)
 	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, data)
 	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, data)
-	domainValidate := domain.NewValidateCommand(domainCmdRoot.CmdClause, data)
-	domainv1CmdRoot := domainv1.NewRootCommand(app, data)
-	domainv1Create := domainv1.NewCreateCommand(domainv1CmdRoot.CmdClause, data)
-	domainv1Delete := domainv1.NewDeleteCommand(domainv1CmdRoot.CmdClause, data)
-	domainv1Describe := domainv1.NewDescribeCommand(domainv1CmdRoot.CmdClause, data)
-	domainv1List := domainv1.NewListCommand(domainv1CmdRoot.CmdClause, data)
-	domainv1Update := domainv1.NewUpdateCommand(domainv1CmdRoot.CmdClause, data)
-	healthcheckCmdRoot := healthcheck.NewRootCommand(app, data)
-	healthcheckCreate := healthcheck.NewCreateCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckDelete := healthcheck.NewDeleteCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckDescribe := healthcheck.NewDescribeCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckList := healthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, data)
-	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, data)
-	imageoptimizerdefaultsCmdRoot := imageoptimizerdefaults.NewRootCommand(app, data)
-	imageoptimizerdefaultsGet := imageoptimizerdefaults.NewGetCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
-	imageoptimizerdefaultsUpdate := imageoptimizerdefaults.NewUpdateCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
 	installRoot := install.NewRootCommand(app, data)
 	ipCmdRoot := ip.NewRootCommand(app, data)
 	kvstoreCmdRoot := kvstore.NewRootCommand(app, data)
@@ -593,13 +560,6 @@ func Define( // nolint:revive // function-length
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, data)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
-	purgeCmdRoot := purge.NewRootCommand(app, data)
-	rateLimitCmdRoot := ratelimit.NewRootCommand(app, data)
-	rateLimitCreate := ratelimit.NewCreateCommand(rateLimitCmdRoot.CmdClause, data)
-	rateLimitDelete := ratelimit.NewDeleteCommand(rateLimitCmdRoot.CmdClause, data)
-	rateLimitDescribe := ratelimit.NewDescribeCommand(rateLimitCmdRoot.CmdClause, data)
-	rateLimitList := ratelimit.NewListCommand(rateLimitCmdRoot.CmdClause, data)
-	rateLimitUpdate := ratelimit.NewUpdateCommand(rateLimitCmdRoot.CmdClause, data)
 	resourcelinkCmdRoot := resourcelink.NewRootCommand(app, data)
 	resourcelinkCreate := resourcelink.NewCreateCommand(resourcelinkCmdRoot.CmdClause, data)
 	resourcelinkDelete := resourcelink.NewDeleteCommand(resourcelinkCmdRoot.CmdClause, data)
@@ -623,13 +583,59 @@ func Define( // nolint:revive // function-length
 	serviceList := service.NewListCommand(serviceCmdRoot.CmdClause, data)
 	serviceSearch := service.NewSearchCommand(serviceCmdRoot.CmdClause, data)
 	serviceUpdate := service.NewUpdateCommand(serviceCmdRoot.CmdClause, data)
+	servicePurge := servicepurge.NewPurgeCommand(serviceCmdRoot.CmdClause, data)
+	servicealertCmdRoot := servicealert.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicealertCreate := servicealert.NewCreateCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertDelete := servicealert.NewDeleteCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertDescribe := servicealert.NewDescribeCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertList := servicealert.NewListCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertListHistory := servicealert.NewListHistoryCommand(servicealertCmdRoot.CmdClause, data)
+	servicealertUpdate := servicealert.NewUpdateCommand(servicealertCmdRoot.CmdClause, data)
+	serviceaclCmdRoot := serviceacl.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceaclCreate := serviceacl.NewCreateCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclDelete := serviceacl.NewDeleteCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclDescribe := serviceacl.NewDescribeCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclList := serviceacl.NewListCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclUpdate := serviceacl.NewUpdateCommand(serviceaclCmdRoot.CmdClause, data)
+	serviceaclentryCmdRoot := serviceaclentry.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceaclentryCreate := serviceaclentry.NewCreateCommand(serviceaclentryCmdRoot.CmdClause, data)
+	serviceaclentryDelete := serviceaclentry.NewDeleteCommand(serviceaclentryCmdRoot.CmdClause, data)
+	serviceaclentryDescribe := serviceaclentry.NewDescribeCommand(serviceaclentryCmdRoot.CmdClause, data)
+	serviceaclentryList := serviceaclentry.NewListCommand(serviceaclentryCmdRoot.CmdClause, data)
+	serviceaclentryUpdate := serviceaclentry.NewUpdateCommand(serviceaclentryCmdRoot.CmdClause, data)
 	serviceauthCmdRoot := serviceauth.NewRootCommand(app, data)
 	serviceauthCreate := serviceauth.NewCreateCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthDelete := serviceauth.NewDeleteCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthDescribe := serviceauth.NewDescribeCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthList := serviceauth.NewListCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthUpdate := serviceauth.NewUpdateCommand(serviceauthCmdRoot.CmdClause, data)
-	serviceVersionCmdRoot := serviceversion.NewRootCommand(app, data)
+	servicedictionaryCmdRoot := servicedictionary.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicedictionaryCreate := servicedictionary.NewCreateCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicedictionaryDelete := servicedictionary.NewDeleteCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicedictionaryDescribe := servicedictionary.NewDescribeCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicedictionaryList := servicedictionary.NewListCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicedictionaryUpdate := servicedictionary.NewUpdateCommand(servicedictionaryCmdRoot.CmdClause, data)
+	servicevclCmdRoot := servicevcl.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicevclDescribe := servicevcl.NewDescribeCommand(servicevclCmdRoot.CmdClause, data)
+	servicevclConditionCmdRoot := servicevclcondition.NewRootCommand(servicevclCmdRoot.CmdClause, data)
+	servicevclConditionCreate := servicevclcondition.NewCreateCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclConditionDelete := servicevclcondition.NewDeleteCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclConditionDescribe := servicevclcondition.NewDescribeCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclConditionList := servicevclcondition.NewListCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclConditionUpdate := servicevclcondition.NewUpdateCommand(servicevclConditionCmdRoot.CmdClause, data)
+	servicevclCustomCmdRoot := servicevclcustom.NewRootCommand(servicevclCmdRoot.CmdClause, data)
+	servicevclCustomCreate := servicevclcustom.NewCreateCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclCustomDelete := servicevclcustom.NewDeleteCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclCustomDescribe := servicevclcustom.NewDescribeCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclCustomList := servicevclcustom.NewListCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclCustomUpdate := servicevclcustom.NewUpdateCommand(servicevclCustomCmdRoot.CmdClause, data)
+	servicevclSnippetCmdRoot := servicevclsnippet.NewRootCommand(servicevclCmdRoot.CmdClause, data)
+	servicevclSnippetCreate := servicevclsnippet.NewCreateCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	servicevclSnippetDelete := servicevclsnippet.NewDeleteCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	servicevclSnippetDescribe := servicevclsnippet.NewDescribeCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	servicevclSnippetList := servicevclsnippet.NewListCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	serviceVersionCmdRoot := serviceversion.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionDeactivate := serviceversion.NewDeactivateCommand(serviceVersionCmdRoot.CmdClause, data)
@@ -638,6 +644,34 @@ func Define( // nolint:revive // function-length
 	serviceVersionStage := serviceversion.NewStageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUnstage := serviceversion.NewUnstageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUpdate := serviceversion.NewUpdateCommand(serviceVersionCmdRoot.CmdClause, data)
+	servicedomainCmdRoot := servicedomain.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicedomainCreate := servicedomain.NewCreateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainDelete := servicedomain.NewDeleteCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainDescribe := servicedomain.NewDescribeCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainList := servicedomain.NewListCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainUpdate := servicedomain.NewUpdateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedomainValidate := servicedomain.NewValidateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicebackendCmdRoot := servicebackend.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicebackendCreate := servicebackend.NewCreateCommand(servicebackendCmdRoot.CmdClause, data)
+	servicebackendDelete := servicebackend.NewDeleteCommand(servicebackendCmdRoot.CmdClause, data)
+	servicebackendDescribe := servicebackend.NewDescribeCommand(servicebackendCmdRoot.CmdClause, data)
+	servicebackendList := servicebackend.NewListCommand(servicebackendCmdRoot.CmdClause, data)
+	servicebackendUpdate := servicebackend.NewUpdateCommand(servicebackendCmdRoot.CmdClause, data)
+	servicehealthcheckCmdRoot := servicehealthcheck.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicehealthcheckCreate := servicehealthcheck.NewCreateCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	servicehealthcheckDelete := servicehealthcheck.NewDeleteCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	servicehealthcheckDescribe := servicehealthcheck.NewDescribeCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	servicehealthcheckList := servicehealthcheck.NewListCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	servicehealthcheckUpdate := servicehealthcheck.NewUpdateCommand(servicehealthcheckCmdRoot.CmdClause, data)
+	serviceimageoptimizerdefaultsCmdRoot := serviceimageoptimizerdefaults.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceimageoptimizerdefaultsGet := serviceimageoptimizerdefaults.NewGetCommand(serviceimageoptimizerdefaultsCmdRoot.CmdClause, data)
+	serviceimageoptimizerdefaultsUpdate := serviceimageoptimizerdefaults.NewUpdateCommand(serviceimageoptimizerdefaultsCmdRoot.CmdClause, data)
+	serviceratelimitCmdRoot := serviceratelimit.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceratelimitCreate := serviceratelimit.NewCreateCommand(serviceratelimitCmdRoot.CmdClause, data)
+	serviceratelimitDelete := serviceratelimit.NewDeleteCommand(serviceratelimitCmdRoot.CmdClause, data)
+	serviceratelimitDescribe := serviceratelimit.NewDescribeCommand(serviceratelimitCmdRoot.CmdClause, data)
+	serviceratelimitList := serviceratelimit.NewListCommand(serviceratelimitCmdRoot.CmdClause, data)
+	serviceratelimitUpdate := serviceratelimit.NewUpdateCommand(serviceratelimitCmdRoot.CmdClause, data)
 	statsCmdRoot := stats.NewRootCommand(app, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
@@ -689,60 +723,94 @@ func Define( // nolint:revive // function-length
 	userDescribe := user.NewDescribeCommand(userCmdRoot.CmdClause, data)
 	userList := user.NewListCommand(userCmdRoot.CmdClause, data)
 	userUpdate := user.NewUpdateCommand(userCmdRoot.CmdClause, data)
-	vclCmdRoot := vcl.NewRootCommand(app, data)
-	vclDescribe := vcl.NewDescribeCommand(vclCmdRoot.CmdClause, data)
-	vclConditionCmdRoot := condition.NewRootCommand(vclCmdRoot.CmdClause, data)
-	vclConditionCreate := condition.NewCreateCommand(vclConditionCmdRoot.CmdClause, data)
-	vclConditionDelete := condition.NewDeleteCommand(vclConditionCmdRoot.CmdClause, data)
-	vclConditionDescribe := condition.NewDescribeCommand(vclConditionCmdRoot.CmdClause, data)
-	vclConditionList := condition.NewListCommand(vclConditionCmdRoot.CmdClause, data)
-	vclConditionUpdate := condition.NewUpdateCommand(vclConditionCmdRoot.CmdClause, data)
-	vclCustomCmdRoot := custom.NewRootCommand(vclCmdRoot.CmdClause, data)
-	vclCustomCreate := custom.NewCreateCommand(vclCustomCmdRoot.CmdClause, data)
-	vclCustomDelete := custom.NewDeleteCommand(vclCustomCmdRoot.CmdClause, data)
-	vclCustomDescribe := custom.NewDescribeCommand(vclCustomCmdRoot.CmdClause, data)
-	vclCustomList := custom.NewListCommand(vclCustomCmdRoot.CmdClause, data)
-	vclCustomUpdate := custom.NewUpdateCommand(vclCustomCmdRoot.CmdClause, data)
-	vclSnippetCmdRoot := snippet.NewRootCommand(vclCmdRoot.CmdClause, data)
-	vclSnippetCreate := snippet.NewCreateCommand(vclSnippetCmdRoot.CmdClause, data)
-	vclSnippetDelete := snippet.NewDeleteCommand(vclSnippetCmdRoot.CmdClause, data)
-	vclSnippetDescribe := snippet.NewDescribeCommand(vclSnippetCmdRoot.CmdClause, data)
-	vclSnippetList := snippet.NewListCommand(vclSnippetCmdRoot.CmdClause, data)
-	vclSnippetUpdate := snippet.NewUpdateCommand(vclSnippetCmdRoot.CmdClause, data)
 	versionCmdRoot := version.NewRootCommand(app, data)
 	whoamiCmdRoot := whoami.NewRootCommand(app, data)
 
+	// Aliases for deprecated commands
+	aliasBackendRoot := aliasbackend.NewRootCommand(app, data)
+	aliasBackendCreate := aliasbackend.NewCreateCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendDelete := aliasbackend.NewDeleteCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendDescribe := aliasbackend.NewDescribeCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendList := aliasbackend.NewListCommand(aliasBackendRoot.CmdClause, data)
+	aliasBackendUpdate := aliasbackend.NewUpdateCommand(aliasBackendRoot.CmdClause, data)
+	aliasDictionaryRoot := aliasdictionary.NewRootCommand(app, data)
+	aliasDictionaryCreate := aliasdictionary.NewCreateCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasDictionaryDelete := aliasdictionary.NewDeleteCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasDictionaryDescribe := aliasdictionary.NewDescribeCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasDictionaryList := aliasdictionary.NewListCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasDictionaryUpdate := aliasdictionary.NewUpdateCommand(aliasDictionaryRoot.CmdClause, data)
+	aliasHealthcheckRoot := aliashealthcheck.NewRootCommand(app, data)
+	aliasHealthcheckCreate := aliashealthcheck.NewCreateCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasHealthcheckDelete := aliashealthcheck.NewDeleteCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasHealthcheckDescribe := aliashealthcheck.NewDescribeCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasHealthcheckList := aliashealthcheck.NewListCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasHealthcheckUpdate := aliashealthcheck.NewUpdateCommand(aliasHealthcheckRoot.CmdClause, data)
+	aliasimageoptimizerdefaultsRoot := aliasimageoptimizerdefaults.NewRootCommand(app, data)
+	aliasimageoptimizerdefaultsGet := aliasimageoptimizerdefaults.NewGetCommand(aliasimageoptimizerdefaultsRoot.CmdClause, data)
+	aliasimageoptimizerdefaultsUpdate := aliasimageoptimizerdefaults.NewUpdateCommand(aliasimageoptimizerdefaultsRoot.CmdClause, data)
+	aliasPurge := aliaspurge.NewCommand(app, data)
+	aliasAlertRoot := aliasalerts.NewRootCommand(app, data)
+	aliasAlertCreate := aliasalerts.NewCreateCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertDelete := aliasalerts.NewDeleteCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertDescribe := aliasalerts.NewDescribeCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertList := aliasalerts.NewListCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertListHistory := aliasalerts.NewListHistoryCommand(aliasAlertRoot.CmdClause, data)
+	aliasAlertUpdate := aliasalerts.NewUpdateCommand(aliasAlertRoot.CmdClause, data)
+	aliasACLRoot := aliasacl.NewRootCommand(app, data)
+	aliasACLCreate := aliasacl.NewCreateCommand(aliasACLRoot.CmdClause, data)
+	aliasACLDelete := aliasacl.NewDeleteCommand(aliasACLRoot.CmdClause, data)
+	aliasACLDescribe := aliasacl.NewDescribeCommand(aliasACLRoot.CmdClause, data)
+	aliasACLList := aliasacl.NewListCommand(aliasACLRoot.CmdClause, data)
+	aliasACLUpdate := aliasacl.NewUpdateCommand(aliasACLRoot.CmdClause, data)
+	aliasACLEntryRoot := aliasaclentry.NewRootCommand(app, data)
+	aliasACLEntryCreate := aliasaclentry.NewCreateCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryDelete := aliasaclentry.NewDeleteCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryDescribe := aliasaclentry.NewDescribeCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryList := aliasaclentry.NewListCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasACLEntryUpdate := aliasaclentry.NewUpdateCommand(aliasACLEntryRoot.CmdClause, data)
+	aliasRateLimitRoot := aliasratelimit.NewRootCommand(app, data)
+	aliasRateLimitCreate := aliasratelimit.NewCreateCommand(aliasRateLimitRoot.CmdClause, data)
+	aliasRateLimitDelete := aliasratelimit.NewDeleteCommand(aliasRateLimitRoot.CmdClause, data)
+	aliasRateLimitDescribe := aliasratelimit.NewDescribeCommand(aliasRateLimitRoot.CmdClause, data)
+	aliasRateLimitList := aliasratelimit.NewListCommand(aliasRateLimitRoot.CmdClause, data)
+	aliasRateLimitUpdate := aliasratelimit.NewUpdateCommand(aliasRateLimitRoot.CmdClause, data)
+	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
+	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
+	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclConditionCreate := aliasvclcondition.NewCreateCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclConditionDelete := aliasvclcondition.NewDeleteCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclConditionDescribe := aliasvclcondition.NewDescribeCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclConditionList := aliasvclcondition.NewListCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclConditionUpdate := aliasvclcondition.NewUpdateCommand(aliasVclConditionRoot.CmdClause, data)
+	aliasVclCustomRoot := aliasvclcustom.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclCustomCreate := aliasvclcustom.NewCreateCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclCustomDelete := aliasvclcustom.NewDeleteCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclCustomDescribe := aliasvclcustom.NewDescribeCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclCustomList := aliasvclcustom.NewListCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclCustomUpdate := aliasvclcustom.NewUpdateCommand(aliasVclCustomRoot.CmdClause, data)
+	aliasVclSnippetRoot := aliasvclsnippet.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclSnippetCreate := aliasvclsnippet.NewCreateCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasVclSnippetDelete := aliasvclsnippet.NewDeleteCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasVclSnippetDescribe := aliasvclsnippet.NewDescribeCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasVclSnippetList := aliasvclsnippet.NewListCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasVclSnippetUpdate := aliasvclsnippet.NewUpdateCommand(aliasVclSnippetRoot.CmdClause, data)
+	aliasServiceVersionRoot := aliasserviceversion.NewRootCommand(app, data)
+	aliasServiceVersionActivate := aliasserviceversion.NewActivateCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionClone := aliasserviceversion.NewCloneCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionDeactivate := aliasserviceversion.NewDeactivateCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionList := aliasserviceversion.NewListCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionLock := aliasserviceversion.NewLockCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionStage := aliasserviceversion.NewStageCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionUnstage := aliasserviceversion.NewUnstageCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasServiceVersionUpdate := aliasserviceversion.NewUpdateCommand(aliasServiceVersionRoot.CmdClause, data)
+
 	return []argparser.Command{
 		shellcompleteCmdRoot,
-		aclCmdRoot,
-		aclCreate,
-		aclDelete,
-		aclDescribe,
-		aclList,
-		aclUpdate,
-		aclEntryCmdRoot,
-		aclEntryCreate,
-		aclEntryDelete,
-		aclEntryDescribe,
-		aclEntryList,
-		aclEntryUpdate,
-		alertsCreate,
-		alertsDelete,
-		alertsDescribe,
-		alertsList,
-		alertsListHistory,
-		alertsUpdate,
 		authtokenCmdRoot,
 		authtokenCreate,
 		authtokenDelete,
 		authtokenDescribe,
 		authtokenList,
-		backendCmdRoot,
-		backendCreate,
-		backendDelete,
-		backendDescribe,
-		backendList,
-		backendUpdate,
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
@@ -787,40 +855,18 @@ func Define( // nolint:revive // function-length
 		dashboardItemDescribe,
 		dashboardItemUpdate,
 		dashboardItemDelete,
-		dictionaryCmdRoot,
-		dictionaryCreate,
-		dictionaryDelete,
-		dictionaryDescribe,
 		dictionaryEntryCmdRoot,
 		dictionaryEntryCreate,
 		dictionaryEntryDelete,
 		dictionaryEntryDescribe,
 		dictionaryEntryList,
 		dictionaryEntryUpdate,
-		dictionaryList,
-		dictionaryUpdate,
 		domainCmdRoot,
 		domainCreate,
 		domainDelete,
 		domainDescribe,
 		domainList,
 		domainUpdate,
-		domainValidate,
-		domainv1CmdRoot,
-		domainv1Create,
-		domainv1Delete,
-		domainv1Describe,
-		domainv1List,
-		domainv1Update,
-		healthcheckCmdRoot,
-		healthcheckCreate,
-		healthcheckDelete,
-		healthcheckDescribe,
-		healthcheckList,
-		healthcheckUpdate,
-		imageoptimizerdefaultsCmdRoot,
-		imageoptimizerdefaultsGet,
-		imageoptimizerdefaultsUpdate,
 		installRoot,
 		ipCmdRoot,
 		kvstoreCreate,
@@ -1167,13 +1213,6 @@ func Define( // nolint:revive // function-length
 		profileSwitch,
 		profileToken,
 		profileUpdate,
-		purgeCmdRoot,
-		rateLimitCmdRoot,
-		rateLimitCreate,
-		rateLimitDelete,
-		rateLimitDescribe,
-		rateLimitList,
-		rateLimitUpdate,
 		resourcelinkCmdRoot,
 		resourcelinkCreate,
 		resourcelinkDelete,
@@ -1195,12 +1234,85 @@ func Define( // nolint:revive // function-length
 		serviceList,
 		serviceSearch,
 		serviceUpdate,
+		servicePurge,
+		servicealertCreate,
+		servicealertDelete,
+		servicealertDescribe,
+		servicealertList,
+		servicealertListHistory,
+		servicealertUpdate,
+		serviceaclCmdRoot,
+		serviceaclCreate,
+		serviceaclDelete,
+		serviceaclDescribe,
+		serviceaclList,
+		serviceaclUpdate,
+		serviceaclentryCmdRoot,
+		serviceaclentryCreate,
+		serviceaclentryDelete,
+		serviceaclentryDescribe,
+		serviceaclentryList,
+		serviceaclentryUpdate,
 		serviceauthCmdRoot,
 		serviceauthCreate,
 		serviceauthDelete,
 		serviceauthDescribe,
 		serviceauthList,
 		serviceauthUpdate,
+		servicedictionaryCmdRoot,
+		servicedictionaryCreate,
+		servicedictionaryDelete,
+		servicedictionaryDescribe,
+		servicedictionaryList,
+		servicedictionaryUpdate,
+		servicevclCmdRoot,
+		servicevclDescribe,
+		servicevclConditionCmdRoot,
+		servicevclConditionCreate,
+		servicevclConditionDelete,
+		servicevclConditionDescribe,
+		servicevclConditionList,
+		servicevclConditionUpdate,
+		servicevclCustomCmdRoot,
+		servicevclCustomCreate,
+		servicevclCustomDelete,
+		servicevclCustomDescribe,
+		servicevclCustomList,
+		servicevclCustomUpdate,
+		servicevclSnippetCmdRoot,
+		servicevclSnippetCreate,
+		servicevclSnippetDelete,
+		servicevclSnippetDescribe,
+		servicevclSnippetList,
+		servicevclSnippetUpdate,
+		servicedomainCmdRoot,
+		servicedomainCreate,
+		servicedomainDelete,
+		servicedomainDescribe,
+		servicedomainList,
+		servicedomainUpdate,
+		servicedomainValidate,
+		servicebackendCmdRoot,
+		servicebackendCreate,
+		servicebackendDelete,
+		servicebackendDescribe,
+		servicebackendList,
+		servicebackendUpdate,
+		servicehealthcheckCmdRoot,
+		servicehealthcheckCreate,
+		servicehealthcheckDelete,
+		servicehealthcheckDescribe,
+		servicehealthcheckList,
+		servicehealthcheckUpdate,
+		serviceimageoptimizerdefaultsCmdRoot,
+		serviceimageoptimizerdefaultsGet,
+		serviceimageoptimizerdefaultsUpdate,
+		serviceratelimitCmdRoot,
+		serviceratelimitCreate,
+		serviceratelimitDelete,
+		serviceratelimitDescribe,
+		serviceratelimitList,
+		serviceratelimitUpdate,
 		serviceVersionActivate,
 		serviceVersionClone,
 		serviceVersionCmdRoot,
@@ -1262,27 +1374,71 @@ func Define( // nolint:revive // function-length
 		userDescribe,
 		userList,
 		userUpdate,
-		vclCmdRoot,
-		vclDescribe,
-		vclConditionCmdRoot,
-		vclConditionCreate,
-		vclConditionDelete,
-		vclConditionDescribe,
-		vclConditionList,
-		vclConditionUpdate,
-		vclCustomCmdRoot,
-		vclCustomCreate,
-		vclCustomDelete,
-		vclCustomDescribe,
-		vclCustomList,
-		vclCustomUpdate,
-		vclSnippetCmdRoot,
-		vclSnippetCreate,
-		vclSnippetDelete,
-		vclSnippetDescribe,
-		vclSnippetList,
-		vclSnippetUpdate,
 		versionCmdRoot,
 		whoamiCmdRoot,
+		aliasBackendCreate,
+		aliasBackendDelete,
+		aliasBackendDescribe,
+		aliasBackendList,
+		aliasBackendUpdate,
+		aliasDictionaryCreate,
+		aliasDictionaryDelete,
+		aliasDictionaryDescribe,
+		aliasDictionaryList,
+		aliasDictionaryUpdate,
+		aliasHealthcheckCreate,
+		aliasHealthcheckDelete,
+		aliasHealthcheckDescribe,
+		aliasHealthcheckList,
+		aliasHealthcheckUpdate,
+		aliasimageoptimizerdefaultsGet,
+		aliasimageoptimizerdefaultsUpdate,
+		aliasPurge,
+		aliasAlertRoot,
+		aliasAlertCreate,
+		aliasAlertDelete,
+		aliasAlertDescribe,
+		aliasAlertList,
+		aliasAlertListHistory,
+		aliasAlertUpdate,
+		aliasACLCreate,
+		aliasACLDelete,
+		aliasACLDescribe,
+		aliasACLList,
+		aliasACLUpdate,
+		aliasACLEntryCreate,
+		aliasACLEntryDelete,
+		aliasACLEntryDescribe,
+		aliasACLEntryList,
+		aliasACLEntryUpdate,
+		aliasRateLimitCreate,
+		aliasRateLimitDelete,
+		aliasRateLimitDescribe,
+		aliasRateLimitList,
+		aliasRateLimitUpdate,
+		aliasVclDescribe,
+		aliasVclConditionCreate,
+		aliasVclConditionDelete,
+		aliasVclConditionDescribe,
+		aliasVclConditionList,
+		aliasVclConditionUpdate,
+		aliasVclCustomCreate,
+		aliasVclCustomDelete,
+		aliasVclCustomDescribe,
+		aliasVclCustomList,
+		aliasVclCustomUpdate,
+		aliasVclSnippetCreate,
+		aliasVclSnippetDelete,
+		aliasVclSnippetDescribe,
+		aliasVclSnippetList,
+		aliasVclSnippetUpdate,
+		aliasServiceVersionActivate,
+		aliasServiceVersionClone,
+		aliasServiceVersionDeactivate,
+		aliasServiceVersionList,
+		aliasServiceVersionLock,
+		aliasServiceVersionStage,
+		aliasServiceVersionUnstage,
+		aliasServiceVersionUpdate,
 	}
 }
