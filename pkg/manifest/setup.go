@@ -24,7 +24,13 @@ func (s Setup) Defined() bool {
 	if len(s.Loggers) > 0 {
 		defined = true
 	}
+	if len(s.ObjectStores) > 0 {
+		defined = true
+	}
 	if len(s.KVStores) > 0 {
+		defined = true
+	}
+	if len(s.SecretStores) > 0 {
 		defined = true
 	}
 
