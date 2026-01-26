@@ -22,6 +22,7 @@
 - feat(service/alert): moved the `alerts` command to the `service alert` command, with an unlisted and deprecated alias of `alerts` ([#1616](https://github.com/fastly/cli/pull/1626))
 - feat(service/dictionary): moved the `dictionary` command under the `service` command, with an unlisted and deprecated alias of `dictionary` ([#1621](https://github.com/fastly/cli/pull/1630))
 - feat(service/ratelimit): moved the `rate-limit` commands under the `service` command, with an unlisted and deprecated alias of `rate-limit` ([#1632](https://github.com/fastly/cli/pull/1632))
+- feat(compute/build): Remove Rust version restriction, allowing 1.93.0 and later versions to be used. ([#1633](https://github.com/fastly/cli/pull/1633))
 
 ### Bug fixes:
 - fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
