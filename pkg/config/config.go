@@ -421,6 +421,10 @@ func (f *File) UseStatic(path string) error {
 
 // Write encodes in-memory data to disk.
 func (f *File) Write(path string) error {
+	if err := ensureConfigDirExists(path); err != nil {
+		return err
+	}
+
 	// gosec flagged this:
 	// G304 (CWE-22): Potential file inclusion via variable
 	//

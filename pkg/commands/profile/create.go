@@ -2,12 +2,8 @@ package profile
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/fastly/go-fastly/v12/fastly"
@@ -15,7 +11,6 @@ import (
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/sso"
-	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/profile"
@@ -141,7 +136,7 @@ func (c *CreateCommand) staticTokenFlow(makeDefault bool, in io.Reader, out io.W
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
 	text.Output(out, "An API token is used to authenticate requests to the Fastly API. To create a token, visit https://manage.fastly.com/account/personal/tokens\n\n")
-	token, err := text.InputSecure(out, text.Prompt("Fastly API token: "), in, validateTokenNotEmpty)
+	token, err := text.InputSecure(out, text.Prompt("Fastly API token: "), in, profile.ValidateTokenNotEmpty)
 	if err != nil {
 		errLog.Add(err)
 		return "", err
@@ -149,17 +144,6 @@ func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (st
 	text.Break(out)
 	return token, nil
 }
-
-func validateTokenNotEmpty(s string) error {
-	if s == "" {
-		return ErrEmptyToken
-	}
-	return nil
-}
-
-// ErrEmptyToken is returned when a user tries to supply an empty string as a
-// token in the terminal prompt.
-var ErrEmptyToken = errors.New("token cannot be empty")
 
 // validateToken ensures the token can be used to acquire user data.
 func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinner) (string, error) {
@@ -217,53 +201,22 @@ func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinn
 func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, makeDefault bool, spinner text.Spinner) error {
 	return spinner.Process("Persisting configuration", func(_ *text.SpinnerWrapper) error {
 		c.Globals.Config.Fastly.APIEndpoint = endpoint
-
-		if c.Globals.Config.Profiles == nil {
-			c.Globals.Config.Profiles = make(config.Profiles)
-		}
-		c.Globals.Config.Profiles[c.profile] = &config.Profile{
-			Default: makeDefault,
-			Email:   email,
-			Token:   token,
-		}
-
-		// If the user wants the newly created profile to be their new default, then
-		// we'll call SetDefault for its side effect of resetting all other profiles
-		// to have their Default field set to false.
-		if makeDefault {
-			if p, ok := profile.SetDefault(c.profile, c.Globals.Config.Profiles); ok {
-				c.Globals.Config.Profiles = p
-			}
-		}
+		c.Globals.Config.Profiles = profile.Create(
+			c.profile,
+			c.Globals.Config.Profiles,
+			email,
+			token,
+			makeDefault,
+		)
 		return nil
 	})
 }
 
 func (c *CreateCommand) persistCfg() error {
-	// TODO: The following directory checks should be encapsulated by the
-	// File.Write() method as this chunk of code is duplicated in various places.
-	// Consider consolidating with pkg/filesystem/directory.go
-	// This function is itself duplicated in pkg/commands/profile/update.go
-	dir := filepath.Dir(c.Globals.ConfigPath)
-	fi, err := os.Stat(dir)
-	switch {
-	case err == nil && !fi.IsDir():
-		return fmt.Errorf("config file path %s isn't a directory", dir)
-	case err != nil && errors.Is(err, fs.ErrNotExist):
-		if err := os.MkdirAll(dir, config.DirectoryPermissions); err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Directory":   dir,
-				"Permissions": config.DirectoryPermissions,
-			})
-			return fmt.Errorf("error creating config file directory: %w", err)
-		}
-	}
-
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fmt.Errorf("error saving config file: %w", err)
 	}
-
 	return nil
 }
 

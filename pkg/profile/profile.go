@@ -1,8 +1,22 @@
 package profile
 
 import (
+	"errors"
+
 	"github.com/fastly/cli/pkg/config"
 )
+
+// ErrEmptyToken is returned when a user tries to supply an empty string as a
+// token in the terminal prompt.
+var ErrEmptyToken = errors.New("token cannot be empty")
+
+// ValidateTokenNotEmpty validates that a token string is not empty.
+func ValidateTokenNotEmpty(s string) error {
+	if s == "" {
+		return ErrEmptyToken
+	}
+	return nil
+}
 
 // DefaultName is the default profile name.
 const DefaultName = "user"
@@ -92,6 +106,25 @@ func Delete(name string, p config.Profiles) bool {
 		}
 	}
 	return ok
+}
+
+// Create adds a new profile to the configuration.
+// Returns the updated profiles.
+func Create(name string, p config.Profiles, email, token string, makeDefault bool) config.Profiles {
+	if p == nil {
+		p = make(config.Profiles)
+	}
+
+	p[name] = &config.Profile{
+		Default: makeDefault,
+		Email:   email,
+		Token:   token,
+	}
+
+	if makeDefault {
+		p, _ = SetDefault(name, p)
+	}
+	return p
 }
 
 // EditOption lets callers of Edit specify profile fields to update.
