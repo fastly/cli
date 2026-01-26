@@ -148,7 +148,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		},
 		// Success.
 		{
-			Args: "delete --service-id 123 --version 42 --id LINKID",
+			Args: "--service-id 123 --version 42 --id LINKID",
 			API: mock.API{
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
