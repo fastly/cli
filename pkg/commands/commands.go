@@ -13,6 +13,7 @@ import (
 	aliasimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/alias/imageoptimizerdefaults"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
 	aliasratelimit "github.com/fastly/cli/pkg/commands/alias/ratelimit"
+	aliasresourcelink "github.com/fastly/cli/pkg/commands/alias/resourcelink"
 	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	aliasvcl "github.com/fastly/cli/pkg/commands/alias/vcl"
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
@@ -94,7 +95,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/pop"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
-	"github.com/fastly/cli/pkg/commands/resourcelink"
 	"github.com/fastly/cli/pkg/commands/secretstore"
 	"github.com/fastly/cli/pkg/commands/secretstoreentry"
 	"github.com/fastly/cli/pkg/commands/service"
@@ -108,6 +108,7 @@ import (
 	serviceimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/service/imageoptimizerdefaults"
 	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
 	serviceratelimit "github.com/fastly/cli/pkg/commands/service/ratelimit"
+	serviceresourcelink "github.com/fastly/cli/pkg/commands/service/resourcelink"
 	servicevcl "github.com/fastly/cli/pkg/commands/service/vcl"
 	servicevclcondition "github.com/fastly/cli/pkg/commands/service/vcl/condition"
 	servicevclcustom "github.com/fastly/cli/pkg/commands/service/vcl/custom"
@@ -560,12 +561,6 @@ func Define( // nolint:revive // function-length
 	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
 	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, data)
 	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
-	resourcelinkCmdRoot := resourcelink.NewRootCommand(app, data)
-	resourcelinkCreate := resourcelink.NewCreateCommand(resourcelinkCmdRoot.CmdClause, data)
-	resourcelinkDelete := resourcelink.NewDeleteCommand(resourcelinkCmdRoot.CmdClause, data)
-	resourcelinkDescribe := resourcelink.NewDescribeCommand(resourcelinkCmdRoot.CmdClause, data)
-	resourcelinkList := resourcelink.NewListCommand(resourcelinkCmdRoot.CmdClause, data)
-	resourcelinkUpdate := resourcelink.NewUpdateCommand(resourcelinkCmdRoot.CmdClause, data)
 	secretstoreCmdRoot := secretstore.NewRootCommand(app, data)
 	secretstoreCreate := secretstore.NewCreateCommand(secretstoreCmdRoot.CmdClause, data)
 	secretstoreDescribe := secretstore.NewDescribeCommand(secretstoreCmdRoot.CmdClause, data)
@@ -672,6 +667,12 @@ func Define( // nolint:revive // function-length
 	serviceratelimitDescribe := serviceratelimit.NewDescribeCommand(serviceratelimitCmdRoot.CmdClause, data)
 	serviceratelimitList := serviceratelimit.NewListCommand(serviceratelimitCmdRoot.CmdClause, data)
 	serviceratelimitUpdate := serviceratelimit.NewUpdateCommand(serviceratelimitCmdRoot.CmdClause, data)
+	serviceresourcelinkCmdRoot := serviceresourcelink.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceresourcelinkCreate := serviceresourcelink.NewCreateCommand(serviceresourcelinkCmdRoot.CmdClause, data)
+	serviceresourcelinkDelete := serviceresourcelink.NewDeleteCommand(serviceresourcelinkCmdRoot.CmdClause, data)
+	serviceresourcelinkDescribe := serviceresourcelink.NewDescribeCommand(serviceresourcelinkCmdRoot.CmdClause, data)
+	serviceresourcelinkList := serviceresourcelink.NewListCommand(serviceresourcelinkCmdRoot.CmdClause, data)
+	serviceresourcelinkUpdate := serviceresourcelink.NewUpdateCommand(serviceresourcelinkCmdRoot.CmdClause, data)
 	statsCmdRoot := stats.NewRootCommand(app, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
@@ -774,6 +775,12 @@ func Define( // nolint:revive // function-length
 	aliasRateLimitDescribe := aliasratelimit.NewDescribeCommand(aliasRateLimitRoot.CmdClause, data)
 	aliasRateLimitList := aliasratelimit.NewListCommand(aliasRateLimitRoot.CmdClause, data)
 	aliasRateLimitUpdate := aliasratelimit.NewUpdateCommand(aliasRateLimitRoot.CmdClause, data)
+	aliasResourceLinkRoot := aliasresourcelink.NewRootCommand(app, data)
+	aliasResourceLinkCreate := aliasresourcelink.NewCreateCommand(aliasResourceLinkRoot.CmdClause, data)
+	aliasResourceLinkDelete := aliasresourcelink.NewDeleteCommand(aliasResourceLinkRoot.CmdClause, data)
+	aliasResourceLinkDescribe := aliasresourcelink.NewDescribeCommand(aliasResourceLinkRoot.CmdClause, data)
+	aliasResourceLinkList := aliasresourcelink.NewListCommand(aliasResourceLinkRoot.CmdClause, data)
+	aliasResourceLinkUpdate := aliasresourcelink.NewUpdateCommand(aliasResourceLinkRoot.CmdClause, data)
 	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
 	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
 	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(aliasVclRoot.CmdClause, data)
@@ -1213,12 +1220,6 @@ func Define( // nolint:revive // function-length
 		profileSwitch,
 		profileToken,
 		profileUpdate,
-		resourcelinkCmdRoot,
-		resourcelinkCreate,
-		resourcelinkDelete,
-		resourcelinkDescribe,
-		resourcelinkList,
-		resourcelinkUpdate,
 		secretstoreCreate,
 		secretstoreDescribe,
 		secretstoreDelete,
@@ -1313,6 +1314,12 @@ func Define( // nolint:revive // function-length
 		serviceratelimitDescribe,
 		serviceratelimitList,
 		serviceratelimitUpdate,
+		serviceresourcelinkCmdRoot,
+		serviceresourcelinkCreate,
+		serviceresourcelinkDelete,
+		serviceresourcelinkDescribe,
+		serviceresourcelinkList,
+		serviceresourcelinkUpdate,
 		serviceVersionActivate,
 		serviceVersionClone,
 		serviceVersionCmdRoot,
@@ -1416,6 +1423,11 @@ func Define( // nolint:revive // function-length
 		aliasRateLimitDescribe,
 		aliasRateLimitList,
 		aliasRateLimitUpdate,
+		aliasResourceLinkCreate,
+		aliasResourceLinkDelete,
+		aliasResourceLinkDescribe,
+		aliasResourceLinkList,
+		aliasResourceLinkUpdate,
 		aliasVclDescribe,
 		aliasVclConditionCreate,
 		aliasVclConditionDelete,
