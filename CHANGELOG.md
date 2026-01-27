@@ -28,6 +28,7 @@
 
 ### Bug fixes:
 - fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
+- fix(manifest): Correct setup.Defined to include checks for ObjectStores and SecretStores ([#1639](https://github.com/fastly/cli/pull/1639))
 
 ### Dependencies:
 - build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
