@@ -77,6 +77,7 @@ logging
 ngwaf
 object-storage
 pops
+product
 products
 profile
 secret-store

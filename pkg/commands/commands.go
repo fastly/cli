@@ -93,6 +93,17 @@ import (
 	"github.com/fastly/cli/pkg/commands/objectstorage"
 	"github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	"github.com/fastly/cli/pkg/commands/pop"
+	"github.com/fastly/cli/pkg/commands/product"
+	"github.com/fastly/cli/pkg/commands/product/botmanagement"
+
+	// "github.com/fastly/cli/pkg/commands/product/brotlicompression"
+	// "github.com/fastly/cli/pkg/commands/product/ddosprotection"
+	// "github.com/fastly/cli/pkg/commands/product/domaininspector"
+	// "github.com/fastly/cli/pkg/commands/product/fanout"
+	// "github.com/fastly/cli/pkg/commands/product/imageoptimizer"
+	// "github.com/fastly/cli/pkg/commands/product/logexplorerinsights"
+	// "github.com/fastly/cli/pkg/commands/product/origininspector"
+	// "github.com/fastly/cli/pkg/commands/product/websockets"
 	"github.com/fastly/cli/pkg/commands/products"
 	"github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/commands/secretstore"
@@ -553,6 +564,53 @@ func Define( // nolint:revive // function-length
 	objectStorageAccesskeysGet := accesskeys.NewGetCommand(objectStorageAccesskeysRoot.CmdClause, data)
 	objectStorageAccesskeysList := accesskeys.NewListCommand(objectStorageAccesskeysRoot.CmdClause, data)
 	popCmdRoot := pop.NewRootCommand(app, data)
+
+	productCmdRoot := product.NewRootCommand(app, data)
+	productBotManagementCmdRoot := botmanagement.NewRootCommand(productCmdRoot.CmdClause, data)
+	productBotManagementDisable := botmanagement.NewDisableCommand(productBotManagementCmdRoot.CmdClause, data)
+	productBotManagementEnable := botmanagement.NewEnableCommand(productBotManagementCmdRoot.CmdClause, data)
+	productBotManagementStatus := botmanagement.NewStatusCommand(productBotManagementCmdRoot.CmdClause, data)
+
+	// productBrotliCompressionCmdRoot := brotlicompression.NewRootCommand(productCmdRoot.CmdClause, data)
+	// productBrotliCompressionDisable := brotlicompression.NewDisableCommand(productBrotliCompressionCmdRoot.CmdClause, data)
+	// productBrotliCompressionEnable := brotlicompression.NewEnableCommand(productBrotliCompressionCmdRoot.CmdClause, data)
+	// productBrotliCompressionStatus := brotlicompression.NewStatusCommand(productBrotliCompressionCmdRoot.CmdClause, data)
+
+	// productDDoSProtectionCmdRoot := ddosprotection.NewRootCommand(productCmdRoot.CmdClause, data)
+	// productDDoSProtectionDisable := ddosprotection.NewDisableCommand(productDDoSProtectionCmdRoot.CmdClause, data)
+	// productDDoSProtectionEnable := ddosprotection.NewEnableCommand(productDDoSProtectionCmdRoot.CmdClause, data)
+	// productDDoSProtectionStatus := ddosprotection.NewStatusCommand(productDDoSProtectionCmdRoot.CmdClause, data)
+
+	// productDomainInspectorCmdRoot := domaininspector.NewRootCommand(productCmdRoot.CmdClause, data)
+	// productDomainInspectorDisable := domaininspector.NewDisableCommand(productDomainInspectorCmdRoot.CmdClause, data)
+	// productDomainInspectorEnable := domaininspector.NewEnableCommand(productDomainInspectorCmdRoot.CmdClause, data)
+	// productDomainInspectorStatus := domaininspector.NewStatusCommand(productDomainInspectorCmdRoot.CmdClause, data)
+
+	// productFanoutCmdRoot := fanout.NewRootCommand(productCmdRoot.CmdClause, data)
+	// productFanoutDisable := fanout.NewDisableCommand(productFanoutCmdRoot.CmdClause, data)
+	// productFanoutEnable := fanout.NewEnableCommand(productFanoutCmdRoot.CmdClause, data)
+	// productFanoutStatus := fanout.NewStatusCommand(productFanoutCmdRoot.CmdClause, data)
+
+	// productImageOptimizerCmdRoot := imageoptimizer.NewRootCommand(productCmdRoot.CmdClause, data)
+	// productImageOptimizerDisable := imageoptimizer.NewDisableCommand(productImageOptimizerCmdRoot.CmdClause, data)
+	// productImageOptimizerEnable := imageoptimizer.NewEnableCommand(productImageOptimizerCmdRoot.CmdClause, data)
+	// productImageOptimizerStatus := imageoptimizer.NewStatusCommand(productImageOptimizerCmdRoot.CmdClause, data)
+
+	// productLogExplorerInsightsCmdRoot := logexplorerinsights.NewRootCommand(productCmdRoot.CmdClause, data)
+	// productLogExplorerInsightsDisable := logexplorerinsights.NewDisableCommand(productLogExplorerInsightsCmdRoot.CmdClause, data)
+	// productLogExplorerInsightsEnable := logexplorerinsights.NewEnableCommand(productLogExplorerInsightsCmdRoot.CmdClause, data)
+	// productLogExplorerInsightsStatus := logexplorerinsights.NewStatusCommand(productLogExplorerInsightsCmdRoot.CmdClause, data)
+
+	// productOriginInspectorCmdRoot := origininspector.NewRootCommand(productCmdRoot.CmdClause, data)
+	// productOriginInspectorDisable := origininspector.NewDisableCommand(productOriginInspectorCmdRoot.CmdClause, data)
+	// productOriginInspectorEnable := origininspector.NewEnableCommand(productOriginInspectorCmdRoot.CmdClause, data)
+	// productOriginInspectorStatus := origininspector.NewStatusCommand(productOriginInspectorCmdRoot.CmdClause, data)
+
+	// productWebSocketsCmdRoot := websockets.NewRootCommand(productCmdRoot.CmdClause, data)
+	// productWebSocketsDisable := websockets.NewDisableCommand(productWebSocketsCmdRoot.CmdClause, data)
+	// productWebSocketsEnable := websockets.NewEnableCommand(productWebSocketsCmdRoot.CmdClause, data)
+	// productWebSocketsStatus := websockets.NewStatusCommand(productWebSocketsCmdRoot.CmdClause, data)
+
 	productsCmdRoot := products.NewRootCommand(app, data)
 	profileCmdRoot := profile.NewRootCommand(app, data)
 	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
@@ -1212,6 +1270,43 @@ func Define( // nolint:revive // function-length
 		objectStorageAccesskeysGet,
 		objectStorageAccesskeysList,
 		popCmdRoot,
+		productCmdRoot,
+		productBotManagementCmdRoot,
+		productBotManagementDisable,
+		productBotManagementEnable,
+		productBotManagementStatus,
+		// productBrotliCompressionCmdRoot,
+		// productBrotliCompressionDisable,
+		// productBrotliCompressionEnable,
+		// productBrotliCompressionStatus,
+		// productDDoSProtectionCmdRoot,
+		// productDDoSProtectionDisable,
+		// productDDoSProtectionEnable,
+		// productDDoSProtectionStatus,
+		// productDomainInspectorCmdRoot,
+		// productDomainInspectorDisable,
+		// productDomainInspectorEnable,
+		// productDomainInspectorStatus,
+		// productFanoutCmdRoot,
+		// productFanoutDisable,
+		// productFanoutEnable,
+		// productFanoutStatus,
+		// productImageOptimizerCmdRoot,
+		// productImageOptimizerDisable,
+		// productImageOptimizerEnable,
+		// productImageOptimizerStatus,
+		// productLogExplorerInsightsCmdRoot,
+		// productLogExplorerInsightsDisable,
+		// productLogExplorerInsightsEnable,
+		// productLogExplorerInsightsStatus,
+		// productOriginInspectorCmdRoot,
+		// productOriginInspectorDisable,
+		// productOriginInspectorEnable,
+		// productOriginInspectorStatus,
+		// productWebSocketsCmdRoot,
+		// productWebSocketsDisable,
+		// productWebSocketsEnable,
+		// productWebSocketsStatus,
 		productsCmdRoot,
 		profileCmdRoot,
 		profileCreate,
