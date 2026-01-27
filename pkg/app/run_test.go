@@ -67,6 +67,7 @@ config-store
 config-store-entry
 dashboard
 dictionary
+dictionary-entry
 domain
 install
 ip-list
@@ -79,8 +80,6 @@ object-storage
 pops
 products
 profile
-rate-limit
-resource-link
 secret-store
 secret-store-entry
 service

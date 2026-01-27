@@ -102,7 +102,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	for i, resource := range o {
 		fmt.Fprintf(out, "Resource Link %d/%d\n", i+1, len(o))
-		text.PrintResource(out, "\t", resource)
+		text.PrintResource(out, "  ", resource)
 		fmt.Fprintln(out)
 	}
 

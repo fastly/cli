@@ -21,8 +21,13 @@
 - feat(service/imageoptimizerdefaults): moved the `imageoptimizerdefaults` commands under the `service` command, with an unlisted and deprecated alias of `imageoptimizerdefaults` ([#1627](https://github.com/fastly/cli/pull/1627))
 - feat(service/alert): moved the `alerts` command to the `service alert` command, with an unlisted and deprecated alias of `alerts` ([#1616](https://github.com/fastly/cli/pull/1626))
 - feat(service/dictionaryentry): moved the `dictionary-entry` commands under the `service` command, with an unlisted and deprecated alias of `dictionary-entry` ([#1628](https://github.com/fastly/cli/pull/1628))
+- feat(service/dictionary): moved the `dictionary` command under the `service` command, with an unlisted and deprecated alias of `dictionary` ([#1621](https://github.com/fastly/cli/pull/1630))
+- feat(service/ratelimit): moved the `rate-limit` commands under the `service` command, with an unlisted and deprecated alias of `rate-limit` ([#1632](https://github.com/fastly/cli/pull/1632))
+- feat(compute/build): Remove Rust version restriction, allowing 1.93.0 and later versions to be used. ([#1633](https://github.com/fastly/cli/pull/1633))
+- feat(service/resourcelink): moved the `resource-link` commands under the `service` command, with an unlisted and deprecated alias of `resource-link` ([#1635](https://github.com/fastly/cli/pull/1635))
 
 ### Bug fixes:
+- fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
 
 ### Dependencies:
 - build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
@@ -44,6 +49,7 @@
 - build(deps): `github.com/clipperhouse/uax29/v2` from 2.3.0 to 2.3.1 ([#1625](https://github.com/fastly/cli/pull/1625))
 - build(deps): `github.com/klauspost/compress` from 1.18.2 to 1.18.3 ([#1625](https://github.com/fastly/cli/pull/1625))
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.23 to 4.1.25 ([#1625](https://github.com/fastly/cli/pull/1625))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.3.1 to 2.4.0 ([#1634](https://github.com/fastly/cli/pull/1634))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
 

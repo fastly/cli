@@ -738,7 +738,7 @@ func (c *ServeCommand) BuildPushpinRoutes() []string {
 		}
 
 		// Target:
-		target := u.Host
+		target := normalizeHost(u)
 		// 1. `over_http`: Enable WebSocket-over-HTTP
 		target += ",over_http"
 		// 2. `ssl`: If backend is https
@@ -756,6 +756,26 @@ func (c *ServeCommand) BuildPushpinRoutes() []string {
 	}
 
 	return routes
+}
+
+func normalizeHost(u *url.URL) string {
+	host := u.Host
+
+	// If Host already has a port, SplitHostPort succeeds
+	// This an attempt at future-proofing as it handles IPv6
+	if _, _, err := net.SplitHostPort(host); err == nil {
+		return host
+	}
+
+	switch u.Scheme {
+	case "https":
+		return net.JoinHostPort(host, "443")
+	case "http":
+		return net.JoinHostPort(host, "80")
+	default:
+		// Unknown scheme, leave untouched
+		return host
+	}
 }
 
 func formatPushpinLog(line string) (string, string) {
