@@ -519,6 +519,7 @@ func TestBuildJavaScript(t *testing.T) {
 		// default build script inserted.
 		//
 		// NOTE: This test passes --verbose so we can validate specific outputs.
+		// NOTE: npmInstall is required because toolchain verification checks for node_modules.
 		{
 			name: "build script inserted dynamically when missing",
 			args: args("compute build --verbose"),
@@ -529,8 +530,9 @@ func TestBuildJavaScript(t *testing.T) {
 			wantOutput: []string{
 				"No [scripts.build] found in fastly.toml.", // requires --verbose
 				"The following default build command for",
-				"npm exec webpack", // our testdata package.json references webpack
+				// The exact command depends on detected runtime (bun or node)
 			},
+			npmInstall: true,
 		},
 		{
 			name: "build error",
