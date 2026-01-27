@@ -20,7 +20,7 @@
 - feat(version): If the latest version is at least one major version higher than the current version, provide links to the release notes for the major version(s) so the user can review them before upgrading. ([#1623](https://github.com/fastly/cli/pull/1623))
 - feat(service/imageoptimizerdefaults): moved the `imageoptimizerdefaults` commands under the `service` command, with an unlisted and deprecated alias of `imageoptimizerdefaults` ([#1627](https://github.com/fastly/cli/pull/1627))
 - feat(service/alert): moved the `alerts` command to the `service alert` command, with an unlisted and deprecated alias of `alerts` ([#1616](https://github.com/fastly/cli/pull/1626))
-- feat(service/dictionaryentry): moved the `dictionary-entry` commands under the `service` command, with an unlisted and deprecated alias of `dictionary-entry` ([#1628](https://github.com/fastly/cli/pull/1628))
+- feat(service/dictionary-entry): moved the `dictionary-entry` commands under the `service` command, with an unlisted and deprecated alias of `dictionary-entry` ([#1628](https://github.com/fastly/cli/pull/1628))
 - feat(service/dictionary): moved the `dictionary` command under the `service` command, with an unlisted and deprecated alias of `dictionary` ([#1621](https://github.com/fastly/cli/pull/1630))
 - feat(service/ratelimit): moved the `rate-limit` commands under the `service` command, with an unlisted and deprecated alias of `rate-limit` ([#1632](https://github.com/fastly/cli/pull/1632))
 - feat(compute/build): Remove Rust version restriction, allowing 1.93.0 and later versions to be used. ([#1633](https://github.com/fastly/cli/pull/1633))
