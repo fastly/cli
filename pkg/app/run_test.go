@@ -66,7 +66,6 @@ config
 config-store
 config-store-entry
 dashboard
-dictionary-entry
 domain
 install
 ip-list

@@ -9,6 +9,7 @@ import (
 	aliasalerts "github.com/fastly/cli/pkg/commands/alias/alerts"
 	aliasbackend "github.com/fastly/cli/pkg/commands/alias/backend"
 	aliasdictionary "github.com/fastly/cli/pkg/commands/alias/dictionary"
+	aliasdictionaryentry "github.com/fastly/cli/pkg/commands/alias/dictionaryentry"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliasimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/alias/imageoptimizerdefaults"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
@@ -27,7 +28,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	"github.com/fastly/cli/pkg/commands/dashboard"
 	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
-	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
@@ -103,6 +103,7 @@ import (
 	servicealert "github.com/fastly/cli/pkg/commands/service/alert"
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
 	servicedictionary "github.com/fastly/cli/pkg/commands/service/dictionary"
+	servicedictionaryentry "github.com/fastly/cli/pkg/commands/service/dictionaryentry"
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 	serviceimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/service/imageoptimizerdefaults"
@@ -199,12 +200,6 @@ func Define( // nolint:revive // function-length
 	dashboardItemDescribe := dashboardItem.NewDescribeCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemUpdate := dashboardItem.NewUpdateCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemDelete := dashboardItem.NewDeleteCommand(dashboardItemCmdRoot.CmdClause, data)
-	dictionaryEntryCmdRoot := dictionaryentry.NewRootCommand(app, data)
-	dictionaryEntryCreate := dictionaryentry.NewCreateCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryDelete := dictionaryentry.NewDeleteCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryDescribe := dictionaryentry.NewDescribeCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryList := dictionaryentry.NewListCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryUpdate := dictionaryentry.NewUpdateCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	domainCmdRoot := domain.NewRootCommand(app, data)
 	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, data)
 	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, data)
@@ -646,6 +641,12 @@ func Define( // nolint:revive // function-length
 	servicedomainList := servicedomain.NewListCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainUpdate := servicedomain.NewUpdateCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainValidate := servicedomain.NewValidateCommand(servicedomainCmdRoot.CmdClause, data)
+	servicedictionaryentryCmdRoot := servicedictionaryentry.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	servicedictionaryentryCreate := servicedictionaryentry.NewCreateCommand(servicedictionaryentryCmdRoot.CmdClause, data)
+	servicedictionaryentryDelete := servicedictionaryentry.NewDeleteCommand(servicedictionaryentryCmdRoot.CmdClause, data)
+	servicedictionaryentryDescribe := servicedictionaryentry.NewDescribeCommand(servicedictionaryentryCmdRoot.CmdClause, data)
+	servicedictionaryentryList := servicedictionaryentry.NewListCommand(servicedictionaryentryCmdRoot.CmdClause, data)
+	servicedictionaryentryUpdate := servicedictionaryentry.NewUpdateCommand(servicedictionaryentryCmdRoot.CmdClause, data)
 	servicebackendCmdRoot := servicebackend.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	servicebackendCreate := servicebackend.NewCreateCommand(servicebackendCmdRoot.CmdClause, data)
 	servicebackendDelete := servicebackend.NewDeleteCommand(servicebackendCmdRoot.CmdClause, data)
@@ -734,6 +735,12 @@ func Define( // nolint:revive // function-length
 	aliasBackendDescribe := aliasbackend.NewDescribeCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendList := aliasbackend.NewListCommand(aliasBackendRoot.CmdClause, data)
 	aliasBackendUpdate := aliasbackend.NewUpdateCommand(aliasBackendRoot.CmdClause, data)
+	aliasDictionaryEntryRoot := aliasdictionaryentry.NewRootCommand(app, data)
+	aliasDictionaryEntryCreate := aliasdictionaryentry.NewCreateCommand(aliasDictionaryEntryRoot.CmdClause, data)
+	aliasDictionaryEntryDelete := aliasdictionaryentry.NewDeleteCommand(aliasDictionaryEntryRoot.CmdClause, data)
+	aliasDictionaryEntryDescribe := aliasdictionaryentry.NewDescribeCommand(aliasDictionaryEntryRoot.CmdClause, data)
+	aliasDictionaryEntryList := aliasdictionaryentry.NewListCommand(aliasDictionaryEntryRoot.CmdClause, data)
+	aliasDictionaryEntryUpdate := aliasdictionaryentry.NewUpdateCommand(aliasDictionaryEntryRoot.CmdClause, data)
 	aliasDictionaryRoot := aliasdictionary.NewRootCommand(app, data)
 	aliasDictionaryCreate := aliasdictionary.NewCreateCommand(aliasDictionaryRoot.CmdClause, data)
 	aliasDictionaryDelete := aliasdictionary.NewDeleteCommand(aliasDictionaryRoot.CmdClause, data)
@@ -862,12 +869,6 @@ func Define( // nolint:revive // function-length
 		dashboardItemDescribe,
 		dashboardItemUpdate,
 		dashboardItemDelete,
-		dictionaryEntryCmdRoot,
-		dictionaryEntryCreate,
-		dictionaryEntryDelete,
-		dictionaryEntryDescribe,
-		dictionaryEntryList,
-		dictionaryEntryUpdate,
 		domainCmdRoot,
 		domainCreate,
 		domainDelete,
@@ -1293,6 +1294,12 @@ func Define( // nolint:revive // function-length
 		servicedomainList,
 		servicedomainUpdate,
 		servicedomainValidate,
+		servicedictionaryentryCmdRoot,
+		servicedictionaryentryCreate,
+		servicedictionaryentryDelete,
+		servicedictionaryentryDescribe,
+		servicedictionaryentryList,
+		servicedictionaryentryUpdate,
 		servicebackendCmdRoot,
 		servicebackendCreate,
 		servicebackendDelete,
@@ -1388,6 +1395,11 @@ func Define( // nolint:revive // function-length
 		aliasBackendDescribe,
 		aliasBackendList,
 		aliasBackendUpdate,
+		aliasDictionaryEntryCreate,
+		aliasDictionaryEntryDelete,
+		aliasDictionaryEntryDescribe,
+		aliasDictionaryEntryList,
+		aliasDictionaryEntryUpdate,
 		aliasDictionaryCreate,
 		aliasDictionaryDelete,
 		aliasDictionaryDescribe,
