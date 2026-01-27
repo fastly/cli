@@ -28,8 +28,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	"github.com/fastly/cli/pkg/commands/dashboard"
 	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
-	"github.com/fastly/cli/pkg/commands/dictionary"
-	"github.com/fastly/cli/pkg/commands/dictionaryentry"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
@@ -202,18 +200,6 @@ func Define( // nolint:revive // function-length
 	dashboardItemDescribe := dashboardItem.NewDescribeCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemUpdate := dashboardItem.NewUpdateCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemDelete := dashboardItem.NewDeleteCommand(dashboardItemCmdRoot.CmdClause, data)
-	dictionaryCmdRoot := dictionary.NewRootCommand(app, data)
-	dictionaryCreate := dictionary.NewCreateCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryDelete := dictionary.NewDeleteCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryDescribe := dictionary.NewDescribeCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryList := dictionary.NewListCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryUpdate := dictionary.NewUpdateCommand(dictionaryCmdRoot.CmdClause, data)
-	dictionaryEntryCmdRoot := dictionaryentry.NewRootCommand(app, data)
-	dictionaryEntryCreate := dictionaryentry.NewCreateCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryDelete := dictionaryentry.NewDeleteCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryDescribe := dictionaryentry.NewDescribeCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryList := dictionaryentry.NewListCommand(dictionaryEntryCmdRoot.CmdClause, data)
-	dictionaryEntryUpdate := dictionaryentry.NewUpdateCommand(dictionaryEntryCmdRoot.CmdClause, data)
 	domainCmdRoot := domain.NewRootCommand(app, data)
 	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, data)
 	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, data)
@@ -883,18 +869,6 @@ func Define( // nolint:revive // function-length
 		dashboardItemDescribe,
 		dashboardItemUpdate,
 		dashboardItemDelete,
-		dictionaryCmdRoot,
-		dictionaryCreate,
-		dictionaryDelete,
-		dictionaryDescribe,
-		dictionaryList,
-		dictionaryUpdate,
-		dictionaryEntryCmdRoot,
-		dictionaryEntryCreate,
-		dictionaryEntryDelete,
-		dictionaryEntryDescribe,
-		dictionaryEntryList,
-		dictionaryEntryUpdate,
 		domainCmdRoot,
 		domainCreate,
 		domainDelete,
