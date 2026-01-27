@@ -112,6 +112,7 @@ both the old and new forms are:
 - feat(service/auth): moved the `service-auth` commands under the `service` command and renamed to `auth`, with an unlisted and deprecated alias of `service-auth` ([#1643](https://github.com/fastly/cli/pull/1643))
 - feat(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug. ([#1653](https://github.com/fastly/cli/pull/1653))
 - feat(service/vcl): escape control characters when displaying VCL content for cleaner terminal output ([#1637](https://github.com/fastly/cli/pull/1637))
+- feat(compute/build): improved error messaging for JavaScript builds with pre-flight toolchain verification including Bun runtime support
 
 ### Bug fixes:
 
