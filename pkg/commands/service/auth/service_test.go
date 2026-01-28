@@ -1,4 +1,4 @@
-package serviceauth_test
+package auth_test
 
 import (
 	"bytes"
@@ -25,16 +25,16 @@ func TestServiceAuthCreate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-auth create"),
+			args:      args("service auth create"),
 			wantError: "error parsing arguments: required flag --user-id not provided",
 		},
 		{
-			args:      args("service-auth create --user-id 123 --service-id 123"),
+			args:      args("service auth create --user-id 123 --service-id 123"),
 			api:       mock.API{CreateServiceAuthorizationFn: createServiceAuthError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       args("service-auth create --user-id 123 --service-id 123"),
+			args:       args("service auth create --user-id 123 --service-id 123"),
 			api:        mock.API{CreateServiceAuthorizationFn: createServiceAuthOK},
 			wantOutput: "Created service authorization 12345",
 		},
@@ -64,21 +64,21 @@ func TestServiceAuthList(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-auth list --verbose --json"),
+			args:      args("service auth list --verbose --json"),
 			wantError: "invalid flag combination, --verbose and --json",
 		},
 		{
-			args:      args("service-auth list"),
+			args:      args("service auth list"),
 			api:       mock.API{ListServiceAuthorizationsFn: listServiceAuthError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       args("service-auth list"),
+			args:       args("service auth list"),
 			api:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
 			wantOutput: "AUTH ID  USER ID  SERVICE ID  PERMISSION\n123      456      789         read_only\n",
 		},
 		{
-			args: args("service-auth list --json"),
+			args: args("service auth list --json"),
 			api:  mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
 			wantOutput: `{
   "Info": {
@@ -103,7 +103,7 @@ func TestServiceAuthList(t *testing.T) {
 }`,
 		},
 		{
-			args:       args("service-auth list --verbose"),
+			args:       args("service auth list --verbose"),
 			api:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
 			wantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nAuth ID: 123\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
@@ -134,25 +134,25 @@ func TestServiceAuthDescribe(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-auth describe"),
+			args:      args("service auth describe"),
 			wantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			args:      args("service-auth describe --id 123 --verbose --json"),
+			args:      args("service auth describe --id 123 --verbose --json"),
 			wantError: "invalid flag combination, --verbose and --json",
 		},
 		{
-			args:      args("service-auth describe --id 123"),
+			args:      args("service auth describe --id 123"),
 			api:       mock.API{GetServiceAuthorizationFn: describeServiceAuthError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       args("service-auth describe --id 123"),
+			args:       args("service auth describe --id 123"),
 			api:        mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
 			wantOutput: "Auth ID: 12345\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
 		{
-			args: args("service-auth describe --id 123 --json"),
+			args: args("service auth describe --id 123 --json"),
 			api:  mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
 			wantOutput: `{
   "CreatedAt": null,
@@ -195,20 +195,20 @@ func TestServiceAuthUpdate(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-auth update --permission full"),
+			args:      args("service auth update --permission full"),
 			wantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			args:      args("service-auth update --id 123"),
+			args:      args("service auth update --id 123"),
 			wantError: "error parsing arguments: required flag --permission not provided",
 		},
 		{
-			args:      args("service-auth update --id 123 --permission full"),
+			args:      args("service auth update --id 123 --permission full"),
 			api:       mock.API{UpdateServiceAuthorizationFn: updateServiceAuthError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       args("service-auth update --id 123 --permission full"),
+			args:       args("service auth update --id 123 --permission full"),
 			api:        mock.API{UpdateServiceAuthorizationFn: updateServiceAuthOK},
 			wantOutput: "Updated service authorization 123",
 		},
@@ -238,16 +238,16 @@ func TestServiceAuthDelete(t *testing.T) {
 		wantOutput string
 	}{
 		{
-			args:      args("service-auth delete"),
+			args:      args("service auth delete"),
 			wantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			args:      args("service-auth delete --id 123"),
+			args:      args("service auth delete --id 123"),
 			api:       mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthError},
 			wantError: errTest.Error(),
 		},
 		{
-			args:       args("service-auth delete --id 123"),
+			args:       args("service auth delete --id 123"),
 			api:        mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthOK},
 			wantOutput: "Deleted service authorization 123",
 		},

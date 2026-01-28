@@ -21,7 +21,7 @@ const CommandName = "service-auth"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Allow users to access only specified services")
+	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly Service Authentication").Hidden()
 	return &c
 }
 
