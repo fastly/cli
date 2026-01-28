@@ -116,6 +116,7 @@ import (
 	servicevclsnippet "github.com/fastly/cli/pkg/commands/service/vcl/snippet"
 	serviceversion "github.com/fastly/cli/pkg/commands/service/version"
 	"github.com/fastly/cli/pkg/commands/serviceauth"
+	"github.com/fastly/cli/pkg/commands/setup"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/stats"
@@ -150,6 +151,7 @@ func Define( // nolint:revive // function-length
 	// placement of the `sso` subcommand not look too odd we place it at the
 	// beginning of the list of commands.
 	ssoCmdRoot := sso.NewRootCommand(app, data)
+	setupCmdRoot := setup.NewRootCommand(app, data, ssoCmdRoot)
 
 	authtokenCmdRoot := authtoken.NewRootCommand(app, data)
 	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, data)
@@ -1336,6 +1338,7 @@ func Define( // nolint:revive // function-length
 		serviceVersionStage,
 		serviceVersionUnstage,
 		serviceVersionUpdate,
+		setupCmdRoot,
 		ssoCmdRoot,
 		statsCmdRoot,
 		statsHistorical,
