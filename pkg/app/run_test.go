@@ -81,7 +81,6 @@ profile
 secret-store
 secret-store-entry
 service
-service-auth
 stats
 tls-config
 tls-custom

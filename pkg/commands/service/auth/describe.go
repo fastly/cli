@@ -1,4 +1,4 @@
-package serviceauth
+package auth
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/fastly/cli/pkg/time"
 )
 
-// DescribeCommand calls the Fastly API to describe a service authorization.
+// DescribeCommand calls the Fastly API to describe a service authorization for a service.
 type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
