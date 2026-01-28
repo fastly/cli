@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -170,7 +171,7 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) (
 func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet) error {
 	fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(ds.ServiceID))
 	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(ds.SnippetID))
-	fmt.Fprintf(out, "Content: \n%s\n", fastly.ToValue(ds.Content))
+	fmt.Fprintf(out, "Content: \n%s\n", text.SanitizeTerminalOutput(fastly.ToValue(ds.Content)))
 	if ds.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", ds.CreatedAt)
 	}
@@ -191,7 +192,7 @@ func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
 	fmt.Fprintf(out, "Priority: %s\n", fastly.ToValue(s.Priority))
 	fmt.Fprintf(out, "Dynamic: %t\n", argparser.IntToBool(fastly.ToValue(s.Dynamic)))
 	fmt.Fprintf(out, "Type: %s\n", fastly.ToValue(s.Type))
-	fmt.Fprintf(out, "Content: \n%s\n", fastly.ToValue(s.Content))
+	fmt.Fprintf(out, "Content: \n%s\n", text.SanitizeTerminalOutput(fastly.ToValue(s.Content)))
 	if s.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", s.CreatedAt)
 	}
