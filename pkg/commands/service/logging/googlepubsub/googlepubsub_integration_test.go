@@ -1,274 +1,163 @@
 package googlepubsub_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+
+	root "github.com/fastly/cli/pkg/commands/service"
+	parent "github.com/fastly/cli/pkg/commands/service/logging"
+	sub "github.com/fastly/cli/pkg/commands/service/logging/googlepubsub"
 )
 
 func TestGooglePubSubCreate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging googlepubsub create --service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --account-name=me@fastly.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --account-name=me@fastly.com --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreatePubsubFn: createGooglePubSubOK,
 			},
-			wantOutput: "Created Google Cloud Pub/Sub logging endpoint log (service 123 version 4)",
+			WantOutput: "Created Google Cloud Pub/Sub logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("service logging googlepubsub create --service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreatePubsubFn: createGooglePubSubError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestGooglePubSubList(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging googlepubsub list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListPubsubsFn:  listGooglePubSubsOK,
 			},
-			wantOutput: listGooglePubSubsShortOutput,
+			WantOutput: listGooglePubSubsShortOutput,
 		},
 		{
-			args: args("service logging googlepubsub list --service-id 123 --version 1 --verbose"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --verbose",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListPubsubsFn:  listGooglePubSubsOK,
 			},
-			wantOutput: listGooglePubSubsVerboseOutput,
+			WantOutput: listGooglePubSubsVerboseOutput,
 		},
 		{
-			args: args("service logging googlepubsub list --service-id 123 --version 1 -v"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 -v",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListPubsubsFn:  listGooglePubSubsOK,
 			},
-			wantOutput: listGooglePubSubsVerboseOutput,
+			WantOutput: listGooglePubSubsVerboseOutput,
 		},
 		{
-			args: args("service logging googlepubsub --verbose list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListPubsubsFn:  listGooglePubSubsOK,
-			},
-			wantOutput: listGooglePubSubsVerboseOutput,
-		},
-		{
-			args: args("service logging -v googlepubsub list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListPubsubsFn:  listGooglePubSubsOK,
-			},
-			wantOutput: listGooglePubSubsVerboseOutput,
-		},
-		{
-			args: args("service logging googlepubsub list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListPubsubsFn:  listGooglePubSubsError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestGooglePubSubDescribe(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging googlepubsub describe --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging googlepubsub describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetPubsubFn:    getGooglePubSubError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging googlepubsub describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetPubsubFn:    getGooglePubSubOK,
 			},
-			wantOutput: describeGooglePubSubOutput,
+			WantOutput: describeGooglePubSubOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestGooglePubSubUpdate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging googlepubsub update --service-id 123 --version 1 --new-name log"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1 --new-name log",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging googlepubsub update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdatePubsubFn: updateGooglePubSubError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging googlepubsub update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdatePubsubFn: updateGooglePubSubOK,
 			},
-			wantOutput: "Updated Google Cloud Pub/Sub logging endpoint log (service 123 version 4)",
+			WantOutput: "Updated Google Cloud Pub/Sub logging endpoint log (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestGooglePubSubDelete(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging googlepubsub delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging googlepubsub delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeletePubsubFn: deleteGooglePubSubError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging googlepubsub delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeletePubsubFn: deleteGooglePubSubOK,
 			},
-			wantOutput: "Deleted Google Cloud Pub/Sub logging endpoint logs (service 123 version 4)",
+			WantOutput: "Deleted Google Cloud Pub/Sub logging endpoint logs (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")

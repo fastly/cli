@@ -1,274 +1,163 @@
 package syslog_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+
+	root "github.com/fastly/cli/pkg/commands/service"
+	parent "github.com/fastly/cli/pkg/commands/service/logging"
+	sub "github.com/fastly/cli/pkg/commands/service/logging/syslog"
 )
 
 func TestSyslogCreate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging syslog create --service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogOK,
 			},
-			wantOutput: "Created Syslog logging endpoint log (service 123 version 4)",
+			WantOutput: "Created Syslog logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("service logging syslog create --service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestSyslogList(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging syslog list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
 			},
-			wantOutput: listSyslogsShortOutput,
+			WantOutput: listSyslogsShortOutput,
 		},
 		{
-			args: args("service logging syslog list --service-id 123 --version 1 --verbose"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --verbose",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
 			},
-			wantOutput: listSyslogsVerboseOutput,
+			WantOutput: listSyslogsVerboseOutput,
 		},
 		{
-			args: args("service logging syslog list --service-id 123 --version 1 -v"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 -v",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
 			},
-			wantOutput: listSyslogsVerboseOutput,
+			WantOutput: listSyslogsVerboseOutput,
 		},
 		{
-			args: args("service logging syslog --verbose list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSyslogsFn:  listSyslogsOK,
-			},
-			wantOutput: listSyslogsVerboseOutput,
-		},
-		{
-			args: args("service logging -v syslog list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSyslogsFn:  listSyslogsOK,
-			},
-			wantOutput: listSyslogsVerboseOutput,
-		},
-		{
-			args: args("service logging syslog list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestSyslogDescribe(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging syslog describe --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging syslog describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSyslogFn:    getSyslogError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging syslog describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSyslogFn:    getSyslogOK,
 			},
-			wantOutput: describeSyslogOutput,
+			WantOutput: describeSyslogOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestSyslogUpdate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging syslog update --service-id 123 --version 1 --new-name log"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1 --new-name log",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging syslog update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging syslog update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogOK,
 			},
-			wantOutput: "Updated Syslog logging endpoint log (service 123 version 4)",
+			WantOutput: "Updated Syslog logging endpoint log (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestSyslogDelete(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging syslog delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging syslog delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging syslog delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogOK,
 			},
-			wantOutput: "Deleted Syslog logging endpoint logs (service 123 version 4)",
+			WantOutput: "Deleted Syslog logging endpoint logs (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")

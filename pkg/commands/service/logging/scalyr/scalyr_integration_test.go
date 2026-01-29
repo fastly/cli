@@ -1,283 +1,172 @@
 package scalyr_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	"github.com/fastly/cli/pkg/app"
 	fsterrs "github.com/fastly/cli/pkg/errors"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+
+	root "github.com/fastly/cli/pkg/commands/service"
+	parent "github.com/fastly/cli/pkg/commands/service/logging"
+	sub "github.com/fastly/cli/pkg/commands/service/logging/scalyr"
 )
 
 func TestScalyrCreate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging scalyr create --name log --service-id  --version 1 --auth-token abc --autoclone"),
-			api: mock.API{
+			Args: "--name log --version 1 --auth-token abc --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
-			wantError: fsterrs.ErrNoServiceID.Error(),
+			WantError: fsterrs.ErrNoServiceID.Error(),
 		},
 		{
-			args: args("service logging scalyr create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateScalyrFn: createScalyrOK,
 			},
-			wantOutput: "Created Scalyr logging endpoint log (service 123 version 4)",
+			WantOutput: "Created Scalyr logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("service logging scalyr create --service-id 123 --version 1 --name log --auth-token abc --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateScalyrFn: createScalyrError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestScalyrList(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging scalyr list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsOK,
 			},
-			wantOutput: listScalyrsShortOutput,
+			WantOutput: listScalyrsShortOutput,
 		},
 		{
-			args: args("service logging scalyr list --service-id 123 --version 1 --verbose"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --verbose",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsOK,
 			},
-			wantOutput: listScalyrsVerboseOutput,
+			WantOutput: listScalyrsVerboseOutput,
 		},
 		{
-			args: args("service logging scalyr list --service-id 123 --version 1 -v"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 -v",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsOK,
 			},
-			wantOutput: listScalyrsVerboseOutput,
+			WantOutput: listScalyrsVerboseOutput,
 		},
 		{
-			args: args("service logging scalyr --verbose list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListScalyrsFn:  listScalyrsOK,
-			},
-			wantOutput: listScalyrsVerboseOutput,
-		},
-		{
-			args: args("service logging -v scalyr list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListScalyrsFn:  listScalyrsOK,
-			},
-			wantOutput: listScalyrsVerboseOutput,
-		},
-		{
-			args: args("service logging scalyr list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListScalyrsFn:  listScalyrsError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestScalyrDescribe(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging scalyr describe --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging scalyr describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetScalyrFn:    getScalyrError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging scalyr describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetScalyrFn:    getScalyrOK,
 			},
-			wantOutput: describeScalyrOutput,
+			WantOutput: describeScalyrOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestScalyrUpdate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging scalyr update --service-id 123 --version 1 --new-name log"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1 --new-name log",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging scalyr update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateScalyrFn: updateScalyrError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging scalyr update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateScalyrFn: updateScalyrOK,
 			},
-			wantOutput: "Updated Scalyr logging endpoint log (service 123 version 4)",
+			WantOutput: "Updated Scalyr logging endpoint log (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestScalyrDelete(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging scalyr delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging scalyr delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteScalyrFn: deleteScalyrError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging scalyr delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteScalyrFn: deleteScalyrOK,
 			},
-			wantOutput: "Deleted Scalyr logging endpoint logs (service 123 version 4)",
+			WantOutput: "Deleted Scalyr logging endpoint logs (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")

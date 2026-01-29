@@ -1,274 +1,163 @@
 package elasticsearch_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+
+	root "github.com/fastly/cli/pkg/commands/service"
+	parent "github.com/fastly/cli/pkg/commands/service/logging"
+	sub "github.com/fastly/cli/pkg/commands/service/logging/elasticsearch"
 )
 
 func TestElasticsearchCreate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging elasticsearch create --service-id 123 --version 1 --name log --index logs --url example.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --index logs --url example.com --autoclone",
+			API: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				CreateElasticsearchFn: createElasticsearchOK,
 			},
-			wantOutput: "Created Elasticsearch logging endpoint log (service 123 version 4)",
+			WantOutput: "Created Elasticsearch logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("service logging elasticsearch create --service-id 123 --version 1 --name log --index logs --url example.com --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --index logs --url example.com --autoclone",
+			API: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				CreateElasticsearchFn: createElasticsearchError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestElasticsearchList(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging elasticsearch list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
 			},
-			wantOutput: listElasticsearchsShortOutput,
+			WantOutput: listElasticsearchsShortOutput,
 		},
 		{
-			args: args("service logging elasticsearch list --service-id 123 --version 1 --verbose"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --verbose",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
 			},
-			wantOutput: listElasticsearchsVerboseOutput,
+			WantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args: args("service logging elasticsearch list --service-id 123 --version 1 -v"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 -v",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
 			},
-			wantOutput: listElasticsearchsVerboseOutput,
+			WantOutput: listElasticsearchsVerboseOutput,
 		},
 		{
-			args: args("service logging elasticsearch --verbose list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn:      testutil.ListVersions,
-				ListElasticsearchFn: listElasticsearchsOK,
-			},
-			wantOutput: listElasticsearchsVerboseOutput,
-		},
-		{
-			args: args("service logging -v elasticsearch list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn:      testutil.ListVersions,
-				ListElasticsearchFn: listElasticsearchsOK,
-			},
-			wantOutput: listElasticsearchsVerboseOutput,
-		},
-		{
-			args: args("service logging elasticsearch list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestElasticsearchDescribe(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging elasticsearch describe --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging elasticsearch describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				GetElasticsearchFn: getElasticsearchError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging elasticsearch describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				GetElasticsearchFn: getElasticsearchOK,
 			},
-			wantOutput: describeElasticsearchOutput,
+			WantOutput: describeElasticsearchOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestElasticsearchUpdate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging elasticsearch update --service-id 123 --version 1 --new-name log"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1 --new-name log",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging elasticsearch update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				UpdateElasticsearchFn: updateElasticsearchError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging elasticsearch update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				UpdateElasticsearchFn: updateElasticsearchOK,
 			},
-			wantOutput: "Updated Elasticsearch logging endpoint log (service 123 version 4)",
+			WantOutput: "Updated Elasticsearch logging endpoint log (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestElasticsearchDelete(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging elasticsearch delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging elasticsearch delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				DeleteElasticsearchFn: deleteElasticsearchError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging elasticsearch delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				DeleteElasticsearchFn: deleteElasticsearchOK,
 			},
-			wantOutput: "Deleted Elasticsearch logging endpoint logs (service 123 version 4)",
+			WantOutput: "Deleted Elasticsearch logging endpoint logs (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")

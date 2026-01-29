@@ -1,283 +1,172 @@
 package kafka_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+
+	root "github.com/fastly/cli/pkg/commands/service"
+	parent "github.com/fastly/cli/pkg/commands/service/logging"
+	sub "github.com/fastly/cli/pkg/commands/service/logging/kafka"
 )
 
 func TestKafkaCreate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging kafka create --service-id 123 --version 1 --name log --topic logs --brokers 127.0.0.1127.0.0.2 --parse-log-keyvals --max-batch-size 1024 --use-sasl --auth-method plain --username user --password password --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --topic logs --brokers 127.0.0.1127.0.0.2 --parse-log-keyvals --max-batch-size 1024 --use-sasl --auth-method plain --username user --password password --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateKafkaFn:  createKafkaOK,
 			},
-			wantOutput: "Created Kafka logging endpoint log (service 123 version 4)",
+			WantOutput: "Created Kafka logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("service logging kafka create --service-id 123 --version 1 --name log --topic logs --brokers 127.0.0.1127.0.0.2 --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name log --topic logs --brokers 127.0.0.1127.0.0.2 --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateKafkaFn:  createKafkaError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestKafkaList(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service logging kafka list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKafkasFn:   listKafkasOK,
 			},
-			wantOutput: listKafkasShortOutput,
+			WantOutput: listKafkasShortOutput,
 		},
 		{
-			args: args("service logging kafka list --service-id 123 --version 1 --verbose"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --verbose",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKafkasFn:   listKafkasOK,
 			},
-			wantOutput: listKafkasVerboseOutput,
+			WantOutput: listKafkasVerboseOutput,
 		},
 		{
-			args: args("service logging kafka list --service-id 123 --version 1 -v"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 -v",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKafkasFn:   listKafkasOK,
 			},
-			wantOutput: listKafkasVerboseOutput,
+			WantOutput: listKafkasVerboseOutput,
 		},
 		{
-			args: args("service logging kafka --verbose list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKafkasFn:   listKafkasOK,
-			},
-			wantOutput: listKafkasVerboseOutput,
-		},
-		{
-			args: args("service logging -v kafka list --service-id 123 --version 1"),
-			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKafkasFn:   listKafkasOK,
-			},
-			wantOutput: listKafkasVerboseOutput,
-		},
-		{
-			args: args("service logging kafka list --service-id 123 --version 1"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKafkasFn:   listKafkasError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestKafkaDescribe(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging kafka describe --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging kafka describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetKafkaFn:     getKafkaError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging kafka describe --service-id 123 --version 1 --name logs"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetKafkaFn:     getKafkaOK,
 			},
-			wantOutput: describeKafkaOutput,
+			WantOutput: describeKafkaOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestKafkaUpdate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging kafka update --service-id 123 --version 1 --new-name log"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1 --new-name log",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging kafka update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateKafkaFn:  updateKafkaError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging kafka update --service-id 123 --version 1 --name logs --new-name log --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateKafkaFn:  updateKafkaOK,
 			},
-			wantOutput: "Updated Kafka logging endpoint log (service 123 version 4)",
+			WantOutput: "Updated Kafka logging endpoint log (service 123 version 4)",
 		},
 		{
-			args: args("service logging kafka update --service-id 123 --version 1 --name logs --new-name log --parse-log-keyvals --max-batch-size 1024 --use-sasl --auth-method plain --username user --password password --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --new-name log --parse-log-keyvals --max-batch-size 1024 --use-sasl --auth-method plain --username user --password password --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateKafkaFn:  updateKafkaSASL,
 			},
-			wantOutput: "Updated Kafka logging endpoint log (service 123 version 4)",
+			WantOutput: "Updated Kafka logging endpoint log (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestKafkaDelete(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service logging kafka delete --service-id 123 --version 1"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args: "--service-id 123 --version 1",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args: args("service logging kafka delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteKafkaFn:  deleteKafkaError,
 			},
-			wantError: errTest.Error(),
+			WantError: errTest.Error(),
 		},
 		{
-			args: args("service logging kafka delete --service-id 123 --version 1 --name logs --autoclone"),
-			api: mock.API{
+			Args: "--service-id 123 --version 1 --name logs --autoclone",
+			API: mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteKafkaFn:  deleteKafkaOK,
 			},
-			wantOutput: "Deleted Kafka logging endpoint logs (service 123 version 4)",
+			WantOutput: "Deleted Kafka logging endpoint logs (service 123 version 4)",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+	testutil.RunCLIScenarios(t, []string{root.CommandName, parent.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")
