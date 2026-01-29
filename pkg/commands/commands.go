@@ -925,12 +925,12 @@ func Define( // nolint:revive // function-length
 	aliasHoneycombDescribe := aliashoneycomb.NewDescribeCommand(aliasHoneycombRoot.CmdClause, data)
 	aliasHoneycombList := aliashoneycomb.NewListCommand(aliasHoneycombRoot.CmdClause, data)
 	aliasHoneycombUpdate := aliashoneycomb.NewUpdateCommand(aliasHoneycombRoot.CmdClause, data)
-	aliasHttpsRoot := aliashttps.NewRootCommand(aliasLoggingRoot.CmdClause, data)
-	aliasHttpsCreate := aliashttps.NewCreateCommand(aliasHttpsRoot.CmdClause, data)
-	aliasHttpsDelete := aliashttps.NewDeleteCommand(aliasHttpsRoot.CmdClause, data)
-	aliasHttpsDescribe := aliashttps.NewDescribeCommand(aliasHttpsRoot.CmdClause, data)
-	aliasHttpsList := aliashttps.NewListCommand(aliasHttpsRoot.CmdClause, data)
-	aliasHttpsUpdate := aliashttps.NewUpdateCommand(aliasHttpsRoot.CmdClause, data)
+	aliasHTTPSRoot := aliashttps.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasHTTPSCreate := aliashttps.NewCreateCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasHTTPSDelete := aliashttps.NewDeleteCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasHTTPSDescribe := aliashttps.NewDescribeCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasHTTPSList := aliashttps.NewListCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasHTTPSUpdate := aliashttps.NewUpdateCommand(aliasHTTPSRoot.CmdClause, data)
 	aliasKafkaRoot := aliaskafka.NewRootCommand(aliasLoggingRoot.CmdClause, data)
 	aliasKafkaCreate := aliaskafka.NewCreateCommand(aliasKafkaRoot.CmdClause, data)
 	aliasKafkaDelete := aliaskafka.NewDeleteCommand(aliasKafkaRoot.CmdClause, data)
@@ -1740,12 +1740,12 @@ func Define( // nolint:revive // function-length
 		aliasHoneycombDescribe,
 		aliasHoneycombList,
 		aliasHoneycombUpdate,
-		aliasHttpsRoot,
-		aliasHttpsCreate,
-		aliasHttpsDelete,
-		aliasHttpsDescribe,
-		aliasHttpsList,
-		aliasHttpsUpdate,
+		aliasHTTPSRoot,
+		aliasHTTPSCreate,
+		aliasHTTPSDelete,
+		aliasHTTPSDescribe,
+		aliasHTTPSList,
+		aliasHTTPSUpdate,
 		aliasKafkaRoot,
 		aliasKafkaCreate,
 		aliasKafkaDelete,

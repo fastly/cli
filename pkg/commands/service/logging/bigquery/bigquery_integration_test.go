@@ -81,7 +81,7 @@ func TestBigQueryList(t *testing.T) {
 func TestBigQueryDescribe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -135,7 +135,7 @@ func TestBigQueryUpdate(t *testing.T) {
 func TestBigQueryDelete(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{

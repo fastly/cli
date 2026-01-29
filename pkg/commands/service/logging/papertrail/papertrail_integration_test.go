@@ -81,7 +81,7 @@ func TestPapertrailList(t *testing.T) {
 func TestPapertrailDescribe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -107,7 +107,7 @@ func TestPapertrailDescribe(t *testing.T) {
 func TestPapertrailUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1 --new-name log",
+			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -135,7 +135,7 @@ func TestPapertrailUpdate(t *testing.T) {
 func TestPapertrailDelete(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{

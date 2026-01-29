@@ -98,7 +98,7 @@ func TestGCSList(t *testing.T) {
 func TestGCSDescribe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -124,7 +124,7 @@ func TestGCSDescribe(t *testing.T) {
 func TestGCSUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1 --new-name log",
+			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -152,7 +152,7 @@ func TestGCSUpdate(t *testing.T) {
 func TestGCSDelete(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
