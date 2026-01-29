@@ -81,7 +81,7 @@ func TestSyslogList(t *testing.T) {
 func TestSyslogDescribe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -107,7 +107,7 @@ func TestSyslogDescribe(t *testing.T) {
 func TestSyslogUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1 --new-name log",
+			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -135,7 +135,7 @@ func TestSyslogUpdate(t *testing.T) {
 func TestSyslogDelete(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{

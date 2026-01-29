@@ -89,7 +89,7 @@ func TestSFTPList(t *testing.T) {
 func TestSFTPDescribe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -115,7 +115,7 @@ func TestSFTPDescribe(t *testing.T) {
 func TestSFTPUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1 --new-name log",
+			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -143,7 +143,7 @@ func TestSFTPUpdate(t *testing.T) {
 func TestSFTPDelete(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{

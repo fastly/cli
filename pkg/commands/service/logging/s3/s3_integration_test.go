@@ -139,7 +139,7 @@ func TestS3List(t *testing.T) {
 func TestS3Describe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -165,7 +165,7 @@ func TestS3Describe(t *testing.T) {
 func TestS3Update(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1 --new-name log",
+			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
@@ -193,7 +193,7 @@ func TestS3Update(t *testing.T) {
 func TestS3Delete(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--service-id 123 --version 1",
+			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
