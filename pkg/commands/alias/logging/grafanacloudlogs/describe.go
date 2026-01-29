@@ -24,6 +24,8 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 
 // Exec implements the command interface.
 func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service logging grafanacloudlogs describe' command instead.")
+	if !c.JSONOutput.Enabled {
+		text.Deprecated(out, "Use the 'service logging grafanacloudlogs describe' command instead.")
+	}
 	return c.DescribeCommand.Exec(in, out)
 }
