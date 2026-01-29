@@ -43,6 +43,7 @@ import (
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
 	aliasratelimit "github.com/fastly/cli/pkg/commands/alias/ratelimit"
 	aliasresourcelink "github.com/fastly/cli/pkg/commands/alias/resourcelink"
+	aliasserviceauth "github.com/fastly/cli/pkg/commands/alias/serviceauth"
 	aliasserviceversion "github.com/fastly/cli/pkg/commands/alias/serviceversion"
 	aliasvcl "github.com/fastly/cli/pkg/commands/alias/vcl"
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
@@ -101,6 +102,7 @@ import (
 	serviceacl "github.com/fastly/cli/pkg/commands/service/acl"
 	serviceaclentry "github.com/fastly/cli/pkg/commands/service/aclentry"
 	servicealert "github.com/fastly/cli/pkg/commands/service/alert"
+	serviceauth "github.com/fastly/cli/pkg/commands/service/auth"
 	servicebackend "github.com/fastly/cli/pkg/commands/service/backend"
 	servicedictionary "github.com/fastly/cli/pkg/commands/service/dictionary"
 	servicedictionaryentry "github.com/fastly/cli/pkg/commands/service/dictionaryentry"
@@ -143,7 +145,6 @@ import (
 	servicevclcustom "github.com/fastly/cli/pkg/commands/service/vcl/custom"
 	servicevclsnippet "github.com/fastly/cli/pkg/commands/service/vcl/snippet"
 	serviceversion "github.com/fastly/cli/pkg/commands/service/version"
-	"github.com/fastly/cli/pkg/commands/serviceauth"
 	"github.com/fastly/cli/pkg/commands/shellcomplete"
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/stats"
@@ -458,7 +459,7 @@ func Define( // nolint:revive // function-length
 	serviceaclentryDescribe := serviceaclentry.NewDescribeCommand(serviceaclentryCmdRoot.CmdClause, data)
 	serviceaclentryList := serviceaclentry.NewListCommand(serviceaclentryCmdRoot.CmdClause, data)
 	serviceaclentryUpdate := serviceaclentry.NewUpdateCommand(serviceaclentryCmdRoot.CmdClause, data)
-	serviceauthCmdRoot := serviceauth.NewRootCommand(app, data)
+	serviceauthCmdRoot := serviceauth.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceauthCreate := serviceauth.NewCreateCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthDelete := serviceauth.NewDeleteCommand(serviceauthCmdRoot.CmdClause, data)
 	serviceauthDescribe := serviceauth.NewDescribeCommand(serviceauthCmdRoot.CmdClause, data)
@@ -816,6 +817,12 @@ func Define( // nolint:revive // function-length
 	aliasResourceLinkDescribe := aliasresourcelink.NewDescribeCommand(aliasResourceLinkRoot.CmdClause, data)
 	aliasResourceLinkList := aliasresourcelink.NewListCommand(aliasResourceLinkRoot.CmdClause, data)
 	aliasResourceLinkUpdate := aliasresourcelink.NewUpdateCommand(aliasResourceLinkRoot.CmdClause, data)
+	aliasServiceAuthRoot := aliasserviceauth.NewRootCommand(app, data)
+	aliasServiceAuthCreate := aliasserviceauth.NewCreateCommand(aliasServiceAuthRoot.CmdClause, data)
+	aliasServiceAuthDelete := aliasserviceauth.NewDeleteCommand(aliasServiceAuthRoot.CmdClause, data)
+	aliasServiceAuthDescribe := aliasserviceauth.NewDescribeCommand(aliasServiceAuthRoot.CmdClause, data)
+	aliasServiceAuthList := aliasserviceauth.NewListCommand(aliasServiceAuthRoot.CmdClause, data)
+	aliasServiceAuthUpdate := aliasserviceauth.NewUpdateCommand(aliasServiceAuthRoot.CmdClause, data)
 	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
 	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
 	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(aliasVclRoot.CmdClause, data)
@@ -1631,6 +1638,11 @@ func Define( // nolint:revive // function-length
 		aliasResourceLinkDescribe,
 		aliasResourceLinkList,
 		aliasResourceLinkUpdate,
+		aliasServiceAuthCreate,
+		aliasServiceAuthDelete,
+		aliasServiceAuthDescribe,
+		aliasServiceAuthList,
+		aliasServiceAuthUpdate,
 		aliasVclDescribe,
 		aliasVclConditionCreate,
 		aliasVclConditionDelete,

@@ -1,4 +1,4 @@
-package serviceauth
+package auth
 
 import (
 	"context"
