@@ -12,6 +12,34 @@ import (
 	aliasdictionaryentry "github.com/fastly/cli/pkg/commands/alias/dictionaryentry"
 	aliashealthcheck "github.com/fastly/cli/pkg/commands/alias/healthcheck"
 	aliasimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/alias/imageoptimizerdefaults"
+	aliaslogging "github.com/fastly/cli/pkg/commands/alias/logging"
+	aliasazureblob "github.com/fastly/cli/pkg/commands/alias/logging/azureblob"
+	aliasbigquery "github.com/fastly/cli/pkg/commands/alias/logging/bigquery"
+	aliascloudfiles "github.com/fastly/cli/pkg/commands/alias/logging/cloudfiles"
+	aliasdatadog "github.com/fastly/cli/pkg/commands/alias/logging/datadog"
+	aliasdigitalocean "github.com/fastly/cli/pkg/commands/alias/logging/digitalocean"
+	aliaselasticsearch "github.com/fastly/cli/pkg/commands/alias/logging/elasticsearch"
+	aliasftp "github.com/fastly/cli/pkg/commands/alias/logging/ftp"
+	aliasgcs "github.com/fastly/cli/pkg/commands/alias/logging/gcs"
+	aliasgooglepubsub "github.com/fastly/cli/pkg/commands/alias/logging/googlepubsub"
+	aliasgrafanacloudlogs "github.com/fastly/cli/pkg/commands/alias/logging/grafanacloudlogs"
+	aliasheroku "github.com/fastly/cli/pkg/commands/alias/logging/heroku"
+	aliashoneycomb "github.com/fastly/cli/pkg/commands/alias/logging/honeycomb"
+	aliashttps "github.com/fastly/cli/pkg/commands/alias/logging/https"
+	aliaskafka "github.com/fastly/cli/pkg/commands/alias/logging/kafka"
+	aliaskinesis "github.com/fastly/cli/pkg/commands/alias/logging/kinesis"
+	aliasloggly "github.com/fastly/cli/pkg/commands/alias/logging/loggly"
+	aliaslogshuttle "github.com/fastly/cli/pkg/commands/alias/logging/logshuttle"
+	aliasnewrelic "github.com/fastly/cli/pkg/commands/alias/logging/newrelic"
+	aliasnewrelicotlp "github.com/fastly/cli/pkg/commands/alias/logging/newrelicotlp"
+	aliasopenstack "github.com/fastly/cli/pkg/commands/alias/logging/openstack"
+	aliaspapertrail "github.com/fastly/cli/pkg/commands/alias/logging/papertrail"
+	aliass3 "github.com/fastly/cli/pkg/commands/alias/logging/s3"
+	aliasscalyr "github.com/fastly/cli/pkg/commands/alias/logging/scalyr"
+	aliassftp "github.com/fastly/cli/pkg/commands/alias/logging/sftp"
+	aliassplunk "github.com/fastly/cli/pkg/commands/alias/logging/splunk"
+	aliassumologic "github.com/fastly/cli/pkg/commands/alias/logging/sumologic"
+	aliassyslog "github.com/fastly/cli/pkg/commands/alias/logging/syslog"
 	aliaspurge "github.com/fastly/cli/pkg/commands/alias/purge"
 	aliasratelimit "github.com/fastly/cli/pkg/commands/alias/ratelimit"
 	aliasresourcelink "github.com/fastly/cli/pkg/commands/alias/resourcelink"
@@ -34,34 +62,6 @@ import (
 	"github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/commands/kvstore"
 	"github.com/fastly/cli/pkg/commands/kvstoreentry"
-	"github.com/fastly/cli/pkg/commands/logging"
-	"github.com/fastly/cli/pkg/commands/logging/azureblob"
-	"github.com/fastly/cli/pkg/commands/logging/bigquery"
-	"github.com/fastly/cli/pkg/commands/logging/cloudfiles"
-	"github.com/fastly/cli/pkg/commands/logging/datadog"
-	"github.com/fastly/cli/pkg/commands/logging/digitalocean"
-	"github.com/fastly/cli/pkg/commands/logging/elasticsearch"
-	"github.com/fastly/cli/pkg/commands/logging/ftp"
-	"github.com/fastly/cli/pkg/commands/logging/gcs"
-	"github.com/fastly/cli/pkg/commands/logging/googlepubsub"
-	"github.com/fastly/cli/pkg/commands/logging/grafanacloudlogs"
-	"github.com/fastly/cli/pkg/commands/logging/heroku"
-	"github.com/fastly/cli/pkg/commands/logging/honeycomb"
-	"github.com/fastly/cli/pkg/commands/logging/https"
-	"github.com/fastly/cli/pkg/commands/logging/kafka"
-	"github.com/fastly/cli/pkg/commands/logging/kinesis"
-	"github.com/fastly/cli/pkg/commands/logging/loggly"
-	"github.com/fastly/cli/pkg/commands/logging/logshuttle"
-	"github.com/fastly/cli/pkg/commands/logging/newrelic"
-	"github.com/fastly/cli/pkg/commands/logging/newrelicotlp"
-	"github.com/fastly/cli/pkg/commands/logging/openstack"
-	"github.com/fastly/cli/pkg/commands/logging/papertrail"
-	"github.com/fastly/cli/pkg/commands/logging/s3"
-	"github.com/fastly/cli/pkg/commands/logging/scalyr"
-	"github.com/fastly/cli/pkg/commands/logging/sftp"
-	"github.com/fastly/cli/pkg/commands/logging/splunk"
-	"github.com/fastly/cli/pkg/commands/logging/sumologic"
-	"github.com/fastly/cli/pkg/commands/logging/syslog"
 	"github.com/fastly/cli/pkg/commands/logtail"
 	"github.com/fastly/cli/pkg/commands/ngwaf"
 	"github.com/fastly/cli/pkg/commands/ngwaf/countrylist"
@@ -109,6 +109,34 @@ import (
 	servicedomain "github.com/fastly/cli/pkg/commands/service/domain"
 	servicehealthcheck "github.com/fastly/cli/pkg/commands/service/healthcheck"
 	serviceimageoptimizerdefaults "github.com/fastly/cli/pkg/commands/service/imageoptimizerdefaults"
+	servicelogging "github.com/fastly/cli/pkg/commands/service/logging"
+	serviceloggingazureblob "github.com/fastly/cli/pkg/commands/service/logging/azureblob"
+	serviceloggingbigquery "github.com/fastly/cli/pkg/commands/service/logging/bigquery"
+	serviceloggingcloudfiles "github.com/fastly/cli/pkg/commands/service/logging/cloudfiles"
+	serviceloggingdatadog "github.com/fastly/cli/pkg/commands/service/logging/datadog"
+	serviceloggingdigitalocean "github.com/fastly/cli/pkg/commands/service/logging/digitalocean"
+	serviceloggingelasticsearch "github.com/fastly/cli/pkg/commands/service/logging/elasticsearch"
+	serviceloggingftp "github.com/fastly/cli/pkg/commands/service/logging/ftp"
+	servicelogginggcs "github.com/fastly/cli/pkg/commands/service/logging/gcs"
+	servicelogginggooglepubsub "github.com/fastly/cli/pkg/commands/service/logging/googlepubsub"
+	servicelogginggrafanacloudlogs "github.com/fastly/cli/pkg/commands/service/logging/grafanacloudlogs"
+	serviceloggingheroku "github.com/fastly/cli/pkg/commands/service/logging/heroku"
+	servicelogginghoneycomb "github.com/fastly/cli/pkg/commands/service/logging/honeycomb"
+	servicelogginghttps "github.com/fastly/cli/pkg/commands/service/logging/https"
+	serviceloggingkafka "github.com/fastly/cli/pkg/commands/service/logging/kafka"
+	serviceloggingkinesis "github.com/fastly/cli/pkg/commands/service/logging/kinesis"
+	serviceloggingloggly "github.com/fastly/cli/pkg/commands/service/logging/loggly"
+	servicelogginglogshuttle "github.com/fastly/cli/pkg/commands/service/logging/logshuttle"
+	serviceloggingnewrelic "github.com/fastly/cli/pkg/commands/service/logging/newrelic"
+	serviceloggingnewrelicotlp "github.com/fastly/cli/pkg/commands/service/logging/newrelicotlp"
+	serviceloggingopenstack "github.com/fastly/cli/pkg/commands/service/logging/openstack"
+	serviceloggingpapertrail "github.com/fastly/cli/pkg/commands/service/logging/papertrail"
+	serviceloggings3 "github.com/fastly/cli/pkg/commands/service/logging/s3"
+	serviceloggingscalyr "github.com/fastly/cli/pkg/commands/service/logging/scalyr"
+	serviceloggingsftp "github.com/fastly/cli/pkg/commands/service/logging/sftp"
+	serviceloggingsplunk "github.com/fastly/cli/pkg/commands/service/logging/splunk"
+	serviceloggingsumologic "github.com/fastly/cli/pkg/commands/service/logging/sumologic"
+	serviceloggingsyslog "github.com/fastly/cli/pkg/commands/service/logging/syslog"
 	servicepurge "github.com/fastly/cli/pkg/commands/service/purge"
 	serviceratelimit "github.com/fastly/cli/pkg/commands/service/ratelimit"
 	serviceresourcelink "github.com/fastly/cli/pkg/commands/service/resourcelink"
@@ -221,169 +249,6 @@ func Define( // nolint:revive // function-length
 	kvstoreentryDescribe := kvstoreentry.NewDescribeCommand(kvstoreentryCmdRoot.CmdClause, data)
 	kvstoreentryList := kvstoreentry.NewListCommand(kvstoreentryCmdRoot.CmdClause, data)
 	logtailCmdRoot := logtail.NewRootCommand(app, data)
-	loggingCmdRoot := logging.NewRootCommand(app, data)
-	loggingAzureblobCmdRoot := azureblob.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingAzureblobCreate := azureblob.NewCreateCommand(loggingAzureblobCmdRoot.CmdClause, data)
-	loggingAzureblobDelete := azureblob.NewDeleteCommand(loggingAzureblobCmdRoot.CmdClause, data)
-	loggingAzureblobDescribe := azureblob.NewDescribeCommand(loggingAzureblobCmdRoot.CmdClause, data)
-	loggingAzureblobList := azureblob.NewListCommand(loggingAzureblobCmdRoot.CmdClause, data)
-	loggingAzureblobUpdate := azureblob.NewUpdateCommand(loggingAzureblobCmdRoot.CmdClause, data)
-	loggingBigQueryCmdRoot := bigquery.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingBigQueryCreate := bigquery.NewCreateCommand(loggingBigQueryCmdRoot.CmdClause, data)
-	loggingBigQueryDelete := bigquery.NewDeleteCommand(loggingBigQueryCmdRoot.CmdClause, data)
-	loggingBigQueryDescribe := bigquery.NewDescribeCommand(loggingBigQueryCmdRoot.CmdClause, data)
-	loggingBigQueryList := bigquery.NewListCommand(loggingBigQueryCmdRoot.CmdClause, data)
-	loggingBigQueryUpdate := bigquery.NewUpdateCommand(loggingBigQueryCmdRoot.CmdClause, data)
-	loggingCloudfilesCmdRoot := cloudfiles.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingCloudfilesCreate := cloudfiles.NewCreateCommand(loggingCloudfilesCmdRoot.CmdClause, data)
-	loggingCloudfilesDelete := cloudfiles.NewDeleteCommand(loggingCloudfilesCmdRoot.CmdClause, data)
-	loggingCloudfilesDescribe := cloudfiles.NewDescribeCommand(loggingCloudfilesCmdRoot.CmdClause, data)
-	loggingCloudfilesList := cloudfiles.NewListCommand(loggingCloudfilesCmdRoot.CmdClause, data)
-	loggingCloudfilesUpdate := cloudfiles.NewUpdateCommand(loggingCloudfilesCmdRoot.CmdClause, data)
-	loggingDatadogCmdRoot := datadog.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingDatadogCreate := datadog.NewCreateCommand(loggingDatadogCmdRoot.CmdClause, data)
-	loggingDatadogDelete := datadog.NewDeleteCommand(loggingDatadogCmdRoot.CmdClause, data)
-	loggingDatadogDescribe := datadog.NewDescribeCommand(loggingDatadogCmdRoot.CmdClause, data)
-	loggingDatadogList := datadog.NewListCommand(loggingDatadogCmdRoot.CmdClause, data)
-	loggingDatadogUpdate := datadog.NewUpdateCommand(loggingDatadogCmdRoot.CmdClause, data)
-	loggingDigitaloceanCmdRoot := digitalocean.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingDigitaloceanCreate := digitalocean.NewCreateCommand(loggingDigitaloceanCmdRoot.CmdClause, data)
-	loggingDigitaloceanDelete := digitalocean.NewDeleteCommand(loggingDigitaloceanCmdRoot.CmdClause, data)
-	loggingDigitaloceanDescribe := digitalocean.NewDescribeCommand(loggingDigitaloceanCmdRoot.CmdClause, data)
-	loggingDigitaloceanList := digitalocean.NewListCommand(loggingDigitaloceanCmdRoot.CmdClause, data)
-	loggingDigitaloceanUpdate := digitalocean.NewUpdateCommand(loggingDigitaloceanCmdRoot.CmdClause, data)
-	loggingElasticsearchCmdRoot := elasticsearch.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingElasticsearchCreate := elasticsearch.NewCreateCommand(loggingElasticsearchCmdRoot.CmdClause, data)
-	loggingElasticsearchDelete := elasticsearch.NewDeleteCommand(loggingElasticsearchCmdRoot.CmdClause, data)
-	loggingElasticsearchDescribe := elasticsearch.NewDescribeCommand(loggingElasticsearchCmdRoot.CmdClause, data)
-	loggingElasticsearchList := elasticsearch.NewListCommand(loggingElasticsearchCmdRoot.CmdClause, data)
-	loggingElasticsearchUpdate := elasticsearch.NewUpdateCommand(loggingElasticsearchCmdRoot.CmdClause, data)
-	loggingFtpCmdRoot := ftp.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingFtpCreate := ftp.NewCreateCommand(loggingFtpCmdRoot.CmdClause, data)
-	loggingFtpDelete := ftp.NewDeleteCommand(loggingFtpCmdRoot.CmdClause, data)
-	loggingFtpDescribe := ftp.NewDescribeCommand(loggingFtpCmdRoot.CmdClause, data)
-	loggingFtpList := ftp.NewListCommand(loggingFtpCmdRoot.CmdClause, data)
-	loggingFtpUpdate := ftp.NewUpdateCommand(loggingFtpCmdRoot.CmdClause, data)
-	loggingGcsCmdRoot := gcs.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingGcsCreate := gcs.NewCreateCommand(loggingGcsCmdRoot.CmdClause, data)
-	loggingGcsDelete := gcs.NewDeleteCommand(loggingGcsCmdRoot.CmdClause, data)
-	loggingGcsDescribe := gcs.NewDescribeCommand(loggingGcsCmdRoot.CmdClause, data)
-	loggingGcsList := gcs.NewListCommand(loggingGcsCmdRoot.CmdClause, data)
-	loggingGcsUpdate := gcs.NewUpdateCommand(loggingGcsCmdRoot.CmdClause, data)
-	loggingGooglepubsubCmdRoot := googlepubsub.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingGooglepubsubCreate := googlepubsub.NewCreateCommand(loggingGooglepubsubCmdRoot.CmdClause, data)
-	loggingGooglepubsubDelete := googlepubsub.NewDeleteCommand(loggingGooglepubsubCmdRoot.CmdClause, data)
-	loggingGooglepubsubDescribe := googlepubsub.NewDescribeCommand(loggingGooglepubsubCmdRoot.CmdClause, data)
-	loggingGooglepubsubList := googlepubsub.NewListCommand(loggingGooglepubsubCmdRoot.CmdClause, data)
-	loggingGooglepubsubUpdate := googlepubsub.NewUpdateCommand(loggingGooglepubsubCmdRoot.CmdClause, data)
-	loggingGrafanacloudlogsCmdRoot := grafanacloudlogs.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingGrafanacloudlogsCreate := grafanacloudlogs.NewCreateCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
-	loggingGrafanacloudlogsDelete := grafanacloudlogs.NewDeleteCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
-	loggingGrafanacloudlogsDescribe := grafanacloudlogs.NewDescribeCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
-	loggingGrafanacloudlogsList := grafanacloudlogs.NewListCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
-	loggingGrafanacloudlogsUpdate := grafanacloudlogs.NewUpdateCommand(loggingGrafanacloudlogsCmdRoot.CmdClause, data)
-	loggingHerokuCmdRoot := heroku.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingHerokuCreate := heroku.NewCreateCommand(loggingHerokuCmdRoot.CmdClause, data)
-	loggingHerokuDelete := heroku.NewDeleteCommand(loggingHerokuCmdRoot.CmdClause, data)
-	loggingHerokuDescribe := heroku.NewDescribeCommand(loggingHerokuCmdRoot.CmdClause, data)
-	loggingHerokuList := heroku.NewListCommand(loggingHerokuCmdRoot.CmdClause, data)
-	loggingHerokuUpdate := heroku.NewUpdateCommand(loggingHerokuCmdRoot.CmdClause, data)
-	loggingHoneycombCmdRoot := honeycomb.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingHoneycombCreate := honeycomb.NewCreateCommand(loggingHoneycombCmdRoot.CmdClause, data)
-	loggingHoneycombDelete := honeycomb.NewDeleteCommand(loggingHoneycombCmdRoot.CmdClause, data)
-	loggingHoneycombDescribe := honeycomb.NewDescribeCommand(loggingHoneycombCmdRoot.CmdClause, data)
-	loggingHoneycombList := honeycomb.NewListCommand(loggingHoneycombCmdRoot.CmdClause, data)
-	loggingHoneycombUpdate := honeycomb.NewUpdateCommand(loggingHoneycombCmdRoot.CmdClause, data)
-	loggingHTTPSCmdRoot := https.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingHTTPSCreate := https.NewCreateCommand(loggingHTTPSCmdRoot.CmdClause, data)
-	loggingHTTPSDelete := https.NewDeleteCommand(loggingHTTPSCmdRoot.CmdClause, data)
-	loggingHTTPSDescribe := https.NewDescribeCommand(loggingHTTPSCmdRoot.CmdClause, data)
-	loggingHTTPSList := https.NewListCommand(loggingHTTPSCmdRoot.CmdClause, data)
-	loggingHTTPSUpdate := https.NewUpdateCommand(loggingHTTPSCmdRoot.CmdClause, data)
-	loggingKafkaCmdRoot := kafka.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingKafkaCreate := kafka.NewCreateCommand(loggingKafkaCmdRoot.CmdClause, data)
-	loggingKafkaDelete := kafka.NewDeleteCommand(loggingKafkaCmdRoot.CmdClause, data)
-	loggingKafkaDescribe := kafka.NewDescribeCommand(loggingKafkaCmdRoot.CmdClause, data)
-	loggingKafkaList := kafka.NewListCommand(loggingKafkaCmdRoot.CmdClause, data)
-	loggingKafkaUpdate := kafka.NewUpdateCommand(loggingKafkaCmdRoot.CmdClause, data)
-	loggingKinesisCmdRoot := kinesis.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingKinesisCreate := kinesis.NewCreateCommand(loggingKinesisCmdRoot.CmdClause, data)
-	loggingKinesisDelete := kinesis.NewDeleteCommand(loggingKinesisCmdRoot.CmdClause, data)
-	loggingKinesisDescribe := kinesis.NewDescribeCommand(loggingKinesisCmdRoot.CmdClause, data)
-	loggingKinesisList := kinesis.NewListCommand(loggingKinesisCmdRoot.CmdClause, data)
-	loggingKinesisUpdate := kinesis.NewUpdateCommand(loggingKinesisCmdRoot.CmdClause, data)
-	loggingLogglyCmdRoot := loggly.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingLogglyCreate := loggly.NewCreateCommand(loggingLogglyCmdRoot.CmdClause, data)
-	loggingLogglyDelete := loggly.NewDeleteCommand(loggingLogglyCmdRoot.CmdClause, data)
-	loggingLogglyDescribe := loggly.NewDescribeCommand(loggingLogglyCmdRoot.CmdClause, data)
-	loggingLogglyList := loggly.NewListCommand(loggingLogglyCmdRoot.CmdClause, data)
-	loggingLogglyUpdate := loggly.NewUpdateCommand(loggingLogglyCmdRoot.CmdClause, data)
-	loggingLogshuttleCmdRoot := logshuttle.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingLogshuttleCreate := logshuttle.NewCreateCommand(loggingLogshuttleCmdRoot.CmdClause, data)
-	loggingLogshuttleDelete := logshuttle.NewDeleteCommand(loggingLogshuttleCmdRoot.CmdClause, data)
-	loggingLogshuttleDescribe := logshuttle.NewDescribeCommand(loggingLogshuttleCmdRoot.CmdClause, data)
-	loggingLogshuttleList := logshuttle.NewListCommand(loggingLogshuttleCmdRoot.CmdClause, data)
-	loggingLogshuttleUpdate := logshuttle.NewUpdateCommand(loggingLogshuttleCmdRoot.CmdClause, data)
-	loggingNewRelicCmdRoot := newrelic.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingNewRelicCreate := newrelic.NewCreateCommand(loggingNewRelicCmdRoot.CmdClause, data)
-	loggingNewRelicDelete := newrelic.NewDeleteCommand(loggingNewRelicCmdRoot.CmdClause, data)
-	loggingNewRelicDescribe := newrelic.NewDescribeCommand(loggingNewRelicCmdRoot.CmdClause, data)
-	loggingNewRelicList := newrelic.NewListCommand(loggingNewRelicCmdRoot.CmdClause, data)
-	loggingNewRelicUpdate := newrelic.NewUpdateCommand(loggingNewRelicCmdRoot.CmdClause, data)
-	loggingNewRelicOTLPCmdRoot := newrelicotlp.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingNewRelicOTLPCreate := newrelicotlp.NewCreateCommand(loggingNewRelicOTLPCmdRoot.CmdClause, data)
-	loggingNewRelicOTLPDelete := newrelicotlp.NewDeleteCommand(loggingNewRelicOTLPCmdRoot.CmdClause, data)
-	loggingNewRelicOTLPDescribe := newrelicotlp.NewDescribeCommand(loggingNewRelicOTLPCmdRoot.CmdClause, data)
-	loggingNewRelicOTLPList := newrelicotlp.NewListCommand(loggingNewRelicOTLPCmdRoot.CmdClause, data)
-	loggingNewRelicOTLPUpdate := newrelicotlp.NewUpdateCommand(loggingNewRelicOTLPCmdRoot.CmdClause, data)
-	loggingOpenstackCmdRoot := openstack.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingOpenstackCreate := openstack.NewCreateCommand(loggingOpenstackCmdRoot.CmdClause, data)
-	loggingOpenstackDelete := openstack.NewDeleteCommand(loggingOpenstackCmdRoot.CmdClause, data)
-	loggingOpenstackDescribe := openstack.NewDescribeCommand(loggingOpenstackCmdRoot.CmdClause, data)
-	loggingOpenstackList := openstack.NewListCommand(loggingOpenstackCmdRoot.CmdClause, data)
-	loggingOpenstackUpdate := openstack.NewUpdateCommand(loggingOpenstackCmdRoot.CmdClause, data)
-	loggingPapertrailCmdRoot := papertrail.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingPapertrailCreate := papertrail.NewCreateCommand(loggingPapertrailCmdRoot.CmdClause, data)
-	loggingPapertrailDelete := papertrail.NewDeleteCommand(loggingPapertrailCmdRoot.CmdClause, data)
-	loggingPapertrailDescribe := papertrail.NewDescribeCommand(loggingPapertrailCmdRoot.CmdClause, data)
-	loggingPapertrailList := papertrail.NewListCommand(loggingPapertrailCmdRoot.CmdClause, data)
-	loggingPapertrailUpdate := papertrail.NewUpdateCommand(loggingPapertrailCmdRoot.CmdClause, data)
-	loggingS3CmdRoot := s3.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingS3Create := s3.NewCreateCommand(loggingS3CmdRoot.CmdClause, data)
-	loggingS3Delete := s3.NewDeleteCommand(loggingS3CmdRoot.CmdClause, data)
-	loggingS3Describe := s3.NewDescribeCommand(loggingS3CmdRoot.CmdClause, data)
-	loggingS3List := s3.NewListCommand(loggingS3CmdRoot.CmdClause, data)
-	loggingS3Update := s3.NewUpdateCommand(loggingS3CmdRoot.CmdClause, data)
-	loggingScalyrCmdRoot := scalyr.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingScalyrCreate := scalyr.NewCreateCommand(loggingScalyrCmdRoot.CmdClause, data)
-	loggingScalyrDelete := scalyr.NewDeleteCommand(loggingScalyrCmdRoot.CmdClause, data)
-	loggingScalyrDescribe := scalyr.NewDescribeCommand(loggingScalyrCmdRoot.CmdClause, data)
-	loggingScalyrList := scalyr.NewListCommand(loggingScalyrCmdRoot.CmdClause, data)
-	loggingScalyrUpdate := scalyr.NewUpdateCommand(loggingScalyrCmdRoot.CmdClause, data)
-	loggingSftpCmdRoot := sftp.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingSftpCreate := sftp.NewCreateCommand(loggingSftpCmdRoot.CmdClause, data)
-	loggingSftpDelete := sftp.NewDeleteCommand(loggingSftpCmdRoot.CmdClause, data)
-	loggingSftpDescribe := sftp.NewDescribeCommand(loggingSftpCmdRoot.CmdClause, data)
-	loggingSftpList := sftp.NewListCommand(loggingSftpCmdRoot.CmdClause, data)
-	loggingSftpUpdate := sftp.NewUpdateCommand(loggingSftpCmdRoot.CmdClause, data)
-	loggingSplunkCmdRoot := splunk.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingSplunkCreate := splunk.NewCreateCommand(loggingSplunkCmdRoot.CmdClause, data)
-	loggingSplunkDelete := splunk.NewDeleteCommand(loggingSplunkCmdRoot.CmdClause, data)
-	loggingSplunkDescribe := splunk.NewDescribeCommand(loggingSplunkCmdRoot.CmdClause, data)
-	loggingSplunkList := splunk.NewListCommand(loggingSplunkCmdRoot.CmdClause, data)
-	loggingSplunkUpdate := splunk.NewUpdateCommand(loggingSplunkCmdRoot.CmdClause, data)
-	loggingSumologicCmdRoot := sumologic.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingSumologicCreate := sumologic.NewCreateCommand(loggingSumologicCmdRoot.CmdClause, data)
-	loggingSumologicDelete := sumologic.NewDeleteCommand(loggingSumologicCmdRoot.CmdClause, data)
-	loggingSumologicDescribe := sumologic.NewDescribeCommand(loggingSumologicCmdRoot.CmdClause, data)
-	loggingSumologicList := sumologic.NewListCommand(loggingSumologicCmdRoot.CmdClause, data)
-	loggingSumologicUpdate := sumologic.NewUpdateCommand(loggingSumologicCmdRoot.CmdClause, data)
-	loggingSyslogCmdRoot := syslog.NewRootCommand(loggingCmdRoot.CmdClause, data)
-	loggingSyslogCreate := syslog.NewCreateCommand(loggingSyslogCmdRoot.CmdClause, data)
-	loggingSyslogDelete := syslog.NewDeleteCommand(loggingSyslogCmdRoot.CmdClause, data)
-	loggingSyslogDescribe := syslog.NewDescribeCommand(loggingSyslogCmdRoot.CmdClause, data)
-	loggingSyslogList := syslog.NewListCommand(loggingSyslogCmdRoot.CmdClause, data)
-	loggingSyslogUpdate := syslog.NewUpdateCommand(loggingSyslogCmdRoot.CmdClause, data)
 	ngwafRoot := ngwaf.NewRootCommand(app, data)
 	ngwafWorkspaceRoot := workspace.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafWorkspaceCreate := workspace.NewCreateCommand(ngwafWorkspaceRoot.CmdClause, data)
@@ -626,6 +491,169 @@ func Define( // nolint:revive // function-length
 	servicevclSnippetDescribe := servicevclsnippet.NewDescribeCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	servicevclSnippetList := servicevclsnippet.NewListCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
+	serviceloggingCmdRoot := servicelogging.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceloggingAzureblobCmdRoot := serviceloggingazureblob.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingAzureblobCreate := serviceloggingazureblob.NewCreateCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
+	serviceloggingAzureblobDelete := serviceloggingazureblob.NewDeleteCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
+	serviceloggingAzureblobDescribe := serviceloggingazureblob.NewDescribeCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
+	serviceloggingAzureblobList := serviceloggingazureblob.NewListCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
+	serviceloggingAzureblobUpdate := serviceloggingazureblob.NewUpdateCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
+	serviceloggingBigQueryCmdRoot := serviceloggingbigquery.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingBigQueryCreate := serviceloggingbigquery.NewCreateCommand(serviceloggingBigQueryCmdRoot.CmdClause, data)
+	serviceloggingBigQueryDelete := serviceloggingbigquery.NewDeleteCommand(serviceloggingBigQueryCmdRoot.CmdClause, data)
+	serviceloggingBigQueryDescribe := serviceloggingbigquery.NewDescribeCommand(serviceloggingBigQueryCmdRoot.CmdClause, data)
+	serviceloggingBigQueryList := serviceloggingbigquery.NewListCommand(serviceloggingBigQueryCmdRoot.CmdClause, data)
+	serviceloggingBigQueryUpdate := serviceloggingbigquery.NewUpdateCommand(serviceloggingBigQueryCmdRoot.CmdClause, data)
+	serviceloggingCloudfilesCmdRoot := serviceloggingcloudfiles.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingCloudfilesCreate := serviceloggingcloudfiles.NewCreateCommand(serviceloggingCloudfilesCmdRoot.CmdClause, data)
+	serviceloggingCloudfilesDelete := serviceloggingcloudfiles.NewDeleteCommand(serviceloggingCloudfilesCmdRoot.CmdClause, data)
+	serviceloggingCloudfilesDescribe := serviceloggingcloudfiles.NewDescribeCommand(serviceloggingCloudfilesCmdRoot.CmdClause, data)
+	serviceloggingCloudfilesList := serviceloggingcloudfiles.NewListCommand(serviceloggingCloudfilesCmdRoot.CmdClause, data)
+	serviceloggingCloudfilesUpdate := serviceloggingcloudfiles.NewUpdateCommand(serviceloggingCloudfilesCmdRoot.CmdClause, data)
+	serviceloggingDatadogCmdRoot := serviceloggingdatadog.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingDatadogCreate := serviceloggingdatadog.NewCreateCommand(serviceloggingDatadogCmdRoot.CmdClause, data)
+	serviceloggingDatadogDelete := serviceloggingdatadog.NewDeleteCommand(serviceloggingDatadogCmdRoot.CmdClause, data)
+	serviceloggingDatadogDescribe := serviceloggingdatadog.NewDescribeCommand(serviceloggingDatadogCmdRoot.CmdClause, data)
+	serviceloggingDatadogList := serviceloggingdatadog.NewListCommand(serviceloggingDatadogCmdRoot.CmdClause, data)
+	serviceloggingDatadogUpdate := serviceloggingdatadog.NewUpdateCommand(serviceloggingDatadogCmdRoot.CmdClause, data)
+	serviceloggingDigitaloceanCmdRoot := serviceloggingdigitalocean.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingDigitaloceanCreate := serviceloggingdigitalocean.NewCreateCommand(serviceloggingDigitaloceanCmdRoot.CmdClause, data)
+	serviceloggingDigitaloceanDelete := serviceloggingdigitalocean.NewDeleteCommand(serviceloggingDigitaloceanCmdRoot.CmdClause, data)
+	serviceloggingDigitaloceanDescribe := serviceloggingdigitalocean.NewDescribeCommand(serviceloggingDigitaloceanCmdRoot.CmdClause, data)
+	serviceloggingDigitaloceanList := serviceloggingdigitalocean.NewListCommand(serviceloggingDigitaloceanCmdRoot.CmdClause, data)
+	serviceloggingDigitaloceanUpdate := serviceloggingdigitalocean.NewUpdateCommand(serviceloggingDigitaloceanCmdRoot.CmdClause, data)
+	serviceloggingElasticsearchCmdRoot := serviceloggingelasticsearch.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingElasticsearchCreate := serviceloggingelasticsearch.NewCreateCommand(serviceloggingElasticsearchCmdRoot.CmdClause, data)
+	serviceloggingElasticsearchDelete := serviceloggingelasticsearch.NewDeleteCommand(serviceloggingElasticsearchCmdRoot.CmdClause, data)
+	serviceloggingElasticsearchDescribe := serviceloggingelasticsearch.NewDescribeCommand(serviceloggingElasticsearchCmdRoot.CmdClause, data)
+	serviceloggingElasticsearchList := serviceloggingelasticsearch.NewListCommand(serviceloggingElasticsearchCmdRoot.CmdClause, data)
+	serviceloggingElasticsearchUpdate := serviceloggingelasticsearch.NewUpdateCommand(serviceloggingElasticsearchCmdRoot.CmdClause, data)
+	serviceloggingFtpCmdRoot := serviceloggingftp.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingFtpCreate := serviceloggingftp.NewCreateCommand(serviceloggingFtpCmdRoot.CmdClause, data)
+	serviceloggingFtpDelete := serviceloggingftp.NewDeleteCommand(serviceloggingFtpCmdRoot.CmdClause, data)
+	serviceloggingFtpDescribe := serviceloggingftp.NewDescribeCommand(serviceloggingFtpCmdRoot.CmdClause, data)
+	serviceloggingFtpList := serviceloggingftp.NewListCommand(serviceloggingFtpCmdRoot.CmdClause, data)
+	serviceloggingFtpUpdate := serviceloggingftp.NewUpdateCommand(serviceloggingFtpCmdRoot.CmdClause, data)
+	serviceloggingGcsCmdRoot := servicelogginggcs.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingGcsCreate := servicelogginggcs.NewCreateCommand(serviceloggingGcsCmdRoot.CmdClause, data)
+	serviceloggingGcsDelete := servicelogginggcs.NewDeleteCommand(serviceloggingGcsCmdRoot.CmdClause, data)
+	serviceloggingGcsDescribe := servicelogginggcs.NewDescribeCommand(serviceloggingGcsCmdRoot.CmdClause, data)
+	serviceloggingGcsList := servicelogginggcs.NewListCommand(serviceloggingGcsCmdRoot.CmdClause, data)
+	serviceloggingGcsUpdate := servicelogginggcs.NewUpdateCommand(serviceloggingGcsCmdRoot.CmdClause, data)
+	serviceloggingGooglepubsubCmdRoot := servicelogginggooglepubsub.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingGooglepubsubCreate := servicelogginggooglepubsub.NewCreateCommand(serviceloggingGooglepubsubCmdRoot.CmdClause, data)
+	serviceloggingGooglepubsubDelete := servicelogginggooglepubsub.NewDeleteCommand(serviceloggingGooglepubsubCmdRoot.CmdClause, data)
+	serviceloggingGooglepubsubDescribe := servicelogginggooglepubsub.NewDescribeCommand(serviceloggingGooglepubsubCmdRoot.CmdClause, data)
+	serviceloggingGooglepubsubList := servicelogginggooglepubsub.NewListCommand(serviceloggingGooglepubsubCmdRoot.CmdClause, data)
+	serviceloggingGooglepubsubUpdate := servicelogginggooglepubsub.NewUpdateCommand(serviceloggingGooglepubsubCmdRoot.CmdClause, data)
+	serviceloggingGrafanacloudlogsCmdRoot := servicelogginggrafanacloudlogs.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingGrafanacloudlogsCreate := servicelogginggrafanacloudlogs.NewCreateCommand(serviceloggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	serviceloggingGrafanacloudlogsDelete := servicelogginggrafanacloudlogs.NewDeleteCommand(serviceloggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	serviceloggingGrafanacloudlogsDescribe := servicelogginggrafanacloudlogs.NewDescribeCommand(serviceloggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	serviceloggingGrafanacloudlogsList := servicelogginggrafanacloudlogs.NewListCommand(serviceloggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	serviceloggingGrafanacloudlogsUpdate := servicelogginggrafanacloudlogs.NewUpdateCommand(serviceloggingGrafanacloudlogsCmdRoot.CmdClause, data)
+	serviceloggingHerokuCmdRoot := serviceloggingheroku.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingHerokuCreate := serviceloggingheroku.NewCreateCommand(serviceloggingHerokuCmdRoot.CmdClause, data)
+	serviceloggingHerokuDelete := serviceloggingheroku.NewDeleteCommand(serviceloggingHerokuCmdRoot.CmdClause, data)
+	serviceloggingHerokuDescribe := serviceloggingheroku.NewDescribeCommand(serviceloggingHerokuCmdRoot.CmdClause, data)
+	serviceloggingHerokuList := serviceloggingheroku.NewListCommand(serviceloggingHerokuCmdRoot.CmdClause, data)
+	serviceloggingHerokuUpdate := serviceloggingheroku.NewUpdateCommand(serviceloggingHerokuCmdRoot.CmdClause, data)
+	serviceloggingHoneycombCmdRoot := servicelogginghoneycomb.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingHoneycombCreate := servicelogginghoneycomb.NewCreateCommand(serviceloggingHoneycombCmdRoot.CmdClause, data)
+	serviceloggingHoneycombDelete := servicelogginghoneycomb.NewDeleteCommand(serviceloggingHoneycombCmdRoot.CmdClause, data)
+	serviceloggingHoneycombDescribe := servicelogginghoneycomb.NewDescribeCommand(serviceloggingHoneycombCmdRoot.CmdClause, data)
+	serviceloggingHoneycombList := servicelogginghoneycomb.NewListCommand(serviceloggingHoneycombCmdRoot.CmdClause, data)
+	serviceloggingHoneycombUpdate := servicelogginghoneycomb.NewUpdateCommand(serviceloggingHoneycombCmdRoot.CmdClause, data)
+	serviceloggingHTTPSCmdRoot := servicelogginghttps.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingHTTPSCreate := servicelogginghttps.NewCreateCommand(serviceloggingHTTPSCmdRoot.CmdClause, data)
+	serviceloggingHTTPSDelete := servicelogginghttps.NewDeleteCommand(serviceloggingHTTPSCmdRoot.CmdClause, data)
+	serviceloggingHTTPSDescribe := servicelogginghttps.NewDescribeCommand(serviceloggingHTTPSCmdRoot.CmdClause, data)
+	serviceloggingHTTPSList := servicelogginghttps.NewListCommand(serviceloggingHTTPSCmdRoot.CmdClause, data)
+	serviceloggingHTTPSUpdate := servicelogginghttps.NewUpdateCommand(serviceloggingHTTPSCmdRoot.CmdClause, data)
+	serviceloggingKafkaCmdRoot := serviceloggingkafka.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingKafkaCreate := serviceloggingkafka.NewCreateCommand(serviceloggingKafkaCmdRoot.CmdClause, data)
+	serviceloggingKafkaDelete := serviceloggingkafka.NewDeleteCommand(serviceloggingKafkaCmdRoot.CmdClause, data)
+	serviceloggingKafkaDescribe := serviceloggingkafka.NewDescribeCommand(serviceloggingKafkaCmdRoot.CmdClause, data)
+	serviceloggingKafkaList := serviceloggingkafka.NewListCommand(serviceloggingKafkaCmdRoot.CmdClause, data)
+	serviceloggingKafkaUpdate := serviceloggingkafka.NewUpdateCommand(serviceloggingKafkaCmdRoot.CmdClause, data)
+	serviceloggingKinesisCmdRoot := serviceloggingkinesis.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingKinesisCreate := serviceloggingkinesis.NewCreateCommand(serviceloggingKinesisCmdRoot.CmdClause, data)
+	serviceloggingKinesisDelete := serviceloggingkinesis.NewDeleteCommand(serviceloggingKinesisCmdRoot.CmdClause, data)
+	serviceloggingKinesisDescribe := serviceloggingkinesis.NewDescribeCommand(serviceloggingKinesisCmdRoot.CmdClause, data)
+	serviceloggingKinesisList := serviceloggingkinesis.NewListCommand(serviceloggingKinesisCmdRoot.CmdClause, data)
+	serviceloggingKinesisUpdate := serviceloggingkinesis.NewUpdateCommand(serviceloggingKinesisCmdRoot.CmdClause, data)
+	serviceloggingLogglyCmdRoot := serviceloggingloggly.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingLogglyCreate := serviceloggingloggly.NewCreateCommand(serviceloggingLogglyCmdRoot.CmdClause, data)
+	serviceloggingLogglyDelete := serviceloggingloggly.NewDeleteCommand(serviceloggingLogglyCmdRoot.CmdClause, data)
+	serviceloggingLogglyDescribe := serviceloggingloggly.NewDescribeCommand(serviceloggingLogglyCmdRoot.CmdClause, data)
+	serviceloggingLogglyList := serviceloggingloggly.NewListCommand(serviceloggingLogglyCmdRoot.CmdClause, data)
+	serviceloggingLogglyUpdate := serviceloggingloggly.NewUpdateCommand(serviceloggingLogglyCmdRoot.CmdClause, data)
+	serviceloggingLogshuttleCmdRoot := servicelogginglogshuttle.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingLogshuttleCreate := servicelogginglogshuttle.NewCreateCommand(serviceloggingLogshuttleCmdRoot.CmdClause, data)
+	serviceloggingLogshuttleDelete := servicelogginglogshuttle.NewDeleteCommand(serviceloggingLogshuttleCmdRoot.CmdClause, data)
+	serviceloggingLogshuttleDescribe := servicelogginglogshuttle.NewDescribeCommand(serviceloggingLogshuttleCmdRoot.CmdClause, data)
+	serviceloggingLogshuttleList := servicelogginglogshuttle.NewListCommand(serviceloggingLogshuttleCmdRoot.CmdClause, data)
+	serviceloggingLogshuttleUpdate := servicelogginglogshuttle.NewUpdateCommand(serviceloggingLogshuttleCmdRoot.CmdClause, data)
+	serviceloggingNewRelicCmdRoot := serviceloggingnewrelic.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingNewRelicCreate := serviceloggingnewrelic.NewCreateCommand(serviceloggingNewRelicCmdRoot.CmdClause, data)
+	serviceloggingNewRelicDelete := serviceloggingnewrelic.NewDeleteCommand(serviceloggingNewRelicCmdRoot.CmdClause, data)
+	serviceloggingNewRelicDescribe := serviceloggingnewrelic.NewDescribeCommand(serviceloggingNewRelicCmdRoot.CmdClause, data)
+	serviceloggingNewRelicList := serviceloggingnewrelic.NewListCommand(serviceloggingNewRelicCmdRoot.CmdClause, data)
+	serviceloggingNewRelicUpdate := serviceloggingnewrelic.NewUpdateCommand(serviceloggingNewRelicCmdRoot.CmdClause, data)
+	serviceloggingNewRelicOTLPCmdRoot := serviceloggingnewrelicotlp.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingNewRelicOTLPCreate := serviceloggingnewrelicotlp.NewCreateCommand(serviceloggingNewRelicOTLPCmdRoot.CmdClause, data)
+	serviceloggingNewRelicOTLPDelete := serviceloggingnewrelicotlp.NewDeleteCommand(serviceloggingNewRelicOTLPCmdRoot.CmdClause, data)
+	serviceloggingNewRelicOTLPDescribe := serviceloggingnewrelicotlp.NewDescribeCommand(serviceloggingNewRelicOTLPCmdRoot.CmdClause, data)
+	serviceloggingNewRelicOTLPList := serviceloggingnewrelicotlp.NewListCommand(serviceloggingNewRelicOTLPCmdRoot.CmdClause, data)
+	serviceloggingNewRelicOTLPUpdate := serviceloggingnewrelicotlp.NewUpdateCommand(serviceloggingNewRelicOTLPCmdRoot.CmdClause, data)
+	serviceloggingOpenstackCmdRoot := serviceloggingopenstack.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingOpenstackCreate := serviceloggingopenstack.NewCreateCommand(serviceloggingOpenstackCmdRoot.CmdClause, data)
+	serviceloggingOpenstackDelete := serviceloggingopenstack.NewDeleteCommand(serviceloggingOpenstackCmdRoot.CmdClause, data)
+	serviceloggingOpenstackDescribe := serviceloggingopenstack.NewDescribeCommand(serviceloggingOpenstackCmdRoot.CmdClause, data)
+	serviceloggingOpenstackList := serviceloggingopenstack.NewListCommand(serviceloggingOpenstackCmdRoot.CmdClause, data)
+	serviceloggingOpenstackUpdate := serviceloggingopenstack.NewUpdateCommand(serviceloggingOpenstackCmdRoot.CmdClause, data)
+	serviceloggingPapertrailCmdRoot := serviceloggingpapertrail.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingPapertrailCreate := serviceloggingpapertrail.NewCreateCommand(serviceloggingPapertrailCmdRoot.CmdClause, data)
+	serviceloggingPapertrailDelete := serviceloggingpapertrail.NewDeleteCommand(serviceloggingPapertrailCmdRoot.CmdClause, data)
+	serviceloggingPapertrailDescribe := serviceloggingpapertrail.NewDescribeCommand(serviceloggingPapertrailCmdRoot.CmdClause, data)
+	serviceloggingPapertrailList := serviceloggingpapertrail.NewListCommand(serviceloggingPapertrailCmdRoot.CmdClause, data)
+	serviceloggingPapertrailUpdate := serviceloggingpapertrail.NewUpdateCommand(serviceloggingPapertrailCmdRoot.CmdClause, data)
+	serviceloggingS3CmdRoot := serviceloggings3.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingS3Create := serviceloggings3.NewCreateCommand(serviceloggingS3CmdRoot.CmdClause, data)
+	serviceloggingS3Delete := serviceloggings3.NewDeleteCommand(serviceloggingS3CmdRoot.CmdClause, data)
+	serviceloggingS3Describe := serviceloggings3.NewDescribeCommand(serviceloggingS3CmdRoot.CmdClause, data)
+	serviceloggingS3List := serviceloggings3.NewListCommand(serviceloggingS3CmdRoot.CmdClause, data)
+	serviceloggingS3Update := serviceloggings3.NewUpdateCommand(serviceloggingS3CmdRoot.CmdClause, data)
+	serviceloggingScalyrCmdRoot := serviceloggingscalyr.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingScalyrCreate := serviceloggingscalyr.NewCreateCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
+	serviceloggingScalyrDelete := serviceloggingscalyr.NewDeleteCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
+	serviceloggingScalyrDescribe := serviceloggingscalyr.NewDescribeCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
+	serviceloggingScalyrList := serviceloggingscalyr.NewListCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
+	serviceloggingScalyrUpdate := serviceloggingscalyr.NewUpdateCommand(serviceloggingScalyrCmdRoot.CmdClause, data)
+	serviceloggingSftpCmdRoot := serviceloggingsftp.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingSftpCreate := serviceloggingsftp.NewCreateCommand(serviceloggingSftpCmdRoot.CmdClause, data)
+	serviceloggingSftpDelete := serviceloggingsftp.NewDeleteCommand(serviceloggingSftpCmdRoot.CmdClause, data)
+	serviceloggingSftpDescribe := serviceloggingsftp.NewDescribeCommand(serviceloggingSftpCmdRoot.CmdClause, data)
+	serviceloggingSftpList := serviceloggingsftp.NewListCommand(serviceloggingSftpCmdRoot.CmdClause, data)
+	serviceloggingSftpUpdate := serviceloggingsftp.NewUpdateCommand(serviceloggingSftpCmdRoot.CmdClause, data)
+	serviceloggingSplunkCmdRoot := serviceloggingsplunk.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingSplunkCreate := serviceloggingsplunk.NewCreateCommand(serviceloggingSplunkCmdRoot.CmdClause, data)
+	serviceloggingSplunkDelete := serviceloggingsplunk.NewDeleteCommand(serviceloggingSplunkCmdRoot.CmdClause, data)
+	serviceloggingSplunkDescribe := serviceloggingsplunk.NewDescribeCommand(serviceloggingSplunkCmdRoot.CmdClause, data)
+	serviceloggingSplunkList := serviceloggingsplunk.NewListCommand(serviceloggingSplunkCmdRoot.CmdClause, data)
+	serviceloggingSplunkUpdate := serviceloggingsplunk.NewUpdateCommand(serviceloggingSplunkCmdRoot.CmdClause, data)
+	serviceloggingSumologicCmdRoot := serviceloggingsumologic.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingSumologicCreate := serviceloggingsumologic.NewCreateCommand(serviceloggingSumologicCmdRoot.CmdClause, data)
+	serviceloggingSumologicDelete := serviceloggingsumologic.NewDeleteCommand(serviceloggingSumologicCmdRoot.CmdClause, data)
+	serviceloggingSumologicDescribe := serviceloggingsumologic.NewDescribeCommand(serviceloggingSumologicCmdRoot.CmdClause, data)
+	serviceloggingSumologicList := serviceloggingsumologic.NewListCommand(serviceloggingSumologicCmdRoot.CmdClause, data)
+	serviceloggingSumologicUpdate := serviceloggingsumologic.NewUpdateCommand(serviceloggingSumologicCmdRoot.CmdClause, data)
+	serviceloggingSyslogCmdRoot := serviceloggingsyslog.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingSyslogCreate := serviceloggingsyslog.NewCreateCommand(serviceloggingSyslogCmdRoot.CmdClause, data)
+	serviceloggingSyslogDelete := serviceloggingsyslog.NewDeleteCommand(serviceloggingSyslogCmdRoot.CmdClause, data)
+	serviceloggingSyslogDescribe := serviceloggingsyslog.NewDescribeCommand(serviceloggingSyslogCmdRoot.CmdClause, data)
+	serviceloggingSyslogList := serviceloggingsyslog.NewListCommand(serviceloggingSyslogCmdRoot.CmdClause, data)
+	serviceloggingSyslogUpdate := serviceloggingsyslog.NewUpdateCommand(serviceloggingSyslogCmdRoot.CmdClause, data)
 	serviceVersionCmdRoot := serviceversion.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceVersionActivate := serviceversion.NewActivateCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionClone := serviceversion.NewCloneCommand(serviceVersionCmdRoot.CmdClause, data)
@@ -824,6 +852,169 @@ func Define( // nolint:revive // function-length
 	aliasServiceVersionStage := aliasserviceversion.NewStageCommand(aliasServiceVersionRoot.CmdClause, data)
 	aliasServiceVersionUnstage := aliasserviceversion.NewUnstageCommand(aliasServiceVersionRoot.CmdClause, data)
 	aliasServiceVersionUpdate := aliasserviceversion.NewUpdateCommand(aliasServiceVersionRoot.CmdClause, data)
+	aliasLoggingRoot := aliaslogging.NewRootCommand(app, data)
+	aliasAzureblobRoot := aliasazureblob.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasAzureblobCreate := aliasazureblob.NewCreateCommand(aliasAzureblobRoot.CmdClause, data)
+	aliasAzureblobDelete := aliasazureblob.NewDeleteCommand(aliasAzureblobRoot.CmdClause, data)
+	aliasAzureblobDescribe := aliasazureblob.NewDescribeCommand(aliasAzureblobRoot.CmdClause, data)
+	aliasAzureblobList := aliasazureblob.NewListCommand(aliasAzureblobRoot.CmdClause, data)
+	aliasAzureblobUpdate := aliasazureblob.NewUpdateCommand(aliasAzureblobRoot.CmdClause, data)
+	aliasBigqueryRoot := aliasbigquery.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasBigqueryCreate := aliasbigquery.NewCreateCommand(aliasBigqueryRoot.CmdClause, data)
+	aliasBigqueryDelete := aliasbigquery.NewDeleteCommand(aliasBigqueryRoot.CmdClause, data)
+	aliasBigqueryDescribe := aliasbigquery.NewDescribeCommand(aliasBigqueryRoot.CmdClause, data)
+	aliasBigqueryList := aliasbigquery.NewListCommand(aliasBigqueryRoot.CmdClause, data)
+	aliasBigqueryUpdate := aliasbigquery.NewUpdateCommand(aliasBigqueryRoot.CmdClause, data)
+	aliasCloudfilesRoot := aliascloudfiles.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasCloudfilesCreate := aliascloudfiles.NewCreateCommand(aliasCloudfilesRoot.CmdClause, data)
+	aliasCloudfilesDelete := aliascloudfiles.NewDeleteCommand(aliasCloudfilesRoot.CmdClause, data)
+	aliasCloudfilesDescribe := aliascloudfiles.NewDescribeCommand(aliasCloudfilesRoot.CmdClause, data)
+	aliasCloudfilesList := aliascloudfiles.NewListCommand(aliasCloudfilesRoot.CmdClause, data)
+	aliasCloudfilesUpdate := aliascloudfiles.NewUpdateCommand(aliasCloudfilesRoot.CmdClause, data)
+	aliasDatadogRoot := aliasdatadog.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasDatadogCreate := aliasdatadog.NewCreateCommand(aliasDatadogRoot.CmdClause, data)
+	aliasDatadogDelete := aliasdatadog.NewDeleteCommand(aliasDatadogRoot.CmdClause, data)
+	aliasDatadogDescribe := aliasdatadog.NewDescribeCommand(aliasDatadogRoot.CmdClause, data)
+	aliasDatadogList := aliasdatadog.NewListCommand(aliasDatadogRoot.CmdClause, data)
+	aliasDatadogUpdate := aliasdatadog.NewUpdateCommand(aliasDatadogRoot.CmdClause, data)
+	aliasDigitaloceanRoot := aliasdigitalocean.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasDigitaloceanCreate := aliasdigitalocean.NewCreateCommand(aliasDigitaloceanRoot.CmdClause, data)
+	aliasDigitaloceanDelete := aliasdigitalocean.NewDeleteCommand(aliasDigitaloceanRoot.CmdClause, data)
+	aliasDigitaloceanDescribe := aliasdigitalocean.NewDescribeCommand(aliasDigitaloceanRoot.CmdClause, data)
+	aliasDigitaloceanList := aliasdigitalocean.NewListCommand(aliasDigitaloceanRoot.CmdClause, data)
+	aliasDigitaloceanUpdate := aliasdigitalocean.NewUpdateCommand(aliasDigitaloceanRoot.CmdClause, data)
+	aliasElasticsearchRoot := aliaselasticsearch.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasElasticsearchCreate := aliaselasticsearch.NewCreateCommand(aliasElasticsearchRoot.CmdClause, data)
+	aliasElasticsearchDelete := aliaselasticsearch.NewDeleteCommand(aliasElasticsearchRoot.CmdClause, data)
+	aliasElasticsearchDescribe := aliaselasticsearch.NewDescribeCommand(aliasElasticsearchRoot.CmdClause, data)
+	aliasElasticsearchList := aliaselasticsearch.NewListCommand(aliasElasticsearchRoot.CmdClause, data)
+	aliasElasticsearchUpdate := aliaselasticsearch.NewUpdateCommand(aliasElasticsearchRoot.CmdClause, data)
+	aliasFtpRoot := aliasftp.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasFtpCreate := aliasftp.NewCreateCommand(aliasFtpRoot.CmdClause, data)
+	aliasFtpDelete := aliasftp.NewDeleteCommand(aliasFtpRoot.CmdClause, data)
+	aliasFtpDescribe := aliasftp.NewDescribeCommand(aliasFtpRoot.CmdClause, data)
+	aliasFtpList := aliasftp.NewListCommand(aliasFtpRoot.CmdClause, data)
+	aliasFtpUpdate := aliasftp.NewUpdateCommand(aliasFtpRoot.CmdClause, data)
+	aliasGcsRoot := aliasgcs.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasGcsCreate := aliasgcs.NewCreateCommand(aliasGcsRoot.CmdClause, data)
+	aliasGcsDelete := aliasgcs.NewDeleteCommand(aliasGcsRoot.CmdClause, data)
+	aliasGcsDescribe := aliasgcs.NewDescribeCommand(aliasGcsRoot.CmdClause, data)
+	aliasGcsList := aliasgcs.NewListCommand(aliasGcsRoot.CmdClause, data)
+	aliasGcsUpdate := aliasgcs.NewUpdateCommand(aliasGcsRoot.CmdClause, data)
+	aliasGooglepubsubRoot := aliasgooglepubsub.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasGooglepubsubCreate := aliasgooglepubsub.NewCreateCommand(aliasGooglepubsubRoot.CmdClause, data)
+	aliasGooglepubsubDelete := aliasgooglepubsub.NewDeleteCommand(aliasGooglepubsubRoot.CmdClause, data)
+	aliasGooglepubsubDescribe := aliasgooglepubsub.NewDescribeCommand(aliasGooglepubsubRoot.CmdClause, data)
+	aliasGooglepubsubList := aliasgooglepubsub.NewListCommand(aliasGooglepubsubRoot.CmdClause, data)
+	aliasGooglepubsubUpdate := aliasgooglepubsub.NewUpdateCommand(aliasGooglepubsubRoot.CmdClause, data)
+	aliasGrafanacloudlogsRoot := aliasgrafanacloudlogs.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasGrafanacloudlogsCreate := aliasgrafanacloudlogs.NewCreateCommand(aliasGrafanacloudlogsRoot.CmdClause, data)
+	aliasGrafanacloudlogsDelete := aliasgrafanacloudlogs.NewDeleteCommand(aliasGrafanacloudlogsRoot.CmdClause, data)
+	aliasGrafanacloudlogsDescribe := aliasgrafanacloudlogs.NewDescribeCommand(aliasGrafanacloudlogsRoot.CmdClause, data)
+	aliasGrafanacloudlogsList := aliasgrafanacloudlogs.NewListCommand(aliasGrafanacloudlogsRoot.CmdClause, data)
+	aliasGrafanacloudlogsUpdate := aliasgrafanacloudlogs.NewUpdateCommand(aliasGrafanacloudlogsRoot.CmdClause, data)
+	aliasHerokuRoot := aliasheroku.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasHerokuCreate := aliasheroku.NewCreateCommand(aliasHerokuRoot.CmdClause, data)
+	aliasHerokuDelete := aliasheroku.NewDeleteCommand(aliasHerokuRoot.CmdClause, data)
+	aliasHerokuDescribe := aliasheroku.NewDescribeCommand(aliasHerokuRoot.CmdClause, data)
+	aliasHerokuList := aliasheroku.NewListCommand(aliasHerokuRoot.CmdClause, data)
+	aliasHerokuUpdate := aliasheroku.NewUpdateCommand(aliasHerokuRoot.CmdClause, data)
+	aliasHoneycombRoot := aliashoneycomb.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasHoneycombCreate := aliashoneycomb.NewCreateCommand(aliasHoneycombRoot.CmdClause, data)
+	aliasHoneycombDelete := aliashoneycomb.NewDeleteCommand(aliasHoneycombRoot.CmdClause, data)
+	aliasHoneycombDescribe := aliashoneycomb.NewDescribeCommand(aliasHoneycombRoot.CmdClause, data)
+	aliasHoneycombList := aliashoneycomb.NewListCommand(aliasHoneycombRoot.CmdClause, data)
+	aliasHoneycombUpdate := aliashoneycomb.NewUpdateCommand(aliasHoneycombRoot.CmdClause, data)
+	aliasHTTPSRoot := aliashttps.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasHTTPSCreate := aliashttps.NewCreateCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasHTTPSDelete := aliashttps.NewDeleteCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasHTTPSDescribe := aliashttps.NewDescribeCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasHTTPSList := aliashttps.NewListCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasHTTPSUpdate := aliashttps.NewUpdateCommand(aliasHTTPSRoot.CmdClause, data)
+	aliasKafkaRoot := aliaskafka.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasKafkaCreate := aliaskafka.NewCreateCommand(aliasKafkaRoot.CmdClause, data)
+	aliasKafkaDelete := aliaskafka.NewDeleteCommand(aliasKafkaRoot.CmdClause, data)
+	aliasKafkaDescribe := aliaskafka.NewDescribeCommand(aliasKafkaRoot.CmdClause, data)
+	aliasKafkaList := aliaskafka.NewListCommand(aliasKafkaRoot.CmdClause, data)
+	aliasKafkaUpdate := aliaskafka.NewUpdateCommand(aliasKafkaRoot.CmdClause, data)
+	aliasKinesisRoot := aliaskinesis.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasKinesisCreate := aliaskinesis.NewCreateCommand(aliasKinesisRoot.CmdClause, data)
+	aliasKinesisDelete := aliaskinesis.NewDeleteCommand(aliasKinesisRoot.CmdClause, data)
+	aliasKinesisDescribe := aliaskinesis.NewDescribeCommand(aliasKinesisRoot.CmdClause, data)
+	aliasKinesisList := aliaskinesis.NewListCommand(aliasKinesisRoot.CmdClause, data)
+	aliasKinesisUpdate := aliaskinesis.NewUpdateCommand(aliasKinesisRoot.CmdClause, data)
+	aliasLogglyRoot := aliasloggly.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasLogglyCreate := aliasloggly.NewCreateCommand(aliasLogglyRoot.CmdClause, data)
+	aliasLogglyDelete := aliasloggly.NewDeleteCommand(aliasLogglyRoot.CmdClause, data)
+	aliasLogglyDescribe := aliasloggly.NewDescribeCommand(aliasLogglyRoot.CmdClause, data)
+	aliasLogglyList := aliasloggly.NewListCommand(aliasLogglyRoot.CmdClause, data)
+	aliasLogglyUpdate := aliasloggly.NewUpdateCommand(aliasLogglyRoot.CmdClause, data)
+	aliasLogshuttleRoot := aliaslogshuttle.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasLogshuttleCreate := aliaslogshuttle.NewCreateCommand(aliasLogshuttleRoot.CmdClause, data)
+	aliasLogshuttleDelete := aliaslogshuttle.NewDeleteCommand(aliasLogshuttleRoot.CmdClause, data)
+	aliasLogshuttleDescribe := aliaslogshuttle.NewDescribeCommand(aliasLogshuttleRoot.CmdClause, data)
+	aliasLogshuttleList := aliaslogshuttle.NewListCommand(aliasLogshuttleRoot.CmdClause, data)
+	aliasLogshuttleUpdate := aliaslogshuttle.NewUpdateCommand(aliasLogshuttleRoot.CmdClause, data)
+	aliasNewrelicRoot := aliasnewrelic.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasNewrelicCreate := aliasnewrelic.NewCreateCommand(aliasNewrelicRoot.CmdClause, data)
+	aliasNewrelicDelete := aliasnewrelic.NewDeleteCommand(aliasNewrelicRoot.CmdClause, data)
+	aliasNewrelicDescribe := aliasnewrelic.NewDescribeCommand(aliasNewrelicRoot.CmdClause, data)
+	aliasNewrelicList := aliasnewrelic.NewListCommand(aliasNewrelicRoot.CmdClause, data)
+	aliasNewrelicUpdate := aliasnewrelic.NewUpdateCommand(aliasNewrelicRoot.CmdClause, data)
+	aliasNewrelicotlpRoot := aliasnewrelicotlp.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasNewrelicotlpCreate := aliasnewrelicotlp.NewCreateCommand(aliasNewrelicotlpRoot.CmdClause, data)
+	aliasNewrelicotlpDelete := aliasnewrelicotlp.NewDeleteCommand(aliasNewrelicotlpRoot.CmdClause, data)
+	aliasNewrelicotlpDescribe := aliasnewrelicotlp.NewDescribeCommand(aliasNewrelicotlpRoot.CmdClause, data)
+	aliasNewrelicotlpList := aliasnewrelicotlp.NewListCommand(aliasNewrelicotlpRoot.CmdClause, data)
+	aliasNewrelicotlpUpdate := aliasnewrelicotlp.NewUpdateCommand(aliasNewrelicotlpRoot.CmdClause, data)
+	aliasOpenstackRoot := aliasopenstack.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasOpenstackCreate := aliasopenstack.NewCreateCommand(aliasOpenstackRoot.CmdClause, data)
+	aliasOpenstackDelete := aliasopenstack.NewDeleteCommand(aliasOpenstackRoot.CmdClause, data)
+	aliasOpenstackDescribe := aliasopenstack.NewDescribeCommand(aliasOpenstackRoot.CmdClause, data)
+	aliasOpenstackList := aliasopenstack.NewListCommand(aliasOpenstackRoot.CmdClause, data)
+	aliasOpenstackUpdate := aliasopenstack.NewUpdateCommand(aliasOpenstackRoot.CmdClause, data)
+	aliasPapertrailRoot := aliaspapertrail.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasPapertrailCreate := aliaspapertrail.NewCreateCommand(aliasPapertrailRoot.CmdClause, data)
+	aliasPapertrailDelete := aliaspapertrail.NewDeleteCommand(aliasPapertrailRoot.CmdClause, data)
+	aliasPapertrailDescribe := aliaspapertrail.NewDescribeCommand(aliasPapertrailRoot.CmdClause, data)
+	aliasPapertrailList := aliaspapertrail.NewListCommand(aliasPapertrailRoot.CmdClause, data)
+	aliasPapertrailUpdate := aliaspapertrail.NewUpdateCommand(aliasPapertrailRoot.CmdClause, data)
+	aliasS3Root := aliass3.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasS3Create := aliass3.NewCreateCommand(aliasS3Root.CmdClause, data)
+	aliasS3Delete := aliass3.NewDeleteCommand(aliasS3Root.CmdClause, data)
+	aliasS3Describe := aliass3.NewDescribeCommand(aliasS3Root.CmdClause, data)
+	aliasS3List := aliass3.NewListCommand(aliasS3Root.CmdClause, data)
+	aliasS3Update := aliass3.NewUpdateCommand(aliasS3Root.CmdClause, data)
+	aliasScalyrRoot := aliasscalyr.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasScalyrCreate := aliasscalyr.NewCreateCommand(aliasScalyrRoot.CmdClause, data)
+	aliasScalyrDelete := aliasscalyr.NewDeleteCommand(aliasScalyrRoot.CmdClause, data)
+	aliasScalyrDescribe := aliasscalyr.NewDescribeCommand(aliasScalyrRoot.CmdClause, data)
+	aliasScalyrList := aliasscalyr.NewListCommand(aliasScalyrRoot.CmdClause, data)
+	aliasScalyrUpdate := aliasscalyr.NewUpdateCommand(aliasScalyrRoot.CmdClause, data)
+	aliasSftpRoot := aliassftp.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasSftpCreate := aliassftp.NewCreateCommand(aliasSftpRoot.CmdClause, data)
+	aliasSftpDelete := aliassftp.NewDeleteCommand(aliasSftpRoot.CmdClause, data)
+	aliasSftpDescribe := aliassftp.NewDescribeCommand(aliasSftpRoot.CmdClause, data)
+	aliasSftpList := aliassftp.NewListCommand(aliasSftpRoot.CmdClause, data)
+	aliasSftpUpdate := aliassftp.NewUpdateCommand(aliasSftpRoot.CmdClause, data)
+	aliasSplunkRoot := aliassplunk.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasSplunkCreate := aliassplunk.NewCreateCommand(aliasSplunkRoot.CmdClause, data)
+	aliasSplunkDelete := aliassplunk.NewDeleteCommand(aliasSplunkRoot.CmdClause, data)
+	aliasSplunkDescribe := aliassplunk.NewDescribeCommand(aliasSplunkRoot.CmdClause, data)
+	aliasSplunkList := aliassplunk.NewListCommand(aliasSplunkRoot.CmdClause, data)
+	aliasSplunkUpdate := aliassplunk.NewUpdateCommand(aliasSplunkRoot.CmdClause, data)
+	aliasSumologicRoot := aliassumologic.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasSumologicCreate := aliassumologic.NewCreateCommand(aliasSumologicRoot.CmdClause, data)
+	aliasSumologicDelete := aliassumologic.NewDeleteCommand(aliasSumologicRoot.CmdClause, data)
+	aliasSumologicDescribe := aliassumologic.NewDescribeCommand(aliasSumologicRoot.CmdClause, data)
+	aliasSumologicList := aliassumologic.NewListCommand(aliasSumologicRoot.CmdClause, data)
+	aliasSumologicUpdate := aliassumologic.NewUpdateCommand(aliasSumologicRoot.CmdClause, data)
+	aliasSyslogRoot := aliassyslog.NewRootCommand(aliasLoggingRoot.CmdClause, data)
+	aliasSyslogCreate := aliassyslog.NewCreateCommand(aliasSyslogRoot.CmdClause, data)
+	aliasSyslogDelete := aliassyslog.NewDeleteCommand(aliasSyslogRoot.CmdClause, data)
+	aliasSyslogDescribe := aliassyslog.NewDescribeCommand(aliasSyslogRoot.CmdClause, data)
+	aliasSyslogList := aliassyslog.NewListCommand(aliasSyslogRoot.CmdClause, data)
+	aliasSyslogUpdate := aliassyslog.NewUpdateCommand(aliasSyslogRoot.CmdClause, data)
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
@@ -894,169 +1085,169 @@ func Define( // nolint:revive // function-length
 		kvstoreentryDescribe,
 		kvstoreentryList,
 		logtailCmdRoot,
-		loggingAzureblobCmdRoot,
-		loggingAzureblobCreate,
-		loggingAzureblobDelete,
-		loggingAzureblobDescribe,
-		loggingAzureblobList,
-		loggingAzureblobUpdate,
-		loggingBigQueryCmdRoot,
-		loggingBigQueryCreate,
-		loggingBigQueryDelete,
-		loggingBigQueryDescribe,
-		loggingBigQueryList,
-		loggingBigQueryUpdate,
-		loggingCloudfilesCmdRoot,
-		loggingCloudfilesCreate,
-		loggingCloudfilesDelete,
-		loggingCloudfilesDescribe,
-		loggingCloudfilesList,
-		loggingCloudfilesUpdate,
-		loggingCmdRoot,
-		loggingDatadogCmdRoot,
-		loggingDatadogCreate,
-		loggingDatadogDelete,
-		loggingDatadogDescribe,
-		loggingDatadogList,
-		loggingDatadogUpdate,
-		loggingDigitaloceanCmdRoot,
-		loggingDigitaloceanCreate,
-		loggingDigitaloceanDelete,
-		loggingDigitaloceanDescribe,
-		loggingDigitaloceanList,
-		loggingDigitaloceanUpdate,
-		loggingElasticsearchCmdRoot,
-		loggingElasticsearchCreate,
-		loggingElasticsearchDelete,
-		loggingElasticsearchDescribe,
-		loggingElasticsearchList,
-		loggingElasticsearchUpdate,
-		loggingFtpCmdRoot,
-		loggingFtpCreate,
-		loggingFtpDelete,
-		loggingFtpDescribe,
-		loggingFtpList,
-		loggingFtpUpdate,
-		loggingGcsCmdRoot,
-		loggingGcsCreate,
-		loggingGcsDelete,
-		loggingGcsDescribe,
-		loggingGcsList,
-		loggingGcsUpdate,
-		loggingGooglepubsubCmdRoot,
-		loggingGooglepubsubCreate,
-		loggingGooglepubsubDelete,
-		loggingGooglepubsubDescribe,
-		loggingGooglepubsubList,
-		loggingGooglepubsubUpdate,
-		loggingGrafanacloudlogsCmdRoot,
-		loggingGrafanacloudlogsCreate,
-		loggingGrafanacloudlogsDelete,
-		loggingGrafanacloudlogsDescribe,
-		loggingGrafanacloudlogsList,
-		loggingGrafanacloudlogsUpdate,
-		loggingHerokuCmdRoot,
-		loggingHerokuCreate,
-		loggingHerokuDelete,
-		loggingHerokuDescribe,
-		loggingHerokuList,
-		loggingHerokuUpdate,
-		loggingHoneycombCmdRoot,
-		loggingHoneycombCreate,
-		loggingHoneycombDelete,
-		loggingHoneycombDescribe,
-		loggingHoneycombList,
-		loggingHoneycombUpdate,
-		loggingHTTPSCmdRoot,
-		loggingHTTPSCreate,
-		loggingHTTPSDelete,
-		loggingHTTPSDescribe,
-		loggingHTTPSList,
-		loggingHTTPSUpdate,
-		loggingKafkaCmdRoot,
-		loggingKafkaCreate,
-		loggingKafkaDelete,
-		loggingKafkaDescribe,
-		loggingKafkaList,
-		loggingKafkaUpdate,
-		loggingKinesisCmdRoot,
-		loggingKinesisCreate,
-		loggingKinesisDelete,
-		loggingKinesisDescribe,
-		loggingKinesisList,
-		loggingKinesisUpdate,
-		loggingLogglyCmdRoot,
-		loggingLogglyCreate,
-		loggingLogglyDelete,
-		loggingLogglyDescribe,
-		loggingLogglyList,
-		loggingLogglyUpdate,
-		loggingLogshuttleCmdRoot,
-		loggingLogshuttleCreate,
-		loggingLogshuttleDelete,
-		loggingLogshuttleDescribe,
-		loggingLogshuttleList,
-		loggingLogshuttleUpdate,
-		loggingNewRelicCmdRoot,
-		loggingNewRelicCreate,
-		loggingNewRelicDelete,
-		loggingNewRelicDescribe,
-		loggingNewRelicList,
-		loggingNewRelicUpdate,
-		loggingNewRelicOTLPCmdRoot,
-		loggingNewRelicOTLPCreate,
-		loggingNewRelicOTLPDelete,
-		loggingNewRelicOTLPDescribe,
-		loggingNewRelicOTLPList,
-		loggingNewRelicOTLPUpdate,
-		loggingOpenstackCmdRoot,
-		loggingOpenstackCreate,
-		loggingOpenstackDelete,
-		loggingOpenstackDescribe,
-		loggingOpenstackList,
-		loggingOpenstackUpdate,
-		loggingPapertrailCmdRoot,
-		loggingPapertrailCreate,
-		loggingPapertrailDelete,
-		loggingPapertrailDescribe,
-		loggingPapertrailList,
-		loggingPapertrailUpdate,
-		loggingS3CmdRoot,
-		loggingS3Create,
-		loggingS3Delete,
-		loggingS3Describe,
-		loggingS3List,
-		loggingS3Update,
-		loggingScalyrCmdRoot,
-		loggingScalyrCreate,
-		loggingScalyrDelete,
-		loggingScalyrDescribe,
-		loggingScalyrList,
-		loggingScalyrUpdate,
-		loggingSftpCmdRoot,
-		loggingSftpCreate,
-		loggingSftpDelete,
-		loggingSftpDescribe,
-		loggingSftpList,
-		loggingSftpUpdate,
-		loggingSplunkCmdRoot,
-		loggingSplunkCreate,
-		loggingSplunkDelete,
-		loggingSplunkDescribe,
-		loggingSplunkList,
-		loggingSplunkUpdate,
-		loggingSumologicCmdRoot,
-		loggingSumologicCreate,
-		loggingSumologicDelete,
-		loggingSumologicDescribe,
-		loggingSumologicList,
-		loggingSumologicUpdate,
-		loggingSyslogCmdRoot,
-		loggingSyslogCreate,
-		loggingSyslogDelete,
-		loggingSyslogDescribe,
-		loggingSyslogList,
-		loggingSyslogUpdate,
+		serviceloggingAzureblobCmdRoot,
+		serviceloggingAzureblobCreate,
+		serviceloggingAzureblobDelete,
+		serviceloggingAzureblobDescribe,
+		serviceloggingAzureblobList,
+		serviceloggingAzureblobUpdate,
+		serviceloggingBigQueryCmdRoot,
+		serviceloggingBigQueryCreate,
+		serviceloggingBigQueryDelete,
+		serviceloggingBigQueryDescribe,
+		serviceloggingBigQueryList,
+		serviceloggingBigQueryUpdate,
+		serviceloggingCloudfilesCmdRoot,
+		serviceloggingCloudfilesCreate,
+		serviceloggingCloudfilesDelete,
+		serviceloggingCloudfilesDescribe,
+		serviceloggingCloudfilesList,
+		serviceloggingCloudfilesUpdate,
+		serviceloggingCmdRoot,
+		serviceloggingDatadogCmdRoot,
+		serviceloggingDatadogCreate,
+		serviceloggingDatadogDelete,
+		serviceloggingDatadogDescribe,
+		serviceloggingDatadogList,
+		serviceloggingDatadogUpdate,
+		serviceloggingDigitaloceanCmdRoot,
+		serviceloggingDigitaloceanCreate,
+		serviceloggingDigitaloceanDelete,
+		serviceloggingDigitaloceanDescribe,
+		serviceloggingDigitaloceanList,
+		serviceloggingDigitaloceanUpdate,
+		serviceloggingElasticsearchCmdRoot,
+		serviceloggingElasticsearchCreate,
+		serviceloggingElasticsearchDelete,
+		serviceloggingElasticsearchDescribe,
+		serviceloggingElasticsearchList,
+		serviceloggingElasticsearchUpdate,
+		serviceloggingFtpCmdRoot,
+		serviceloggingFtpCreate,
+		serviceloggingFtpDelete,
+		serviceloggingFtpDescribe,
+		serviceloggingFtpList,
+		serviceloggingFtpUpdate,
+		serviceloggingGcsCmdRoot,
+		serviceloggingGcsCreate,
+		serviceloggingGcsDelete,
+		serviceloggingGcsDescribe,
+		serviceloggingGcsList,
+		serviceloggingGcsUpdate,
+		serviceloggingGooglepubsubCmdRoot,
+		serviceloggingGooglepubsubCreate,
+		serviceloggingGooglepubsubDelete,
+		serviceloggingGooglepubsubDescribe,
+		serviceloggingGooglepubsubList,
+		serviceloggingGooglepubsubUpdate,
+		serviceloggingGrafanacloudlogsCmdRoot,
+		serviceloggingGrafanacloudlogsCreate,
+		serviceloggingGrafanacloudlogsDelete,
+		serviceloggingGrafanacloudlogsDescribe,
+		serviceloggingGrafanacloudlogsList,
+		serviceloggingGrafanacloudlogsUpdate,
+		serviceloggingHerokuCmdRoot,
+		serviceloggingHerokuCreate,
+		serviceloggingHerokuDelete,
+		serviceloggingHerokuDescribe,
+		serviceloggingHerokuList,
+		serviceloggingHerokuUpdate,
+		serviceloggingHoneycombCmdRoot,
+		serviceloggingHoneycombCreate,
+		serviceloggingHoneycombDelete,
+		serviceloggingHoneycombDescribe,
+		serviceloggingHoneycombList,
+		serviceloggingHoneycombUpdate,
+		serviceloggingHTTPSCmdRoot,
+		serviceloggingHTTPSCreate,
+		serviceloggingHTTPSDelete,
+		serviceloggingHTTPSDescribe,
+		serviceloggingHTTPSList,
+		serviceloggingHTTPSUpdate,
+		serviceloggingKafkaCmdRoot,
+		serviceloggingKafkaCreate,
+		serviceloggingKafkaDelete,
+		serviceloggingKafkaDescribe,
+		serviceloggingKafkaList,
+		serviceloggingKafkaUpdate,
+		serviceloggingKinesisCmdRoot,
+		serviceloggingKinesisCreate,
+		serviceloggingKinesisDelete,
+		serviceloggingKinesisDescribe,
+		serviceloggingKinesisList,
+		serviceloggingKinesisUpdate,
+		serviceloggingLogglyCmdRoot,
+		serviceloggingLogglyCreate,
+		serviceloggingLogglyDelete,
+		serviceloggingLogglyDescribe,
+		serviceloggingLogglyList,
+		serviceloggingLogglyUpdate,
+		serviceloggingLogshuttleCmdRoot,
+		serviceloggingLogshuttleCreate,
+		serviceloggingLogshuttleDelete,
+		serviceloggingLogshuttleDescribe,
+		serviceloggingLogshuttleList,
+		serviceloggingLogshuttleUpdate,
+		serviceloggingNewRelicCmdRoot,
+		serviceloggingNewRelicCreate,
+		serviceloggingNewRelicDelete,
+		serviceloggingNewRelicDescribe,
+		serviceloggingNewRelicList,
+		serviceloggingNewRelicUpdate,
+		serviceloggingNewRelicOTLPCmdRoot,
+		serviceloggingNewRelicOTLPCreate,
+		serviceloggingNewRelicOTLPDelete,
+		serviceloggingNewRelicOTLPDescribe,
+		serviceloggingNewRelicOTLPList,
+		serviceloggingNewRelicOTLPUpdate,
+		serviceloggingOpenstackCmdRoot,
+		serviceloggingOpenstackCreate,
+		serviceloggingOpenstackDelete,
+		serviceloggingOpenstackDescribe,
+		serviceloggingOpenstackList,
+		serviceloggingOpenstackUpdate,
+		serviceloggingPapertrailCmdRoot,
+		serviceloggingPapertrailCreate,
+		serviceloggingPapertrailDelete,
+		serviceloggingPapertrailDescribe,
+		serviceloggingPapertrailList,
+		serviceloggingPapertrailUpdate,
+		serviceloggingS3CmdRoot,
+		serviceloggingS3Create,
+		serviceloggingS3Delete,
+		serviceloggingS3Describe,
+		serviceloggingS3List,
+		serviceloggingS3Update,
+		serviceloggingScalyrCmdRoot,
+		serviceloggingScalyrCreate,
+		serviceloggingScalyrDelete,
+		serviceloggingScalyrDescribe,
+		serviceloggingScalyrList,
+		serviceloggingScalyrUpdate,
+		serviceloggingSftpCmdRoot,
+		serviceloggingSftpCreate,
+		serviceloggingSftpDelete,
+		serviceloggingSftpDescribe,
+		serviceloggingSftpList,
+		serviceloggingSftpUpdate,
+		serviceloggingSplunkCmdRoot,
+		serviceloggingSplunkCreate,
+		serviceloggingSplunkDelete,
+		serviceloggingSplunkDescribe,
+		serviceloggingSplunkList,
+		serviceloggingSplunkUpdate,
+		serviceloggingSumologicCmdRoot,
+		serviceloggingSumologicCreate,
+		serviceloggingSumologicDelete,
+		serviceloggingSumologicDescribe,
+		serviceloggingSumologicList,
+		serviceloggingSumologicUpdate,
+		serviceloggingSyslogCmdRoot,
+		serviceloggingSyslogCreate,
+		serviceloggingSyslogDelete,
+		serviceloggingSyslogDescribe,
+		serviceloggingSyslogList,
+		serviceloggingSyslogUpdate,
 		ngwafRoot,
 		ngwafRedactionCreate,
 		ngwafRedactionDelete,
@@ -1476,5 +1667,168 @@ func Define( // nolint:revive // function-length
 		aliasServiceVersionStage,
 		aliasServiceVersionUnstage,
 		aliasServiceVersionUpdate,
+		aliasLoggingRoot,
+		aliasAzureblobRoot,
+		aliasAzureblobCreate,
+		aliasAzureblobDelete,
+		aliasAzureblobDescribe,
+		aliasAzureblobList,
+		aliasAzureblobUpdate,
+		aliasBigqueryRoot,
+		aliasBigqueryCreate,
+		aliasBigqueryDelete,
+		aliasBigqueryDescribe,
+		aliasBigqueryList,
+		aliasBigqueryUpdate,
+		aliasCloudfilesRoot,
+		aliasCloudfilesCreate,
+		aliasCloudfilesDelete,
+		aliasCloudfilesDescribe,
+		aliasCloudfilesList,
+		aliasCloudfilesUpdate,
+		aliasDatadogRoot,
+		aliasDatadogCreate,
+		aliasDatadogDelete,
+		aliasDatadogDescribe,
+		aliasDatadogList,
+		aliasDatadogUpdate,
+		aliasDigitaloceanRoot,
+		aliasDigitaloceanCreate,
+		aliasDigitaloceanDelete,
+		aliasDigitaloceanDescribe,
+		aliasDigitaloceanList,
+		aliasDigitaloceanUpdate,
+		aliasElasticsearchRoot,
+		aliasElasticsearchCreate,
+		aliasElasticsearchDelete,
+		aliasElasticsearchDescribe,
+		aliasElasticsearchList,
+		aliasElasticsearchUpdate,
+		aliasFtpRoot,
+		aliasFtpCreate,
+		aliasFtpDelete,
+		aliasFtpDescribe,
+		aliasFtpList,
+		aliasFtpUpdate,
+		aliasGcsRoot,
+		aliasGcsCreate,
+		aliasGcsDelete,
+		aliasGcsDescribe,
+		aliasGcsList,
+		aliasGcsUpdate,
+		aliasGooglepubsubRoot,
+		aliasGooglepubsubCreate,
+		aliasGooglepubsubDelete,
+		aliasGooglepubsubDescribe,
+		aliasGooglepubsubList,
+		aliasGooglepubsubUpdate,
+		aliasGrafanacloudlogsRoot,
+		aliasGrafanacloudlogsCreate,
+		aliasGrafanacloudlogsDelete,
+		aliasGrafanacloudlogsDescribe,
+		aliasGrafanacloudlogsList,
+		aliasGrafanacloudlogsUpdate,
+		aliasHerokuRoot,
+		aliasHerokuCreate,
+		aliasHerokuDelete,
+		aliasHerokuDescribe,
+		aliasHerokuList,
+		aliasHerokuUpdate,
+		aliasHoneycombRoot,
+		aliasHoneycombCreate,
+		aliasHoneycombDelete,
+		aliasHoneycombDescribe,
+		aliasHoneycombList,
+		aliasHoneycombUpdate,
+		aliasHTTPSRoot,
+		aliasHTTPSCreate,
+		aliasHTTPSDelete,
+		aliasHTTPSDescribe,
+		aliasHTTPSList,
+		aliasHTTPSUpdate,
+		aliasKafkaRoot,
+		aliasKafkaCreate,
+		aliasKafkaDelete,
+		aliasKafkaDescribe,
+		aliasKafkaList,
+		aliasKafkaUpdate,
+		aliasKinesisRoot,
+		aliasKinesisCreate,
+		aliasKinesisDelete,
+		aliasKinesisDescribe,
+		aliasKinesisList,
+		aliasKinesisUpdate,
+		aliasLogglyRoot,
+		aliasLogglyCreate,
+		aliasLogglyDelete,
+		aliasLogglyDescribe,
+		aliasLogglyList,
+		aliasLogglyUpdate,
+		aliasLogshuttleRoot,
+		aliasLogshuttleCreate,
+		aliasLogshuttleDelete,
+		aliasLogshuttleDescribe,
+		aliasLogshuttleList,
+		aliasLogshuttleUpdate,
+		aliasNewrelicRoot,
+		aliasNewrelicCreate,
+		aliasNewrelicDelete,
+		aliasNewrelicDescribe,
+		aliasNewrelicList,
+		aliasNewrelicUpdate,
+		aliasNewrelicotlpRoot,
+		aliasNewrelicotlpCreate,
+		aliasNewrelicotlpDelete,
+		aliasNewrelicotlpDescribe,
+		aliasNewrelicotlpList,
+		aliasNewrelicotlpUpdate,
+		aliasOpenstackRoot,
+		aliasOpenstackCreate,
+		aliasOpenstackDelete,
+		aliasOpenstackDescribe,
+		aliasOpenstackList,
+		aliasOpenstackUpdate,
+		aliasPapertrailRoot,
+		aliasPapertrailCreate,
+		aliasPapertrailDelete,
+		aliasPapertrailDescribe,
+		aliasPapertrailList,
+		aliasPapertrailUpdate,
+		aliasS3Root,
+		aliasS3Create,
+		aliasS3Delete,
+		aliasS3Describe,
+		aliasS3List,
+		aliasS3Update,
+		aliasScalyrRoot,
+		aliasScalyrCreate,
+		aliasScalyrDelete,
+		aliasScalyrDescribe,
+		aliasScalyrList,
+		aliasScalyrUpdate,
+		aliasSftpRoot,
+		aliasSftpCreate,
+		aliasSftpDelete,
+		aliasSftpDescribe,
+		aliasSftpList,
+		aliasSftpUpdate,
+		aliasSplunkRoot,
+		aliasSplunkCreate,
+		aliasSplunkDelete,
+		aliasSplunkDescribe,
+		aliasSplunkList,
+		aliasSplunkUpdate,
+		aliasSumologicRoot,
+		aliasSumologicCreate,
+		aliasSumologicDelete,
+		aliasSumologicDescribe,
+		aliasSumologicList,
+		aliasSumologicUpdate,
+		aliasSyslogRoot,
+		aliasSyslogCreate,
+		aliasSyslogDelete,
+		aliasSyslogDescribe,
+		aliasSyslogList,
+		aliasSyslogUpdate,
 	}
 }
