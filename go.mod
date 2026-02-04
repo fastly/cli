@@ -1,8 +1,6 @@
 module github.com/fastly/cli
 
-go 1.24.0
-
-toolchain go1.24.3
+go 1.25.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
@@ -82,6 +80,6 @@ require (
 
 require (
 	4d63.com/optional v0.2.0
-	github.com/fastly/go-fastly/v12 v12.1.1
+	github.com/fastly/go-fastly/v12 v12.1.2
 	github.com/mitchellh/go-ps v1.0.0
 )
