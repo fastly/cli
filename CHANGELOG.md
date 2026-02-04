@@ -33,6 +33,7 @@
 - fix(manifest): Correct setup.Defined to include checks for ObjectStores and SecretStores ([#1639](https://github.com/fastly/cli/pull/1639))
 
 ### Dependencies:
+- build(deps): `golang` from 1.24 to 1.25 ([#1651](https://github.com/fastly/cli/pull/1651))
 - build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
 - build(deps): `actions/download-artifact` from 6 to 7 ([#1603](https://github.com/fastly/cli/pull/1603))
 - build(deps): `golang.org/x/term` from 0.37.0 to 0.38.0 ([#1602](https://github.com/fastly/cli/pull/1602))
