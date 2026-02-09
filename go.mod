@@ -1,8 +1,8 @@
 module github.com/fastly/cli
 
-go 1.24.0
+go 1.25.0
 
-toolchain go1.24.3
+toolchain go1.25.7
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
@@ -21,7 +21,7 @@ require (
 	github.com/nicksnyder/go-i18n v1.10.3 // indirect
 	github.com/pelletier/go-toml v1.9.5
 	github.com/segmentio/textio v1.2.0
-	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
+	github.com/tomnomnom/linkheader v0.0.0-20250811210735-e5fe3b51442e
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/term v0.39.0
 )
@@ -34,13 +34,13 @@ require (
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/theckman/yacspin v0.13.12
 	golang.org/x/crypto v0.47.0
-	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
+	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
 	golang.org/x/mod v0.32.0
 )
 
 require (
 	github.com/clipperhouse/stringish v0.1.1 // indirect
-	github.com/clipperhouse/uax29/v2 v2.4.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.5.0 // indirect
 	github.com/dnaeon/go-vcr v1.2.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -82,6 +82,6 @@ require (
 
 require (
 	4d63.com/optional v0.2.0
-	github.com/fastly/go-fastly/v12 v12.1.1
+	github.com/fastly/go-fastly/v12 v12.1.2
 	github.com/mitchellh/go-ps v1.0.0
 )

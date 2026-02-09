@@ -1,8 +1,8 @@
 module github.com/fastly/cli/tools
 
-go 1.24.0
+go 1.25.0
 
-toolchain go1.24.3
+toolchain go1.25.7
 
 tool (
 	github.com/goreleaser/goreleaser/v2
