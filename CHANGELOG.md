@@ -3,13 +3,15 @@
 ## [Unreleased]
 
 ### Breaking:
+
 - breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
 
 ### Enhancements:
+
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
 - feat(ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1605](https://github.com/fastly/cli/pull/1605))
-- feat(compute/deploy): added the  `--no-default-domain` flag to allow for the skipping of automatic domain creation when  deploying a Compute service([#1610](https://github.com/fastly/cli/pull/1610))
+- feat(compute/deploy): added the `--no-default-domain` flag to allow for the skipping of automatic domain creation when deploying a Compute service([#1610](https://github.com/fastly/cli/pull/1610))
 - refactor(argparser/flags.go): add flag conversion utilities for converting string flags to bools and checking ascending and desecnding flags ([#1611](https://github.com/fastly/cli/pull/1611))
 - feat(service/purge): Add 'service purge' command as replacement for 'purge', with an unlisted and deprecated alias of 'purge'. ([#1612](https://github.com/fastly/cli/pull/1612))
 - feat(service/version): Add 'service version ...' commands as replacements for 'service-version ...', with unlisted and deprecated aliases of 'service-version ...'. ([#1614](https://github.com/fastly/cli/pull/1614))
@@ -29,10 +31,12 @@
 - feat(service/auth): moved the `service-auth` commands under the `service` command and renamed to `auth`, with an unlisted and deprecated alias of `service-auth` ([#1643](https://github.com/fastly/cli/pull/1643))
 
 ### Bug fixes:
+
 - fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
 - fix(manifest): Correct setup.Defined to include checks for ObjectStores and SecretStores ([#1639](https://github.com/fastly/cli/pull/1639))
 
 ### Dependencies:
+
 - build(deps): `golang` from 1.24 to 1.25 ([#1651](https://github.com/fastly/cli/pull/1651))
 - build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
 - build(deps): `actions/download-artifact` from 6 to 7 ([#1603](https://github.com/fastly/cli/pull/1603))
@@ -55,15 +59,26 @@
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.23 to 4.1.25 ([#1625](https://github.com/fastly/cli/pull/1625))
 - build(deps): `github.com/clipperhouse/uax29/v2` from 2.3.1 to 2.4.0 ([#1634](https://github.com/fastly/cli/pull/1634))
 - build(deps): `github.com/clipperhouse/uax29/v2` from 2.4.0 to 2.5.0 ([#1647](https://github.com/fastly/cli/pull/1647))
+- build(deps): `golang.org/x/sys` from 0.40.0 to 0.41.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `golang.org/x/term` from 0.39.0 to 0.40.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `golang.org/x/crypto` from 0.47.0 to 0.48.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `golang.org/x/mod` from 0.32.0 to 0.33.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.5.0 to 2.6.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `github.com/klauspost/compress` from 1.18.3 to 1.18.4 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `golang.org/x/net` from 0.49.0 to 0.50.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `golang.org/x/oauth2` from 0.34.0 to 0.35.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `golang.org/x/text` from 0.33.0 to 0.34.0 ([#1652](https://github.com/fastly/cli/pull/1652))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
 
 ### Enhancements:
+
 - feat(toml/rust): add support for Rust 1.9.2 ([#1599](https://github.com/fastly/cli/pull/1599))
 
 ## [v13.2.0](https://github.com/fastly/cli/releases/tag/v13.2.0) (2025-12-10)
 
 ### Enhancements:
+
 - feat(commands/ngwaf/workspaces): add support for update operation for NGWAF workspaces ([#1578](https://github.com/fastly/cli/pull/1578))
 - feat(commands/ngwaf/lists): add support for CRUD operations for NGWAF Lists at account and workspace levels ([#1582](https://github.com/fastly/cli/pull/1582))
 - feat(commands/ngwaf/workspaces/alerts): add support for operations for NGWAF alerts ([#1589](https://github.com/fastly/cli/pull/1589))
@@ -71,10 +86,12 @@
 - feat(commands/ngwaf/threshold): add support for CRUD operations for NGWAF Thresholds ([#1595](https://github.com/fastly/cli/pull/1595))
 
 ### Bug fixes:
+
 - fix(commands/ngwaf/virtualpatch): ensured a check was in place for the 'update' command that disallowed the --json and --verbose flag to be ran at the same time. ([#1596](https://github.com/fastly/cli/pull/1596))
-- fix(commands/ngwaf/redaction): ensured a check was in place for the 'create' and 'update' commands that disallowed the --json and --verbose flag to be ran at the same time.  ([#1596](https://github.com/fastly/cli/pull/1596))
+- fix(commands/ngwaf/redaction): ensured a check was in place for the 'create' and 'update' commands that disallowed the --json and --verbose flag to be ran at the same time. ([#1596](https://github.com/fastly/cli/pull/1596))
 
 ### Dependencies:
+
 - build(deps): `golang.org/x/crypto` from 0.43.0 to 0.45.0 ([#1584](https://github.com/fastly/cli/pull/1584))
 - build(deps): `actions/checkout` from 5 to 6 ([#1587](https://github.com/fastly/cli/pull/1587))
 - build(deps): `golang.org/x/mod` from 0.29.0 to 0.30.0 ([#1588](https://github.com/fastly/cli/pull/1588))
@@ -88,6 +105,7 @@
 ## [v13.1.0](https://github.com/fastly/cli/releases/tag/v13.1.0) (2025-11-12)
 
 ### Enhancements:
+
 - feat(service-version): Add JSON support to service-version clone command ([#1550](https://github.com/fastly/cli/pull/1550))
 - feat(compute/build): Allow usage of Rust 1.91.1 and later patch releases ([#1576](https://github.com/fastly/cli/pull/1576))
 - feat(commands/ngwaf/workspaces): add support for CRUD operations for NGWAF workspaces ([#1570](https://github.com/fastly/cli/pull/1570))
@@ -95,6 +113,7 @@
 - feat(commands/ngwaf/redaction): add support for CRUD operations for NGWAF redactions ([#1581](https://github.com/fastly/cli/pull/1581))
 
 ### Dependencies:
+
 - build(deps): `golangci/golangci-lint-action` from 8 to 9 ([#1575](https://github.com/fastly/cli/pull/1575))
 - build(deps): `golang.org/x/sys` from 0.37.0 to 0.38.0 ([#1574](https://github.com/fastly/cli/pull/1574))
 - build(deps): `golang.org/x/oauth2` from 0.32.0 to 0.33.0 ([#1574](https://github.com/fastly/cli/pull/1574))
@@ -103,19 +122,23 @@
 ## [v13.0.0](https://github.com/fastly/cli/releases/tag/v13.0.0) (2025-10-30)
 
 ### Breaking:
+
 - breaking(tls-custom): correct 'tls-custom activation enable' command parameters to reflect expected input from API ([#1562](https://github.com/fastly/cli/pull/1562))
 - breaking(compute/build): Block version 1.91.0 of Rust as it produces broken WASM packages. ([#1571](https://github.com/fastly/cli/pull/1571))
 
 ### Enhancements:
+
 - feat(compute/serve): set sig_iss and sig_key to allow client code to test Grip-Sig signing ([#1569](https://github.com/fastly/cli/pull/1569))
 - build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
 - feat(env): add detection for workspace ID ([#1560](https://github.com/fastly/cli/pull/1560))
 
 ### Bug fixes:
+
 - fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
 - fix(purge/key): ensures that single-key purges will work even if the key contains URL-unsafe characters ([#1566](https://github.com/fastly/cli/pull/1566))
 
 ### Dependencies:
+
 - build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.15.0 to 3.16.0 ([#1546](https://github.com/fastly/cli/pull/1546))
 - build(deps): `stefanzweifel/git-auto-commit-action` from 6 to 7 ([#1549](https://github.com/fastly/cli/pull/1549))
@@ -133,7 +156,6 @@
 - build(deps): `github.com/clipperhouse/uax29/v2` from 2.2.0 to 2.3.0 ([#1564](https://github.com/fastly/cli/pull/1564))
 - build(deps): `actions/upload-artifact` from 4 to 5 ([#1565](https://github.com/fastly/cli/pull/1565))
 - build(deps): `actions/download-artifact` from 5 to 6 ([#1565](https://github.com/fastly/cli/pull/1565))
-
 
 ## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)
 
