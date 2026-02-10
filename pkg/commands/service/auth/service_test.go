@@ -1,86 +1,59 @@
 package auth_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
-	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v12/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/service"
+	sub "github.com/fastly/cli/pkg/commands/service/auth"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestServiceAuthCreate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service auth create"),
-			wantError: "error parsing arguments: required flag --user-id not provided",
+			Args:      "",
+			WantError: "error parsing arguments: required flag --user-id not provided",
 		},
 		{
-			args:      args("service auth create --user-id 123 --service-id 123"),
-			api:       mock.API{CreateServiceAuthorizationFn: createServiceAuthError},
-			wantError: errTest.Error(),
+			Args:      "--user-id 123 --service-id 123",
+			API:       mock.API{CreateServiceAuthorizationFn: createServiceAuthError},
+			WantError: errTest.Error(),
 		},
 		{
-			args:       args("service auth create --user-id 123 --service-id 123"),
-			api:        mock.API{CreateServiceAuthorizationFn: createServiceAuthOK},
-			wantOutput: "Created service authorization 12345",
+			Args:       "--user-id 123 --service-id 123",
+			API:        mock.API{CreateServiceAuthorizationFn: createServiceAuthOK},
+			WantOutput: "Created service authorization 12345",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
 }
 
 func TestServiceAuthList(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service auth list --verbose --json"),
-			wantError: "invalid flag combination, --verbose and --json",
+			Args:      "--verbose --json",
+			WantError: "invalid flag combination, --verbose and --json",
 		},
 		{
-			args:      args("service auth list"),
-			api:       mock.API{ListServiceAuthorizationsFn: listServiceAuthError},
-			wantError: errTest.Error(),
+			Args:      "",
+			API:       mock.API{ListServiceAuthorizationsFn: listServiceAuthError},
+			WantError: errTest.Error(),
 		},
 		{
-			args:       args("service auth list"),
-			api:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
-			wantOutput: "AUTH ID  USER ID  SERVICE ID  PERMISSION\n123      456      789         read_only\n",
+			Args:       "",
+			API:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
+			WantOutput: "AUTH ID  USER ID  SERVICE ID  PERMISSION\n123      456      789         read_only\n",
 		},
 		{
-			args: args("service auth list --json"),
-			api:  mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
-			wantOutput: `{
+			Args: "--json",
+			API:  mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
+			WantOutput: `{
   "Info": {
     "links": {},
     "meta": {}
@@ -103,58 +76,39 @@ func TestServiceAuthList(t *testing.T) {
 }`,
 		},
 		{
-			args:       args("service auth list --verbose"),
-			api:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
-			wantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nAuth ID: 123\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
+			Args:       "--verbose",
+			API:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
+			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nAuth ID: 123\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			t.Log(stdout.String())
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
 func TestServiceAuthDescribe(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service auth describe"),
-			wantError: "error parsing arguments: required flag --id not provided",
+			Args:      "",
+			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			args:      args("service auth describe --id 123 --verbose --json"),
-			wantError: "invalid flag combination, --verbose and --json",
+			Args:      "--id 123 --verbose --json",
+			WantError: "invalid flag combination, --verbose and --json",
 		},
 		{
-			args:      args("service auth describe --id 123"),
-			api:       mock.API{GetServiceAuthorizationFn: describeServiceAuthError},
-			wantError: errTest.Error(),
+			Args:      "--id 123",
+			API:       mock.API{GetServiceAuthorizationFn: describeServiceAuthError},
+			WantError: errTest.Error(),
 		},
 		{
-			args:       args("service auth describe --id 123"),
-			api:        mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
-			wantOutput: "Auth ID: 12345\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
+			Args:       "--id 123",
+			API:        mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
+			WantOutput: "Auth ID: 12345\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
 		{
-			args: args("service auth describe --id 123 --json"),
-			api:  mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
-			wantOutput: `{
+			Args: "--id 123 --json",
+			API:  mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
+			WantOutput: `{
   "CreatedAt": null,
   "DeletedAt": null,
   "ID": "12345",
@@ -169,103 +123,54 @@ func TestServiceAuthDescribe(t *testing.T) {
 }`,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			t.Log(stdout.String())
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "describe"}, scenarios)
 }
 
 func TestServiceAuthUpdate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service auth update --permission full"),
-			wantError: "error parsing arguments: required flag --id not provided",
+			Args:      "--permission full",
+			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			args:      args("service auth update --id 123"),
-			wantError: "error parsing arguments: required flag --permission not provided",
+			Args:      "--id 123",
+			WantError: "error parsing arguments: required flag --permission not provided",
 		},
 		{
-			args:      args("service auth update --id 123 --permission full"),
-			api:       mock.API{UpdateServiceAuthorizationFn: updateServiceAuthError},
-			wantError: errTest.Error(),
+			Args:      "--id 123 --permission full",
+			API:       mock.API{UpdateServiceAuthorizationFn: updateServiceAuthError},
+			WantError: errTest.Error(),
 		},
 		{
-			args:       args("service auth update --id 123 --permission full"),
-			api:        mock.API{UpdateServiceAuthorizationFn: updateServiceAuthOK},
-			wantOutput: "Updated service authorization 123",
+			Args:       "--id 123 --permission full",
+			API:        mock.API{UpdateServiceAuthorizationFn: updateServiceAuthOK},
+			WantOutput: "Updated service authorization 123",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
 }
 
 func TestServiceAuthDelete(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service auth delete"),
-			wantError: "error parsing arguments: required flag --id not provided",
+			Args:      "",
+			WantError: "error parsing arguments: required flag --id not provided",
 		},
 		{
-			args:      args("service auth delete --id 123"),
-			api:       mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthError},
-			wantError: errTest.Error(),
+			Args:      "--id 123",
+			API:       mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthError},
+			WantError: errTest.Error(),
 		},
 		{
-			args:       args("service auth delete --id 123"),
-			api:        mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthOK},
-			wantOutput: "Deleted service authorization 123",
+			Args:       "--id 123",
+			API:        mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthOK},
+			WantOutput: "Deleted service authorization 123",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "delete"}, scenarios)
 }
 
 var errTest = errors.New("fixture error")
