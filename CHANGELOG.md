@@ -250,7 +250,7 @@ both the old and new forms are:
 ### Enhancements:
 
 - feat(manifest): Enable loading Secret Store configuration through environment variables ([#1540](https://github.com/fastly/cli/pull/1540))
-- feat(products): Add enable/disable support for API Discovery ([#1543](https://github.com/fastly/go-fastly/pull/1543))
+- feat(products): Add enable/disable support for API Discovery ([#1543](https://github.com/fastly/cli/pull/1543))
 
 ### Bug fixes:
 
@@ -311,7 +311,7 @@ both the old and new forms are:
 
 ### Dependencies:
 
-- build(deps): `github.com/fastly/go-fastly/v11` from 10 to 111 ([#14XX](https://github.com/fastly/cli/pull/14XX))
+- build(deps): `github.com/fastly/go-fastly/v11` from 10 to 11 ([#1514](https://github.com/fastly/cli/pull/1514))
 - build(deps): `golang.org/x/sys` from 0.33.0 to 0.34.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/term` from 0.32.0 to 0.33.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/crypto` from 0.39.0 to 0.40.0 ([#1508](https://github.com/fastly/cli/pull/1508))
@@ -1963,7 +1963,7 @@ a single character (e.g. `--k` and `--v`). These were corrected to `--key` and
 - Make `--name` flag for `service search` command a required flag [#529](https://github.com/fastly/cli/pull/529)
 - Update config `last_checked` field even on config load error [#528](https://github.com/fastly/cli/pull/528)
 - Implement Compute@Edge Free Trial Activation [#531](https://github.com/fastly/cli/pull/531)
-- Bump Rust toolchain constraint to `1.56.1` for 2021 edition [#533](https://github.com/fastly/cli/pull/533533533533533)
+- Bump Rust toolchain constraint to `1.56.1` for 2021 edition [#533](https://github.com/fastly/cli/pull/533)
 - Support Arch User Repositories [#530](https://github.com/fastly/cli/pull/530)
 
 ## [v1.6.0](https://github.com/fastly/cli/releases/tag/v1.6.0) (2022-01-20)
