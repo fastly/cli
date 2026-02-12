@@ -5,7 +5,7 @@
 ### Breaking:
 
 - breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
-- breaking(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug.
+- breaking(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug. ([#1653](https://github.com/fastly/cli/pull/1653))
 
 ### Enhancements:
 
