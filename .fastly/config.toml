@@ -18,7 +18,11 @@ toolchain_constraint = ">= 1.21"           # Go toolchain constraint for use wit
 toolchain_constraint_tinygo = ">= 1.18"    # Go toolchain constraint for use with TinyGo.
 
 [language.rust]
-toolchain_constraint = ">= 1.78 != 1.91.0" # Rust 1.91.0 produces broken WASM packages which crash when handling requests
+# * Rust 1.91.0 has a bug where it produces broken wasm packages which crash
+#   when handling requests; the bug is fixed in Rust 1.91.1.
+# * Rust 1.93.0 has a bug on wasm32-wasip2 where it leaks file descriptors in
+#   `std::fs::File`; the bug is fixed in Rust 1.93.1.
+toolchain_constraint = ">= 1.78 != 1.91.0 != 1.93.0"
 wasm_wasi_target = "wasm32-wasip1"
 
 [wasm-tools]
