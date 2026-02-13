@@ -8,7 +8,7 @@ import (
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/resourcelink"
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"

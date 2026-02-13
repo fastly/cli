@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/ed25519"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.

@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 
-	"github.com/fastly/go-fastly/v12/fastly/computeacls"
+	"github.com/fastly/go-fastly/v13/fastly/computeacls"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 
 	top "github.com/fastly/cli/pkg/commands/service"
 	root "github.com/fastly/cli/pkg/commands/service/vcl"

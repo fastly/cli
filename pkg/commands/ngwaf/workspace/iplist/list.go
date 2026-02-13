@@ -10,8 +10,8 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 
-	"github.com/fastly/go-fastly/v12/fastly"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
+	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v13/fastly/ngwaf/v1/scope"
 )
 
 // ListCommand calls the Fastly API to list all ip lists for your workspace.

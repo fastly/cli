@@ -14,7 +14,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/microsoftteams"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/alerts/microsoftteams"
+	"github.com/fastly/go-fastly/v13/fastly/ngwaf/v1/workspaces/alerts/microsoftteams"
 )
 
 const (

@@ -52,6 +52,38 @@
                     "value": "test"
                 }
             ]
+        },
+        {
+            "type": "group",
+            "group_operator": "all",
+            "conditions": [
+                {
+                    "type": "single",
+                    "field": "ip",
+                    "operator": "in_list",
+                    "value": "site.blacklist"
+                },
+                {
+                    "type": "multival",
+                    "field": "request_header",
+                    "operator": "exists",
+                    "group_operator": "all",
+                    "conditions": [
+                        {
+                            "type": "single",
+                            "field": "name",
+                            "operator": "equals",
+                            "value": "x-something"
+                        },
+                        {
+                            "type": "single",
+                            "field": "value_string",
+                            "operator": "equals",
+                            "value": "abc-123"
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "actions": [
@@ -59,5 +91,5 @@
             "type": "allow"
         }
     ],
-    "request_logging": "none"
+    "request_logging": "sampled"
 }
