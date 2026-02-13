@@ -8,6 +8,7 @@
 
 ### Enhancements:
 
+- feat(ngwaf/rules): Upgrade go-fastly to v13.0.0 and allow ngwaf rules to accept multival conditions ([#1655](https://github.com/fastly/cli/pull/1655)) 
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
 - feat(ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1605](https://github.com/fastly/cli/pull/1605))
@@ -53,7 +54,7 @@
 - build(deps): `golang.org/x/mod` from 0.31.0 to 0.32.0 ([#1613](https://github.com/fastly/cli/pull/1613))
 - build(deps): `golang.org/x/net` from 0.48.0 to 0.49.0 ([#1613](https://github.com/fastly/cli/pull/1613))
 - build(deps): `golang.org/x/text` from 0.32.0 to 0.33.0 ([#1613](https://github.com/fastly/cli/pull/1613))
-- build(deps): `github.com/fastly/go-fastly/v12` from 12.1.0 to 12.1.1 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `github.com/fastly/go-fastly/v13` from 12.1.0 to 12.1.1 ([#1613](https://github.com/fastly/cli/pull/1613))
 - build(deps): `github.com/clipperhouse/uax29/v2` from 2.3.0 to 2.3.1 ([#1625](https://github.com/fastly/cli/pull/1625))
 - build(deps): `github.com/klauspost/compress` from 1.18.2 to 1.18.3 ([#1625](https://github.com/fastly/cli/pull/1625))
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.23 to 4.1.25 ([#1625](https://github.com/fastly/cli/pull/1625))

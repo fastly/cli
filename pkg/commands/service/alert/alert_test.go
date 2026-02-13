@@ -10,7 +10,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/service/alert"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 )
 
 func TestAlertsCreate(t *testing.T) {
