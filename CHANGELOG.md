@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Bug Fixes:
+
+- fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
+
 ### Breaking:
 
 - breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
