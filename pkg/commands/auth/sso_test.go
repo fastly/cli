@@ -362,6 +362,79 @@ func TestSSO(t *testing.T) {
 				}
 			},
 		},
+		// 10. Mixed config: both [auth] and [profile] present.
+		// Profile-only entries must be merged into [auth], not dropped.
+		{
+			Args: "pops",
+			API: mock.API{
+				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
+					return []fastly.Datacenter{
+						{
+							Name:   fastly.ToPointer("Foobar"),
+							Code:   fastly.ToPointer("FBR"),
+							Group:  fastly.ToPointer("Bar"),
+							Shield: fastly.ToPointer("Baz"),
+							Coordinates: &fastly.Coordinates{
+								Latitude:  fastly.ToPointer(float64(1)),
+								Longitude: fastly.ToPointer(float64(2)),
+								X:         fastly.ToPointer(float64(3)),
+								Y:         fastly.ToPointer(float64(4)),
+							},
+						},
+					}, nil
+				},
+			},
+			ConfigFile: &config.File{
+				Profiles: config.Profiles{
+					"profile-only": &config.Profile{
+						Email: "profile@example.com",
+						Token: "profile-token",
+					},
+				},
+				Auth: config.Auth{
+					Default: "existing",
+					Tokens: config.AuthTokens{
+						"existing": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "existing-token",
+							Email: "existing@example.com",
+						},
+					},
+				},
+			},
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
+			},
+			WantOutputs: []string{
+				"{Latitude:1 Longitude:2 X:3 Y:4}",
+			},
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				// The existing auth token must be preserved.
+				at := opts.Config.GetAuthToken("existing")
+				if at == nil {
+					t.Fatal("expected 'existing' auth token to be preserved")
+				}
+				if at.Token != "existing-token" {
+					t.Errorf("want token: existing-token, got: %s", at.Token)
+				}
+				// The profile-only entry must be merged in.
+				merged := opts.Config.GetAuthToken("profile-only")
+				if merged == nil {
+					t.Fatal("expected 'profile-only' profile to be merged into auth tokens")
+				}
+				if merged.Token != "profile-token" {
+					t.Errorf("want token: profile-token, got: %s", merged.Token)
+				}
+				// Default must remain unchanged.
+				if opts.Config.Auth.Default != "existing" {
+					t.Errorf("want default: existing, got: %s", opts.Config.Auth.Default)
+				}
+				// Profiles must be cleared.
+				if len(opts.Config.Profiles) > 0 {
+					t.Errorf("expected Profiles to be cleared, got %d entries", len(opts.Config.Profiles))
+				}
+			},
+		},
 		// 11. auth login --sso --token newname creates a new token that doesn't exist yet.
 		{
 			Args: "auth login --sso --token brandnew",

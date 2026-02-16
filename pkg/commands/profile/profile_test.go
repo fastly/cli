@@ -22,8 +22,8 @@ func TestProfileCreate(t *testing.T) {
 			Name: "validate profile creation works",
 			Args: "foo",
 			API: mock.API{
-				GetTokenSelfFn: getToken,
-				GetUserFn:      getUser,
+				GetCurrentUserFn: getCurrentUser,
+				GetTokenSelfFn:   getToken,
 			},
 			Stdin: []string{"some_token"},
 			Env: &testutil.EnvConfig{
@@ -63,11 +63,14 @@ func TestProfileCreate(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
 					},
 				},
 			},
@@ -97,11 +100,14 @@ func TestProfileDelete(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
 					},
 				},
 			},
@@ -148,16 +154,19 @@ func TestProfileList(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+						"bar": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "456",
+							Email: "bar@example.com",
+						},
 					},
 				},
 			},
@@ -185,68 +194,6 @@ func TestProfileList(t *testing.T) {
 			ConfigFile: &config.File{},
 			WantError:  "no profiles available",
 		},
-		// NOTE: The following test is subtly different to the previous one in that
-		// our logic checks whether the config.Profiles map type is nil. If it is
-		// then we error (see above test), otherwise if the map is set but there
-		// are no profiles, then we notify the user no profiles exist.
-		{
-			Name: "validate no profiles available",
-			Env: &testutil.EnvConfig{
-				Opts: &testutil.EnvOpts{
-					Copy: []testutil.FileIO{
-						{
-							Src: filepath.Join("testdata", "config.toml"),
-							Dst: "config.toml",
-						},
-					},
-				},
-				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
-					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
-				},
-			},
-			ConfigFile: &config.File{
-				Profiles: config.Profiles{},
-			},
-			WantOutputs: []string{
-				"No profiles defined. To create a profile, run",
-				"fastly profile create <name>",
-			},
-		},
-		{
-			Name: "validate listing profiles displays warning if no default set",
-			Env: &testutil.EnvConfig{
-				Opts: &testutil.EnvOpts{
-					Copy: []testutil.FileIO{
-						{
-							Src: filepath.Join("testdata", "config.toml"),
-							Dst: "config.toml",
-						},
-					},
-				},
-				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
-					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
-				},
-			},
-			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: false,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
-					},
-				},
-			},
-			WantOutputs: []string{
-				"At least one account profile should be set as the 'default'.",
-				"foo\n\nDefault: false\nEmail: foo@example.com\nToken: 123",
-				"bar\n\nDefault: false\nEmail: bar@example.com\nToken: 456",
-			},
-		},
 		{
 			Name: "validate listing profiles with --verbose and --json causes an error",
 			Args: "--verbose --json",
@@ -264,16 +211,13 @@ func TestProfileList(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: false,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+				Auth: config.Auth{
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
 					},
 				},
 			},
@@ -296,47 +240,27 @@ func TestProfileList(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: false,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+				Auth: config.Auth{
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+						"bar": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "456",
+							Email: "bar@example.com",
+						},
 					},
 				},
 			},
-			WantOutput: `{
-  "bar": {
-    "access_token": "",
-    "access_token_created": 0,
-    "access_token_ttl": 0,
-    "customer_id": "",
-    "customer_name": "",
-    "default": false,
-    "email": "bar@example.com",
-    "refresh_token": "",
-    "refresh_token_created": 0,
-    "refresh_token_ttl": 0,
-    "token": "456"
-  },
-  "foo": {
-    "access_token": "",
-    "access_token_created": 0,
-    "access_token_ttl": 0,
-    "customer_id": "",
-    "customer_name": "",
-    "default": false,
-    "email": "foo@example.com",
-    "refresh_token": "",
-    "refresh_token_created": 0,
-    "refresh_token_ttl": 0,
-    "token": "123"
-  }
-}`,
+			WantOutputs: []string{
+				`"bar"`,
+				`"token": "456"`,
+				`"foo"`,
+				`"token": "123"`,
+			},
 		},
 	}
 
@@ -380,16 +304,19 @@ func TestProfileSwitch(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+						"bar": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "456",
+							Email: "bar@example.com",
+						},
 					},
 				},
 			},
@@ -402,10 +329,14 @@ func TestProfileSwitch(t *testing.T) {
 
 func TestProfileToken(t *testing.T) {
 	now := time.Now()
+	expiredAt := now.Add(-600 * time.Second)
+	soonExpireAt := now.Add(30 * time.Second)
+	laterExpireAt := now.Add(1200 * time.Second)
+	longTTLExpireAt := now.Add(60 * time.Second)
 
 	scenarios := []testutil.CLIScenario{
 		{
-			Name: "validate the active profile non-OIDC token is displayed by default",
+			Name: "validate the active profile non-SSO token is displayed by default",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -420,24 +351,27 @@ func TestProfileToken(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+						"bar": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "456",
+							Email: "bar@example.com",
+						},
 					},
 				},
 			},
 			WantOutput: "123",
 		},
 		{
-			Name: "validate non-OIDC token is displayed for the specified profile",
-			Args: "bar", // we choose a non-default profile
+			Name: "validate non-SSO token is displayed for the specified profile",
+			Args: "bar",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -452,24 +386,27 @@ func TestProfileToken(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+						"bar": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "456",
+							Email: "bar@example.com",
+						},
 					},
 				},
 			},
 			WantOutput: "456",
 		},
 		{
-			Name: "validate non-OIDC token is displayed for the specified profile using global --profile",
-			Args: "--profile bar", // we choose a non-default profile
+			Name: "validate non-SSO token is displayed for the specified profile using global --profile",
+			Args: "--profile bar",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -484,16 +421,19 @@ func TestProfileToken(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+						"bar": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "456",
+							Email: "bar@example.com",
+						},
 					},
 				},
 			},
@@ -518,7 +458,7 @@ func TestProfileToken(t *testing.T) {
 			WantError: "profile 'unknown' does not exist",
 		},
 		{
-			Name: "validate that an expired OIDC token generates an error",
+			Name: "validate that an expired SSO token generates an error",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -533,20 +473,22 @@ func TestProfileToken(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default:             true,
-						Email:               "foo@example.com",
-						Token:               "123",
-						RefreshTokenCreated: now.Add(time.Duration(-1200) * time.Second).Unix(),
-						RefreshTokenTTL:     600,
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:             config.AuthTokenTypeSSO,
+							Token:            "123",
+							Email:            "foo@example.com",
+							RefreshExpiresAt: expiredAt.Format(time.RFC3339),
+						},
 					},
 				},
 			},
-			WantError: fmt.Sprintf("the token in profile 'foo' expired at '%s'", now.Add(time.Duration(-600)*time.Second).UTC().Format(fsttime.Format)),
+			WantError: fmt.Sprintf("the token in profile 'foo' expired at '%s'", expiredAt.UTC().Format(fsttime.Format)),
 		},
 		{
-			Name: "validate that a soon-to-expire OIDC token generates an error",
+			Name: "validate that a soon-to-expire SSO token generates an error",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
@@ -561,20 +503,22 @@ func TestProfileToken(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default:             true,
-						Email:               "foo@example.com",
-						Token:               "123",
-						RefreshTokenCreated: now.Unix(),
-						RefreshTokenTTL:     30,
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:             config.AuthTokenTypeSSO,
+							Token:            "123",
+							Email:            "foo@example.com",
+							RefreshExpiresAt: soonExpireAt.Format(time.RFC3339),
+						},
 					},
 				},
 			},
-			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", now.Add(time.Duration(30)*time.Second).UTC().Format(fsttime.Format)),
+			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", soonExpireAt.UTC().Format(fsttime.Format)),
 		},
 		{
-			Name: "validate that a soon-to-expire OIDC token with a non-default TTL does not generate an error",
+			Name: "validate that a soon-to-expire SSO token with a non-default TTL does not generate an error",
 			Args: "--ttl 30s",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
@@ -590,20 +534,22 @@ func TestProfileToken(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default:             true,
-						Email:               "foo@example.com",
-						Token:               "123",
-						RefreshTokenCreated: now.Unix(),
-						RefreshTokenTTL:     60,
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:             config.AuthTokenTypeSSO,
+							Token:            "123",
+							Email:            "foo@example.com",
+							RefreshExpiresAt: longTTLExpireAt.Format(time.RFC3339),
+						},
 					},
 				},
 			},
 			WantOutput: "123",
 		},
 		{
-			Name: "validate that an OIDC token with a long non-default TTL generates an error",
+			Name: "validate that an SSO token with a long non-default TTL generates an error",
 			Args: "--ttl 1800s",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
@@ -619,17 +565,19 @@ func TestProfileToken(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default:             true,
-						Email:               "foo@example.com",
-						Token:               "123",
-						RefreshTokenCreated: now.Unix(),
-						RefreshTokenTTL:     1200,
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:             config.AuthTokenTypeSSO,
+							Token:            "123",
+							Email:            "foo@example.com",
+							RefreshExpiresAt: laterExpireAt.Format(time.RFC3339),
+						},
 					},
 				},
 			},
-			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", now.Add(time.Duration(1200)*time.Second).UTC().Format(fsttime.Format)),
+			WantError: fmt.Sprintf("the token in profile 'foo' will expire at '%s'", laterExpireAt.UTC().Format(fsttime.Format)),
 		},
 	}
 
@@ -658,10 +606,10 @@ func TestProfileUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate updating profile works",
-			Args: "bar", // we choose a non-default profile
+			Args: "bar",
 			API: mock.API{
-				GetTokenSelfFn: getToken,
-				GetUserFn:      getUser,
+				GetCurrentUserFn: getCurrentUser,
+				GetTokenSelfFn:   getToken,
 			},
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
@@ -677,21 +625,23 @@ func TestProfileUpdate(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"foo": &config.Profile{
-						Default: true,
-						Email:   "foo@example.com",
-						Token:   "123",
-					},
-					"bar": &config.Profile{
-						Default: false,
-						Email:   "bar@example.com",
-						Token:   "456",
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+						"bar": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "456",
+							Email: "bar@example.com",
+						},
 					},
 				},
 			},
 			Stdin: []string{
-				"",  // we skip SSO prompt
 				"",  // we skip updating the token
 				"y", // we set the profile to be the default
 			},
@@ -700,6 +650,13 @@ func TestProfileUpdate(t *testing.T) {
 	}
 
 	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
+}
+
+func getCurrentUser(_ context.Context) (*fastly.User, error) {
+	return &fastly.User{
+		Login:      fastly.ToPointer("foo@example.com"),
+		CustomerID: fastly.ToPointer("abc"),
+	}, nil
 }
 
 func getToken(_ context.Context) (*fastly.Token, error) {
@@ -715,26 +672,5 @@ func getToken(_ context.Context) (*fastly.Token, error) {
 		CreatedAt:  &t,
 		ExpiresAt:  &t,
 		LastUsedAt: &t,
-	}, nil
-}
-
-func getUser(_ context.Context, i *fastly.GetUserInput) (*fastly.User, error) {
-	t := testutil.Date
-
-	return &fastly.User{
-		UserID:                 fastly.ToPointer(i.UserID),
-		Login:                  fastly.ToPointer("foo@example.com"),
-		Name:                   fastly.ToPointer("foo"),
-		Role:                   fastly.ToPointer("user"),
-		CustomerID:             fastly.ToPointer("abc"),
-		EmailHash:              fastly.ToPointer("example-hash"),
-		LimitServices:          fastly.ToPointer(true),
-		Locked:                 fastly.ToPointer(true),
-		RequireNewPassword:     fastly.ToPointer(true),
-		TwoFactorAuthEnabled:   fastly.ToPointer(true),
-		TwoFactorSetupRequired: fastly.ToPointer(true),
-		CreatedAt:              &t,
-		DeletedAt:              &t,
-		UpdatedAt:              &t,
 	}, nil
 }

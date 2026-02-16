@@ -68,6 +68,27 @@ func EnrichWithTokenSelf(g *global.Data, at *config.AuthToken) {
 	}
 }
 
+// BuildAndStoreStaticToken constructs an AuthToken from pre-fetched metadata
+// and stores it under the given name. Does NOT write config to disk.
+func BuildAndStoreStaticToken(g *global.Data, token, name string, md *TokenMetadata, makeDefault bool) {
+	entry := &config.AuthToken{
+		Type:              config.AuthTokenTypeStatic,
+		Token:             token,
+		Email:             md.Email,
+		AccountID:         md.AccountID,
+		APITokenName:      md.APITokenName,
+		APITokenScope:     md.APITokenScope,
+		APITokenExpiresAt: md.APITokenExpiresAt,
+		APITokenID:        md.APITokenID,
+	}
+
+	g.Config.SetAuthToken(name, entry)
+
+	if makeDefault {
+		g.Config.Auth.Default = name
+	}
+}
+
 // StoreStaticToken validates a raw API token, fetches metadata, and stores it
 // in the auth config as the default token. Returns the stored name and
 // metadata.
@@ -82,19 +103,7 @@ func StoreStaticToken(g *global.Data, token string) (name string, md *TokenMetad
 		name = "default"
 	}
 
-	entry := &config.AuthToken{
-		Type:              config.AuthTokenTypeStatic,
-		Token:             token,
-		Email:             md.Email,
-		AccountID:         md.AccountID,
-		APITokenName:      md.APITokenName,
-		APITokenScope:     md.APITokenScope,
-		APITokenExpiresAt: md.APITokenExpiresAt,
-		APITokenID:        md.APITokenID,
-	}
-
-	g.Config.SetAuthToken(name, entry)
-	g.Config.Auth.Default = name
+	BuildAndStoreStaticToken(g, token, name, md, true)
 
 	if err := g.Config.Write(g.ConfigPath); err != nil {
 		return "", nil, fmt.Errorf("error saving config: %w", err)

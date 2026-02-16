@@ -201,8 +201,8 @@ type File struct {
 	Fastly Fastly `toml:"fastly"`
 	// Language represents C@E language specific configuration.
 	Language Language `toml:"language"`
-	// Profiles represents multiple profile accounts.
-	Profiles Profiles `toml:"profile"`
+	// Profiles represents legacy profile accounts (migrated to [auth]).
+	Profiles Profiles `toml:"profile,omitempty"`
 	// StarterKitLanguages represents language specific starter kits.
 	StarterKits StarterKitLanguages `toml:"starter-kits"`
 	// Viceroy represents viceroy specific configuration.

@@ -5,10 +5,10 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/sso"
+	authcmd "github.com/fastly/cli/pkg/commands/auth"
+	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -17,14 +17,12 @@ type SwitchCommand struct {
 	argparser.Base
 
 	profile string
-	ssoCmd  *sso.RootCommand
 }
 
 // NewSwitchCommand returns a usable command registered under the parent.
-func NewSwitchCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.RootCommand) *SwitchCommand {
+func NewSwitchCommand(parent argparser.Registerer, g *global.Data) *SwitchCommand {
 	var c SwitchCommand
 	c.Globals = g
-	c.ssoCmd = ssoCmd
 	c.CmdClause = parent.Command("switch", "Switch user profile (deprecated: use 'fastly auth use' instead)")
 	c.CmdClause.Arg("profile", "Profile to switch to").Short('p').Required().StringVar(&c.profile)
 	return &c
@@ -34,48 +32,37 @@ func NewSwitchCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.R
 func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
 	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth use' instead.\n\n")
 
-	// We get the named profile to check if it's an SSO-based profile.
-	// If we're switching to an SSO-based profile, then we need to re-auth.
-	p := profile.Get(c.profile, c.Globals.Config.Profiles)
-	if p == nil {
-		err := fmt.Errorf(profile.DoesNotExist, c.profile)
+	at := c.Globals.Config.GetAuthToken(c.profile)
+	if at == nil {
+		err := fmt.Errorf("the profile '%s' does not exist", c.profile)
 		c.Globals.ErrLog.Add(err)
 		return fsterr.RemediationError{
 			Inner:       err,
 			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
-	if isSSOToken(p) {
-		// IMPORTANT: We need to set profile fields for `sso` command.
-		//
-		// This is so the `sso` command will use this information to trigger the
-		// correct authentication flow.
-		c.ssoCmd.InvokedFromProfileSwitch = true
-		c.ssoCmd.ProfileSwitchName = c.profile
-		c.ssoCmd.ProfileSwitchEmail = p.Email
-		c.ssoCmd.ProfileSwitchCustomerID = p.CustomerID
-		c.ssoCmd.ProfileDefault = true
 
-		err := c.ssoCmd.Exec(in, out)
-		if err != nil {
+	if at.Type == config.AuthTokenTypeSSO {
+		if err := authcmd.RunSSOWithTokenName(in, out, c.Globals, false, false, c.profile); err != nil {
 			return fmt.Errorf("failed to authenticate: %w", err)
+		}
+		if err := c.Globals.Config.SetDefaultAuthToken(c.profile); err != nil {
+			return err
+		}
+		if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
+			return fmt.Errorf("error saving config file: %w", err)
 		}
 		text.Success(out, "\nProfile switched to '%s'", c.profile)
 		return nil
 	}
 
-	// We call SetDefault for its side effect of resetting all other profiles to have
-	// their Default field set to false.
-	ps, ok := profile.SetDefault(c.profile, c.Globals.Config.Profiles)
-	if !ok {
-		err := fmt.Errorf(profile.DoesNotExist, c.profile)
+	if err := c.Globals.Config.SetDefaultAuthToken(c.profile); err != nil {
 		c.Globals.ErrLog.Add(err)
 		return fsterr.RemediationError{
 			Inner:       err,
 			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
-	c.Globals.Config.Profiles = ps
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 		c.Globals.ErrLog.Add(err)

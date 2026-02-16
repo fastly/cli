@@ -234,13 +234,13 @@ func Exec(data *global.Data) error {
 		data.Manifest.File.SetQuiet(true)
 	}
 
-	// Migrate legacy profiles to [auth] section if needed.
-	// Must run before token resolution so migrated tokens are available.
-	if !data.Config.AuthInitialized() && len(data.Config.Profiles) > 0 {
-		if data.Config.MigrateProfilesToAuth() {
-			if err := data.Config.Write(data.ConfigPath); err != nil {
-				data.ErrLog.Add(err)
-			}
+	// Migrate legacy profiles to [auth] section.
+	// MigrateProfilesToAuth merges without overwriting existing auth entries.
+	if len(data.Config.Profiles) > 0 {
+		data.Config.MigrateProfilesToAuth()
+		data.Config.Profiles = nil
+		if err := data.Config.Write(data.ConfigPath); err != nil {
+			data.ErrLog.Add(err)
 		}
 	}
 

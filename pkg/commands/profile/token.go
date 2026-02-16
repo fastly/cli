@@ -10,7 +10,6 @@ import (
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 	fsttime "github.com/fastly/cli/pkg/time"
 )
@@ -32,8 +31,6 @@ func NewTokenCommand(parent argparser.Registerer, g *global.Data) *TokenCommand 
 	return &c
 }
 
-// By default tokens must be valid for at least 5 minutes to be
-// considered valid.
 const defaultTokenTTL time.Duration = 5 * time.Minute
 
 // Exec implements the command interface.
@@ -46,31 +43,29 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 	if c.Globals.Flags.Profile != "" {
 		name = c.Globals.Flags.Profile
-		// NOTE: If global --profile is set, it take precedence over 'profile' arg.
-		// It's unlikely someone will provide both, but we'll code defensively.
 	}
 
 	if name != "" {
-		if p := profile.Get(name, c.Globals.Config.Profiles); p != nil {
-			if err = checkTokenValidity(name, p, c.tokenTTL); err != nil {
+		at := c.Globals.Config.GetAuthToken(name)
+		if at != nil {
+			if err = checkTokenValidity(name, at, c.tokenTTL); err != nil {
 				return err
 			}
-			text.Output(out, p.Token)
+			text.Output(out, at.Token)
 			return nil
 		}
-		msg := fmt.Sprintf(profile.DoesNotExist, name)
+		msg := fmt.Sprintf("the profile '%s' does not exist", name)
 		return fsterr.RemediationError{
 			Inner:       errors.New(msg),
 			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
 
-	// If no 'profile' arg or global --profile, then we'll use 'active' profile.
-	if name, p := profile.Default(c.Globals.Config.Profiles); p != nil {
-		if err = checkTokenValidity(name, p, c.tokenTTL); err != nil {
+	if name, at := c.Globals.Config.GetDefaultAuthToken(); at != nil {
+		if err = checkTokenValidity(name, at, c.tokenTTL); err != nil {
 			return err
 		}
-		text.Output(out, p.Token)
+		text.Output(out, at.Token)
 		return nil
 	}
 	return fsterr.RemediationError{
@@ -79,24 +74,31 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 }
 
-func checkTokenValidity(profileName string, p *config.Profile, ttl time.Duration) (err error) {
-	// if the token in the profile was not obtained via OIDC,
-	// there is no expiration information available
-	if p.RefreshTokenCreated == 0 {
+func checkTokenValidity(name string, at *config.AuthToken, ttl time.Duration) error {
+	var expiryStr string
+	if at.Type == config.AuthTokenTypeSSO {
+		expiryStr = at.RefreshExpiresAt
+	} else {
+		expiryStr = at.APITokenExpiresAt
+	}
+	if expiryStr == "" {
 		return nil
 	}
 
-	var msg string
-	expiry := time.Unix(p.RefreshTokenCreated, 0).Add(time.Duration(p.RefreshTokenTTL) * time.Second)
+	expiry, err := time.Parse(time.RFC3339, expiryStr)
+	if err != nil {
+		return err
+	}
 
 	if expiry.After(time.Now().Add(ttl)) {
 		return nil
 	}
 
+	var msg string
 	if expiry.Before(time.Now()) {
-		msg = fmt.Sprintf(profile.TokenExpired, profileName, expiry.UTC().Format(fsttime.Format))
+		msg = fmt.Sprintf("the token in profile '%s' expired at '%s'", name, expiry.UTC().Format(fsttime.Format))
 	} else {
-		msg = fmt.Sprintf(profile.TokenWillExpire, profileName, expiry.UTC().Format(fsttime.Format))
+		msg = fmt.Sprintf("the token in profile '%s' will expire at '%s'", name, expiry.UTC().Format(fsttime.Format))
 	}
 
 	return fsterr.RemediationError{

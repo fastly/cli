@@ -77,7 +77,7 @@ func TestSSO(t *testing.T) {
 			},
 			WantError: "failed to authorize: no session token",
 		},
-		// 4. Success processing OAuth flow
+		// 4. Success processing OAuth flow (uses default auth token name "user" from MockGlobalData)
 		{
 			Args: "sso",
 			Stdin: []string{
@@ -96,15 +96,17 @@ func TestSSO(t *testing.T) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
-				"We're going to authenticate the 'user' profile",
+				"We're going to authenticate the 'user' token",
 				"We need to open your browser to authenticate you.",
-				"Session token has been stored, use 'fastly profile token user' to display it.",
+				"Session token 'user' has been stored.",
 			},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
-				const expectedToken = "123"
-				userProfile := opts.Config.Profiles["user"]
-				if userProfile.Token != expectedToken {
-					t.Errorf("want token: %s, got token: %s", expectedToken, userProfile.Token)
+				at := opts.Config.GetAuthToken("user")
+				if at == nil {
+					t.Fatal("expected 'user' auth token to exist")
+				}
+				if at.Token != "123" {
+					t.Errorf("want token: 123, got token: %s", at.Token)
 				}
 			},
 		},
@@ -112,11 +114,14 @@ func TestSSO(t *testing.T) {
 		{
 			Args: "sso test_user",
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"test_user": &config.Profile{
-						Default: true,
-						Email:   "test@example.com",
-						Token:   "mock-token",
+				Auth: config.Auth{
+					Default: "test_user",
+					Tokens: config.AuthTokens{
+						"test_user": &config.AuthToken{
+							Type:  config.AuthTokenTypeSSO,
+							Token: "mock-token",
+							Email: "test@example.com",
+						},
 					},
 				},
 			},
@@ -136,15 +141,17 @@ func TestSSO(t *testing.T) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
-				"We're going to authenticate the 'test_user' profile",
+				"We're going to authenticate the 'test_user' token",
 				"We need to open your browser to authenticate you.",
-				"Session token has been stored, use 'fastly profile token test_user' to display it.",
+				"Session token 'test_user' has been stored.",
 			},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
-				const expectedToken = "123"
-				userProfile := opts.Config.Profiles["test_user"]
-				if userProfile.Token != expectedToken {
-					t.Errorf("want token: %s, got token: %s", expectedToken, userProfile.Token)
+				at := opts.Config.GetAuthToken("test_user")
+				if at == nil {
+					t.Fatal("expected 'test_user' auth token to exist")
+				}
+				if at.Token != "123" {
+					t.Errorf("want token: 123, got token: %s", at.Token)
 				}
 			},
 		},
@@ -152,7 +159,7 @@ func TestSSO(t *testing.T) {
 		// Specifically the processing of the token before invoking the subcommand.
 		// It allows us to check that the `sso` command is invoked when expected.
 		//
-		// 6. Success processing `whoami` command.
+		// 6. Success processing `pops` command.
 		// We configure a non-SSO token so we can validate the INFO message.
 		// Otherwise no OAuth flow is happening here.
 		{
@@ -176,11 +183,14 @@ func TestSSO(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"user": &config.Profile{
-						Default: true,
-						Email:   "test@example.com",
-						Token:   "mock-token",
+				Auth: config.Auth{
+					Default: "user",
+					Tokens: config.AuthTokens{
+						"user": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "mock-token",
+							Email: "test@example.com",
+						},
 					},
 				},
 			},
@@ -188,51 +198,49 @@ func TestSSO(t *testing.T) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
-				// FIXME: Put back messaging once SSO is GA.
-				// "is not a Fastly SSO (Single Sign-On) generated token",
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
-				const expectedToken = "mock-token"
-				userProfile := opts.Config.Profiles["user"]
-				if userProfile.Token != expectedToken {
-					t.Errorf("want token: %s, got token: %s", expectedToken, userProfile.Token)
+				at := opts.Config.GetAuthToken("user")
+				if at == nil {
+					t.Fatal("expected 'user' auth token to exist")
+				}
+				if at.Token != "mock-token" {
+					t.Errorf("want token: mock-token, got token: %s", at.Token)
 				}
 			},
 		},
-		// 7. Success processing `whoami` command.
-		// We set an SSO token that has expired.
-		// This allows us to validate the output message about expiration.
-		// We don't respond "Y" to the prompt for reauthentication.
-		// But we've mocked the request to succeed still so it doesn't matter.
+		// 7. SSO token with both access and refresh expired.
+		// The `whoami` command triggers re-auth via the processToken flow.
+		// The user declines re-authentication.
 		{
 			Args: "whoami",
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"user": &config.Profile{
-						AccessTokenCreated: time.Now().Add(-(time.Duration(600) * time.Second)).Unix(), // 10 mins ago
-						Default:            true,
-						Email:              "test@example.com",
-						Token:              "mock-token",
+				Auth: config.Auth{
+					Default: "user",
+					Tokens: config.AuthTokens{
+						"user": &config.AuthToken{
+							Type:             config.AuthTokenTypeSSO,
+							Token:            "mock-token",
+							Email:            "test@example.com",
+							RefreshToken:     "mock-refresh",
+							AccessExpiresAt:  time.Now().Add(-600 * time.Second).Format(time.RFC3339),
+							RefreshExpiresAt: time.Now().Add(-600 * time.Second).Format(time.RFC3339),
+						},
 					},
 				},
+			},
+			Stdin: []string{
+				"N", // decline re-authentication
 			},
 			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
-			WantOutput:     "Your access token has expired and so has your refresh token.",
+			WantOutput:     "Your auth token has expired and needs re-authentication",
 			DontWantOutput: "{Latitude:1 Longitude:2 X:3 Y:4}",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
-				const expectedToken = "mock-token"
-				userProfile := opts.Config.Profiles["user"]
-				if userProfile.Token != expectedToken {
-					t.Errorf("want token: %s, got token: %s", expectedToken, userProfile.Token)
-				}
-			},
 		},
-		// 8. Success processing OAuth flow via `whoami` command
-		// We set an SSO token that has expired.
-		// This allows us to validate the output messages.
+		// 8. SSO token with both access and refresh expired.
+		// The user accepts re-auth, and the `pops` command executes after.
 		{
 			Args: "pops",
 			API: mock.API{
@@ -254,12 +262,17 @@ func TestSSO(t *testing.T) {
 				},
 			},
 			ConfigFile: &config.File{
-				Profiles: config.Profiles{
-					"user": &config.Profile{
-						AccessTokenCreated: time.Now().Add(-(time.Duration(300) * time.Second)).Unix(), // 5 mins ago
-						Default:            true,
-						Email:              "test@example.com",
-						Token:              "mock-token",
+				Auth: config.Auth{
+					Default: "user",
+					Tokens: config.AuthTokens{
+						"user": &config.AuthToken{
+							Type:             config.AuthTokenTypeSSO,
+							Token:            "mock-token",
+							Email:            "test@example.com",
+							RefreshToken:     "mock-refresh",
+							AccessExpiresAt:  time.Now().Add(-300 * time.Second).Format(time.RFC3339),
+							RefreshExpiresAt: time.Now().Add(-300 * time.Second).Format(time.RFC3339),
+						},
 					},
 				},
 			},
@@ -279,16 +292,18 @@ func TestSSO(t *testing.T) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
-				"Your access token has expired and so has your refresh token.",
+				"Your auth token has expired and needs re-authentication",
 				"Starting a local server to handle the authentication flow.",
-				"Session token has been stored, use 'fastly profile token user' to display it.",
+				"Session token 'user' has been stored.",
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
-				const expectedToken = "123"
-				userProfile := opts.Config.Profiles["user"]
-				if userProfile.Token != expectedToken {
-					t.Errorf("want token: %s, got token: %s", expectedToken, userProfile.Token)
+				at := opts.Config.GetAuthToken("user")
+				if at == nil {
+					t.Fatal("expected 'user' auth token to exist")
+				}
+				if at.Token != "123" {
+					t.Errorf("want token: 123, got token: %s", at.Token)
 				}
 			},
 		},

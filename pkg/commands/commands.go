@@ -186,12 +186,8 @@ func Define( // nolint:revive // function-length
 	var profileCommands []argparser.Command
 	var whoamiCommands []argparser.Command
 
-	// NOTE: The SSO command is created first because the profile commands
-	// depend on it. Both are gated behind the same flag so the dependency
-	// is always satisfied.
-	var ssoCmdRoot *sso.RootCommand
 	if !disableAuthCmd {
-		ssoCmdRoot = sso.NewRootCommand(app, data)
+		ssoCmdRoot := sso.NewRootCommand(app, data)
 		ssoCommands = []argparser.Command{ssoCmdRoot}
 
 		authCmdRoot := authcmd.NewRootCommand(app, data)
@@ -448,12 +444,12 @@ func Define( // nolint:revive // function-length
 	productsCmdRoot := products.NewRootCommand(app, data)
 	if !disableAuthCmd {
 		profileCmdRoot := profile.NewRootCommand(app, data)
-		profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
+		profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, data)
 		profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, data)
 		profileList := profile.NewListCommand(profileCmdRoot.CmdClause, data)
-		profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
+		profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data)
 		profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, data)
-		profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
+		profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, data)
 		profileCommands = []argparser.Command{
 			profileCmdRoot, profileCreate, profileDelete,
 			profileList, profileSwitch, profileToken, profileUpdate,
