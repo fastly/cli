@@ -191,6 +191,8 @@ func ensureConfigDirExists(path string) error {
 
 // File represents our application toml configuration.
 type File struct {
+	// Auth represents the new auth token storage.
+	Auth Auth `toml:"auth,omitempty"`
 	// CLI represents CLI specific configuration.
 	CLI CLI `toml:"cli"`
 	// ConfigVersion is the version of the config.
