@@ -111,6 +111,16 @@ func MockGlobalData(args []string, stdout io.Writer) *global.Data {
 		AuthServer:       &MockAuthServer{},
 		Config: config.File{
 			Profiles: TokenProfile(),
+			Auth: config.Auth{
+				Default: "user",
+				Tokens: config.AuthTokens{
+					"user": &config.AuthToken{
+						Type:  config.AuthTokenTypeStatic,
+						Token: "mock-token",
+						Email: "test@example.com",
+					},
+				},
+			},
 		},
 		ConfigPath: configPath,
 		Env:        config.Environment{},

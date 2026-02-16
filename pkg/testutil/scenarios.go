@@ -62,6 +62,9 @@ type CLIScenario struct {
 	// WantError will cause the scenario to fail if this string
 	// does not appear in an Error
 	WantError string
+	// WantRemediation will cause the scenario to fail if the
+	// error's RemediationError.Remediation doesn't contain this string
+	WantRemediation string
 	// WantOutput will cause the scenario to fail if this string
 	// does not appear in stdout
 	WantOutput string
@@ -236,6 +239,9 @@ func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 		}
 
 		AssertErrorContains(t, err, scenario.WantError)
+		if scenario.WantRemediation != "" {
+			AssertRemediationErrorContains(t, err, scenario.WantRemediation)
+		}
 		AssertStringContains(t, stdout.String(), scenario.WantOutput)
 
 		for _, want := range scenario.WantOutputs {
