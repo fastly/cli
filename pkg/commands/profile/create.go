@@ -37,7 +37,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.R
 	var c CreateCommand
 	c.Globals = g
 	c.ssoCmd = ssoCmd
-	c.CmdClause = parent.Command("create", "Create user profile")
+	c.CmdClause = parent.Command("create", "Create user profile (deprecated: use 'fastly auth login' or 'fastly auth add' instead)")
 	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default(profile.DefaultName).Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
 	c.CmdClause.Flag("sso", "Create an SSO-based token").BoolVar(&c.sso)
@@ -46,6 +46,8 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.R
 
 // Exec implements the command interface.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
+	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth login' or 'fastly auth add' instead.\n\n")
+
 	if c.sso && c.automationToken {
 		return fsterr.ErrInvalidProfileSSOCombo
 	}

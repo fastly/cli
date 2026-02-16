@@ -33,7 +33,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.R
 	var c UpdateCommand
 	c.Globals = g
 	c.ssoCmd = ssoCmd
-	c.CmdClause = parent.Command("update", "Update user profile")
+	c.CmdClause = parent.Command("update", "Update user profile (deprecated: use 'fastly auth login' or 'fastly auth add' instead)")
 	c.CmdClause.Arg("profile", "Profile to update (defaults to the currently active profile)").Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
 	c.CmdClause.Flag("sso", "Update profile to use an SSO-based token").BoolVar(&c.sso)
@@ -42,6 +42,8 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.R
 
 // Exec invokes the application logic for the command.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
+	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth login' or 'fastly auth add' instead.\n\n")
+
 	profileName, p, err := c.identifyProfile()
 	if err != nil {
 		return fmt.Errorf("failed to identify the profile to update: %w", err)

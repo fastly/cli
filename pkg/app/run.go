@@ -370,9 +370,9 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// IMPORTANT: `--debug` is a built-in Kingpin flag so we must use `debug-mode`.
 	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&data.Flags.Debug)
 	// IMPORTANT: `--sso` causes a Kingpin runtime panic 🤦 so we use `enable-sso`.
-	app.Flag("enable-sso", "Enable Single-Sign On (SSO) for current profile execution (see also: 'fastly sso')").BoolVar(&data.Flags.SSO)
+	app.Flag("enable-sso", "[DEPRECATED: use 'fastly auth login --sso'] Enable SSO for current profile").Hidden().BoolVar(&data.Flags.SSO)
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&data.Flags.NonInteractive)
-	app.Flag("profile", "[DEPRECATED: use 'fastly auth use'] Switch account profile for single command execution").Short('o').StringVar(&data.Flags.Profile)
+	app.Flag("profile", "[DEPRECATED: use 'fastly auth use'] Switch account profile for single command execution").Hidden().Short('o').StringVar(&data.Flags.Profile)
 	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&data.Flags.Quiet)
 	if !env.AuthCommandDisabled() {
 		tokenHelp := fmt.Sprintf("Fastly API token, or name of a stored auth token (use 'default' for the default token). Falls back to %s env var", env.APIToken)
@@ -421,7 +421,7 @@ func processToken(data *global.Data) (token string, tokenSource lookup.Source, e
 			}
 			token = at.Token
 		}
-	case lookup.SourceEnvironment, lookup.SourceFlag, lookup.SourceDefault:
+	case lookup.SourceEnvironment, lookup.SourceFlag, lookup.SourceDefault, lookup.SourceFile:
 		// no-op
 	}
 
@@ -585,7 +585,7 @@ func displayToken(tokenSource lookup.Source, data *global.Data) {
 		} else {
 			fmt.Fprintf(data.Output, "Fastly API token provided via config file (auth)\n\n")
 		}
-	case lookup.SourceUndefined, lookup.SourceDefault:
+	case lookup.SourceUndefined, lookup.SourceDefault, lookup.SourceFile:
 		fallthrough
 	default:
 		fmt.Fprintf(data.Output, "Fastly API token not provided\n\n")
@@ -615,7 +615,7 @@ func displayAPIEndpoint(endpoint string, endpointSource lookup.Source, out io.Wr
 		fmt.Fprintf(out, "Fastly API endpoint (via %s): %s\n", env.APIEndpoint, endpoint)
 	case lookup.SourceFile:
 		fmt.Fprintf(out, "Fastly API endpoint (via config file): %s\n", endpoint)
-	case lookup.SourceDefault, lookup.SourceUndefined:
+	case lookup.SourceDefault, lookup.SourceUndefined, lookup.SourceAuth:
 		fallthrough
 	default:
 		fmt.Fprintf(out, "Fastly API endpoint: %s\n", endpoint)

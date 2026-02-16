@@ -25,13 +25,15 @@ func NewSwitchCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.R
 	var c SwitchCommand
 	c.Globals = g
 	c.ssoCmd = ssoCmd
-	c.CmdClause = parent.Command("switch", "Switch user profile")
+	c.CmdClause = parent.Command("switch", "Switch user profile (deprecated: use 'fastly auth use' instead)")
 	c.CmdClause.Arg("profile", "Profile to switch to").Short('p').Required().StringVar(&c.profile)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
+	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth use' instead.\n\n")
+
 	// We get the named profile to check if it's an SSO-based profile.
 	// If we're switching to an SSO-based profile, then we need to re-auth.
 	p := profile.Get(c.profile, c.Globals.Config.Profiles)

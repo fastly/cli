@@ -21,13 +21,14 @@ type DeleteCommand struct {
 func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteCommand {
 	var c DeleteCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("delete", "Delete user profile")
+	c.CmdClause = parent.Command("delete", "Delete user profile (deprecated: use 'fastly auth delete' instead)")
 	c.CmdClause.Arg("profile", "Profile to delete").Short('x').Required().StringVar(&c.profile)
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
+	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth delete' instead.\n\n")
 	if ok := profile.Delete(c.profile, c.Globals.Config.Profiles); ok {
 		if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 			return err

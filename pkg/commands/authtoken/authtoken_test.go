@@ -296,6 +296,9 @@ func listTokenOutputVerbose() string {
 	return `Fastly API endpoint: https://api.fastly.com
 Fastly API token provided via config file (auth: user)
 
+DEPRECATED: The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API
+tokens.
+
 
 ID: 123
 Name: Foo

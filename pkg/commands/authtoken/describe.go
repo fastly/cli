@@ -11,6 +11,7 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -20,7 +21,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("describe", "Get the current API token").Alias("get")
+	c.CmdClause = parent.Command("describe", "Get the current API token (deprecated: use the Fastly API directly)").Alias("get")
 
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
@@ -34,6 +35,8 @@ type DescribeCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
+	text.Deprecated(out, "The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
+
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

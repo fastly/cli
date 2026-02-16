@@ -26,7 +26,7 @@ type TokenCommand struct {
 func NewTokenCommand(parent argparser.Registerer, g *global.Data) *TokenCommand {
 	var c TokenCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("token", "Print API token (defaults to the 'active' profile)")
+	c.CmdClause = parent.Command("token", "Print API token (deprecated: use 'fastly auth show' instead)")
 	c.CmdClause.Arg("profile", "Print API token for the named profile").Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("ttl", "Amount of time for which the token must be valid (in seconds 's', minutes 'm', or hours 'h')").Default(defaultTokenTTL.String()).DurationVar(&c.tokenTTL)
 	return &c
@@ -38,6 +38,8 @@ const defaultTokenTTL time.Duration = 5 * time.Minute
 
 // Exec implements the command interface.
 func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
+	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth show' instead.\n\n")
+
 	var name string
 	if c.profile != "" {
 		name = c.profile
