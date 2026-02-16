@@ -564,7 +564,7 @@ func displayToken(tokenSource lookup.Source, data *global.Data) {
 	case lookup.SourceEnvironment:
 		fmt.Fprintf(data.Output, "Fastly API token provided via %s\n\n", env.APIToken)
 	case lookup.SourceFile:
-		fmt.Fprintf(data.Output, "Fastly API token provided via config file (profile: %s)\n\n", profileSource)
+		fmt.Fprintf(data.Output, "Fastly API token provided via config file (auth: %s)\n\n", profileSource)
 	case lookup.SourceUndefined, lookup.SourceDefault:
 		fallthrough
 	default:
@@ -577,7 +577,7 @@ func displayToken(tokenSource lookup.Source, data *global.Data) {
 // application and warn if so.
 func checkConfigPermissions(commandName string, tokenSource lookup.Source, out io.Writer) {
 	segs := strings.Split(commandName, " ")
-	if tokenSource == lookup.SourceFile && (len(segs) > 0 && segs[0] != "profile") {
+	if tokenSource == lookup.SourceFile && (len(segs) > 0 && segs[0] != "auth") {
 		if fi, err := os.Stat(config.FilePath); err == nil {
 			if mode := fi.Mode().Perm(); mode > config.FilePermissions {
 				text.Warning(out, "Unprotected configuration file.\n\n")
