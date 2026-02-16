@@ -59,7 +59,7 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		msg := fmt.Sprintf(profile.DoesNotExist, name)
 		return fsterr.RemediationError{
 			Inner:       errors.New(msg),
-			Remediation: fsterr.ProfileRemediation,
+			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
 
@@ -73,7 +73,7 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 	return fsterr.RemediationError{
 		Inner:       errors.New("no profiles available"),
-		Remediation: fsterr.ProfileRemediation,
+		Remediation: fsterr.ProfileRemediation(),
 	}
 }
 
@@ -99,6 +99,6 @@ func checkTokenValidity(profileName string, p *config.Profile, ttl time.Duration
 
 	return fsterr.RemediationError{
 		Inner:       errors.New(msg),
-		Remediation: fsterr.TokenExpirationRemediation,
+		Remediation: fsterr.TokenExpirationRemediation(),
 	}
 }

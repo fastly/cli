@@ -40,7 +40,7 @@ func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return fsterr.RemediationError{
 			Inner:       err,
-			Remediation: fsterr.ProfileRemediation,
+			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
 	if isSSOToken(p) {
@@ -70,7 +70,7 @@ func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
 		c.Globals.ErrLog.Add(err)
 		return fsterr.RemediationError{
 			Inner:       err,
-			Remediation: fsterr.ProfileRemediation,
+			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
 	c.Globals.Config.Profiles = ps

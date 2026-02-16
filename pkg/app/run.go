@@ -550,7 +550,7 @@ func ssoAuthentication(outputMessage string, cmds []argparser.Command, data *glo
 	// Updated token should be persisted to disk after command.Exec() completes.
 	token, tokenSource = data.Token()
 	if tokenSource == lookup.SourceUndefined {
-		return token, tokenSource, fsterr.ErrNoToken
+		return token, tokenSource, fsterr.ErrNoToken()
 	}
 	return token, tokenSource, nil
 }

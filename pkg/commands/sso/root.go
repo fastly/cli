@@ -100,7 +100,7 @@ func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
 			c.Globals.ErrLog.Add(err)
 			return fsterr.RemediationError{
 				Inner:       err,
-				Remediation: fsterr.ProfileRemediation,
+				Remediation: fsterr.ProfileRemediation(),
 			}
 		}
 		c.Globals.AuthServer.SetParam("prompt", "login")

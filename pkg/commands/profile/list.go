@@ -42,7 +42,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		msg := "no profiles available"
 		return fsterr.RemediationError{
 			Inner:       errors.New(msg),
-			Remediation: fsterr.ProfileRemediation,
+			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
 

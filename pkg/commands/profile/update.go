@@ -106,7 +106,7 @@ func (c *UpdateCommand) identifyProfile() (string, *config.Profile, error) {
 			msg := fmt.Sprintf(profile.DoesNotExist, c.profile)
 			return "", nil, fsterr.RemediationError{
 				Inner:       errors.New(msg),
-				Remediation: fsterr.ProfileRemediation,
+				Remediation: fsterr.ProfileRemediation(),
 			}
 		}
 	}
@@ -267,7 +267,7 @@ func (c *UpdateCommand) staticTokenFlow(profileName string, p *config.Profile, i
 		msg := fmt.Sprintf(profile.DoesNotExist, profileName)
 		return fsterr.RemediationError{
 			Inner:       errors.New(msg),
-			Remediation: fsterr.ProfileRemediation,
+			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
 	c.Globals.Config.Profiles = ps
