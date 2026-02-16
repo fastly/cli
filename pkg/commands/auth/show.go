@@ -3,8 +3,10 @@ package auth
 import (
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/lookup"
@@ -72,11 +74,30 @@ func (c *ShowCommand) Exec(_ io.Reader, out io.Writer) error {
 	if entry.APITokenScope != "" {
 		text.Output(out, "API token scope: %s\n", entry.APITokenScope)
 	}
+	now := time.Now()
+	status, expires, parseErr := GetExpirationStatus(entry, now)
+	if parseErr != nil && c.Globals.ErrLog != nil {
+		c.Globals.ErrLog.Add(parseErr)
+	}
+
 	if entry.APITokenExpiresAt != "" {
-		text.Output(out, "API token expires at: %s\n", entry.APITokenExpiresAt)
+		line := "API token expires at: " + entry.APITokenExpiresAt
+		if summary := apiTokenExpirySummary(entry, expires, now); summary != "" {
+			line += " (" + summary + ")"
+		}
+		text.Output(out, "%s\n", line)
 	}
 	if entry.APITokenID != "" {
 		text.Output(out, "API token ID: %s\n", entry.APITokenID)
+	}
+
+	// For SSO tokens, show the session (refresh) expiry as the user-actionable deadline.
+	if entry.Type == config.AuthTokenTypeSSO && entry.RefreshExpiresAt != "" && !entry.NeedsReauth {
+		line := "SSO session expires at: " + entry.RefreshExpiresAt
+		if summary := ExpirationSummary(status, expires, now); summary != "" {
+			line += " (" + summary + ")"
+		}
+		text.Output(out, "%s\n", line)
 	}
 
 	if c.reveal {
@@ -90,8 +111,40 @@ func (c *ShowCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if entry.NeedsReauth {
-		text.Warning(out, "This token needs re-authentication. Run `fastly auth login --sso` to refresh.\n")
+		text.Warning(out, "This token needs re-authentication. %s\n", ExpirationRemediation(entry.Type))
+	} else if status == StatusExpired {
+		text.Warning(out, "This token has expired. %s\n", ExpirationRemediation(entry.Type))
 	}
 
 	return nil
+}
+
+// apiTokenExpirySummary returns a relative-time string for the APITokenExpiresAt
+// field specifically. For static tokens this uses the main expiry status; for SSO
+// tokens the APITokenExpiresAt is secondary so we parse it independently.
+func apiTokenExpirySummary(entry *config.AuthToken, mainExpires time.Time, now time.Time) string {
+	if entry.Type == config.AuthTokenTypeStatic {
+		// For static tokens, APITokenExpiresAt IS the effective expiry.
+		if mainExpires.IsZero() {
+			return ""
+		}
+		if now.After(mainExpires) {
+			return "expired " + humanDuration(now.Sub(mainExpires)) + " ago"
+		}
+		return "in " + humanDuration(mainExpires.Sub(now))
+	}
+
+	// For SSO tokens, parse APITokenExpiresAt independently since the main
+	// expiry status tracks RefreshExpiresAt.
+	if entry.APITokenExpiresAt == "" {
+		return ""
+	}
+	apiExpires, err := time.Parse(time.RFC3339, entry.APITokenExpiresAt)
+	if err != nil {
+		return ""
+	}
+	if now.After(apiExpires) {
+		return "expired " + humanDuration(now.Sub(apiExpires)) + " ago"
+	}
+	return "in " + humanDuration(apiExpires.Sub(now))
 }

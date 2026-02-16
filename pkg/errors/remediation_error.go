@@ -213,6 +213,22 @@ func TokenExpirationRemediation() string {
 	return "Run 'fastly auth login --sso' to refresh the token."
 }
 
+// TokenExpirationRemediationForType returns remediation text appropriate for
+// the given token type ("static", "sso", or "" for unknown/default).
+//
+// NOTE: tokenType values must match config.AuthTokenTypeStatic / config.AuthTokenTypeSSO.
+// We cannot import pkg/config here (pkg/errors is a foundational package), so the
+// string literals are used directly. Callers should pass config.AuthToken.Type.
+func TokenExpirationRemediationForType(tokenType string) string {
+	if env.AuthCommandDisabled() {
+		return fmt.Sprintf("Supply a fresh token via the %s environment variable.", env.APIToken)
+	}
+	if tokenType == "static" {
+		return "Generate a new token from the Fastly dashboard or run 'fastly auth add'."
+	}
+	return "Run 'fastly auth login --sso' to refresh the token."
+}
+
 // NonInteractiveAuthRemediation tells the user how to supply a token when
 // interactive prompts are suppressed.
 func NonInteractiveAuthRemediation() string {

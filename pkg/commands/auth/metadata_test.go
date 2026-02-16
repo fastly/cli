@@ -18,20 +18,12 @@ import (
 
 var (
 	testTokenScope    = fastly.GlobalScope
-	testReadScope     = fastly.GlobalReadScope
 	testTokenExpiry   = time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
 	testTokenSelfFull = func(_ context.Context) (*fastly.Token, error) {
 		return &fastly.Token{
 			TokenID: fastly.ToPointer("tok-id-123"),
 			Name:    fastly.ToPointer("my-api-token"),
 			Scope:   &testTokenScope,
-		}, nil
-	}
-	testTokenSelfReadOnly = func(_ context.Context) (*fastly.Token, error) {
-		return &fastly.Token{
-			TokenID: fastly.ToPointer("tok-id-readonly"),
-			Name:    fastly.ToPointer("readonly-token"),
-			Scope:   &testReadScope,
 		}, nil
 	}
 	testTokenSelfWithExpiry = func(_ context.Context) (*fastly.Token, error) {

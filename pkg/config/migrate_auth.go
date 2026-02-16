@@ -99,7 +99,10 @@ func (f *File) GetDefaultAuthToken() (string, *AuthToken) {
 	if f.Auth.Default == "" {
 		return "", nil
 	}
-	return f.Auth.Default, f.Auth.Tokens[f.Auth.Default]
+	if t := f.Auth.Tokens[f.Auth.Default]; t != nil {
+		return f.Auth.Default, t
+	}
+	return "", nil
 }
 
 func (f *File) SetAuthToken(name string, token *AuthToken) {

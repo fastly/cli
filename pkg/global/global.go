@@ -146,7 +146,6 @@ func (d *Data) Token() (string, lookup.Source) {
 		return d.Env.APIToken, lookup.SourceEnvironment
 	}
 
-
 	if d.Manifest != nil && d.Manifest.File.Profile != "" {
 		if at := d.Config.GetAuthToken(d.Manifest.File.Profile); at != nil && at.Token != "" {
 			return at.Token, lookup.SourceAuth

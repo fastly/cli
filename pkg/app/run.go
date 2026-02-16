@@ -331,6 +331,8 @@ func Exec(data *global.Data) error {
 		}
 	}
 
+	checkTokenExpirationWarning(data, commandName)
+
 	f := checkForUpdates(data.Versioners.CLI, commandName, data.Flags.Quiet)
 	defer f(data.Output)
 
@@ -501,6 +503,61 @@ func checkAndRefreshAuthSSOToken(name string, at *config.AuthToken, data *global
 	}
 
 	return false, nil
+}
+
+// authRelatedCommands lists the top-level command families related to
+// authentication. Expiry warnings are suppressed for these commands to avoid
+// noise during login, token management, and identity flows.
+// This matches the set hidden by FASTLY_DISABLE_AUTH_COMMAND (pkg/env/env.go).
+var authRelatedCommands = []string{"auth", "auth-token", "sso", "profile", "whoami"}
+
+// checkTokenExpirationWarning prints a warning if the active stored token is
+// about to expire. Only fires for SourceAuth tokens; env/flag tokens are opaque.
+// Suppressed for auth-related commands and when --quiet or --json is active.
+func checkTokenExpirationWarning(data *global.Data, commandName string) {
+	if data.Flags.Quiet {
+		return
+	}
+	if isAuthRelatedCommand(commandName) {
+		return
+	}
+
+	_, src := data.Token()
+	if src != lookup.SourceAuth {
+		return
+	}
+
+	name := data.AuthTokenName()
+	if name == "" {
+		name = data.Config.Auth.Default
+	}
+	at := data.Config.GetAuthToken(name)
+	if at == nil {
+		return
+	}
+
+	status, expires, err := authcmd.GetExpirationStatus(at, time.Now())
+	if err != nil && data.ErrLog != nil {
+		data.ErrLog.Add(err)
+	}
+	if status != authcmd.StatusExpiringSoon {
+		return
+	}
+
+	summary := authcmd.ExpirationSummary(status, expires, time.Now())
+	remediation := authcmd.ExpirationRemediation(at.Type)
+	text.Warning(data.Output, "Your active token %s. %s\n", summary, remediation)
+}
+
+// isAuthRelatedCommand reports whether commandName belongs to an auth-related
+// command family. Matches both bare commands ("auth") and subcommands ("auth list").
+func isAuthRelatedCommand(commandName string) bool {
+	for _, prefix := range authRelatedCommands {
+		if commandName == prefix || strings.HasPrefix(commandName, prefix+" ") {
+			return true
+		}
+	}
+	return false
 }
 
 // ssoAuthentication invokes the SSO runner to handle authentication.

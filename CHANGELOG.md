@@ -85,9 +85,16 @@ both the old and new forms are:
 ### Breaking:
 
 - breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
+### Deprecations:
+
+- deprecated(auth): `fastly profile`, `fastly sso`, and `fastly auth-token` command trees are deprecated and will be removed in a future release. Use `fastly auth` subcommands instead.
+- deprecated(auth): `--profile` and `--enable-sso` global flags are deprecated. Use `--token <name>` to select a stored auth token by name, or `fastly auth login --sso` for SSO.
 
 ### Enhancements:
 
+- feat(auth): `auth login --sso` now stores the token as "sso" by default instead of deriving the name from the current default token. Use `--token NAME` to override. This prevents accidentally overwriting an unrelated static token.
+- feat(auth): add `FASTLY_DISABLE_AUTH_COMMAND` env var to hide the `fastly auth` command tree from help, completions, and invocation.
+- feat(auth): when `FASTLY_DISABLE_AUTH_COMMAND` is set, the `--token`/`-t` global flag is also disabled. Use `FASTLY_API_TOKEN` or stored config tokens instead.
 - feat(ngwaf/rules): Upgrade go-fastly to v13.0.0 and allow ngwaf rules to accept multival conditions ([#1655](https://github.com/fastly/cli/pull/1655))
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))

@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"fmt"
 	"io"
+	"time"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -27,6 +29,8 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return nil
 	}
 
+	now := time.Now()
+
 	for name, entry := range tokens {
 		marker := "  "
 		if name == c.Globals.Config.Auth.Default {
@@ -43,7 +47,24 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 			reauthStr = " (needs re-authentication)"
 		}
 
-		text.Output(out, "%s%s (%s)%s\n", marker, name, info, reauthStr)
+		expiryStr := ""
+		if !entry.NeedsReauth {
+			status, expires, err := GetExpirationStatus(entry, now)
+			if err != nil && c.Globals.ErrLog != nil {
+				c.Globals.ErrLog.Add(err)
+			}
+			switch status {
+			case StatusExpiringSoon:
+				summary := ExpirationSummary(status, expires, now)
+				expiryStr = " " + text.BoldYellow(fmt.Sprintf("[%s]", summary))
+			case StatusExpired:
+				summary := ExpirationSummary(status, expires, now)
+				expiryStr = " " + text.BoldRed(fmt.Sprintf("[%s]", summary))
+			case StatusOK, StatusNoExpiry, StatusNeedsReauth:
+			}
+		}
+
+		text.Output(out, "%s%s (%s)%s%s\n", marker, name, info, reauthStr, expiryStr)
 	}
 
 	return nil
