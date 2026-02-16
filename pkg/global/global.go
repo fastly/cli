@@ -84,12 +84,17 @@ type Data struct {
 	// interactive prompt can be skipped. This is for scenarios where the command
 	// is executed directly by the user.
 	SkipAuthPrompt bool
+	// SSORunner runs the SSO authentication flow. It is set by commands.Define()
+	// so that app/run.go can invoke SSO without a registered command.
+	SSORunner func(in io.Reader, out io.Writer, forceReAuth bool, skipPrompt bool) error
 	// Versioners contains multiple software versioning checkers.
 	// e.g. Check for latest CLI or Viceroy version.
 	Versioners Versioners
 }
 
 // Profile identifies the current profile (if any).
+//
+// Deprecated: kept for compile compatibility until run.go is rewritten.
 func (d *Data) Profile() (string, *config.Profile, error) {
 	var (
 		profileData       *config.Profile
@@ -106,9 +111,6 @@ func (d *Data) Profile() (string, *config.Profile, error) {
 	}
 	for name, profileData = range d.Config.Profiles {
 		if (profileName == "default" && profileData.Default) || name == profileName {
-			// Once we find the default profile we can update the variable to be the
-			// associated profile name so later on we can use that information to
-			// update the specific profile.
 			if profileName == "default" {
 				profileName = name
 			}
@@ -125,14 +127,17 @@ func (d *Data) Profile() (string, *config.Profile, error) {
 // Token yields the Fastly API token.
 //
 // Order of precedence:
-//   - The --token flag.
+//   - The --token flag (if it matches a stored auth token name, use that token).
+//   - The --token flag (treated as a raw API token).
 //   - The FASTLY_API_TOKEN environment variable.
-//   - The --profile flag's associated token.
-//   - The `profile` manifest field's associated profile token.
-//   - The 'default' profile associated token (if there is one).
+//   - The `profile` manifest field mapped to an auth token name.
+//   - The default [auth] token (if configured).
 func (d *Data) Token() (string, lookup.Source) {
-	// --token
+	// --token: check if it matches a stored auth token name first.
 	if d.Flags.Token != "" {
+		if at := d.Config.GetAuthToken(d.Flags.Token); at != nil && at.Token != "" {
+			return at.Token, lookup.SourceAuth
+		}
 		return d.Flags.Token, lookup.SourceFlag
 	}
 
@@ -141,29 +146,16 @@ func (d *Data) Token() (string, lookup.Source) {
 		return d.Env.APIToken, lookup.SourceEnvironment
 	}
 
-	// --profile
-	if d.Flags.Profile != "" {
-		for k, v := range d.Config.Profiles {
-			if k == d.Flags.Profile {
-				return v.Token, lookup.SourceFile
-			}
+
+	if d.Manifest != nil && d.Manifest.File.Profile != "" {
+		if at := d.Config.GetAuthToken(d.Manifest.File.Profile); at != nil && at.Token != "" {
+			return at.Token, lookup.SourceAuth
 		}
 	}
 
-	// `profile` field in fastly.toml
-	if d.Manifest.File.Profile != "" {
-		for k, v := range d.Config.Profiles {
-			if k == d.Manifest.File.Profile {
-				return v.Token, lookup.SourceFile
-			}
-		}
-	}
-
-	// [profile] section in app config
-	for _, v := range d.Config.Profiles {
-		if v.Default {
-			return v.Token, lookup.SourceFile
-		}
+	// [auth] section default token.
+	if _, at := d.Config.GetDefaultAuthToken(); at != nil && at.Token != "" {
+		return at.Token, lookup.SourceAuth
 	}
 
 	return "", lookup.SourceUndefined
@@ -179,7 +171,7 @@ func (d *Data) AuthTokenName() string {
 		}
 		return ""
 	}
-	// Manifest profile → auth token name.
+
 	if d.Manifest != nil && d.Manifest.File.Profile != "" {
 		if at := d.Config.GetAuthToken(d.Manifest.File.Profile); at != nil {
 			return d.Manifest.File.Profile

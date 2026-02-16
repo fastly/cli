@@ -14,6 +14,7 @@ import (
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/env"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -35,6 +36,28 @@ func Usage(args []string, app *kingpin.Application, out, err io.Writer, vars map
 	app.Writers(out, err)
 	return buf.String()
 }
+
+// authGuideTemplate is the template fragment for the auth guide section,
+// shared between CompactUsageTemplate and VerboseUsageTemplate.
+const authGuideTemplate = `{{if .Context.SelectedCommand -}}
+{{if eq .Context.SelectedCommand.Name "auth" -}}
+{{if .Context.SelectedCommand.Commands -}}
+{{T "AUTH GUIDE"|Bold}}
+  Quick start:
+    fastly auth login
+    fastly auth login --sso
+  Token precedence:
+    --token (raw or stored name) > FASTLY_API_TOKEN > fastly.toml profile > default auth token
+  Stored tokens:
+    fastly auth list
+    fastly auth use <name>
+  Non-interactive usage:
+    fastly service list --token $TOKEN
+
+{{end -}}
+{{end -}}
+{{end -}}
+`
 
 // CompactUsageTemplate is the default usage template, rendered when users type
 // e.g. just `fastly`, or use the `-h, --help` flag.
@@ -92,6 +115,7 @@ var CompactUsageTemplate = `{{define "FormatCommand" -}}
 {{T "COMMANDS"|Bold}}
 {{.App.Commands|CommandsToTwoColumns|FormatTwoColumns}}
 {{end -}}
+` + authGuideTemplate + `
 {{T "SEE ALSO"|Bold}}
 {{.Context.SelectedCommand|SeeAlso}}
 `
@@ -109,18 +133,20 @@ var UsageTemplateFuncs = template.FuncMap{
 		return rows
 	},
 	"GlobalFlags": func(f []*kingpin.ClauseModel) []*kingpin.ClauseModel {
+		gf := globalFlags()
 		flags := []*kingpin.ClauseModel{}
 		for _, flag := range f {
-			if globalFlags[flag.Name] {
+			if gf[flag.Name] {
 				flags = append(flags, flag)
 			}
 		}
 		return flags
 	},
 	"OptionalFlags": func(f []*kingpin.ClauseModel) []*kingpin.ClauseModel {
+		gf := globalFlags()
 		optionalFlags := []*kingpin.ClauseModel{}
 		for _, flag := range f {
-			if !flag.Required && !flag.Hidden && !globalFlags[flag.Name] {
+			if !flag.Required && !flag.Hidden && !gf[flag.Name] {
 				optionalFlags = append(optionalFlags, flag)
 			}
 		}
@@ -144,19 +170,22 @@ var UsageTemplateFuncs = template.FuncMap{
 // We hack a solution in ./run.go (`configureKingpin` function).
 //
 // NOTE: This map is used to help populate the CLI 'usage' template renderer.
-var globalFlags = map[string]bool{
-	"accept-defaults": true,
-	"account":         true,
-	"auto-yes":        true,
-	"debug-mode":      true,
-	"enable-sso":      true,
-	"endpoint":        true,
-	"help":            true,
-	"non-interactive": true,
-	"profile":         true,
-	"quiet":           true,
-	"token":           true,
-	"verbose":         true,
+func globalFlags() map[string]bool {
+	m := map[string]bool{
+		"accept-defaults": true,
+		"account":         true,
+		"auto-yes":        true,
+		"debug-mode":      true,
+		"endpoint":        true,
+		"help":            true,
+		"non-interactive": true,
+		"quiet":           true,
+		"verbose":         true,
+	}
+	if !env.AuthCommandDisabled() {
+		m["token"] = true
+	}
+	return m
 }
 
 // VerboseUsageTemplate is the full-fat usage template, rendered when users type
@@ -202,6 +231,7 @@ const VerboseUsageTemplate = `{{define "FormatCommands" -}}
 {{T "COMMANDS"|Bold -}}
   {{template "FormatCommands" .App}}
 {{end -}}
+` + authGuideTemplate + `
 {{T "SEE ALSO"|Bold}}
 {{.Context.SelectedCommand|SeeAlso}}
 `
@@ -401,8 +431,8 @@ func useFullHelpOutput(app *kingpin.Application, args []string, out io.Writer) *
 	if len(args) > 0 && args[len(args)-1] == "help" {
 		fmt.Fprintln(&buf, "\nFor help on a specific command, try e.g.")
 		fmt.Fprintln(&buf, "")
-		fmt.Fprintln(&buf, "\tfastly help profile")
-		fmt.Fprintln(&buf, "\tfastly profile --help")
+		fmt.Fprintln(&buf, "\tfastly help compute")
+		fmt.Fprintln(&buf, "\tfastly compute --help")
 		fmt.Fprintln(&buf, "")
 	}
 	return &buf
