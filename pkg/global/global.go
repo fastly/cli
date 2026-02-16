@@ -169,6 +169,27 @@ func (d *Data) Token() (string, lookup.Source) {
 	return "", lookup.SourceUndefined
 }
 
+// AuthTokenName returns the name of the auth token being used, if any.
+// This is used for display purposes and for SSO refresh of named tokens.
+func (d *Data) AuthTokenName() string {
+	// If --token matches a stored auth token name, return that name.
+	if d.Flags.Token != "" {
+		if at := d.Config.GetAuthToken(d.Flags.Token); at != nil {
+			return d.Flags.Token
+		}
+		return ""
+	}
+	// Manifest profile → auth token name.
+	if d.Manifest != nil && d.Manifest.File.Profile != "" {
+		if at := d.Config.GetAuthToken(d.Manifest.File.Profile); at != nil {
+			return d.Manifest.File.Profile
+		}
+	}
+	// Otherwise return the default auth token name.
+	name, _ := d.Config.GetDefaultAuthToken()
+	return name
+}
+
 // Verbose yields the verbose flag, which can only be set via flags.
 func (d *Data) Verbose() bool {
 	return d.Flags.Verbose
