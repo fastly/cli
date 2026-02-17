@@ -37,7 +37,6 @@
 - fix(manifest): Correct setup.Defined to include checks for ObjectStores and SecretStores ([#1639](https://github.com/fastly/cli/pull/1639))
 
 ### Dependencies:
-
 - build(deps): `golang` from 1.24 to 1.25 ([#1651](https://github.com/fastly/cli/pull/1651))
 - build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
 - build(deps): `actions/download-artifact` from 6 to 7 ([#1603](https://github.com/fastly/cli/pull/1603))
@@ -68,6 +67,8 @@
 - build(deps): `github.com/klauspost/compress` from 1.18.3 to 1.18.4 ([#1652](https://github.com/fastly/cli/pull/1652))
 - build(deps): `golang.org/x/net` from 0.49.0 to 0.50.0 ([#1652](https://github.com/fastly/cli/pull/1652))
 - build(deps): `golang.org/x/oauth2` from 0.34.0 to 0.35.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `golang.org/x/text` from 0.33.0 to 0.34.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.6.0 to 2.7.0 ([#1657](https://github.com/fastly/cli/pull/1657))
 - build(deps): `golang.org/x/text` from 0.33.0 to 0.34.0 ([#1652](https://github.com/fastly/cli/pull/1652))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
