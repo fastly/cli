@@ -15,6 +15,7 @@ import (
 	"github.com/fastly/go-fastly/v13/fastly"
 
 	"github.com/fastly/cli/pkg/app"
+	root "github.com/fastly/cli/pkg/commands/service"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
@@ -22,70 +23,46 @@ import (
 )
 
 func TestServiceCreate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:       args("service create --name Foo"),
-			api:        mock.API{CreateServiceFn: createServiceOK},
-			wantOutput: "Created service 12345",
+			Args:       "--name Foo",
+			API:        mock.API{CreateServiceFn: createServiceOK},
+			WantOutput: "Created service 12345",
 		},
 		{
-			args:       args("service create -n=Foo"),
-			api:        mock.API{CreateServiceFn: createServiceOK},
-			wantOutput: "Created service 12345",
+			Args:       "-n=Foo",
+			API:        mock.API{CreateServiceFn: createServiceOK},
+			WantOutput: "Created service 12345",
 		},
 		{
-			args:       args("service create --name Foo --type wasm"),
-			api:        mock.API{CreateServiceFn: createServiceOK},
-			wantOutput: "Created service 12345",
+			Args:       "--name Foo --type wasm",
+			API:        mock.API{CreateServiceFn: createServiceOK},
+			WantOutput: "Created service 12345",
 		},
 		{
-			args:       args("service create --name Foo --type wasm --comment Hello"),
-			api:        mock.API{CreateServiceFn: createServiceOK},
-			wantOutput: "Created service 12345",
+			Args:       "--name Foo --type wasm --comment Hello",
+			API:        mock.API{CreateServiceFn: createServiceOK},
+			WantOutput: "Created service 12345",
 		},
 		{
-			args:       args("service create -n Foo --comment Hello"),
-			api:        mock.API{CreateServiceFn: createServiceOK},
-			wantOutput: "Created service 12345",
+			Args:       "-n Foo --comment Hello",
+			API:        mock.API{CreateServiceFn: createServiceOK},
+			WantOutput: "Created service 12345",
 		},
 		{
-			args:      args("service create -n Foo"),
-			api:       mock.API{CreateServiceFn: createServiceError},
-			wantError: errTest.Error(),
+			Args:      "-n Foo",
+			API:       mock.API{CreateServiceFn: createServiceError},
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "create"}, scenarios)
 }
 
 func TestServiceList(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			api: mock.API{
+			API: mock.API{
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{
@@ -95,11 +72,11 @@ func TestServiceList(t *testing.T) {
 					}, fastly.ListOpts{}, "/example")
 				},
 			},
-			args:      args("service list"),
-			wantError: testutil.Err.Error(),
+			Args:      "",
+			WantError: testutil.Err.Error(),
 		},
 		{
-			api: mock.API{
+			API: mock.API{
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -132,11 +109,11 @@ func TestServiceList(t *testing.T) {
 					}, fastly.ListOpts{}, "/example")
 				},
 			},
-			args:       args("service list --per-page 1"),
-			wantOutput: listServicesShortOutput,
+			Args:       "--per-page 1",
+			WantOutput: listServicesShortOutput,
 		},
 		{
-			api: mock.API{
+			API: mock.API{
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -199,196 +176,120 @@ func TestServiceList(t *testing.T) {
 					}, fastly.ListOpts{}, "/example")
 				},
 			},
-			args:       args("service list --verbose"),
-			wantOutput: listServicesVerboseOutput,
+			Args:       "--verbose",
+			WantOutput: listServicesVerboseOutput,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "list"}, scenarios)
 }
 
 func TestServiceDescribe(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service describe"),
-			api:       mock.API{GetServiceDetailsFn: describeServiceOK},
-			wantError: "error reading service: no service ID found",
+			Args:      "",
+			API:       mock.API{GetServiceDetailsFn: describeServiceOK},
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args:       args("service describe --service-id 123"),
-			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
-			wantOutput: describeServiceShortOutput,
+			Args:       "--service-id 123",
+			API:        mock.API{GetServiceDetailsFn: describeServiceOK},
+			WantOutput: describeServiceShortOutput,
 		},
 		{
-			args:       args("service describe --service-id 123 --verbose"),
-			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
-			wantOutput: describeServiceVerboseOutput,
+			Args:       "--service-id 123 --verbose",
+			API:        mock.API{GetServiceDetailsFn: describeServiceOK},
+			WantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:       args("service describe --service-id 123 -v"),
-			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
-			wantOutput: describeServiceVerboseOutput,
+			Args:       "--service-id 123 -v",
+			API:        mock.API{GetServiceDetailsFn: describeServiceOK},
+			WantOutput: describeServiceVerboseOutput,
 		},
 		{
-			args:       args("service --verbose describe --service-id 123"),
-			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
-			wantOutput: describeServiceVerboseOutput,
-		},
-		{
-			args:       args("-v service describe --service-id 123"),
-			api:        mock.API{GetServiceDetailsFn: describeServiceOK},
-			wantOutput: describeServiceVerboseOutput,
-		},
-		{
-			args:      args("service describe --service-id 123"),
-			api:       mock.API{GetServiceDetailsFn: describeServiceError},
-			wantError: errTest.Error(),
+			Args:      "--service-id 123",
+			API:       mock.API{GetServiceDetailsFn: describeServiceError},
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "describe"}, scenarios)
 }
 
 func TestServiceSearch(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:      args("service search"),
-			wantError: "error parsing arguments: required flag --name not provided",
+			Args:      "",
+			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			args:       args("service search --name Foo"),
-			api:        mock.API{SearchServiceFn: searchServiceOK},
-			wantOutput: searchServiceShortOutput,
+			Args:       "--name Foo",
+			API:        mock.API{SearchServiceFn: searchServiceOK},
+			WantOutput: searchServiceShortOutput,
 		},
 		{
-			args:       args("service search --name Foo -v"),
-			api:        mock.API{SearchServiceFn: searchServiceOK},
-			wantOutput: searchServiceVerboseOutput,
+			Args:       "--name Foo -v",
+			API:        mock.API{SearchServiceFn: searchServiceOK},
+			WantOutput: searchServiceVerboseOutput,
 		},
 		{
-			args:      args("service search --name"),
-			api:       mock.API{SearchServiceFn: searchServiceOK},
-			wantError: "error parsing arguments: expected argument for flag '--name'",
+			Args:      "--name",
+			API:       mock.API{SearchServiceFn: searchServiceOK},
+			WantError: "error parsing arguments: expected argument for flag '--name'",
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertString(t, testcase.wantOutput, stdout.String())
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "search"}, scenarios)
 }
 
 func TestServiceUpdate(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args: args("service update"),
-			api: mock.API{
+			Args: "",
+			API: mock.API{
 				GetServiceFn:    getServiceOK,
 				UpdateServiceFn: updateServiceOK,
 			},
-			wantError: "error reading service: no service ID found",
+			WantError: "error reading service: no service ID found",
 		},
 		{
-			args:      args("service update --service-id 12345"),
-			api:       mock.API{UpdateServiceFn: updateServiceOK},
-			wantError: "error parsing arguments: must provide either --name or --comment to update service",
+			Args:      "--service-id 12345",
+			API:       mock.API{UpdateServiceFn: updateServiceOK},
+			WantError: "error parsing arguments: must provide either --name or --comment to update service",
 		},
 		{
-			args:       args("service update --service-id 12345 --name Foo"),
-			api:        mock.API{UpdateServiceFn: updateServiceOK},
-			wantOutput: "Updated service 12345",
+			Args:       "--service-id 12345 --name Foo",
+			API:        mock.API{UpdateServiceFn: updateServiceOK},
+			WantOutput: "Updated service 12345",
 		},
 		{
-			args:       args("service update --service-id 12345 -n=Foo"),
-			api:        mock.API{UpdateServiceFn: updateServiceOK},
-			wantOutput: "Updated service 12345",
+			Args:       "--service-id 12345 -n=Foo",
+			API:        mock.API{UpdateServiceFn: updateServiceOK},
+			WantOutput: "Updated service 12345",
 		},
 		{
-			args:       args("service update --service-id 12345 --name Foo"),
-			api:        mock.API{UpdateServiceFn: updateServiceOK},
-			wantOutput: "Updated service 12345",
+			Args:       "--service-id 12345 --name Foo",
+			API:        mock.API{UpdateServiceFn: updateServiceOK},
+			WantOutput: "Updated service 12345",
 		},
 		{
-			args:       args("service update --service-id 12345 --name Foo --comment Hello"),
-			api:        mock.API{UpdateServiceFn: updateServiceOK},
-			wantOutput: "Updated service 12345",
+			Args:       "--service-id 12345 --name Foo --comment Hello",
+			API:        mock.API{UpdateServiceFn: updateServiceOK},
+			WantOutput: "Updated service 12345",
 		},
 		{
-			args:       args("service update --service-id 12345 -n Foo --comment Hello"),
-			api:        mock.API{UpdateServiceFn: updateServiceOK},
-			wantOutput: "Updated service 12345",
+			Args:       "--service-id 12345 -n Foo --comment Hello",
+			API:        mock.API{UpdateServiceFn: updateServiceOK},
+			WantOutput: "Updated service 12345",
 		},
 		{
-			args:      args("service update --service-id 12345 -n Foo"),
-			api:       mock.API{UpdateServiceFn: updateServiceError},
-			wantError: errTest.Error(),
+			Args:      "--service-id 12345 -n Foo",
+			API:       mock.API{UpdateServiceFn: updateServiceError},
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "update"}, scenarios)
 }
 
 func TestServiceDelete(t *testing.T) {

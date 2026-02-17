@@ -1,54 +1,32 @@
 package stats_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
-	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v13/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/stats"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestRegions(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:       args("stats regions"),
-			api:        mock.API{GetRegionsFn: getRegionsOK},
-			wantOutput: "foo\nbar\nbaz\n",
+			Args:       "",
+			API:        mock.API{GetRegionsFn: getRegionsOK},
+			WantOutput: "foo\nbar\nbaz\n",
 		},
 		{
-			args:      args("stats regions"),
-			api:       mock.API{GetRegionsFn: getRegionsError},
-			wantError: errTest.Error(),
+			Args:      "",
+			API:       mock.API{GetRegionsFn: getRegionsError},
+			WantError: errTest.Error(),
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "regions"}, scenarios)
 }
 
 func getRegionsOK(_ context.Context) (*fastly.RegionsResponse, error) {
