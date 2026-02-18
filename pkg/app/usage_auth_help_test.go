@@ -64,6 +64,9 @@ func TestAuthGuideBlock(t *testing.T) {
 			if tc.wantGuide && !strings.Contains(output, "AUTH GUIDE") {
 				t.Errorf("expected AUTH GUIDE in output, got:\n%s", output)
 			}
+			if tc.wantGuide && !strings.Contains(output, "--sso --token") {
+				t.Errorf("expected AUTH GUIDE to contain '--sso --token' quick-start example, got:\n%s", output)
+			}
 			if !tc.wantGuide && strings.Contains(output, "AUTH GUIDE") {
 				t.Errorf("did not expect AUTH GUIDE in output, got:\n%s", output)
 			}

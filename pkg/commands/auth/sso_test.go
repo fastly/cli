@@ -22,7 +22,7 @@ func TestSSO(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		// 0. User cancels authentication prompt
 		{
-			Args: "auth login --sso",
+			Args: "auth login --sso --token testname",
 			Stdin: []string{
 				"N", // when prompted to open a web browser to start authentication
 			},
@@ -30,7 +30,7 @@ func TestSSO(t *testing.T) {
 		},
 		// 1. Error opening web browser
 		{
-			Args: "auth login --sso",
+			Args: "auth login --sso --token testname",
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
@@ -43,7 +43,7 @@ func TestSSO(t *testing.T) {
 		},
 		// 2. Error processing OAuth flow (error encountered)
 		{
-			Args: "auth login --sso",
+			Args: "auth login --sso --token testname",
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
@@ -62,7 +62,7 @@ func TestSSO(t *testing.T) {
 		},
 		// 3. Error processing OAuth flow (empty SessionToken field)
 		{
-			Args: "auth login --sso",
+			Args: "auth login --sso --token testname",
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
@@ -79,43 +79,11 @@ func TestSSO(t *testing.T) {
 			},
 			WantError: "failed to authorize: no session token",
 		},
-		// 4. Success processing OAuth flow (stores as "sso" by default)
+		// 4. auth login --sso without --token fails with remediation error
 		{
-			Args: "auth login --sso",
-			Stdin: []string{
-				"Y", // when prompted to open a web browser to start authentication
-			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
-				result := make(chan auth.AuthorizationResult)
-				opts.AuthServer = testutil.MockAuthServer{
-					Result: result,
-				}
-				go func() {
-					result <- auth.AuthorizationResult{
-						SessionToken: "123",
-					}
-				}()
-				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
-			},
-			WantOutputs: []string{
-				"We're going to authenticate the 'sso' token",
-				"We need to open your browser to authenticate you.",
-				"has been stored. Use 'fastly auth list' to view tokens.",
-				"Token saved to",
-			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
-				const expectedToken = "123"
-				at := opts.Config.GetAuthToken("sso")
-				if at == nil {
-					t.Fatal("expected auth token 'sso' to exist")
-				}
-				if at.Token != expectedToken {
-					t.Errorf("want token: %s, got token: %s", expectedToken, at.Token)
-				}
-				if opts.Config.Auth.Default != "sso" {
-					t.Errorf("want default: sso, got: %s", opts.Config.Auth.Default)
-				}
-			},
+			Args:            "auth login --sso",
+			WantError:       "SSO login requires a token name via --token",
+			WantRemediation: "Provide a name for the stored token, e.g.: fastly auth login --sso --token work-sso",
 		},
 		// 5. Success processing OAuth flow targeting specific auth token via --token flag
 		{
@@ -761,10 +729,10 @@ func TestSSO(t *testing.T) {
 			WantError:       "no token provided",
 			WantRemediation: "Interactive authentication is not available",
 		},
-		// 24. SSO login sets default to "sso" but does not overwrite an existing static token's value.
+		// 24. SSO login with --token sets default to that name but does not overwrite an existing static token's value.
 		{
 			Name: "sso login switches default preserves static token",
-			Args: "auth login --sso",
+			Args: "auth login --sso --token work-sso",
 			ConfigFile: &config.File{
 				Auth: config.Auth{
 					Default: "mytoken",
@@ -793,15 +761,15 @@ func TestSSO(t *testing.T) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
-				"We're going to authenticate the 'sso' token",
-				"Session token 'sso' has been stored.",
+				"We're going to authenticate the 'work-sso' token",
+				"Session token 'work-sso' has been stored.",
 			},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				// SSO token was created
-				ssoAt := opts.Config.GetAuthToken("sso")
+				ssoAt := opts.Config.GetAuthToken("work-sso")
 				if ssoAt == nil {
-					t.Fatal("expected auth token 'sso' to exist")
+					t.Fatal("expected auth token 'work-sso' to exist")
 				}
 				if ssoAt.Token != "sso-new-token" {
 					t.Errorf("want sso token: sso-new-token, got: %s", ssoAt.Token)
@@ -815,15 +783,15 @@ func TestSSO(t *testing.T) {
 					t.Errorf("want static token: static-secret, got: %s", staticAt.Token)
 				}
 				// Default switched to the SSO token (login always sets default)
-				if opts.Config.Auth.Default != "sso" {
-					t.Errorf("want default: sso, got: %s", opts.Config.Auth.Default)
+				if opts.Config.Auth.Default != "work-sso" {
+					t.Errorf("want default: work-sso, got: %s", opts.Config.Auth.Default)
 				}
 			},
 		},
 		// 25. SSO login stores API token metadata via EnrichWithTokenSelf.
 		{
 			Name: "sso stores api token metadata",
-			Args: "auth login --sso",
+			Args: "auth login --sso --token sso-meta",
 			API: mock.API{
 				GetTokenSelfFn: func(_ context.Context) (*fastly.Token, error) {
 					scope := fastly.GlobalScope
@@ -853,9 +821,9 @@ func TestSSO(t *testing.T) {
 			WantOutputs: []string{"has been stored", "Token saved to"},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
-				at := opts.Config.GetAuthToken("sso")
+				at := opts.Config.GetAuthToken("sso-meta")
 				if at == nil {
-					t.Fatal("expected auth token 'sso' to exist")
+					t.Fatal("expected auth token 'sso-meta' to exist")
 				}
 				if at.APITokenName != "sso-api-token" {
 					t.Errorf("want APITokenName sso-api-token, got %s", at.APITokenName)

@@ -372,7 +372,7 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// IMPORTANT: `--debug` is a built-in Kingpin flag so we must use `debug-mode`.
 	app.Flag("debug-mode", "Print API request and response details (NOTE: can disrupt the normal CLI flow output formatting)").BoolVar(&data.Flags.Debug)
 	// IMPORTANT: `--sso` causes a Kingpin runtime panic 🤦 so we use `enable-sso`.
-	app.Flag("enable-sso", "[DEPRECATED: use 'fastly auth login --sso'] Enable SSO for current profile").Hidden().BoolVar(&data.Flags.SSO)
+	app.Flag("enable-sso", "[DEPRECATED: use 'fastly auth login --sso --token <name>'] Enable SSO for current profile").Hidden().BoolVar(&data.Flags.SSO)
 	app.Flag("non-interactive", "Do not prompt for user input - suitable for CI processes. Equivalent to --accept-defaults and --auto-yes").Short('i').BoolVar(&data.Flags.NonInteractive)
 	app.Flag("profile", "[DEPRECATED: use 'fastly auth use'] Switch account profile for single command execution").Hidden().Short('o').StringVar(&data.Flags.Profile)
 	app.Flag("quiet", "Silence all output except direct command output. This won't prevent interactive prompts (see: --accept-defaults, --auto-yes, --non-interactive)").Short('q').BoolVar(&data.Flags.Quiet)
@@ -600,7 +600,7 @@ func promptForAuth(data *global.Data) (string, lookup.Source, error) {
 	text.Important(data.Output, "This command requires authentication to access your Fastly account.")
 	text.Break(data.Output)
 	if !env.AuthCommandDisabled() {
-		text.Output(data.Output, "If you prefer SSO, run: fastly auth login --sso\n")
+		text.Output(data.Output, "If you prefer SSO, run: fastly auth login --sso --token <name>\n")
 	}
 	text.Output(data.Output, "Otherwise, paste an API token now. It will be stored as your default auth token.\n")
 	if env.AuthCommandDisabled() {

@@ -29,21 +29,21 @@ const CommandName = "sso"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Single Sign-On authentication (deprecated: use 'fastly auth login --sso' instead)").Hidden()
+	c.CmdClause = parent.Command(CommandName, "Single Sign-On authentication (deprecated: use 'fastly auth login --sso --token <name>' instead)").Hidden()
 	c.CmdClause.Arg("profile", "Profile to authenticate (i.e. create/update a token for)").Short('p').StringVar(&c.profile)
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth login --sso' instead.\n\n")
+	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth login --sso --token <name>' instead.\n\n")
 
 	tokenName, isFallback := c.resolveTokenName()
 
 	if !isFallback && c.Globals.Config.GetAuthToken(tokenName) == nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("token %q does not exist", tokenName),
-			Remediation: "Run 'fastly auth login --sso' to create a new SSO token, or 'fastly auth add' to store an existing token.",
+			Remediation: "Run 'fastly auth login --sso --token <name>' to create a new SSO token, or 'fastly auth add' to store an existing token.",
 		}
 	}
 

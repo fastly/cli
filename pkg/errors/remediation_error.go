@@ -210,7 +210,7 @@ func TokenExpirationRemediation() string {
 	if env.AuthCommandDisabled() {
 		return fmt.Sprintf("Supply a fresh token via the %s environment variable.", env.APIToken)
 	}
-	return "Run 'fastly auth login --sso' to refresh the token."
+	return "Run 'fastly auth login --sso --token <name>' to refresh the token."
 }
 
 // TokenExpirationRemediationForType returns remediation text appropriate for
@@ -226,7 +226,7 @@ func TokenExpirationRemediationForType(tokenType string) string {
 	if tokenType == "static" {
 		return "Generate a new token from the Fastly dashboard or run 'fastly auth add'."
 	}
-	return "Run 'fastly auth login --sso' to refresh the token."
+	return "Run 'fastly auth login --sso --token <name>' to refresh the token."
 }
 
 // NonInteractiveAuthRemediation tells the user how to supply a token when

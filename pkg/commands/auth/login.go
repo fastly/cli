@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -19,7 +20,7 @@ func NewLoginCommand(parent argparser.Registerer, g *global.Data) *LoginCommand 
 	var c LoginCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("login", "Authenticate and store a default token (paste token or use --sso)")
-	c.CmdClause.Flag("sso", "Authenticate via browser-based SSO (stored as \"sso\" by default; use --token to override the name)").BoolVar(&c.sso)
+	c.CmdClause.Flag("sso", "Authenticate via browser-based SSO (requires --token <name> to specify the stored token name)").BoolVar(&c.sso)
 	return &c
 }
 
@@ -49,13 +50,16 @@ func (c *LoginCommand) Exec(in io.Reader, out io.Writer) error {
 }
 
 func (c *LoginCommand) execSSO(in io.Reader, out io.Writer) error {
+	if c.Globals.Flags.Token == "" {
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("SSO login requires a token name via --token"),
+			Remediation: "Provide a name for the stored token, e.g.: fastly auth login --sso --token work-sso",
+		}
+	}
+	tokenName := c.Globals.Flags.Token
+
 	if c.Globals.AuthServer == nil {
 		return fmt.Errorf("SSO authentication requires network access to the Fastly OIDC provider, but the auth server could not be configured; use 'fastly auth login' (without --sso) to paste a static API token instead")
-	}
-
-	tokenName := "sso"
-	if c.Globals.Flags.Token != "" {
-		tokenName = c.Globals.Flags.Token
 	}
 
 	if err := RunSSOWithTokenName(in, out, c.Globals, false, false, tokenName); err != nil {

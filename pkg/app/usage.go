@@ -45,7 +45,7 @@ const authGuideTemplate = `{{if .Context.SelectedCommand -}}
 {{T "AUTH GUIDE"|Bold}}
   Quick start:
     fastly auth login
-    fastly auth login --sso
+    fastly auth login --sso --token <name>
   Token precedence:
     --token (raw or stored name) > FASTLY_API_TOKEN > fastly.toml profile > default auth token
   Stored tokens:

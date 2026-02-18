@@ -137,7 +137,7 @@
           "title": "Authenticate by pasting an API token"
         },
         {
-          "cmd": "fastly auth login --sso",
+          "cmd": "fastly auth login --sso --token my-sso",
           "title": "Authenticate using browser-based SSO"
         }
       ]
