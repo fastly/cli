@@ -74,6 +74,7 @@
 - build(deps): `golang.org/x/text` from 0.33.0 to 0.34.0 ([#1652](https://github.com/fastly/cli/pull/1652))
 - build(deps): `github.com/clipperhouse/uax29/v2` from 2.6.0 to 2.7.0 ([#1657](https://github.com/fastly/cli/pull/1657))
 - build(deps): `golang.org/x/text` from 0.33.0 to 0.34.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.19 to 0.0.20 ([#1659](https://github.com/fastly/cli/pull/1659))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
 
