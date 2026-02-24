@@ -21,7 +21,7 @@ commands are used to manage 'versionless' domains (a new feature of
 the Fastly platform, and those commands were previously named `fastly
 domain-v1 create/delete/describe/list/update`), while the
 service-level commands are used to manage 'classic' domains. As a
-result you will need to update any scripts or workflows which used the
+result, you will need to update any scripts or workflows which used the
 `fastly domain create/delete/describe/list/update` commands to use the
 `fastly service domain create/delete/describe/list/update` commands
 instead.
