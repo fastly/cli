@@ -2,17 +2,60 @@
 
 ## [Unreleased]
 
-### Bug Fixes:
+## BREAKING CHANGES
 
-- fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
+This release of the Fastly CLI includes a significant reorganization
+of the commands which are used to manage the configuration of Fastly
+services (both Delivery and Compute services). Specifically, each of
+the command families listed below have been changed from `fastly
+<family> create/delete/describe/list/update` to `fastly service
+<family> create/delete/describe/list/update`. For nearly all of these
+command families, the previous commands are still available but are
+not listed in the `fastly help` output. In addition, invocations of
+the previous commands will generate a deprecation message, which
+includes the new command that should be used instead.
+
+The `fastly domain` family of commands are the lone exception; those
+commands exist in both the old and new forms, but the top-level
+commands are used to manage 'versionless' domains (a new feature of
+the Fastly platform, and those commands were previously named `fastly
+domain-v1 create/delete/describe/list/update`), while the
+service-level commands are used to manage 'classic' domains. As a
+result, you will need to update any scripts or workflows which used the
+`fastly domain create/delete/describe/list/update` commands to use the
+`fastly service domain create/delete/describe/list/update` commands
+instead.
+
+The command families which have been reorganized and are available in
+both the old and new forms are:
+
+  * acl
+  * aclentry
+  * alert
+  * backend
+  * dictionary
+  * dictionary-entry
+  * healthcheck
+  * imageoptimizerdefaults
+  * logging
+  * purge
+  * rate-limit
+  * resource-link
+  * service-auth
+  * service-version
+  * vcl
 
 ### Breaking:
 
 - breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
 
+### Bug Fixes:
+
+- fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
+
 ### Enhancements:
 
-- feat(ngwaf/rules): Upgrade go-fastly to v13.0.0 and allow ngwaf rules to accept multival conditions ([#1655](https://github.com/fastly/cli/pull/1655)) 
+- feat(ngwaf/rules): Upgrade go-fastly to v13.0.0 and allow ngwaf rules to accept multival conditions ([#1655](https://github.com/fastly/cli/pull/1655))
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
 - feat(ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1605](https://github.com/fastly/cli/pull/1605))
@@ -37,7 +80,7 @@
 
 ### Bug fixes:
 
-- fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
+- fix(compute/serve): ensure hostname has a port number when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
 - fix(manifest): Correct setup.Defined to include checks for ObjectStores and SecretStores ([#1639](https://github.com/fastly/cli/pull/1639))
 
 ### Dependencies:
