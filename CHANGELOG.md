@@ -10,6 +10,12 @@
 
 ### Dependencies:
 
+## [v14.0.2](https://github.com/fastly/cli/releases/tag/v14.0.2) (2026-02-25)
+
+### Bug Fixes:
+
+- fix(npm): add write perms [#1665](https://github.com/fastly/cli/pull/1665)
+
 ## [v14.0.1](https://github.com/fastly/cli/releases/tag/v14.0.1) (2026-02-25)
 
 ### Bug Fixes:
