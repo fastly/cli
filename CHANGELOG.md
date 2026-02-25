@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(npm): Include repository info in package.json of subpackages required for trusted publishing [#1663](https://github.com/fastly/cli/pull/1663)
+
 ### Enhancements:
 
 ### Dependencies:
