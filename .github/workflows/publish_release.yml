@@ -6,7 +6,7 @@ on:
       - published
 permissions:
   id-token: write
-  contents: read
+  contents: write
   packages: write
 jobs:
   npm_release:
