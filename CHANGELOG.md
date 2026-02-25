@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Breaking:
+
+### Bug Fixes:
+
+### Enhancements:
+
+### Dependencies:
+
+## [v14.0.0](https://github.com/fastly/cli/releases/tag/v14.0.0) (2026-02-25)
+
 ## BREAKING CHANGES
 
 This release of the Fastly CLI includes a significant reorganization
@@ -49,10 +59,6 @@ both the old and new forms are:
 
 - breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
 
-### Bug Fixes:
-
-- fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
-
 ### Enhancements:
 
 - feat(ngwaf/rules): Upgrade go-fastly to v13.0.0 and allow ngwaf rules to accept multival conditions ([#1655](https://github.com/fastly/cli/pull/1655))
@@ -80,10 +86,12 @@ both the old and new forms are:
 
 ### Bug fixes:
 
+- fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
 - fix(compute/serve): ensure hostname has a port number when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
 - fix(manifest): Correct setup.Defined to include checks for ObjectStores and SecretStores ([#1639](https://github.com/fastly/cli/pull/1639))
 
 ### Dependencies:
+
 - build(deps): `golang` from 1.24 to 1.25 ([#1651](https://github.com/fastly/cli/pull/1651))
 - build(deps): `actions/upload-artifact` from 5 to 6 ([#1603](https://github.com/fastly/cli/pull/1603))
 - build(deps): `actions/download-artifact` from 6 to 7 ([#1603](https://github.com/fastly/cli/pull/1603))
