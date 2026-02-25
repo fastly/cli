@@ -6,6 +6,7 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
 )
@@ -33,7 +34,7 @@ func (c *AddCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("token %q already exists; use 'fastly auth delete %s' first", c.name, c.name)
 	}
 
-	md, err := FetchTokenMetadata(c.Globals, c.token)
+	md, err := FetchTokenMetadataLenient(c.Globals, c.token)
 	if err != nil {
 		return err
 	}
@@ -42,7 +43,10 @@ func (c *AddCommand) Exec(_ io.Reader, out io.Writer) error {
 	if name == "" {
 		name = md.APITokenName
 		if name == "" {
-			return fmt.Errorf("could not determine a name for this token; pass NAME as an argument")
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("could not determine a name for this token"),
+				Remediation: "Provide a name as the first argument, e.g.: fastly auth add my-token --api-token <token>",
+			}
 		}
 		// Check collision for the derived name too.
 		if c.Globals.Config.GetAuthToken(name) != nil {

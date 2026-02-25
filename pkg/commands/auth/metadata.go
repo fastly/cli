@@ -48,6 +48,40 @@ func FetchTokenMetadata(g *global.Data, token string) (*TokenMetadata, error) {
 	return md, nil
 }
 
+// FetchTokenMetadataLenient is like FetchTokenMetadata but treats
+// GetCurrentUser as best-effort. Use this for scoped tokens that may lack
+// permission to call /current_user. At least one of GetCurrentUser or
+// GetTokenSelf must succeed to confirm the token is valid.
+func FetchTokenMetadataLenient(g *global.Data, token string) (*TokenMetadata, error) {
+	endpoint, _ := g.APIEndpoint()
+	apiClient, err := g.APIClientFactory(token, endpoint, g.Flags.Debug)
+	if err != nil {
+		return nil, fmt.Errorf("error creating API client: %w", err)
+	}
+
+	md := &TokenMetadata{}
+	anyOK := false
+
+	user, err := apiClient.GetCurrentUser(context.TODO())
+	if err != nil {
+		g.ErrLog.Add(fmt.Errorf("GetCurrentUser failed (best-effort): %w", err))
+	} else {
+		md.Email = fastly.ToValue(user.Login)
+		md.AccountID = fastly.ToValue(user.CustomerID)
+		anyOK = true
+	}
+
+	if fetchTokenSelf(g, apiClient, md) {
+		anyOK = true
+	}
+
+	if !anyOK {
+		return nil, fmt.Errorf("token validation failed: neither /current_user nor /tokens/self responded successfully")
+	}
+
+	return md, nil
+}
+
 // EnrichWithTokenSelf calls GetTokenSelf to populate API token metadata on
 // an existing AuthToken. It constructs its own API client from the token.
 // This is best-effort: failures are logged and existing fields are preserved.

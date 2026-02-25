@@ -107,7 +107,7 @@ func TestAuthAdd(t *testing.T) {
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfNoName,
 			},
-			WantError: "could not determine a name for this token; pass NAME as an argument",
+			WantError: "could not determine a name for this token",
 		},
 		{
 			Name: "add stores expiry when present",
@@ -328,6 +328,67 @@ func TestAuthShow(t *testing.T) {
 			DontWantOutputs: []string{
 				"(default)",
 			},
+		},
+	}
+
+	testutil.RunCLIScenarios(t, []string{"auth"}, scenarios)
+}
+
+func TestAuthAddScopedToken(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
+		{
+			Name: "add with name succeeds when GetCurrentUser fails but GetTokenSelf succeeds",
+			Args: "add purge-token --api-token scoped-token-value",
+			API: mock.API{
+				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
+					return nil, fmt.Errorf("403 Forbidden: Access denied to purge token")
+				},
+				GetTokenSelfFn: testTokenSelfFull,
+			},
+			WantOutputs: []string{`Token "purge-token" added`, "Token saved to"},
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				at := opts.Config.GetAuthToken("purge-token")
+				if at == nil {
+					t.Fatal("expected auth token 'purge-token' to exist")
+				}
+				if at.Token != "scoped-token-value" {
+					t.Errorf("want token scoped-token-value, got %s", at.Token)
+				}
+				if at.Email != "" {
+					t.Errorf("want empty email for scoped token, got %s", at.Email)
+				}
+				if at.APITokenName != "my-api-token" {
+					t.Errorf("want APITokenName my-api-token, got %s", at.APITokenName)
+				}
+				if at.APITokenScope != "global" {
+					t.Errorf("want APITokenScope global, got %s", at.APITokenScope)
+				}
+			},
+		},
+		{
+			Name: "add with name fails when both API calls fail (invalid token)",
+			Args: "add bad-token --api-token invalid-token-value",
+			API: mock.API{
+				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
+					return nil, fmt.Errorf("403 Forbidden")
+				},
+				GetTokenSelfFn: func(_ context.Context) (*fastly.Token, error) {
+					return nil, fmt.Errorf("403 Forbidden")
+				},
+			},
+			WantError: "token validation failed: neither /current_user nor /tokens/self responded successfully",
+		},
+		{
+			Name: "add without name gives friendly error for scoped token",
+			Args: "add --api-token scoped-token-value",
+			API: mock.API{
+				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
+					return nil, fmt.Errorf("403 Forbidden: Access denied to purge token")
+				},
+				GetTokenSelfFn: testTokenSelfNoName,
+			},
+			WantError: "could not determine a name for this token",
 		},
 	}
 
