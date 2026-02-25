@@ -84,7 +84,7 @@ both the old and new forms are:
 - feat(service/logging): moved the `logging` commands under the `service` command, with an unlisted and deprecated alias of `logging` ([#1642](https://github.com/fastly/cli/pull/1642))
 - feat(service/auth): moved the `service-auth` commands under the `service` command and renamed to `auth`, with an unlisted and deprecated alias of `service-auth` ([#1643](https://github.com/fastly/cli/pull/1643))
 
-### Bug Fixes:
+### Bug fixes:
 
 - fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
 - fix(compute/serve): ensure hostname has a port number when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
