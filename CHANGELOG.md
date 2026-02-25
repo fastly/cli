@@ -6,11 +6,15 @@
 
 ### Bug Fixes:
 
-- fix(npm): Include repository info in package.json of subpackages required for trusted publishing [#1663](https://github.com/fastly/cli/pull/1663)
-
 ### Enhancements:
 
 ### Dependencies:
+
+## [v14.0.1](https://github.com/fastly/cli/releases/tag/v14.0.1) (2026-02-25)
+
+### Bug Fixes:
+
+- fix(npm): Include repository info in package.json of subpackages required for trusted publishing [#1663](https://github.com/fastly/cli/pull/1663)
 
 ## [v14.0.0](https://github.com/fastly/cli/releases/tag/v14.0.0) (2026-02-25)
 
