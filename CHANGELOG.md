@@ -10,6 +10,10 @@
 
 ### Dependencies:
 
+### Documentation:
+
+- fix(changelog): change code blocks to be all on one line [#1670](https://github.com/fastly/cli/pull/1670)
+
 ## [v14.0.3](https://github.com/fastly/cli/releases/tag/v14.0.3) (2026-02-25)
 
 ### Bug Fixes:
@@ -35,20 +39,20 @@
 This release of the Fastly CLI includes a significant reorganization
 of the commands which are used to manage the configuration of Fastly
 services (both Delivery and Compute services). Specifically, each of
-the command families listed below have been changed from `fastly
-<family> create/delete/describe/list/update` to `fastly service
-<family> create/delete/describe/list/update`. For nearly all of these
-command families, the previous commands are still available but are
-not listed in the `fastly help` output. In addition, invocations of
-the previous commands will generate a deprecation message, which
+the command families listed below have been changed from 
+`fastly <family> create/delete/describe/list/update` to 
+`fastly service <family> create/delete/describe/list/update`. For nearly 
+all of these command families, the previous commands are still available 
+but are not listed in the `fastly help` output. In addition, invocations 
+of the previous commands will generate a deprecation message, which
 includes the new command that should be used instead.
 
 The `fastly domain` family of commands are the lone exception; those
 commands exist in both the old and new forms, but the top-level
 commands are used to manage 'versionless' domains (a new feature of
-the Fastly platform, and those commands were previously named `fastly
-domain-v1 create/delete/describe/list/update`), while the
-service-level commands are used to manage 'classic' domains. As a
+the Fastly platform, and those commands were previously named 
+`fastly domain-v1 create/delete/describe/list/update`), while 
+the service-level commands are used to manage 'classic' domains. As a
 result, you will need to update any scripts or workflows which used the
 `fastly domain create/delete/describe/list/update` commands to use the
 `fastly service domain create/delete/describe/list/update` commands
