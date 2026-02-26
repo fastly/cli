@@ -30,7 +30,7 @@
 
 ## [v14.0.0](https://github.com/fastly/cli/releases/tag/v14.0.0) (2026-02-25)
 
-## BREAKING CHANGES
+### BREAKING CHANGES
 
 This release of the Fastly CLI includes a significant reorganization
 of the commands which are used to manage the configuration of Fastly
