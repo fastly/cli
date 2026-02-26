@@ -10,6 +10,8 @@
 
 ### Dependencies:
 
+## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
+
 ### Documentation:
 
 - fix(changelog): change code blocks to be all on one line [#1670](https://github.com/fastly/cli/pull/1670)
