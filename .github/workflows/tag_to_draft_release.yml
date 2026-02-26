@@ -1,9 +1,9 @@
 name: Draft Release from Tag
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
+  # push:
+  #   tags:
+  #     - 'v*'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
