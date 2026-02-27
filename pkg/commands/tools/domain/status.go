@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v12/fastly"
-	"github.com/fastly/go-fastly/v12/fastly/domainmanagement/v1/tools/status"
+	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v13/fastly/domainmanagement/v1/tools/status"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"

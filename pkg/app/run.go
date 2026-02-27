@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/cap/oidc"
 	"github.com/skratchdot/open-golang/open"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 
 	"github.com/fastly/kingpin"
 

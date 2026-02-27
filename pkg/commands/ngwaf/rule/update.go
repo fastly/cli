@@ -9,9 +9,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/go-fastly/v12/fastly"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/rules"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
+	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v13/fastly/ngwaf/v1/rules"
+	"github.com/fastly/go-fastly/v13/fastly/ngwaf/v1/scope"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -142,12 +142,41 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 					GroupOperator: &gc.GroupOperator,
 					Conditions:    []*rules.UpdateCondition{},
 				}
-				for _, groupSingleCondition := range gc.Conditions {
-					parsedGroupCondition.Conditions = append(parsedGroupCondition.Conditions, &rules.UpdateCondition{
-						Field:    &groupSingleCondition.Field,
-						Operator: &groupSingleCondition.Operator,
-						Value:    &groupSingleCondition.Value,
-					})
+				for _, groupCondition := range gc.Conditions {
+					switch groupCondition.Type {
+					case "single":
+						if gsc, ok := groupCondition.Fields.(rules.Condition); ok {
+							parsedGroupCondition.Conditions = append(parsedGroupCondition.Conditions, &rules.UpdateCondition{
+								Field:    &gsc.Field,
+								Operator: &gsc.Operator,
+								Value:    &gsc.Value,
+							})
+						} else {
+							return fmt.Errorf("expected Condition, got %T", groupCondition.Fields)
+						}
+					case "multival":
+						if gmvc, ok := groupCondition.Fields.(rules.MultivalCondition); ok {
+							updateMultivalCondition := &rules.UpdateMultivalCondition{
+								Field:         &gmvc.Field,
+								Operator:      &gmvc.Operator,
+								GroupOperator: &gmvc.GroupOperator,
+								Conditions:    []*rules.UpdateConditionMult{},
+							}
+							for _, groupMultivalSingleCondition := range gmvc.Conditions {
+								updateMultivalCondition.Conditions = append(updateMultivalCondition.Conditions, &rules.UpdateConditionMult{
+									Field:    &groupMultivalSingleCondition.Field,
+									Operator: &groupMultivalSingleCondition.Operator,
+									Value:    &groupMultivalSingleCondition.Value,
+								})
+							}
+							parsedGroupCondition.MultivalConditions = append(parsedGroupCondition.MultivalConditions, updateMultivalCondition)
+						} else {
+							return fmt.Errorf("expected MultivalCondition, got %T", groupCondition.Fields)
+						}
+
+					default:
+						return fmt.Errorf("unknown condition type: %s", groupCondition.Type)
+					}
 				}
 				input.GroupConditions = append(input.GroupConditions, parsedGroupCondition)
 			} else {
