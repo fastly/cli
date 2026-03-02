@@ -15,16 +15,19 @@ import (
 func TestHistorical(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name:       "success",
 			Args:       "--service-id=123",
 			API:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			WantOutput: historicalOK,
 		},
 		{
+			Name:      "api failure",
 			Args:      "--service-id=123",
 			API:       mock.API{GetStatsJSONFn: getStatsJSONError},
 			WantError: errTest.Error(),
 		},
 		{
+			Name:       "success with json format",
 			Args:       "--service-id=123 --format=json",
 			API:        mock.API{GetStatsJSONFn: getStatsJSONOK},
 			WantOutput: historicalJSONOK,

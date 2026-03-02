@@ -15,11 +15,13 @@ import (
 func TestRegions(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name:       "success",
 			Args:       "",
 			API:        mock.API{GetRegionsFn: getRegionsOK},
 			WantOutput: "foo\nbar\nbaz\n",
 		},
 		{
+			Name:      "api error",
 			Args:      "",
 			API:       mock.API{GetRegionsFn: getRegionsError},
 			WantError: errTest.Error(),

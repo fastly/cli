@@ -25,31 +25,37 @@ import (
 func TestServiceCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name:       "success with long flag",
 			Args:       "--name Foo",
 			API:        mock.API{CreateServiceFn: createServiceOK},
 			WantOutput: "Created service 12345",
 		},
 		{
+			Name:       "success with short flag and equals",
 			Args:       "-n=Foo",
 			API:        mock.API{CreateServiceFn: createServiceOK},
 			WantOutput: "Created service 12345",
 		},
 		{
+			Name:       "success with type",
 			Args:       "--name Foo --type wasm",
 			API:        mock.API{CreateServiceFn: createServiceOK},
 			WantOutput: "Created service 12345",
 		},
 		{
+			Name:       "success with type and comment",
 			Args:       "--name Foo --type wasm --comment Hello",
 			API:        mock.API{CreateServiceFn: createServiceOK},
 			WantOutput: "Created service 12345",
 		},
 		{
+			Name:       "success with short flag and comment",
 			Args:       "-n Foo --comment Hello",
 			API:        mock.API{CreateServiceFn: createServiceOK},
 			WantOutput: "Created service 12345",
 		},
 		{
+			Name:      "api failure",
 			Args:      "-n Foo",
 			API:       mock.API{CreateServiceFn: createServiceError},
 			WantError: errTest.Error(),
@@ -62,6 +68,7 @@ func TestServiceCreate(t *testing.T) {
 func TestServiceList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name: "api failure",
 			API: mock.API{
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
@@ -76,6 +83,7 @@ func TestServiceList(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
+			Name: "success with pagination",
 			API: mock.API{
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
@@ -113,6 +121,7 @@ func TestServiceList(t *testing.T) {
 			WantOutput: listServicesShortOutput,
 		},
 		{
+			Name: "success with verbose",
 			API: mock.API{
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
@@ -187,26 +196,31 @@ func TestServiceList(t *testing.T) {
 func TestServiceDescribe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name:      "no service id",
 			Args:      "",
 			API:       mock.API{GetServiceDetailsFn: describeServiceOK},
 			WantError: "error reading service: no service ID found",
 		},
 		{
+			Name:       "success",
 			Args:       "--service-id 123",
 			API:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			WantOutput: describeServiceShortOutput,
 		},
 		{
+			Name:       "verbose flag after args",
 			Args:       "--service-id 123 --verbose",
 			API:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			WantOutput: describeServiceVerboseOutput,
 		},
 		{
+			Name:       "verbose short flag after args",
 			Args:       "--service-id 123 -v",
 			API:        mock.API{GetServiceDetailsFn: describeServiceOK},
 			WantOutput: describeServiceVerboseOutput,
 		},
 		{
+			Name:      "api failure",
 			Args:      "--service-id 123",
 			API:       mock.API{GetServiceDetailsFn: describeServiceError},
 			WantError: errTest.Error(),
@@ -219,20 +233,24 @@ func TestServiceDescribe(t *testing.T) {
 func TestServiceSearch(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name:      "missing required flag",
 			Args:      "",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
+			Name:       "success",
 			Args:       "--name Foo",
 			API:        mock.API{SearchServiceFn: searchServiceOK},
 			WantOutput: searchServiceShortOutput,
 		},
 		{
+			Name:       "success with verbose",
 			Args:       "--name Foo -v",
 			API:        mock.API{SearchServiceFn: searchServiceOK},
 			WantOutput: searchServiceVerboseOutput,
 		},
 		{
+			Name:      "missing flag value",
 			Args:      "--name",
 			API:       mock.API{SearchServiceFn: searchServiceOK},
 			WantError: "error parsing arguments: expected argument for flag '--name'",
@@ -245,6 +263,7 @@ func TestServiceSearch(t *testing.T) {
 func TestServiceUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
+			Name: "no service id",
 			Args: "",
 			API: mock.API{
 				GetServiceFn:    getServiceOK,
@@ -253,36 +272,43 @@ func TestServiceUpdate(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
+			Name:      "missing name or comment",
 			Args:      "--service-id 12345",
 			API:       mock.API{UpdateServiceFn: updateServiceOK},
 			WantError: "error parsing arguments: must provide either --name or --comment to update service",
 		},
 		{
+			Name:       "success with long flag",
 			Args:       "--service-id 12345 --name Foo",
 			API:        mock.API{UpdateServiceFn: updateServiceOK},
 			WantOutput: "Updated service 12345",
 		},
 		{
+			Name:       "success with short flag and equals",
 			Args:       "--service-id 12345 -n=Foo",
 			API:        mock.API{UpdateServiceFn: updateServiceOK},
 			WantOutput: "Updated service 12345",
 		},
 		{
+			Name:       "success with long flag duplicate",
 			Args:       "--service-id 12345 --name Foo",
 			API:        mock.API{UpdateServiceFn: updateServiceOK},
 			WantOutput: "Updated service 12345",
 		},
 		{
+			Name:       "success with name and comment",
 			Args:       "--service-id 12345 --name Foo --comment Hello",
 			API:        mock.API{UpdateServiceFn: updateServiceOK},
 			WantOutput: "Updated service 12345",
 		},
 		{
+			Name:       "success with short flag and comment",
 			Args:       "--service-id 12345 -n Foo --comment Hello",
 			API:        mock.API{UpdateServiceFn: updateServiceOK},
 			WantOutput: "Updated service 12345",
 		},
 		{
+			Name:      "api failure",
 			Args:      "--service-id 12345 -n Foo",
 			API:       mock.API{UpdateServiceFn: updateServiceError},
 			WantError: errTest.Error(),
