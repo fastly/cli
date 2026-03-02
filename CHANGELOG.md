@@ -9,6 +9,9 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
+- build(deps): `actions/upload-artifact` from 6 to 7 ([#1675](https://github.com/fastly/cli/pull/1675))
+- build(deps): `actions/download-artifact` from 7 to 8 ([#1675](https://github.com/fastly/cli/pull/1675))
 
 ## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
 
