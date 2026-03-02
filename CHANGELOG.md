@@ -9,6 +9,8 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `actions/upload-artifact` from 6 to 7 ([#1675](https://github.com/fastly/cli/pull/1675))
+- build(deps): `actions/download-artifact` from 7 to 8 ([#1675](https://github.com/fastly/cli/pull/1675))
 
 ## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
 
