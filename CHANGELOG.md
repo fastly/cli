@@ -9,6 +9,7 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
 
 ## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
 
