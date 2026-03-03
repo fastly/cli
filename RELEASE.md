@@ -10,7 +10,7 @@
 1. Merge CHANGELOG.
 1. Rebase latest remote main branch locally (`git pull --rebase origin main`).
 1. Create a new signed tag (replace `{{remote}}` with the remote pointing to the official repository i.e. `origin` or `upstream` depending on your Git workflow): `tag=vX.Y.Z && git tag -s $tag -m $tag && git push {{remote}} $tag`
-    - Triggers a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_release.yml) that produces a 'draft' release.
+    - Triggers a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_to_draft_release.yml) that produces a 'draft' release.
 1. Copy/paste CHANGELOG into the [draft release](https://github.com/fastly/cli/releases).
 1. Publish draft release.
 
