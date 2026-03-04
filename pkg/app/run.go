@@ -257,12 +257,7 @@ func Exec(data *global.Data) error {
 
 	// NOTE: Some commands need just the auth server to be running
 	// but not necessarily need to process an existing token.
-	needsAuthServer := commandRequiresAuthServer(commandName)
-	// For "auth login", only set up the auth server when --sso is requested.
-	// Static token paste does not require OIDC metadata.
-	if commandName == "auth login" {
-		needsAuthServer = slices.Contains(data.Args, "--sso")
-	}
+	needsAuthServer := commandRequiresAuthServer(commandName, data.Args)
 	if !commandRequiresToken(command) && needsAuthServer {
 		// NOTE: Checking for nil allows our test suite to mock the server.
 		// i.e. it'll be nil whenever the CLI is run by a user but not `go test`.
@@ -714,9 +709,11 @@ func commandCollectsData(command string) bool {
 
 // commandRequiresAuthServer determines if the command to be executed is one that
 // requires just the authentication server to be running.
-func commandRequiresAuthServer(command string) bool {
+func commandRequiresAuthServer(command string, args []string) bool {
 	switch command {
-	case "auth login", "profile create", "profile switch", "profile update", "sso":
+	case "auth login":
+		return slices.Contains(args, "--sso")
+	case "profile create", "profile switch", "profile update", "sso":
 		return true
 	}
 	return false
