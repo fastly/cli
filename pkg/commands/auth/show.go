@@ -24,7 +24,9 @@ func NewShowCommand(parent argparser.Registerer, g *global.Data) *ShowCommand {
 	var c ShowCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("show", "Show details for a stored token")
+	// Optional.
 	c.CmdClause.Arg("name", "Name of the token to show (defaults to the current token)").StringVar(&c.name)
+	// Optional.
 	c.CmdClause.Flag("reveal", "Show the full token value (use with care)").BoolVar(&c.reveal)
 	return &c
 }

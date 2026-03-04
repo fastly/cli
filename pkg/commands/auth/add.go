@@ -22,7 +22,9 @@ func NewAddCommand(parent argparser.Registerer, g *global.Data) *AddCommand {
 	var c AddCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("add", "Store a named token")
+	// Optional.
 	c.CmdClause.Arg("name", "Name for this token (pass to --token to use it later); if omitted, uses the API token's name").StringVar(&c.name)
+	// Required.
 	c.CmdClause.Flag("api-token", "Fastly API token to store").Required().StringVar(&c.token)
 	return &c
 }

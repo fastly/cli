@@ -19,6 +19,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	var c DeleteCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("delete", "Delete a stored token")
+	// Required.
 	c.CmdClause.Arg("name", "Name of the token to remove").Required().StringVar(&c.name)
 	return &c
 }

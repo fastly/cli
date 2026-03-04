@@ -19,6 +19,7 @@ func NewUseCommand(parent argparser.Registerer, g *global.Data) *UseCommand {
 	var c UseCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("use", "Set the default stored token for CLI commands")
+	// Required.
 	c.CmdClause.Arg("name", "Name of the token to use as default").Required().StringVar(&c.name)
 	return &c
 }

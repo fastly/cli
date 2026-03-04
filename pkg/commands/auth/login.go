@@ -20,6 +20,7 @@ func NewLoginCommand(parent argparser.Registerer, g *global.Data) *LoginCommand 
 	var c LoginCommand
 	c.Globals = g
 	c.CmdClause = parent.Command("login", "Authenticate and store a default token (paste token or use --sso)")
+	// Optional.
 	c.CmdClause.Flag("sso", "Authenticate via browser-based SSO (requires --token <name> to specify the stored token name)").BoolVar(&c.sso)
 	return &c
 }
