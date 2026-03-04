@@ -129,6 +129,24 @@ func TestAuthAdd(t *testing.T) {
 			},
 		},
 		{
+			Name: "add sets default when no default exists",
+			Args: "add first-token --api-token test-token-value",
+			API: mock.API{
+				GetCurrentUserFn: testGetCurrentUser,
+				GetTokenSelfFn:   testTokenSelfFull,
+			},
+			ConfigFile: &config.File{
+				Auth: config.Auth{},
+			},
+			WantOutputs: []string{`Token "first-token" added`, "set as default"},
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				if opts.Config.Auth.Default != "first-token" {
+					t.Errorf("want Auth.Default first-token, got %s", opts.Config.Auth.Default)
+				}
+			},
+		},
+		{
 			Name: "add rejects duplicate name",
 			Args: "add existing --api-token test-token-value",
 			API: mock.API{

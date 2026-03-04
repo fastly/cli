@@ -69,7 +69,10 @@ func (c *AddCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	c.Globals.Config.SetAuthToken(name, entry)
 
-	if c.Globals.Config.Auth.Default == "" {
+	// When no default token is configured, automatically promote this token
+	// so CLI commands work without an explicit --token flag.
+	setDefault := c.Globals.Config.Auth.Default == ""
+	if setDefault {
 		c.Globals.Config.Auth.Default = name
 	}
 
@@ -78,6 +81,9 @@ func (c *AddCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Token %q added", name)
+	if setDefault {
+		text.Info(out, "Token %q set as default (no previous default was configured)", name)
+	}
 	text.Info(out, "Token saved to %s", c.Globals.ConfigPath)
 	return nil
 }
