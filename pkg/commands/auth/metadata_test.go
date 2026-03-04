@@ -446,3 +446,66 @@ func TestEnrichWithTokenSelfPreservesOnFailure(t *testing.T) {
 		t.Errorf("want APITokenID preserved as original-id, got %s", at.APITokenID)
 	}
 }
+
+func TestAuthDelete(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
+		{
+			Name: "delete non-default token",
+			Args: "delete secondary",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "primary",
+					Tokens: config.AuthTokens{
+						"primary":   &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok1"},
+						"secondary": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok2"},
+					},
+				},
+			},
+			WantOutputs:    []string{`Token "secondary" removed`},
+			DontWantOutput: "reassigned",
+		},
+		{
+			Name: "delete default token reassigns",
+			Args: "delete primary",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "primary",
+					Tokens: config.AuthTokens{
+						"primary":   &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok1"},
+						"secondary": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok2"},
+					},
+				},
+			},
+			WantOutputs: []string{`Token "primary" removed`, "Default token reassigned"},
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				if opts.Config.Auth.Default == "primary" {
+					t.Error("expected default to no longer be the deleted token")
+				}
+				if opts.Config.Auth.Default == "" {
+					t.Error("expected default to be reassigned to remaining token")
+				}
+			},
+		},
+		{
+			Name: "delete last token warns no default",
+			Args: "delete only",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "only",
+					Tokens: config.AuthTokens{
+						"only": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok1"},
+					},
+				},
+			},
+			WantOutputs: []string{`Token "only" removed`, "No default token configured"},
+		},
+		{
+			Name:      "delete nonexistent token fails",
+			Args:      "delete ghost",
+			WantError: `token "ghost" not found`,
+		},
+	}
+
+	testutil.RunCLIScenarios(t, []string{"auth"}, scenarios)
+}

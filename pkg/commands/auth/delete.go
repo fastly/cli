@@ -25,6 +25,8 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 }
 
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
+	wasDefault := c.Globals.Config.Auth.Default == c.name
+
 	if !c.Globals.Config.DeleteAuthToken(c.name) {
 		return fmt.Errorf("token %q not found", c.name)
 	}
@@ -34,5 +36,12 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	text.Success(out, "Token %q removed", c.name)
+	if wasDefault {
+		if c.Globals.Config.Auth.Default != "" {
+			text.Info(out, "Default token reassigned to %q", c.Globals.Config.Auth.Default)
+		} else {
+			text.Warning(out, "No default token configured; use 'fastly auth use <name>' to set one")
+		}
+	}
 	return nil
 }
