@@ -465,7 +465,7 @@ func TestAuthDelete(t *testing.T) {
 			DontWantOutput: "reassigned",
 		},
 		{
-			Name: "delete default token reassigns",
+			Name: "delete default token confirms and reassigns",
 			Args: "delete primary",
 			ConfigFile: &config.File{
 				Auth: config.Auth{
@@ -476,7 +476,8 @@ func TestAuthDelete(t *testing.T) {
 					},
 				},
 			},
-			WantOutputs: []string{`Token "primary" removed`, "Default token reassigned"},
+			Stdin:       []string{"y"},
+			WantOutputs: []string{"current default token", "FASTLY_API_TOKEN", "Are you sure", `Token "primary" removed`, "Default token reassigned"},
 			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				if opts.Config.Auth.Default == "primary" {
@@ -488,7 +489,31 @@ func TestAuthDelete(t *testing.T) {
 			},
 		},
 		{
-			Name: "delete last token warns no default",
+			Name: "delete default token aborted by user",
+			Args: "delete primary",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "primary",
+					Tokens: config.AuthTokens{
+						"primary":   &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok1"},
+						"secondary": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok2"},
+					},
+				},
+			},
+			Stdin:          []string{"n"},
+			DontWantOutput: "removed",
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				if opts.Config.Auth.Default != "primary" {
+					t.Error("expected default to remain unchanged after user declined")
+				}
+				if opts.Config.GetAuthToken("primary") == nil {
+					t.Error("expected token to still exist after user declined")
+				}
+			},
+		},
+		{
+			Name: "delete last token confirms and warns no default",
 			Args: "delete only",
 			ConfigFile: &config.File{
 				Auth: config.Auth{
@@ -498,12 +523,55 @@ func TestAuthDelete(t *testing.T) {
 					},
 				},
 			},
+			Stdin:       []string{"y"},
 			WantOutputs: []string{`Token "only" removed`, "No default token configured"},
+		},
+		{
+			Name: "delete stale default returns not found without prompting",
+			Args: "delete ghost",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "ghost",
+					Tokens:  config.AuthTokens{},
+				},
+			},
+			WantError:      `token "ghost" not found`,
+			DontWantOutput: "Are you sure",
 		},
 		{
 			Name:      "delete nonexistent token fails",
 			Args:      "delete ghost",
 			WantError: `token "ghost" not found`,
+		},
+		{
+			Name: "delete default token skips prompt with --auto-yes",
+			Args: "delete primary -y",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "primary",
+					Tokens: config.AuthTokens{
+						"primary":   &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok1"},
+						"secondary": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok2"},
+					},
+				},
+			},
+			DontWantOutput: "Are you sure",
+			WantOutputs:    []string{`Token "primary" removed`, "Default token reassigned"},
+		},
+		{
+			Name: "delete default token skips prompt with --non-interactive",
+			Args: "delete primary -i",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "primary",
+					Tokens: config.AuthTokens{
+						"primary":   &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok1"},
+						"secondary": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok2"},
+					},
+				},
+			},
+			DontWantOutput: "Are you sure",
+			WantOutputs:    []string{`Token "primary" removed`, "Default token reassigned"},
 		},
 	}
 
