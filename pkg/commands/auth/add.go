@@ -43,13 +43,13 @@ func (c *AddCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	name := c.name
 	if name == "" {
-		name = md.APITokenName
-		if name == "" {
+		if md.APITokenName == "" {
 			return fsterr.RemediationError{
 				Inner:       fmt.Errorf("could not determine a name for this token"),
 				Remediation: "Provide a name as the first argument, e.g.: fastly auth add my-token --api-token <token>",
 			}
 		}
+		name = md.APITokenName
 		// Check collision for the derived name too.
 		if c.Globals.Config.GetAuthToken(name) != nil {
 			return fmt.Errorf("token %q already exists; use 'fastly auth delete %s' first", name, name)
