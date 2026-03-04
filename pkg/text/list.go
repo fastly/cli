@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/lists"
+	"github.com/fastly/go-fastly/v13/fastly/ngwaf/v1/lists"
 )
 
 // PrintList displays an NGWAF list.

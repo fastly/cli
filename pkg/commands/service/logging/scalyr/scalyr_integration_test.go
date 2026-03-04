@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 
 	fsterrs "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"

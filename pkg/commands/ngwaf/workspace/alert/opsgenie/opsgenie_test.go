@@ -14,7 +14,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/opsgenie"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/workspaces/alerts/opsgenie"
+	"github.com/fastly/go-fastly/v13/fastly/ngwaf/v1/workspaces/alerts/opsgenie"
 )
 
 const (

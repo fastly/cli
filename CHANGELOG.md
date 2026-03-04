@@ -4,10 +4,91 @@
 
 ### Breaking:
 
+### Bug Fixes:
+
+### Enhancements:
+
+### Dependencies:
+- build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
+- build(deps): `actions/upload-artifact` from 6 to 7 ([#1675](https://github.com/fastly/cli/pull/1675))
+- build(deps): `actions/download-artifact` from 7 to 8 ([#1675](https://github.com/fastly/cli/pull/1675))
+
+## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
+
+### Documentation:
+
+- fix(changelog): change code blocks to be all on one line [#1670](https://github.com/fastly/cli/pull/1670)
+
+## [v14.0.3](https://github.com/fastly/cli/releases/tag/v14.0.3) (2026-02-25)
+
+### Bug Fixes:
+
+- fix(npm): add contents write perms [#1667](https://github.com/fastly/cli/pull/1667)
+
+## [v14.0.2](https://github.com/fastly/cli/releases/tag/v14.0.2) (2026-02-25)
+
+### Bug Fixes:
+
+- fix(npm): add write perms [#1665](https://github.com/fastly/cli/pull/1665)
+
+## [v14.0.1](https://github.com/fastly/cli/releases/tag/v14.0.1) (2026-02-25)
+
+### Bug Fixes:
+
+- fix(npm): Include repository info in package.json of subpackages required for trusted publishing [#1663](https://github.com/fastly/cli/pull/1663)
+
+## [v14.0.0](https://github.com/fastly/cli/releases/tag/v14.0.0) (2026-02-25)
+
+## BREAKING CHANGES
+
+This release of the Fastly CLI includes a significant reorganization
+of the commands which are used to manage the configuration of Fastly
+services (both Delivery and Compute services). Specifically, each of
+the command families listed below have been changed from 
+`fastly <family> create/delete/describe/list/update` to 
+`fastly service <family> create/delete/describe/list/update`. For nearly 
+all of these command families, the previous commands are still available 
+but are not listed in the `fastly help` output. In addition, invocations 
+of the previous commands will generate a deprecation message, which
+includes the new command that should be used instead.
+
+The `fastly domain` family of commands are the lone exception; those
+commands exist in both the old and new forms, but the top-level
+commands are used to manage 'versionless' domains (a new feature of
+the Fastly platform, and those commands were previously named 
+`fastly domain-v1 create/delete/describe/list/update`), while 
+the service-level commands are used to manage 'classic' domains. As a
+result, you will need to update any scripts or workflows which used the
+`fastly domain create/delete/describe/list/update` commands to use the
+`fastly service domain create/delete/describe/list/update` commands
+instead.
+
+The command families which have been reorganized and are available in
+both the old and new forms are:
+
+  * acl
+  * aclentry
+  * alert
+  * backend
+  * dictionary
+  * dictionary-entry
+  * healthcheck
+  * imageoptimizerdefaults
+  * logging
+  * purge
+  * rate-limit
+  * resource-link
+  * service-auth
+  * service-version
+  * vcl
+
+### Breaking:
+
 - breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
 
 ### Enhancements:
 
+- feat(ngwaf/rules): Upgrade go-fastly to v13.0.0 and allow ngwaf rules to accept multival conditions ([#1655](https://github.com/fastly/cli/pull/1655))
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
 - feat(ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1605](https://github.com/fastly/cli/pull/1605))
@@ -33,7 +114,8 @@
 
 ### Bug fixes:
 
-- fix(compute/serve): ensure hostname has a port nubmer when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
+- fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
+- fix(compute/serve): ensure hostname has a port number when building pushpin routes ([#1631](https://github.com/fastly/cli/pull/1631))
 - fix(manifest): Correct setup.Defined to include checks for ObjectStores and SecretStores ([#1639](https://github.com/fastly/cli/pull/1639))
 
 ### Dependencies:
@@ -54,7 +136,7 @@
 - build(deps): `golang.org/x/mod` from 0.31.0 to 0.32.0 ([#1613](https://github.com/fastly/cli/pull/1613))
 - build(deps): `golang.org/x/net` from 0.48.0 to 0.49.0 ([#1613](https://github.com/fastly/cli/pull/1613))
 - build(deps): `golang.org/x/text` from 0.32.0 to 0.33.0 ([#1613](https://github.com/fastly/cli/pull/1613))
-- build(deps): `github.com/fastly/go-fastly/v12` from 12.1.0 to 12.1.1 ([#1613](https://github.com/fastly/cli/pull/1613))
+- build(deps): `github.com/fastly/go-fastly/v13` from 12.1.0 to 12.1.1 ([#1613](https://github.com/fastly/cli/pull/1613))
 - build(deps): `github.com/clipperhouse/uax29/v2` from 2.3.0 to 2.3.1 ([#1625](https://github.com/fastly/cli/pull/1625))
 - build(deps): `github.com/klauspost/compress` from 1.18.2 to 1.18.3 ([#1625](https://github.com/fastly/cli/pull/1625))
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.23 to 4.1.25 ([#1625](https://github.com/fastly/cli/pull/1625))
@@ -69,6 +151,10 @@
 - build(deps): `golang.org/x/net` from 0.49.0 to 0.50.0 ([#1652](https://github.com/fastly/cli/pull/1652))
 - build(deps): `golang.org/x/oauth2` from 0.34.0 to 0.35.0 ([#1652](https://github.com/fastly/cli/pull/1652))
 - build(deps): `golang.org/x/text` from 0.33.0 to 0.34.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.6.0 to 2.7.0 ([#1657](https://github.com/fastly/cli/pull/1657))
+- build(deps): `golang.org/x/text` from 0.33.0 to 0.34.0 ([#1652](https://github.com/fastly/cli/pull/1652))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.19 to 0.0.20 ([#1659](https://github.com/fastly/cli/pull/1659))
+- build(deps): `goreleaser/goreleaser-action` from 6 to 7 ([#1660](https://github.com/fastly/cli/pull/1660))
 
 ## [v13.3.0](https://github.com/fastly/cli/releases/tag/v13.3.0) (2025-12-11)
 
@@ -165,7 +251,7 @@
 ### Enhancements:
 
 - feat(manifest): Enable loading Secret Store configuration through environment variables ([#1540](https://github.com/fastly/cli/pull/1540))
-- feat(products): Add enable/disable support for API Discovery ([#1543](https://github.com/fastly/go-fastly/pull/1543))
+- feat(products): Add enable/disable support for API Discovery ([#1543](https://github.com/fastly/cli/pull/1543))
 
 ### Bug fixes:
 
@@ -226,7 +312,7 @@
 
 ### Dependencies:
 
-- build(deps): `github.com/fastly/go-fastly/v11` from 10 to 111 ([#14XX](https://github.com/fastly/cli/pull/14XX))
+- build(deps): `github.com/fastly/go-fastly/v11` from 10 to 11 ([#1514](https://github.com/fastly/cli/pull/1514))
 - build(deps): `golang.org/x/sys` from 0.33.0 to 0.34.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/term` from 0.32.0 to 0.33.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/crypto` from 0.39.0 to 0.40.0 ([#1508](https://github.com/fastly/cli/pull/1508))
@@ -1878,7 +1964,7 @@ a single character (e.g. `--k` and `--v`). These were corrected to `--key` and
 - Make `--name` flag for `service search` command a required flag [#529](https://github.com/fastly/cli/pull/529)
 - Update config `last_checked` field even on config load error [#528](https://github.com/fastly/cli/pull/528)
 - Implement Compute@Edge Free Trial Activation [#531](https://github.com/fastly/cli/pull/531)
-- Bump Rust toolchain constraint to `1.56.1` for 2021 edition [#533](https://github.com/fastly/cli/pull/533533533533533)
+- Bump Rust toolchain constraint to `1.56.1` for 2021 edition [#533](https://github.com/fastly/cli/pull/533)
 - Support Arch User Repositories [#530](https://github.com/fastly/cli/pull/530)
 
 ## [v1.6.0](https://github.com/fastly/cli/releases/tag/v1.6.0) (2022-01-20)
