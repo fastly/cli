@@ -24,12 +24,25 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	return &c
 }
 
-func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	wasDefault := c.Globals.Config.Auth.Default == c.name
-
-	if !c.Globals.Config.DeleteAuthToken(c.name) {
+func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
+	if c.Globals.Config.GetAuthToken(c.name) == nil {
 		return fmt.Errorf("token %q not found", c.name)
 	}
+
+	wasDefault := c.Globals.Config.Auth.Default == c.name
+
+	if wasDefault && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+		text.Warning(out, "%q is your current default token. Deleting it will affect commands that don't use --token or FASTLY_API_TOKEN.", c.name)
+		cont, err := text.AskYesNo(out, "Are you sure? [y/N]: ", in)
+		if err != nil {
+			return err
+		}
+		if !cont {
+			return nil
+		}
+	}
+
+	c.Globals.Config.DeleteAuthToken(c.name)
 
 	if err := c.Globals.Config.Write(c.Globals.ConfigPath); err != nil {
 		return fmt.Errorf("error saving config: %w", err)
