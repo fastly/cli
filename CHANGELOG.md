@@ -8,6 +8,7 @@
 - fix(stats): `stats historical` now returns write errors instead of silently swallowing them.
 
 ### Enhancements:
+- feat(stats): add `--field` flag to `stats historical` to filter to a single stats field.
 
 ### Dependencies:
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))

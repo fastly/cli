@@ -19,6 +19,7 @@ type HistoricalCommand struct {
 	argparser.Base
 
 	by          string
+	field       string
 	formatFlag  string
 	from        string
 	region      string
@@ -45,6 +46,7 @@ func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *Historic
 		Dst:         &c.serviceName.Value,
 	})
 
+	c.CmdClause.Flag("field", "Filter to a single stats field (e.g. bandwidth, requests)").StringVar(&c.field)
 	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.from)
 	c.CmdClause.Flag("to", "To time").StringVar(&c.to)
 	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
@@ -70,6 +72,9 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	if c.by != "" {
 		input.By = &c.by
+	}
+	if c.field != "" {
+		input.Field = &c.field
 	}
 	if c.from != "" {
 		input.From = &c.from
