@@ -230,6 +230,8 @@ type API struct {
 	GetRegionsFn   func(context.Context) (*fastly.RegionsResponse, error)
 	GetStatsJSONFn func(context.Context, *fastly.GetStatsInput, any) error
 
+	GetAggregateJSONFn func(context.Context, *fastly.GetAggregateInput, any) error
+
 	CreateManagedLoggingFn func(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
 	GetGeneratedVCLFn func(context.Context, *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
@@ -1317,6 +1319,11 @@ func (m API) GetRegions(ctx context.Context) (*fastly.RegionsResponse, error) {
 // GetStatsJSON implements Interface.
 func (m API) GetStatsJSON(ctx context.Context, i *fastly.GetStatsInput, dst any) error {
 	return m.GetStatsJSONFn(ctx, i, dst)
+}
+
+// GetAggregateJSON implements Interface.
+func (m API) GetAggregateJSON(ctx context.Context, i *fastly.GetAggregateInput, dst any) error {
+	return m.GetAggregateJSONFn(ctx, i, dst)
 }
 
 // CreateManagedLogging implements Interface.

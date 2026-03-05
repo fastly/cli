@@ -240,6 +240,7 @@ type Interface interface {
 
 	GetRegions(context.Context) (*fastly.RegionsResponse, error)
 	GetStatsJSON(context.Context, *fastly.GetStatsInput, any) error
+	GetAggregateJSON(context.Context, *fastly.GetAggregateInput, any) error
 
 	CreateManagedLogging(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 

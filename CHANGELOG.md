@@ -9,6 +9,7 @@
 
 ### Enhancements:
 - feat(stats): add `--field` flag to `stats historical` to filter to a single stats field.
+- feat(stats): add `stats aggregate` subcommand for cross-service aggregated stats.
 
 ### Dependencies:
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
