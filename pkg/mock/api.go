@@ -230,13 +230,13 @@ type API struct {
 	GetRegionsFn   func(context.Context) (*fastly.RegionsResponse, error)
 	GetStatsJSONFn func(context.Context, *fastly.GetStatsInput, any) error
 
-	GetAggregateJSONFn func(context.Context, *fastly.GetAggregateInput, any) error
-
-	GetUsageFn          func(context.Context, *fastly.GetUsageInput) (*fastly.UsageResponse, error)
-	GetUsageByServiceFn func(context.Context, *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error)
-
+	GetAggregateJSONFn               func(context.Context, *fastly.GetAggregateInput, any) error
+	GetUsageFn                       func(context.Context, *fastly.GetUsageInput) (*fastly.UsageResponse, error)
+	GetUsageByServiceFn              func(context.Context, *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error)
 	GetDomainMetricsForServiceFn     func(context.Context, *fastly.GetDomainMetricsInput) (*fastly.DomainInspector, error)
 	GetDomainMetricsForServiceJSONFn func(context.Context, *fastly.GetDomainMetricsInput, any) error
+	GetOriginMetricsForServiceFn     func(context.Context, *fastly.GetOriginMetricsInput) (*fastly.OriginInspector, error)
+	GetOriginMetricsForServiceJSONFn func(context.Context, *fastly.GetOriginMetricsInput, any) error
 
 	CreateManagedLoggingFn func(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
@@ -1350,6 +1350,16 @@ func (m API) GetDomainMetricsForService(ctx context.Context, i *fastly.GetDomain
 // GetDomainMetricsForServiceJSON implements Interface.
 func (m API) GetDomainMetricsForServiceJSON(ctx context.Context, i *fastly.GetDomainMetricsInput, dst any) error {
 	return m.GetDomainMetricsForServiceJSONFn(ctx, i, dst)
+}
+
+// GetOriginMetricsForService implements Interface.
+func (m API) GetOriginMetricsForService(ctx context.Context, i *fastly.GetOriginMetricsInput) (*fastly.OriginInspector, error) {
+	return m.GetOriginMetricsForServiceFn(ctx, i)
+}
+
+// GetOriginMetricsForServiceJSON implements Interface.
+func (m API) GetOriginMetricsForServiceJSON(ctx context.Context, i *fastly.GetOriginMetricsInput, dst any) error {
+	return m.GetOriginMetricsForServiceJSONFn(ctx, i, dst)
 }
 
 // CreateManagedLogging implements Interface.

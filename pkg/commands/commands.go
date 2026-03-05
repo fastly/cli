@@ -707,6 +707,7 @@ func Define( // nolint:revive // function-length
 	statsAggregate := stats.NewAggregateCommand(statsCmdRoot.CmdClause, data)
 	statsDomainInspector := stats.NewDomainInspectorCommand(statsCmdRoot.CmdClause, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
+	statsOriginInspector := stats.NewOriginInspectorCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, data)
 	statsUsage := stats.NewUsageCommand(statsCmdRoot.CmdClause, data)
@@ -1542,6 +1543,7 @@ func Define( // nolint:revive // function-length
 		statsAggregate,
 		statsDomainInspector,
 		statsHistorical,
+		statsOriginInspector,
 		statsRealtime,
 		statsRegions,
 		statsUsage,

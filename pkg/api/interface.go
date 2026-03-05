@@ -245,6 +245,8 @@ type Interface interface {
 	GetUsageByService(context.Context, *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error)
 	GetDomainMetricsForService(context.Context, *fastly.GetDomainMetricsInput) (*fastly.DomainInspector, error)
 	GetDomainMetricsForServiceJSON(context.Context, *fastly.GetDomainMetricsInput, any) error
+	GetOriginMetricsForService(context.Context, *fastly.GetOriginMetricsInput) (*fastly.OriginInspector, error)
+	GetOriginMetricsForServiceJSON(context.Context, *fastly.GetOriginMetricsInput, any) error
 
 	CreateManagedLogging(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
