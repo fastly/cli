@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Bug Fixes:
+- fix(stats): `stats historical` now returns write errors instead of silently swallowing them.
 
 ### Enhancements:
 

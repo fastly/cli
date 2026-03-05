@@ -96,20 +96,20 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	switch c.formatFlag {
 	case "json":
-		err := writeBlocksJSON(out, serviceID, envelope.Data)
-		if err != nil {
+		if err := writeBlocksJSON(out, envelope.Data); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
+			return err
 		}
 
 	default:
 		writeHeader(out, envelope.Meta)
-		err := writeBlocks(out, serviceID, envelope.Data)
-		if err != nil {
+		if err := writeBlocks(out, serviceID, envelope.Data); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
+			return err
 		}
 	}
 
@@ -134,7 +134,7 @@ func writeBlocks(out io.Writer, service string, blocks []statsResponseData) erro
 	return nil
 }
 
-func writeBlocksJSON(out io.Writer, _ string, blocks []statsResponseData) error {
+func writeBlocksJSON(out io.Writer, blocks []statsResponseData) error {
 	for _, block := range blocks {
 		if err := json.NewEncoder(out).Encode(block); err != nil {
 			return err
