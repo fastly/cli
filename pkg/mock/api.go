@@ -232,6 +232,9 @@ type API struct {
 
 	GetAggregateJSONFn func(context.Context, *fastly.GetAggregateInput, any) error
 
+	GetUsageFn          func(context.Context, *fastly.GetUsageInput) (*fastly.UsageResponse, error)
+	GetUsageByServiceFn func(context.Context, *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error)
+
 	CreateManagedLoggingFn func(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 
 	GetGeneratedVCLFn func(context.Context, *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
@@ -1324,6 +1327,16 @@ func (m API) GetStatsJSON(ctx context.Context, i *fastly.GetStatsInput, dst any)
 // GetAggregateJSON implements Interface.
 func (m API) GetAggregateJSON(ctx context.Context, i *fastly.GetAggregateInput, dst any) error {
 	return m.GetAggregateJSONFn(ctx, i, dst)
+}
+
+// GetUsage implements Interface.
+func (m API) GetUsage(ctx context.Context, i *fastly.GetUsageInput) (*fastly.UsageResponse, error) {
+	return m.GetUsageFn(ctx, i)
+}
+
+// GetUsageByService implements Interface.
+func (m API) GetUsageByService(ctx context.Context, i *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error) {
+	return m.GetUsageByServiceFn(ctx, i)
 }
 
 // CreateManagedLogging implements Interface.

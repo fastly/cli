@@ -708,6 +708,7 @@ func Define( // nolint:revive // function-length
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, data)
+	statsUsage := stats.NewUsageCommand(statsCmdRoot.CmdClause, data)
 	tlsConfigCmdRoot := tlsconfig.NewRootCommand(app, data)
 	tlsConfigDescribe := tlsconfig.NewDescribeCommand(tlsConfigCmdRoot.CmdClause, data)
 	tlsConfigList := tlsconfig.NewListCommand(tlsConfigCmdRoot.CmdClause, data)
@@ -1541,6 +1542,7 @@ func Define( // nolint:revive // function-length
 		statsHistorical,
 		statsRealtime,
 		statsRegions,
+		statsUsage,
 		tlsConfigCmdRoot,
 		tlsConfigDescribe,
 		tlsConfigList,
