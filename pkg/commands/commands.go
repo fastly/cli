@@ -705,6 +705,7 @@ func Define( // nolint:revive // function-length
 	serviceresourcelinkUpdate := serviceresourcelink.NewUpdateCommand(serviceresourcelinkCmdRoot.CmdClause, data)
 	statsCmdRoot := stats.NewRootCommand(app, data)
 	statsAggregate := stats.NewAggregateCommand(statsCmdRoot.CmdClause, data)
+	statsDomainInspector := stats.NewDomainInspectorCommand(statsCmdRoot.CmdClause, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, data)
@@ -1539,6 +1540,7 @@ func Define( // nolint:revive // function-length
 		ssoCmdRoot,
 		statsCmdRoot,
 		statsAggregate,
+		statsDomainInspector,
 		statsHistorical,
 		statsRealtime,
 		statsRegions,
