@@ -33,14 +33,16 @@ func TestHistorical(t *testing.T) {
 			WantOutput: historicalJSONOK,
 		},
 		{
-			args:       args("stats historical --service-id=123 --field=bandwidth"),
-			api:        mock.API{GetStatsJSONFn: getStatsJSONFieldOK},
-			wantOutput: historicalOK,
+			Name:       "success with field filter",
+			Args:       "--service-id=123 --field=bandwidth",
+			API:        mock.API{GetStatsJSONFn: getStatsJSONFieldOK},
+			WantOutput: historicalOK,
 		},
 		{
-			args:       args("stats historical --service-id=123 --field=bandwidth --format=json"),
-			api:        mock.API{GetStatsJSONFn: getStatsJSONFieldOK},
-			wantOutput: historicalJSONOK,
+			Name:       "success with field filter and json format",
+			Args:       "--service-id=123 --field=bandwidth --format=json",
+			API:        mock.API{GetStatsJSONFn: getStatsJSONFieldOK},
+			WantOutput: historicalJSONOK,
 		},
 	}
 
