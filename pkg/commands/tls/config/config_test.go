@@ -26,7 +26,7 @@ func TestDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				GetCustomTLSConfigurationFn: func(_ context.Context, _ *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					return nil, testutil.Err
 				},
@@ -36,7 +36,7 @@ func TestDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				GetCustomTLSConfigurationFn: func(_ context.Context, _ *fastly.GetCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					t := testutil.Date
 					return &fastly.CustomTLSConfiguration{
@@ -70,7 +70,7 @@ func TestList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				ListCustomTLSConfigurationsFn: func(_ context.Context, _ *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error) {
 					return nil, testutil.Err
 				},
@@ -79,7 +79,7 @@ func TestList(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				ListCustomTLSConfigurationsFn: func(_ context.Context, _ *fastly.ListCustomTLSConfigurationsInput) ([]*fastly.CustomTLSConfiguration, error) {
 					t := testutil.Date
 					return []*fastly.CustomTLSConfiguration{
@@ -125,7 +125,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				UpdateCustomTLSConfigurationFn: func(_ context.Context, _ *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					return nil, testutil.Err
 				},
@@ -135,7 +135,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				UpdateCustomTLSConfigurationFn: func(_ context.Context, _ *fastly.UpdateCustomTLSConfigurationInput) (*fastly.CustomTLSConfiguration, error) {
 					return &fastly.CustomTLSConfiguration{
 						ID: mockResponseID,

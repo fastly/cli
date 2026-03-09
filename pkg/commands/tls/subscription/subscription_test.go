@@ -28,7 +28,7 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				CreateTLSSubscriptionFn: func(_ context.Context, _ *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return nil, testutil.Err
 				},
@@ -38,7 +38,7 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				CreateTLSSubscriptionFn: func(_ context.Context, _ *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return &fastly.TLSSubscription{
 						ID:                   mockResponseID,
@@ -54,7 +54,7 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 		},
 		{
 			Name: "validate cert-auth == certainly",
-			API: mock.API{
+			API: &mock.API{
 				CreateTLSSubscriptionFn: func(_ context.Context, i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return &fastly.TLSSubscription{
 						ID:                   mockResponseID,
@@ -68,7 +68,7 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 		},
 		{
 			Name: "validate cert-auth == lets-encrypt",
-			API: mock.API{
+			API: &mock.API{
 				CreateTLSSubscriptionFn: func(_ context.Context, i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return &fastly.TLSSubscription{
 						ID:                   mockResponseID,
@@ -82,7 +82,7 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 		},
 		{
 			Name: "validate cert-auth == globalsign",
-			API: mock.API{
+			API: &mock.API{
 				CreateTLSSubscriptionFn: func(_ context.Context, i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return &fastly.TLSSubscription{
 						ID:                   mockResponseID,
@@ -96,7 +96,7 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 		},
 		{
 			Name: "validate cert-auth is invalid",
-			API: mock.API{
+			API: &mock.API{
 				CreateTLSSubscriptionFn: func(_ context.Context, i *fastly.CreateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return &fastly.TLSSubscription{
 						ID:                   mockResponseID,
@@ -121,7 +121,7 @@ func TestTLSSubscriptionDelete(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				DeleteTLSSubscriptionFn: func(_ context.Context, _ *fastly.DeleteTLSSubscriptionInput) error {
 					return testutil.Err
 				},
@@ -131,7 +131,7 @@ func TestTLSSubscriptionDelete(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				DeleteTLSSubscriptionFn: func(_ context.Context, _ *fastly.DeleteTLSSubscriptionInput) error {
 					return nil
 				},
@@ -152,7 +152,7 @@ func TestTLSSubscriptionDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				GetTLSSubscriptionFn: func(_ context.Context, _ *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return nil, testutil.Err
 				},
@@ -162,7 +162,7 @@ func TestTLSSubscriptionDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				GetTLSSubscriptionFn: func(_ context.Context, _ *fastly.GetTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					t := testutil.Date
 					return &fastly.TLSSubscription{
@@ -186,7 +186,7 @@ func TestTLSSubscriptionList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				ListTLSSubscriptionsFn: func(_ context.Context, _ *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error) {
 					return nil, testutil.Err
 				},
@@ -195,7 +195,7 @@ func TestTLSSubscriptionList(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				ListTLSSubscriptionsFn: func(_ context.Context, _ *fastly.ListTLSSubscriptionsInput) ([]*fastly.TLSSubscription, error) {
 					t := testutil.Date
 					return []*fastly.TLSSubscription{
@@ -225,7 +225,7 @@ func TestTLSSubscriptionUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				UpdateTLSSubscriptionFn: func(_ context.Context, _ *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return nil, testutil.Err
 				},
@@ -235,7 +235,7 @@ func TestTLSSubscriptionUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				UpdateTLSSubscriptionFn: func(_ context.Context, _ *fastly.UpdateTLSSubscriptionInput) (*fastly.TLSSubscription, error) {
 					return &fastly.TLSSubscription{
 						ID:                   mockResponseID,

@@ -22,7 +22,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--key abc --name foo --service-id 123 --version 1",
@@ -30,7 +30,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--key abc --name foo --service-id 123 --version 2",
@@ -38,7 +38,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateNewRelicOTLP API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateNewRelicOTLPFn: func(_ context.Context, _ *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
@@ -49,7 +49,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateNewRelicOTLP API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateNewRelicOTLPFn: func(_ context.Context, i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
@@ -64,7 +64,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateNewRelicOTLPFn: func(_ context.Context, i *fastly.CreateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
@@ -102,7 +102,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 1",
@@ -110,7 +110,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 2",
@@ -118,7 +118,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteNewRelic API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteNewRelicOTLPFn: func(_ context.Context, _ *fastly.DeleteNewRelicOTLPInput) error {
 					return testutil.Err
@@ -129,7 +129,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteNewRelic API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteNewRelicOTLPFn: func(_ context.Context, _ *fastly.DeleteNewRelicOTLPInput) error {
 					return nil
@@ -140,7 +140,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteNewRelicOTLPFn: func(_ context.Context, _ *fastly.DeleteNewRelicOTLPInput) error {
@@ -174,7 +174,7 @@ func TestNewRelicDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetNewRelic API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetNewRelicOTLPFn: func(_ context.Context, _ *fastly.GetNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
@@ -185,7 +185,7 @@ func TestNewRelicDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetNewRelic API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetNewRelicOTLPFn: getNewRelic,
 			},
@@ -194,7 +194,7 @@ func TestNewRelicDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetNewRelicOTLPFn: getNewRelic,
 			},
@@ -219,7 +219,7 @@ func TestNewRelicList(t *testing.T) {
 		},
 		{
 			Name: "validate ListNewRelics API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListNewRelicOTLPFn: func(_ context.Context, _ *fastly.ListNewRelicOTLPInput) ([]*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
@@ -230,7 +230,7 @@ func TestNewRelicList(t *testing.T) {
 		},
 		{
 			Name: "validate ListNewRelics API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListNewRelicOTLPFn: listNewRelic,
 			},
@@ -239,7 +239,7 @@ func TestNewRelicList(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListNewRelicOTLPFn: listNewRelic,
 			},
@@ -248,7 +248,7 @@ func TestNewRelicList(t *testing.T) {
 		},
 		{
 			Name: "validate missing --verbose flag",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				ListNewRelicOTLPFn: listNewRelic,
 			},
@@ -279,7 +279,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 1",
@@ -287,7 +287,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 2",
@@ -295,7 +295,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateNewRelic API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateNewRelicOTLPFn: func(_ context.Context, _ *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return nil, testutil.Err
@@ -306,7 +306,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateNewRelic API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateNewRelicOTLPFn: func(_ context.Context, i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {
 					return &fastly.NewRelicOTLP{
@@ -321,7 +321,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateNewRelicOTLPFn: func(_ context.Context, i *fastly.UpdateNewRelicOTLPInput) (*fastly.NewRelicOTLP, error) {

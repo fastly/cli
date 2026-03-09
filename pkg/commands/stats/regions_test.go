@@ -17,13 +17,13 @@ func TestRegions(t *testing.T) {
 		{
 			Name:       "success",
 			Args:       "",
-			API:        mock.API{GetRegionsFn: getRegionsOK},
+			API:        &mock.API{GetRegionsFn: getRegionsOK},
 			WantOutput: "foo\nbar\nbaz\n",
 		},
 		{
 			Name:      "api error",
 			Args:      "",
-			API:       mock.API{GetRegionsFn: getRegionsError},
+			API:       &mock.API{GetRegionsFn: getRegionsError},
 			WantError: errTest.Error(),
 		},
 	}

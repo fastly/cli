@@ -20,7 +20,7 @@ func TestAuthTokenCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateToken API error",
-			API: mock.API{
+			API: &mock.API{
 				CreateTokenFn: func(_ context.Context, _ *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return nil, testutil.Err
 				},
@@ -30,7 +30,7 @@ func TestAuthTokenCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateToken API success with no flags",
-			API: mock.API{
+			API: &mock.API{
 				CreateTokenFn: func(_ context.Context, _ *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   &testutil.Date,
@@ -46,7 +46,7 @@ func TestAuthTokenCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateToken API success with all flags",
-			API: mock.API{
+			API: &mock.API{
 				CreateTokenFn: func(_ context.Context, i *fastly.CreateTokenInput) (*fastly.Token, error) {
 					return &fastly.Token{
 						ExpiresAt:   i.ExpiresAt,
@@ -74,7 +74,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteTokenSelf API error with --current",
-			API: mock.API{
+			API: &mock.API{
 				DeleteTokenSelfFn: func(_ context.Context) error {
 					return testutil.Err
 				},
@@ -84,7 +84,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		},
 		{
 			Name: "validate BatchDeleteTokens API error with --file",
-			API: mock.API{
+			API: &mock.API{
 				BatchDeleteTokensFn: func(_ context.Context, _ *fastly.BatchDeleteTokensInput) error {
 					return testutil.Err
 				},
@@ -94,7 +94,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteToken API error with --id",
-			API: mock.API{
+			API: &mock.API{
 				DeleteTokenFn: func(_ context.Context, _ *fastly.DeleteTokenInput) error {
 					return testutil.Err
 				},
@@ -104,7 +104,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteTokenSelf API success with --current",
-			API: mock.API{
+			API: &mock.API{
 				DeleteTokenSelfFn: func(_ context.Context) error {
 					return nil
 				},
@@ -114,7 +114,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		},
 		{
 			Name: "validate BatchDeleteTokens API success with --file",
-			API: mock.API{
+			API: &mock.API{
 				BatchDeleteTokensFn: func(_ context.Context, _ *fastly.BatchDeleteTokensInput) error {
 					return nil
 				},
@@ -124,7 +124,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		},
 		{
 			Name: "validate BatchDeleteTokens API success with --file and --verbose",
-			API: mock.API{
+			API: &mock.API{
 				BatchDeleteTokensFn: func(_ context.Context, _ *fastly.BatchDeleteTokensInput) error {
 					return nil
 				},
@@ -134,7 +134,7 @@ func TestAuthTokenDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteToken API success with --id",
-			API: mock.API{
+			API: &mock.API{
 				DeleteTokenFn: func(_ context.Context, _ *fastly.DeleteTokenInput) error {
 					return nil
 				},
@@ -151,7 +151,7 @@ func TestAuthTokenDescribe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate GetTokenSelf API error",
-			API: mock.API{
+			API: &mock.API{
 				GetTokenSelfFn: func(_ context.Context) (*fastly.Token, error) {
 					return nil, testutil.Err
 				},
@@ -161,7 +161,7 @@ func TestAuthTokenDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetTokenSelf API success",
-			API: mock.API{
+			API: &mock.API{
 				GetTokenSelfFn: getToken,
 			},
 			Args:       "--token 123",
@@ -176,7 +176,7 @@ func TestAuthTokenList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate ListTokens API error",
-			API: mock.API{
+			API: &mock.API{
 				ListTokensFn: func(_ context.Context, _ *fastly.ListTokensInput) ([]*fastly.Token, error) {
 					return nil, testutil.Err
 				},
@@ -185,7 +185,7 @@ func TestAuthTokenList(t *testing.T) {
 		},
 		{
 			Name: "validate ListCustomerTokens API error",
-			API: mock.API{
+			API: &mock.API{
 				ListCustomerTokensFn: func(_ context.Context, _ *fastly.ListCustomerTokensInput) ([]*fastly.Token, error) {
 					return nil, testutil.Err
 				},
@@ -195,14 +195,14 @@ func TestAuthTokenList(t *testing.T) {
 		},
 		{
 			Name: "validate ListTokens API success",
-			API: mock.API{
+			API: &mock.API{
 				ListTokensFn: listTokens,
 			},
 			WantOutput: listTokenOutputSummary(false),
 		},
 		{
 			Name: "validate ListCustomerTokens API success",
-			API: mock.API{
+			API: &mock.API{
 				ListCustomerTokensFn: listCustomerTokens,
 			},
 			Args:       "--customer-id 123",
@@ -210,7 +210,7 @@ func TestAuthTokenList(t *testing.T) {
 		},
 		{
 			Name: "validate ListCustomerTokens API success with env var",
-			API: mock.API{
+			API: &mock.API{
 				ListCustomerTokensFn: listCustomerTokens,
 			},
 			WantOutput: listTokenOutputSummary(true),
@@ -218,7 +218,7 @@ func TestAuthTokenList(t *testing.T) {
 		},
 		{
 			Name: "validate --verbose flag",
-			API: mock.API{
+			API: &mock.API{
 				ListTokensFn: listTokens,
 			},
 			Args:       "--verbose",
