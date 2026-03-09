@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -117,7 +118,7 @@ func (c *DescribeCommand) print(out io.Writer, v *fastly.VCL) error {
 	fmt.Fprintf(out, "Service Version: %d\n\n", fastly.ToValue(v.ServiceVersion))
 	fmt.Fprintf(out, "Name: %s\n", fastly.ToValue(v.Name))
 	fmt.Fprintf(out, "Main: %t\n", fastly.ToValue(v.Main))
-	fmt.Fprintf(out, "Content: \n%s\n\n", fastly.ToValue(v.Content))
+	fmt.Fprintf(out, "Content: \n%s\n\n", text.SanitizeTerminalOutput(fastly.ToValue(v.Content)))
 	if v.CreatedAt != nil {
 		fmt.Fprintf(out, "Created at: %s\n", v.CreatedAt)
 	}
