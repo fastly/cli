@@ -72,7 +72,6 @@ ip-list
 kv-store
 kv-store-entry
 log-tail
-logging
 ngwaf
 object-storage
 pops
@@ -81,7 +80,6 @@ profile
 secret-store
 secret-store-entry
 service
-service-auth
 stats
 tls-config
 tls-custom

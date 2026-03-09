@@ -5,10 +5,10 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/rules"
-	"github.com/fastly/go-fastly/v12/fastly/ngwaf/v1/scope"
+	"github.com/fastly/go-fastly/v13/fastly/ngwaf/v1/rules"
+	"github.com/fastly/go-fastly/v13/fastly/ngwaf/v1/scope"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"

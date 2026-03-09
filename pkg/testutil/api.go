@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 
 	"github.com/fastly/cli/pkg/commands/sso"
 	"github.com/fastly/cli/pkg/commands/whoami"

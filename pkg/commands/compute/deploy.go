@@ -18,7 +18,7 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"

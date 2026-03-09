@@ -5,7 +5,7 @@ import (
 	"crypto/ed25519"
 	"net/http"
 
-	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v13/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some

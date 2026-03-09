@@ -10,13 +10,13 @@
 1. Merge CHANGELOG.
 1. Rebase latest remote main branch locally (`git pull --rebase origin main`).
 1. Create a new signed tag (replace `{{remote}}` with the remote pointing to the official repository i.e. `origin` or `upstream` depending on your Git workflow): `tag=vX.Y.Z && git tag -s $tag -m $tag && git push {{remote}} $tag`
-    - Triggers a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_release.yml) that produces a 'draft' release.
+    - Triggers a [github action](https://github.com/fastly/cli/blob/main/.github/workflows/tag_to_draft_release.yml) that produces a 'draft' release.
 1. Copy/paste CHANGELOG into the [draft release](https://github.com/fastly/cli/releases).
 1. Publish draft release.
 
 ## Creation of npm packages
 
-Each release of the Fastly CLI triggers a workflow in `.github/workflows/publish_release.yml` that results in the creation of a new version of the `@fastly/cli` npm package, as well as multiple packages each representing a supported platform/arch combo (e.g. `@fastly/cli-darwin-arm64`). These packages are given the same version number as the Fastly CLI release. The workflow then publishes the `@fastly/cli` package and the per-platform/arch packages to npmjs.com using the `NPM_TOKEN` secret in this repository. The per-platform/arch packages are generated on each release and not committed to source control.
+Each release of the Fastly CLI triggers a workflow in `.github/workflows/publish_release.yml` that results in the creation of a new version of the `@fastly/cli` npm package, as well as multiple packages each representing a supported platform/arch combo (e.g. `@fastly/cli-darwin-arm64`). These packages are given the same version number as the Fastly CLI release. The workflow then publishes the `@fastly/cli` package and the per-platform/arch packages to npmjs.com using [Trusted Publishing](https://docs.npmjs.com/trusted-publishers). The per-platform/arch packages are generated on each release and not committed to source control.
 
 > [!NOTE]
 > The workflow step that performs `npm version` in the directory of the `@fastly/cli` package triggers the execution of the `version` script listed in its `package.json`. In turn, this script creates the per-platform/arch packages.

@@ -178,6 +178,14 @@ function packageJson(name, version, description, os, cpu, binaryAsset) {
       main: "index.js",
       description,
       license: "Apache-2.0",
+      repository: {
+        type: "git",
+        url: "git+https://github.com/fastly/cli.git"
+      },
+      bugs: {
+        url: "https://github.com/fastly/cli/issues"
+      },
+      homepage: "https://github.com/fastly/cli#readme",
       preferUnplugged: false,
       os: [os],
       cpu: [cpu],

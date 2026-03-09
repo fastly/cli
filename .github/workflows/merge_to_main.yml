@@ -24,7 +24,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: 1.24.x
+          go-version: 1.25.x
       - name: "Install dependencies"
         run: make mod-download
         shell: bash
@@ -32,7 +32,7 @@ jobs:
         run: make build
         shell: bash
       - name: "Upload Build"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: fastly-cli-build-${{ matrix.platform }}-${{ github.sha }}
           path: fastly
