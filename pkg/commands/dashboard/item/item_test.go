@@ -98,7 +98,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			Name: "validate multiple --metric flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -107,7 +107,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			Name: "validate all required flags",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -116,7 +116,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			Name: "validate all optional flags",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -143,7 +143,7 @@ func TestDelete(t *testing.T) {
 		},
 		{
 			Name: "validate all required flags",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardEmpty,
 			},
@@ -170,7 +170,7 @@ func TestDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate all required flags",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardEmpty,
 			},
@@ -198,7 +198,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate all required flags",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -227,7 +227,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --title flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -236,7 +236,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --subtitle flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -245,7 +245,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --span flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -254,7 +254,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --source-type flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -263,7 +263,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --metric flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -272,7 +272,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate multiple --metric flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -286,7 +286,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --calculation-method flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -295,7 +295,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --format flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},
@@ -304,7 +304,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --plot-type flag",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn:    getDashboardOK,
 				UpdateObservabilityCustomDashboardFn: updateDashboardOK,
 			},

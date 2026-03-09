@@ -17,19 +17,19 @@ func TestHistorical(t *testing.T) {
 		{
 			Name:       "success",
 			Args:       "--service-id=123",
-			API:        mock.API{GetStatsJSONFn: getStatsJSONOK},
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
 			WantOutput: historicalOK,
 		},
 		{
 			Name:      "api failure",
 			Args:      "--service-id=123",
-			API:       mock.API{GetStatsJSONFn: getStatsJSONError},
+			API:       &mock.API{GetStatsJSONFn: getStatsJSONError},
 			WantError: errTest.Error(),
 		},
 		{
 			Name:       "success with json format",
 			Args:       "--service-id=123 --format=json",
-			API:        mock.API{GetStatsJSONFn: getStatsJSONOK},
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
 			WantOutput: historicalJSONOK,
 		},
 	}

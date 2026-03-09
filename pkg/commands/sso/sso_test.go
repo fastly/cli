@@ -157,7 +157,7 @@ func TestSSO(t *testing.T) {
 		// Otherwise no OAuth flow is happening here.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -235,7 +235,7 @@ func TestSSO(t *testing.T) {
 		// This allows us to validate the output messages.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{

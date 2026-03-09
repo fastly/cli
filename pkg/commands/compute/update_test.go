@@ -15,7 +15,7 @@ func TestUpdate(t *testing.T) {
 		{
 			Name: "package API error",
 			Args: "-s 123 --version 1 --package pkg/package.tar.gz --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageError,
@@ -38,7 +38,7 @@ func TestUpdate(t *testing.T) {
 		{
 			Name: "success",
 			Args: "-s 123 --version 2 --package pkg/package.tar.gz --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageOk,
