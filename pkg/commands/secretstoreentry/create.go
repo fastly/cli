@@ -24,15 +24,18 @@ const (
 	maxSecretLen = maxSecretKiB * 1024
 )
 
-// The signing key is a public key that is used to sign client keys.
-// It's meant to be a long-lived key and infrequently (if ever) rotated.
-// Hardcoding it in the CLI gives us the benefit of distributing it via
-// a different channel from the client keys it's signing.
+// verificationKey is Fastly's Ed25519 public key, used to verify signatures
+// on client keys returned by the API. Fastly holds the corresponding private
+// key and signs client keys on their side.
 //
-// When we do rotate it, we will need to update this value and release a
-// new version of the CLI.  However, users can also override this with
+// This key is meant to be long-lived and infrequently (if ever) rotated.
+// Hardcoding it in the CLI provides a trust anchor that prevents MITM attacks
+// where an attacker could substitute a different key.
+//
+// When Fastly rotates it, we will need to update this value and release a
+// new version of the CLI. Users can also override this check with
 // the FASTLY_USE_API_SIGNING_KEY environment variable.
-var signingKey = mustDecode("CrO/A92vkxEZjtTW7D/Sr+1EMf/q9BahC0sfLkWa+0k=")
+var verificationKey = mustDecode("CrO/A92vkxEZjtTW7D/Sr+1EMf/q9BahC0sfLkWa+0k=")
 
 func mustDecode(s string) []byte {
 	b, err := base64.StdEncoding.DecodeString(s)
@@ -157,20 +160,20 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	sk, err := c.Globals.APIClient.GetSigningKey(context.TODO())
+	apiPublicKey, err := c.Globals.APIClient.GetSigningKey(context.TODO())
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if !bytes.Equal(sk, signingKey) && os.Getenv("FASTLY_USE_API_SIGNING_KEY") == "" {
-		err := fmt.Errorf("API signing key does not match expected value")
+	if !bytes.Equal(apiPublicKey, verificationKey) && os.Getenv("FASTLY_USE_API_SIGNING_KEY") == "" {
+		err := fmt.Errorf("API public key does not match expected verification key")
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
 
-	if !ck.VerifySignature(sk) {
-		err := fmt.Errorf("unable to validate signature of client key")
+	if !ck.VerifySignature(apiPublicKey) {
+		err := fmt.Errorf("unable to verify signature of client key")
 		c.Globals.ErrLog.Add(err)
 		return err
 	}
