@@ -432,7 +432,7 @@ Install npm (usually bundled with Node.js):
 
 Verify: npm --version
 
-Then retry: fastly compute build`,
+Then retry your command.`,
 		}
 	}
 
@@ -451,7 +451,7 @@ Option 2 - Bun:
   curl -fsSL https://bun.sh/install | bash
   Verify: bun --version
 
-Then retry: fastly compute build`,
+Then retry your command.`,
 	}
 }
 
@@ -504,7 +504,7 @@ To initialize a new project:
   %s
   %s
 
-Then retry: fastly compute build`, initCmd, installCmd),
+Then retry your command.`, initCmd, installCmd),
 		}
 	}
 
@@ -522,7 +522,7 @@ Then retry: fastly compute build`, initCmd, installCmd),
 Run: %s
 
 This will install all dependencies from package.json.
-Then retry: fastly compute build`, installCmd),
+Then retry your command.`, installCmd),
 		}
 	}
 	j.nodeModulesDir = nodeModulesPath
@@ -572,7 +572,7 @@ Run: %s
 Or specifically: %s
 Verify with: %s
 
-Then retry: fastly compute build%s`, installCmd, installSpecific, verifyCmd, bunTip),
+Then retry your command.%s`, installCmd, installSpecific, verifyCmd, bunTip),
 	}
 }
 
@@ -591,7 +591,7 @@ func (j *JavaScript) verifyJsComputeRuntime() error {
 Run: %s
 
 This package is required to compile JavaScript for Fastly Compute.
-Then retry: fastly compute build`, installCmd),
+Then retry your command.`, installCmd),
 		}
 	}
 	if j.verbose {
