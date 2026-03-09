@@ -158,10 +158,21 @@ func (j *JavaScript) Dependencies() map[string]string {
 	return deps
 }
 
+// isDefaultBuildScript reports whether the configured build script is one of
+// the well-known defaults used by Fastly starter kits (e.g. "npm run build"
+// or "bun run build"). These scripts delegate to the same toolchain that the
+// CLI would invoke directly, so the same verification logic applies.
+func (j *JavaScript) isDefaultBuildScript() bool {
+	switch j.build {
+	case "npm run build", "bun run build":
+		return true
+	}
+	return false
+}
+
 // Build compiles the user's source code into a Wasm binary.
 func (j *JavaScript) Build() error {
 	if j.build == "" {
-		// Only verify toolchain when using default build (no custom [scripts.build])
 		if err := j.verifyToolchain(); err != nil {
 			return err
 		}
@@ -171,6 +182,10 @@ func (j *JavaScript) Build() error {
 		}
 		j.build = cmd
 		j.defaultBuild = true
+	} else if j.isDefaultBuildScript() {
+		if err := j.verifyToolchain(); err != nil {
+			return err
+		}
 	}
 
 	if j.defaultBuild && j.verbose {
@@ -586,7 +601,8 @@ Then retry: fastly compute build`, installCmd),
 }
 
 // verifyToolchain checks that a JavaScript runtime is installed and accessible.
-// Only called when using default build script (not custom [scripts.build]).
+// Called when using the default build script or a well-known starter kit script
+// (e.g. "npm run build").
 func (j *JavaScript) verifyToolchain() error {
 	runtime, err := j.detectRuntime()
 	if err != nil {

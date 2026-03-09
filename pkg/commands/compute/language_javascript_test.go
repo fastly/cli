@@ -500,6 +500,26 @@ func TestJavaScript_verifyJsComputeRuntime_Installed(t *testing.T) {
 	}
 }
 
+func TestJavaScript_isDefaultBuildScript(t *testing.T) {
+	tests := []struct {
+		build string
+		want  bool
+	}{
+		{"npm run build", true},
+		{"bun run build", true},
+		{"", false},
+		{"custom-build-cmd", false},
+		{"npm run build && echo done", false},
+	}
+
+	for _, tt := range tests {
+		j := &JavaScript{build: tt.build}
+		if got := j.isDefaultBuildScript(); got != tt.want {
+			t.Errorf("isDefaultBuildScript() with build=%q: got %v, want %v", tt.build, got, tt.want)
+		}
+	}
+}
+
 func TestJavaScript_getDefaultBuildCommand_NodeWithWebpack(t *testing.T) {
 	tmpDir := t.TempDir()
 	// #nosec G306
