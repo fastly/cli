@@ -38,6 +38,8 @@ func NewOriginInspectorCommand(parent argparser.Registerer, g *global.Data) *Ori
 	c.Globals = g
 
 	c.CmdClause = parent.Command("origin-inspector", "View origin metrics for a Fastly service")
+
+	// Optional.
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,

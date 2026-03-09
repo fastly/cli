@@ -33,6 +33,8 @@ func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *Historic
 	c.Globals = g
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
+
+	// Optional.
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,

@@ -29,6 +29,8 @@ func NewAggregateCommand(parent argparser.Registerer, g *global.Data) *Aggregate
 	c.Globals = g
 
 	c.CmdClause = parent.Command("aggregate", "View aggregated stats across all services")
+
+	// Optional.
 	c.CmdClause.Flag("from", "Start time").StringVar(&c.from)
 	c.CmdClause.Flag("to", "End time").StringVar(&c.to)
 	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")

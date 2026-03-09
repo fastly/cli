@@ -33,6 +33,8 @@ func NewUsageCommand(parent argparser.Registerer, g *global.Data) *UsageCommand 
 	c.Globals = g
 
 	c.CmdClause = parent.Command("usage", "View usage stats (bandwidth, requests)")
+
+	// Optional.
 	c.CmdClause.Flag("from", "Start time").StringVar(&c.from)
 	c.CmdClause.Flag("to", "End time").StringVar(&c.to)
 	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")

@@ -39,6 +39,8 @@ func NewDomainInspectorCommand(parent argparser.Registerer, g *global.Data) *Dom
 	c.Globals = g
 
 	c.CmdClause = parent.Command("domain-inspector", "View domain metrics for a Fastly service")
+
+	// Optional.
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
