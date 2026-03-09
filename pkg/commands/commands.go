@@ -663,6 +663,7 @@ func Define( // nolint:revive // function-length
 	serviceVersionStage := serviceversion.NewStageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUnstage := serviceversion.NewUnstageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUpdate := serviceversion.NewUpdateCommand(serviceVersionCmdRoot.CmdClause, data)
+	serviceVersionValidate := serviceversion.NewValidateCommand(serviceVersionCmdRoot.CmdClause, data)
 	servicedomainCmdRoot := servicedomain.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	servicedomainCreate := servicedomain.NewCreateCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainDelete := servicedomain.NewDeleteCommand(servicedomainCmdRoot.CmdClause, data)
@@ -1534,6 +1535,7 @@ func Define( // nolint:revive // function-length
 		serviceVersionStage,
 		serviceVersionUnstage,
 		serviceVersionUpdate,
+		serviceVersionValidate,
 		ssoCmdRoot,
 		statsCmdRoot,
 		statsHistorical,

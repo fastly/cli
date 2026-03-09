@@ -31,6 +31,7 @@ type API struct {
 	DeactivateVersionFn func(context.Context, *fastly.DeactivateVersionInput) (*fastly.Version, error)
 	LockVersionFn       func(context.Context, *fastly.LockVersionInput) (*fastly.Version, error)
 	LatestVersionFn     func(context.Context, *fastly.LatestVersionInput) (*fastly.Version, error)
+	ValidateVersionFn   func(context.Context, *fastly.ValidateVersionInput) (bool, string, error)
 
 	CreateDomainFn       func(context.Context, *fastly.CreateDomainInput) (*fastly.Domain, error)
 	ListDomainsFn        func(context.Context, *fastly.ListDomainsInput) ([]*fastly.Domain, error)
@@ -497,6 +498,11 @@ func (m API) LockVersion(ctx context.Context, i *fastly.LockVersionInput) (*fast
 // LatestVersion implements Interface.
 func (m API) LatestVersion(ctx context.Context, i *fastly.LatestVersionInput) (*fastly.Version, error) {
 	return m.LatestVersionFn(ctx, i)
+}
+
+// ValidateVersion implements Interface.
+func (m API) ValidateVersion(ctx context.Context, i *fastly.ValidateVersionInput) (bool, string, error) {
+	return m.ValidateVersionFn(ctx, i)
 }
 
 // CreateDomain implements Interface.
