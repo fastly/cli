@@ -57,7 +57,7 @@ type ProductsMap struct {
 	Fanout              ProductSettings
 	ImageOptimizer      ProductSettings
 	LogExplorerInsights ProductSettings
-	Ngwaf               ProductSettings
+	NGWAF               ProductSettings
 	OriginInspector     ProductSettings
 	WebSockets          ProductSettings
 }
@@ -80,19 +80,19 @@ func (p *Product) Enabled() bool {
 	return p != nil && p.Enable
 }
 
-type ProductNgwaf struct {
+type ProductNGWAF struct {
 	Product
 	WorkspaceID string
 }
 
-func NewProductNgWaf(workspaceID string) *ProductNgwaf {
-	return &ProductNgwaf{
+func NewProductNGWAF(workspaceID string) *ProductNGWAF {
+	return &ProductNGWAF{
 		Product:     *NewProductEnabled(),
 		WorkspaceID: workspaceID,
 	}
 }
 
-var _ ProductSettings = (*ProductNgwaf)(nil)
+var _ ProductSettings = (*ProductNGWAF)(nil)
 
 type productsSpec struct {
 	id                   string
@@ -255,10 +255,10 @@ func init() {
 			id:   ngwaf.ProductID,
 			name: ngwaf.ProductName,
 			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
-				return setupProducts.Ngwaf
+				return setupProducts.NGWAF
 			},
 			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
-				ngwafSetupProduct, ok := sp.(*manifest.SetupProductNgwaf)
+				ngwafSetupProduct, ok := sp.(*manifest.SetupProductNGWAF)
 				if !ok {
 					return fmt.Errorf("unexpected: Incorrect type for setupProduct")
 				}
@@ -266,14 +266,14 @@ func init() {
 					return fmt.Errorf("workspace_id is required")
 				}
 				text.Output(w, "  workspace_id: %s", ngwafSetupProduct.WorkspaceID)
-				p.Ngwaf = NewProductNgWaf(ngwafSetupProduct.WorkspaceID)
+				p.NGWAF = NewProductNGWAF(ngwafSetupProduct.WorkspaceID)
 				return nil
 			},
 			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
-				return products.Ngwaf
+				return products.NGWAF
 			},
 			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
-				ngwafProduct, ok := product.(*ProductNgwaf)
+				ngwafProduct, ok := product.(*ProductNGWAF)
 				if !ok {
 					return fmt.Errorf("unexpected: Incorrect type for product")
 				}

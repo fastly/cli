@@ -108,7 +108,7 @@ func TestProductsCreate(t *testing.T) {
 		{
 			name: "successfully enables ngwaf with workspace id",
 			setup: &manifest.SetupProducts{
-				Ngwaf: &manifest.SetupProductNgwaf{
+				NGWAF: &manifest.SetupProductNGWAF{
 					SetupProduct: manifest.SetupProduct{
 						Enable: true,
 					},

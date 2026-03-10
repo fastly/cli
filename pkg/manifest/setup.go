@@ -102,7 +102,7 @@ type SetupProducts struct {
 	Fanout              *SetupProduct      `toml:"fanout,omitempty"`
 	ImageOptimizer      *SetupProduct      `toml:"image_optimizer,omitempty"`
 	LogExplorerInsights *SetupProduct      `toml:"log_explorer_insights,omitempty"`
-	Ngwaf               *SetupProductNgwaf `toml:"ngwaf,omitempty"`
+	NGWAF               *SetupProductNGWAF `toml:"ngwaf,omitempty"`
 	OriginInspector     *SetupProduct      `toml:"origin_inspector,omitempty"`
 	WebSockets          *SetupProduct      `toml:"websockets,omitempty"`
 }
@@ -143,9 +143,9 @@ func (p *SetupProduct) Enabled() bool {
 	return p != nil && p.Enable
 }
 
-type SetupProductNgwaf struct {
+type SetupProductNGWAF struct {
 	SetupProduct
 	WorkspaceID string `toml:"workspace_id,omitempty"`
 }
 
-var _ SetupProductSettings = (*SetupProductNgwaf)(nil)
+var _ SetupProductSettings = (*SetupProductNGWAF)(nil)
