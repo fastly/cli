@@ -25,7 +25,7 @@ func TestVCLDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate DescribeVCL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetGeneratedVCLFn: func(_ context.Context, _ *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
@@ -36,7 +36,7 @@ func TestVCLDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate DescribeVCL API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetGeneratedVCLFn: getVCL,
 			},
@@ -45,7 +45,7 @@ func TestVCLDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate missing --verbose flag",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetGeneratedVCLFn: getVCL,
 			},

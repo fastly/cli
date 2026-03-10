@@ -20,7 +20,7 @@ func TestGCSCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateGCSFn:    createGCSOK,
@@ -29,7 +29,7 @@ func TestGCSCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --account-name service-account-id --project-id gcp-prj-id --period 86400 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateGCSFn:    createGCSOK,
@@ -38,7 +38,7 @@ func TestGCSCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateGCSFn:    createGCSError,
@@ -47,7 +47,7 @@ func TestGCSCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --compression-codec zstd --gzip-level 9 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -61,7 +61,7 @@ func TestGCSList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsOK,
 			},
@@ -69,7 +69,7 @@ func TestGCSList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsOK,
 			},
@@ -77,7 +77,7 @@ func TestGCSList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsOK,
 			},
@@ -85,7 +85,7 @@ func TestGCSList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListGCSsFn:     listGCSsError,
 			},
@@ -103,7 +103,7 @@ func TestGCSDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetGCSFn:       getGCSError,
 			},
@@ -111,7 +111,7 @@ func TestGCSDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetGCSFn:       getGCSOK,
 			},
@@ -129,7 +129,7 @@ func TestGCSUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateGCSFn:    updateGCSError,
@@ -138,7 +138,7 @@ func TestGCSUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateGCSFn:    updateGCSOK,
@@ -157,7 +157,7 @@ func TestGCSDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteGCSFn:    deleteGCSError,
@@ -166,7 +166,7 @@ func TestGCSDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteGCSFn:    deleteGCSOK,

@@ -15,7 +15,7 @@ func TestAllIPs(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate listing IP addresses",
-			API: mock.API{
+			API: &mock.API{
 				AllIPsFn: func(_ context.Context) (v4, v6 fastly.IPAddrs, err error) {
 					return []string{
 							"00.123.45.6/78",

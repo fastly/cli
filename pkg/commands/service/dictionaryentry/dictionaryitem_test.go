@@ -20,22 +20,22 @@ func TestDictionaryItemDescribe(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--service-id 123 --key foo",
-			API:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
+			API:       &mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			WantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
 			Args:      "--service-id 123 --dictionary-id 456",
-			API:       mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
+			API:       &mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			WantError: "error parsing arguments: required flag --key not provided",
 		},
 		{
 			Args:       "--service-id 123 --dictionary-id 456 --key foo",
-			API:        mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
+			API:        &mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
 			WantOutput: describeDictionaryItemOutput,
 		},
 		{
 			Args:       "--service-id 123 --dictionary-id 456 --key foo-deleted",
-			API:        mock.API{GetDictionaryItemFn: describeDictionaryItemOKDeleted},
+			API:        &mock.API{GetDictionaryItemFn: describeDictionaryItemOKDeleted},
 			WantOutput: describeDictionaryItemOutputDeleted,
 		},
 	}
@@ -53,7 +53,7 @@ func TestDictionaryItemsList(t *testing.T) {
 			WantError: "error reading service: no service ID found",
 		},
 		{
-			API: mock.API{
+			API: &mock.API{
 				GetDictionaryItemsFn: func(ctx context.Context, _ *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
 					return fastly.NewPaginator[fastly.DictionaryItem](ctx, &mock.HTTPClient{
 						Errors: []error{
@@ -67,7 +67,7 @@ func TestDictionaryItemsList(t *testing.T) {
 			WantError: testutil.Err.Error(),
 		},
 		{
-			API: mock.API{
+			API: &mock.API{
 				GetDictionaryItemsFn: func(ctx context.Context, _ *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
 					return fastly.NewPaginator[fastly.DictionaryItem](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -106,17 +106,17 @@ func TestDictionaryItemCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--service-id 123",
-			API:       mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
+			API:       &mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			WantError: "error parsing arguments: required flag ",
 		},
 		{
 			Args:      "--service-id 123 --dictionary-id 456",
-			API:       mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
+			API:       &mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			WantError: "error parsing arguments: required flag ",
 		},
 		{
 			Args:       "--service-id 123 --dictionary-id 456 --key foo --value bar",
-			API:        mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
+			API:        &mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
 			WantOutput: "SUCCESS: Created dictionary item foo (service 123, dictionary 456)\n",
 		},
 	}
@@ -127,17 +127,17 @@ func TestDictionaryItemUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--service-id 123",
-			API:       mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
+			API:       &mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			WantError: "error parsing arguments: required flag --dictionary-id not provided",
 		},
 		{
 			Args:      "--service-id 123 --dictionary-id 456",
-			API:       mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
+			API:       &mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			WantError: "an empty value is not allowed for either the '--key' or '--value' flags",
 		},
 		{
 			Args:       "--service-id 123 --dictionary-id 456 --key foo --value bar",
-			API:        mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
+			API:        &mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
 			WantOutput: updateDictionaryItemOutput,
 		},
 	}
@@ -179,7 +179,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		scenarios := []testutil.CLIScenario{
 			{
 				Args:      "--service-id 123 --dictionary-id 456 --file " + filePath,
-				API:       mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsError},
+				API:       &mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsError},
 				WantError: errTest.Error(),
 			},
 		}
@@ -194,7 +194,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		scenarios := []testutil.CLIScenario{
 			{
 				Args:       "--service-id 123 --dictionary-id 456 --file " + filePath,
-				API:        mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsOK},
+				API:        &mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsOK},
 				WantOutput: "SUCCESS: Made 4 modifications of Dictionary 456 on service 123\n",
 			},
 		}
@@ -206,17 +206,17 @@ func TestDictionaryItemDelete(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--service-id 123",
-			API:       mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
+			API:       &mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			WantError: "error parsing arguments: required flag ",
 		},
 		{
 			Args:      "--service-id 123 --dictionary-id 456",
-			API:       mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
+			API:       &mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			WantError: "error parsing arguments: required flag ",
 		},
 		{
 			Args:       "--service-id 123 --dictionary-id 456 --key foo",
-			API:        mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
+			API:        &mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},
 			WantOutput: "SUCCESS: Deleted dictionary item foo (service 123, dictionary 456)\n",
 		},
 	}

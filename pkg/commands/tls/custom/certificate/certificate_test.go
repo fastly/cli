@@ -40,7 +40,7 @@ func TestTLSCustomCertCreate(t *testing.T) {
 		},
 		{
 			Name: "validate custom cert is submitted",
-			API: mock.API{
+			API: &mock.API{
 				CreateCustomTLSCertificateFn: func(_ context.Context, certInput *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					content = certInput.CertBlob
 					return &fastly.CustomTLSCertificate{
@@ -54,7 +54,7 @@ func TestTLSCustomCertCreate(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				CreateCustomTLSCertificateFn: func(_ context.Context, certInput *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					content = certInput.CertBlob
 					return nil, testutil.Err
@@ -66,7 +66,7 @@ func TestTLSCustomCertCreate(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				CreateCustomTLSCertificateFn: func(_ context.Context, certInput *fastly.CreateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					content = certInput.CertBlob
 					return &fastly.CustomTLSCertificate{
@@ -91,7 +91,7 @@ func TestTLSCustomCertDelete(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				DeleteCustomTLSCertificateFn: func(_ context.Context, _ *fastly.DeleteCustomTLSCertificateInput) error {
 					return testutil.Err
 				},
@@ -101,7 +101,7 @@ func TestTLSCustomCertDelete(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				DeleteCustomTLSCertificateFn: func(_ context.Context, _ *fastly.DeleteCustomTLSCertificateInput) error {
 					return nil
 				},
@@ -122,7 +122,7 @@ func TestTLSCustomCertDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				GetCustomTLSCertificateFn: func(_ context.Context, _ *fastly.GetCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					return nil, testutil.Err
 				},
@@ -132,7 +132,7 @@ func TestTLSCustomCertDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				GetCustomTLSCertificateFn: func(_ context.Context, _ *fastly.GetCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					t := testutil.Date
 					return &fastly.CustomTLSCertificate{
@@ -160,7 +160,7 @@ func TestTLSCustomCertList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				ListCustomTLSCertificatesFn: func(_ context.Context, _ *fastly.ListCustomTLSCertificatesInput) ([]*fastly.CustomTLSCertificate, error) {
 					return nil, testutil.Err
 				},
@@ -169,7 +169,7 @@ func TestTLSCustomCertList(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				ListCustomTLSCertificatesFn: func(_ context.Context, _ *fastly.ListCustomTLSCertificatesInput) ([]*fastly.CustomTLSCertificate, error) {
 					t := testutil.Date
 					return []*fastly.CustomTLSCertificate{
@@ -220,7 +220,7 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				UpdateCustomTLSCertificateFn: func(_ context.Context, certInput *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					content = certInput.CertBlob
 					return nil, testutil.Err
@@ -232,7 +232,7 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				UpdateCustomTLSCertificateFn: func(_ context.Context, certInput *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					content = certInput.CertBlob
 					return &fastly.CustomTLSCertificate{
@@ -246,7 +246,7 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess + " with --name for different output",
-			API: mock.API{
+			API: &mock.API{
 				UpdateCustomTLSCertificateFn: func(_ context.Context, certInput *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					content = certInput.CertBlob
 					return &fastly.CustomTLSCertificate{
@@ -261,7 +261,7 @@ func TestTLSCustomCertUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate custom cert is submitted",
-			API: mock.API{
+			API: &mock.API{
 				UpdateCustomTLSCertificateFn: func(_ context.Context, certInput *fastly.UpdateCustomTLSCertificateInput) (*fastly.CustomTLSCertificate, error) {
 					content = certInput.CertBlob
 					return &fastly.CustomTLSCertificate{

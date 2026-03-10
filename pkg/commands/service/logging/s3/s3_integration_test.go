@@ -20,7 +20,7 @@ func TestS3Create(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -28,7 +28,7 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --secret-key bar --iam-role arn:aws:iam::123456789012:role/S3Access --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -36,7 +36,7 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --iam-role arn:aws:iam::123456789012:role/S3Access --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -44,7 +44,7 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key bar --iam-role arn:aws:iam::123456789012:role/S3Access --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -52,7 +52,7 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key bar --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateS3Fn:     createS3OK,
@@ -61,7 +61,7 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key bar --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateS3Fn:     createS3Error,
@@ -70,7 +70,7 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log2 --bucket log --iam-role arn:aws:iam::123456789012:role/S3Access --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateS3Fn:     createS3OK,
@@ -79,7 +79,7 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log2 --bucket log --iam-role arn:aws:iam::123456789012:role/S3Access --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateS3Fn:     createS3Error,
@@ -88,7 +88,7 @@ func TestS3Create(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --iam-role arn:aws:iam::123456789012:role/S3Access --compression-codec zstd --gzip-level 9 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -102,7 +102,7 @@ func TestS3List(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListS3sFn:      listS3sOK,
 			},
@@ -110,7 +110,7 @@ func TestS3List(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListS3sFn:      listS3sOK,
 			},
@@ -118,7 +118,7 @@ func TestS3List(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListS3sFn:      listS3sOK,
 			},
@@ -126,7 +126,7 @@ func TestS3List(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListS3sFn:      listS3sError,
 			},
@@ -144,7 +144,7 @@ func TestS3Describe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetS3Fn:        getS3Error,
 			},
@@ -152,7 +152,7 @@ func TestS3Describe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetS3Fn:        getS3OK,
 			},
@@ -170,7 +170,7 @@ func TestS3Update(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateS3Fn:     updateS3Error,
@@ -179,7 +179,7 @@ func TestS3Update(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateS3Fn:     updateS3OK,
@@ -198,7 +198,7 @@ func TestS3Delete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteS3Fn:     deleteS3Error,
@@ -207,7 +207,7 @@ func TestS3Delete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteS3Fn:     deleteS3OK,
