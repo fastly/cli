@@ -374,7 +374,7 @@ func (c *DeployCommand) Setup(out io.Writer) (fnActivateTrial Activator, service
 
 	token, s := c.Globals.Token()
 	if s == lookup.SourceUndefined {
-		return defaultActivator, "", fsterr.ErrNoToken
+		return defaultActivator, "", fsterr.ErrNoToken()
 	}
 
 	// IMPORTANT: We don't handle the error when looking up the Service ID.
@@ -660,7 +660,7 @@ func createService(
 				}
 				return serviceID, serviceVersion, fsterr.RemediationError{
 					Inner:       err,
-					Remediation: "To ensure you have access to the Compute platform we need your Customer ID. " + fsterr.AuthRemediation,
+					Remediation: "To ensure you have access to the Compute platform we need your Customer ID. " + fsterr.AuthRemediation(),
 				}
 			}
 

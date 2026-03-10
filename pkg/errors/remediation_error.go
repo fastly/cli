@@ -52,12 +52,40 @@ func (re RemediationError) Print(w io.Writer) {
 var FormatTemplate = "To fix this error, run the following command:\n\n\t$ %s"
 
 // AuthRemediation suggests checking the provided --token.
-var AuthRemediation = fmt.Sprintf(strings.Join([]string{
-	"This error may be caused by a missing, incorrect, or expired Fastly API token.",
-	"Check that you're supplying a valid token, either via --token,",
-	"through the environment variable %s, or through the config file via `fastly profile`.",
-	"Verify that the token is still valid via `fastly whoami`.",
-}, " "), env.APIToken)
+func AuthRemediation() string {
+	var parts []string
+	if env.AuthCommandDisabled() {
+		parts = []string{
+			"This error is likely caused by a missing, incorrect, or expired Fastly API token.",
+			fmt.Sprintf("Token precedence: %s > fastly.toml profile > default auth token.", env.APIToken),
+			fmt.Sprintf("Supply a token via %s.", env.APIToken),
+		}
+	} else {
+		parts = []string{
+			"This error is likely caused by a missing, incorrect, or expired Fastly API token.",
+			fmt.Sprintf("Token precedence: --token (raw or stored name) > %s > fastly.toml profile > default auth token.", env.APIToken),
+			fmt.Sprintf("Run `fastly auth login` to authenticate, or supply a token via --token or %s.", env.APIToken),
+		}
+	}
+	parts = append(parts, "Learn more: fastly.help/cli/cli-auth")
+	return strings.Join(parts, " ")
+}
+
+// ForbiddenRemediation suggests the token may lack required permissions.
+func ForbiddenRemediation() string {
+	parts := []string{
+		"This error may indicate insufficient token permissions, an incorrect account context,",
+		"or restricted access to the requested resource.",
+		"Check that your token has the required scope for this operation.",
+	}
+	if env.AuthCommandDisabled() {
+		parts = append(parts, fmt.Sprintf("Verify your token has the required scope via %s or the Fastly dashboard.", env.APIToken))
+	} else {
+		parts = append(parts, "You can re-authenticate with `fastly auth login` or check your current identity with `fastly whoami`.")
+	}
+	parts = append(parts, "Learn more: fastly.help/cli/cli-auth")
+	return strings.Join(parts, " ")
+}
 
 // NetworkRemediation suggests, somewhat unhelpfully, to try again later.
 var NetworkRemediation = strings.Join([]string{
@@ -160,8 +188,13 @@ var ComputeBuildRemediation = strings.Join([]string{
 // free trial feature flag.
 var ComputeTrialRemediation = "For more help with this error see fastly.help/cli/ecp-feature"
 
-// ProfileRemediation suggests no profiles exist.
-var ProfileRemediation = "Run `fastly profile create <NAME>` to create a profile, or `fastly profile list` to view available profiles (at least one profile should be set as 'default')."
+// ProfileRemediation suggests running auth commands.
+func ProfileRemediation() string {
+	if env.AuthCommandDisabled() {
+		return fmt.Sprintf("Supply a token via the %s environment variable.", env.APIToken)
+	}
+	return "Run `fastly auth login` to authenticate, or `fastly auth list` to view stored tokens."
+}
 
 // InvalidStaticConfigRemediation indicates an unexpected error occurred when
 // deserialising the CLI's internal configuration.
@@ -173,6 +206,38 @@ var InvalidStaticConfigRemediation = strings.Join([]string{
 }, " ")
 
 // TokenExpirationRemediation indicates that a stored OIDC token has expired.
-var TokenExpirationRemediation = strings.Join([]string{
-	"Run 'fastly --profile <NAME> sso' to refresh the token.",
-}, " ")
+func TokenExpirationRemediation() string {
+	if env.AuthCommandDisabled() {
+		return fmt.Sprintf("Supply a fresh token via the %s environment variable.", env.APIToken)
+	}
+	return "Run 'fastly auth login --sso --token <name>' to refresh the token."
+}
+
+// TokenExpirationRemediationForType returns remediation text appropriate for
+// the given token type ("static", "sso", or "" for unknown/default).
+//
+// NOTE: tokenType values must match config.AuthTokenTypeStatic / config.AuthTokenTypeSSO.
+// We cannot import pkg/config here (pkg/errors is a foundational package), so the
+// string literals are used directly. Callers should pass config.AuthToken.Type.
+func TokenExpirationRemediationForType(tokenType string) string {
+	if env.AuthCommandDisabled() {
+		return fmt.Sprintf("Supply a fresh token via the %s environment variable.", env.APIToken)
+	}
+	if tokenType == "static" {
+		return "Generate a new token from the Fastly dashboard or run 'fastly auth add'."
+	}
+	return "Run 'fastly auth login --sso --token <name>' to refresh the token."
+}
+
+// NonInteractiveAuthRemediation tells the user how to supply a token when
+// interactive prompts are suppressed.
+func NonInteractiveAuthRemediation() string {
+	parts := []string{"Interactive authentication is not available in this mode."}
+	if env.AuthCommandDisabled() {
+		parts = append(parts, fmt.Sprintf("Supply a token via the %s environment variable.", env.APIToken))
+	} else {
+		parts = append(parts, fmt.Sprintf("Supply a token via --token or the %s environment variable.", env.APIToken))
+	}
+	parts = append(parts, "Learn more: fastly.help/cli/cli-auth")
+	return strings.Join(parts, " ")
+}

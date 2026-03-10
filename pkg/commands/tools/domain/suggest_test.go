@@ -171,7 +171,7 @@ foo.club     foo.       club
 				},
 			},
 			WantOutput: `Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Domain: fastlytest.ing
 Subdomain: fastlytest.

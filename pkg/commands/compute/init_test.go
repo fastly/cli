@@ -327,13 +327,17 @@ func TestInit(t *testing.T) {
 			name: "no args but email defaults to config.toml value in author field",
 			args: args("compute init"),
 			configFile: config.File{
-				Profiles: config.Profiles{
-					"user": &config.Profile{
-						Email:   "test@example.com",
-						Default: true,
-					},
-					"non_default": &config.Profile{
-						Email: "no-default@example.com",
+				Auth: config.Auth{
+					Default: "user",
+					Tokens: config.AuthTokens{
+						"user": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Email: "test@example.com",
+						},
+						"non_default": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Email: "no-default@example.com",
+						},
 					},
 				},
 				StarterKits: config.StarterKitLanguages{

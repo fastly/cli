@@ -246,7 +246,7 @@ SERVICE  VERSION  NAME
 
 var listOpenstacksVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

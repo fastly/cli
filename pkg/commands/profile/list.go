@@ -5,11 +5,9 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/auth"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -23,64 +21,62 @@ type ListCommand struct {
 func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	var c ListCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("list", "List user profiles")
+	c.CmdClause = parent.Command("list", "List user profiles (deprecated: use 'fastly auth list' instead)")
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth list' instead.\n\n")
+
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	if ok, err := c.WriteJSON(out, c.Globals.Config.Profiles); ok {
+	if ok, err := c.WriteJSON(out, c.Globals.Config.Auth.Tokens); ok {
 		return err
 	}
 
-	if c.Globals.Config.Profiles == nil {
+	if len(c.Globals.Config.Auth.Tokens) == 0 {
 		msg := "no profiles available"
 		return fsterr.RemediationError{
 			Inner:       errors.New(msg),
-			Remediation: fsterr.ProfileRemediation,
+			Remediation: fsterr.ProfileRemediation(),
 		}
 	}
 
-	if len(c.Globals.Config.Profiles) == 0 {
-		text.Break(out)
-		text.Description(out, "No profiles defined. To create a profile, run", "fastly profile create <name>")
-		return nil
-	}
+	defaultName := c.Globals.Config.Auth.Default
 
-	name, p := profile.Default(c.Globals.Config.Profiles)
-	if p == nil {
-		text.Warning(out, profile.NoDefaults)
-	} else {
-		if c.Globals.Verbose() {
-			text.Break(out)
+	if defaultName != "" {
+		if at := c.Globals.Config.Auth.Tokens[defaultName]; at != nil {
+			if c.Globals.Verbose() {
+				text.Break(out)
+			}
+			text.Info(out, "Default profile highlighted in red.\n\n")
+			display(defaultName, at, true, out, text.BoldRed)
 		}
-		text.Info(out, "Default profile highlighted in red.\n\n")
-		display(name, p, out, text.BoldRed)
 	}
 
-	for k, v := range c.Globals.Config.Profiles {
-		if !v.Default {
+	for name, at := range c.Globals.Config.Auth.Tokens {
+		if name != defaultName {
 			text.Break(out)
-			display(k, v, out, text.Bold)
+			display(name, at, false, out, text.Bold)
 		}
 	}
 	return nil
 }
 
-func display(k string, v *config.Profile, out io.Writer, style func(a ...any) string) {
-	text.Output(out, style(k))
+func display(name string, at *config.AuthToken, isDefault bool, out io.Writer, style func(a ...any) string) {
+	text.Output(out, style(name))
 	text.Break(out)
-	text.Output(out, "%s: %t", style("Default"), v.Default)
-	text.Output(out, "%s: %s", style("Email"), v.Email)
-	text.Output(out, "%s: %s", style("Token"), v.Token)
-	text.Output(out, "%s: %t", style("SSO"), !auth.IsLongLivedToken(v))
-	if !auth.IsLongLivedToken(v) {
-		text.Output(out, "%s: %s", style("Customer ID"), v.CustomerID)
-		text.Output(out, "%s: %s", style("Customer Name"), v.CustomerName)
+	text.Output(out, "%s: %t", style("Default"), isDefault)
+	text.Output(out, "%s: %s", style("Email"), at.Email)
+	text.Output(out, "%s: %s", style("Token"), at.Token)
+	isSSO := at.Type == config.AuthTokenTypeSSO
+	text.Output(out, "%s: %t", style("SSO"), isSSO)
+	if isSSO {
+		text.Output(out, "%s: %s", style("Account ID"), at.AccountID)
+		text.Output(out, "%s: %s", style("Label"), at.Label)
 	}
 }

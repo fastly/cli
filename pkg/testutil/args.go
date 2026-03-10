@@ -110,7 +110,16 @@ func MockGlobalData(args []string, stdout io.Writer) *global.Data {
 		APIClientFactory: mock.APIClient(mock.API{}),
 		AuthServer:       &MockAuthServer{},
 		Config: config.File{
-			Profiles: TokenProfile(),
+			Auth: config.Auth{
+				Default: "user",
+				Tokens: config.AuthTokens{
+					"user": &config.AuthToken{
+						Type:  config.AuthTokenTypeStatic,
+						Token: "mock-token",
+						Email: "test@example.com",
+					},
+				},
+			},
 		},
 		ConfigPath: configPath,
 		Env:        config.Environment{},
@@ -128,24 +137,5 @@ func MockGlobalData(args []string, stdout io.Writer) *global.Data {
 			return nil // no-op
 		},
 		Output: stdout,
-	}
-}
-
-// TokenProfile generates a mock profile token.
-func TokenProfile() config.Profiles {
-	return config.Profiles{
-		// IMPORTANT: Tests mock the token to prevent runtime panics.
-		//
-		// Tokens are now interactively handled unless a token is provided
-		// directly via the --token flag or the FASTLY_API_TOKEN env variable.
-		//
-		// We force the CLI to skip the interactive prompts by setting a default
-		// user profile and making sure the timestamp is not expired.
-		"user": &config.Profile{
-			AccessTokenCreated: 9999999999, // Year: 2286
-			Default:            true,
-			Email:              "test@example.com",
-			Token:              "mock-token",
-		},
 	}
 }

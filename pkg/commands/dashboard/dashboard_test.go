@@ -153,7 +153,7 @@ func TestList(t *testing.T) {
 				ListObservabilityCustomDashboardsFn: listObservabilityCustomDashboards,
 			},
 			Args:       "--verbose",
-			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nName: Testing 1\nDescription: This is #1\nItems:\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n\nName: Testing 2\nDescription: This is #2\nItems:\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n\n",
+			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (auth: user)\n\nName: Testing 1\nDescription: This is #1\nItems:\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n\nName: Testing 2\nDescription: This is #2\nItems:\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n\n",
 		},
 	}
 
