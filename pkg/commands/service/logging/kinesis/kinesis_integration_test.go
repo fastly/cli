@@ -20,7 +20,7 @@ func TestKinesisCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -28,7 +28,7 @@ func TestKinesisCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -36,7 +36,7 @@ func TestKinesisCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -44,7 +44,7 @@ func TestKinesisCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --access-key foo --secret-key bar --region us-east-1 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateKinesisFn: createKinesisOK,
@@ -53,7 +53,7 @@ func TestKinesisCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --access-key foo --secret-key bar --region us-east-1 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateKinesisFn: createKinesisError,
@@ -62,7 +62,7 @@ func TestKinesisCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log2 --stream-name log --region us-east-1 --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateKinesisFn: createKinesisOK,
@@ -71,7 +71,7 @@ func TestKinesisCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log2 --stream-name log --region us-east-1 --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateKinesisFn: createKinesisError,
@@ -86,7 +86,7 @@ func TestKinesisList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesOK,
 			},
@@ -94,7 +94,7 @@ func TestKinesisList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesOK,
 			},
@@ -102,7 +102,7 @@ func TestKinesisList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesOK,
 			},
@@ -110,7 +110,7 @@ func TestKinesisList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListKinesisFn:  listKinesesError,
 			},
@@ -128,7 +128,7 @@ func TestKinesisDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetKinesisFn:   getKinesisError,
 			},
@@ -136,7 +136,7 @@ func TestKinesisDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetKinesisFn:   getKinesisOK,
 			},
@@ -154,7 +154,7 @@ func TestKinesisUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateKinesisFn: updateKinesisError,
@@ -163,7 +163,7 @@ func TestKinesisUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --region us-west-1 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateKinesisFn: updateKinesisOK,
@@ -182,7 +182,7 @@ func TestKinesisDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteKinesisFn: deleteKinesisError,
@@ -191,7 +191,7 @@ func TestKinesisDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteKinesisFn: deleteKinesisOK,

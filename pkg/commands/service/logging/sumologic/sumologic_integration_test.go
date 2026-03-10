@@ -19,7 +19,7 @@ func TestSumologicCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateSumologicFn: createSumologicOK,
@@ -28,7 +28,7 @@ func TestSumologicCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateSumologicFn: createSumologicError,
@@ -43,7 +43,7 @@ func TestSumologicList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListSumologicsFn: listSumologicsOK,
 			},
@@ -51,7 +51,7 @@ func TestSumologicList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListSumologicsFn: listSumologicsOK,
 			},
@@ -59,7 +59,7 @@ func TestSumologicList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListSumologicsFn: listSumologicsOK,
 			},
@@ -67,7 +67,7 @@ func TestSumologicList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListSumologicsFn: listSumologicsError,
 			},
@@ -85,7 +85,7 @@ func TestSumologicDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSumologicFn: getSumologicError,
 			},
@@ -93,7 +93,7 @@ func TestSumologicDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSumologicFn: getSumologicOK,
 			},
@@ -111,7 +111,7 @@ func TestSumologicUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateSumologicFn: updateSumologicError,
@@ -120,7 +120,7 @@ func TestSumologicUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateSumologicFn: updateSumologicOK,
@@ -139,7 +139,7 @@ func TestSumologicDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteSumologicFn: deleteSumologicError,
@@ -148,7 +148,7 @@ func TestSumologicDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteSumologicFn: deleteSumologicOK,

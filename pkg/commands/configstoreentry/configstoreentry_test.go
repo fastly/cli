@@ -32,7 +32,7 @@ func TestCreateEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				CreateConfigStoreItemFn: func(_ context.Context, _ *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return nil, errors.New("invalid request")
 				},
@@ -41,7 +41,7 @@ func TestCreateEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				CreateConfigStoreItemFn: func(_ context.Context, i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
 						StoreID: i.StoreID,
@@ -54,7 +54,7 @@ func TestCreateEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --json", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				CreateConfigStoreItemFn: func(_ context.Context, i *fastly.CreateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
 						StoreID:   i.StoreID,
@@ -116,7 +116,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				DeleteConfigStoreItemFn: func(_ context.Context, _ *fastly.DeleteConfigStoreItemInput) error {
 					return errors.New("invalid request")
 				},
@@ -125,7 +125,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				DeleteConfigStoreItemFn: func(_ context.Context, _ *fastly.DeleteConfigStoreItemInput) error {
 					return nil
 				},
@@ -134,7 +134,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				DeleteConfigStoreItemFn: func(_ context.Context, _ *fastly.DeleteConfigStoreItemInput) error {
 					return nil
 				},
@@ -151,7 +151,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListConfigStoreItemsFn: func(_ context.Context, _ *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return testItems, nil
 				},
@@ -168,7 +168,7 @@ SUCCESS: Deleted all keys from Config Store '%s'
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListConfigStoreItemsFn: func(_ context.Context, _ *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return testItems, nil
 				},
@@ -205,7 +205,7 @@ func TestDescribeEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetConfigStoreItemFn: func(_ context.Context, _ *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return nil, errors.New("invalid request")
 				},
@@ -214,7 +214,7 @@ func TestDescribeEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetConfigStoreItemFn: func(_ context.Context, i *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
 						StoreID:   i.StoreID,
@@ -229,7 +229,7 @@ func TestDescribeEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetConfigStoreItemFn: func(_ context.Context, i *fastly.GetConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
 						StoreID:   i.StoreID,
@@ -269,7 +269,7 @@ func TestListEntriesCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListConfigStoreItemsFn: func(_ context.Context, _ *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return nil, errors.New("invalid request")
 				},
@@ -278,7 +278,7 @@ func TestListEntriesCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListConfigStoreItemsFn: func(_ context.Context, _ *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return testItems, nil
 				},
@@ -287,7 +287,7 @@ func TestListEntriesCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListConfigStoreItemsFn: func(_ context.Context, _ *fastly.ListConfigStoreItemsInput) ([]*fastly.ConfigStoreItem, error) {
 					return testItems, nil
 				},
@@ -314,7 +314,7 @@ func TestUpdateEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				UpdateConfigStoreItemFn: func(_ context.Context, _ *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return nil, errors.New("invalid request")
 				},
@@ -323,7 +323,7 @@ func TestUpdateEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				UpdateConfigStoreItemFn: func(_ context.Context, i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
 						StoreID: i.StoreID,
@@ -336,7 +336,7 @@ func TestUpdateEntryCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --json", storeID, itemKey, itemValue+"updated"),
-			API: mock.API{
+			API: &mock.API{
 				UpdateConfigStoreItemFn: func(_ context.Context, i *fastly.UpdateConfigStoreItemInput) (*fastly.ConfigStoreItem, error) {
 					return &fastly.ConfigStoreItem{
 						StoreID:   i.StoreID,

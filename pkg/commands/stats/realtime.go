@@ -28,6 +28,8 @@ func NewRealtimeCommand(parent argparser.Registerer, g *global.Data) *RealtimeCo
 	c.Globals = g
 
 	c.CmdClause = parent.Command("realtime", "View realtime stats for a Fastly service")
+
+	// Optional.
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,

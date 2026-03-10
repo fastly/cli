@@ -23,13 +23,13 @@ func TestServiceAuthCreate(t *testing.T) {
 		{
 			Name:      "api failure",
 			Args:      "--user-id 123 --service-id 123",
-			API:       mock.API{CreateServiceAuthorizationFn: createServiceAuthError},
+			API:       &mock.API{CreateServiceAuthorizationFn: createServiceAuthError},
 			WantError: errTest.Error(),
 		},
 		{
 			Name:       "success",
 			Args:       "--user-id 123 --service-id 123",
-			API:        mock.API{CreateServiceAuthorizationFn: createServiceAuthOK},
+			API:        &mock.API{CreateServiceAuthorizationFn: createServiceAuthOK},
 			WantOutput: "Created service authorization 12345",
 		},
 	}
@@ -47,19 +47,19 @@ func TestServiceAuthList(t *testing.T) {
 		{
 			Name:      "api failure",
 			Args:      "",
-			API:       mock.API{ListServiceAuthorizationsFn: listServiceAuthError},
+			API:       &mock.API{ListServiceAuthorizationsFn: listServiceAuthError},
 			WantError: errTest.Error(),
 		},
 		{
 			Name:       "success",
 			Args:       "",
-			API:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
+			API:        &mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
 			WantOutput: "AUTH ID  USER ID  SERVICE ID  PERMISSION\n123      456      789         read_only\n",
 		},
 		{
 			Name: "success with json",
 			Args: "--json",
-			API:  mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
+			API:  &mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
 			WantOutput: `{
   "Info": {
     "links": {},
@@ -85,7 +85,7 @@ func TestServiceAuthList(t *testing.T) {
 		{
 			Name:       "success with verbose",
 			Args:       "--verbose",
-			API:        mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
+			API:        &mock.API{ListServiceAuthorizationsFn: listServiceAuthOK},
 			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (auth: user)\n\nAuth ID: 123\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
 	}
@@ -108,19 +108,19 @@ func TestServiceAuthDescribe(t *testing.T) {
 		{
 			Name:      "api failure",
 			Args:      "--id 123",
-			API:       mock.API{GetServiceAuthorizationFn: describeServiceAuthError},
+			API:       &mock.API{GetServiceAuthorizationFn: describeServiceAuthError},
 			WantError: errTest.Error(),
 		},
 		{
 			Name:       "success",
 			Args:       "--id 123",
-			API:        mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
+			API:        &mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
 			WantOutput: "Auth ID: 12345\nUser ID: 456\nService ID: 789\nPermission: read_only\n",
 		},
 		{
 			Name: "success with json",
 			Args: "--id 123 --json",
-			API:  mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
+			API:  &mock.API{GetServiceAuthorizationFn: describeServiceAuthOK},
 			WantOutput: `{
   "CreatedAt": null,
   "DeletedAt": null,
@@ -155,13 +155,13 @@ func TestServiceAuthUpdate(t *testing.T) {
 		{
 			Name:      "api failure",
 			Args:      "--id 123 --permission full",
-			API:       mock.API{UpdateServiceAuthorizationFn: updateServiceAuthError},
+			API:       &mock.API{UpdateServiceAuthorizationFn: updateServiceAuthError},
 			WantError: errTest.Error(),
 		},
 		{
 			Name:       "success",
 			Args:       "--id 123 --permission full",
-			API:        mock.API{UpdateServiceAuthorizationFn: updateServiceAuthOK},
+			API:        &mock.API{UpdateServiceAuthorizationFn: updateServiceAuthOK},
 			WantOutput: "Updated service authorization 123",
 		},
 	}
@@ -179,13 +179,13 @@ func TestServiceAuthDelete(t *testing.T) {
 		{
 			Name:      "api failure",
 			Args:      "--id 123",
-			API:       mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthError},
+			API:       &mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthError},
 			WantError: errTest.Error(),
 		},
 		{
 			Name:       "success",
 			Args:       "--id 123",
-			API:        mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthOK},
+			API:        &mock.API{DeleteServiceAuthorizationFn: deleteServiceAuthOK},
 			WantOutput: "Deleted service authorization 123",
 		},
 	}

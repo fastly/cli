@@ -20,7 +20,7 @@ func TestElasticsearchCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --index logs --url example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				CreateElasticsearchFn: createElasticsearchOK,
@@ -29,7 +29,7 @@ func TestElasticsearchCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --index logs --url example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				CreateElasticsearchFn: createElasticsearchError,
@@ -44,7 +44,7 @@ func TestElasticsearchList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
 			},
@@ -52,7 +52,7 @@ func TestElasticsearchList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
 			},
@@ -60,7 +60,7 @@ func TestElasticsearchList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsOK,
 			},
@@ -68,7 +68,7 @@ func TestElasticsearchList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListElasticsearchFn: listElasticsearchsError,
 			},
@@ -86,7 +86,7 @@ func TestElasticsearchDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				GetElasticsearchFn: getElasticsearchError,
 			},
@@ -94,7 +94,7 @@ func TestElasticsearchDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:     testutil.ListVersions,
 				GetElasticsearchFn: getElasticsearchOK,
 			},
@@ -112,7 +112,7 @@ func TestElasticsearchUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				UpdateElasticsearchFn: updateElasticsearchError,
@@ -121,7 +121,7 @@ func TestElasticsearchUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				UpdateElasticsearchFn: updateElasticsearchOK,
@@ -140,7 +140,7 @@ func TestElasticsearchDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				DeleteElasticsearchFn: deleteElasticsearchError,
@@ -149,7 +149,7 @@ func TestElasticsearchDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				CloneVersionFn:        testutil.CloneVersionResult(4),
 				DeleteElasticsearchFn: deleteElasticsearchOK,

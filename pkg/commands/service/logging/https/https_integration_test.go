@@ -21,7 +21,7 @@ func TestHTTPSCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHTTPSFn:  createHTTPSOK,
@@ -30,7 +30,7 @@ func TestHTTPSCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHTTPSFn:  createHTTPSError,
@@ -39,7 +39,7 @@ func TestHTTPSCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --compression-codec zstd --gzip-level 9 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -53,7 +53,7 @@ func TestHTTPSList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHTTPSFn:    listHTTPSsOK,
 			},
@@ -61,7 +61,7 @@ func TestHTTPSList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHTTPSFn:    listHTTPSsOK,
 			},
@@ -69,7 +69,7 @@ func TestHTTPSList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHTTPSFn:    listHTTPSsOK,
 			},
@@ -77,7 +77,7 @@ func TestHTTPSList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListHTTPSFn:    listHTTPSsError,
 			},
@@ -95,7 +95,7 @@ func TestHTTPSDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetHTTPSFn:     getHTTPSError,
 			},
@@ -103,7 +103,7 @@ func TestHTTPSDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetHTTPSFn:     getHTTPSOK,
 			},
@@ -121,7 +121,7 @@ func TestHTTPSUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHTTPSFn:  updateHTTPSError,
@@ -130,7 +130,7 @@ func TestHTTPSUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHTTPSFn:  updateHTTPSOK,
@@ -149,7 +149,7 @@ func TestHTTPSDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHTTPSFn:  deleteHTTPSError,
@@ -158,7 +158,7 @@ func TestHTTPSDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHTTPSFn:  deleteHTTPSOK,

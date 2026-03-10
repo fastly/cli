@@ -21,7 +21,7 @@ func TestProfileCreate(t *testing.T) {
 		{
 			Name: "validate profile creation works",
 			Args: "foo",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: getCurrentUser,
 				GetTokenSelfFn:   getToken,
 			},
@@ -607,7 +607,7 @@ func TestProfileUpdate(t *testing.T) {
 		{
 			Name: "validate updating profile works",
 			Args: "bar",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: getCurrentUser,
 				GetTokenSelfFn:   getToken,
 			},

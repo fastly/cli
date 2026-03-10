@@ -28,7 +28,7 @@ import (
 type CLIScenario struct {
 	// API is a mock API implementation which can be used by the
 	// command under test
-	API mock.API
+	API *mock.API
 	// Args is the input arguments for the command to execute (not
 	// including the command names themselves).
 	Args string
@@ -118,17 +118,19 @@ func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 		// Instead it has started to expose functions that accept a client.
 		// This means for test mocking we have to adjust the mock approach.
 		var acf global.APIClientFactory
-		if scenario.Client != nil {
+		if scenario.API == nil {
 			acf = func(_, _ string, _ bool) (api.Interface, error) {
 				fc, err := fastly.NewClientForEndpoint("no-key", "api.example.com")
 				if err != nil {
 					return nil, fmt.Errorf("failed to mock fastly.Client: %w", err)
 				}
-				fc.HTTPClient = scenario.Client
+				if scenario.Client != nil {
+					fc.HTTPClient = scenario.Client
+				}
 				return fc, nil
 			}
 		} else {
-			acf = mock.APIClient(scenario.API)
+			acf = mock.APIClient(*scenario.API)
 		}
 		opts.APIClientFactory = acf
 

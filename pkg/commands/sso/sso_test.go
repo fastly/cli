@@ -164,7 +164,7 @@ func TestSSO(t *testing.T) {
 		// Otherwise no OAuth flow is happening here.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -243,7 +243,7 @@ func TestSSO(t *testing.T) {
 		// The user accepts re-auth, and the `pops` command executes after.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{

@@ -31,7 +31,7 @@ func TestACLCreate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foo --service-id 123 --version 1",
@@ -39,7 +39,7 @@ func TestACLCreate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foo --service-id 123 --version 2",
@@ -47,7 +47,7 @@ func TestACLCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateACL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateACLFn: func(_ context.Context, _ *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
@@ -58,7 +58,7 @@ func TestACLCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateACL API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateACLFn: func(_ context.Context, i *fastly.CreateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
@@ -74,7 +74,7 @@ func TestACLCreate(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateACLFn: func(_ context.Context, i *fastly.CreateACLInput) (*fastly.ACL, error) {
@@ -113,7 +113,7 @@ func TestACLDelete(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 1",
@@ -121,7 +121,7 @@ func TestACLDelete(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foo --service-id 123 --version 2",
@@ -129,7 +129,7 @@ func TestACLDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteACL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteACLFn: func(_ context.Context, _ *fastly.DeleteACLInput) error {
 					return testutil.Err
@@ -140,7 +140,7 @@ func TestACLDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteACL API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteACLFn: func(_ context.Context, _ *fastly.DeleteACLInput) error {
 					return nil
@@ -151,7 +151,7 @@ func TestACLDelete(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteACLFn: func(_ context.Context, _ *fastly.DeleteACLInput) error {
@@ -185,7 +185,7 @@ func TestACLDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetACL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetACLFn: func(_ context.Context, _ *fastly.GetACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
@@ -196,7 +196,7 @@ func TestACLDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetACL API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetACLFn:       getACL,
 			},
@@ -205,7 +205,7 @@ func TestACLDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetACLFn:       getACL,
 			},
@@ -230,7 +230,7 @@ func TestACLList(t *testing.T) {
 		},
 		{
 			Name: "validate ListACLs API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn: func(_ context.Context, _ *fastly.ListACLsInput) ([]*fastly.ACL, error) {
 					return nil, testutil.Err
@@ -241,7 +241,7 @@ func TestACLList(t *testing.T) {
 		},
 		{
 			Name: "validate ListACLs API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
@@ -250,7 +250,7 @@ func TestACLList(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
@@ -259,7 +259,7 @@ func TestACLList(t *testing.T) {
 		},
 		{
 			Name: "validate --verbose flag",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListACLsFn:     listACLs,
 			},
@@ -295,7 +295,7 @@ func TestACLUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foo --new-name beepboop --service-id 123 --version 1",
@@ -303,7 +303,7 @@ func TestACLUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foo --new-name beepboop --service-id 123 --version 2",
@@ -311,7 +311,7 @@ func TestACLUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateACL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateACLFn: func(_ context.Context, _ *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return nil, testutil.Err
@@ -322,7 +322,7 @@ func TestACLUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateACL API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateACLFn: func(_ context.Context, i *fastly.UpdateACLInput) (*fastly.ACL, error) {
 					return &fastly.ACL{
@@ -338,7 +338,7 @@ func TestACLUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateACLFn: func(_ context.Context, i *fastly.UpdateACLInput) (*fastly.ACL, error) {
