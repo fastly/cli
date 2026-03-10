@@ -53,7 +53,7 @@ func TestAuthAdd(t *testing.T) {
 		{
 			Name: "add with explicit name stores metadata",
 			Args: "add mytoken --api-token test-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfFull,
 			},
@@ -84,7 +84,7 @@ func TestAuthAdd(t *testing.T) {
 		{
 			Name: "add without name derives from API token name",
 			Args: "add --api-token test-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfFull,
 			},
@@ -103,7 +103,7 @@ func TestAuthAdd(t *testing.T) {
 		{
 			Name: "add without name fails when API token has no name",
 			Args: "add --api-token test-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfNoName,
 			},
@@ -112,7 +112,7 @@ func TestAuthAdd(t *testing.T) {
 		{
 			Name: "add stores expiry when present",
 			Args: "add expiring --api-token test-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfWithExpiry,
 			},
@@ -131,7 +131,7 @@ func TestAuthAdd(t *testing.T) {
 		{
 			Name: "add sets default when no default exists",
 			Args: "add first-token --api-token test-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfFull,
 			},
@@ -149,7 +149,7 @@ func TestAuthAdd(t *testing.T) {
 		{
 			Name: "add rejects duplicate name",
 			Args: "add existing --api-token test-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfFull,
 			},
@@ -176,7 +176,7 @@ func TestAuthLogin(t *testing.T) {
 		{
 			Name: "login stores metadata under API token name",
 			Args: "login",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfFull,
 			},
@@ -210,7 +210,7 @@ func TestAuthLogin(t *testing.T) {
 		{
 			Name: "login falls back to default when API token has no name",
 			Args: "login",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: testGetCurrentUser,
 				GetTokenSelfFn:   testTokenSelfNoName,
 			},
@@ -357,7 +357,7 @@ func TestAuthAddScopedToken(t *testing.T) {
 		{
 			Name: "add with name succeeds when GetCurrentUser fails but GetTokenSelf succeeds",
 			Args: "add purge-token --api-token scoped-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
 					return nil, fmt.Errorf("403 Forbidden: Access denied to purge token")
 				},
@@ -387,7 +387,7 @@ func TestAuthAddScopedToken(t *testing.T) {
 		{
 			Name: "add with name fails when both API calls fail (invalid token)",
 			Args: "add bad-token --api-token invalid-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
 					return nil, fmt.Errorf("403 Forbidden")
 				},
@@ -400,7 +400,7 @@ func TestAuthAddScopedToken(t *testing.T) {
 		{
 			Name: "add without name gives friendly error for scoped token",
 			Args: "add --api-token scoped-token-value",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
 					return nil, fmt.Errorf("403 Forbidden: Access denied to purge token")
 				},

@@ -135,7 +135,7 @@ func TestSSO(t *testing.T) {
 		// 6. Success processing `pops` command with a static (non-SSO) auth token.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -214,7 +214,7 @@ func TestSSO(t *testing.T) {
 		// The SSO flow succeeds and the command executes afterward.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -284,7 +284,7 @@ func TestSSO(t *testing.T) {
 		// [auth] before processToken() runs, so the token resolves correctly.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -334,7 +334,7 @@ func TestSSO(t *testing.T) {
 		// Profile-only entries must be merged into [auth], not dropped.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -453,7 +453,7 @@ func TestSSO(t *testing.T) {
 		// 12. Missing manifest profile emits a single warning.
 		{
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -494,7 +494,7 @@ func TestSSO(t *testing.T) {
 		// 13. Missing manifest profile warning is suppressed under --quiet.
 		{
 			Args: "pops --quiet",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -532,7 +532,7 @@ func TestSSO(t *testing.T) {
 		// 14. Missing manifest profile warning suppressed when --token overrides.
 		{
 			Args: "pops --token override-token",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -571,7 +571,7 @@ func TestSSO(t *testing.T) {
 		{
 			Name: "auto-prompt static token",
 			Args: "whoami",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
 					return &fastly.User{
 						Login:      fastly.ToPointer("alice@example.com"),
@@ -641,7 +641,7 @@ func TestSSO(t *testing.T) {
 		{
 			Name: "auto-prompt use-sso env",
 			Args: "pops",
-			API: mock.API{
+			API: &mock.API{
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
@@ -792,7 +792,7 @@ func TestSSO(t *testing.T) {
 		{
 			Name: "sso stores api token metadata",
 			Args: "auth login --sso --token sso-meta",
-			API: mock.API{
+			API: &mock.API{
 				GetTokenSelfFn: func(_ context.Context) (*fastly.Token, error) {
 					scope := fastly.GlobalScope
 					return &fastly.Token{
