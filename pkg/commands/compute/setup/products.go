@@ -346,6 +346,18 @@ func (p *Products) Configure() error {
 
 // Create calls the relevant API to create the service resource(s).
 func (p *Products) Create() error {
+	anyEnabled := false
+	for _, spec := range productsSpecs {
+		product := normalizeIfacePtr(spec.getConfiguredProduct(&p.required))
+		if product != nil && product.Enabled() {
+			anyEnabled = true
+			break
+		}
+	}
+	if !anyEnabled {
+		return nil
+	}
+
 	if p.Spinner == nil {
 		return fsterrors.RemediationError{
 			Inner:       fmt.Errorf("internal logic error: no spinner configured for setup.Products"),
