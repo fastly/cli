@@ -71,7 +71,7 @@ func NewHTTPClient(res []*http.Response, err []error, saveRequests bool) *HTTPCl
 	}
 }
 
-// NewHTTPClientDefault returns a mock HTTP Client that returns a stubbed responses and
+// NewHTTPClientDefault returns a mock HTTP Client that returns stubbed responses and
 // errors, and saves requests.
 func NewHTTPClientDefault(res []*http.Response, err []error) *HTTPClient {
 	return NewHTTPClient(res, err, true)
@@ -83,8 +83,8 @@ func NewHTTPClientWithResponses(res []*http.Response) *HTTPClient {
 	return NewHTTPClientDefault(res, make([]error, len(res)))
 }
 
-// NewHTTPClientWithErrors returns a mock HTTP Client that returns stubbed response and
-// no errors, and saves requests.
+// NewHTTPClientWithErrors returns a mock HTTP Client that returns errors with no responses,
+// and saves requests.
 func NewHTTPClientWithErrors(err []error) *HTTPClient {
 	return NewHTTPClientDefault(make([]*http.Response, len(err)), err)
 }
