@@ -1,7 +1,5 @@
 package manifest
 
-import "reflect"
-
 // Setup represents a set of service configuration that works with the code in
 // the package. See https://www.fastly.com/documentation/reference/compute/fastly-toml.
 type Setup struct {
@@ -108,25 +106,17 @@ type SetupProducts struct {
 }
 
 func (p *SetupProducts) AnyDefined() bool {
-	if p == nil {
-		return false
-	}
-
-	rv := reflect.ValueOf(p).Elem() // SetupProducts
-	settingsT := reflect.TypeOf((*SetupProductSettings)(nil)).Elem()
-
-	for i := 0; i < rv.NumField(); i++ {
-		fv := rv.Field(i)
-		if fv.Kind() != reflect.Ptr || fv.IsNil() {
-			continue
-		}
-
-		if fv.Type().Implements(settingsT) {
-			return true
-		}
-	}
-
-	return false
+	return p != nil && (p.APIDiscovery != nil ||
+		p.BotManagement != nil ||
+		p.BrotliCompression != nil ||
+		p.DdosProtection != nil ||
+		p.DomainInspector != nil ||
+		p.Fanout != nil ||
+		p.ImageOptimizer != nil ||
+		p.LogExplorerInsights != nil ||
+		p.NGWAF != nil ||
+		p.OriginInspector != nil ||
+		p.WebSockets != nil)
 }
 
 type SetupProductSettings interface {
