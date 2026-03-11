@@ -110,10 +110,13 @@ func writeUsageTable(out io.Writer, data *fastly.RegionsUsage) error {
 		return nil
 	}
 	regions := slices.Sorted(maps.Keys(*data))
-	for _, region := range regions {
+	for i, region := range regions {
 		usage := (*data)[region]
 		if usage == nil {
 			continue
+		}
+		if i > 0 {
+			fmt.Fprintln(out)
 		}
 		text.Output(out, "Region: %s", region)
 		text.Output(out, "  Bandwidth:        %d", fastly.ToValue(usage.Bandwidth))
@@ -135,10 +138,13 @@ func writeUsageByServiceTable(out io.Writer, data *fastly.ServicesByRegionsUsage
 		return nil
 	}
 	regions := slices.Sorted(maps.Keys(*data))
-	for _, region := range regions {
+	for i, region := range regions {
 		services := (*data)[region]
 		if services == nil {
 			continue
+		}
+		if i > 0 {
+			fmt.Fprintln(out)
 		}
 		text.Output(out, "Region: %s", region)
 		serviceIDs := slices.Sorted(maps.Keys(*services))
