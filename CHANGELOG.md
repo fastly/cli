@@ -18,6 +18,12 @@
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
 - build(deps): `actions/upload-artifact` from 6 to 7 ([#1675](https://github.com/fastly/cli/pull/1675))
 - build(deps): `actions/download-artifact` from 7 to 8 ([#1675](https://github.com/fastly/cli/pull/1675))
+- build(deps): `golang.org/x/sys` from 0.41.0 to 0.42.0 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.20 to 0.0.21 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.25 to 4.1.26 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `golang.org/x/oauth2` from 0.35.0 to 0.36.0 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `golang.org/x/sync` from 0.19.0 to 0.20.0 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `github.com/fastly/go-fastly/v13` from 13.0.0 to 13.0.1 ([#1679](https://github.com/fastly/cli/pull/1679))
 
 ## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
 

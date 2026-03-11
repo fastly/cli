@@ -112,7 +112,16 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	default:
 		writeHeader(out, envelope.Meta)
-		if err := writeBlocks(out, serviceID, envelope.Data); err != nil {
+		if c.field != "" {
+			for _, block := range envelope.Data {
+				if err := fmtFieldLine(out, c.field, block); err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]any{
+						"Service ID": serviceID,
+					})
+					return err
+				}
+			}
+		} else if err := writeBlocks(out, serviceID, envelope.Data); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
