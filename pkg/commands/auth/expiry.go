@@ -31,7 +31,7 @@ const (
 	// accessOnlyWarningThreshold is the warning window when only an access token
 	// expiry is available (no refresh token). This is shorter because access
 	// tokens are short-lived and auto-refresh.
-	accessOnlyWarningThreshold = 1 * time.Hour
+	accessOnlyWarningThreshold = 10 * time.Minute
 )
 
 // GetExpirationStatus computes the expiration status for a token.

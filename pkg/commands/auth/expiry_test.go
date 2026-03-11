@@ -123,7 +123,7 @@ func TestGetExpirationStatus(t *testing.T) {
 
 		// SSO tokens: AccessExpiresAt fallback.
 		{
-			name: "sso no refresh, access OK (beyond 1h threshold)",
+			name: "sso no refresh, access OK (beyond threshold)",
 			token: &config.AuthToken{
 				Type:            config.AuthTokenTypeSSO,
 				AccessExpiresAt: now.Add(2 * time.Hour).Format(time.RFC3339),
@@ -131,10 +131,10 @@ func TestGetExpirationStatus(t *testing.T) {
 			wantStatus: authcmd.StatusOK,
 		},
 		{
-			name: "sso no refresh, access expiring soon (within 1h)",
+			name: "sso no refresh, access expiring soon (within 10m)",
 			token: &config.AuthToken{
 				Type:            config.AuthTokenTypeSSO,
-				AccessExpiresAt: now.Add(30 * time.Minute).Format(time.RFC3339),
+				AccessExpiresAt: now.Add(5 * time.Minute).Format(time.RFC3339),
 			},
 			wantStatus: authcmd.StatusExpiringSoon,
 		},
