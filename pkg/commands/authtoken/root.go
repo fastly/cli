@@ -21,7 +21,7 @@ const CommandName = "auth-token"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage API tokens for Fastly service users")
+	c.CmdClause = parent.Command(CommandName, "Manage API tokens (deprecated: use 'fastly auth' subcommands instead)").Hidden()
 	return &c
 }
 

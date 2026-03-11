@@ -5,13 +5,25 @@
 ### Breaking:
 
 ### Bug Fixes:
+- fix(stats): `stats historical` now returns write errors instead of silently swallowing them. [#1678](https://github.com/fastly/cli/pull/1678)
 
 ### Enhancements:
+- feat(stats): add `--field` flag to `stats historical` to filter to a single stats field. [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `stats aggregate` subcommand for cross-service aggregated stats. [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `stats usage` subcommand for bandwidth/request usage, with `--by-service` breakdown. [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `stats domain-inspector` subcommand for domain-level metrics. [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `stats origin-inspector` subcommand for origin-level metrics. [#1678](https://github.com/fastly/cli/pull/1678)
 
 ### Dependencies:
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
 - build(deps): `actions/upload-artifact` from 6 to 7 ([#1675](https://github.com/fastly/cli/pull/1675))
 - build(deps): `actions/download-artifact` from 7 to 8 ([#1675](https://github.com/fastly/cli/pull/1675))
+- build(deps): `golang.org/x/sys` from 0.41.0 to 0.42.0 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.20 to 0.0.21 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.25 to 4.1.26 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `golang.org/x/oauth2` from 0.35.0 to 0.36.0 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `golang.org/x/sync` from 0.19.0 to 0.20.0 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `github.com/fastly/go-fastly/v13` from 13.0.0 to 13.0.1 ([#1679](https://github.com/fastly/cli/pull/1679))
 
 ## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
 
@@ -85,9 +97,16 @@ both the old and new forms are:
 ### Breaking:
 
 - breaking(domain) - service-version oriented `domain` commands have been moved under the `service domain` command. Versionless `domain-v1` commands have been moved to the `domain` command ([#1615](https://github.com/fastly/cli/pull/1615))
+### Deprecations:
+
+- deprecated(auth): `fastly profile`, `fastly sso`, and `fastly auth-token` command trees are deprecated and will be removed in a future release. Use `fastly auth` subcommands instead.
+- deprecated(auth): `--profile` and `--enable-sso` global flags are deprecated. Use `--token <name>` to select a stored auth token by name, or `fastly auth login --sso --token <name>` for SSO.
 
 ### Enhancements:
 
+- feat(auth): `auth login --sso` now requires `--token <name>` to explicitly name the stored token. This prevents accidentally overwriting tokens in multi-user SSO workflows.
+- feat(auth): add `FASTLY_DISABLE_AUTH_COMMAND` env var to hide the `fastly auth` command tree from help, completions, and invocation.
+- feat(auth): when `FASTLY_DISABLE_AUTH_COMMAND` is set, the `--token`/`-t` global flag is also disabled. Use `FASTLY_API_TOKEN` or stored config tokens instead.
 - feat(ngwaf/rules): Upgrade go-fastly to v13.0.0 and allow ngwaf rules to accept multival conditions ([#1655](https://github.com/fastly/cli/pull/1655))
 - feat(rust): Allow testing with prerelease Rust versions ([#1604](https://github.com/fastly/cli/pull/1604))
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))

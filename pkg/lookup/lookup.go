@@ -19,4 +19,7 @@ const (
 
 	// SourceDefault indicates the parameter came from a program default.
 	SourceDefault
+
+	// SourceAuth indicates the parameter came from the [auth] config section.
+	SourceAuth
 )

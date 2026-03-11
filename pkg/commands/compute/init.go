@@ -31,7 +31,6 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/internal/beacon"
 	"github.com/fastly/cli/pkg/manifest"
-	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -157,10 +156,10 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		return err
 	}
 
-	// Assign the default profile email if available.
+	// Assign the default auth token email if available.
 	email := ""
-	if _, p := profile.Default(c.Globals.Config.Profiles); p != nil {
-		email = p.Email
+	if _, at := c.Globals.Config.GetDefaultAuthToken(); at != nil && at.Email != "" {
+		email = at.Email
 	}
 
 	var (

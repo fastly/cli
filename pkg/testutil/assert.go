@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	stderrors "errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -85,7 +86,8 @@ func AssertErrorContains(t *testing.T, err error, target string) {
 func AssertRemediationErrorContains(t *testing.T, err error, target string) {
 	t.Helper()
 
-	re, ok := err.(errors.RemediationError)
+	var re errors.RemediationError
+	ok := stderrors.As(err, &re)
 
 	switch {
 	case err == nil && target == "":
@@ -93,10 +95,10 @@ func AssertRemediationErrorContains(t *testing.T, err error, target string) {
 	case err == nil && target != "":
 		t.Fatalf("want %q, have no error", target)
 	case err != nil && target != "" && !ok:
-		t.Fatal("have no RemediationError")
+		t.Fatalf("have no RemediationError in: %v", err)
 	case err != nil && target != "":
 		if want, have := target, re.Remediation; !strings.Contains(have, want) {
-			t.Fatalf("want %q, have %q", want, have)
+			t.Fatalf("want remediation containing %q, have %q", want, have)
 		}
 	}
 }

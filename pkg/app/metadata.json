@@ -129,6 +129,60 @@
       ]
     }
   },
+  "auth": {
+    "login": {
+      "examples": [
+        {
+          "cmd": "fastly auth login",
+          "title": "Authenticate by pasting an API token"
+        },
+        {
+          "cmd": "fastly auth login --sso --token my-sso",
+          "title": "Authenticate using browser-based SSO"
+        }
+      ]
+    },
+    "add": {
+      "examples": [
+        {
+          "cmd": "fastly auth add staging --api-token $FASTLY_API_TOKEN",
+          "title": "Store a named token for a secondary environment"
+        }
+      ]
+    },
+    "use": {
+      "examples": [
+        {
+          "cmd": "fastly auth use staging",
+          "title": "Make a stored token the default"
+        }
+      ]
+    },
+    "list": {
+      "examples": [
+        {
+          "cmd": "fastly auth list",
+          "title": "List stored tokens"
+        }
+      ]
+    },
+    "show": {
+      "examples": [
+        {
+          "cmd": "fastly auth show staging",
+          "title": "Show details for a stored token"
+        }
+      ]
+    },
+    "delete": {
+      "examples": [
+        {
+          "cmd": "fastly auth delete staging",
+          "title": "Delete a stored token"
+        }
+      ]
+    }
+  },
   "auth-token": {
     "create": {
       "apis": [

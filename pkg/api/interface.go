@@ -240,6 +240,13 @@ type Interface interface {
 
 	GetRegions(context.Context) (*fastly.RegionsResponse, error)
 	GetStatsJSON(context.Context, *fastly.GetStatsInput, any) error
+	GetAggregateJSON(context.Context, *fastly.GetAggregateInput, any) error
+	GetUsage(context.Context, *fastly.GetUsageInput) (*fastly.UsageResponse, error)
+	GetUsageByService(context.Context, *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error)
+	GetDomainMetricsForService(context.Context, *fastly.GetDomainMetricsInput) (*fastly.DomainInspector, error)
+	GetDomainMetricsForServiceJSON(context.Context, *fastly.GetDomainMetricsInput, any) error
+	GetOriginMetricsForService(context.Context, *fastly.GetOriginMetricsInput) (*fastly.OriginInspector, error)
+	GetOriginMetricsForServiceJSON(context.Context, *fastly.GetOriginMetricsInput, any) error
 
 	CreateManagedLogging(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 

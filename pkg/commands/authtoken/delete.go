@@ -22,7 +22,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("delete", "Revoke an API token").Alias("remove")
+	c.CmdClause = parent.Command("delete", "Revoke an API token (deprecated: use the Fastly API directly)").Alias("remove")
 
 	c.CmdClause.Flag("current", "Revoke the token used to authenticate the request").BoolVar(&c.current)
 	c.CmdClause.Flag("file", "Revoke tokens in bulk from a newline delimited list of tokens").StringVar(&c.file)
@@ -41,6 +41,8 @@ type DeleteCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
+	text.Deprecated(out, "The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
+
 	if !c.current && c.file == "" && c.id == "" {
 		return fmt.Errorf("error parsing arguments: must provide either the --current, --file or --id flag")
 	}

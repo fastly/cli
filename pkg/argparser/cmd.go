@@ -344,10 +344,12 @@ func IsGlobalFlagsOnly(args []string) bool {
 		"-o":                1,
 		"--quiet":           0,
 		"-q":                0,
-		"--token":           1,
-		"-t":                1,
 		"--verbose":         0,
 		"-v":                0,
+	}
+	if !env.AuthCommandDisabled() {
+		globals["--token"] = 1
+		globals["-t"] = 1
 	}
 	var total int
 	for _, a := range args {

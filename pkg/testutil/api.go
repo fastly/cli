@@ -9,7 +9,7 @@ import (
 
 	"github.com/fastly/go-fastly/v13/fastly"
 
-	"github.com/fastly/cli/pkg/commands/sso"
+	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/commands/whoami"
 )
 
@@ -74,7 +74,7 @@ func CloneVersionError(_ context.Context, _ *fastly.CloneVersionInput) (*fastly.
 	return nil, Err
 }
 
-// WhoamiVerifyClient is used by `whoami` and `sso` tests.
+// WhoamiVerifyClient is used by `whoami` and auth tests.
 type WhoamiVerifyClient whoami.VerifyResponse
 
 // Do executes the HTTP request.
@@ -84,7 +84,7 @@ func (c WhoamiVerifyClient) Do(*http.Request) (*http.Response, error) {
 	return rec.Result(), nil
 }
 
-// WhoamiBasicResponse is used by `whoami` and `sso` tests.
+// WhoamiBasicResponse is used by `whoami` and auth tests.
 var WhoamiBasicResponse = whoami.VerifyResponse{
 	Customer: whoami.Customer{
 		ID:   "abc",
@@ -108,18 +108,18 @@ var WhoamiBasicResponse = whoami.VerifyResponse{
 	},
 }
 
-// CurrentCustomerClient is used by `sso` tests.
-type CurrentCustomerClient sso.CurrentCustomerResponse
+// CurrentCustomerClient is used by SSO auth tests.
+type CurrentCustomerClient authcmd.CurrentCustomerResponse
 
 // Do executes the HTTP request.
 func (c CurrentCustomerClient) Do(*http.Request) (*http.Response, error) {
 	rec := httptest.NewRecorder()
-	_ = json.NewEncoder(rec).Encode(sso.CurrentCustomerResponse(c))
+	_ = json.NewEncoder(rec).Encode(authcmd.CurrentCustomerResponse(c))
 	return rec.Result(), nil
 }
 
-// CurrentCustomerResponse is used by `sso` tests.
-var CurrentCustomerResponse = sso.CurrentCustomerResponse{
+// CurrentCustomerResponse is used by SSO auth tests.
+var CurrentCustomerResponse = authcmd.CurrentCustomerResponse{
 	ID:   "abc",
 	Name: "Computer Company",
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/errors"
@@ -54,13 +55,11 @@ _fastly_bash_autocomplete() {
 complete -F _fastly_bash_autocomplete fastly
 `,
 		},
-		// FIXME: Put back `sso` GA.
 		{
 			Name: "shell evaluate completion options",
 			Args: "--completion-bash",
 			WantOutput: `help
-sso
-auth-token
+auth
 compute
 config
 config-store
@@ -76,7 +75,6 @@ ngwaf
 object-storage
 pops
 products
-profile
 secret-store
 secret-store-entry
 service
@@ -130,6 +128,53 @@ whoami
 
 			testutil.AssertString(t, testcase.WantOutput, stripTrailingSpace(out))
 		})
+	}
+}
+
+// TestExecQuietSuppressesExpiryWarning exercises the full Exec path to verify
+// that --quiet suppresses the expiration warning end-to-end. (--json also sets
+// Quiet=true at run.go:204, but config doesn't accept --json; the unit test
+// TestCheckTokenExpirationWarningSuppression covers the Quiet flag directly.)
+func TestExecQuietSuppressesExpiryWarning(t *testing.T) {
+	var stdout bytes.Buffer
+
+	args := testutil.SplitArgs("config -l --quiet")
+	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+		data := testutil.MockGlobalData(args, &stdout)
+		// Set the default token to expire soon so a warning would fire without --quiet.
+		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
+		return data, nil
+	}
+	err := app.Run(args, nil)
+	if err != nil {
+		t.Fatalf("app.Run returned unexpected error: %v", err)
+	}
+
+	output := stdout.String()
+	if strings.Contains(output, "expires in") {
+		t.Errorf("--quiet should suppress expiry warning, but got: %s", output)
+	}
+}
+
+// TestExecConfigShowsExpiryWarning is a companion test verifying the warning
+// does appear for a non-quiet, non-auth command when the token is expiring.
+func TestExecConfigShowsExpiryWarning(t *testing.T) {
+	var stdout bytes.Buffer
+
+	args := testutil.SplitArgs("config -l")
+	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+		data := testutil.MockGlobalData(args, &stdout)
+		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
+		return data, nil
+	}
+	err := app.Run(args, nil)
+	if err != nil {
+		t.Fatalf("app.Run returned unexpected error: %v", err)
+	}
+
+	output := stdout.String()
+	if !strings.Contains(output, "expires in") {
+		t.Errorf("expected expiry warning for config command, got: %s", output)
 	}
 }
 
