@@ -51,6 +51,8 @@ import (
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
 	aliasvclcustom "github.com/fastly/cli/pkg/commands/alias/vcl/custom"
 	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
+	"github.com/fastly/cli/pkg/commands/apisecurity"
+	"github.com/fastly/cli/pkg/commands/apisecurity/tags"
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -434,6 +436,14 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspaceAlertWebhookList := workspaceAlertWebhook.NewListCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
 	ngwafWorkspaceAlertWebhookRotateSigningKey := workspaceAlertWebhook.NewRotateSigningKeyCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
 	ngwafWorkspaceAlertWebhookUpdate := workspaceAlertWebhook.NewUpdateCommand(ngwafWorkspaceAlertWebhookRoot.CmdClause, data)
+	apiSecurityRoot := apisecurity.NewRootCommand(app, data)
+	apiSecurityTagsRoot := tags.NewRootCommand(apiSecurityRoot.CmdClause, data)
+	apiSecurityTagsCreate := tags.NewCreateCommand(apiSecurityTagsRoot.CmdClause, data)
+	apiSecurityTagsDelete := tags.NewDeleteCommand(apiSecurityTagsRoot.CmdClause, data)
+	apiSecurityTagsGet := tags.NewGetCommand(apiSecurityTagsRoot.CmdClause, data)
+	apiSecurityTagsList := tags.NewListCommand(apiSecurityTagsRoot.CmdClause, data)
+	apiSecurityTagsUpdate := tags.NewUpdateCommand(apiSecurityTagsRoot.CmdClause, data)
+	apiSecurityTagsAddBulk := tags.NewAddBulkCommand(apiSecurityTagsRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
@@ -1448,6 +1458,14 @@ func Define( // nolint:revive // function-length
 		ngwafWorkspaceGet,
 		ngwafWorkspaceList,
 		ngwafWorkspaceUpdate,
+		apiSecurityRoot,
+		apiSecurityTagsRoot,
+		apiSecurityTagsCreate,
+		apiSecurityTagsDelete,
+		apiSecurityTagsGet,
+		apiSecurityTagsList,
+		apiSecurityTagsUpdate,
+		apiSecurityTagsAddBulk,
 		objectStorageRoot,
 		objectStorageAccesskeysRoot,
 		objectStorageAccesskeysCreate,

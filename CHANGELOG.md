@@ -5,14 +5,15 @@
 ### Breaking:
 
 ### Bug Fixes:
-- fix(stats): `stats historical` now returns write errors instead of silently swallowing them. [#1678](https://github.com/fastly/cli/pull/1678)
+- fix(stats): `stats historical` now returns write errors instead of silently swallowing them [#1678](https://github.com/fastly/cli/pull/1678)
 
 ### Enhancements:
-- feat(stats): add `--field` flag to `stats historical` to filter to a single stats field. [#1678](https://github.com/fastly/cli/pull/1678)
-- feat(stats): add `stats aggregate` subcommand for cross-service aggregated stats. [#1678](https://github.com/fastly/cli/pull/1678)
-- feat(stats): add `stats usage` subcommand for bandwidth/request usage, with `--by-service` breakdown. [#1678](https://github.com/fastly/cli/pull/1678)
-- feat(stats): add `stats domain-inspector` subcommand for domain-level metrics. [#1678](https://github.com/fastly/cli/pull/1678)
-- feat(stats): add `stats origin-inspector` subcommand for origin-level metrics. [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `--field` flag to `stats historical` to filter to a single stats field [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `stats aggregate` subcommand for cross-service aggregated stats [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `stats usage` subcommand for bandwidth/request usage, with `--by-service` breakdown [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `stats domain-inspector` subcommand for domain-level metrics [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(stats): add `stats origin-inspector` subcommand for origin-level metrics [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(apisecurity/tags): add API Security Operations API support ([#1688](https://github.com/fastly/cli/pull/1688))
 
 ### Dependencies:
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
