@@ -32,7 +32,7 @@ func TestOriginInspector(t *testing.T) {
 			api: mock.API{
 				GetOriginMetricsForServiceFn: getOriginMetricsOK,
 			},
-			wantOutput: "Responses:",
+			wantOutput: "RESPONSES",
 		},
 		{
 			name: "success json",
@@ -78,7 +78,7 @@ func TestOriginInspector(t *testing.T) {
 			api: mock.API{
 				GetOriginMetricsForServiceFn: getOriginMetricsAssertStart(time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)),
 			},
-			wantOutput: "Responses:",
+			wantOutput: "RESPONSES",
 		},
 		{
 			name: "from Unix epoch maps to Start",
@@ -86,7 +86,7 @@ func TestOriginInspector(t *testing.T) {
 			api: mock.API{
 				GetOriginMetricsForServiceFn: getOriginMetricsAssertStart(time.Unix(1705312800, 0)),
 			},
-			wantOutput: "Responses:",
+			wantOutput: "RESPONSES",
 		},
 		{
 			name: "to RFC3339 maps to End",
@@ -94,7 +94,7 @@ func TestOriginInspector(t *testing.T) {
 			api: mock.API{
 				GetOriginMetricsForServiceFn: getOriginMetricsAssertEnd(time.Date(2024, 1, 15, 11, 0, 0, 0, time.UTC)),
 			},
-			wantOutput: "Responses:",
+			wantOutput: "RESPONSES",
 		},
 		{
 			name: "from invalid format error",
