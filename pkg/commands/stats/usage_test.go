@@ -36,16 +36,22 @@ func TestUsage(t *testing.T) {
 			wantOutput: "bandwidth",
 		},
 		{
-			name:       "success by-service",
-			args:       args("stats usage --by-service"),
-			api:        mock.API{GetUsageByServiceFn: getUsageByServiceOK},
-			wantOutput: "Service: svc123",
+			name: "success by-service",
+			args: args("stats usage --by-service"),
+			api: mock.API{
+				GetUsageByServiceFn: getUsageByServiceOK,
+				GetServiceFn:        getServiceOK,
+			},
+			wantOutput: "Service: my-service (svc123)",
 		},
 		{
-			name:       "success by-service json",
-			args:       args("stats usage --by-service --format=json"),
-			api:        mock.API{GetUsageByServiceFn: getUsageByServiceOK},
-			wantOutput: "svc123",
+			name: "success by-service json",
+			args: args("stats usage --by-service --format=json"),
+			api: mock.API{
+				GetUsageByServiceFn: getUsageByServiceOK,
+				GetServiceFn:        getServiceOK,
+			},
+			wantOutput: "my-service",
 		},
 		{
 			name:       "nil usage entry json",
@@ -147,4 +153,11 @@ func getUsageNonSuccess(_ context.Context, _ *fastly.GetUsageInput) (*fastly.Usa
 
 func getUsageError(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageResponse, error) {
 	return nil, errTest
+}
+
+func getServiceOK(_ context.Context, i *fastly.GetServiceInput) (*fastly.Service, error) {
+	return &fastly.Service{
+		ServiceID: fastly.ToPointer(i.ServiceID),
+		Name:      fastly.ToPointer("my-service"),
+	}, nil
 }

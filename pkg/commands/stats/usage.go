@@ -97,12 +97,42 @@ func (c *UsageCommand) execByService(out io.Writer, input *fastly.GetUsageInput)
 		return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Message))
 	}
 
+	namesByID := c.resolveServiceNames(resp.Data)
+
 	switch c.formatFlag {
 	case "json":
-		return writeUsageByServiceJSON(out, resp.Data)
+		return writeUsageByServiceJSON(out, resp.Data, namesByID)
 	default:
-		return writeUsageByServiceTable(out, resp.Data)
+		return writeUsageByServiceTable(out, resp.Data, namesByID)
 	}
+}
+
+// resolveServiceNames builds a map of service ID to service name by querying
+// the API for each unique service ID found in the usage data.
+func (c *UsageCommand) resolveServiceNames(data *fastly.ServicesByRegionsUsage) map[string]string {
+	namesByID := make(map[string]string)
+	if data == nil {
+		return namesByID
+	}
+	// Collect unique service IDs across all regions.
+	seen := make(map[string]bool)
+	for _, services := range *data {
+		if services == nil {
+			continue
+		}
+		for svcID := range *services {
+			seen[svcID] = true
+		}
+	}
+	for svcID := range seen {
+		svc, err := c.Globals.APIClient.GetService(context.TODO(), &fastly.GetServiceInput{
+			ServiceID: svcID,
+		})
+		if err == nil && svc != nil {
+			namesByID[svcID] = fastly.ToValue(svc.Name)
+		}
+	}
+	return namesByID
 }
 
 func writeUsageTable(out io.Writer, data *fastly.RegionsUsage) error {
@@ -130,7 +160,7 @@ func writeUsageJSON(out io.Writer, data *fastly.RegionsUsage) error {
 	return json.NewEncoder(out).Encode(usageToMap(*data))
 }
 
-func writeUsageByServiceTable(out io.Writer, data *fastly.ServicesByRegionsUsage) error {
+func writeUsageByServiceTable(out io.Writer, data *fastly.ServicesByRegionsUsage, namesByID map[string]string) error {
 	if data == nil {
 		return nil
 	}
@@ -147,7 +177,11 @@ func writeUsageByServiceTable(out io.Writer, data *fastly.ServicesByRegionsUsage
 			if usage == nil {
 				continue
 			}
-			text.Output(out, "  Service: %s", svcID)
+			if name, ok := namesByID[svcID]; ok && name != "" {
+				text.Output(out, "  Service: %s (%s)", name, svcID)
+			} else {
+				text.Output(out, "  Service: %s", svcID)
+			}
 			text.Output(out, "    Bandwidth:        %d", fastly.ToValue(usage.Bandwidth))
 			text.Output(out, "    Requests:         %d", fastly.ToValue(usage.Requests))
 			text.Output(out, "    Compute Requests: %d", fastly.ToValue(usage.ComputeRequests))
@@ -156,7 +190,7 @@ func writeUsageByServiceTable(out io.Writer, data *fastly.ServicesByRegionsUsage
 	return nil
 }
 
-func writeUsageByServiceJSON(out io.Writer, data *fastly.ServicesByRegionsUsage) error {
+func writeUsageByServiceJSON(out io.Writer, data *fastly.ServicesByRegionsUsage, namesByID map[string]string) error {
 	if data == nil {
 		return json.NewEncoder(out).Encode(map[string]any{})
 	}
@@ -167,7 +201,12 @@ func writeUsageByServiceJSON(out io.Writer, data *fastly.ServicesByRegionsUsage)
 		}
 		regionMap := make(map[string]any)
 		for svcID, usage := range *services {
-			regionMap[svcID] = usageEntry(usage)
+			entry := usageEntry(usage)
+			entry["service_id"] = svcID
+			if name, ok := namesByID[svcID]; ok && name != "" {
+				entry["service_name"] = name
+			}
+			regionMap[svcID] = entry
 		}
 		result[region] = regionMap
 	}
