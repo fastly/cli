@@ -18,9 +18,10 @@ import (
 func expiringTokenData(out *bytes.Buffer) *global.Data {
 	soon := time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
 	return &global.Data{
-		Output:   out,
-		ErrLog:   fsterr.Log,
-		Manifest: &manifest.Data{},
+		Output:    out,
+		ErrOutput: out,
+		ErrLog:    fsterr.Log,
+		Manifest:  &manifest.Data{},
 		Config: config.File{
 			Auth: config.Auth{
 				Default: "mytoken",
@@ -52,8 +53,9 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 			commandName: "service list",
 			data: func(out *bytes.Buffer) *global.Data {
 				return &global.Data{
-					Output: out,
-					ErrLog: fsterr.Log,
+					Output:    out,
+					ErrOutput: out,
+					ErrLog:    fsterr.Log,
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "mytoken",
@@ -76,8 +78,9 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 			commandName: "service list",
 			data: func(out *bytes.Buffer) *global.Data {
 				return &global.Data{
-					Output: out,
-					ErrLog: fsterr.Log,
+					Output:    out,
+					ErrOutput: out,
+					ErrLog:    fsterr.Log,
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "mytoken",
@@ -99,9 +102,10 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 			commandName: "service list",
 			data: func(out *bytes.Buffer) *global.Data {
 				return &global.Data{
-					Output: out,
-					ErrLog: fsterr.Log,
-					Env:    config.Environment{APIToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fake"},
+					Output:    out,
+					ErrOutput: out,
+					ErrLog:    fsterr.Log,
+					Env:       config.Environment{APIToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fake"},
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "mytoken",
@@ -123,9 +127,10 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 			commandName: "service list",
 			data: func(out *bytes.Buffer) *global.Data {
 				return &global.Data{
-					Output: out,
-					ErrLog: fsterr.Log,
-					Flags:  global.Flags{Token: "some-raw-token"},
+					Output:    out,
+					ErrOutput: out,
+					ErrLog:    fsterr.Log,
+					Flags:     global.Flags{Token: "some-raw-token"},
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "mytoken",
@@ -147,8 +152,9 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 			commandName: "service list",
 			data: func(out *bytes.Buffer) *global.Data {
 				return &global.Data{
-					Output: out,
-					ErrLog: fsterr.Log,
+					Output:    out,
+					ErrOutput: out,
+					ErrLog:    fsterr.Log,
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "deleted-token",
@@ -164,8 +170,9 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 			commandName: "service list",
 			data: func(out *bytes.Buffer) *global.Data {
 				return &global.Data{
-					Output: out,
-					ErrLog: fsterr.Log,
+					Output:    out,
+					ErrOutput: out,
+					ErrLog:    fsterr.Log,
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "mytoken",
@@ -187,7 +194,8 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 			commandName: "service list",
 			data: func(out *bytes.Buffer) *global.Data {
 				return &global.Data{
-					Output: out,
+					Output:    out,
+					ErrOutput: out,
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "mytoken",
@@ -209,8 +217,9 @@ func TestCheckTokenExpirationWarning(t *testing.T) {
 			commandName: "service list",
 			data: func(out *bytes.Buffer) *global.Data {
 				return &global.Data{
-					Output: out,
-					ErrLog: fsterr.Log,
+					Output:    out,
+					ErrOutput: out,
+					ErrLog:    fsterr.Log,
 					Config: config.File{
 						Auth: config.Auth{
 							Default: "sso-tok",
@@ -338,11 +347,6 @@ func TestCheckTokenExpirationWarningSuppression(t *testing.T) {
 			commandName: "service list",
 			flags:       global.Flags{Quiet: true},
 		},
-		{
-			name:        "suppressed with --json flag (sets Quiet)",
-			commandName: "service list",
-			flags:       global.Flags{Quiet: true}, // --json sets Quiet=true in Exec
-		},
 	}
 
 	originalEnv := os.Getenv("FASTLY_DISABLE_AUTH_COMMAND")
@@ -362,6 +366,21 @@ func TestCheckTokenExpirationWarningSuppression(t *testing.T) {
 				t.Errorf("expected no output for %q with flags %+v, got: %s", tt.commandName, tt.flags, output)
 			}
 		})
+	}
+}
+
+// TestCheckTokenExpirationWarningShownForJSON verifies that --json mode still
+// emits the warning (to stderr) rather than suppressing it entirely.
+func TestCheckTokenExpirationWarningShownForJSON(t *testing.T) {
+	var buf bytes.Buffer
+	data := expiringTokenData(&buf)
+	data.Flags = global.Flags{JSON: true}
+
+	checkTokenExpirationWarning(data, "service list")
+
+	output := buf.String()
+	if !strings.Contains(output, "expires in") {
+		t.Errorf("expected expiry warning in --json mode (written to stderr), got: %s", output)
 	}
 }
 

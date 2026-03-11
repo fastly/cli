@@ -35,7 +35,7 @@ type DescribeCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
-	if !c.Globals.Flags.Quiet {
+	if !c.Globals.Flags.Quiet && !c.JSONOutput.Enabled {
 		text.Deprecated(out, "The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
 	}
 
