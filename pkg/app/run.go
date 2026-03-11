@@ -172,6 +172,7 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 		ConfigPath:       config.FilePath,
 		Env:              e,
 		ErrLog:           fsterr.Log,
+		ErrOutput:        os.Stderr,
 		ExecuteWasmTools: compute.ExecuteWasmTools,
 		HTTPClient:       httpClient,
 		Manifest:         &md,
@@ -287,9 +288,9 @@ func Exec(data *global.Data) error {
 		if !data.Flags.Quiet && data.Flags.Token == "" && data.Env.APIToken == "" && data.Manifest != nil && data.Manifest.File.Profile != "" {
 			if data.Config.GetAuthToken(data.Manifest.File.Profile) == nil {
 				if defaultName, _ := data.Config.GetDefaultAuthToken(); defaultName != "" {
-					text.Warning(data.Output, "fastly.toml profile %q not found in auth config, using default token %q.\n", data.Manifest.File.Profile, defaultName)
+					text.Warning(data.ErrOutput, "fastly.toml profile %q not found in auth config, using default token %q.\n", data.Manifest.File.Profile, defaultName)
 				} else {
-					text.Warning(data.Output, "fastly.toml profile %q not found in auth config and no default token is configured.\n", data.Manifest.File.Profile)
+					text.Warning(data.ErrOutput, "fastly.toml profile %q not found in auth config and no default token is configured.\n", data.Manifest.File.Profile)
 				}
 			}
 		}
@@ -316,7 +317,7 @@ func Exec(data *global.Data) error {
 			displayToken(tokenSource, data)
 		}
 		if !data.Flags.Quiet {
-			checkConfigPermissions(tokenSource, data.Output)
+			checkConfigPermissions(tokenSource, data.ErrOutput)
 		}
 
 		data.APIClient, data.RTSClient, err = configureClients(token, apiEndpoint, data.APIClientFactory, data.Flags.Debug)
@@ -541,7 +542,7 @@ func checkTokenExpirationWarning(data *global.Data, commandName string) {
 
 	summary := authcmd.ExpirationSummary(status, expires, time.Now())
 	remediation := authcmd.ExpirationRemediation(at.Type)
-	text.Warning(data.Output, "Your active token %s. %s\n", summary, remediation)
+	text.Warning(data.ErrOutput, "Your active token %s. %s\n", summary, remediation)
 }
 
 // isAuthRelatedCommand reports whether commandName belongs to an auth-related

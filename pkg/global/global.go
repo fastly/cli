@@ -62,7 +62,8 @@ type Data struct {
 	// Env is all the data that is provided by the environment.
 	Env config.Environment
 	// ErrLog provides an interface for recording errors to disk.
-	ErrLog fsterr.LogInterface
+	ErrLog    fsterr.LogInterface
+	ErrOutput io.Writer
 	// ExecuteWasmTools is a function that executes the wasm-tools binary.
 	ExecuteWasmTools func(bin string, args []string, global *Data) error
 	// Flags are all the global CLI flags.
