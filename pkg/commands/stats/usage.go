@@ -76,6 +76,8 @@ func (c *UsageCommand) execPlain(out io.Writer, input *fastly.GetUsageInput) err
 		return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Message))
 	}
 
+	filterUsageByRegion(resp.Data, c.region)
+
 	switch c.formatFlag {
 	case "json":
 		return writeUsageJSON(out, resp.Data)
@@ -95,6 +97,8 @@ func (c *UsageCommand) execByService(out io.Writer, input *fastly.GetUsageInput)
 	if fastly.ToValue(resp.Status) != statusSuccess {
 		return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Message))
 	}
+
+	filterUsageByServiceByRegion(resp.Data, c.region)
 
 	switch c.formatFlag {
 	case "json":
@@ -136,6 +140,28 @@ func usageToMap(data fastly.RegionsUsage) map[string]any {
 		result[region] = usageEntry(usage)
 	}
 	return result
+}
+
+func filterUsageByRegion(data *fastly.RegionsUsage, region string) {
+	if region == "" || data == nil {
+		return
+	}
+	for k := range *data {
+		if k != region {
+			delete(*data, k)
+		}
+	}
+}
+
+func filterUsageByServiceByRegion(data *fastly.ServicesByRegionsUsage, region string) {
+	if region == "" || data == nil {
+		return
+	}
+	for k := range *data {
+		if k != region {
+			delete(*data, k)
+		}
+	}
 }
 
 func usageEntry(u *fastly.Usage) map[string]any {
