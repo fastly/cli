@@ -37,6 +37,21 @@ Requests:           {{ .RequestCount }}
 
 `))
 
+func fmtFieldLine(out io.Writer, field string, block statsResponseData) error {
+	st, ok := block["start_time"].(float64)
+	if !ok {
+		return fmt.Errorf("failed to type assert '%v' to a float64", block["start_time"])
+	}
+	startTime := time.Unix(int64(st), 0).UTC()
+
+	val, ok := block[field]
+	if !ok {
+		return fmt.Errorf("field %q not found in stats response", field)
+	}
+	_, err := fmt.Fprintf(out, "%s\t%s: %v\n", startTime.Format(time.RFC3339), field, val)
+	return err
+}
+
 func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 	var agg fastly.Stats
 	if err := mapstructure.Decode(block, &agg); err != nil {
