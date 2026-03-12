@@ -15,6 +15,12 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+type APIFunc func(context.Context, *fastly.Client, *computeacls.CreateInput) (*computeacls.ComputeACL, error)
+
+// APIFuncHook provides an injection point for tests to provide a
+// 'mock' function to replace the function from go-fastly.
+var APIFuncHook APIFunc = computeacls.Create
+
 // CreateCommand calls the Fastly API to create a compute ACL.
 type CreateCommand struct {
 	argparser.Base
@@ -54,7 +60,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	acl, err := computeacls.Create(context.TODO(), fc, &computeacls.CreateInput{
+	acl, err := APIFuncHook(context.TODO(), fc, &computeacls.CreateInput{
 		Name: &c.name,
 	})
 	if err != nil {

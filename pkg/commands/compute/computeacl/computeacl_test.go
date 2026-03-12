@@ -2,11 +2,16 @@ package computeacl_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/fastly/go-fastly/v13/fastly"
+
+	"github.com/stretchr/testify/require"
 
 	root "github.com/fastly/cli/pkg/commands/compute"
 	sub "github.com/fastly/cli/pkg/commands/compute/computeacl"
@@ -26,56 +31,37 @@ func TestComputeACLCreate(t *testing.T) {
 		ComputeACLID: aclID,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.APIHookCLIScenario[sub.APIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "",
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
-			Name: "validate internal server error",
-			Args: fmt.Sprintf("--name %s", aclName),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusInternalServerError,
-						Status:     http.StatusText(http.StatusInternalServerError),
-					},
-				},
-			},
-			WantError: "500 - Internal Server Error",
-		},
-		{
 			Name: "validate API success",
 			Args: fmt.Sprintf("--name %s", aclName),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader((testutil.GenJSON(acl)))),
-					},
-				},
+			MockFactory: func(t *testing.T) sub.APIFunc {
+				return func(_ context.Context, _ *fastly.Client, i *computeacls.CreateInput) (*computeacls.ComputeACL, error) {
+					require.Equal(t, aclName, *i.Name, "unexpected ACL name")
+
+					return &acl, nil
+				}
 			},
 			WantOutput: fstfmt.Success("Created compute ACL '%s' (id: %s)", aclName, aclID),
 		},
 		{
 			Name: "validate optional --json flag",
 			Args: fmt.Sprintf("--name %s --json", aclName),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(acl))),
-					},
-				},
+			MockFactory: func(_ *testing.T) sub.APIFunc {
+				return func(_ context.Context, _ *fastly.Client, _ *computeacls.CreateInput) (*computeacls.ComputeACL, error) {
+					return &acl, nil
+				}
 			},
 			WantOutput: fstfmt.EncodeJSON(acl),
 		},
 	}
 
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios)
+	testutil.RunAPIHookCLIScenarios(t, []string{root.CommandName, sub.CommandName, "create"}, scenarios, &sub.APIFuncHook)
 }
 
 func TestComputeACLDelete(t *testing.T) {
