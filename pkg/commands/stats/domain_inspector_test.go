@@ -32,7 +32,7 @@ func TestDomainInspector(t *testing.T) {
 			api: mock.API{
 				GetDomainMetricsForServiceFn: getDomainMetricsOK,
 			},
-			wantOutput: "Requests:",
+			wantOutput: "REQUESTS",
 		},
 		{
 			name: "success json",
@@ -78,7 +78,7 @@ func TestDomainInspector(t *testing.T) {
 			api: mock.API{
 				GetDomainMetricsForServiceFn: getDomainMetricsAssertStart(time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)),
 			},
-			wantOutput: "Requests:",
+			wantOutput: "REQUESTS",
 		},
 		{
 			name: "from Unix epoch maps to Start",
@@ -86,7 +86,7 @@ func TestDomainInspector(t *testing.T) {
 			api: mock.API{
 				GetDomainMetricsForServiceFn: getDomainMetricsAssertStart(time.Unix(1705312800, 0)),
 			},
-			wantOutput: "Requests:",
+			wantOutput: "REQUESTS",
 		},
 		{
 			name: "to RFC3339 maps to End",
@@ -94,7 +94,7 @@ func TestDomainInspector(t *testing.T) {
 			api: mock.API{
 				GetDomainMetricsForServiceFn: getDomainMetricsAssertEnd(time.Date(2024, 1, 15, 11, 0, 0, 0, time.UTC)),
 			},
-			wantOutput: "Requests:",
+			wantOutput: "REQUESTS",
 		},
 		{
 			name: "from invalid format error",
