@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/fastly/go-fastly/v13/fastly"
 
@@ -142,38 +141,7 @@ func (c *OriginInspectorCommand) Exec(_ io.Reader, out io.Writer) error {
 		if fastly.ToValue(resp.Status) != statusSuccess {
 			return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Status))
 		}
-		return writeOriginInspector(out, resp)
+		text.PrintOriginInspectorTbl(out, resp)
+		return nil
 	}
-}
-
-func writeOriginInspector(out io.Writer, resp *fastly.OriginInspector) error {
-	if resp.Meta != nil {
-		if resp.Meta.Start != nil {
-			text.Output(out, "Start: %s", *resp.Meta.Start)
-		}
-		if resp.Meta.End != nil {
-			text.Output(out, "End: %s", *resp.Meta.End)
-		}
-		fmt.Fprintln(out, "---")
-	}
-	for _, d := range resp.Data {
-		if d.Dimensions != nil {
-			for k, v := range d.Dimensions {
-				text.Output(out, "%s: %s", k, v)
-			}
-		}
-		for _, v := range d.Values {
-			if v.Timestamp != nil {
-				text.Output(out, "  Timestamp:  %s", time.Unix(int64(*v.Timestamp), 0).UTC()) //nolint:gosec // timestamp won't overflow
-			}
-			text.Output(out, "  Responses:  %d", fastly.ToValue(v.Responses))
-			text.Output(out, "  Status 2xx: %d", fastly.ToValue(v.Status2xx))
-			text.Output(out, "  Status 4xx: %d", fastly.ToValue(v.Status4xx))
-			text.Output(out, "  Status 5xx: %d", fastly.ToValue(v.Status5xx))
-		}
-	}
-	if resp.Meta != nil && resp.Meta.NextCursor != nil {
-		text.Output(out, "Next cursor: %s", *resp.Meta.NextCursor)
-	}
-	return nil
 }

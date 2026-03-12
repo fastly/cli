@@ -143,40 +143,9 @@ func (c *DomainInspectorCommand) Exec(_ io.Reader, out io.Writer) error {
 		if fastly.ToValue(resp.Status) != statusSuccess {
 			return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Status))
 		}
-		return writeDomainInspector(out, resp)
+		text.PrintDomainInspectorTbl(out, resp)
+		return nil
 	}
-}
-
-func writeDomainInspector(out io.Writer, resp *fastly.DomainInspector) error {
-	if resp.Meta != nil {
-		if resp.Meta.Start != nil {
-			text.Output(out, "Start: %s", *resp.Meta.Start)
-		}
-		if resp.Meta.End != nil {
-			text.Output(out, "End: %s", *resp.Meta.End)
-		}
-		fmt.Fprintln(out, "---")
-	}
-	for _, d := range resp.Data {
-		if d.Dimensions != nil {
-			for k, v := range d.Dimensions {
-				text.Output(out, "%s: %s", k, fastly.ToValue(v))
-			}
-		}
-		for _, v := range d.Values {
-			if v.Timestamp != nil {
-				text.Output(out, "  Timestamp:      %s", time.Unix(int64(*v.Timestamp), 0).UTC()) //nolint:gosec // timestamp won't overflow
-			}
-			text.Output(out, "  Requests:       %d", fastly.ToValue(v.Requests))
-			text.Output(out, "  Bandwidth:      %d", fastly.ToValue(v.Bandwidth))
-			text.Output(out, "  Edge Requests:  %d", fastly.ToValue(v.EdgeRequests))
-			text.Output(out, "  Edge Hit Ratio: %.4f", fastly.ToValue(v.EdgeHitRatio))
-		}
-	}
-	if resp.Meta != nil && resp.Meta.NextCursor != nil {
-		text.Output(out, "Next cursor: %s", *resp.Meta.NextCursor)
-	}
-	return nil
 }
 
 func parseTime(s string) (time.Time, error) {
