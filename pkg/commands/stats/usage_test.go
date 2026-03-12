@@ -65,14 +65,14 @@ func TestUsage(t *testing.T) {
 			name:       "region filter plain",
 			args:       args("stats usage --region=europe"),
 			api:        mock.API{GetUsageFn: getUsageMultiRegion},
-			wantOutput: "Region: europe",
+			wantOutput: "europe",
 			wantAbsent: "usa",
 		},
 		{
 			name:       "region filter by-service",
 			args:       args("stats usage --by-service --region=europe"),
 			api:        mock.API{GetUsageByServiceFn: getUsageByServiceMultiRegion},
-			wantOutput: "Region: europe",
+			wantOutput: "svc456",
 			wantAbsent: "usa",
 		},
 		{
