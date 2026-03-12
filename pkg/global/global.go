@@ -62,7 +62,8 @@ type Data struct {
 	// Env is all the data that is provided by the environment.
 	Env config.Environment
 	// ErrLog provides an interface for recording errors to disk.
-	ErrLog fsterr.LogInterface
+	ErrLog    fsterr.LogInterface
+	ErrOutput io.Writer
 	// ExecuteWasmTools is a function that executes the wasm-tools binary.
 	ExecuteWasmTools func(bin string, args []string, global *Data) error
 	// Flags are all the global CLI flags.
@@ -204,6 +205,9 @@ type Flags struct {
 	AutoYes bool
 	// Debug enables the CLI's debug mode.
 	Debug bool
+	// JSON indicates --json output was requested. Detected automatically by
+	// Exec. Unlike Quiet, JSON mode does not suppress stderr warnings.
+	JSON bool
 	// NonInteractive auto-resolves all prompts.
 	NonInteractive bool
 	// Profile indicates the profile to use (consequently the 'token' used).
