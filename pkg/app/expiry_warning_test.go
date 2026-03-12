@@ -347,11 +347,6 @@ func TestCheckTokenExpirationWarningSuppression(t *testing.T) {
 			commandName: "service list",
 			flags:       global.Flags{Quiet: true},
 		},
-		{
-			name:        "suppressed with --json flag (sets Quiet)",
-			commandName: "service list",
-			flags:       global.Flags{Quiet: true}, // --json sets Quiet=true in Exec
-		},
 	}
 
 	originalEnv := os.Getenv("FASTLY_DISABLE_AUTH_COMMAND")
@@ -371,6 +366,21 @@ func TestCheckTokenExpirationWarningSuppression(t *testing.T) {
 				t.Errorf("expected no output for %q with flags %+v, got: %s", tt.commandName, tt.flags, output)
 			}
 		})
+	}
+}
+
+// TestCheckTokenExpirationWarningShownForJSON verifies that --json mode still
+// emits the warning (to stderr) rather than suppressing it entirely.
+func TestCheckTokenExpirationWarningShownForJSON(t *testing.T) {
+	var buf bytes.Buffer
+	data := expiringTokenData(&buf)
+	data.Flags = global.Flags{JSON: true}
+
+	checkTokenExpirationWarning(data, "service list")
+
+	output := buf.String()
+	if !strings.Contains(output, "expires in") {
+		t.Errorf("expected expiry warning in --json mode (written to stderr), got: %s", output)
 	}
 }
 

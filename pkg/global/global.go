@@ -205,6 +205,9 @@ type Flags struct {
 	AutoYes bool
 	// Debug enables the CLI's debug mode.
 	Debug bool
+	// JSON indicates --json output was requested. Detected automatically by
+	// Exec. Unlike Quiet, JSON mode does not suppress stderr warnings.
+	JSON bool
 	// NonInteractive auto-resolves all prompts.
 	NonInteractive bool
 	// Profile indicates the profile to use (consequently the 'token' used).
