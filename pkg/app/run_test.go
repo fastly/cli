@@ -3,6 +3,7 @@ package app_test
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"io"
 	"os"
 	"strings"
@@ -175,6 +176,38 @@ func TestExecConfigShowsExpiryWarning(t *testing.T) {
 	output := stdout.String()
 	if !strings.Contains(output, "expires in") {
 		t.Errorf("expected expiry warning for config command, got: %s", output)
+	}
+}
+
+func TestExecJSONLeavesStdoutCleanAndWritesWarningToStderr(t *testing.T) {
+	var (
+		stdout bytes.Buffer
+		stderr bytes.Buffer
+	)
+
+	args := testutil.SplitArgs("config -l --json")
+	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+		data := testutil.MockGlobalData(args, &stdout)
+		data.ErrOutput = &stderr
+		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
+		return data, nil
+	}
+	err := app.Run(args, nil)
+	if err != nil {
+		t.Fatalf("app.Run returned unexpected error: %v", err)
+	}
+
+	if strings.Contains(stdout.String(), "expires in") {
+		t.Fatalf("expected stdout to contain only JSON, got: %s", stdout.String())
+	}
+
+	var decoded any
+	if err := json.Unmarshal(stdout.Bytes(), &decoded); err != nil {
+		t.Fatalf("expected stdout to remain valid JSON, got %q: %v", stdout.String(), err)
+	}
+
+	if !strings.Contains(stderr.String(), "expires in") {
+		t.Fatalf("expected stderr warning, got: %s", stderr.String())
 	}
 }
 
