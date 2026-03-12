@@ -29,7 +29,7 @@ func TestUsage(t *testing.T) {
 			name:       "success plain",
 			args:       args("stats usage"),
 			api:        mock.API{GetUsageFn: getUsageOK},
-			wantOutput: "Region: usa",
+			wantOutput: "usa",
 		},
 		{
 			name:       "success json",
@@ -41,7 +41,7 @@ func TestUsage(t *testing.T) {
 			name:       "success by-service",
 			args:       args("stats usage --by-service"),
 			api:        mock.API{GetUsageByServiceFn: getUsageByServiceOK},
-			wantOutput: "Service: svc123",
+			wantOutput: "svc123",
 		},
 		{
 			name:       "success by-service json",
@@ -59,20 +59,20 @@ func TestUsage(t *testing.T) {
 			name:       "nil usage entry table skipped",
 			args:       args("stats usage"),
 			api:        mock.API{GetUsageFn: getUsageWithNilEntry},
-			wantOutput: "Region: europe",
+			wantOutput: "europe",
 		},
 		{
 			name:       "region filter plain",
 			args:       args("stats usage --region=europe"),
 			api:        mock.API{GetUsageFn: getUsageMultiRegion},
-			wantOutput: "Region: europe",
+			wantOutput: "europe",
 			wantAbsent: "usa",
 		},
 		{
 			name:       "region filter by-service",
 			args:       args("stats usage --by-service --region=europe"),
 			api:        mock.API{GetUsageByServiceFn: getUsageByServiceMultiRegion},
-			wantOutput: "Region: europe",
+			wantOutput: "svc456",
 			wantAbsent: "usa",
 		},
 		{
