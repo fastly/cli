@@ -20,7 +20,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				CreateDigitalOceanFn: createDigitalOceanOK,
@@ -29,7 +29,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				CreateDigitalOceanFn: createDigitalOceanError,
@@ -38,7 +38,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --compression-codec zstd --gzip-level 9 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -52,7 +52,7 @@ func TestDigitalOceanList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
@@ -60,7 +60,7 @@ func TestDigitalOceanList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
@@ -68,7 +68,7 @@ func TestDigitalOceanList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
@@ -76,7 +76,7 @@ func TestDigitalOceanList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				ListDigitalOceansFn: listDigitalOceansError,
 			},
@@ -94,7 +94,7 @@ func TestDigitalOceanDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetDigitalOceanFn: getDigitalOceanError,
 			},
@@ -102,7 +102,7 @@ func TestDigitalOceanDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				GetDigitalOceanFn: getDigitalOceanOK,
 			},
@@ -120,7 +120,7 @@ func TestDigitalOceanUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				UpdateDigitalOceanFn: updateDigitalOceanError,
@@ -129,7 +129,7 @@ func TestDigitalOceanUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				UpdateDigitalOceanFn: updateDigitalOceanOK,
@@ -148,7 +148,7 @@ func TestDigitalOceanDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				DeleteDigitalOceanFn: deleteDigitalOceanError,
@@ -157,7 +157,7 @@ func TestDigitalOceanDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				DeleteDigitalOceanFn: deleteDigitalOceanOK,
@@ -242,7 +242,7 @@ SERVICE  VERSION  NAME
 
 var listDigitalOceansVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

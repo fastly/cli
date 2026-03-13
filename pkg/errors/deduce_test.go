@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/go-fastly/v13/fastly"
@@ -17,7 +18,12 @@ func TestDeduce(t *testing.T) {
 		re2             = errors.RemediationError{Inner: fmt.Errorf("bar"), Remediation: "Reticulate your splines."}
 		http503         = &fastly.HTTPError{StatusCode: http.StatusInternalServerError}
 		http401         = &fastly.HTTPError{StatusCode: http.StatusUnauthorized}
+		http403         = &fastly.HTTPError{StatusCode: http.StatusForbidden}
 		wrappedNotExist = fmt.Errorf("couldn't do the thing: %w", os.ErrNotExist)
+		undoc401        = undocumented.NewError(fmt.Errorf("error response"), http.StatusUnauthorized)
+		undoc403        = undocumented.NewError(fmt.Errorf("error response"), http.StatusForbidden)
+		undoc500        = undocumented.NewError(fmt.Errorf("error response"), http.StatusInternalServerError)
+		wrappedUndoc401 = fmt.Errorf("call failed: %w", undoc401)
 	)
 
 	for _, testcase := range []struct {
@@ -43,7 +49,32 @@ func TestDeduce(t *testing.T) {
 		{
 			name:  "fastly.HTTPError 401",
 			input: http401,
-			want:  errors.RemediationError{Inner: errors.SimplifyFastlyError(*http401), Remediation: errors.AuthRemediation},
+			want:  errors.RemediationError{Inner: errors.SimplifyFastlyError(*http401), Remediation: errors.AuthRemediation()},
+		},
+		{
+			name:  "fastly.HTTPError 403",
+			input: http403,
+			want:  errors.RemediationError{Inner: errors.SimplifyFastlyError(*http403), Remediation: errors.ForbiddenRemediation()},
+		},
+		{
+			name:  "undocumented APIError 401",
+			input: undoc401,
+			want:  errors.RemediationError{Inner: undoc401, Remediation: errors.AuthRemediation()},
+		},
+		{
+			name:  "undocumented APIError 403",
+			input: undoc403,
+			want:  errors.RemediationError{Inner: undoc403, Remediation: errors.ForbiddenRemediation()},
+		},
+		{
+			name:  "undocumented APIError 500",
+			input: undoc500,
+			want:  errors.RemediationError{Inner: undoc500, Remediation: errors.BugRemediation},
+		},
+		{
+			name:  "wrapped undocumented APIError 401",
+			input: wrappedUndoc401,
+			want:  errors.RemediationError{Inner: wrappedUndoc401, Remediation: errors.AuthRemediation()},
 		},
 		{
 			name:  "wrapped os.ErrNotExist",

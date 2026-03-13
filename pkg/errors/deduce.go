@@ -10,6 +10,14 @@ import (
 	"github.com/fastly/go-fastly/v13/fastly"
 )
 
+// httpStatusError is satisfied by any error that carries an HTTP status code.
+// This avoids importing concrete types (like undocumented.APIError) and the
+// import cycles that would create.
+type httpStatusError interface {
+	error
+	HTTPStatusCode() int
+}
+
 // Deduce attempts to deduce a RemediationError from a plain error. If the error
 // is already a RemediationError it is returned directly. Certain deep error
 // types, like a Fastly SDK HTTPError, are detected and converted in appropriate
@@ -24,12 +32,25 @@ func Deduce(err error) RemediationError {
 	var httpError *fastly.HTTPError
 	if errors.As(err, &httpError) {
 		remediation := BugRemediation
-
-		if httpError.StatusCode == http.StatusUnauthorized {
-			remediation = AuthRemediation
+		switch httpError.StatusCode {
+		case http.StatusUnauthorized:
+			remediation = AuthRemediation()
+		case http.StatusForbidden:
+			remediation = ForbiddenRemediation()
 		}
-
 		return RemediationError{Inner: SimplifyFastlyError(*httpError), Remediation: remediation}
+	}
+
+	var statusErr httpStatusError
+	if errors.As(err, &statusErr) {
+		remediation := BugRemediation
+		switch statusErr.HTTPStatusCode() {
+		case http.StatusUnauthorized:
+			remediation = AuthRemediation()
+		case http.StatusForbidden:
+			remediation = ForbiddenRemediation()
+		}
+		return RemediationError{Inner: err, Remediation: remediation}
 	}
 
 	if errors.Is(err, os.ErrNotExist) {

@@ -19,7 +19,7 @@ const CommandName = "stats"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "View historical and realtime statistics for a Fastly service")
+	c.CmdClause = parent.Command(CommandName, "View statistics for Fastly services: historical, realtime, aggregate, usage, domain and origin inspection")
 	return &c
 }
 

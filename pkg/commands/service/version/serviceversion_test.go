@@ -28,7 +28,7 @@ func TestVersionClone(t *testing.T) {
 		{
 			Name: "validate successful clone",
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -37,7 +37,7 @@ func TestVersionClone(t *testing.T) {
 		{
 			Name: "validate successful clone json output",
 			Args: "--service-id 123 --version 1 --json",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -46,7 +46,7 @@ func TestVersionClone(t *testing.T) {
 		{
 			Name: "validate error will be passed through if cloning fails",
 			Args: "--service-id 456 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionError,
 			},
@@ -61,32 +61,32 @@ func TestVersionList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:       "--service-id 123",
-			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			API:        &mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsShortOutput,
 		},
 		{
 			Args:       "--service-id 123 --verbose",
-			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			API:        &mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsVerboseOutput,
 		},
 		{
 			Args:       "--service-id 123 -v",
-			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			API:        &mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsVerboseOutput,
 		},
 		{
 			Args:       "--verbose --service-id 123",
-			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			API:        &mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsVerboseOutput,
 		},
 		{
 			Args:       "-v --service-id 123",
-			API:        mock.API{ListVersionsFn: testutil.ListVersions},
+			API:        &mock.API{ListVersionsFn: testutil.ListVersions},
 			WantOutput: listVersionsVerboseOutput,
 		},
 		{
 			Args:      "--service-id 123",
-			API:       mock.API{ListVersionsFn: testutil.ListVersionsError},
+			API:       &mock.API{ListVersionsFn: testutil.ListVersionsError},
 			WantError: testutil.Err.Error(),
 		},
 	}
@@ -98,7 +98,7 @@ func TestVersionUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --comment foo --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateVersionFn: updateVersionOK,
@@ -107,7 +107,7 @@ func TestVersionUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -115,7 +115,7 @@ func TestVersionUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --comment foo --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateVersionFn: updateVersionError,
@@ -135,14 +135,14 @@ func TestVersionActivate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			WantError: "service version 1 is active",
 		},
 		{
 			Args: "--service-id 123 --version 1 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionError,
@@ -151,7 +151,7 @@ func TestVersionActivate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionOK,
@@ -160,7 +160,7 @@ func TestVersionActivate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 2 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionOK,
@@ -169,7 +169,7 @@ func TestVersionActivate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: activateVersionOK,
 			},
@@ -188,7 +188,7 @@ func TestVersionDeactivate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
 			},
@@ -196,7 +196,7 @@ func TestVersionDeactivate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionOK,
 			},
@@ -204,7 +204,7 @@ func TestVersionDeactivate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: deactivateVersionError,
 			},
@@ -223,7 +223,7 @@ func TestVersionLock(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionOK,
 			},
@@ -231,7 +231,7 @@ func TestVersionLock(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				LockVersionFn:  lockVersionError,
 			},
@@ -250,7 +250,7 @@ func TestVersionStage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: stageVersionOK,
 			},
@@ -258,7 +258,7 @@ func TestVersionStage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 2",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: stageVersionOK,
 			},
@@ -266,7 +266,7 @@ func TestVersionStage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: stageVersionError,
 			},
@@ -274,7 +274,7 @@ func TestVersionStage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: stageVersionOK,
 			},
@@ -282,7 +282,7 @@ func TestVersionStage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 4",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ActivateVersionFn: stageVersionOK,
 			},
@@ -301,7 +301,7 @@ func TestVersionUnstage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: unstageVersionOK,
 			},
@@ -309,7 +309,7 @@ func TestVersionUnstage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: unstageVersionError,
 			},
@@ -317,7 +317,7 @@ func TestVersionUnstage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 4",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: unstageVersionError,
 			},
@@ -325,7 +325,7 @@ func TestVersionUnstage(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 4",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:      testutil.ListVersions,
 				DeactivateVersionFn: unstageVersionOK,
 			},
@@ -363,7 +363,7 @@ NUMBER  ACTIVE  STAGED  LAST EDITED (UTC)
 
 var listVersionsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

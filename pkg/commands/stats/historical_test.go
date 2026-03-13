@@ -17,20 +17,33 @@ func TestHistorical(t *testing.T) {
 		{
 			Name:       "success",
 			Args:       "--service-id=123",
-			API:        mock.API{GetStatsJSONFn: getStatsJSONOK},
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
 			WantOutput: historicalOK,
 		},
 		{
 			Name:      "api failure",
 			Args:      "--service-id=123",
-			API:       mock.API{GetStatsJSONFn: getStatsJSONError},
+			API:       &mock.API{GetStatsJSONFn: getStatsJSONError},
 			WantError: errTest.Error(),
 		},
 		{
 			Name:       "success with json format",
 			Args:       "--service-id=123 --format=json",
-			API:        mock.API{GetStatsJSONFn: getStatsJSONOK},
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
 			WantOutput: historicalJSONOK,
+		},
+		{
+			Name:            "success with field filter",
+			Args:            "--service-id=123 --field=bandwidth",
+			API:             &mock.API{GetStatsJSONFn: getStatsJSONFieldOK},
+			WantOutput:      "bandwidth: 123",
+			DontWantOutputs: []string{"Service ID:", "Hit Rate:", "Avg Hit Time:"},
+		},
+		{
+			Name:       "success with field filter and json format",
+			Args:       "--service-id=123 --field=bandwidth --format=json",
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONFieldOK},
+			WantOutput: `"bandwidth":123`,
 		},
 	}
 
@@ -69,7 +82,7 @@ Requests:                                        0
 var historicalJSONOK = `{"start_time":0}
 `
 
-func getStatsJSONOK(_ context.Context, _ *fastly.GetStatsInput, o any) error {
+func unmarshalStatsJSON(o any) error {
 	msg := []byte(`
 {
   "status": "success",
@@ -84,6 +97,33 @@ func getStatsJSONOK(_ context.Context, _ *fastly.GetStatsInput, o any) error {
 }`)
 
 	return json.Unmarshal(msg, o)
+}
+
+func getStatsJSONOK(_ context.Context, _ *fastly.GetStatsInput, o any) error {
+	return unmarshalStatsJSON(o)
+}
+
+func unmarshalStatsFieldJSON(o any) error {
+	msg := []byte(`
+{
+  "status": "success",
+  "meta": {
+    "to": "Thu May 16 20:08:35 UTC 2013",
+    "from": "Wed May 15 20:08:35 UTC 2013",
+    "by": "day",
+    "region": "all"
+  },
+  "msg": null,
+  "data": [{"start_time": 0, "bandwidth": 123}]
+}`)
+	return json.Unmarshal(msg, o)
+}
+
+func getStatsJSONFieldOK(_ context.Context, i *fastly.GetStatsInput, o any) error {
+	if i.Field == nil || *i.Field != "bandwidth" {
+		return errTest
+	}
+	return unmarshalStatsFieldJSON(o)
 }
 
 func getStatsJSONError(_ context.Context, _ *fastly.GetStatsInput, _ any) error {

@@ -32,7 +32,7 @@ func TestCreateCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, _ *fastly.InsertKVStoreKeyInput) error {
 					return errors.New("invalid request")
 				},
@@ -41,7 +41,7 @@ func TestCreateCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, _ *fastly.InsertKVStoreKeyInput) error {
 					return nil
 				},
@@ -50,7 +50,7 @@ func TestCreateCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --json", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, _ *fastly.InsertKVStoreKeyInput) error {
 					return nil
 				},
@@ -60,7 +60,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Name: "validate --add flag",
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --add", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if !i.Add {
 						return errors.New("expected Add flag to be true")
@@ -73,7 +73,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Name: "validate --append flag",
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --append", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if !i.Append {
 						return errors.New("expected Append flag to be true")
@@ -86,7 +86,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Name: "validate --prepend flag",
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --prepend", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if !i.Prepend {
 						return errors.New("expected Prepend flag to be true")
@@ -99,7 +99,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Name: "validate --background-fetch flag",
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --background-fetch", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if !i.BackgroundFetch {
 						return errors.New("expected BackgroundFetch flag to be true")
@@ -112,7 +112,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Name: "validate --if-generation-match flag",
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --if-generation-match 42", storeID, itemKey, itemValue),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if i.IfGenerationMatch != 42 {
 						return fmt.Errorf("expected IfGenerationMatch to be 42, got %d", i.IfGenerationMatch)
@@ -130,7 +130,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Name: "validate --metadata flag",
 			Args: fmt.Sprintf("--store-id %s --key %s --value %s --metadata %s", storeID, itemKey, itemValue, "test-metadata"),
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if i.Metadata == nil || *i.Metadata != "test-metadata" {
 						return errors.New("expected Metadata to be 'test-metadata'")
@@ -143,7 +143,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Args:  fmt.Sprintf("--store-id %s --stdin", storeID),
 			Stdin: []string{`{"key":"example","value":"VkFMVUU="}`},
-			API: mock.API{
+			API: &mock.API{
 				BatchModifyKVStoreKeyFn: func(_ context.Context, _ *fastly.BatchModifyKVStoreKeyInput) error {
 					return nil
 				},
@@ -152,7 +152,7 @@ func TestCreateCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --file %s", storeID, filepath.Join("testdata", "data.json")),
-			API: mock.API{
+			API: &mock.API{
 				BatchModifyKVStoreKeyFn: func(_ context.Context, _ *fastly.BatchModifyKVStoreKeyInput) error {
 					return nil
 				},
@@ -162,7 +162,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Args:  fmt.Sprintf("--store-id %s --dir %s", storeID, filepath.Join("testdata", "example")),
 			Stdin: []string{"y"},
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if i.Key == "foo.txt" {
 						return nil
@@ -175,7 +175,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			Args:  fmt.Sprintf("--store-id %s --dir %s --dir-allow-hidden", storeID, filepath.Join("testdata", "example")),
 			Stdin: []string{"y"},
-			API: mock.API{
+			API: &mock.API{
 				InsertKVStoreKeyFn: func(_ context.Context, i *fastly.InsertKVStoreKeyInput) error {
 					if i.Key == "foo.txt" || i.Key == ".hiddenfile" {
 						return nil
@@ -215,7 +215,7 @@ func TestDeleteCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return errors.New("invalid request")
 				},
@@ -224,7 +224,7 @@ func TestDeleteCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return nil
 				},
@@ -233,7 +233,7 @@ func TestDeleteCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return nil
 				},
@@ -243,7 +243,7 @@ func TestDeleteCommand(t *testing.T) {
 		{
 			Name: "validate --force flag with any key",
 			Args: fmt.Sprintf("--store-id %s --key %s --force", storeID, "myFakeKey"),
-			API: mock.API{
+			API: &mock.API{
 				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
 					return nil
 				},
@@ -253,7 +253,7 @@ func TestDeleteCommand(t *testing.T) {
 		{
 			Name: "validate --if-generation-match with matching generation",
 			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match 123", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{Generation: 123}, nil
 				},
@@ -266,7 +266,7 @@ func TestDeleteCommand(t *testing.T) {
 		{
 			Name: "validate --if-generation-match with invalid generation value",
 			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match invalid", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{Generation: 123}, nil
 				},
@@ -275,7 +275,7 @@ func TestDeleteCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
-			API: mock.API{
+			API: &mock.API{
 				NewListKVStoreKeysPaginatorFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
 					return &mockKVStoresEntriesPaginator{
 						next: true,
@@ -290,7 +290,7 @@ func TestDeleteCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
-			API: mock.API{
+			API: &mock.API{
 				NewListKVStoreKeysPaginatorFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
 					return &mockKVStoresEntriesPaginator{
 						next: true,
@@ -329,7 +329,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Name: "validate API error handling",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{}, errors.New("invalid request")
 				},
@@ -339,7 +339,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Name: "validate successful get operation",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 123,
@@ -352,7 +352,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Name: "validate --json flag output",
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 123,
@@ -370,7 +370,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Name: "validate --if-generation-match with matching generation",
 			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match 123", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 123,
@@ -383,7 +383,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Name: "validate --if-generation-match with non-matching generation",
 			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match 123", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 456,
@@ -396,7 +396,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Name: "validate --if-generation-match with invalid generation value",
 			Args: fmt.Sprintf("--store-id %s --key %s --if-generation-match invalid", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 123,
@@ -409,7 +409,7 @@ func TestGetCommand(t *testing.T) {
 		{
 			Name: "validate handling of nil value reader",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 123,
@@ -445,7 +445,7 @@ func TestDescribeCommand(t *testing.T) {
 		{
 			Name: "validate API error handling",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{}, errors.New("invalid request")
 				},
@@ -455,7 +455,7 @@ func TestDescribeCommand(t *testing.T) {
 		{
 			Name: "validate successful describe operation",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 123,
@@ -468,7 +468,7 @@ func TestDescribeCommand(t *testing.T) {
 		{
 			Name: "validate --json flag output",
 			Args: fmt.Sprintf("--store-id %s --key %s --json", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 123,
@@ -486,7 +486,7 @@ func TestDescribeCommand(t *testing.T) {
 		{
 			Name: "validate handling of empty metadata",
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
-			API: mock.API{
+			API: &mock.API{
 				GetKVStoreItemFn: func(_ context.Context, _ *fastly.GetKVStoreItemInput) (fastly.GetKVStoreItemOutput, error) {
 					return fastly.GetKVStoreItemOutput{
 						Generation: 456,
@@ -515,7 +515,7 @@ func TestListCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return nil, errors.New("invalid request")
 				},
@@ -524,7 +524,7 @@ func TestListCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return &fastly.ListKVStoreKeysResponse{Data: testItems}, nil
 				},
@@ -534,7 +534,7 @@ func TestListCommand(t *testing.T) {
 		{
 			Name: "validate --prefix param",
 			Args: fmt.Sprintf("--store-id %s --prefix=foo", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return &fastly.ListKVStoreKeysResponse{Data: []string{"foo-key1", "foo-key2"}}, nil
 				},
@@ -543,7 +543,7 @@ func TestListCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --json", storeID),
-			API: mock.API{
+			API: &mock.API{
 				ListKVStoreKeysFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) (*fastly.ListKVStoreKeysResponse, error) {
 					return &fastly.ListKVStoreKeysResponse{Data: testItems}, nil
 				},

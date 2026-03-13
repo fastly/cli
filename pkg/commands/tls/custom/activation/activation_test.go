@@ -42,7 +42,7 @@ func TestTLSCustomActivationEnable(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				CreateTLSActivationFn: func(_ context.Context, _ *fastly.CreateTLSActivationInput) (*fastly.TLSActivation, error) {
 					return nil, testutil.Err
 				},
@@ -52,7 +52,7 @@ func TestTLSCustomActivationEnable(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				CreateTLSActivationFn: func(_ context.Context, _ *fastly.CreateTLSActivationInput) (*fastly.TLSActivation, error) {
 					return &fastly.TLSActivation{
 						ID: mockResponseID,
@@ -75,7 +75,7 @@ func TestTLSCustomActivationDisable(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				DeleteTLSActivationFn: func(_ context.Context, _ *fastly.DeleteTLSActivationInput) error {
 					return testutil.Err
 				},
@@ -85,7 +85,7 @@ func TestTLSCustomActivationDisable(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				DeleteTLSActivationFn: func(_ context.Context, _ *fastly.DeleteTLSActivationInput) error {
 					return nil
 				},
@@ -106,7 +106,7 @@ func TestTLSCustomActivationDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				GetTLSActivationFn: func(_ context.Context, _ *fastly.GetTLSActivationInput) (*fastly.TLSActivation, error) {
 					return nil, testutil.Err
 				},
@@ -116,7 +116,7 @@ func TestTLSCustomActivationDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				GetTLSActivationFn: func(_ context.Context, _ *fastly.GetTLSActivationInput) (*fastly.TLSActivation, error) {
 					t := testutil.Date
 					return &fastly.TLSActivation{
@@ -137,7 +137,7 @@ func TestTLSCustomActivationList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				ListTLSActivationsFn: func(_ context.Context, _ *fastly.ListTLSActivationsInput) ([]*fastly.TLSActivation, error) {
 					return nil, testutil.Err
 				},
@@ -146,7 +146,7 @@ func TestTLSCustomActivationList(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				ListTLSActivationsFn: func(_ context.Context, _ *fastly.ListTLSActivationsInput) ([]*fastly.TLSActivation, error) {
 					t := testutil.Date
 					return []*fastly.TLSActivation{
@@ -179,7 +179,7 @@ func TestTLSCustomActivationUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				UpdateTLSActivationFn: func(_ context.Context, _ *fastly.UpdateTLSActivationInput) (*fastly.TLSActivation, error) {
 					return nil, testutil.Err
 				},
@@ -189,7 +189,7 @@ func TestTLSCustomActivationUpdate(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				UpdateTLSActivationFn: func(_ context.Context, _ *fastly.UpdateTLSActivationInput) (*fastly.TLSActivation, error) {
 					return &fastly.TLSActivation{
 						ID: mockResponseID,

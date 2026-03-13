@@ -70,7 +70,6 @@ func TestBuildRust(t *testing.T) {
 			name: "build script inserted dynamically when missing",
 			args: args("compute build --verbose"),
 			applicationConfig: &config.File{
-				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainConstraint: ">= 1.78.0",
@@ -99,7 +98,6 @@ func TestBuildRust(t *testing.T) {
 			name: "build error",
 			args: args("compute build"),
 			applicationConfig: &config.File{
-				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainConstraint: ">= 1.78.0",
@@ -127,7 +125,6 @@ func TestBuildRust(t *testing.T) {
 			name: "wasmwasi target error",
 			args: args("compute build --verbose"),
 			applicationConfig: &config.File{
-				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainConstraint: ">= 1.78.0",
@@ -156,7 +153,6 @@ func TestBuildRust(t *testing.T) {
 			name: "successful build",
 			args: args("compute build --verbose"),
 			applicationConfig: &config.File{
-				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Rust: config.Rust{
 						ToolchainConstraint: ">= 1.78.0",
@@ -329,7 +325,6 @@ func TestBuildGo(t *testing.T) {
 			name: "build success",
 			args: args("compute build --verbose"),
 			applicationConfig: &config.File{
-				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Go: config.Go{
 						TinyGoConstraint:          ">= 0.26.0-0",
@@ -361,7 +356,6 @@ func TestBuildGo(t *testing.T) {
 			name: "build error",
 			args: args("compute build"),
 			applicationConfig: &config.File{
-				Profiles: testutil.TokenProfile(),
 				Language: config.Language{
 					Go: config.Go{
 						TinyGoConstraint:          ">= 0.26.0-0",

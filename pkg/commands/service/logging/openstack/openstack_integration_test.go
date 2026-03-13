@@ -20,7 +20,7 @@ func TestOpenstackCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateOpenstackFn: createOpenstackOK,
@@ -29,7 +29,7 @@ func TestOpenstackCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateOpenstackFn: createOpenstackError,
@@ -38,7 +38,7 @@ func TestOpenstackCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --compression-codec zstd --gzip-level 9 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
@@ -52,7 +52,7 @@ func TestOpenstackList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
@@ -60,7 +60,7 @@ func TestOpenstackList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
@@ -68,7 +68,7 @@ func TestOpenstackList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
@@ -76,7 +76,7 @@ func TestOpenstackList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListOpenstacksFn: listOpenstacksError,
 			},
@@ -94,7 +94,7 @@ func TestOpenstackDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetOpenstackFn: getOpenstackError,
 			},
@@ -102,7 +102,7 @@ func TestOpenstackDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetOpenstackFn: getOpenstackOK,
 			},
@@ -120,7 +120,7 @@ func TestOpenstackUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateOpenstackFn: updateOpenstackError,
@@ -129,7 +129,7 @@ func TestOpenstackUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateOpenstackFn: updateOpenstackOK,
@@ -148,7 +148,7 @@ func TestOpenstackDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteOpenstackFn: deleteOpenstackError,
@@ -157,7 +157,7 @@ func TestOpenstackDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteOpenstackFn: deleteOpenstackOK,
@@ -246,7 +246,7 @@ SERVICE  VERSION  NAME
 
 var listOpenstacksVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

@@ -30,7 +30,7 @@ func TestAlertsCreate(t *testing.T) {
 		{
 			Name: "ok all required",
 			Args: createFlags.String(),
-			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
+			API:  &mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name:      "no name",
@@ -70,17 +70,17 @@ func TestAlertsCreate(t *testing.T) {
 		{
 			Name: "ok optional json",
 			Args: createFlags.Add(flag{Flag: "--json"}).String(),
-			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
+			API:  &mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional ignoreBelow",
 			Args: createFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String(),
-			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
+			API:  &mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional service-id",
 			Args: createFlags.Add(flag{Flag: "--service-id", Value: "ABC"}).String(),
-			API:  mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
+			API:  &mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional dimensions",
@@ -88,14 +88,14 @@ func TestAlertsCreate(t *testing.T) {
 				Change(flag{Flag: "--source", Value: "origins"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly.com"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly2.com"}).String(),
-			API: mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
+			API: &mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional integrations",
 			Args: createFlags.
 				Add(flag{Flag: "--integrations", Value: "ABC1"}).
 				Add(flag{Flag: "--integrations", Value: "ABC2"}).String(),
-			API: mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
+			API: &mock.API{CreateAlertDefinitionFn: CreateAlertDefinitionResponse},
 		},
 	}
 
@@ -120,7 +120,7 @@ func TestAlertsUpdate(t *testing.T) {
 		{
 			Name: "ok all required",
 			Args: updateFlags.String(),
-			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
+			API:  &mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name:      "no id",
@@ -165,12 +165,12 @@ func TestAlertsUpdate(t *testing.T) {
 		{
 			Name: "ok optional json",
 			Args: updateFlags.Add(flag{Flag: "--json"}).String(),
-			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
+			API:  &mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional ignoreBelow",
 			Args: updateFlags.Add(flag{Flag: "--ignoreBelow", Value: "5.0"}).String(),
-			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
+			API:  &mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional dimensions",
@@ -178,12 +178,12 @@ func TestAlertsUpdate(t *testing.T) {
 				Change(flag{Flag: "--source", Value: "origins"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly.com"}).
 				Add(flag{Flag: "--dimensions", Value: "fastly2.com"}).String(),
-			API: mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
+			API: &mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 		{
 			Name: "ok optional integrations",
 			Args: updateFlags.Add(flag{Flag: "--integrations", Value: "ABC1"}).Add(flag{Flag: "--integrations", Value: "ABC2"}).String(),
-			API:  mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
+			API:  &mock.API{UpdateAlertDefinitionFn: UpdateAlertDefinitionResponse},
 		},
 	}
 
@@ -199,7 +199,7 @@ func TestAlertsDelete(t *testing.T) {
 		{
 			Name: "ok",
 			Args: "--id ABC",
-			API: mock.API{
+			API: &mock.API{
 				DeleteAlertDefinitionFn: func(_ context.Context, _ *fastly.DeleteAlertDefinitionInput) error {
 					return nil
 				},
@@ -219,7 +219,7 @@ func TestAlertsDescribe(t *testing.T) {
 		{
 			Name: "ok",
 			Args: "--id ABC",
-			API: mock.API{
+			API: &mock.API{
 				GetAlertDefinitionFn: func(_ context.Context, _ *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error) {
 					response := &mockDefinition
 					return response, nil
@@ -236,62 +236,62 @@ func TestAlertsList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:       "ok",
-			API:        mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:        &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 			WantOutput: listAlertsEmptyOutput,
 		},
 		{
 			Name: "ok verbose",
 			Args: "-v",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok json",
 			Args: "-j",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok cursor",
 			Args: "--cursor ABC",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok limit",
 			Args: "--limit 1",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok definition name",
 			Args: "--name test",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok sort name",
 			Args: "--sort name",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok sort updated_at",
 			Args: "--sort updated_at",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok sort created_at asc",
 			Args: "--sort created_at --order asc",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok sort created_at desc",
 			Args: "--sort created_at --order desc",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "ok service id",
 			Args: "--service-id ABC",
-			API:  mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
+			API:  &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
 		},
 		{
 			Name: "validate ListAlerts API success",
-			API: mock.API{
+			API: &mock.API{
 				ListAlertDefinitionsFn: func(_ context.Context, _ *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
 					response := &fastly.AlertDefinitionsResponse{
 						Data: []fastly.AlertDefinition{mockDefinition},
@@ -316,62 +316,62 @@ func TestAlertsHistoryList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:       "ok",
-			API:        mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:        &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 			WantOutput: listAlertHistoryEmptyOutput,
 		},
 		{
 			Name: "ok verbose",
 			Args: "-v",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok json",
 			Args: "--json",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok cursor",
 			Args: "--cursor ABC",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok limit",
 			Args: "--limit 1",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok status",
 			Args: "--status active",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok sort start",
 			Args: "--sort start",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok sort start asc",
 			Args: "--sort start --order asc",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok sort start desc",
 			Args: "--sort start --order desc",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok service id",
 			Args: "--service-id ABC",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "ok definition id",
 			Args: "--definition-id ABC",
-			API:  mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
+			API:  &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},
 		},
 		{
 			Name: "validate ListAlerts API success",
-			API: mock.API{
+			API: &mock.API{
 				ListAlertHistoryFn: func(_ context.Context, _ *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
 					response := &fastly.AlertHistoryResponse{
 						Data: []fastly.AlertHistory{mockHistory},

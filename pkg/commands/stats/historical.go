@@ -19,6 +19,7 @@ type HistoricalCommand struct {
 	argparser.Base
 
 	by          string
+	field       string
 	formatFlag  string
 	from        string
 	region      string
@@ -32,6 +33,8 @@ func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *Historic
 	c.Globals = g
 
 	c.CmdClause = parent.Command("historical", "View historical stats for a Fastly service")
+
+	// Optional.
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -45,6 +48,7 @@ func NewHistoricalCommand(parent argparser.Registerer, g *global.Data) *Historic
 		Dst:         &c.serviceName.Value,
 	})
 
+	c.CmdClause.Flag("field", "Filter to a single stats field (e.g. bandwidth, requests)").StringVar(&c.field)
 	c.CmdClause.Flag("from", "From time, accepted formats at https://fastly.dev/reference/api/metrics-stats/historical-stats").StringVar(&c.from)
 	c.CmdClause.Flag("to", "To time").StringVar(&c.to)
 	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
@@ -71,6 +75,9 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.by != "" {
 		input.By = &c.by
 	}
+	if c.field != "" {
+		input.Field = &c.field
+	}
 	if c.from != "" {
 		input.From = &c.from
 	}
@@ -96,20 +103,29 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	switch c.formatFlag {
 	case "json":
-		err := writeBlocksJSON(out, serviceID, envelope.Data)
-		if err != nil {
+		if err := writeBlocksJSON(out, envelope.Data); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
+			return err
 		}
 
 	default:
 		writeHeader(out, envelope.Meta)
-		err := writeBlocks(out, serviceID, envelope.Data)
-		if err != nil {
+		if c.field != "" {
+			for _, block := range envelope.Data {
+				if err := fmtFieldLine(out, c.field, block); err != nil {
+					c.Globals.ErrLog.AddWithContext(err, map[string]any{
+						"Service ID": serviceID,
+					})
+					return err
+				}
+			}
+		} else if err := writeBlocks(out, serviceID, envelope.Data); err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
 				"Service ID": serviceID,
 			})
+			return err
 		}
 	}
 
@@ -134,7 +150,7 @@ func writeBlocks(out io.Writer, service string, blocks []statsResponseData) erro
 	return nil
 }
 
-func writeBlocksJSON(out io.Writer, _ string, blocks []statsResponseData) error {
+func writeBlocksJSON(out io.Writer, blocks []statsResponseData) error {
 	for _, block := range blocks {
 		if err := json.NewEncoder(out).Encode(block); err != nil {
 			return err

@@ -22,7 +22,7 @@ func TestList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				ListTLSDomainsFn: func(_ context.Context, _ *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error) {
 					return nil, testutil.Err
 				},
@@ -31,7 +31,7 @@ func TestList(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				ListTLSDomainsFn: func(_ context.Context, _ *fastly.ListTLSDomainsInput) ([]*fastly.TLSDomain, error) {
 					return []*fastly.TLSDomain{
 						{

@@ -29,14 +29,14 @@ type File struct {
 	Description string `toml:"description"`
 	// Language is the programming language used for the project.
 	Language string `toml:"language"`
-	// Profile is the name of the profile account the Fastly CLI should use to make API requests.
-	Profile string `toml:"profile,omitempty"`
 	// LocalServer describes the configuration for the local server built into the Fastly CLI.
 	LocalServer LocalServer `toml:"local_server,omitempty"`
 	// ManifestVersion is the manifest schema version number.
 	ManifestVersion Version `toml:"manifest_version"`
 	// Name is the package name.
 	Name string `toml:"name"`
+	// Profile selects a named auth token from the CLI config for this project.
+	Profile string `toml:"profile,omitempty"`
 	// Scripts describes customisation options for the Fastly CLI build step.
 	Scripts Scripts `toml:"scripts,omitempty"`
 	// ServiceID is the Fastly Service ID to deploy the package to.
@@ -147,10 +147,10 @@ func (f *File) MarshalTOML() ([]byte, error) {
 		ClonedFrom      string   `toml:"cloned_from,omitempty"`
 		Description     string   `toml:"description"`
 		Language        string   `toml:"language"`
-		Profile         string   `toml:"profile,omitempty"`
 		LocalServer     any      `toml:"local_server"` // override this field
 		ManifestVersion Version  `toml:"manifest_version"`
 		Name            string   `toml:"name"`
+		Profile         string   `toml:"profile,omitempty"`
 		Scripts         Scripts  `toml:"scripts,omitempty"`
 		ServiceID       string   `toml:"service_id"`
 		Setup           Setup    `toml:"setup,omitempty"`
@@ -159,10 +159,10 @@ func (f *File) MarshalTOML() ([]byte, error) {
 		ClonedFrom:      f.ClonedFrom,
 		Description:     f.Description,
 		Language:        f.Language,
-		Profile:         f.Profile,
 		LocalServer:     localServer,
 		ManifestVersion: f.ManifestVersion,
 		Name:            f.Name,
+		Profile:         f.Profile,
 		Scripts:         f.Scripts,
 		ServiceID:       f.ServiceID,
 		Setup:           f.Setup,

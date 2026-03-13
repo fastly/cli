@@ -20,7 +20,7 @@ func TestLogglyCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateLogglyFn: createLogglyOK,
@@ -29,7 +29,7 @@ func TestLogglyCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateLogglyFn: createLogglyError,
@@ -44,7 +44,7 @@ func TestLogglyList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysOK,
 			},
@@ -52,7 +52,7 @@ func TestLogglyList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysOK,
 			},
@@ -60,7 +60,7 @@ func TestLogglyList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysOK,
 			},
@@ -68,7 +68,7 @@ func TestLogglyList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListLogglyFn:   listLogglysError,
 			},
@@ -86,7 +86,7 @@ func TestLogglyDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetLogglyFn:    getLogglyError,
 			},
@@ -94,7 +94,7 @@ func TestLogglyDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetLogglyFn:    getLogglyOK,
 			},
@@ -112,7 +112,7 @@ func TestLogglyUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateLogglyFn: updateLogglyError,
@@ -121,7 +121,7 @@ func TestLogglyUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateLogglyFn: updateLogglyOK,
@@ -140,7 +140,7 @@ func TestLogglyDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteLogglyFn: deleteLogglyError,
@@ -149,7 +149,7 @@ func TestLogglyDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteLogglyFn: deleteLogglyOK,
@@ -218,7 +218,7 @@ SERVICE  VERSION  NAME
 
 var listLogglysVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

@@ -191,6 +191,8 @@ func ensureConfigDirExists(path string) error {
 
 // File represents our application toml configuration.
 type File struct {
+	// Auth represents the new auth token storage.
+	Auth Auth `toml:"auth,omitempty"`
 	// CLI represents CLI specific configuration.
 	CLI CLI `toml:"cli"`
 	// ConfigVersion is the version of the config.
@@ -199,8 +201,8 @@ type File struct {
 	Fastly Fastly `toml:"fastly"`
 	// Language represents C@E language specific configuration.
 	Language Language `toml:"language"`
-	// Profiles represents multiple profile accounts.
-	Profiles Profiles `toml:"profile"`
+	// Profiles represents legacy profile accounts (migrated to [auth]).
+	Profiles Profiles `toml:"profile,omitempty"`
 	// StarterKitLanguages represents language specific starter kits.
 	StarterKits StarterKitLanguages `toml:"starter-kits"`
 	// Viceroy represents viceroy specific configuration.

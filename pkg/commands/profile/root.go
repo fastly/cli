@@ -21,7 +21,7 @@ const CommandName = "profile"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manage user profiles")
+	c.CmdClause = parent.Command(CommandName, "Manage user profiles (deprecated: use 'fastly auth' instead)").Hidden()
 	return &c
 }
 

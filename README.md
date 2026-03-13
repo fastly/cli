@@ -14,10 +14,18 @@
 - [Installation](https://www.fastly.com/documentation/reference/tools/cli#installing)
 - [Shell auto-completion](https://www.fastly.com/documentation/reference/tools/cli#shell-auto-completion)
 - [Configuring](https://www.fastly.com/documentation/reference/tools/cli#configuring)
+- [Authentication](https://fastly.help/cli/cli-auth) (`fastly auth login`)
 - [Commands](https://www.fastly.com/documentation/reference/cli#command-groups)
 - [Development](https://github.com/fastly/cli/blob/main/DEVELOPMENT.md)
 - [Testing](https://github.com/fastly/cli/blob/main/TESTING.md)
 - [Documentation](https://github.com/fastly/cli/blob/main/DOCUMENTATION.md)
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `FASTLY_API_TOKEN` | Fastly API token used for authentication. |
+| `FASTLY_DISABLE_AUTH_COMMAND` | When set (any non-empty value), all authentication-related commands (`auth`, `auth-token`, `sso`, `profile`, `whoami`) and the `--token`/`-t` global flag are disabled. Authentication is handled via `FASTLY_API_TOKEN` or pre-configured stored tokens. Background SSO flows are unaffected. |
 
 ## Versioning and Release Schedules
 

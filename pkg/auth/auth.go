@@ -17,7 +17,6 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/api/undocumented"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 )
@@ -477,10 +476,4 @@ func TokenExpired(ttl int, timestamp int64) bool {
 	d := time.Duration(ttl) * time.Second
 	ttlAgo := time.Now().Add(-d).Unix()
 	return timestamp < ttlAgo
-}
-
-// IsLongLivedToken identifies if profile has SSO access/refresh values set.
-func IsLongLivedToken(pd *config.Profile) bool {
-	// If user has followed SSO flow before, then these will not be zero values.
-	return pd.AccessToken == "" && pd.RefreshToken == "" && pd.AccessTokenCreated == 0 && pd.RefreshTokenCreated == 0
 }
