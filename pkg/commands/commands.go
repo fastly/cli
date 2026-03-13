@@ -49,6 +49,9 @@ import (
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
 	aliasvclcustom "github.com/fastly/cli/pkg/commands/alias/vcl/custom"
 	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
+	"github.com/fastly/cli/pkg/commands/apisecurity"
+	"github.com/fastly/cli/pkg/commands/apisecurity/discoveredoperations"
+	"github.com/fastly/cli/pkg/commands/apisecurity/operations"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/computeacl"
@@ -180,6 +183,17 @@ func Define( // nolint:revive // function-length
 	// beginning of the list of commands.
 	ssoCmdRoot := sso.NewRootCommand(app, data)
 
+	apisecurityRoot := apisecurity.NewRootCommand(app, data)
+	discoveredoperationsRoot := discoveredoperations.NewRootCommand(apisecurityRoot.CmdClause, data)
+	discoveredoperationsList := discoveredoperations.NewListCommand(discoveredoperationsRoot.CmdClause, data)
+	discoveredoperationsUpdate := discoveredoperations.NewUpdateCommand(discoveredoperationsRoot.CmdClause, data)
+	operationsRoot := operations.NewRootCommand(apisecurityRoot.CmdClause, data)
+	operationsList := operations.NewListCommand(operationsRoot.CmdClause, data)
+	operationsCreate := operations.NewCreateCommand(operationsRoot.CmdClause, data)
+	operationsDescribe := operations.NewDescribeCommand(operationsRoot.CmdClause, data)
+	operationsUpdate := operations.NewUpdateCommand(operationsRoot.CmdClause, data)
+	operationsDelete := operations.NewDeleteCommand(operationsRoot.CmdClause, data)
+	operationsAddTags := operations.NewAddTagsCommand(operationsRoot.CmdClause, data)
 	authtokenCmdRoot := authtoken.NewRootCommand(app, data)
 	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, data)
 	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, data)
@@ -1018,6 +1032,17 @@ func Define( // nolint:revive // function-length
 
 	return []argparser.Command{
 		shellcompleteCmdRoot,
+		apisecurityRoot,
+		discoveredoperationsRoot,
+		discoveredoperationsList,
+		discoveredoperationsUpdate,
+		operationsRoot,
+		operationsList,
+		operationsCreate,
+		operationsDescribe,
+		operationsUpdate,
+		operationsDelete,
+		operationsAddTags,
 		authtokenCmdRoot,
 		authtokenCreate,
 		authtokenDelete,
