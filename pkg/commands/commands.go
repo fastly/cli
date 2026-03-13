@@ -1081,6 +1081,7 @@ func Define( // nolint:revive // function-length
 		shellcompleteCmdRoot,
 	}
 	cmds = append(cmds, authCommands...)
+	cmds = append(cmds, authtokenCommands...)
 	cmds = append(cmds, []argparser.Command{
 		apisecurityRoot,
 		discoveredoperationsRoot,
@@ -1093,9 +1094,6 @@ func Define( // nolint:revive // function-length
 		operationsUpdate,
 		operationsDelete,
 		operationsAddTags,
-	}...)
-	cmds = append(cmds, authtokenCommands...)
-	cmds = append(cmds, []argparser.Command{
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
