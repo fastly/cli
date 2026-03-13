@@ -23,7 +23,7 @@ func TestConditionCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateConditionFn: createConditionOK,
@@ -32,7 +32,7 @@ func TestConditionCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false --statement false --type REQUEST --priority 10 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateConditionFn: createConditionError,
@@ -52,7 +52,7 @@ func TestConditionDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteConditionFn: deleteConditionError,
@@ -61,7 +61,7 @@ func TestConditionDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteConditionFn: deleteConditionOK,
@@ -81,7 +81,7 @@ func TestConditionUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateConditionFn: updateConditionOK,
@@ -90,7 +90,7 @@ func TestConditionUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateConditionFn: updateConditionError,
@@ -99,7 +99,7 @@ func TestConditionUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateConditionFn: updateConditionOK,
@@ -119,7 +119,7 @@ func TestConditionDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionError,
 			},
@@ -127,7 +127,7 @@ func TestConditionDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetConditionFn: getConditionOK,
 			},
@@ -142,7 +142,7 @@ func TestConditionList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
 			},
@@ -150,7 +150,7 @@ func TestConditionList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
 			},
@@ -158,7 +158,7 @@ func TestConditionList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
 			},
@@ -166,7 +166,7 @@ func TestConditionList(t *testing.T) {
 		},
 		{
 			Args: "--verbose --service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
 			},
@@ -174,7 +174,7 @@ func TestConditionList(t *testing.T) {
 		},
 		{
 			Args: "-v --service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsOK,
 			},
@@ -182,7 +182,7 @@ func TestConditionList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ListConditionsFn: listConditionsError,
 			},
@@ -210,7 +210,7 @@ SERVICE  VERSION  NAME                  STATEMENT  TYPE     PRIORITY
 
 var listConditionsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

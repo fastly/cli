@@ -21,7 +21,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("list", "List API tokens")
+	c.CmdClause = parent.Command("list", "List API tokens (deprecated: use the Fastly API directly)")
 
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagCustomerIDName,
@@ -43,6 +43,8 @@ type ListCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
+	text.Deprecated(out, "The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
+
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}

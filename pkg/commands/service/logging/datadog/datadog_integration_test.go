@@ -19,7 +19,7 @@ func TestDatadogCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateDatadogFn: createDatadogOK,
@@ -28,7 +28,7 @@ func TestDatadogCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateDatadogFn: createDatadogError,
@@ -43,7 +43,7 @@ func TestDatadogList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsOK,
 			},
@@ -51,7 +51,7 @@ func TestDatadogList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsOK,
 			},
@@ -59,7 +59,7 @@ func TestDatadogList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsOK,
 			},
@@ -67,7 +67,7 @@ func TestDatadogList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDatadogFn:  listDatadogsError,
 			},
@@ -85,7 +85,7 @@ func TestDatadogDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDatadogFn:   getDatadogError,
 			},
@@ -93,7 +93,7 @@ func TestDatadogDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDatadogFn:   getDatadogOK,
 			},
@@ -111,7 +111,7 @@ func TestDatadogUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateDatadogFn: updateDatadogError,
@@ -120,7 +120,7 @@ func TestDatadogUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateDatadogFn: updateDatadogOK,
@@ -139,7 +139,7 @@ func TestDatadogDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteDatadogFn: deleteDatadogError,
@@ -148,7 +148,7 @@ func TestDatadogDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteDatadogFn: deleteDatadogOK,
@@ -219,7 +219,7 @@ SERVICE  VERSION  NAME
 
 var listDatadogsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

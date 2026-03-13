@@ -33,6 +33,14 @@ func (e APIError) Error() string {
 	return e.Err.Error()
 }
 
+func (e APIError) Unwrap() error {
+	return e.Err
+}
+
+func (e APIError) HTTPStatusCode() int {
+	return e.StatusCode
+}
+
 // NewError returns an APIError.
 func NewError(err error, statusCode int) APIError {
 	return APIError{

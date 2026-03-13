@@ -1,7 +1,6 @@
 package profile
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -10,70 +9,50 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fastly/go-fastly/v13/fastly"
-
-	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/sso"
+	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/config"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
-	"github.com/fastly/cli/pkg/profile"
 	"github.com/fastly/cli/pkg/text"
 )
 
 // CreateCommand represents a Kingpin command.
 type CreateCommand struct {
 	argparser.Base
-	ssoCmd *sso.RootCommand
 
-	automationToken bool
-	profile         string
-	sso             bool
+	profile string
+	sso     bool
 }
 
 // NewCreateCommand returns a new command registered in the parent.
-func NewCreateCommand(parent argparser.Registerer, g *global.Data, ssoCmd *sso.RootCommand) *CreateCommand {
+func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateCommand {
 	var c CreateCommand
 	c.Globals = g
-	c.ssoCmd = ssoCmd
-	c.CmdClause = parent.Command("create", "Create user profile")
-	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default(profile.DefaultName).Short('p').StringVar(&c.profile)
-	c.CmdClause.Flag("automation-token", "Expected input will be an 'automation token' instead of a 'user token'").BoolVar(&c.automationToken)
+	c.CmdClause = parent.Command("create", "Create user profile (deprecated: use 'fastly auth login' or 'fastly auth add' instead)")
+	c.CmdClause.Arg("profile", "Profile to create (default 'user')").Default("user").Short('p').StringVar(&c.profile)
 	c.CmdClause.Flag("sso", "Create an SSO-based token").BoolVar(&c.sso)
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
-	if c.sso && c.automationToken {
-		return fsterr.ErrInvalidProfileSSOCombo
-	}
+	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth login' or 'fastly auth add' instead.\n\n")
 
 	if c.Globals.Verbose() {
 		text.Break(out)
 	}
 	text.Output(out, "Creating profile '%s'", c.profile)
 
-	if profile.Exist(c.profile, c.Globals.Config.Profiles) {
+	if c.Globals.Config.GetAuthToken(c.profile) != nil {
 		return fsterr.RemediationError{
 			Inner:       fmt.Errorf("profile '%s' already exists", c.profile),
 			Remediation: "Re-run the command and pass a different value for the 'profile' argument.",
 		}
 	}
 
-	// FIXME: Put back messaging once SSO is GA.
-	// if !c.sso {
-	// 	text.Info(out, "When creating a profile you can either paste in a long-lived token or allow the Fastly CLI to generate a short-lived token that can be automatically refreshed. To create an SSO-based token, pass the `--sso` flag: `fastly profile create --sso`.")
-	// 	text.Break(out)
-	// }
-
-	// The Default status of a new profile should always be true unless there is
-	// an existing profile already set to be the default. In the latter scenario
-	// we should prompt the user to see if the new profile they're creating needs
-	// to become the new default.
 	makeDefault := true
-	if _, p := profile.Default(c.Globals.Config.Profiles); p != nil && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+	if name, _ := c.Globals.Config.GetDefaultAuthToken(); name != "" && !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
 		makeDefault, err = c.promptForDefault(in, out)
 		if err != nil {
 			return err
@@ -82,17 +61,11 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	text.Break(out)
 
 	if c.sso {
-		// IMPORTANT: We need to set profile fields for `sso` command.
-		//
-		// This is so the `sso` command will use this information to create
-		// a new 'non-default' profile.
-		c.ssoCmd.InvokedFromProfileCreate = true
-		c.ssoCmd.ProfileCreateName = c.profile
-		c.ssoCmd.ProfileDefault = makeDefault
-
-		err = c.ssoCmd.Exec(in, out)
-		if err != nil {
+		if err := authcmd.RunSSOWithTokenName(in, out, c.Globals, false, false, c.profile); err != nil {
 			return fmt.Errorf("failed to authenticate: %w", err)
+		}
+		if makeDefault {
+			c.Globals.Config.Auth.Default = c.profile
 		}
 		text.Break(out)
 	} else {
@@ -110,15 +83,12 @@ func (c *CreateCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	return nil
 }
 
-// staticTokenFlow initialises the token flow for a non-OAuth token.
 func (c *CreateCommand) staticTokenFlow(makeDefault bool, in io.Reader, out io.Writer) error {
 	token, err := promptForToken(in, out, c.Globals.ErrLog)
 	if err != nil {
 		return err
 	}
 	text.Break(out)
-
-	endpoint, _ := c.Globals.APIEndpoint()
 
 	spinner, err := text.NewSpinner(out)
 	if err != nil {
@@ -131,12 +101,19 @@ func (c *CreateCommand) staticTokenFlow(makeDefault bool, in io.Reader, out io.W
 		}
 	}()
 
-	email, err := c.validateToken(token, endpoint, spinner)
+	var md *authcmd.TokenMetadata
+	err = spinner.Process("Validating token", func(_ *text.SpinnerWrapper) error {
+		md, err = authcmd.FetchTokenMetadata(c.Globals, token)
+		return err
+	})
 	if err != nil {
 		return err
 	}
 
-	return c.updateInMemCfg(email, token, endpoint, makeDefault, spinner)
+	return spinner.Process("Persisting configuration", func(_ *text.SpinnerWrapper) error {
+		authcmd.BuildAndStoreStaticToken(c.Globals, token, c.profile, md, makeDefault)
+		return nil
+	})
 }
 
 func promptForToken(in io.Reader, out io.Writer, errLog fsterr.LogInterface) (string, error) {
@@ -161,89 +138,7 @@ func validateTokenNotEmpty(s string) error {
 // token in the terminal prompt.
 var ErrEmptyToken = errors.New("token cannot be empty")
 
-// validateToken ensures the token can be used to acquire user data.
-func (c *CreateCommand) validateToken(token, endpoint string, spinner text.Spinner) (string, error) {
-	var (
-		client api.Interface
-		err    error
-		t      *fastly.Token
-	)
-	err = spinner.Process("Validating token", func(_ *text.SpinnerWrapper) error {
-		client, err = c.Globals.APIClientFactory(token, endpoint, c.Globals.Flags.Debug)
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"Endpoint": endpoint,
-			})
-			return fmt.Errorf("error regenerating Fastly API client: %w", err)
-		}
-
-		t, err = client.GetTokenSelf(context.TODO())
-		if err != nil {
-			c.Globals.ErrLog.Add(err)
-			return fmt.Errorf("error validating token: %w", err)
-		}
-		return nil
-	})
-	if err != nil {
-		return "", err
-	}
-	if c.automationToken {
-		return fmt.Sprintf("Automation Token (%s)", fastly.ToValue(t.TokenID)), nil
-	}
-
-	var user *fastly.User
-	err = spinner.Process("Getting user data", func(_ *text.SpinnerWrapper) error {
-		user, err = client.GetUser(context.TODO(), &fastly.GetUserInput{
-			UserID: fastly.ToValue(t.UserID),
-		})
-		if err != nil {
-			c.Globals.ErrLog.AddWithContext(err, map[string]any{
-				"User ID": t.UserID,
-			})
-			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("error fetching token user: %w", err),
-				Remediation: "If providing an 'automation token', retry the command with the `--automation-token` flag set.",
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return "", err
-	}
-	return fastly.ToValue(user.Login), nil
-}
-
-// updateInMemCfg persists the updated configuration data in-memory.
-func (c *CreateCommand) updateInMemCfg(email, token, endpoint string, makeDefault bool, spinner text.Spinner) error {
-	return spinner.Process("Persisting configuration", func(_ *text.SpinnerWrapper) error {
-		c.Globals.Config.Fastly.APIEndpoint = endpoint
-
-		if c.Globals.Config.Profiles == nil {
-			c.Globals.Config.Profiles = make(config.Profiles)
-		}
-		c.Globals.Config.Profiles[c.profile] = &config.Profile{
-			Default: makeDefault,
-			Email:   email,
-			Token:   token,
-		}
-
-		// If the user wants the newly created profile to be their new default, then
-		// we'll call SetDefault for its side effect of resetting all other profiles
-		// to have their Default field set to false.
-		if makeDefault {
-			if p, ok := profile.SetDefault(c.profile, c.Globals.Config.Profiles); ok {
-				c.Globals.Config.Profiles = p
-			}
-		}
-		return nil
-	})
-}
-
 func (c *CreateCommand) persistCfg() error {
-	// TODO: The following directory checks should be encapsulated by the
-	// File.Write() method as this chunk of code is duplicated in various places.
-	// Consider consolidating with pkg/filesystem/directory.go
-	// This function is itself duplicated in pkg/commands/profile/update.go
 	dir := filepath.Dir(c.Globals.ConfigPath)
 	fi, err := os.Stat(dir)
 	switch {

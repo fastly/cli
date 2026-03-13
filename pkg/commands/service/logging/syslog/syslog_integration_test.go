@@ -20,7 +20,7 @@ func TestSyslogCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogOK,
@@ -29,7 +29,7 @@ func TestSyslogCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogError,
@@ -44,7 +44,7 @@ func TestSyslogList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
 			},
@@ -52,7 +52,7 @@ func TestSyslogList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
 			},
@@ -60,7 +60,7 @@ func TestSyslogList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsOK,
 			},
@@ -68,7 +68,7 @@ func TestSyslogList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListSyslogsFn:  listSyslogsError,
 			},
@@ -86,7 +86,7 @@ func TestSyslogDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSyslogFn:    getSyslogError,
 			},
@@ -94,7 +94,7 @@ func TestSyslogDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetSyslogFn:    getSyslogOK,
 			},
@@ -112,7 +112,7 @@ func TestSyslogUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogError,
@@ -121,7 +121,7 @@ func TestSyslogUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogOK,
@@ -140,7 +140,7 @@ func TestSyslogDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogError,
@@ -149,7 +149,7 @@ func TestSyslogDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogOK,
@@ -233,7 +233,7 @@ SERVICE  VERSION  NAME
 
 var listSyslogsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

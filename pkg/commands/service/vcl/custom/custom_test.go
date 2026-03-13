@@ -18,7 +18,7 @@ func TestVCLCustomCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--content ./testdata/example.vcl --name foo --service-id 123 --version 1",
@@ -26,7 +26,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--content ./testdata/example.vcl --name foo --service-id 123 --version 2",
@@ -34,7 +34,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateVCL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(_ context.Context, _ *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
@@ -45,7 +45,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateVCL API success for non-main VCL",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
@@ -75,7 +75,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateVCL API success for main VCL",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
@@ -106,7 +106,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
@@ -137,7 +137,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateVCL API success with inline VCL content",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
@@ -189,7 +189,7 @@ func TestVCLCustomDelete(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 1",
@@ -197,7 +197,7 @@ func TestVCLCustomDelete(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 2",
@@ -205,7 +205,7 @@ func TestVCLCustomDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteVCL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
 					return testutil.Err
@@ -216,7 +216,7 @@ func TestVCLCustomDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteVCL API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
 					return nil
@@ -227,7 +227,7 @@ func TestVCLCustomDelete(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
@@ -261,7 +261,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetVCL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetVCLFn: func(_ context.Context, _ *fastly.GetVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
@@ -272,7 +272,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetVCL API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetVCLFn:       getVCL,
 			},
@@ -281,7 +281,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetVCLFn:       getVCL,
 			},
@@ -306,7 +306,7 @@ func TestVCLCustomList(t *testing.T) {
 		},
 		{
 			Name: "validate ListVCLs API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn: func(_ context.Context, _ *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
 					return nil, testutil.Err
@@ -317,7 +317,7 @@ func TestVCLCustomList(t *testing.T) {
 		},
 		{
 			Name: "validate ListVCLs API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn:     listVCLs,
 			},
@@ -326,7 +326,7 @@ func TestVCLCustomList(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn:     listVCLs,
 			},
@@ -335,12 +335,12 @@ func TestVCLCustomList(t *testing.T) {
 		},
 		{
 			Name: "validate missing --verbose flag",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListVCLsFn:     listVCLs,
 			},
 			Args:       "--service-id 123 --verbose --version 1",
-			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nMain: false\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (auth: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nMain: false\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
@@ -367,7 +367,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 1",
@@ -375,7 +375,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 2",
@@ -383,7 +383,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateVCL API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateVCLFn: func(_ context.Context, _ *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
@@ -394,7 +394,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateVCL API success with --new-name",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return &fastly.VCL{
@@ -411,7 +411,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateVCL API success with --content",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
@@ -432,7 +432,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {

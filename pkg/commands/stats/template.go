@@ -37,19 +37,30 @@ Requests:           {{ .RequestCount }}
 
 `))
 
+func fmtFieldLine(out io.Writer, field string, block statsResponseData) error {
+	st, ok := block["start_time"].(float64)
+	if !ok {
+		return fmt.Errorf("failed to type assert '%v' to a float64", block["start_time"])
+	}
+	startTime := time.Unix(int64(st), 0).UTC()
+
+	val, ok := block[field]
+	if !ok {
+		return fmt.Errorf("field %q not found in stats response", field)
+	}
+	_, err := fmt.Fprintf(out, "%s\t%s: %v\n", startTime.Format(time.RFC3339), field, val)
+	return err
+}
+
 func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 	var agg fastly.Stats
 	if err := mapstructure.Decode(block, &agg); err != nil {
 		return err
 	}
 
-	hitRate := 0.0
 	aggHits := fastly.ToValue(agg.Hits)
 	aggMiss := fastly.ToValue(agg.Miss)
 	aggErrs := fastly.ToValue(agg.Errors)
-	if aggHits > 0 {
-		hitRate = float64(aggHits-aggMiss-aggErrs) / float64(aggHits)
-	}
 
 	// TODO: parse the JSON more strictly so this doesn't need to be dynamic.
 	st, ok := block["start_time"].(float64)
@@ -61,7 +72,7 @@ func fmtBlock(out io.Writer, service string, block statsResponseData) error {
 	values := map[string]string{
 		"ServiceID":   fmt.Sprintf("%30s", service),
 		"StartTime":   fmt.Sprintf("%30s", startTime),
-		"HitRate":     fmt.Sprintf("%29.2f%%", hitRate*100),
+		"HitRate":     fmt.Sprintf("%29.2f%%", fastly.ToValue(agg.HitRatio)*100),
 		"AvgHitTime":  fmt.Sprintf("%28.2f\u00b5s", fastly.ToValue(agg.HitsTime)*1000),
 		"AvgMissTime": fmt.Sprintf("%28.2f\u00b5s", fastly.ToValue(agg.MissTime)*1000),
 

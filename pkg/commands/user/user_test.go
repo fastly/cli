@@ -16,7 +16,7 @@ func TestUserCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate CreateUser API error",
-			API: mock.API{
+			API: &mock.API{
 				CreateUserFn: func(_ context.Context, _ *fastly.CreateUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
@@ -26,7 +26,7 @@ func TestUserCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateUser API success",
-			API: mock.API{
+			API: &mock.API{
 				CreateUserFn: func(_ context.Context, i *fastly.CreateUserInput) (*fastly.User, error) {
 					return &fastly.User{
 						Name: i.Name,
@@ -50,7 +50,7 @@ func TestUserDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteUser API error",
-			API: mock.API{
+			API: &mock.API{
 				DeleteUserFn: func(_ context.Context, _ *fastly.DeleteUserInput) error {
 					return testutil.Err
 				},
@@ -60,7 +60,7 @@ func TestUserDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteUser API success",
-			API: mock.API{
+			API: &mock.API{
 				DeleteUserFn: func(_ context.Context, _ *fastly.DeleteUserInput) error {
 					return nil
 				},
@@ -81,7 +81,7 @@ func TestUserDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetUser API error",
-			API: mock.API{
+			API: &mock.API{
 				GetUserFn: func(_ context.Context, _ *fastly.GetUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
@@ -91,7 +91,7 @@ func TestUserDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetCurrentUser API error",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
@@ -101,7 +101,7 @@ func TestUserDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetUser API success",
-			API: mock.API{
+			API: &mock.API{
 				GetUserFn: getUser,
 			},
 			Args:       "--id 123",
@@ -109,7 +109,7 @@ func TestUserDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetCurrentUser API success",
-			API: mock.API{
+			API: &mock.API{
 				GetCurrentUserFn: getCurrentUser,
 			},
 			Args:       "--current",
@@ -128,7 +128,7 @@ func TestUserList(t *testing.T) {
 		},
 		{
 			Name: "validate ListUsers API error",
-			API: mock.API{
+			API: &mock.API{
 				ListCustomerUsersFn: func(_ context.Context, _ *fastly.ListCustomerUsersInput) ([]*fastly.User, error) {
 					return nil, testutil.Err
 				},
@@ -138,7 +138,7 @@ func TestUserList(t *testing.T) {
 		},
 		{
 			Name: "validate ListUsers API success",
-			API: mock.API{
+			API: &mock.API{
 				ListCustomerUsersFn: listUsers,
 			},
 			Args:       "--customer-id abc",
@@ -146,7 +146,7 @@ func TestUserList(t *testing.T) {
 		},
 		{
 			Name: "validate ListUsers API success with verbose mode",
-			API: mock.API{
+			API: &mock.API{
 				ListCustomerUsersFn: listUsers,
 			},
 			Args:       "--customer-id abc --verbose",
@@ -180,7 +180,7 @@ func TestUserUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateUser API error",
-			API: mock.API{
+			API: &mock.API{
 				UpdateUserFn: func(_ context.Context, _ *fastly.UpdateUserInput) (*fastly.User, error) {
 					return nil, testutil.Err
 				},
@@ -190,7 +190,7 @@ func TestUserUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate ResetUserPassword API error",
-			API: mock.API{
+			API: &mock.API{
 				ResetUserPasswordFn: func(_ context.Context, _ *fastly.ResetUserPasswordInput) error {
 					return testutil.Err
 				},
@@ -200,7 +200,7 @@ func TestUserUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateUser API success",
-			API: mock.API{
+			API: &mock.API{
 				UpdateUserFn: func(_ context.Context, i *fastly.UpdateUserInput) (*fastly.User, error) {
 					return &fastly.User{
 						UserID: fastly.ToPointer(i.UserID),
@@ -214,7 +214,7 @@ func TestUserUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate ResetUserPassword API success",
-			API: mock.API{
+			API: &mock.API{
 				ResetUserPasswordFn: func(_ context.Context, _ *fastly.ResetUserPasswordInput) error {
 					return nil
 				},
@@ -328,7 +328,7 @@ bar@example.com  bar   superuser  false   current123
 
 func listVerboseOutput() string {
 	return fmt.Sprintf(`Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 %s%s`, describeUserOutput(), describeCurrentUserOutput())
 }

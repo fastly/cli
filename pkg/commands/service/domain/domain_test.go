@@ -23,7 +23,7 @@ func TestDomainCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateDomainFn: createDomainOK,
@@ -32,7 +32,7 @@ func TestDomainCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateDomainFn: createDomainError,
@@ -47,7 +47,7 @@ func TestDomainList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
@@ -55,7 +55,7 @@ func TestDomainList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
@@ -63,7 +63,7 @@ func TestDomainList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
@@ -71,7 +71,7 @@ func TestDomainList(t *testing.T) {
 		},
 		{
 			Args: "--verbose --service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
@@ -79,7 +79,7 @@ func TestDomainList(t *testing.T) {
 		},
 		{
 			Args: "-v --service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsOK,
 			},
@@ -87,7 +87,7 @@ func TestDomainList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListDomainsFn:  listDomainsError,
 			},
@@ -105,7 +105,7 @@ func TestDomainDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainError,
 			},
@@ -113,7 +113,7 @@ func TestDomainDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetDomainFn:    getDomainOK,
 			},
@@ -131,7 +131,7 @@ func TestDomainUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainOK,
@@ -140,7 +140,7 @@ func TestDomainUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainError,
@@ -149,7 +149,7 @@ func TestDomainUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainOK,
@@ -168,7 +168,7 @@ func TestDomainDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteDomainFn: deleteDomainError,
@@ -177,7 +177,7 @@ func TestDomainDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteDomainFn: deleteDomainOK,
@@ -201,7 +201,7 @@ func TestDomainValidate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --name flag",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--service-id 123 --version 3",
@@ -209,7 +209,7 @@ func TestDomainValidate(t *testing.T) {
 		},
 		{
 			Name: "validate ValidateDomain API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ValidateDomainFn: func(_ context.Context, _ *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
 					return nil, testutil.Err
@@ -220,7 +220,7 @@ func TestDomainValidate(t *testing.T) {
 		},
 		{
 			Name: "validate ValidateAllDomains API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ValidateAllDomainsFn: func(_ context.Context, _ *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error) {
 					return nil, testutil.Err
@@ -231,7 +231,7 @@ func TestDomainValidate(t *testing.T) {
 		},
 		{
 			Name: "validate ValidateDomain API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ValidateDomainFn: validateDomain,
 			},
@@ -240,7 +240,7 @@ func TestDomainValidate(t *testing.T) {
 		},
 		{
 			Name: "validate ValidateAllDomains API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:       testutil.ListVersions,
 				ValidateAllDomainsFn: validateAllDomains,
 			},
@@ -249,7 +249,7 @@ func TestDomainValidate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:   testutil.ListVersions,
 				ValidateDomainFn: validateDomain,
 			},
@@ -304,7 +304,7 @@ SERVICE  VERSION  NAME             COMMENT
 
 var listDomainsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

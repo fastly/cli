@@ -41,7 +41,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				CreatePrivateKeyFn: func(_ context.Context, i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
 					content = i.Key
 					return nil, testutil.Err
@@ -53,7 +53,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				CreatePrivateKeyFn: func(_ context.Context, i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
 					content = i.Key
 					return &fastly.PrivateKey{
@@ -68,7 +68,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 		},
 		{
 			Name: "validate custom key is submitted",
-			API: mock.API{
+			API: &mock.API{
 				CreatePrivateKeyFn: func(_ context.Context, i *fastly.CreatePrivateKeyInput) (*fastly.PrivateKey, error) {
 					content = i.Key
 					return &fastly.PrivateKey{
@@ -99,7 +99,7 @@ func TestTLSCustomPrivateKeyDelete(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				DeletePrivateKeyFn: func(_ context.Context, _ *fastly.DeletePrivateKeyInput) error {
 					return testutil.Err
 				},
@@ -109,7 +109,7 @@ func TestTLSCustomPrivateKeyDelete(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				DeletePrivateKeyFn: func(_ context.Context, _ *fastly.DeletePrivateKeyInput) error {
 					return nil
 				},
@@ -130,7 +130,7 @@ func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				GetPrivateKeyFn: func(_ context.Context, _ *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error) {
 					return nil, testutil.Err
 				},
@@ -140,7 +140,7 @@ func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				GetPrivateKeyFn: func(_ context.Context, _ *fastly.GetPrivateKeyInput) (*fastly.PrivateKey, error) {
 					t := testutil.Date
 					return &fastly.PrivateKey{
@@ -165,7 +165,7 @@ func TestTLSCustomPrivateKeyList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: validateAPIError,
-			API: mock.API{
+			API: &mock.API{
 				ListPrivateKeysFn: func(_ context.Context, _ *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error) {
 					return nil, testutil.Err
 				},
@@ -174,7 +174,7 @@ func TestTLSCustomPrivateKeyList(t *testing.T) {
 		},
 		{
 			Name: validateAPISuccess,
-			API: mock.API{
+			API: &mock.API{
 				ListPrivateKeysFn: func(_ context.Context, _ *fastly.ListPrivateKeysInput) ([]*fastly.PrivateKey, error) {
 					t := testutil.Date
 					return []*fastly.PrivateKey{

@@ -27,10 +27,21 @@ var ErrIncompatibleServeFlags = RemediationError{
 	Remediation: ComputeServeRemediation,
 }
 
-// ErrNoToken means no --token has been provided.
-var ErrNoToken = RemediationError{
-	Inner:       fmt.Errorf("no token provided"),
-	Remediation: AuthRemediation,
+// ErrNoToken returns a RemediationError for when no --token has been provided.
+func ErrNoToken() RemediationError {
+	return RemediationError{
+		Inner:       fmt.Errorf("no token provided"),
+		Remediation: AuthRemediation(),
+	}
+}
+
+// ErrNonInteractiveNoToken returns an error indicating no token is available
+// and the session cannot prompt interactively (e.g. --auto-yes or --accept-defaults).
+func ErrNonInteractiveNoToken() RemediationError {
+	return RemediationError{
+		Inner:       fmt.Errorf("no token provided"),
+		Remediation: NonInteractiveAuthRemediation(),
+	}
 }
 
 // ErrNoServiceID means no --service-id or service_id fastly.toml value has

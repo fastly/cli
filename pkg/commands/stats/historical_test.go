@@ -1,59 +1,53 @@
 package stats_test
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"io"
-	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v13/fastly"
 
-	"github.com/fastly/cli/pkg/app"
-	"github.com/fastly/cli/pkg/global"
+	root "github.com/fastly/cli/pkg/commands/stats"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
 func TestHistorical(t *testing.T) {
-	args := testutil.SplitArgs
-	scenarios := []struct {
-		args       []string
-		api        mock.API
-		wantError  string
-		wantOutput string
-	}{
+	scenarios := []testutil.CLIScenario{
 		{
-			args:       args("stats historical --service-id=123"),
-			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
-			wantOutput: historicalOK,
+			Name:       "success",
+			Args:       "--service-id=123",
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
+			WantOutput: historicalOK,
 		},
 		{
-			args:      args("stats historical --service-id=123"),
-			api:       mock.API{GetStatsJSONFn: getStatsJSONError},
-			wantError: errTest.Error(),
+			Name:      "api failure",
+			Args:      "--service-id=123",
+			API:       &mock.API{GetStatsJSONFn: getStatsJSONError},
+			WantError: errTest.Error(),
 		},
 		{
-			args:       args("stats historical --service-id=123 --format=json"),
-			api:        mock.API{GetStatsJSONFn: getStatsJSONOK},
-			wantOutput: historicalJSONOK,
+			Name:       "success with json format",
+			Args:       "--service-id=123 --format=json",
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
+			WantOutput: historicalJSONOK,
+		},
+		{
+			Name:            "success with field filter",
+			Args:            "--service-id=123 --field=bandwidth",
+			API:             &mock.API{GetStatsJSONFn: getStatsJSONFieldOK},
+			WantOutput:      "bandwidth: 123",
+			DontWantOutputs: []string{"Service ID:", "Hit Rate:", "Avg Hit Time:"},
+		},
+		{
+			Name:       "success with field filter and json format",
+			Args:       "--service-id=123 --field=bandwidth --format=json",
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONFieldOK},
+			WantOutput: `"bandwidth":123`,
 		},
 	}
-	for testcaseIdx := range scenarios {
-		testcase := &scenarios[testcaseIdx]
-		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			var stdout bytes.Buffer
-			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				opts := testutil.MockGlobalData(testcase.args, &stdout)
-				opts.APIClientFactory = mock.APIClient(testcase.api)
-				return opts, nil
-			}
-			err := app.Run(testcase.args, nil)
-			testutil.AssertErrorContains(t, err, testcase.wantError)
-			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
-		})
-	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, "historical"}, scenarios)
 }
 
 var historicalOK = `From: Wed May 15 20:08:35 UTC 2013
@@ -88,7 +82,7 @@ Requests:                                        0
 var historicalJSONOK = `{"start_time":0}
 `
 
-func getStatsJSONOK(_ context.Context, _ *fastly.GetStatsInput, o any) error {
+func unmarshalStatsJSON(o any) error {
 	msg := []byte(`
 {
   "status": "success",
@@ -103,6 +97,33 @@ func getStatsJSONOK(_ context.Context, _ *fastly.GetStatsInput, o any) error {
 }`)
 
 	return json.Unmarshal(msg, o)
+}
+
+func getStatsJSONOK(_ context.Context, _ *fastly.GetStatsInput, o any) error {
+	return unmarshalStatsJSON(o)
+}
+
+func unmarshalStatsFieldJSON(o any) error {
+	msg := []byte(`
+{
+  "status": "success",
+  "meta": {
+    "to": "Thu May 16 20:08:35 UTC 2013",
+    "from": "Wed May 15 20:08:35 UTC 2013",
+    "by": "day",
+    "region": "all"
+  },
+  "msg": null,
+  "data": [{"start_time": 0, "bandwidth": 123}]
+}`)
+	return json.Unmarshal(msg, o)
+}
+
+func getStatsJSONFieldOK(_ context.Context, i *fastly.GetStatsInput, o any) error {
+	if i.Field == nil || *i.Field != "bandwidth" {
+		return errTest
+	}
+	return unmarshalStatsFieldJSON(o)
 }
 
 func getStatsJSONError(_ context.Context, _ *fastly.GetStatsInput, _ any) error {

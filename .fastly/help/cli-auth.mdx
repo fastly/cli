@@ -1,0 +1,54 @@
+---
+id: cli-auth
+title: Authenticate with the Fastly CLI
+template: help
+---
+
+## Quick start
+
+Pick whichever method suits your workflow:
+
+```
+fastly auth login                      # paste an API token interactively
+fastly auth login --sso --token <name> # authenticate via browser-based SSO
+```
+
+Both store a default token so subsequent commands authenticate automatically.
+
+## Token sources and precedence
+
+The CLI resolves a token in this order (first match wins):
+
+1. `--token` flag (a raw token string, or the name of a stored auth token). Not available when `FASTLY_DISABLE_AUTH_COMMAND` is set.
+2. `FASTLY_API_TOKEN` environment variable
+3. `profile` field in your project's `fastly.toml`
+4. Default auth token from the CLI config file
+
+## Stored tokens
+
+You can store multiple named tokens and switch between them:
+
+```
+fastly auth add staging --api-token $STAGING_TOKEN
+fastly auth list
+fastly auth use staging
+fastly auth show staging
+fastly auth delete staging
+```
+
+## Non-interactive usage
+
+In CI/CD or scripts where interactive prompts are not available, supply a token via the flag or environment variable:
+
+```
+fastly service list --token $MY_TOKEN
+FASTLY_API_TOKEN=... fastly service list
+```
+
+## Managed environments
+
+If `FASTLY_DISABLE_AUTH_COMMAND` is set, both the `fastly auth` command tree and the `--token` global flag are disabled. Authentication is expected to be handled externally via `FASTLY_API_TOKEN` or pre-configured stored tokens. Background SSO refresh flows are unaffected.
+
+## Generating a token
+
+Create an API token at: https://manage.fastly.com/account/personal/tokens

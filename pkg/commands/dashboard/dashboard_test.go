@@ -19,7 +19,7 @@ func TestCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate CreateObservabilityCustomDashboard API error",
-			API: mock.API{
+			API: &mock.API{
 				CreateObservabilityCustomDashboardFn: func(_ context.Context, _ *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return nil, testutil.Err
 				},
@@ -29,7 +29,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --name flag",
-			API: mock.API{
+			API: &mock.API{
 				CreateObservabilityCustomDashboardFn: func(_ context.Context, _ *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return nil, testutil.Err
 				},
@@ -39,7 +39,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			Name: "validate optional --description flag",
-			API: mock.API{
+			API: &mock.API{
 				CreateObservabilityCustomDashboardFn: func(_ context.Context, i *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return &fastly.ObservabilityCustomDashboard{
 						ID:   "beepboop",
@@ -52,7 +52,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateObservabilityCustomDashboard API success",
-			API: mock.API{
+			API: &mock.API{
 				CreateObservabilityCustomDashboardFn: func(_ context.Context, i *fastly.CreateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return &fastly.ObservabilityCustomDashboard{
 						ID:          "beepboop",
@@ -77,7 +77,7 @@ func TestDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteObservabilityCustomDashboard API error",
-			API: mock.API{
+			API: &mock.API{
 				DeleteObservabilityCustomDashboardFn: func(_ context.Context, _ *fastly.DeleteObservabilityCustomDashboardInput) error {
 					return testutil.Err
 				},
@@ -87,7 +87,7 @@ func TestDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteObservabilityCustomDashboard API success",
-			API: mock.API{
+			API: &mock.API{
 				DeleteObservabilityCustomDashboardFn: func(_ context.Context, _ *fastly.DeleteObservabilityCustomDashboardInput) error {
 					return nil
 				},
@@ -108,7 +108,7 @@ func TestDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetObservabilityCustomDashboard API error",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn: func(_ context.Context, _ *fastly.GetObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return nil, testutil.Err
 				},
@@ -118,7 +118,7 @@ func TestDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetObservabilityCustomDashboard API success",
-			API: mock.API{
+			API: &mock.API{
 				GetObservabilityCustomDashboardFn: getObservabilityCustomDashboard,
 			},
 			Args:       "--id beepboop",
@@ -133,7 +133,7 @@ func TestList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate ListObservabilityCustomDashboards API error",
-			API: mock.API{
+			API: &mock.API{
 				ListObservabilityCustomDashboardsFn: func(_ context.Context, _ *fastly.ListObservabilityCustomDashboardsInput) (*fastly.ListDashboardsResponse, error) {
 					return nil, testutil.Err
 				},
@@ -142,18 +142,18 @@ func TestList(t *testing.T) {
 		},
 		{
 			Name: "validate ListObservabilityCustomDashboards API success",
-			API: mock.API{
+			API: &mock.API{
 				ListObservabilityCustomDashboardsFn: listObservabilityCustomDashboards,
 			},
 			WantOutput: "DASHBOARD ID  NAME       DESCRIPTION  # ITEMS\nbeepboop      Testing 1  This is #1   0\nbleepblorp    Testing 2  This is #2   0\n",
 		},
 		{
 			Name: "validate --verbose flag",
-			API: mock.API{
+			API: &mock.API{
 				ListObservabilityCustomDashboardsFn: listObservabilityCustomDashboards,
 			},
 			Args:       "--verbose",
-			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nName: Testing 1\nDescription: This is #1\nItems:\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n\nName: Testing 2\nDescription: This is #2\nItems:\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n\n",
+			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (auth: user)\n\nName: Testing 1\nDescription: This is #1\nItems:\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n\nName: Testing 2\nDescription: This is #2\nItems:\nMeta:\n    Created at: 2021-06-15 23:00:00 +0000 UTC\n    Updated at: 2021-06-15 23:00:00 +0000 UTC\n    Created by: test-user\n    Updated by: test-user\n\n",
 		},
 	}
 
@@ -168,7 +168,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateObservabilityCustomDashboard API error",
-			API: mock.API{
+			API: &mock.API{
 				UpdateObservabilityCustomDashboardFn: func(_ context.Context, _ *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return nil, testutil.Err
 				},
@@ -178,7 +178,7 @@ func TestUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateObservabilityCustomDashboard API success",
-			API: mock.API{
+			API: &mock.API{
 				UpdateObservabilityCustomDashboardFn: func(_ context.Context, i *fastly.UpdateObservabilityCustomDashboardInput) (*fastly.ObservabilityCustomDashboard, error) {
 					return &fastly.ObservabilityCustomDashboard{
 						ID:          *i.ID,

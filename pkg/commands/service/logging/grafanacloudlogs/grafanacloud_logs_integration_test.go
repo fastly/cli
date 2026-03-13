@@ -19,7 +19,7 @@ func TestGrafanaCloudLogsCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --user 123456 --url https://test123.grafana.net --auth-token testtoken --index `{\"label\": \"value\" }` --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:           testutil.ListVersions,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				CreateGrafanaCloudLogsFn: createGrafanaCloudLogsOK,
@@ -28,7 +28,7 @@ func TestGrafanaCloudLogsCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --url https://test123.grafana.net --auth-token testtoken --index `{\"label\": \"value\" }` --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:           testutil.ListVersions,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				CreateGrafanaCloudLogsFn: createGrafanaCloudLogsError,
@@ -43,7 +43,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:         testutil.ListVersions,
 				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
@@ -51,7 +51,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:         testutil.ListVersions,
 				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
@@ -59,7 +59,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:         testutil.ListVersions,
 				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
@@ -67,7 +67,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:         testutil.ListVersions,
 				ListGrafanaCloudLogsFn: listGrafanaCloudLogsError,
 			},
@@ -85,7 +85,7 @@ func TestGrafanaCloudLogsDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				GetGrafanaCloudLogsFn: getGrafanaCloudLogsError,
 			},
@@ -93,7 +93,7 @@ func TestGrafanaCloudLogsDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:        testutil.ListVersions,
 				GetGrafanaCloudLogsFn: getGrafanaCloudLogsOK,
 			},
@@ -111,7 +111,7 @@ func TestGrafanaCloudLogsUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:           testutil.ListVersions,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				UpdateGrafanaCloudLogsFn: updateGrafanaCloudLogsError,
@@ -120,7 +120,7 @@ func TestGrafanaCloudLogsUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:           testutil.ListVersions,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				UpdateGrafanaCloudLogsFn: updateGrafanaCloudLogsOK,
@@ -139,7 +139,7 @@ func TestGrafanaCloudLogsDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:           testutil.ListVersions,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				DeleteGrafanaCloudLogsFn: deleteGrafanaCloudLogsError,
@@ -148,7 +148,7 @@ func TestGrafanaCloudLogsDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:           testutil.ListVersions,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				DeleteGrafanaCloudLogsFn: deleteGrafanaCloudLogsOK,
@@ -220,7 +220,7 @@ SERVICE  VERSION  NAME
 
 var listGrafanaCloudLogsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

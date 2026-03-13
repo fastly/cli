@@ -20,7 +20,7 @@ func TestGooglePubSubCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --account-name=me@fastly.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreatePubsubFn: createGooglePubSubOK,
@@ -29,7 +29,7 @@ func TestGooglePubSubCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreatePubsubFn: createGooglePubSubError,
@@ -44,7 +44,7 @@ func TestGooglePubSubList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListPubsubsFn:  listGooglePubSubsOK,
 			},
@@ -52,7 +52,7 @@ func TestGooglePubSubList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListPubsubsFn:  listGooglePubSubsOK,
 			},
@@ -60,7 +60,7 @@ func TestGooglePubSubList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListPubsubsFn:  listGooglePubSubsOK,
 			},
@@ -68,7 +68,7 @@ func TestGooglePubSubList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListPubsubsFn:  listGooglePubSubsError,
 			},
@@ -86,7 +86,7 @@ func TestGooglePubSubDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetPubsubFn:    getGooglePubSubError,
 			},
@@ -94,7 +94,7 @@ func TestGooglePubSubDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetPubsubFn:    getGooglePubSubOK,
 			},
@@ -112,7 +112,7 @@ func TestGooglePubSubUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdatePubsubFn: updateGooglePubSubError,
@@ -121,7 +121,7 @@ func TestGooglePubSubUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdatePubsubFn: updateGooglePubSubOK,
@@ -140,7 +140,7 @@ func TestGooglePubSubDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeletePubsubFn: deleteGooglePubSubError,
@@ -149,7 +149,7 @@ func TestGooglePubSubDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeletePubsubFn: deleteGooglePubSubOK,
@@ -230,7 +230,7 @@ SERVICE  VERSION  NAME
 
 var listGooglePubSubsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): 123
 

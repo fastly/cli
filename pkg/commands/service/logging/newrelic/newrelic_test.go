@@ -22,7 +22,7 @@ func TestNewRelicCreate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--key abc --name foo --service-id 123 --version 1",
@@ -30,7 +30,7 @@ func TestNewRelicCreate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--key abc --name foo --service-id 123 --version 2",
@@ -38,7 +38,7 @@ func TestNewRelicCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateNewRelic API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateNewRelicFn: func(_ context.Context, _ *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
@@ -49,7 +49,7 @@ func TestNewRelicCreate(t *testing.T) {
 		},
 		{
 			Name: "validate CreateNewRelic API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CreateNewRelicFn: func(_ context.Context, i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
@@ -64,7 +64,7 @@ func TestNewRelicCreate(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateNewRelicFn: func(_ context.Context, i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
@@ -102,7 +102,7 @@ func TestNewRelicDelete(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 1",
@@ -110,7 +110,7 @@ func TestNewRelicDelete(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 2",
@@ -118,7 +118,7 @@ func TestNewRelicDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteNewRelic API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
 					return testutil.Err
@@ -129,7 +129,7 @@ func TestNewRelicDelete(t *testing.T) {
 		},
 		{
 			Name: "validate DeleteNewRelic API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
 					return nil
@@ -140,7 +140,7 @@ func TestNewRelicDelete(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
@@ -174,7 +174,7 @@ func TestNewRelicDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetNewRelic API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetNewRelicFn: func(_ context.Context, _ *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
@@ -185,7 +185,7 @@ func TestNewRelicDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate GetNewRelic API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetNewRelicFn:  getNewRelic,
 			},
@@ -194,7 +194,7 @@ func TestNewRelicDescribe(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetNewRelicFn:  getNewRelic,
 			},
@@ -219,7 +219,7 @@ func TestNewRelicList(t *testing.T) {
 		},
 		{
 			Name: "validate ListNewRelics API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListNewRelicFn: func(_ context.Context, _ *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error) {
 					return nil, testutil.Err
@@ -230,7 +230,7 @@ func TestNewRelicList(t *testing.T) {
 		},
 		{
 			Name: "validate ListNewRelics API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListNewRelicFn: listNewRelic,
 			},
@@ -239,7 +239,7 @@ func TestNewRelicList(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag is OK",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListNewRelicFn: listNewRelic,
 			},
@@ -248,12 +248,12 @@ func TestNewRelicList(t *testing.T) {
 		},
 		{
 			Name: "validate missing --verbose flag",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListNewRelicFn: listNewRelic,
 			},
 			Args:       "--service-id 123 --verbose --version 1",
-			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (profile: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nProcessing region: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nProcessing region: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
+			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (auth: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nProcessing region: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\n\nToken: \n\nFormat: \n\nFormat Version: 0\n\nPlacement: \n\nRegion: \n\nProcessing region: \n\nResponse Condition: \n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
 	}
 
@@ -279,7 +279,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 1",
@@ -287,7 +287,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate missing --autoclone flag with 'locked' service",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			Args:      "--name foobar --service-id 123 --version 2",
@@ -295,7 +295,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateNewRelic API error",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateNewRelicFn: func(_ context.Context, _ *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
@@ -306,7 +306,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate UpdateNewRelic API success",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
@@ -321,7 +321,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		},
 		{
 			Name: "validate --autoclone results in cloned service version",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {

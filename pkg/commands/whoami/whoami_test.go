@@ -41,6 +41,12 @@ func TestWhoami(t *testing.T) {
 			wantOutput: basicOutputVerbose,
 		},
 		{
+			name:      "401 from API",
+			args:      args("whoami"),
+			client:    codeClient{code: http.StatusUnauthorized},
+			wantError: "error executing API request: error response",
+		},
+		{
 			name:      "500 from API",
 			args:      args("whoami"),
 			client:    codeClient{code: http.StatusInternalServerError},
@@ -111,7 +117,7 @@ var basicOutput = "Alice Programmer <alice@example.com>\n"
 
 var basicOutputVerbose = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Customer ID: abc
 Customer name: Computer Company

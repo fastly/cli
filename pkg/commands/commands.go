@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"io"
+
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
@@ -49,6 +51,7 @@ import (
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
 	aliasvclcustom "github.com/fastly/cli/pkg/commands/alias/vcl/custom"
 	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
+	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/computeacl"
@@ -162,6 +165,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/user"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
+	"github.com/fastly/cli/pkg/env"
 	"github.com/fastly/cli/pkg/global"
 )
 
@@ -172,19 +176,42 @@ func Define( // nolint:revive // function-length
 ) []argparser.Command {
 	shellcompleteCmdRoot := shellcomplete.NewRootCommand(app, data)
 
-	// NOTE: The order commands are created are the order they appear in 'help'.
-	// But because we need to pass the SSO command into the profile commands, it
-	// means the SSO command must be created _before_ the profile commands. This
-	// messes up the order of the commands in the `--help` output. So to make the
-	// placement of the `sso` subcommand not look too odd we place it at the
-	// beginning of the list of commands.
-	ssoCmdRoot := sso.NewRootCommand(app, data)
+	disableAuthCmd := env.AuthCommandDisabled()
 
-	authtokenCmdRoot := authtoken.NewRootCommand(app, data)
-	authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, data)
-	authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, data)
-	authtokenDescribe := authtoken.NewDescribeCommand(authtokenCmdRoot.CmdClause, data)
-	authtokenList := authtoken.NewListCommand(authtokenCmdRoot.CmdClause, data)
+	// All authentication-related commands (auth, auth-token, sso, profile,
+	// whoami) are skipped when FASTLY_DISABLE_AUTH_COMMAND is set.
+	var authCommands []argparser.Command
+	var ssoCommands []argparser.Command
+	var authtokenCommands []argparser.Command
+	var profileCommands []argparser.Command
+	var whoamiCommands []argparser.Command
+
+	if !disableAuthCmd {
+		ssoCmdRoot := sso.NewRootCommand(app, data)
+		ssoCommands = []argparser.Command{ssoCmdRoot}
+
+		authCmdRoot := authcmd.NewRootCommand(app, data)
+		authLogin := authcmd.NewLoginCommand(authCmdRoot.CmdClause, data)
+		authAdd := authcmd.NewAddCommand(authCmdRoot.CmdClause, data)
+		authDelete := authcmd.NewDeleteCommand(authCmdRoot.CmdClause, data)
+		authList := authcmd.NewListCommand(authCmdRoot.CmdClause, data)
+		authShow := authcmd.NewShowCommand(authCmdRoot.CmdClause, data)
+		authUse := authcmd.NewUseCommand(authCmdRoot.CmdClause, data)
+		authCommands = []argparser.Command{
+			authCmdRoot, authLogin, authAdd, authDelete,
+			authList, authShow, authUse,
+		}
+
+		authtokenCmdRoot := authtoken.NewRootCommand(app, data)
+		authtokenCreate := authtoken.NewCreateCommand(authtokenCmdRoot.CmdClause, data)
+		authtokenDelete := authtoken.NewDeleteCommand(authtokenCmdRoot.CmdClause, data)
+		authtokenDescribe := authtoken.NewDescribeCommand(authtokenCmdRoot.CmdClause, data)
+		authtokenList := authtoken.NewListCommand(authtokenCmdRoot.CmdClause, data)
+		authtokenCommands = []argparser.Command{
+			authtokenCmdRoot, authtokenCreate, authtokenDelete,
+			authtokenDescribe, authtokenList,
+		}
+	}
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -415,13 +442,19 @@ func Define( // nolint:revive // function-length
 	objectStorageAccesskeysList := accesskeys.NewListCommand(objectStorageAccesskeysRoot.CmdClause, data)
 	popCmdRoot := pop.NewRootCommand(app, data)
 	productsCmdRoot := products.NewRootCommand(app, data)
-	profileCmdRoot := profile.NewRootCommand(app, data)
-	profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
-	profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, data)
-	profileList := profile.NewListCommand(profileCmdRoot.CmdClause, data)
-	profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
-	profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, data)
-	profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, data, ssoCmdRoot)
+	if !disableAuthCmd {
+		profileCmdRoot := profile.NewRootCommand(app, data)
+		profileCreate := profile.NewCreateCommand(profileCmdRoot.CmdClause, data)
+		profileDelete := profile.NewDeleteCommand(profileCmdRoot.CmdClause, data)
+		profileList := profile.NewListCommand(profileCmdRoot.CmdClause, data)
+		profileSwitch := profile.NewSwitchCommand(profileCmdRoot.CmdClause, data)
+		profileToken := profile.NewTokenCommand(profileCmdRoot.CmdClause, data)
+		profileUpdate := profile.NewUpdateCommand(profileCmdRoot.CmdClause, data)
+		profileCommands = []argparser.Command{
+			profileCmdRoot, profileCreate, profileDelete,
+			profileList, profileSwitch, profileToken, profileUpdate,
+		}
+	}
 	secretstoreCmdRoot := secretstore.NewRootCommand(app, data)
 	secretstoreCreate := secretstore.NewCreateCommand(secretstoreCmdRoot.CmdClause, data)
 	secretstoreDescribe := secretstore.NewDescribeCommand(secretstoreCmdRoot.CmdClause, data)
@@ -704,9 +737,13 @@ func Define( // nolint:revive // function-length
 	serviceresourcelinkList := serviceresourcelink.NewListCommand(serviceresourcelinkCmdRoot.CmdClause, data)
 	serviceresourcelinkUpdate := serviceresourcelink.NewUpdateCommand(serviceresourcelinkCmdRoot.CmdClause, data)
 	statsCmdRoot := stats.NewRootCommand(app, data)
+	statsAggregate := stats.NewAggregateCommand(statsCmdRoot.CmdClause, data)
+	statsDomainInspector := stats.NewDomainInspectorCommand(statsCmdRoot.CmdClause, data)
 	statsHistorical := stats.NewHistoricalCommand(statsCmdRoot.CmdClause, data)
+	statsOriginInspector := stats.NewOriginInspectorCommand(statsCmdRoot.CmdClause, data)
 	statsRealtime := stats.NewRealtimeCommand(statsCmdRoot.CmdClause, data)
 	statsRegions := stats.NewRegionsCommand(statsCmdRoot.CmdClause, data)
+	statsUsage := stats.NewUsageCommand(statsCmdRoot.CmdClause, data)
 	tlsConfigCmdRoot := tlsconfig.NewRootCommand(app, data)
 	tlsConfigDescribe := tlsconfig.NewDescribeCommand(tlsConfigCmdRoot.CmdClause, data)
 	tlsConfigList := tlsconfig.NewListCommand(tlsConfigCmdRoot.CmdClause, data)
@@ -755,7 +792,9 @@ func Define( // nolint:revive // function-length
 	userList := user.NewListCommand(userCmdRoot.CmdClause, data)
 	userUpdate := user.NewUpdateCommand(userCmdRoot.CmdClause, data)
 	versionCmdRoot := version.NewRootCommand(app, data)
-	whoamiCmdRoot := whoami.NewRootCommand(app, data)
+	if !disableAuthCmd {
+		whoamiCommands = []argparser.Command{whoami.NewRootCommand(app, data)}
+	}
 
 	// Aliases for deprecated commands
 	aliasBackendRoot := aliasbackend.NewRootCommand(app, data)
@@ -1016,13 +1055,18 @@ func Define( // nolint:revive // function-length
 	aliasSyslogList := aliassyslog.NewListCommand(aliasSyslogRoot.CmdClause, data)
 	aliasSyslogUpdate := aliassyslog.NewUpdateCommand(aliasSyslogRoot.CmdClause, data)
 
-	return []argparser.Command{
+	if data.SSORunner == nil {
+		data.SSORunner = func(in io.Reader, out io.Writer, forceReAuth bool, skipPrompt bool) error {
+			return authcmd.RunSSO(in, out, data, forceReAuth, skipPrompt)
+		}
+	}
+
+	cmds := []argparser.Command{
 		shellcompleteCmdRoot,
-		authtokenCmdRoot,
-		authtokenCreate,
-		authtokenDelete,
-		authtokenDescribe,
-		authtokenList,
+	}
+	cmds = append(cmds, authCommands...)
+	cmds = append(cmds, authtokenCommands...)
+	cmds = append(cmds, []argparser.Command{
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
@@ -1412,13 +1456,9 @@ func Define( // nolint:revive // function-length
 		objectStorageAccesskeysList,
 		popCmdRoot,
 		productsCmdRoot,
-		profileCmdRoot,
-		profileCreate,
-		profileDelete,
-		profileList,
-		profileSwitch,
-		profileToken,
-		profileUpdate,
+	}...)
+	cmds = append(cmds, profileCommands...)
+	cmds = append(cmds, []argparser.Command{
 		secretstoreCreate,
 		secretstoreDescribe,
 		secretstoreDelete,
@@ -1534,11 +1574,17 @@ func Define( // nolint:revive // function-length
 		serviceVersionStage,
 		serviceVersionUnstage,
 		serviceVersionUpdate,
-		ssoCmdRoot,
+	}...)
+	cmds = append(cmds, ssoCommands...)
+	cmds = append(cmds, []argparser.Command{
 		statsCmdRoot,
+		statsAggregate,
+		statsDomainInspector,
 		statsHistorical,
+		statsOriginInspector,
 		statsRealtime,
 		statsRegions,
+		statsUsage,
 		tlsConfigCmdRoot,
 		tlsConfigDescribe,
 		tlsConfigList,
@@ -1587,7 +1633,9 @@ func Define( // nolint:revive // function-length
 		userList,
 		userUpdate,
 		versionCmdRoot,
-		whoamiCmdRoot,
+	}...)
+	cmds = append(cmds, whoamiCommands...)
+	cmds = append(cmds, []argparser.Command{
 		aliasBackendCreate,
 		aliasBackendDelete,
 		aliasBackendDescribe,
@@ -1830,5 +1878,6 @@ func Define( // nolint:revive // function-length
 		aliasSyslogDescribe,
 		aliasSyslogList,
 		aliasSyslogUpdate,
-	}
+	}...)
+	return cmds
 }

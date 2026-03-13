@@ -28,7 +28,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "validate missing optional flags",
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsValidationError,
 			},
@@ -38,7 +38,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "valudate successful boolean updates of webp, upscale and allow-video",
 			Args: "--service-id 123 --version 1 --webp=true --upscale=false --allow-video=true",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsWithBoolsOK,
 			},
@@ -47,7 +47,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "validate successful upate of the --resize, --webp-quality and --jpeg-quality flags",
 			Args: "--service-id 123 --version 1 --resize-filter bicubic --webp-quality 90 --jpeg-quality 80",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsWithOptionsOK,
 			},
@@ -56,7 +56,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "validate incorrect input for the --webp flag",
 			Args: "--service-id 123 --version 1 --webp invalid",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsOK,
 			},
@@ -65,7 +65,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "validate incorrect input for the --upscale flag",
 			Args: "--service-id 123 --version 1 --upscale invalid",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsOK,
 			},
@@ -74,7 +74,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "validate incorrect input for the --allow-video flag",
 			Args: "--service-id 123 --version 1 --allow-video invalid",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsOK,
 			},
@@ -83,7 +83,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "validate incorrect input for the --resize-filter flag",
 			Args: "--service-id 123 --version 1 --resize-filter invalid",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsOK,
 			},
@@ -92,7 +92,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "validate incorrect input for the --jpeg-type flag",
 			Args: "--service-id 123 --version 1 --jpeg-type invalid",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsOK,
 			},
@@ -101,7 +101,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 		{
 			Name: "validate API error handling",
 			Args: "--service-id 123 --version 1 --webp true",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
 				UpdateImageOptimizerDefaultSettingsFn: updateImageOptimizerDefaultsError,
 			},
@@ -196,7 +196,7 @@ func TestImageOptimizerDefaultsGet(t *testing.T) {
 		{
 			Name: "validate successful get with no flags",
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                     testutil.ListVersions,
 				GetImageOptimizerDefaultSettingsFn: getImageOptimizerDefaultsOK,
 			},
@@ -205,7 +205,7 @@ func TestImageOptimizerDefaultsGet(t *testing.T) {
 		{
 			Name: "validate successful get with --json flag",
 			Args: "--service-id 123 --version 1 --json",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                     testutil.ListVersions,
 				GetImageOptimizerDefaultSettingsFn: getImageOptimizerDefaultsOK,
 			},
@@ -214,7 +214,7 @@ func TestImageOptimizerDefaultsGet(t *testing.T) {
 		{
 			Name: "validate API error handling",
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:                     testutil.ListVersions,
 				GetImageOptimizerDefaultSettingsFn: getImageOptimizerDefaultsError,
 			},

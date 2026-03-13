@@ -29,7 +29,7 @@ func TestBackendCreate(t *testing.T) {
 		// should cause an error.
 		{
 			Args: "--service-id 123 --version 1 --address example.com --name www.test.com",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			WantError: "service version 1 is active",
@@ -40,7 +40,7 @@ func TestBackendCreate(t *testing.T) {
 		// should cause an error.
 		{
 			Args: "--service-id 123 --version 2 --address example.com --name www.test.com",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 			},
 			WantError: "service version 2 is locked",
@@ -49,7 +49,7 @@ func TestBackendCreate(t *testing.T) {
 		// so we can be sure the backend creation error still occurs.
 		{
 			Args: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendError,
@@ -60,7 +60,7 @@ func TestBackendCreate(t *testing.T) {
 		// so we can be sure the backend creation error still occurs.
 		{
 			Args: "--service-id 123 --version 1 --address example.com --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendError,
@@ -71,7 +71,7 @@ func TestBackendCreate(t *testing.T) {
 		// --address flag instead of a hostname.
 		{
 			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendError,
@@ -85,7 +85,7 @@ func TestBackendCreate(t *testing.T) {
 		// not triggered at runtime when parsing the arguments.
 		{
 			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8080",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendWithPort(8080),
@@ -95,7 +95,7 @@ func TestBackendCreate(t *testing.T) {
 		// We test that setting an invalid host override does not result in an error
 		{
 			Args: "--service-id 123 --version 1 --address 127.0.0.1 --override-host invalid-host-override --name www.test.com --autoclone --port 8080",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendWithPort(8080),
@@ -105,7 +105,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following test validates that --service-name can replace --service-id
 		{
 			Args: "--service-name test-service --version 1 --address 127.0.0.1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
@@ -127,7 +127,7 @@ func TestBackendCreate(t *testing.T) {
 		// missing port is displayed.
 		{
 			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --use-ssl --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendWithPort(443),
@@ -139,7 +139,7 @@ func TestBackendCreate(t *testing.T) {
 		//
 		{
 			Args: "--service-id 123 --version 1 --address 127.0.0.1 --name www.test.com --autoclone --port 8443 --use-ssl --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateBackendFn: createBackendWithPort(8443),
@@ -150,7 +150,7 @@ func TestBackendCreate(t *testing.T) {
 		// and subsequently we expect it to be the same editable version.
 		{
 			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
@@ -159,7 +159,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following tests verify parsing of the --tcp-ka-enable flag.
 		{
 			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=true",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
@@ -167,7 +167,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=false",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
@@ -175,7 +175,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --tcp-ka-enabled=invalid",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
@@ -184,7 +184,7 @@ func TestBackendCreate(t *testing.T) {
 		// The following tests verify parsing of the --prefer-ipv6 flag.
 		{
 			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --prefer-ipv6=true",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
@@ -192,7 +192,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --prefer-ipv6=false",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
@@ -200,7 +200,7 @@ func TestBackendCreate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 3 --address 127.0.0.1 --name www.test.com --prefer-ipv6=invalid",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CreateBackendFn: createBackendOK,
 			},
@@ -214,7 +214,7 @@ func TestBackendList(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args: "--service-id 123 --version 1 --json",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
@@ -222,7 +222,7 @@ func TestBackendList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --json --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
@@ -230,7 +230,7 @@ func TestBackendList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
@@ -238,7 +238,7 @@ func TestBackendList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
@@ -246,7 +246,7 @@ func TestBackendList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
@@ -254,7 +254,7 @@ func TestBackendList(t *testing.T) {
 		},
 		{
 			Args: "--verbose --service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
@@ -262,7 +262,7 @@ func TestBackendList(t *testing.T) {
 		},
 		{
 			Args: "-v --service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsOK,
 			},
@@ -270,7 +270,7 @@ func TestBackendList(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				ListBackendsFn: listBackendsError,
 			},
@@ -288,7 +288,7 @@ func TestBackendDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendError,
 			},
@@ -296,7 +296,7 @@ func TestBackendDescribe(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn: testutil.ListVersions,
 				GetBackendFn:   getBackendOK,
 			},
@@ -314,7 +314,7 @@ func TestBackendUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
@@ -324,7 +324,7 @@ func TestBackendUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --comment  --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
@@ -335,7 +335,7 @@ func TestBackendUpdate(t *testing.T) {
 		// The following tests verify parsing of the --tcp-ka-enable flag.
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=true --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
@@ -345,7 +345,7 @@ func TestBackendUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=false --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
@@ -355,7 +355,7 @@ func TestBackendUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --tcp-ka-enabled=invalid --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
@@ -366,7 +366,7 @@ func TestBackendUpdate(t *testing.T) {
 		// The following tests verify parsing of the --prefer-ipv6 flag.
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --prefer-ipv6=true --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
@@ -376,7 +376,7 @@ func TestBackendUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --prefer-ipv6=false --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
@@ -386,7 +386,7 @@ func TestBackendUpdate(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --prefer-ipv6=invalid --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetBackendFn:    getBackendOK,
@@ -406,7 +406,7 @@ func TestBackendDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteBackendFn: deleteBackendError,
@@ -415,7 +415,7 @@ func TestBackendDelete(t *testing.T) {
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:  testutil.ListVersions,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteBackendFn: deleteBackendOK,
@@ -573,7 +573,7 @@ SERVICE  VERSION  NAME         ADDRESS          PORT  COMMENT
 
 var listBackendsVerboseOutput = strings.Join([]string{
 	"Fastly API endpoint: https://api.fastly.com",
-	"Fastly API token provided via config file (profile: user)",
+	"Fastly API token provided via config file (auth: user)",
 	"",
 	"Service ID (via --service-id): 123",
 	"",
