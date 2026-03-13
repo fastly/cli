@@ -24,6 +24,10 @@
 - build(deps): `golang.org/x/oauth2` from 0.35.0 to 0.36.0 ([#1679](https://github.com/fastly/cli/pull/1679))
 - build(deps): `golang.org/x/sync` from 0.19.0 to 0.20.0 ([#1679](https://github.com/fastly/cli/pull/1679))
 - build(deps): `github.com/fastly/go-fastly/v13` from 13.0.0 to 13.0.1 ([#1679](https://github.com/fastly/cli/pull/1679))
+- build(deps): `golang.org/x/term` from 0.40.0 to 0.41.0 ([#1687](https://github.com/fastly/cli/pull/1687))
+- build(deps): `golang.org/x/mod` from 0.33.0 to 0.34.0 ([#1687](https://github.com/fastly/cli/pull/1687))
+- build(deps): `golang.org/x/text` from 0.34.0 to 0.35.0 ([#1687](https://github.com/fastly/cli/pull/1687))
+- build(deps): `github.com/fastly/go-fastly/v13` from 13.0.1 to 13.1.0 ([#1687](https://github.com/fastly/cli/pull/1687))
 
 ## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
 

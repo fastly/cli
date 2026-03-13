@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/fastly/go-fastly/v13/fastly"
@@ -22,12 +23,13 @@ func TestUsage(t *testing.T) {
 		api        mock.API
 		wantError  string
 		wantOutput string
+		wantAbsent string
 	}{
 		{
 			name:       "success plain",
 			args:       args("stats usage"),
 			api:        mock.API{GetUsageFn: getUsageOK},
-			wantOutput: "Region: usa",
+			wantOutput: "usa",
 		},
 		{
 			name:       "success json",
@@ -39,7 +41,7 @@ func TestUsage(t *testing.T) {
 			name:       "success by-service",
 			args:       args("stats usage --by-service"),
 			api:        mock.API{GetUsageByServiceFn: getUsageByServiceOK},
-			wantOutput: "Service: svc123",
+			wantOutput: "svc123",
 		},
 		{
 			name:       "success by-service json",
@@ -57,7 +59,21 @@ func TestUsage(t *testing.T) {
 			name:       "nil usage entry table skipped",
 			args:       args("stats usage"),
 			api:        mock.API{GetUsageFn: getUsageWithNilEntry},
-			wantOutput: "Region: europe",
+			wantOutput: "europe",
+		},
+		{
+			name:       "region filter plain",
+			args:       args("stats usage --region=europe"),
+			api:        mock.API{GetUsageFn: getUsageMultiRegion},
+			wantOutput: "europe",
+			wantAbsent: "usa",
+		},
+		{
+			name:       "region filter by-service",
+			args:       args("stats usage --by-service --region=europe"),
+			api:        mock.API{GetUsageByServiceFn: getUsageByServiceMultiRegion},
+			wantOutput: "svc456",
+			wantAbsent: "usa",
 		},
 		{
 			name:      "non-success status",
@@ -83,6 +99,9 @@ func TestUsage(t *testing.T) {
 			err := app.Run(tc.args, nil)
 			testutil.AssertErrorContains(t, err, tc.wantError)
 			testutil.AssertStringContains(t, stdout.String(), tc.wantOutput)
+			if tc.wantAbsent != "" && strings.Contains(stdout.String(), tc.wantAbsent) {
+				t.Errorf("output should not contain %q, got: %s", tc.wantAbsent, stdout.String())
+			}
 		})
 	}
 }
@@ -133,6 +152,46 @@ func getUsageWithNilEntry(_ context.Context, _ *fastly.GetUsageInput) (*fastly.U
 				Bandwidth:       fastly.ToPointer(uint64(2000)),
 				Requests:        fastly.ToPointer(uint64(300)),
 				ComputeRequests: fastly.ToPointer(uint64(50)),
+			},
+		},
+	}, nil
+}
+
+func getUsageMultiRegion(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageResponse, error) {
+	return &fastly.UsageResponse{
+		Status: fastly.ToPointer("success"),
+		Data: &fastly.RegionsUsage{
+			"usa": &fastly.Usage{
+				Bandwidth:       fastly.ToPointer(uint64(1000)),
+				Requests:        fastly.ToPointer(uint64(500)),
+				ComputeRequests: fastly.ToPointer(uint64(100)),
+			},
+			"europe": &fastly.Usage{
+				Bandwidth:       fastly.ToPointer(uint64(2000)),
+				Requests:        fastly.ToPointer(uint64(300)),
+				ComputeRequests: fastly.ToPointer(uint64(50)),
+			},
+		},
+	}, nil
+}
+
+func getUsageByServiceMultiRegion(_ context.Context, _ *fastly.GetUsageInput) (*fastly.UsageByServiceResponse, error) {
+	return &fastly.UsageByServiceResponse{
+		Status: fastly.ToPointer("success"),
+		Data: &fastly.ServicesByRegionsUsage{
+			"usa": &fastly.ServicesUsage{
+				"svc123": &fastly.Usage{
+					Bandwidth:       fastly.ToPointer(uint64(1000)),
+					Requests:        fastly.ToPointer(uint64(500)),
+					ComputeRequests: fastly.ToPointer(uint64(100)),
+				},
+			},
+			"europe": &fastly.ServicesUsage{
+				"svc456": &fastly.Usage{
+					Bandwidth:       fastly.ToPointer(uint64(2000)),
+					Requests:        fastly.ToPointer(uint64(300)),
+					ComputeRequests: fastly.ToPointer(uint64(50)),
+				},
 			},
 		},
 	}, nil

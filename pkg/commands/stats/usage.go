@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"maps"
-	"slices"
 
 	"github.com/fastly/go-fastly/v13/fastly"
 
@@ -78,11 +76,14 @@ func (c *UsageCommand) execPlain(out io.Writer, input *fastly.GetUsageInput) err
 		return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Message))
 	}
 
+	filterUsageByRegion(resp.Data, c.region)
+
 	switch c.formatFlag {
 	case "json":
 		return writeUsageJSON(out, resp.Data)
 	default:
-		return writeUsageTable(out, resp.Data)
+		text.PrintUsageTbl(out, resp.Data)
+		return nil
 	}
 }
 
@@ -97,30 +98,15 @@ func (c *UsageCommand) execByService(out io.Writer, input *fastly.GetUsageInput)
 		return fmt.Errorf("non-success response: %s", fastly.ToValue(resp.Message))
 	}
 
+	filterUsageByServiceByRegion(resp.Data, c.region)
+
 	switch c.formatFlag {
 	case "json":
 		return writeUsageByServiceJSON(out, resp.Data)
 	default:
-		return writeUsageByServiceTable(out, resp.Data)
-	}
-}
-
-func writeUsageTable(out io.Writer, data *fastly.RegionsUsage) error {
-	if data == nil {
+		text.PrintUsageByServiceTbl(out, resp.Data)
 		return nil
 	}
-	regions := slices.Sorted(maps.Keys(*data))
-	for _, region := range regions {
-		usage := (*data)[region]
-		if usage == nil {
-			continue
-		}
-		text.Output(out, "Region: %s", region)
-		text.Output(out, "  Bandwidth:        %d", fastly.ToValue(usage.Bandwidth))
-		text.Output(out, "  Requests:         %d", fastly.ToValue(usage.Requests))
-		text.Output(out, "  Compute Requests: %d", fastly.ToValue(usage.ComputeRequests))
-	}
-	return nil
 }
 
 func writeUsageJSON(out io.Writer, data *fastly.RegionsUsage) error {
@@ -128,32 +114,6 @@ func writeUsageJSON(out io.Writer, data *fastly.RegionsUsage) error {
 		return json.NewEncoder(out).Encode(map[string]any{})
 	}
 	return json.NewEncoder(out).Encode(usageToMap(*data))
-}
-
-func writeUsageByServiceTable(out io.Writer, data *fastly.ServicesByRegionsUsage) error {
-	if data == nil {
-		return nil
-	}
-	regions := slices.Sorted(maps.Keys(*data))
-	for _, region := range regions {
-		services := (*data)[region]
-		if services == nil {
-			continue
-		}
-		text.Output(out, "Region: %s", region)
-		serviceIDs := slices.Sorted(maps.Keys(*services))
-		for _, svcID := range serviceIDs {
-			usage := (*services)[svcID]
-			if usage == nil {
-				continue
-			}
-			text.Output(out, "  Service: %s", svcID)
-			text.Output(out, "    Bandwidth:        %d", fastly.ToValue(usage.Bandwidth))
-			text.Output(out, "    Requests:         %d", fastly.ToValue(usage.Requests))
-			text.Output(out, "    Compute Requests: %d", fastly.ToValue(usage.ComputeRequests))
-		}
-	}
-	return nil
 }
 
 func writeUsageByServiceJSON(out io.Writer, data *fastly.ServicesByRegionsUsage) error {
@@ -180,6 +140,28 @@ func usageToMap(data fastly.RegionsUsage) map[string]any {
 		result[region] = usageEntry(usage)
 	}
 	return result
+}
+
+func filterUsageByRegion(data *fastly.RegionsUsage, region string) {
+	if region == "" || data == nil {
+		return
+	}
+	for k := range *data {
+		if k != region {
+			delete(*data, k)
+		}
+	}
+}
+
+func filterUsageByServiceByRegion(data *fastly.ServicesByRegionsUsage, region string) {
+	if region == "" || data == nil {
+		return
+	}
+	for k := range *data {
+		if k != region {
+			delete(*data, k)
+		}
+	}
 }
 
 func usageEntry(u *fastly.Usage) map[string]any {
