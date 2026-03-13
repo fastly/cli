@@ -22,9 +22,6 @@ const (
 	tagDescription = "All-APIv1-endpoints"
 	updatedTagName = "APIv1.1"
 	updatedTagDesc = "Updated-APIv1-endpoints"
-	operationID1   = "op-123"
-	operationID2   = "op-456"
-	tagID2         = "tag-456"
 )
 
 var tag = operations.OperationTag{
@@ -427,102 +424,6 @@ func TestTagsUpdate(t *testing.T) {
 	}
 
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "update"}, scenarios)
-}
-
-func TestTagsAddBulk(t *testing.T) {
-	bulkResponse := operations.BulkOperationResultsResponse{
-		Data: []operations.BulkOperationResult{
-			{
-				ID:         operationID1,
-				StatusCode: 200,
-			},
-			{
-				ID:         operationID2,
-				StatusCode: 200,
-			},
-		},
-	}
-
-	scenarios := []testutil.CLIScenario{
-		{
-			Name:      "validate missing --service-id flag",
-			Args:      fmt.Sprintf("--operation-id %s --tag-id %s", operationID1, tagID),
-			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name:      "validate missing --operation-id flag",
-			Args:      fmt.Sprintf("--service-id %s --tag-id %s", serviceID, tagID),
-			WantError: "error parsing arguments: required flag --operation-id not provided",
-		},
-		{
-			Name:      "validate missing --tag-id flag",
-			Args:      fmt.Sprintf("--service-id %s --operation-id %s", serviceID, operationID1),
-			WantError: "error parsing arguments: required flag --tag-id not provided",
-		},
-		{
-			Name: "validate bad request",
-			Args: fmt.Sprintf("--service-id %s --operation-id %s --tag-id %s", serviceID, operationID1, tagID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusBadRequest,
-						Status:     http.StatusText(http.StatusBadRequest),
-						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(`
-							{
-    							"title": "invalid request",
-    							"status": 400
-							}
-						`))),
-					},
-				},
-			},
-			WantError: "400 - Bad Request",
-		},
-		{
-			Name: "validate API success (single operation, single tag)",
-			Args: fmt.Sprintf("--service-id %s --operation-id %s --tag-id %s", serviceID, operationID1, tagID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusMultiStatus,
-						Status:     http.StatusText(http.StatusMultiStatus),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(bulkResponse))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Bulk add tags completed. Processed %d operations", 2),
-		},
-		{
-			Name: "validate API success (multiple operations, multiple tags)",
-			Args: fmt.Sprintf("--service-id %s --operation-id %s --operation-id %s --tag-id %s --tag-id %s", serviceID, operationID1, operationID2, tagID, tagID2),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusMultiStatus,
-						Status:     http.StatusText(http.StatusMultiStatus),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(bulkResponse))),
-					},
-				},
-			},
-			WantOutput: fstfmt.Success("Bulk add tags completed. Processed %d operations", 2),
-		},
-		{
-			Name: "validate optional --json flag",
-			Args: fmt.Sprintf("--service-id %s --operation-id %s --tag-id %s --json", serviceID, operationID1, tagID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusMultiStatus,
-						Status:     http.StatusText(http.StatusMultiStatus),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(bulkResponse))),
-					},
-				},
-			},
-			WantOutput: fstfmt.EncodeJSON(bulkResponse),
-		},
-	}
-
-	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "add-bulk"}, scenarios)
 }
 
 var tagString = strings.TrimSpace(`

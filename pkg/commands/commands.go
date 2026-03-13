@@ -443,7 +443,6 @@ func Define( // nolint:revive // function-length
 	apiSecurityTagsGet := tags.NewGetCommand(apiSecurityTagsRoot.CmdClause, data)
 	apiSecurityTagsList := tags.NewListCommand(apiSecurityTagsRoot.CmdClause, data)
 	apiSecurityTagsUpdate := tags.NewUpdateCommand(apiSecurityTagsRoot.CmdClause, data)
-	apiSecurityTagsAddBulk := tags.NewAddBulkCommand(apiSecurityTagsRoot.CmdClause, data)
 	objectStorageRoot := objectstorage.NewRootCommand(app, data)
 	objectStorageAccesskeysRoot := accesskeys.NewRootCommand(objectStorageRoot.CmdClause, data)
 	objectStorageAccesskeysCreate := accesskeys.NewCreateCommand(objectStorageAccesskeysRoot.CmdClause, data)
@@ -1465,7 +1464,6 @@ func Define( // nolint:revive // function-length
 		apiSecurityTagsGet,
 		apiSecurityTagsList,
 		apiSecurityTagsUpdate,
-		apiSecurityTagsAddBulk,
 		objectStorageRoot,
 		objectStorageAccesskeysRoot,
 		objectStorageAccesskeysCreate,
