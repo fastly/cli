@@ -120,7 +120,7 @@ func TestListCommand(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: string(listResponseJSON),
+			WantOutput: string(testutil.GenJSON(listResponse.Data)),
 		},
 		{
 			Name: "validate --verbose output",

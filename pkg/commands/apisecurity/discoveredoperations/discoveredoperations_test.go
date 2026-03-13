@@ -87,7 +87,7 @@ POST    example.com  /api/users  SAVED       5.20   2026-03-10T12:00:00Z
 
 	listDiscoveredOperationsVerboseOutput = strings.TrimSpace(`
 Fastly API endpoint: https://api.fastly.com
-Fastly API token provided via config file (profile: user)
+Fastly API token provided via config file (auth: user)
 
 Service ID (via --service-id): test-service-id
 
@@ -161,7 +161,7 @@ func TestListCommand(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: string(listResponseJSON),
+			WantOutput: string(testutil.GenJSON(listResponse.Data)),
 		},
 		{
 			Name: "validate invalid status",
