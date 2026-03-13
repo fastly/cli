@@ -22,7 +22,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20250811210735-e5fe3b51442e
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/term v0.40.0
 )
 
@@ -81,6 +81,6 @@ require (
 
 require (
 	4d63.com/optional v0.2.0
-	github.com/fastly/go-fastly/v13 v13.0.0
+	github.com/fastly/go-fastly/v13 v13.1.0
 	github.com/mitchellh/go-ps v1.0.0
 )
