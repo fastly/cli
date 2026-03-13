@@ -72,6 +72,7 @@ kv-store
 kv-store-entry
 log-tail
 ngwaf
+apisecurity
 object-storage
 pops
 products
