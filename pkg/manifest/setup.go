@@ -9,6 +9,7 @@ type Setup struct {
 	ObjectStores map[string]*SetupKVStore     `toml:"object_stores,omitempty"`
 	KVStores     map[string]*SetupKVStore     `toml:"kv_stores,omitempty"`
 	SecretStores map[string]*SetupSecretStore `toml:"secret_stores,omitempty"`
+	Products     *SetupProducts               `toml:"products,omitempty"`
 }
 
 // Defined indicates if there is any [setup] configuration in the manifest.
@@ -33,7 +34,9 @@ func (s Setup) Defined() bool {
 	if len(s.SecretStores) > 0 {
 		defined = true
 	}
-
+	if s.Products != nil && s.Products.AnyDefined() {
+		defined = true
+	}
 	return defined
 }
 
@@ -87,3 +90,52 @@ type SetupSecretStoreEntry struct {
 	// values are input during setup.
 	Description string `toml:"description,omitempty"`
 }
+
+type SetupProducts struct {
+	APIDiscovery        *SetupProduct      `toml:"api_discovery,omitempty"`
+	BotManagement       *SetupProduct      `toml:"bot_management,omitempty"`
+	BrotliCompression   *SetupProduct      `toml:"brotli_compression,omitempty"`
+	DdosProtection      *SetupProduct      `toml:"ddos_protection,omitempty"`
+	DomainInspector     *SetupProduct      `toml:"domain_inspector,omitempty"`
+	Fanout              *SetupProduct      `toml:"fanout,omitempty"`
+	ImageOptimizer      *SetupProduct      `toml:"image_optimizer,omitempty"`
+	LogExplorerInsights *SetupProduct      `toml:"log_explorer_insights,omitempty"`
+	NGWAF               *SetupProductNGWAF `toml:"ngwaf,omitempty"`
+	OriginInspector     *SetupProduct      `toml:"origin_inspector,omitempty"`
+	WebSockets          *SetupProduct      `toml:"websockets,omitempty"`
+}
+
+func (p *SetupProducts) AnyDefined() bool {
+	return p != nil && (p.APIDiscovery != nil ||
+		p.BotManagement != nil ||
+		p.BrotliCompression != nil ||
+		p.DdosProtection != nil ||
+		p.DomainInspector != nil ||
+		p.Fanout != nil ||
+		p.ImageOptimizer != nil ||
+		p.LogExplorerInsights != nil ||
+		p.NGWAF != nil ||
+		p.OriginInspector != nil ||
+		p.WebSockets != nil)
+}
+
+type SetupProductSettings interface {
+	Enabled() bool
+}
+
+type SetupProduct struct {
+	Enable bool `toml:"enable,omitempty"`
+}
+
+var _ SetupProductSettings = (*SetupProduct)(nil)
+
+func (p *SetupProduct) Enabled() bool {
+	return p != nil && p.Enable
+}
+
+type SetupProductNGWAF struct {
+	SetupProduct
+	WorkspaceID string `toml:"workspace_id,omitempty"`
+}
+
+var _ SetupProductSettings = (*SetupProductNGWAF)(nil)
