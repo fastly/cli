@@ -15,6 +15,7 @@
 - feat(stats): add `stats origin-inspector` subcommand for origin-level metrics. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(apisecurity/discoveredoperations): add support for 'list' and 'update' support for 'API discovery'. [#1689](https://github.com/fastly/cli/pull/1689)
 - feat(apisecurity/operations): add CRUD support for 'API Inventory' operations. [#1689](https://github.com/fastly/cli/pull/1689)
+- feat(service/version): add support for service validation. [#1695](https://github.com/fastly/cli/pull/1695)
 
 ### Dependencies:
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
