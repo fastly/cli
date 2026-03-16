@@ -481,3 +481,113 @@ func lockVersionOK(_ context.Context, i *fastly.LockVersionInput) (*fastly.Versi
 func lockVersionError(_ context.Context, _ *fastly.LockVersionInput) (*fastly.Version, error) {
 	return nil, testutil.Err
 }
+
+func TestVersionValidate(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
+		{
+			Name:      "validate missing --service-id flag",
+			Args:      "--version 1",
+			WantError: "error parsing arguments: required flag --service-id not provided",
+		},
+		{
+			Name:      "validate missing --version flag",
+			Args:      "--service-id 123",
+			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Name: "validate successful - valid version without message",
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ValidateVersionFn: validateVersionValid(""),
+			},
+			WantOutput: "Service 123 version 1 is valid",
+		},
+		{
+			Name: "validate successful - valid version with message",
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ValidateVersionFn: validateVersionValid("All checks passed"),
+			},
+			WantOutput: "Service 123 version 1 is valid: All checks passed",
+		},
+		{
+			Name: "validate successful - invalid version without message",
+			Args: "--service-id 123 --version 2",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ValidateVersionFn: validateVersionInvalid(""),
+			},
+			WantOutput: "Service 123 version 2 is not valid",
+		},
+		{
+			Name: "validate successful - invalid version with message",
+			Args: "--service-id 123 --version 2",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ValidateVersionFn: validateVersionInvalid("Missing required backend"),
+			},
+			WantOutput: "Service 123 version 2 is not valid: Missing required backend",
+		},
+		{
+			Name: "validate with json output - valid version",
+			Args: "--service-id 123 --version 1 --json",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ValidateVersionFn: validateVersionValid("All checks passed"),
+			},
+			WantOutput: validateVersionValidJSONOutput,
+		},
+		{
+			Name: "validate with json output - invalid version",
+			Args: "--service-id 123 --version 2 --json",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ValidateVersionFn: validateVersionInvalid("Missing required backend"),
+			},
+			WantOutput: validateVersionInvalidJSONOutput,
+		},
+		{
+			Name: "validate error from API",
+			Args: "--service-id 123 --version 1",
+			API: mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ValidateVersionFn: validateVersionError,
+			},
+			WantError: testutil.Err.Error(),
+		},
+	}
+
+	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "validate"}, scenarios)
+}
+
+func validateVersionValid(message string) func(context.Context, *fastly.ValidateVersionInput) (bool, string, error) {
+	return func(_ context.Context, _ *fastly.ValidateVersionInput) (bool, string, error) {
+		return true, message, nil
+	}
+}
+
+func validateVersionInvalid(message string) func(context.Context, *fastly.ValidateVersionInput) (bool, string, error) {
+	return func(_ context.Context, _ *fastly.ValidateVersionInput) (bool, string, error) {
+		return false, message, nil
+	}
+}
+
+func validateVersionError(_ context.Context, _ *fastly.ValidateVersionInput) (bool, string, error) {
+	return false, "", testutil.Err
+}
+
+var validateVersionValidJSONOutput = strings.TrimSpace(`
+{
+  "message": "All checks passed",
+  "valid": true
+}
+`) + "\n"
+
+var validateVersionInvalidJSONOutput = strings.TrimSpace(`
+{
+  "message": "Missing required backend",
+  "valid": false
+}
+`) + "\n"
