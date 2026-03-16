@@ -69,6 +69,12 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Short:       's',
 		Required:    true,
 	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
+		Dst:         &c.serviceName.Value,
+	})
 	c.CmdClause.Flag("method", "The HTTP method for the operation (e.g., GET, POST, PUT)").StringVar(&c.method)
 	c.CmdClause.Flag("domain", "Domain for the operation").StringVar(&c.domain)
 	c.CmdClause.Flag("path", "The path for the operation, which may include path parameters.(e.g., /api/users)").StringVar(&c.path)

@@ -51,6 +51,12 @@ func NewAddTagsCommand(parent argparser.Registerer, g *global.Data) *AddTagsComm
 		Short:       's',
 		Required:    true,
 	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
+		Dst:         &c.serviceName.Value,
+	})
 	c.CmdClause.Flag("tag-ids", "Comma-separated list of tag IDs to add").Required().StringsVar(&c.tagIDs, kingpin.Separator(","))
 
 	// Optional.

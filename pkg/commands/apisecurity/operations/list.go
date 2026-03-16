@@ -51,6 +51,12 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 		Short:       's',
 		Required:    true,
 	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
+		Dst:         &c.serviceName.Value,
+	})
 
 	// Optional.
 	c.CmdClause.Flag("domain", "Filters operations by domain (exact match)").Action(c.domain.Set).StringVar(&c.domain.Value)

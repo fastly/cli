@@ -41,6 +41,12 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 		Short:       's',
 		Required:    true,
 	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
+		Dst:         &c.serviceName.Value,
+	})
 	c.CmdClause.Flag("operation-id", "The unique identifier of the operation").Required().StringVar(&c.operationID)
 
 	// Optional.

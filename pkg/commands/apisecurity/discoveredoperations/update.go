@@ -48,6 +48,12 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Short:       's',
 		Required:    true,
 	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
+		Dst:         &c.serviceName.Value,
+	})
 	c.CmdClause.Flag("operation-id", "The ID of the discovered operation (comma-separated for multiple)").Action(c.operationID.Set).StringVar(&c.operationID.Value)
 	c.CmdClause.Flag("file", "Update operations in bulk from a JSON file").StringVar(&c.file)
 
