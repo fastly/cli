@@ -8,6 +8,7 @@
 - fix(stats): `stats historical` now returns write errors instead of silently swallowing them. [#1678](https://github.com/fastly/cli/pull/1678)
 
 ### Enhancements:
+- feat(auth): add `auth token` subcommand to output the active API token for use in shell substitutions (e.g. `$(fastly auth token)`). Refuses to print to a terminal to prevent accidental exposure.
 - feat(stats): add `--field` flag to `stats historical` to filter to a single stats field. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats aggregate` subcommand for cross-service aggregated stats. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats usage` subcommand for bandwidth/request usage, with `--by-service` breakdown. [#1678](https://github.com/fastly/cli/pull/1678)

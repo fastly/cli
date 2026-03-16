@@ -40,6 +40,7 @@ require (
 
 require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
+	github.com/creack/pty v1.1.24 // indirect
 	github.com/dnaeon/go-vcr v1.2.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
