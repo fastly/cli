@@ -2,7 +2,6 @@ package version
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/fastly/go-fastly/v13/fastly"
@@ -11,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/errors"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/text"
 )
 
 // ValidateCommand calls the Fastly API to validate a service version.
@@ -29,20 +29,6 @@ func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCo
 			Globals: g,
 		},
 	}
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagServiceIDName,
-		Description: argparser.FlagServiceIDDesc,
-		Dst:         &g.Manifest.Flag.ServiceID,
-		Short:       's',
-	})
-	c.RegisterFlag(argparser.StringFlagOpts{
-		Name:        argparser.FlagVersionName,
-		Description: argparser.FlagVersionDesc,
-		Dst:         &c.serviceVersion.Value,
-		Required:    true,
-	})
-
-	// Optional.
 	c.CmdClause = parent.Command("validate", "Validate a service version")
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -50,6 +36,13 @@ func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCo
 		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
+		Required:    true,
+	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Name:        argparser.FlagVersionName,
+		Description: argparser.FlagVersionDesc,
+		Dst:         &c.serviceVersion.Value,
+		Required:    true,
 	})
 	return &c
 }
@@ -74,9 +67,6 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		})
 		return err
 	}
-	/*if c.Globals.Verbose() {
-		argparser.DisplayServiceID(serviceID, flag, source, out)
-	}*/
 
 	c.input.ServiceID = serviceID
 	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
@@ -96,13 +86,19 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "\nService ID: %s\n", serviceID)
-	fmt.Fprintf(out, "Service Version: %d\n", c.input.ServiceVersion)
-	fmt.Fprintf(out, "Valid: %t\n", valid)
-	if msg != "" {
-		fmt.Fprintf(out, "Message: %s\n", msg)
+	if valid {
+		if msg != "" {
+			text.Success(out, "Service %s version %d is valid: %s", serviceID, c.input.ServiceVersion, msg)
+		} else {
+			text.Success(out, "Service %s version %d is valid", serviceID, c.input.ServiceVersion)
+		}
+	} else {
+		if msg != "" {
+			text.Error(out, "Service %s version %d is not valid: %s", serviceID, c.input.ServiceVersion, msg)
+		} else {
+			text.Error(out, "Service %s version %d is not valid", serviceID, c.input.ServiceVersion)
+		}
 	}
-	fmt.Fprintln(out)
 
 	return nil
 }
