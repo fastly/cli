@@ -26,12 +26,10 @@ type ListCommand struct {
 	serviceName argparser.OptionalServiceNameID
 
 	// Optional.
-	domain  argparser.OptionalString
-	method  argparser.OptionalString
-	path    argparser.OptionalString
-	tagID   argparser.OptionalString
-	page    argparser.OptionalInt
-	perPage argparser.OptionalInt
+	domain argparser.OptionalString
+	method argparser.OptionalString
+	path   argparser.OptionalString
+	tagID  argparser.OptionalString
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -63,8 +61,6 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause.Flag("method", "Filters operations by HTTP method (e.g., GET, POST, PUT)").Action(c.method.Set).StringVar(&c.method.Value)
 	c.CmdClause.Flag("path", "Filters operations by path (exact match)").Action(c.path.Set).StringVar(&c.path.Value)
 	c.CmdClause.Flag("tag-id", "Filters operations by tag ID").Action(c.tagID.Set).StringVar(&c.tagID.Value)
-	c.CmdClause.Flag("page", "Page number for pagination (0-indexed)").Action(c.page.Set).IntVar(&c.page.Value)
-	c.CmdClause.Flag("per-page", "Number of items per page (default: 100)").Action(c.perPage.Set).IntVar(&c.perPage.Value)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 
 	return &c
@@ -99,49 +95,56 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.input.TagID = &c.tagID.Value
 	}
 
-	// Set pagination parameters
-	if c.page.WasSet {
-		c.input.Page = &c.page.Value
-	}
-
-	if c.perPage.WasSet {
-		c.input.Limit = &c.perPage.Value
-	}
-
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
 	if !ok {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	o, err := operations.ListOperations(context.TODO(), fc, &c.input)
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID": serviceID,
-			"Domain":     c.domain.Value,
-			"Method":     c.method.Value,
-			"Path":       c.path.Value,
-			"Tag ID":     c.tagID.Value,
-			"Page":       c.page.Value,
-			"Per Page":   c.perPage.Value,
-		})
-		return err
-	}
+	// Auto-paginate through all results
+	var allOperations []operations.Operation
+	page := 0
+	limit := 100
 
-	if o == nil {
-		o = &operations.Operations{
-			Data: []operations.Operation{},
+	for {
+		c.input.Page = &page
+		c.input.Limit = &limit
+
+		o, err := operations.ListOperations(context.TODO(), fc, &c.input)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Service ID": serviceID,
+				"Domain":     c.domain.Value,
+				"Method":     c.method.Value,
+				"Path":       c.path.Value,
+				"Tag ID":     c.tagID.Value,
+				"Page":       page,
+			})
+			return err
 		}
+
+		if o == nil || len(o.Data) == 0 {
+			break
+		}
+
+		allOperations = append(allOperations, o.Data...)
+
+		// Check if we've fetched all results
+		if len(allOperations) >= o.Meta.Total {
+			break
+		}
+
+		page++
 	}
 
-	if ok, err := c.WriteJSON(out, o.Data); ok {
+	if ok, err := c.WriteJSON(out, allOperations); ok {
 		return err
 	}
 
 	if !c.Globals.Verbose() {
-		return c.printSummary(out, o.Data)
+		return c.printSummary(out, allOperations)
 	}
 
-	return c.printVerbose(out, o.Data)
+	return c.printVerbose(out, allOperations)
 }
 
 // printSummary displays the operations in a table format.

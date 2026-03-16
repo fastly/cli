@@ -155,55 +155,6 @@ func TestListCommand(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{apisecurity.CommandName, root.CommandName, "list"}, scenarios)
 }
 
-func TestListCommandWithPagination(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
-		{
-			Name: "validate --page flag",
-			Args: fmt.Sprintf("--service-id %s --page 1", serviceID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(listResponse))),
-					},
-				},
-			},
-			WantOutput: listOperationsOutput,
-		},
-		{
-			Name: "validate --per-page flag",
-			Args: fmt.Sprintf("--service-id %s --per-page 50", serviceID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(listResponse))),
-					},
-				},
-			},
-			WantOutput: listOperationsOutput,
-		},
-		{
-			Name: "validate --page and --per-page together",
-			Args: fmt.Sprintf("--service-id %s --page 2 --per-page 25", serviceID),
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     http.StatusText(http.StatusOK),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(listResponse))),
-					},
-				},
-			},
-			WantOutput: listOperationsOutput,
-		},
-	}
-
-	testutil.RunCLIScenarios(t, []string{apisecurity.CommandName, root.CommandName, "list"}, scenarios)
-}
-
 func TestListCommandWithFilters(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
