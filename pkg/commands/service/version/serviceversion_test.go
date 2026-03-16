@@ -497,7 +497,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name: "validate successful - valid version without message",
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ValidateVersionFn: validateVersionValid(""),
 			},
@@ -506,7 +506,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name: "validate successful - valid version with message",
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ValidateVersionFn: validateVersionValid("All checks passed"),
 			},
@@ -515,7 +515,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name: "validate successful - invalid version without message",
 			Args: "--service-id 123 --version 2",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ValidateVersionFn: validateVersionInvalid(""),
 			},
@@ -524,7 +524,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name: "validate successful - invalid version with message",
 			Args: "--service-id 123 --version 2",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ValidateVersionFn: validateVersionInvalid("Missing required backend"),
 			},
@@ -533,7 +533,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name: "validate with json output - valid version",
 			Args: "--service-id 123 --version 1 --json",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ValidateVersionFn: validateVersionValid("All checks passed"),
 			},
@@ -542,7 +542,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name: "validate with json output - invalid version",
 			Args: "--service-id 123 --version 2 --json",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ValidateVersionFn: validateVersionInvalid("Missing required backend"),
 			},
@@ -551,7 +551,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name: "validate error from API",
 			Args: "--service-id 123 --version 1",
-			API: mock.API{
+			API: &mock.API{
 				ListVersionsFn:    testutil.ListVersions,
 				ValidateVersionFn: validateVersionError,
 			},
