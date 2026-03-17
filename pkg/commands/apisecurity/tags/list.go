@@ -20,10 +20,6 @@ type ListCommand struct {
 
 	// Required.
 	serviceName argparser.OptionalServiceNameID
-
-	// Optional.
-	limit argparser.OptionalInt
-	page  argparser.OptionalInt
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -36,7 +32,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 	c.CmdClause = parent.Command("list", "List all operation tags")
 
-	// Optional.
+	// Required.
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -48,8 +44,6 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
-	c.CmdClause.Flag("limit", "Maximum number of tags to return per page").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.CmdClause.Flag("page", "Page number to return").Action(c.page.Set).IntVar(&c.page.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -77,28 +71,46 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if !ok {
 		return errors.New("failed to convert interface to a fastly client")
 	}
+	// Auto-paginate through all results
+	var allTags []operations.OperationTag
+	page := 0
+	limit := 100
 
 	input := &operations.ListTagsInput{
 		ServiceID: &serviceID,
 	}
 
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
-	}
-	if c.page.WasSet {
-		input.Page = &c.page.Value
+	for {
+		input.Page = &page
+		input.Limit = &limit
+
+		tags, err := operations.ListTags(context.TODO(), fc, input)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Service ID": serviceID,
+				"Page":       page,
+			})
+			return err
+		}
+
+		if tags == nil || len(tags.Data) == 0 {
+			break
+		}
+
+		allTags = append(allTags, tags.Data...)
+
+		// Check if we've fetched all results
+		if len(allTags) >= tags.Meta.Total {
+			break
+		}
+
+		page++
 	}
 
-	tags, err := operations.ListTags(context.TODO(), fc, input)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
+	if ok, err := c.WriteJSON(out, allTags); ok {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, tags); ok {
-		return err
-	}
-
-	text.PrintOperationTagsTbl(out, tags.Data)
+	text.PrintOperationTagsTbl(out, allTags)
 	return nil
 }

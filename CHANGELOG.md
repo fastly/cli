@@ -5,9 +5,11 @@
 ### Breaking:
 
 ### Bug Fixes:
+
 - fix(stats): `stats historical` now returns write errors instead of silently swallowing them [#1678](https://github.com/fastly/cli/pull/1678)
 
 ### Enhancements:
+
 - feat(stats): add `--field` flag to `stats historical` to filter to a single stats field. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats aggregate` subcommand for cross-service aggregated stats. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats usage` subcommand for bandwidth/request usage, with `--by-service` breakdown. [#1678](https://github.com/fastly/cli/pull/1678)
@@ -19,6 +21,7 @@
 - feat(service/version): add support for service validation. [#1695](https://github.com/fastly/cli/pull/1695)
 
 ### Dependencies:
+
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
 - build(deps): `actions/upload-artifact` from 6 to 7 ([#1675](https://github.com/fastly/cli/pull/1675))
 - build(deps): `actions/download-artifact` from 7 to 8 ([#1675](https://github.com/fastly/cli/pull/1675))

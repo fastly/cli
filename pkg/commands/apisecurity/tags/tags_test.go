@@ -312,7 +312,7 @@ func TestTagsList(t *testing.T) {
 		},
 		{
 			Name: "validate API success with pagination",
-			Args: fmt.Sprintf("--service-id %s --limit 10 --page 2", serviceID),
+			Args: fmt.Sprintf("--service-id %s", serviceID),
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
 					Response: &http.Response{
@@ -336,7 +336,7 @@ func TestTagsList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(tagsObject),
+			WantOutput: fstfmt.EncodeJSON(tagsObject.Data),
 		},
 	}
 
