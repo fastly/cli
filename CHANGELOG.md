@@ -6,6 +6,14 @@
 
 ### Bug Fixes:
 
+### Enhancements:
+
+### Dependencies:
+
+## [v14.1.0](https://github.com/fastly/cli/releases/tag/v14.1.0) (2026-03-17)
+
+### Bug Fixes:
+
 - fix(stats): `stats historical` now returns write errors instead of silently swallowing them [#1678](https://github.com/fastly/cli/pull/1678)
 
 ### Enhancements:
