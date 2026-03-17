@@ -32,7 +32,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 	c.CmdClause = parent.Command("list", "List all operation tags")
 
-	// Optional.
+	// Required.
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,

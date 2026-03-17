@@ -336,7 +336,7 @@ func TestTagsList(t *testing.T) {
 					},
 				},
 			},
-			WantOutput: fstfmt.EncodeJSON(tagsObject),
+			WantOutput: fstfmt.EncodeJSON(tagsObject.Data),
 		},
 	}
 
