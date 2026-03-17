@@ -20,10 +20,6 @@ type ListCommand struct {
 
 	// Required.
 	serviceName argparser.OptionalServiceNameID
-
-	// Optional.
-	limit argparser.OptionalInt
-	page  argparser.OptionalInt
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -48,8 +44,6 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.serviceName.Value,
 	})
-	c.CmdClause.Flag("limit", "Maximum number of tags to return per page").Action(c.limit.Set).IntVar(&c.limit.Value)
-	c.CmdClause.Flag("page", "Page number to return").Action(c.page.Set).IntVar(&c.page.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -80,13 +74,6 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &operations.ListTagsInput{
 		ServiceID: &serviceID,
-	}
-
-	if c.limit.WasSet {
-		input.Limit = &c.limit.Value
-	}
-	if c.page.WasSet {
-		input.Page = &c.page.Value
 	}
 
 	tags, err := operations.ListTags(context.TODO(), fc, input)
