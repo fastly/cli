@@ -51,6 +51,10 @@ import (
 	aliasvclcondition "github.com/fastly/cli/pkg/commands/alias/vcl/condition"
 	aliasvclcustom "github.com/fastly/cli/pkg/commands/alias/vcl/custom"
 	aliasvclsnippet "github.com/fastly/cli/pkg/commands/alias/vcl/snippet"
+	"github.com/fastly/cli/pkg/commands/apisecurity"
+	"github.com/fastly/cli/pkg/commands/apisecurity/discoveredoperations"
+	"github.com/fastly/cli/pkg/commands/apisecurity/operations"
+	"github.com/fastly/cli/pkg/commands/apisecurity/tags"
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -212,6 +216,25 @@ func Define( // nolint:revive // function-length
 			authtokenDescribe, authtokenList,
 		}
 	}
+
+	// API Security commands
+	apisecurityRoot := apisecurity.NewRootCommand(app, data)
+	discoveredoperationsRoot := discoveredoperations.NewRootCommand(apisecurityRoot.CmdClause, data)
+	discoveredoperationsList := discoveredoperations.NewListCommand(discoveredoperationsRoot.CmdClause, data)
+	discoveredoperationsUpdate := discoveredoperations.NewUpdateCommand(discoveredoperationsRoot.CmdClause, data)
+	operationsRoot := operations.NewRootCommand(apisecurityRoot.CmdClause, data)
+	operationsList := operations.NewListCommand(operationsRoot.CmdClause, data)
+	operationsCreate := operations.NewCreateCommand(operationsRoot.CmdClause, data)
+	operationsDescribe := operations.NewDescribeCommand(operationsRoot.CmdClause, data)
+	operationsUpdate := operations.NewUpdateCommand(operationsRoot.CmdClause, data)
+	operationsDelete := operations.NewDeleteCommand(operationsRoot.CmdClause, data)
+	operationsAddTags := operations.NewAddTagsCommand(operationsRoot.CmdClause, data)
+	tagsRoot := tags.NewRootCommand(apisecurityRoot.CmdClause, data)
+	tagsCreate := tags.NewCreateCommand(tagsRoot.CmdClause, data)
+	tagsDelete := tags.NewDeleteCommand(tagsRoot.CmdClause, data)
+	tagsGet := tags.NewGetCommand(tagsRoot.CmdClause, data)
+	tagsList := tags.NewListCommand(tagsRoot.CmdClause, data)
+	tagsUpdate := tags.NewUpdateCommand(tagsRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -696,6 +719,7 @@ func Define( // nolint:revive // function-length
 	serviceVersionStage := serviceversion.NewStageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUnstage := serviceversion.NewUnstageCommand(serviceVersionCmdRoot.CmdClause, data)
 	serviceVersionUpdate := serviceversion.NewUpdateCommand(serviceVersionCmdRoot.CmdClause, data)
+	serviceVersionValidate := serviceversion.NewValidateCommand(serviceVersionCmdRoot.CmdClause, data)
 	servicedomainCmdRoot := servicedomain.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	servicedomainCreate := servicedomain.NewCreateCommand(servicedomainCmdRoot.CmdClause, data)
 	servicedomainDelete := servicedomain.NewDeleteCommand(servicedomainCmdRoot.CmdClause, data)
@@ -1067,6 +1091,23 @@ func Define( // nolint:revive // function-length
 	cmds = append(cmds, authCommands...)
 	cmds = append(cmds, authtokenCommands...)
 	cmds = append(cmds, []argparser.Command{
+		apisecurityRoot,
+		discoveredoperationsRoot,
+		discoveredoperationsList,
+		discoveredoperationsUpdate,
+		operationsRoot,
+		operationsList,
+		operationsCreate,
+		operationsDescribe,
+		operationsUpdate,
+		operationsDelete,
+		operationsAddTags,
+		tagsRoot,
+		tagsCreate,
+		tagsDelete,
+		tagsGet,
+		tagsList,
+		tagsUpdate,
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
@@ -1574,6 +1615,7 @@ func Define( // nolint:revive // function-length
 		serviceVersionStage,
 		serviceVersionUnstage,
 		serviceVersionUpdate,
+		serviceVersionValidate,
 	}...)
 	cmds = append(cmds, ssoCommands...)
 	cmds = append(cmds, []argparser.Command{
