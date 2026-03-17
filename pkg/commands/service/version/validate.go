@@ -7,7 +7,6 @@ import (
 	"github.com/fastly/go-fastly/v13/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/errors"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -63,7 +62,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,
-			"Service Version": errors.ServiceVersion(serviceVersion),
+			"Service Version": fsterr.ServiceVersion(serviceVersion),
 		})
 		return err
 	}
