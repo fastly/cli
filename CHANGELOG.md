@@ -19,6 +19,8 @@
 - feat(apisecurity/operations): add CRUD support for 'API Inventory' operations. [#1689](https://github.com/fastly/cli/pull/1689)
 - feat(apisecurity/tags): add API Security Operations tag support ([#1688](https://github.com/fastly/cli/pull/1688))
 - feat(service/version): add support for service validation. [#1695](https://github.com/fastly/cli/pull/1695)
+- feat(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug. ([#1653](https://github.com/fastly/cli/pull/1653))
+- feat(service/vcl): escape control characters when displaying VCL content for cleaner terminal output ([#1637](https://github.com/fastly/cli/pull/1637))
 
 ### Dependencies:
 
@@ -145,9 +147,6 @@ both the old and new forms are:
 - feat(service/resourcelink): moved the `resource-link` commands under the `service` command, with an unlisted and deprecated alias of `resource-link` ([#1635](https://github.com/fastly/cli/pull/1635))
 - feat(service/logging): moved the `logging` commands under the `service` command, with an unlisted and deprecated alias of `logging` ([#1642](https://github.com/fastly/cli/pull/1642))
 - feat(service/auth): moved the `service-auth` commands under the `service` command and renamed to `auth`, with an unlisted and deprecated alias of `service-auth` ([#1643](https://github.com/fastly/cli/pull/1643))
-- feat(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug. ([#1653](https://github.com/fastly/cli/pull/1653))
-- feat(service/vcl): escape control characters when displaying VCL content for cleaner terminal output ([#1637](https://github.com/fastly/cli/pull/1637))
-
 ### Bug fixes:
 
 - fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
