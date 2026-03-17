@@ -71,21 +71,46 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	if !ok {
 		return errors.New("failed to convert interface to a fastly client")
 	}
+	// Auto-paginate through all results
+	var allTags []operations.OperationTag
+	page := 0
+	limit := 100
 
 	input := &operations.ListTagsInput{
 		ServiceID: &serviceID,
 	}
 
-	tags, err := operations.ListTags(context.TODO(), fc, input)
-	if err != nil {
-		c.Globals.ErrLog.Add(err)
+	for {
+		input.Page = &page
+		input.Limit = &limit
+
+		tags, err := operations.ListTags(context.TODO(), fc, input)
+		if err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Service ID": serviceID,
+				"Page":       page,
+			})
+			return err
+		}
+
+		if tags == nil || len(tags.Data) == 0 {
+			break
+		}
+
+		allTags = append(allTags, tags.Data...)
+
+		// Check if we've fetched all results
+		if len(allTags) >= tags.Meta.Total {
+			break
+		}
+
+		page++
+	}
+
+	if ok, err := c.WriteJSON(out, allTags); ok {
 		return err
 	}
 
-	if ok, err := c.WriteJSON(out, tags); ok {
-		return err
-	}
-
-	text.PrintOperationTagsTbl(out, tags.Data)
+	text.PrintOperationTagsTbl(out, allTags)
 	return nil
 }
