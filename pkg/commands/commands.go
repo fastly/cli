@@ -54,6 +54,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/apisecurity"
 	"github.com/fastly/cli/pkg/commands/apisecurity/discoveredoperations"
 	"github.com/fastly/cli/pkg/commands/apisecurity/operations"
+	"github.com/fastly/cli/pkg/commands/apisecurity/tags"
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -228,6 +229,12 @@ func Define( // nolint:revive // function-length
 	operationsUpdate := operations.NewUpdateCommand(operationsRoot.CmdClause, data)
 	operationsDelete := operations.NewDeleteCommand(operationsRoot.CmdClause, data)
 	operationsAddTags := operations.NewAddTagsCommand(operationsRoot.CmdClause, data)
+	tagsRoot := tags.NewRootCommand(apisecurityRoot.CmdClause, data)
+	tagsCreate := tags.NewCreateCommand(tagsRoot.CmdClause, data)
+	tagsDelete := tags.NewDeleteCommand(tagsRoot.CmdClause, data)
+	tagsGet := tags.NewGetCommand(tagsRoot.CmdClause, data)
+	tagsList := tags.NewListCommand(tagsRoot.CmdClause, data)
+	tagsUpdate := tags.NewUpdateCommand(tagsRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -1095,6 +1102,12 @@ func Define( // nolint:revive // function-length
 		operationsUpdate,
 		operationsDelete,
 		operationsAddTags,
+		tagsRoot,
+		tagsCreate,
+		tagsDelete,
+		tagsGet,
+		tagsList,
+		tagsUpdate,
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
