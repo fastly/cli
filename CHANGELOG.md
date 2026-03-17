@@ -35,6 +35,8 @@
 - build(deps): `golang.org/x/crypto` from 0.48.0 to 0.49.0 ([#1693](https://github.com/fastly/cli/pull/1693))
 - build(deps): `golang.org/x/net` from 0.51.0 to 0.52.0 ([#1693](https://github.com/fastly/cli/pull/1693))
 - build(deps): `github.com/fastly/go-fastly/v13` from 13.1.0 to 13.1.1 ([#1693](https://github.com/fastly/cli/pull/1693))
+- build(deps): `github.com/fastly/go-fastly/v13` from 13.1.1 to 13.1.2 ([#1696](https://github.com/fastly/cli/pull/1696))
+- build(deps): `actions/create-github-app-token` from 2 to 3 ([#1692](https://github.com/fastly/cli/pull/1692))
 
 ## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
 
