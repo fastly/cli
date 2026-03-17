@@ -5,17 +5,24 @@
 ### Breaking:
 
 ### Bug Fixes:
-- fix(stats): `stats historical` now returns write errors instead of silently swallowing them. [#1678](https://github.com/fastly/cli/pull/1678)
+
+- fix(stats): `stats historical` now returns write errors instead of silently swallowing them [#1678](https://github.com/fastly/cli/pull/1678)
 
 ### Enhancements:
+
 - feat(auth): add `auth token` subcommand to output the active API token for use in shell substitutions (e.g. `$(fastly auth token)`). Refuses to print to a terminal to prevent accidental exposure.
 - feat(stats): add `--field` flag to `stats historical` to filter to a single stats field. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats aggregate` subcommand for cross-service aggregated stats. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats usage` subcommand for bandwidth/request usage, with `--by-service` breakdown. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats domain-inspector` subcommand for domain-level metrics. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats origin-inspector` subcommand for origin-level metrics. [#1678](https://github.com/fastly/cli/pull/1678)
+- feat(apisecurity/discoveredoperations): add support for 'list' and 'update' support for 'API discovery'. [#1689](https://github.com/fastly/cli/pull/1689)
+- feat(apisecurity/operations): add CRUD support for 'API Inventory' operations. [#1689](https://github.com/fastly/cli/pull/1689)
+- feat(apisecurity/tags): add API Security Operations tag support ([#1688](https://github.com/fastly/cli/pull/1688))
+- feat(service/version): add support for service validation. [#1695](https://github.com/fastly/cli/pull/1695)
 
 ### Dependencies:
+
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))
 - build(deps): `actions/upload-artifact` from 6 to 7 ([#1675](https://github.com/fastly/cli/pull/1675))
 - build(deps): `actions/download-artifact` from 7 to 8 ([#1675](https://github.com/fastly/cli/pull/1675))
@@ -29,6 +36,11 @@
 - build(deps): `golang.org/x/mod` from 0.33.0 to 0.34.0 ([#1687](https://github.com/fastly/cli/pull/1687))
 - build(deps): `golang.org/x/text` from 0.34.0 to 0.35.0 ([#1687](https://github.com/fastly/cli/pull/1687))
 - build(deps): `github.com/fastly/go-fastly/v13` from 13.0.1 to 13.1.0 ([#1687](https://github.com/fastly/cli/pull/1687))
+- build(deps): `golang.org/x/crypto` from 0.48.0 to 0.49.0 ([#1693](https://github.com/fastly/cli/pull/1693))
+- build(deps): `golang.org/x/net` from 0.51.0 to 0.52.0 ([#1693](https://github.com/fastly/cli/pull/1693))
+- build(deps): `github.com/fastly/go-fastly/v13` from 13.1.0 to 13.1.1 ([#1693](https://github.com/fastly/cli/pull/1693))
+- build(deps): `github.com/fastly/go-fastly/v13` from 13.1.1 to 13.1.2 ([#1696](https://github.com/fastly/cli/pull/1696))
+- build(deps): `actions/create-github-app-token` from 2 to 3 ([#1692](https://github.com/fastly/cli/pull/1692))
 
 ## [v14.0.4](https://github.com/fastly/cli/releases/tag/v14.0.4) (2026-02-26)
 
