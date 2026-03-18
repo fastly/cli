@@ -6,10 +6,26 @@
 
 ### Bug Fixes:
 
+### Enhancements:
+
+### Dependencies:
+
+## [v14.1.0](https://github.com/fastly/cli/releases/tag/v14.1.0) (2026-03-17)
+
+### Bug Fixes:
+
 - fix(stats): `stats historical` now returns write errors instead of silently swallowing them [#1678](https://github.com/fastly/cli/pull/1678)
+
+### Deprecations:
+
+- deprecated(auth): `fastly profile`, `fastly sso`, and `fastly auth-token` command trees are deprecated and will be removed in a future release. Use `fastly auth` subcommands instead. [#1676](https://github.com/fastly/cli/pull/1676)
+- deprecated(auth): `--profile` and `--enable-sso` global flags are deprecated. Use `--token <name>` to select a stored auth token by name, or `fastly auth login --sso --token <name>` for SSO. [#1676](https://github.com/fastly/cli/pull/1676)
 
 ### Enhancements:
 
+- feat(auth): `auth login --sso` now requires `--token <name>` to explicitly name the stored token. This prevents accidentally overwriting tokens in multi-user SSO workflows. [#1676](https://github.com/fastly/cli/pull/1676)
+- feat(auth): add `FASTLY_DISABLE_AUTH_COMMAND` env var to hide the `fastly auth` command tree from help, completions, and invocation. [#1676](https://github.com/fastly/cli/pull/1676)
+- feat(auth): when `FASTLY_DISABLE_AUTH_COMMAND` is set, the `--token`/`-t` global flag is also disabled. Use `FASTLY_API_TOKEN` or stored config tokens instead. [#1676](https://github.com/fastly/cli/pull/1676)
 - feat(stats): add `--field` flag to `stats historical` to filter to a single stats field. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats aggregate` subcommand for cross-service aggregated stats. [#1678](https://github.com/fastly/cli/pull/1678)
 - feat(stats): add `stats usage` subcommand for bandwidth/request usage, with `--by-service` breakdown. [#1678](https://github.com/fastly/cli/pull/1678)
@@ -19,6 +35,8 @@
 - feat(apisecurity/operations): add CRUD support for 'API Inventory' operations. [#1689](https://github.com/fastly/cli/pull/1689)
 - feat(apisecurity/tags): add API Security Operations tag support ([#1688](https://github.com/fastly/cli/pull/1688))
 - feat(service/version): add support for service validation. [#1695](https://github.com/fastly/cli/pull/1695)
+- feat(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug. ([#1653](https://github.com/fastly/cli/pull/1653))
+- feat(service/vcl): escape control characters when displaying VCL content for cleaner terminal output ([#1637](https://github.com/fastly/cli/pull/1637))
 
 ### Dependencies:
 
@@ -145,9 +163,6 @@ both the old and new forms are:
 - feat(service/resourcelink): moved the `resource-link` commands under the `service` command, with an unlisted and deprecated alias of `resource-link` ([#1635](https://github.com/fastly/cli/pull/1635))
 - feat(service/logging): moved the `logging` commands under the `service` command, with an unlisted and deprecated alias of `logging` ([#1642](https://github.com/fastly/cli/pull/1642))
 - feat(service/auth): moved the `service-auth` commands under the `service` command and renamed to `auth`, with an unlisted and deprecated alias of `service-auth` ([#1643](https://github.com/fastly/cli/pull/1643))
-- feat(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug. ([#1653](https://github.com/fastly/cli/pull/1653))
-- feat(service/vcl): escape control characters when displaying VCL content for cleaner terminal output ([#1637](https://github.com/fastly/cli/pull/1637))
-
 ### Bug fixes:
 
 - fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
