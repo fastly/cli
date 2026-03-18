@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix: `compute pack`, `compute validate`, and `install` no longer require authentication, as they are purely local operations that do not make any Fastly API calls.
+
 ### Enhancements:
 
 ### Dependencies:
