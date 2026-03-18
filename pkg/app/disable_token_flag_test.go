@@ -25,7 +25,7 @@ func TestTokenFlagDisabledWhenAuthCommandDisabled(t *testing.T) {
 			return testutil.MockGlobalData(args, &stdout), nil
 		}
 
-		err := app.Run(args, nil)
+		err := app.Run(args, nil, nil)
 		if err == nil {
 			t.Fatal("expected error when using --token with FASTLY_DISABLE_AUTH_COMMAND set")
 		}
@@ -43,7 +43,7 @@ func TestTokenFlagDisabledWhenAuthCommandDisabled(t *testing.T) {
 			return testutil.MockGlobalData(args, &stdout), nil
 		}
 
-		err := app.Run(args, nil)
+		err := app.Run(args, nil, nil)
 		if err == nil {
 			t.Fatal("expected error when using -t with FASTLY_DISABLE_AUTH_COMMAND set")
 		}
@@ -61,7 +61,7 @@ func TestTokenFlagDisabledWhenAuthCommandDisabled(t *testing.T) {
 			return testutil.MockGlobalData(args, &stdout), nil
 		}
 
-		err := app.Run(args, nil)
+		err := app.Run(args, nil, nil)
 
 		var output string
 		if err != nil {
@@ -88,7 +88,7 @@ func TestTokenFlagAvailableByDefault(t *testing.T) {
 			return testutil.MockGlobalData(args, &stdout), nil
 		}
 
-		err := app.Run(args, nil)
+		err := app.Run(args, nil, nil)
 
 		var output string
 		if err != nil {

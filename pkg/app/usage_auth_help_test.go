@@ -50,7 +50,7 @@ func TestAuthGuideBlock(t *testing.T) {
 				return testutil.MockGlobalData(args, &stdout), nil
 			}
 
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			var output string
 			if err != nil {

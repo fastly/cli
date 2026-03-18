@@ -20,6 +20,12 @@ type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
+	// APIHook provides an injection point for tests to provide a
+	// 'mock' function to replace the function from go-fastly. The
+	// signature must exactly match the corresponding function in
+	// go-fastly.
+	APIHook func(context.Context, *fastly.Client, *computeacls.DeleteInput) error
+
 	// Required.
 	id string
 }
@@ -30,6 +36,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 		Base: argparser.Base{
 			Globals: g,
 		},
+		APIHook: computeacls.Delete,
 	}
 
 	c.CmdClause = parent.Command("delete", "Delete a compute ACL")
@@ -54,7 +61,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	err := computeacls.Delete(context.TODO(), fc, &computeacls.DeleteInput{
+	err := c.APIHook(context.TODO(), fc, &computeacls.DeleteInput{
 		ComputeACLID: &c.id,
 	})
 	if err != nil {

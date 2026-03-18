@@ -2201,7 +2201,7 @@ func TestDeploy(t *testing.T) {
 					app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 						return opts, nil
 					}
-					err = app.Run(testcase.args, nil)
+					err = app.Run(testcase.args, nil, nil)
 					done <- true
 				}()
 
@@ -2230,7 +2230,7 @@ func TestDeploy(t *testing.T) {
 				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 					return opts, nil
 				}
-				err = app.Run(testcase.args, nil)
+				err = app.Run(testcase.args, nil, nil)
 			}
 
 			t.Log(stdout.String())
@@ -2333,7 +2333,7 @@ func TestDeploy_ActivateBeacon(t *testing.T) {
 		return opts, nil
 	}
 
-	err = app.Run(args, nil)
+	err = app.Run(args, nil, nil)
 
 	testutil.AssertErrorContains(t, err, "error activating version:")
 	testutil.AssertLength(t, 1, recordingHTTP.Requests)

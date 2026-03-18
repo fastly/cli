@@ -94,7 +94,7 @@ func TestCreateStoreCommand(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -179,7 +179,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -269,7 +269,7 @@ func TestDescribeStoreCommand(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -361,7 +361,7 @@ func TestListStoresCommand(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)

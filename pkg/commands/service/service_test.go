@@ -402,7 +402,7 @@ func TestServiceDelete(t *testing.T) {
 				runOpts.APIClientFactory = mock.APIClient(testcase.api)
 				return runOpts, nil
 			}
-			runErr := app.Run(testcase.args, nil)
+			runErr := app.Run(testcase.args, nil, nil)
 			testutil.AssertErrorContains(t, runErr, testcase.wantError)
 			testutil.AssertStringContains(t, stdout.String(), testcase.wantOutput)
 

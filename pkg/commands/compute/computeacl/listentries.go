@@ -20,6 +20,12 @@ type ListEntriesCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
+	// APIHook provides an injection point for tests to provide a
+	// 'mock' function to replace the function from go-fastly. The
+	// signature must exactly match the corresponding function in
+	// go-fastly.
+	APIHook func(context.Context, *fastly.Client, *computeacls.ListEntriesInput) (*computeacls.ComputeACLEntries, error)
+
 	// Required.
 	id string
 
@@ -34,6 +40,7 @@ func NewListEntriesCommand(parent argparser.Registerer, g *global.Data) *ListEnt
 		Base: argparser.Base{
 			Globals: g,
 		},
+		APIHook: computeacls.ListEntries,
 	}
 
 	c.CmdClause = parent.Command("list-entries", "List all entries of a compute ACL")
@@ -64,7 +71,7 @@ func (c *ListEntriesCommand) Exec(in io.Reader, out io.Writer) error {
 	loadAllPages := c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
 
 	for {
-		o, err := computeacls.ListEntries(context.TODO(), fc, &computeacls.ListEntriesInput{
+		o, err := c.APIHook(context.TODO(), fc, &computeacls.ListEntriesInput{
 			ComputeACLID: &c.id,
 			Cursor:       &c.cursor,
 			Limit:        &c.limit,

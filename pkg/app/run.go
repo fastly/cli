@@ -42,12 +42,12 @@ import (
 )
 
 // Run kick starts the CLI application.
-func Run(args []string, stdin io.Reader) error {
+func Run(args []string, stdin io.Reader, commandsHook func([]argparser.Command)) error {
 	data, err := Init(args, stdin)
 	if err != nil {
 		return fmt.Errorf("failed to initialise application: %w", err)
 	}
-	return Exec(data)
+	return Exec(data, commandsHook)
 }
 
 // Init constructs all the required objects and data for Exec().
@@ -192,9 +192,14 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 // The Exec helper should NOT output any error-related information to the out
 // io.Writer. All error-related information should be encoded into an error type
 // and returned to the caller. This includes usage text.
-func Exec(data *global.Data) error {
+func Exec(data *global.Data, commandsHook func([]argparser.Command)) error {
 	app := configureKingpin(data)
 	cmds := commands.Define(app, data)
+
+	if commandsHook != nil {
+		commandsHook(cmds)
+	}
+
 	command, commandName, err := processCommandInput(data, app, cmds)
 	if err != nil {
 		return err

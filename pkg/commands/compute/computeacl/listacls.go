@@ -18,6 +18,12 @@ import (
 type ListCommand struct {
 	argparser.Base
 	argparser.JSONOutput
+
+	// APIHook provides an injection point for tests to provide a
+	// 'mock' function to replace the function from go-fastly. The
+	// signature must exactly match the corresponding function in
+	// go-fastly.
+	APIHook func(context.Context, *fastly.Client) (*computeacls.ComputeACLs, error)
 }
 
 // NewListCommand returns a usable command registered under the parent.
@@ -26,6 +32,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 		Base: argparser.Base{
 			Globals: g,
 		},
+		APIHook: computeacls.ListACLs,
 	}
 
 	c.CmdClause = parent.Command("list-acls", "List all compute ACLs")
@@ -47,7 +54,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	acls, err := computeacls.ListACLs(context.TODO(), fc)
+	acls, err := c.APIHook(context.TODO(), fc)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -86,7 +86,7 @@ func TestVersion(t *testing.T) {
 	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 		return opts, nil
 	}
-	err = app.Run(args, nil)
+	err = app.Run(args, nil, nil)
 
 	t.Log(stdout.String())
 

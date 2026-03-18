@@ -118,7 +118,7 @@ whoami
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				return testutil.MockGlobalData(testutil.SplitArgs(testcase.Args), &stdout), nil
 			}
-			err := app.Run(testutil.SplitArgs(testcase.Args), nil)
+			err := app.Run(testutil.SplitArgs(testcase.Args), nil, nil)
 			if err != nil {
 				errors.Deduce(err).Print(&stderr)
 			}
@@ -146,7 +146,7 @@ func TestExecQuietSuppressesExpiryWarning(t *testing.T) {
 		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
 		return data, nil
 	}
-	err := app.Run(args, nil)
+	err := app.Run(args, nil, nil)
 	if err != nil {
 		t.Fatalf("app.Run returned unexpected error: %v", err)
 	}
@@ -168,7 +168,7 @@ func TestExecConfigShowsExpiryWarning(t *testing.T) {
 		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
 		return data, nil
 	}
-	err := app.Run(args, nil)
+	err := app.Run(args, nil, nil)
 	if err != nil {
 		t.Fatalf("app.Run returned unexpected error: %v", err)
 	}

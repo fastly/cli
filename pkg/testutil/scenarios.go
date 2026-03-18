@@ -14,6 +14,7 @@ import (
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
@@ -35,6 +36,21 @@ type CLIScenario struct {
 	// Client is a mock http.Client that will be used as part of a
 	// *fastly.Client instance passed into the test code.
 	Client *http.Client
+	// CommandHook is a function that will be called when the
+	// command-to-be-tested has been located in the global slice
+	// of argparser.Command structs. This function can modify the
+	// struct before returning, and those modifications will take
+	// effect for the execution of the scenario (and be discarded
+	// when the scenario execution is complete).
+	//
+	// The intent of this function is to inject a mock API
+	// function into the Command struct, but it can be used for
+	// any other suitable modification to the Command
+	// struct. Users of this function must be careful to avoid
+	// modifying the Command struct in ways which would make the
+	// test results invalid when compared to the unmodified
+	// Command struct.
+	CommandHook func(argparser.Command)
 	// ConfigPath will be copied into global.Data.ConfigPath
 	ConfigPath string
 	// ConfigFile will be copied into global.Data.ConfigFile
@@ -99,10 +115,11 @@ type EnvConfig struct {
 func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 	t.Run(scenario.Name, func(t *testing.T) {
 		var (
-			err      error
-			fullargs []string
-			rootdir  string
-			stdout   threadsafe.Buffer
+			commandsHook = func(_ []argparser.Command) {}
+			err          error
+			fullargs     []string
+			rootdir      string
+			stdout       threadsafe.Buffer
 		)
 
 		if len(scenario.Args) > 0 {
@@ -187,6 +204,18 @@ func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 			scenario.Setup(t, &scenario, opts)
 		}
 
+		if scenario.CommandHook != nil {
+			fullCommand := strings.Join(command, " ")
+			commandsHook = func(cmds []argparser.Command) {
+				for index := range cmds {
+					if cmds[index].Name() == fullCommand {
+						scenario.CommandHook(cmds[index])
+						break
+					}
+				}
+			}
+		}
+
 		if len(scenario.Stdin) > 1 {
 			// To handle multiple prompt input from the user we need to do some
 			// coordination around io pipes to mimic the required user behaviour.
@@ -209,7 +238,7 @@ func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 				app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 					return opts, nil
 				}
-				err = app.Run(fullargs, nil)
+				err = app.Run(fullargs, nil, commandsHook)
 				done <- true
 			}()
 
@@ -237,7 +266,7 @@ func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				return opts, nil
 			}
-			err = app.Run(fullargs, nil)
+			err = app.Run(fullargs, nil, commandsHook)
 		}
 
 		AssertErrorContains(t, err, scenario.WantError)

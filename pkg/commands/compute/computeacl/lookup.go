@@ -20,6 +20,12 @@ type LookupCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
+	// APIHook provides an injection point for tests to provide a
+	// 'mock' function to replace the function from go-fastly. The
+	// signature must exactly match the corresponding function in
+	// go-fastly.
+	APIHook func(context.Context, *fastly.Client, *computeacls.LookupInput) (*computeacls.ComputeACLEntry, error)
+
 	// Required.
 	id string
 	ip string
@@ -31,6 +37,7 @@ func NewLookupCommand(parent argparser.Registerer, g *global.Data) *LookupComman
 		Base: argparser.Base{
 			Globals: g,
 		},
+		APIHook: computeacls.Lookup,
 	}
 
 	c.CmdClause = parent.Command("lookup", "Find a matching ACL entry for an IP address")
@@ -56,7 +63,7 @@ func (c *LookupCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	entry, err := computeacls.Lookup(context.TODO(), fc, &computeacls.LookupInput{
+	entry, err := c.APIHook(context.TODO(), fc, &computeacls.LookupInput{
 		ComputeACLID: &c.id,
 		ComputeACLIP: &c.ip,
 	})
@@ -69,7 +76,7 @@ func (c *LookupCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	// Status 204 - No Content
+	// no match found
 	if entry == nil {
 		text.Info(out, "Compute ACL (%s) has no entry with IP (%s)", c.id, c.ip)
 		return nil

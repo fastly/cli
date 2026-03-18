@@ -86,7 +86,7 @@ func TestPack(t *testing.T) {
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				return testutil.MockGlobalData(testcase.args, &stdout), nil
 			}
-			err = app.Run(testcase.args, nil)
+			err = app.Run(testcase.args, nil, nil)
 
 			t.Log(stdout.String())
 

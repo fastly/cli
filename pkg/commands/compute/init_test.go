@@ -472,7 +472,7 @@ func TestInit(t *testing.T) {
 				opts.Input = strings.NewReader(testcase.stdin)
 				return opts, nil
 			}
-			err = app.Run(testcase.args, nil)
+			err = app.Run(testcase.args, nil, nil)
 
 			t.Log(stdout.String())
 
@@ -762,7 +762,7 @@ func TestInit_ExistingService(t *testing.T) {
 				return opts, nil
 			}
 
-			err = app.Run(testcase.args, nil)
+			err = app.Run(testcase.args, nil, nil)
 
 			if testcase.expectInError == "" {
 				if err != nil {

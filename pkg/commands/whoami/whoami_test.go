@@ -86,7 +86,7 @@ func TestWhoami(t *testing.T) {
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				return opts, nil
 			}
-			err := app.Run(testcase.args, nil)
+			err := app.Run(testcase.args, nil, nil)
 			opts.Config = config.File{}
 			t.Log(stdout.String())
 			testutil.AssertErrorContains(t, err, testcase.wantError)

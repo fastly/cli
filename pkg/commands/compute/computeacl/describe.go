@@ -20,6 +20,12 @@ type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
+	// APIHook provides an injection point for tests to provide a
+	// 'mock' function to replace the function from go-fastly. The
+	// signature must exactly match the corresponding function in
+	// go-fastly.
+	APIHook func(context.Context, *fastly.Client, *computeacls.DescribeInput) (*computeacls.ComputeACL, error)
+
 	// Required.
 	id string
 }
@@ -30,6 +36,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 		Base: argparser.Base{
 			Globals: g,
 		},
+		APIHook: computeacls.Describe,
 	}
 
 	c.CmdClause = parent.Command("describe", "Describe a compute ACL")
@@ -54,7 +61,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	acl, err := computeacls.Describe(context.TODO(), fc, &computeacls.DescribeInput{
+	acl, err := c.APIHook(context.TODO(), fc, &computeacls.DescribeInput{
 		ComputeACLID: &c.id,
 	})
 	if err != nil {

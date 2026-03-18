@@ -96,7 +96,7 @@ func TestUsage(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(tc.api)
 				return opts, nil
 			}
-			err := app.Run(tc.args, nil)
+			err := app.Run(tc.args, nil, nil)
 			testutil.AssertErrorContains(t, err, tc.wantError)
 			testutil.AssertStringContains(t, stdout.String(), tc.wantOutput)
 			if tc.wantAbsent != "" && strings.Contains(stdout.String(), tc.wantAbsent) {

@@ -21,6 +21,12 @@ import (
 type UpdateCommand struct {
 	argparser.Base
 
+	// APIHook provides an injection point for tests to provide a
+	// 'mock' function to replace the function from go-fastly. The
+	// signature must exactly match the corresponding function in
+	// go-fastly.
+	APIHook func(context.Context, *fastly.Client, *computeacls.UpdateInput) error
+
 	// Required.
 	computeACLID string
 
@@ -43,6 +49,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Base: argparser.Base{
 			Globals: g,
 		},
+		APIHook: computeacls.Update,
 	}
 
 	c.CmdClause = parent.Command("update", "Update a compute ACL")
@@ -67,12 +74,33 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.file.WasSet {
+		if c.operation.Value != "" {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("invalid flag combination, --file and --operation"),
+				Remediation: "Use either --file or --operation, not both.",
+			}
+		}
+
+		if c.prefix.Value != "" {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("invalid flag combination, --file and --prefix"),
+				Remediation: "Use either --file or --prefix, not both.",
+			}
+		}
+
+		if c.action.Value != "" {
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("invalid flag combination, --file and --action"),
+				Remediation: "Use either --file or --action, not both.",
+			}
+		}
+
 		input, err := c.constructBatchInput()
 		if err != nil {
 			return err
 		}
 
-		err = computeacls.Update(context.TODO(), fc, input)
+		err = c.APIHook(context.TODO(), fc, input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -87,7 +115,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = computeacls.Update(context.TODO(), fc, input)
+	err = c.APIHook(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -258,7 +258,7 @@ func TestBuildRust(t *testing.T) {
 				}
 				return opts, nil
 			}
-			err = app.Run(testcase.args, nil)
+			err = app.Run(testcase.args, nil, nil)
 
 			t.Log(stdout.String())
 
@@ -449,7 +449,7 @@ func TestBuildGo(t *testing.T) {
 				}
 				return opts, nil
 			}
-			err = app.Run(testcase.args, nil)
+			err = app.Run(testcase.args, nil, nil)
 
 			t.Log(stdout.String())
 
@@ -644,7 +644,7 @@ func TestBuildJavaScript(t *testing.T) {
 				}
 				return opts, nil
 			}
-			err = app.Run(testcase.args, nil)
+			err = app.Run(testcase.args, nil, nil)
 
 			t.Log(stdout.String())
 
@@ -839,7 +839,7 @@ func TestBuildOther(t *testing.T) {
 				}
 				return opts, nil
 			}
-			err = app.Run(testcase.args, nil)
+			err = app.Run(testcase.args, nil, nil)
 
 			t.Log(stdout.String())
 

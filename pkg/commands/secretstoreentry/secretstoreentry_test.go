@@ -255,7 +255,7 @@ func TestCreateSecretCommand(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -346,7 +346,7 @@ func TestDeleteSecretCommand(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -453,7 +453,7 @@ func TestDescribeSecretCommand(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())
@@ -541,7 +541,7 @@ func TestListSecretsCommand(t *testing.T) {
 				opts.APIClientFactory = mock.APIClient(testcase.api)
 				return opts, nil
 			}
-			err := app.Run(args, nil)
+			err := app.Run(args, nil, nil)
 
 			testutil.AssertErrorContains(t, err, testcase.wantError)
 			testutil.AssertString(t, testcase.wantOutput, stdout.String())

@@ -20,6 +20,12 @@ type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
+	// APIHook provides an injection point for tests to provide a
+	// 'mock' function to replace the function from go-fastly. The
+	// signature must exactly match the corresponding function in
+	// go-fastly.
+	APIHook func(context.Context, *fastly.Client, *computeacls.CreateInput) (*computeacls.ComputeACL, error)
+
 	// Required.
 	name string
 }
@@ -30,6 +36,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Base: argparser.Base{
 			Globals: g,
 		},
+		APIHook: computeacls.Create,
 	}
 
 	c.CmdClause = parent.Command("create", "Create a compute ACL")
@@ -54,7 +61,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	acl, err := computeacls.Create(context.TODO(), fc, &computeacls.CreateInput{
+	acl, err := c.APIHook(context.TODO(), fc, &computeacls.CreateInput{
 		Name: &c.name,
 	})
 	if err != nil {
