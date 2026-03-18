@@ -74,6 +74,10 @@ func staticExpirationStatus(at *config.AuthToken, now time.Time) (ExpirationStat
 // RefreshExpiresAt (the user-actionable deadline) and falls back to
 // AccessExpiresAt when refresh info is missing or malformed.
 func ssoExpirationStatus(at *config.AuthToken, now time.Time) (ExpirationStatus, time.Time, error) {
+	if at.RefreshToken != "" && at.RefreshExpiresAt == "" {
+		return StatusNoExpiry, time.Time{}, nil
+	}
+
 	if at.RefreshExpiresAt != "" {
 		expires, err := time.Parse(time.RFC3339, at.RefreshExpiresAt)
 		if err == nil {
