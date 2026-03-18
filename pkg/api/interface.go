@@ -39,6 +39,7 @@ type Interface interface {
 	DeactivateVersion(context.Context, *fastly.DeactivateVersionInput) (*fastly.Version, error)
 	LockVersion(context.Context, *fastly.LockVersionInput) (*fastly.Version, error)
 	LatestVersion(context.Context, *fastly.LatestVersionInput) (*fastly.Version, error)
+	ValidateVersion(context.Context, *fastly.ValidateVersionInput) (bool, string, error)
 
 	CreateDomain(context.Context, *fastly.CreateDomainInput) (*fastly.Domain, error)
 	ListDomains(context.Context, *fastly.ListDomainsInput) ([]*fastly.Domain, error)
