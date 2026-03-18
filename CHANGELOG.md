@@ -14,7 +14,7 @@
 
 ### Bug Fixes:
 
-- fix: `compute pack`, `compute validate`, and `install` no longer require authentication, as they are purely local operations that do not make any Fastly API calls.
+- fix: `compute pack`, `compute validate`, and `install` no longer require authentication. [#1701](https://github.com/fastly/cli/pull/1701)
 
 ## [v14.1.0](https://github.com/fastly/cli/releases/tag/v14.1.0) (2026-03-17)
 
