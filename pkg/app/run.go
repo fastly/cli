@@ -734,7 +734,7 @@ func commandRequiresToken(command argparser.Command) bool {
 	}
 	commandName = strings.Split(commandName, " ")[0]
 	switch commandName {
-	case "auth", "config", "profile", "sso", "update", "version":
+	case "auth", "config", "install", "profile", "sso", "update", "version":
 		return false
 	}
 	return true
