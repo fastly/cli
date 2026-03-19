@@ -1,20 +1,2 @@
+# Disable blank issues for non-maintainers. 
 blank_issues_enabled: false
-contact_links:
-  - name: Read First - When to Open an Issue
-    url: https://github.com/fastly/cli/blob/main/CONTRIBUTING.md
-    about: >-
-      Please open an issue if you've found a bug, have a feature request, or need help with
-      unexpected behavior. For general questions, usage help, or discussions about Fastly
-      services (not CLI-specific), please use the resources below instead.
-  - name: Community Discussions & Questions
-    url: https://github.com/fastly/cli/discussions
-    about: Ask questions, share ideas, and discuss with the community - great for "how do I" questions
-  - name: CLI Documentation
-    url: https://developer.fastly.com/reference/cli/
-    about: Check the official CLI documentation for usage examples and command reference
-  - name: Security Vulnerabilities
-    url: https://mailto:security@fastly.com
-    about: For security issues, please email security@fastly.com instead of opening a public issue
-  - name: Fastly Support (Customers)
-    url: https://support.fastly.com/
-    about: Existing customers can contact Fastly Support for account-specific or service-related issues
