@@ -24,7 +24,7 @@ func TestMetadata(t *testing.T) {
 		t.Error(err)
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--enable",
 			ConfigFile: &config.File{
@@ -33,7 +33,7 @@ func TestMetadata(t *testing.T) {
 					Version: revision.SemVer(revision.AppVersion),
 				},
 			},
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -42,12 +42,12 @@ func TestMetadata(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario[testutil.NoAPIFunc], rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
 			WantOutput: "SUCCESS: configuration updated",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -66,7 +66,7 @@ func TestMetadata(t *testing.T) {
 		},
 		{
 			Args: "--disable",
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -75,12 +75,12 @@ func TestMetadata(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario[testutil.NoAPIFunc], rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
 			WantOutput: "SUCCESS: configuration updated",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -99,7 +99,7 @@ func TestMetadata(t *testing.T) {
 		},
 		{
 			Args: "--enable --disable-build",
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -108,7 +108,7 @@ func TestMetadata(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario[testutil.NoAPIFunc], rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -116,7 +116,7 @@ func TestMetadata(t *testing.T) {
 				"INFO: We will enable all metadata except for the specified `--disable-*` flags",
 				"SUCCESS: configuration updated",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)
@@ -135,7 +135,7 @@ func TestMetadata(t *testing.T) {
 		},
 		{
 			Args: "--disable --enable-machine",
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -144,7 +144,7 @@ func TestMetadata(t *testing.T) {
 						},
 					},
 				},
-				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario[testutil.NoAPIFunc], rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -152,7 +152,7 @@ func TestMetadata(t *testing.T) {
 				"INFO: We will disable all metadata except for the specified `--enable-*` flags",
 				"SUCCESS: configuration updated",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				data, err := os.ReadFile(opts.ConfigPath)
 				if err != nil {
 					t.Error(err)

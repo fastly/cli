@@ -26,6 +26,10 @@ type Command interface {
 	Exec(in io.Reader, out io.Writer) error
 }
 
+type HookableCommand[F any] interface {
+	SetHook(F)
+}
+
 // Select chooses the command matching name, if it exists.
 func Select(name string, commands []Command) (Command, bool) {
 	for _, command := range commands {

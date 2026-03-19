@@ -14,7 +14,7 @@ import (
 )
 
 func TestNewRelicOTLPCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--key abc --name foo --version 3",
@@ -84,7 +84,7 @@ func TestNewRelicOTLPCreate(t *testing.T) {
 }
 
 func TestNewRelicOTLPDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -156,7 +156,7 @@ func TestNewRelicOTLPDelete(t *testing.T) {
 }
 
 func TestNewRelicDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -207,7 +207,7 @@ func TestNewRelicDescribe(t *testing.T) {
 }
 
 func TestNewRelicList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -261,7 +261,7 @@ func TestNewRelicList(t *testing.T) {
 }
 
 func TestNewRelicUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--service-id 123 --version 3",

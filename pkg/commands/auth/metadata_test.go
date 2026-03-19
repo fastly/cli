@@ -49,7 +49,7 @@ var (
 )
 
 func TestAuthAdd(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "add with explicit name stores metadata",
 			Args: "add mytoken --api-token test-token-value",
@@ -58,7 +58,7 @@ func TestAuthAdd(t *testing.T) {
 				GetTokenSelfFn:   testTokenSelfFull,
 			},
 			WantOutputs: []string{`Token "mytoken" added`, "Token saved to"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				at := opts.Config.GetAuthToken("mytoken")
 				if at == nil {
@@ -89,7 +89,7 @@ func TestAuthAdd(t *testing.T) {
 				GetTokenSelfFn:   testTokenSelfFull,
 			},
 			WantOutputs: []string{`Token "my-api-token" added`, "Token saved to"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				at := opts.Config.GetAuthToken("my-api-token")
 				if at == nil {
@@ -117,7 +117,7 @@ func TestAuthAdd(t *testing.T) {
 				GetTokenSelfFn:   testTokenSelfWithExpiry,
 			},
 			WantOutputs: []string{`Token "expiring" added`, "Token saved to"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				at := opts.Config.GetAuthToken("expiring")
 				if at == nil {
@@ -139,7 +139,7 @@ func TestAuthAdd(t *testing.T) {
 				Auth: config.Auth{},
 			},
 			WantOutputs: []string{`Token "first-token" added`, "set as default"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				if opts.Config.Auth.Default != "first-token" {
 					t.Errorf("want Auth.Default first-token, got %s", opts.Config.Auth.Default)
@@ -172,7 +172,7 @@ func TestAuthAdd(t *testing.T) {
 }
 
 func TestAuthLogin(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "login stores metadata under API token name",
 			Args: "login",
@@ -184,7 +184,7 @@ func TestAuthLogin(t *testing.T) {
 				"my-login-token",
 			},
 			WantOutputs: []string{`Authenticated as alice@example.com (token stored as "my-api-token")`, "Token saved to"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				at := opts.Config.GetAuthToken("my-api-token")
 				if at == nil {
@@ -218,7 +218,7 @@ func TestAuthLogin(t *testing.T) {
 				"my-login-token",
 			},
 			WantOutputs: []string{`Authenticated as alice@example.com (token stored as "default")`, "Token saved to"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				at := opts.Config.GetAuthToken("default")
 				if at == nil {
@@ -235,7 +235,7 @@ func TestAuthLogin(t *testing.T) {
 }
 
 func TestAuthShow(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "show displays metadata when present",
 			Args: "show mytoken",
@@ -309,7 +309,7 @@ func TestAuthShow(t *testing.T) {
 		{
 			Name: "show without name errors when env token set",
 			Args: "show",
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Env.APIToken = "env-token-value"
 			},
 			ConfigFile: &config.File{},
@@ -335,7 +335,7 @@ func TestAuthShow(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Manifest.File.Profile = "from-manifest"
 			},
 			WantOutputs: []string{
@@ -353,7 +353,7 @@ func TestAuthShow(t *testing.T) {
 }
 
 func TestAuthAddScopedToken(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "add with name succeeds when GetCurrentUser fails but GetTokenSelf succeeds",
 			Args: "add purge-token --api-token scoped-token-value",
@@ -364,7 +364,7 @@ func TestAuthAddScopedToken(t *testing.T) {
 				GetTokenSelfFn: testTokenSelfFull,
 			},
 			WantOutputs: []string{`Token "purge-token" added`, "Token saved to"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				at := opts.Config.GetAuthToken("purge-token")
 				if at == nil {
@@ -448,7 +448,7 @@ func TestEnrichWithTokenSelfPreservesOnFailure(t *testing.T) {
 }
 
 func TestAuthDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "delete non-default token",
 			Args: "delete secondary",
@@ -478,7 +478,7 @@ func TestAuthDelete(t *testing.T) {
 			},
 			Stdin:       []string{"y"},
 			WantOutputs: []string{"current default token", "FASTLY_API_TOKEN", "Are you sure", `Token "primary" removed`, "Default token reassigned"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				if opts.Config.Auth.Default == "primary" {
 					t.Error("expected default to no longer be the deleted token")
@@ -502,7 +502,7 @@ func TestAuthDelete(t *testing.T) {
 			},
 			Stdin:          []string{"n"},
 			DontWantOutput: "removed",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				if opts.Config.Auth.Default != "primary" {
 					t.Error("expected default to remain unchanged after user declined")

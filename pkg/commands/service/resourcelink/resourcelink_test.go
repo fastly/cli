@@ -15,7 +15,7 @@ import (
 )
 
 func TestCreateServiceResourceCommand(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		// Missing required arguments.
 		{
 			Args:      "--service-id abc --resource-id 123",
@@ -132,7 +132,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 }
 
 func TestDeleteServiceResourceCommand(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		// Missing required arguments.
 		{
 			Args:      "--id LINK-ID --service-id abc",
@@ -200,7 +200,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 }
 
 func TestDescribeServiceResourceCommand(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		// Missing required arguments.
 		{
 			Args:      "--id LINK-ID --service-id abc",
@@ -261,7 +261,7 @@ Last edited (UTC): 2023-10-15 12:18`,
 }
 
 func TestListServiceResourceCommand(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		// Missing required arguments.
 		{
 			Args:      "--service-id abc",
@@ -341,7 +341,7 @@ Resource Link 3/3
 }
 
 func TestUpdateServiceResourceCommand(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		// Missing required arguments.
 		{
 			Args:      "--id LINK-ID --name new-name --service-id abc",

@@ -51,7 +51,7 @@ var stringlist2 = lists.List{
 }
 
 func TestCountryListCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --entries flag",
 			Args:      fmt.Sprintf("--name %s", listName),
@@ -109,7 +109,7 @@ func TestCountryListCreate(t *testing.T) {
 }
 
 func TestCountryListDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --list-id flag",
 			Args:      "",
@@ -166,7 +166,7 @@ func TestCountryListDelete(t *testing.T) {
 }
 
 func TestCountryListGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --list-id flag",
 			Args:      "",
@@ -233,7 +233,7 @@ func TestCountryListList(t *testing.T) {
 		Meta: lists.MetaLists{},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate internal server error",
 			Args: "",
@@ -310,7 +310,7 @@ func TestCountryListUpdate(t *testing.T) {
 			Type: string(scope.ScopeTypeAccount),
 		},
 	}
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --list-id flag",
 			Args:      "",

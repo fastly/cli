@@ -45,7 +45,7 @@ func TestNewDomainsV1ToolsSuggestCommand(t *testing.T) {
 			},
 		},
 	}
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "",
 			WantError: "error parsing arguments: required argument 'query' not provided",

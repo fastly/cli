@@ -65,7 +65,7 @@ var (
 
 func TestCreate(t *testing.T) {
 	allRequiredFlags := fmt.Sprintf("--dashboard-id %s --title %s --subtitle %s --source-type %s --metric %s --plot-type %s", dashboardID, title, subtitle, sourceType, metrics, plotType)
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --dashboard-id flag",
 			Args:      fmt.Sprintf("--title %s --subtitle %s --source-type %s --metric %s --plot-type %s", title, subtitle, sourceType, metrics, plotType),
@@ -130,7 +130,7 @@ func TestCreate(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	allRequiredFlags := fmt.Sprintf("--dashboard-id %s --item-id %s", dashboardID, itemID)
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --dashboard-id flag",
 			Args:      fmt.Sprintf("--item-id %s", itemID),
@@ -157,7 +157,7 @@ func TestDelete(t *testing.T) {
 
 func TestDescribe(t *testing.T) {
 	allRequiredFlags := fmt.Sprintf("--dashboard-id %s --item-id %s", dashboardID, itemID)
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --dashboard-id flag",
 			Args:      fmt.Sprintf("--item-id %s", itemID),
@@ -185,7 +185,7 @@ func TestDescribe(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	allRequiredFlags := fmt.Sprintf("--dashboard-id %s --item-id %s --json", dashboardID, itemID)
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --dashboard-id flag",
 			Args:      fmt.Sprintf("--item-id %s", itemID),

@@ -23,7 +23,7 @@ const (
 
 func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 	var content string
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --key and --key-path flags",
 			Args:      "--name example",
@@ -92,7 +92,7 @@ func TestTLSCustomPrivateKeyCreate(t *testing.T) {
 }
 
 func TestTLSCustomPrivateKeyDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -123,7 +123,7 @@ func TestTLSCustomPrivateKeyDelete(t *testing.T) {
 }
 
 func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -162,7 +162,7 @@ func TestTLSCustomPrivateKeyDescribe(t *testing.T) {
 }
 
 func TestTLSCustomPrivateKeyList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: validateAPIError,
 			API: &mock.API{

@@ -17,15 +17,16 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// APIUpdateFunc defines the type of 'mock' function which can be provided
+// by tests to to replace the function from go-fastly. The signature
+// must exactly match the corresponding function in go-fastly.
+type APIUpdateFunc func(context.Context, *fastly.Client, *computeacls.UpdateInput) error
+
 // UpdateCommand calls the Fastly API to update a compute ACL.
 type UpdateCommand struct {
 	argparser.Base
 
-	// APIHook provides an injection point for tests to provide a
-	// 'mock' function to replace the function from go-fastly. The
-	// signature must exactly match the corresponding function in
-	// go-fastly.
-	APIHook func(context.Context, *fastly.Client, *computeacls.UpdateInput) error
+	apiHook APIUpdateFunc
 
 	// Required.
 	computeACLID string
@@ -35,6 +36,13 @@ type UpdateCommand struct {
 	operation argparser.OptionalString
 	prefix    argparser.OptionalString
 	action    argparser.OptionalString
+}
+
+// SetHook allows a test to supply a 'mock' function to replace the
+// function from go-fastly, and satisfies the
+// argparser.HookableCommand interface.
+func (c *UpdateCommand) SetHook(f APIUpdateFunc) {
+	c.apiHook = f
 }
 
 // operations is a list of supported operation options.
@@ -49,7 +57,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Base: argparser.Base{
 			Globals: g,
 		},
-		APIHook: computeacls.Update,
+		apiHook: computeacls.Update,
 	}
 
 	c.CmdClause = parent.Command("update", "Update a compute ACL")
@@ -100,7 +108,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		err = c.APIHook(context.TODO(), fc, input)
+		err = c.apiHook(context.TODO(), fc, input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			return err
@@ -115,7 +123,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	err = c.APIHook(context.TODO(), fc, input)
+	err = c.apiHook(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

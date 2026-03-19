@@ -18,7 +18,7 @@ import (
 )
 
 func TestBackendCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
@@ -211,7 +211,7 @@ func TestBackendCreate(t *testing.T) {
 }
 
 func TestBackendList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --json",
 			API: &mock.API{
@@ -281,7 +281,7 @@ func TestBackendList(t *testing.T) {
 }
 
 func TestBackendDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -307,7 +307,7 @@ func TestBackendDescribe(t *testing.T) {
 }
 
 func TestBackendUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 2 --new-name www.test.com --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -399,7 +399,7 @@ func TestBackendUpdate(t *testing.T) {
 }
 
 func TestBackendDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

@@ -17,7 +17,7 @@ import (
 )
 
 func TestGooglePubSubCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --user user@example.com --secret-key secret --project-id project --topic topic --account-name=me@fastly.com --autoclone",
 			API: &mock.API{
@@ -41,7 +41,7 @@ func TestGooglePubSubCreate(t *testing.T) {
 }
 
 func TestGooglePubSubList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -79,7 +79,7 @@ func TestGooglePubSubList(t *testing.T) {
 }
 
 func TestGooglePubSubDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -105,7 +105,7 @@ func TestGooglePubSubDescribe(t *testing.T) {
 }
 
 func TestGooglePubSubUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -133,7 +133,7 @@ func TestGooglePubSubUpdate(t *testing.T) {
 }
 
 func TestGooglePubSubDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

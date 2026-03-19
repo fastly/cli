@@ -17,7 +17,7 @@ import (
 )
 
 func TestDictionaryItemDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --key foo",
 			API:       &mock.API{GetDictionaryItemFn: describeDictionaryItemOK},
@@ -43,7 +43,7 @@ func TestDictionaryItemDescribe(t *testing.T) {
 }
 
 func TestDictionaryItemsList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --dictionary-id not provided",
@@ -103,7 +103,7 @@ func TestDictionaryItemsList(t *testing.T) {
 }
 
 func TestDictionaryItemCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			API:       &mock.API{CreateDictionaryItemFn: createDictionaryItemOK},
@@ -124,7 +124,7 @@ func TestDictionaryItemCreate(t *testing.T) {
 }
 
 func TestDictionaryItemUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			API:       &mock.API{UpdateDictionaryItemFn: updateDictionaryItemOK},
@@ -148,7 +148,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		filePath := testutil.MakeTempFile(t, `{invalid": "json"}`)
 		defer os.RemoveAll(filePath)
 
-		scenarios := []testutil.CLIScenario{
+		scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 			{
 				Args:      "--service-id 123 --dictionary-id 456 --file " + filePath,
 				WantError: "invalid character 'i' looking for beginning of object key string",
@@ -162,7 +162,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 	// systems report 'no such file or directory', while Windows will report
 	// 'The system cannot find the file specified'.
 	t.Run("missing file", func(t *testing.T) {
-		scenarios := []testutil.CLIScenario{
+		scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 			{
 				Args:      "--service-id 123 --dictionary-id 456 --file missingPath",
 				WantError: "open missingPath:",
@@ -176,7 +176,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		filePath := testutil.MakeTempFile(t, dictionaryItemBatchModifyInputOK)
 		defer os.RemoveAll(filePath)
 
-		scenarios := []testutil.CLIScenario{
+		scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 			{
 				Args:      "--service-id 123 --dictionary-id 456 --file " + filePath,
 				API:       &mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsError},
@@ -191,7 +191,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 		filePath := testutil.MakeTempFile(t, dictionaryItemBatchModifyInputOK)
 		defer os.RemoveAll(filePath)
 
-		scenarios := []testutil.CLIScenario{
+		scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 			{
 				Args:       "--service-id 123 --dictionary-id 456 --file " + filePath,
 				API:        &mock.API{BatchModifyDictionaryItemsFn: batchModifyDictionaryItemsOK},
@@ -203,7 +203,7 @@ func TestDictionaryItemUpdate(t *testing.T) {
 }
 
 func TestDictionaryItemDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			API:       &mock.API{DeleteDictionaryItemFn: deleteDictionaryItemOK},

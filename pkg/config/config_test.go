@@ -265,7 +265,7 @@ token = "foobar"`) {
 }
 
 type testInvalidConfigScenario struct {
-	testutil.CLIScenario
+	testutil.CLIScenario[testutil.NoAPIFunc]
 
 	invalid      bool
 	staticConfig []byte

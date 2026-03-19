@@ -40,7 +40,7 @@ var (
 )
 
 func TestDatadogAlertCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--key %s --site %s", key, site),
@@ -134,7 +134,7 @@ func TestDatadogAlertList(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -203,7 +203,7 @@ func TestDatadogAlertList(t *testing.T) {
 }
 
 func TestDatadogAlertGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
@@ -282,7 +282,7 @@ func TestDatadogAlertUpdate(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s --key %s --site %s", alertID, key, site),
@@ -364,7 +364,7 @@ func TestDatadogAlertUpdate(t *testing.T) {
 }
 
 func TestDatadogAlertDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),

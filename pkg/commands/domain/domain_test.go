@@ -19,7 +19,7 @@ func TestDomainCreate(t *testing.T) {
 	sid := "123"
 	did := "domain-id"
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "",
 			WantError: "error parsing arguments: required flag --fqdn not provided",
@@ -100,7 +100,7 @@ func TestDomainList(t *testing.T) {
 		},
 	})
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--verbose --json",
 			WantError: "invalid flag combination, --verbose and --json",
@@ -148,7 +148,7 @@ func TestDomainDescribe(t *testing.T) {
 		Description: description,
 	})
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "",
 			WantError: "error parsing arguments: required flag --domain-id not provided",
@@ -188,7 +188,7 @@ func TestDomainUpdate(t *testing.T) {
 	sid := "123"
 	did := "domain-id"
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "",
 			WantError: "error parsing arguments: required flag --domain-id not provided",
@@ -255,7 +255,7 @@ func TestDomainUpdate(t *testing.T) {
 func TestDomainDelete(t *testing.T) {
 	did := "domain-id"
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "",
 			WantError: "error parsing arguments: required flag --domain-id not provided",

@@ -13,7 +13,7 @@ import (
 )
 
 func TestRegions(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:       "success",
 			Args:       "",

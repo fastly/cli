@@ -12,7 +12,7 @@ import (
 )
 
 func TestAllIPs(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate listing IP addresses",
 			API: &mock.API{

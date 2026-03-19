@@ -25,7 +25,7 @@ func TestCreateEntryCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--key a-key --value a-value",
 			WantError: "error parsing arguments: required flag --store-id not provided",
@@ -97,7 +97,7 @@ func TestDeleteEntryCommand(t *testing.T) {
 		}
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--key a-key",
 			WantError: "error parsing arguments: required flag --store-id not provided",
@@ -198,7 +198,7 @@ func TestDescribeEntryCommand(t *testing.T) {
 		UpdatedAt: &now,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--key a-key",
 			WantError: "error parsing arguments: required flag --store-id not provided",
@@ -263,7 +263,7 @@ func TestListEntriesCommand(t *testing.T) {
 		}
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
@@ -307,7 +307,7 @@ func TestUpdateEntryCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--key a-key --value a-value",
 			WantError: "error parsing arguments: required flag --store-id not provided",

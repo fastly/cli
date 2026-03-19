@@ -15,7 +15,7 @@ import (
 
 func TestVCLCustomCreate(t *testing.T) {
 	var content string
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate missing --autoclone flag with 'active' service",
 			API: &mock.API{
@@ -171,7 +171,7 @@ func TestVCLCustomCreate(t *testing.T) {
 }
 
 func TestVCLCustomDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -243,7 +243,7 @@ func TestVCLCustomDelete(t *testing.T) {
 }
 
 func TestVCLCustomDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -294,7 +294,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 }
 
 func TestVCLCustomList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -349,7 +349,7 @@ func TestVCLCustomList(t *testing.T) {
 
 func TestVCLCustomUpdate(t *testing.T) {
 	var content string
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",

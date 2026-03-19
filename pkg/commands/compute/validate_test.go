@@ -9,11 +9,11 @@ import (
 )
 
 func TestValidate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "success",
 			Args: "--package pkg/package.tar.gz",
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{

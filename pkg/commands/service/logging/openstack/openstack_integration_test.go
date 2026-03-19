@@ -17,7 +17,7 @@ import (
 )
 
 func TestOpenstackCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone",
 			API: &mock.API{
@@ -49,7 +49,7 @@ func TestOpenstackCreate(t *testing.T) {
 }
 
 func TestOpenstackList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -87,7 +87,7 @@ func TestOpenstackList(t *testing.T) {
 }
 
 func TestOpenstackDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -113,7 +113,7 @@ func TestOpenstackDescribe(t *testing.T) {
 }
 
 func TestOpenstackUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -141,7 +141,7 @@ func TestOpenstackUpdate(t *testing.T) {
 }
 
 func TestOpenstackDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

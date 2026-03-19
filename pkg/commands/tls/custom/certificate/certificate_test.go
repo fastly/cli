@@ -23,7 +23,7 @@ const (
 
 func TestTLSCustomCertCreate(t *testing.T) {
 	var content string
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --cert-blob and --cert-path flags",
 			WantError: "neither --cert-path or --cert-blob provided, one must be provided",
@@ -84,7 +84,7 @@ func TestTLSCustomCertCreate(t *testing.T) {
 }
 
 func TestTLSCustomCertDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -115,7 +115,7 @@ func TestTLSCustomCertDelete(t *testing.T) {
 }
 
 func TestTLSCustomCertDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -157,7 +157,7 @@ func TestTLSCustomCertDescribe(t *testing.T) {
 }
 
 func TestTLSCustomCertList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: validateAPIError,
 			API: &mock.API{
@@ -197,7 +197,7 @@ func TestTLSCustomCertList(t *testing.T) {
 
 func TestTLSCustomCertUpdate(t *testing.T) {
 	var content string
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			Args:      "--cert-blob example",

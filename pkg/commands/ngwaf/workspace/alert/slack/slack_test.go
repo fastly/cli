@@ -38,7 +38,7 @@ var (
 )
 
 func TestSlackAlertCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--webhook %s", webhook),
@@ -111,7 +111,7 @@ func TestSlackAlertList(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -180,7 +180,7 @@ func TestSlackAlertList(t *testing.T) {
 }
 
 func TestSlackAlertGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
@@ -256,7 +256,7 @@ func TestSlackAlertUpdate(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s --webhook %s", alertID, webhook),
@@ -344,7 +344,7 @@ func TestSlackAlertUpdate(t *testing.T) {
 }
 
 func TestSlackAlertDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),

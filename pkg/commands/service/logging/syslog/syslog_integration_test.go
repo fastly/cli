@@ -17,7 +17,7 @@ import (
 )
 
 func TestSyslogCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone",
 			API: &mock.API{
@@ -41,7 +41,7 @@ func TestSyslogCreate(t *testing.T) {
 }
 
 func TestSyslogList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -79,7 +79,7 @@ func TestSyslogList(t *testing.T) {
 }
 
 func TestSyslogDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -105,7 +105,7 @@ func TestSyslogDescribe(t *testing.T) {
 }
 
 func TestSyslogUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -133,7 +133,7 @@ func TestSyslogUpdate(t *testing.T) {
 }
 
 func TestSyslogDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

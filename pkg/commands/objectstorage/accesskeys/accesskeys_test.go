@@ -34,7 +34,7 @@ var ak = accesskeys.AccessKey{
 }
 
 func TestAccessKeysCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --description flag",
 			Args:      fmt.Sprintf("--permission %s", akPermission),
@@ -94,7 +94,7 @@ func TestAccessKeysCreate(t *testing.T) {
 func TestAccessKeysDelete(t *testing.T) {
 	const accessKeyID = "accessKeyID"
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --ak-id flag",
 			Args:      "",
@@ -151,7 +151,7 @@ func TestAccessKeysDelete(t *testing.T) {
 }
 
 func TestAccessKeysGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --ak-id flag",
 			Args:      "",
@@ -229,7 +229,7 @@ func TestAccessKeysList(t *testing.T) {
 		Meta: accesskeys.MetaAccessKeys{},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate internal server error",
 			Args: "",

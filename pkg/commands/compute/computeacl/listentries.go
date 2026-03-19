@@ -15,16 +15,17 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// APIListEntriesFunc defines the type of 'mock' function which can be provided
+// by tests to to replace the function from go-fastly. The signature
+// must exactly match the corresponding function in go-fastly.
+type APIListEntriesFunc func(context.Context, *fastly.Client, *computeacls.ListEntriesInput) (*computeacls.ComputeACLEntries, error)
+
 // ListEntriesCommand calls the Fastly API to list all entries of a compute ACLs.
 type ListEntriesCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	// APIHook provides an injection point for tests to provide a
-	// 'mock' function to replace the function from go-fastly. The
-	// signature must exactly match the corresponding function in
-	// go-fastly.
-	APIHook func(context.Context, *fastly.Client, *computeacls.ListEntriesInput) (*computeacls.ComputeACLEntries, error)
+	apiHook APIListEntriesFunc
 
 	// Required.
 	id string
@@ -34,13 +35,20 @@ type ListEntriesCommand struct {
 	limit  int
 }
 
+// SetHook allows a test to supply a 'mock' function to replace the
+// function from go-fastly, and satisfies the
+// argparser.HookableCommand interface.
+func (c *ListEntriesCommand) SetHook(f APIListEntriesFunc) {
+	c.apiHook = f
+}
+
 // NewListEntriesCommand returns a usable command registered under the parent.
 func NewListEntriesCommand(parent argparser.Registerer, g *global.Data) *ListEntriesCommand {
 	c := ListEntriesCommand{
 		Base: argparser.Base{
 			Globals: g,
 		},
-		APIHook: computeacls.ListEntries,
+		apiHook: computeacls.ListEntries,
 	}
 
 	c.CmdClause = parent.Command("list-entries", "List all entries of a compute ACL")
@@ -71,7 +79,7 @@ func (c *ListEntriesCommand) Exec(in io.Reader, out io.Writer) error {
 	loadAllPages := c.JSONOutput.Enabled || c.Globals.Flags.NonInteractive || c.Globals.Flags.AutoYes
 
 	for {
-		o, err := c.APIHook(context.TODO(), fc, &computeacls.ListEntriesInput{
+		o, err := c.apiHook(context.TODO(), fc, &computeacls.ListEntriesInput{
 			ComputeACLID: &c.id,
 			Cursor:       &c.cursor,
 			Limit:        &c.limit,

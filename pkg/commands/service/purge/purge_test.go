@@ -19,7 +19,7 @@ func TestPurgeAll(t *testing.T) {
 		testStatus    = "ok"
 	)
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--all",
@@ -69,7 +69,7 @@ func TestPurgeKeys(t *testing.T) {
 	)
 
 	var keys []string
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--file ./testdata/keys",
@@ -126,7 +126,7 @@ func TestPurgeKey(t *testing.T) {
 		testStatus    = "ok"
 	)
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--key " + testKey,
@@ -179,7 +179,7 @@ func TestPurgeURL(t *testing.T) {
 		testStatus    = "ok"
 	)
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate Purge API error",
 			API: &mock.API{

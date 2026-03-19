@@ -15,7 +15,7 @@ import (
 )
 
 func TestDictionaryDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--version 1 --service-id 123",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -51,7 +51,7 @@ func TestDictionaryDescribe(t *testing.T) {
 }
 
 func TestDictionaryCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
@@ -96,7 +96,7 @@ func TestDictionaryCreate(t *testing.T) {
 }
 
 func TestDeleteDictionary(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -124,7 +124,7 @@ func TestDeleteDictionary(t *testing.T) {
 }
 
 func TestListDictionary(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--version 1",
 			API: &mock.API{
@@ -150,7 +150,7 @@ func TestListDictionary(t *testing.T) {
 }
 
 func TestUpdateDictionary(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--version 1 --name oldname --new-name newname",
 			WantError: "error reading service: no service ID found",

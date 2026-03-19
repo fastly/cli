@@ -17,7 +17,7 @@ import (
 )
 
 func TestElasticsearchCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --index logs --url example.com --autoclone",
 			API: &mock.API{
@@ -41,7 +41,7 @@ func TestElasticsearchCreate(t *testing.T) {
 }
 
 func TestElasticsearchList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -79,7 +79,7 @@ func TestElasticsearchList(t *testing.T) {
 }
 
 func TestElasticsearchDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -105,7 +105,7 @@ func TestElasticsearchDescribe(t *testing.T) {
 }
 
 func TestElasticsearchUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -133,7 +133,7 @@ func TestElasticsearchUpdate(t *testing.T) {
 }
 
 func TestElasticsearchDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

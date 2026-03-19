@@ -14,7 +14,7 @@ import (
 )
 
 func TestImageOptimizerDefaultsUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",
@@ -182,7 +182,7 @@ func updateImageOptimizerDefaultsError(_ context.Context, _ *fastly.UpdateImageO
 }
 
 func TestImageOptimizerDefaultsGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",

@@ -40,7 +40,7 @@ var (
 )
 
 func TestMailingListAlertCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--address %s", address),
@@ -113,7 +113,7 @@ func TestMailingListAlertList(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -182,7 +182,7 @@ func TestMailingListAlertList(t *testing.T) {
 }
 
 func TestMailingListAlertGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
@@ -258,7 +258,7 @@ func TestMailingListAlertUpdate(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s --address %s", alertID, address),
@@ -346,7 +346,7 @@ func TestMailingListAlertUpdate(t *testing.T) {
 }
 
 func TestMailingListAlertDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),

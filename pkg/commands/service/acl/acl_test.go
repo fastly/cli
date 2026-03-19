@@ -13,7 +13,7 @@ import (
 )
 
 func TestACLCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -95,7 +95,7 @@ func TestACLCreate(t *testing.T) {
 }
 
 func TestACLDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -167,7 +167,7 @@ func TestACLDelete(t *testing.T) {
 }
 
 func TestACLDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -218,7 +218,7 @@ func TestACLDescribe(t *testing.T) {
 }
 
 func TestACLList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -272,7 +272,7 @@ func TestACLList(t *testing.T) {
 }
 
 func TestACLUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--new-name beepboop --version 3",

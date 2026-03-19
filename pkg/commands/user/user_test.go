@@ -13,7 +13,7 @@ import (
 )
 
 func TestUserCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate CreateUser API error",
 			API: &mock.API{
@@ -43,7 +43,7 @@ func TestUserCreate(t *testing.T) {
 }
 
 func TestUserDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -74,7 +74,7 @@ func TestUserDelete(t *testing.T) {
 }
 
 func TestUserDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: must provide --id flag",
@@ -121,7 +121,7 @@ func TestUserDescribe(t *testing.T) {
 }
 
 func TestUserList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --customer-id flag",
 			WantError: "error reading customer ID: no customer ID found",
@@ -158,7 +158,7 @@ func TestUserList(t *testing.T) {
 }
 
 func TestUserUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: must provide --id flag",

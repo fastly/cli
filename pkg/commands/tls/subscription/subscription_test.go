@@ -21,7 +21,7 @@ const (
 )
 
 func TestTLSSubscriptionCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --domain flag",
 			WantError: "required flag --domain not provided",
@@ -114,7 +114,7 @@ func TestTLSSubscriptionCreate(t *testing.T) {
 }
 
 func TestTLSSubscriptionDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -145,7 +145,7 @@ func TestTLSSubscriptionDelete(t *testing.T) {
 }
 
 func TestTLSSubscriptionDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -183,7 +183,7 @@ func TestTLSSubscriptionDescribe(t *testing.T) {
 }
 
 func TestTLSSubscriptionList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: validateAPIError,
 			API: &mock.API{
@@ -218,7 +218,7 @@ func TestTLSSubscriptionList(t *testing.T) {
 }
 
 func TestTLSSubscriptionUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "required flag --id not provided",

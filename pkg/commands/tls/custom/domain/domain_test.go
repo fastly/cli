@@ -19,7 +19,7 @@ const (
 )
 
 func TestList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: validateAPIError,
 			API: &mock.API{

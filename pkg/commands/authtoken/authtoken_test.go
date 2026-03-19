@@ -13,7 +13,7 @@ import (
 )
 
 func TestAuthTokenCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --password flag",
 			WantError: "error parsing arguments: required flag --password not provided",
@@ -66,7 +66,7 @@ func TestAuthTokenCreate(t *testing.T) {
 }
 
 func TestAuthTokenDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing optional flags",
 			Args:      "--token 123",
@@ -148,7 +148,7 @@ func TestAuthTokenDelete(t *testing.T) {
 }
 
 func TestAuthTokenDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate GetTokenSelf API error",
 			API: &mock.API{
@@ -173,7 +173,7 @@ func TestAuthTokenDescribe(t *testing.T) {
 }
 
 func TestAuthTokenList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate ListTokens API error",
 			API: &mock.API{

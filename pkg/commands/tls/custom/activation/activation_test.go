@@ -24,7 +24,7 @@ const (
 )
 
 func TestTLSCustomActivationEnable(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing CertID flag",
 			Args:      fmt.Sprintf("--tls-config-id %s --tls-domain %s", mockResponseConfigID, mockResponseDomain),
@@ -68,7 +68,7 @@ func TestTLSCustomActivationEnable(t *testing.T) {
 }
 
 func TestTLSCustomActivationDisable(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -99,7 +99,7 @@ func TestTLSCustomActivationDisable(t *testing.T) {
 }
 
 func TestTLSCustomActivationDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -134,7 +134,7 @@ func TestTLSCustomActivationDescribe(t *testing.T) {
 }
 
 func TestTLSCustomActivationList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: validateAPIError,
 			API: &mock.API{
@@ -166,7 +166,7 @@ func TestTLSCustomActivationList(t *testing.T) {
 }
 
 func TestTLSCustomActivationUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			Args:      "--cert-id example",

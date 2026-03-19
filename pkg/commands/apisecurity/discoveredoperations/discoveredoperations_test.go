@@ -115,7 +115,7 @@ Discovered Operation 2/2
 )
 
 func TestListCommand(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--status discovered",
@@ -197,7 +197,7 @@ func TestListCommand(t *testing.T) {
 }
 
 func TestListCommandWithFilters(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate --domain filter",
 			Args: fmt.Sprintf("--service-id %s --status discovered --domain example.com", serviceID),
@@ -299,7 +299,7 @@ func TestUpdateCommand(t *testing.T) {
 		UpdatedAt:  "2026-03-10T13:00:00Z",
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--operation-id %s --status ignored", operationID),
@@ -415,7 +415,7 @@ func TestUpdateCommand(t *testing.T) {
 }
 
 func TestUpdateCommandEdgeCases(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate cannot use both --operation-id and --file",
 			Args:      fmt.Sprintf("--service-id %s --operation-id %s --file /tmp/test.json --status ignored", serviceID, operationID),

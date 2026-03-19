@@ -16,7 +16,7 @@ import (
 )
 
 func TestSplunkCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
 			API: &mock.API{
@@ -40,7 +40,7 @@ func TestSplunkCreate(t *testing.T) {
 }
 
 func TestSplunkList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -78,7 +78,7 @@ func TestSplunkList(t *testing.T) {
 }
 
 func TestSplunkDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -104,7 +104,7 @@ func TestSplunkDescribe(t *testing.T) {
 }
 
 func TestSplunkUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -132,7 +132,7 @@ func TestSplunkUpdate(t *testing.T) {
 }
 
 func TestSplunkDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

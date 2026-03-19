@@ -25,7 +25,7 @@ func TestCreateStoreCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
@@ -113,7 +113,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 	const storeID = "test123"
 	errStoreNotFound := errors.New("store not found")
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
@@ -166,7 +166,7 @@ func TestGetStoreCommand(t *testing.T) {
 
 	now := time.Now()
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
@@ -237,7 +237,7 @@ func TestListStoresCommand(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			API: &mock.API{
 				ListKVStoresFn: func(_ context.Context, _ *fastly.ListKVStoresInput) (*fastly.ListKVStoresResponse, error) {

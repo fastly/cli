@@ -39,7 +39,7 @@ var (
 )
 
 func TestWebhookAlertCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--webhook %s", webhookURL),
@@ -112,7 +112,7 @@ func TestWebhookAlertList(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -181,7 +181,7 @@ func TestWebhookAlertList(t *testing.T) {
 }
 
 func TestWebhookAlertGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
@@ -257,7 +257,7 @@ func TestWebhookAlertUpdate(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s --webhook %s", alertID, webhookURL),
@@ -335,7 +335,7 @@ func TestWebhookAlertUpdate(t *testing.T) {
 }
 
 func TestWebhookAlertDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
@@ -388,7 +388,7 @@ func TestWebhookGetSigningKey(t *testing.T) {
 		SigningKey: signingKey,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),
@@ -457,7 +457,7 @@ func TestWebhookRotateSigningKey(t *testing.T) {
 		SigningKey: newSigningKey,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--alert-id %s", alertID),

@@ -19,7 +19,7 @@ import (
 )
 
 func TestSSO(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		// 0. User cancels authentication prompt
 		{
 			Args: "auth login --sso --token testname",
@@ -34,7 +34,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Opener = func(_ string) error {
 					return errors.New("failed to open web browser")
 				}
@@ -47,7 +47,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -66,7 +66,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -103,7 +103,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -121,7 +121,7 @@ func TestSSO(t *testing.T) {
 				"has been stored. Use 'fastly auth list' to view tokens.",
 				"Token saved to",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "123"
 				at := opts.Config.GetAuthToken("test_user")
 				if at == nil {
@@ -165,13 +165,13 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "mock-token"
 				at := opts.Config.GetAuthToken("user")
 				if at == nil {
@@ -204,7 +204,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"N", // decline re-authentication
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutput:     "Your auth token has expired and needs re-authentication",
@@ -250,7 +250,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // accept re-authentication
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -269,7 +269,7 @@ func TestSSO(t *testing.T) {
 				"Token saved to",
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				const expectedToken = "new-123"
 				at := opts.Config.GetAuthToken("user")
 				if at == nil {
@@ -311,13 +311,13 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				at := opts.Config.GetAuthToken("legacy")
 				if at == nil {
 					t.Fatal("expected migrated auth token 'legacy' to exist")
@@ -370,13 +370,13 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				// The existing auth token must be preserved.
 				at := opts.Config.GetAuthToken("existing")
 				if at == nil {
@@ -420,7 +420,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y", // when prompted to open a web browser to start authentication
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -437,7 +437,7 @@ func TestSSO(t *testing.T) {
 				"Session token 'brandnew' has been stored.",
 				"Token saved to",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				at := opts.Config.GetAuthToken("brandnew")
 				if at == nil {
 					t.Fatal("expected auth token 'brandnew' to exist")
@@ -482,7 +482,7 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Manifest.File.Profile = "nonexistent"
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
@@ -523,7 +523,7 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Manifest.File.Profile = "nonexistent"
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
@@ -561,7 +561,7 @@ func TestSSO(t *testing.T) {
 					},
 				},
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Manifest.File.Profile = "nonexistent"
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
@@ -584,7 +584,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"my-static-token",
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.HTTPClient = testutil.WhoamiVerifyClient(testutil.WhoamiBasicResponse)
 			},
 			WantOutputs: []string{
@@ -594,7 +594,7 @@ func TestSSO(t *testing.T) {
 				"Token saved to",
 			},
 			DontWantOutput: "Log in with browser",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				at := opts.Config.GetAuthToken("my-api-token")
 				if at == nil {
 					t.Fatal("expected auth token 'my-api-token' to exist")
@@ -663,7 +663,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"y",
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Env.UseSSO = "1"
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
@@ -683,7 +683,7 @@ func TestSSO(t *testing.T) {
 				"{Latitude:1 Longitude:2 X:3 Y:4}",
 			},
 			DontWantOutput: "Paste your API token",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				at := opts.Config.GetAuthToken("default")
 				if at == nil {
 					t.Fatal("expected auth token 'default' to exist")
@@ -698,7 +698,7 @@ func TestSSO(t *testing.T) {
 			Name:       "use-sso ignored non-interactive",
 			Args:       "whoami -i",
 			ConfigFile: &config.File{},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Env.UseSSO = "1"
 			},
 			DontWantOutput:  "requires authentication",
@@ -710,7 +710,7 @@ func TestSSO(t *testing.T) {
 			Name:       "use-sso ignored auto-yes",
 			Args:       "pops -y",
 			ConfigFile: &config.File{},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Env.UseSSO = "1"
 			},
 			DontWantOutput:  "Do you want to continue",
@@ -722,7 +722,7 @@ func TestSSO(t *testing.T) {
 			Name:       "use-sso ignored accept-defaults",
 			Args:       "pops -d",
 			ConfigFile: &config.File{},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				opts.Env.UseSSO = "1"
 			},
 			DontWantOutput:  "Do you want to continue",
@@ -748,7 +748,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y",
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -764,7 +764,7 @@ func TestSSO(t *testing.T) {
 				"We're going to authenticate the 'work-sso' token",
 				"Session token 'work-sso' has been stored.",
 			},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				// SSO token was created
 				ssoAt := opts.Config.GetAuthToken("work-sso")
@@ -805,7 +805,7 @@ func TestSSO(t *testing.T) {
 			Stdin: []string{
 				"Y",
 			},
-			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data) {
 				result := make(chan auth.AuthorizationResult)
 				opts.AuthServer = testutil.MockAuthServer{
 					Result: result,
@@ -819,7 +819,7 @@ func TestSSO(t *testing.T) {
 				opts.HTTPClient = testutil.CurrentCustomerClient(testutil.CurrentCustomerResponse)
 			},
 			WantOutputs: []string{"has been stored", "Token saved to"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+			Validator: func(t *testing.T, _ *testutil.CLIScenario[testutil.NoAPIFunc], opts *global.Data, _ *threadsafe.Buffer) {
 				t.Helper()
 				at := opts.Config.GetAuthToken("sso-meta")
 				if at == nil {

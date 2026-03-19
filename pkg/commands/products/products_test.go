@@ -8,7 +8,7 @@ import (
 )
 
 func TestProductEnablement(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing Service ID",
 			WantError: "failed to identify Service ID: error reading service: no service ID found",

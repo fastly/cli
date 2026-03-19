@@ -16,7 +16,7 @@ const (
 )
 
 func TestCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate CreateObservabilityCustomDashboard API error",
 			API: &mock.API{
@@ -70,7 +70,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -101,7 +101,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -130,7 +130,7 @@ func TestDescribe(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate ListObservabilityCustomDashboards API error",
 			API: &mock.API{
@@ -161,7 +161,7 @@ func TestList(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: required flag --id not provided",

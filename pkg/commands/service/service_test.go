@@ -23,7 +23,7 @@ import (
 )
 
 func TestServiceCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:       "success with long flag",
 			Args:       "--name Foo",
@@ -66,7 +66,7 @@ func TestServiceCreate(t *testing.T) {
 }
 
 func TestServiceList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "api failure",
 			API: &mock.API{
@@ -194,7 +194,7 @@ func TestServiceList(t *testing.T) {
 }
 
 func TestServiceDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "no service id",
 			Args:      "",
@@ -231,7 +231,7 @@ func TestServiceDescribe(t *testing.T) {
 }
 
 func TestServiceSearch(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "missing required flag",
 			Args:      "",
@@ -261,7 +261,7 @@ func TestServiceSearch(t *testing.T) {
 }
 
 func TestServiceUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "no service id",
 			Args: "",

@@ -16,7 +16,7 @@ import (
 )
 
 func TestHoneycombCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --dataset log --autoclone",
 			API: &mock.API{
@@ -40,7 +40,7 @@ func TestHoneycombCreate(t *testing.T) {
 }
 
 func TestHoneycombList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -78,7 +78,7 @@ func TestHoneycombList(t *testing.T) {
 }
 
 func TestHoneycombDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -104,7 +104,7 @@ func TestHoneycombDescribe(t *testing.T) {
 }
 
 func TestHoneycombUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -132,7 +132,7 @@ func TestHoneycombUpdate(t *testing.T) {
 }
 
 func TestHoneycombDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

@@ -17,7 +17,7 @@ import (
 )
 
 func TestHerokuCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --url example.com --autoclone",
 			API: &mock.API{
@@ -41,7 +41,7 @@ func TestHerokuCreate(t *testing.T) {
 }
 
 func TestHerokuList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -79,7 +79,7 @@ func TestHerokuList(t *testing.T) {
 }
 
 func TestHerokuDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -105,7 +105,7 @@ func TestHerokuDescribe(t *testing.T) {
 }
 
 func TestHerokuUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -133,7 +133,7 @@ func TestHerokuUpdate(t *testing.T) {
 }
 
 func TestHerokuDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

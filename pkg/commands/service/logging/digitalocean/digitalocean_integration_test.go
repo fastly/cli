@@ -17,7 +17,7 @@ import (
 )
 
 func TestDigitalOceanCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone",
 			API: &mock.API{
@@ -49,7 +49,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 }
 
 func TestDigitalOceanList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -87,7 +87,7 @@ func TestDigitalOceanList(t *testing.T) {
 }
 
 func TestDigitalOceanDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -113,7 +113,7 @@ func TestDigitalOceanDescribe(t *testing.T) {
 }
 
 func TestDigitalOceanUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -141,7 +141,7 @@ func TestDigitalOceanUpdate(t *testing.T) {
 }
 
 func TestDigitalOceanDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

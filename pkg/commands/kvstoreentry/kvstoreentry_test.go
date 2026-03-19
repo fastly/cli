@@ -25,7 +25,7 @@ func TestCreateCommand(t *testing.T) {
 		itemValue = "the-value"
 	)
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--key a-key --value a-value",
 			WantError: "error parsing arguments: required flag --store-id not provided",
@@ -196,7 +196,7 @@ func TestDeleteCommand(t *testing.T) {
 		itemKey = "foo"
 	)
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--key a-key",
 			WantError: "error parsing arguments: required flag --store-id not provided",
@@ -315,7 +315,7 @@ func TestGetCommand(t *testing.T) {
 		itemValue = "a value"
 	)
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --store-id flag",
 			Args:      "--key a-key",
@@ -431,7 +431,7 @@ func TestDescribeCommand(t *testing.T) {
 		itemMetadata = "test-metadata"
 	)
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --store-id flag",
 			Args:      "--key a-key",
@@ -509,7 +509,7 @@ func TestListCommand(t *testing.T) {
 		testItems[i] = fmt.Sprintf("key-%02d", i)
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},

@@ -88,7 +88,7 @@ Operation 2/2
 )
 
 func TestListCommand(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "",
@@ -156,7 +156,7 @@ func TestListCommand(t *testing.T) {
 }
 
 func TestListCommandWithFilters(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate --domain filter",
 			Args: fmt.Sprintf("--service-id %s --domain www.foo.com", serviceID),

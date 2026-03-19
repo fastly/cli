@@ -43,7 +43,7 @@ var threshold = thresholds.Threshold{
 }
 
 func TestThresholdCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --action flag",
 			Args:      fmt.Sprintf("--name %s --signal %s --do-not-notify=%t --duration %d --enabled=%t --interval %d --limit %d --workspace-id %s", thresholdName, thresholdSignal, thresholdDontNotify, thresholdDuration, thresholdEnabled, thresholdInterval, thresholdLimit, workspaceID),
@@ -136,7 +136,7 @@ func TestThresholdCreate(t *testing.T) {
 }
 
 func TestThresholdDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --threshold-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
@@ -198,7 +198,7 @@ func TestThresholdDelete(t *testing.T) {
 }
 
 func TestThresholdGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --threshold-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
@@ -292,7 +292,7 @@ func TestThresholdList(t *testing.T) {
 		Meta: thresholds.MetaThresholds{},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -375,7 +375,7 @@ func TestThresholdUpdate(t *testing.T) {
 		ThresholdID: thresholdID,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --threshold-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),

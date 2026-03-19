@@ -17,7 +17,7 @@ import (
 )
 
 func TestLogshuttleCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --auth-token abc --autoclone",
 			API: &mock.API{
@@ -41,7 +41,7 @@ func TestLogshuttleCreate(t *testing.T) {
 }
 
 func TestLogshuttleList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -79,7 +79,7 @@ func TestLogshuttleList(t *testing.T) {
 }
 
 func TestLogshuttleDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -105,7 +105,7 @@ func TestLogshuttleDescribe(t *testing.T) {
 }
 
 func TestLogshuttleUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -133,7 +133,7 @@ func TestLogshuttleUpdate(t *testing.T) {
 }
 
 func TestLogshuttleDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

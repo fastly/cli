@@ -18,7 +18,7 @@ import (
 )
 
 func TestScalyrCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--name log --version 1 --auth-token abc --autoclone",
 			API: &mock.API{
@@ -50,7 +50,7 @@ func TestScalyrCreate(t *testing.T) {
 }
 
 func TestScalyrList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -88,7 +88,7 @@ func TestScalyrList(t *testing.T) {
 }
 
 func TestScalyrDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -114,7 +114,7 @@ func TestScalyrDescribe(t *testing.T) {
 }
 
 func TestScalyrUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -142,7 +142,7 @@ func TestScalyrUpdate(t *testing.T) {
 }
 
 func TestScalyrDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

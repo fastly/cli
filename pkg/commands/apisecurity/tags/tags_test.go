@@ -34,7 +34,7 @@ var tag = operations.OperationTag{
 }
 
 func TestTagsCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--name %s", tagName),
@@ -106,7 +106,7 @@ func TestTagsCreate(t *testing.T) {
 }
 
 func TestTagsDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--tag-id %s", tagID),
@@ -168,7 +168,7 @@ func TestTagsDelete(t *testing.T) {
 }
 
 func TestTagsGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--tag-id %s", tagID),
@@ -257,7 +257,7 @@ func TestTagsList(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "",
@@ -353,7 +353,7 @@ func TestTagsUpdate(t *testing.T) {
 		UpdatedAt:   "2021-06-16T10:00:00Z",
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--tag-id %s --name %s --description %s", tagID, updatedTagName, updatedTagDesc),

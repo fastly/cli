@@ -19,7 +19,7 @@ const (
 )
 
 func TestDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --id flag",
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -67,7 +67,7 @@ func TestDescribe(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: validateAPIError,
 			API: &mock.API{
@@ -112,7 +112,7 @@ func TestList(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --id flag",
 			Args:      "--name example",

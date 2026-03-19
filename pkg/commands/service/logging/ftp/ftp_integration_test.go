@@ -17,7 +17,7 @@ import (
 )
 
 func TestFTPCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com --user anonymous --password foo@example.com --compression-codec zstd --autoclone",
 			API: &mock.API{
@@ -49,7 +49,7 @@ func TestFTPCreate(t *testing.T) {
 }
 
 func TestFTPList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -87,7 +87,7 @@ func TestFTPList(t *testing.T) {
 }
 
 func TestFTPDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -113,7 +113,7 @@ func TestFTPDescribe(t *testing.T) {
 }
 
 func TestFTPUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -141,7 +141,7 @@ func TestFTPUpdate(t *testing.T) {
 }
 
 func TestFTPDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

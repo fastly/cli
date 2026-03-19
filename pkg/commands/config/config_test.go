@@ -22,16 +22,16 @@ func TestConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate config file content is displayed",
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Write: []testutil.FileIO{
 						{Src: string(data), Dst: "config.toml"},
 					},
 				},
-				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario[testutil.NoAPIFunc], rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 				},
 			},
@@ -40,13 +40,13 @@ func TestConfig(t *testing.T) {
 		{
 			Name: "validate config location is displayed",
 			Args: "--location",
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Write: []testutil.FileIO{
 						{Src: string(data), Dst: "config.toml"},
 					},
 				},
-				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+				EditScenario: func(scenario *testutil.CLIScenario[testutil.NoAPIFunc], rootdir string) {
 					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
 					scenario.WantOutput = scenario.ConfigPath
 				},

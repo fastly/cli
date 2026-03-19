@@ -13,7 +13,7 @@ import (
 )
 
 func TestRateLimitCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate CreateERL API error",
 			API: &mock.API{
@@ -45,7 +45,7 @@ func TestRateLimitCreate(t *testing.T) {
 }
 
 func TestRateLimitDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate DeleteERL API error",
 			API: &mock.API{
@@ -72,7 +72,7 @@ func TestRateLimitDelete(t *testing.T) {
 }
 
 func TestRateLimitDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate GetERL API error",
 			API: &mock.API{
@@ -106,7 +106,7 @@ func TestRateLimitDescribe(t *testing.T) {
 }
 
 func TestRateLimitList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate ListERL API error",
 			API: &mock.API{
@@ -144,7 +144,7 @@ func TestRateLimitList(t *testing.T) {
 }
 
 func TesRateLimittUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate UpdateERL API error",
 			API: &mock.API{

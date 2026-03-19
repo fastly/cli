@@ -31,7 +31,7 @@ var redaction = redactions.Redaction{
 }
 
 func TestRedactionCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --field flag",
 			Args:      fmt.Sprintf("--type %s --workspace-id %s", redactionType, workspaceID),
@@ -94,7 +94,7 @@ func TestRedactionCreate(t *testing.T) {
 }
 
 func TestRedactionDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --redaction-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
@@ -156,7 +156,7 @@ func TestRedactionDelete(t *testing.T) {
 }
 
 func TestRedactionRetrieve(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --redaction-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
@@ -238,7 +238,7 @@ func TestRedactionList(t *testing.T) {
 		Meta: redactions.MetaRedactions{},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -315,7 +315,7 @@ func TestRedactionUpdate(t *testing.T) {
 		Type:        redactionType,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --redaction-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),

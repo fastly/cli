@@ -16,7 +16,7 @@ import (
 )
 
 func TestACLEntryCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --acl-id flag",
 			Args:      "--ip 127.0.0.1",
@@ -79,7 +79,7 @@ func TestACLEntryCreate(t *testing.T) {
 }
 
 func TestACLEntryDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --acl-id flag",
 			Args:      "--id 456",
@@ -121,7 +121,7 @@ func TestACLEntryDelete(t *testing.T) {
 }
 
 func TestACLEntryDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --acl-id flag",
 			Args:      "--id 456",
@@ -161,7 +161,7 @@ func TestACLEntryDescribe(t *testing.T) {
 }
 
 func TestACLEntryList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --acl-id flag",
 			WantError: "error parsing arguments: required flag --acl-id not provided",
@@ -310,7 +310,7 @@ Deleted at: 2021-06-15 23:00:00 +0000 UTC
 `
 
 func TestACLEntryUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --acl-id flag",
 			WantError: "error parsing arguments: required flag --acl-id not provided",

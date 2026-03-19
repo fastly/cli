@@ -39,7 +39,7 @@ var workspace = workspaces.Workspace{
 }
 
 func TestWorkspacesCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --description flag",
 			Args:      fmt.Sprintf("--blockingMode %s --name %s", workspaceMode, workspaceName),
@@ -104,7 +104,7 @@ func TestWorkspacesCreate(t *testing.T) {
 func TestWorkspaceDelete(t *testing.T) {
 	const workspaceID = "workspaceID"
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -161,7 +161,7 @@ func TestWorkspaceDelete(t *testing.T) {
 }
 
 func TestWorkspaceGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -240,7 +240,7 @@ func TestWorkspaceList(t *testing.T) {
 		Meta: workspaces.MetaWorkspaces{},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate internal server error",
 			Args: "",
@@ -313,7 +313,7 @@ func TestWorkspaceUpdate(t *testing.T) {
 		WorkspaceID: workspaceID,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",

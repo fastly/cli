@@ -26,7 +26,7 @@ func TestAlertsCreate(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "ok all required",
 			Args: createFlags.String(),
@@ -116,7 +116,7 @@ func TestAlertsUpdate(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "ok all required",
 			Args: updateFlags.String(),
@@ -191,7 +191,7 @@ func TestAlertsUpdate(t *testing.T) {
 }
 
 func TestAlertsDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "no definition id",
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -211,7 +211,7 @@ func TestAlertsDelete(t *testing.T) {
 }
 
 func TestAlertsDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "no definition id",
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -233,7 +233,7 @@ func TestAlertsDescribe(t *testing.T) {
 }
 
 func TestAlertsList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:       "ok",
 			API:        &mock.API{ListAlertDefinitionsFn: ListAlertDefinitionsEmptyResponse},
@@ -313,7 +313,7 @@ func TestAlertsList(t *testing.T) {
 }
 
 func TestAlertsHistoryList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:       "ok",
 			API:        &mock.API{ListAlertHistoryFn: ListAlertHistoryEmptyResponse},

@@ -16,7 +16,7 @@ import (
 )
 
 func TestGrafanaCloudLogsCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --user 123456 --url https://test123.grafana.net --auth-token testtoken --index `{\"label\": \"value\" }` --autoclone",
 			API: &mock.API{
@@ -40,7 +40,7 @@ func TestGrafanaCloudLogsCreate(t *testing.T) {
 }
 
 func TestGrafanaCloudLogsList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -78,7 +78,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 }
 
 func TestGrafanaCloudLogsDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -104,7 +104,7 @@ func TestGrafanaCloudLogsDescribe(t *testing.T) {
 }
 
 func TestGrafanaCloudLogsUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -132,7 +132,7 @@ func TestGrafanaCloudLogsUpdate(t *testing.T) {
 }
 
 func TestGrafanaCloudLogsDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

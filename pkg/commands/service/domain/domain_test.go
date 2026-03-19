@@ -16,7 +16,7 @@ import (
 )
 
 func TestDomainCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--version 1",
 			WantError: "error reading service: no service ID found",
@@ -44,7 +44,7 @@ func TestDomainCreate(t *testing.T) {
 }
 
 func TestDomainList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -98,7 +98,7 @@ func TestDomainList(t *testing.T) {
 }
 
 func TestDomainDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -124,7 +124,7 @@ func TestDomainDescribe(t *testing.T) {
 }
 
 func TestDomainUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name www.test.com --comment ",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -161,7 +161,7 @@ func TestDomainUpdate(t *testing.T) {
 }
 
 func TestDomainDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -189,7 +189,7 @@ func TestDomainDelete(t *testing.T) {
 }
 
 func TestDomainValidate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",

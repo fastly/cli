@@ -15,7 +15,7 @@ import (
 
 func TestVCLSnippetCreate(t *testing.T) {
 	var content string
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--content /path/to/snippet.vcl --name foo --type recv --version 3",
@@ -225,7 +225,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 }
 
 func TestVCLSnippetDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      "--version 3",
@@ -297,7 +297,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 }
 
 func TestVCLSnippetDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -367,7 +367,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 }
 
 func TestVCLSnippetList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -422,7 +422,7 @@ func TestVCLSnippetList(t *testing.T) {
 
 func TestVCLSnippetUpdate(t *testing.T) {
 	var content string
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --version flag",
 			WantError: "error parsing arguments: required flag --version not provided",

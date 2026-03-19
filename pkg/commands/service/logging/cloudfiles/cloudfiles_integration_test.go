@@ -17,7 +17,7 @@ import (
 )
 
 func TestCloudfilesCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --user username --bucket log --access-key foo --autoclone",
 			API: &mock.API{
@@ -49,7 +49,7 @@ func TestCloudfilesCreate(t *testing.T) {
 }
 
 func TestCloudfilesList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -87,7 +87,7 @@ func TestCloudfilesList(t *testing.T) {
 }
 
 func TestCloudfilesDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -113,7 +113,7 @@ func TestCloudfilesDescribe(t *testing.T) {
 }
 
 func TestCloudfilesUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -141,7 +141,7 @@ func TestCloudfilesUpdate(t *testing.T) {
 }
 
 func TestCloudfilesDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

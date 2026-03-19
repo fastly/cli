@@ -22,7 +22,7 @@ func TestCreateStoreCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
@@ -75,7 +75,7 @@ func TestDeleteStoreCommand(t *testing.T) {
 	const storeID = "test123"
 	errStoreNotFound := errors.New("store not found")
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
@@ -128,7 +128,7 @@ func TestGetStoreCommand(t *testing.T) {
 
 	now := time.Now()
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			WantError: "error parsing arguments: required flag --store-id not provided",
 		},
@@ -223,7 +223,7 @@ func TestListStoresCommand(t *testing.T) {
 		{StoreID: storeID + "+1", Name: storeName + "+1", CreatedAt: &now},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			API: &mock.API{
 				ListConfigStoresFn: func(_ context.Context, _ *fastly.ListConfigStoresInput) ([]*fastly.ConfigStore, error) {
@@ -273,7 +273,7 @@ func TestListStoreServicesCommand(t *testing.T) {
 		{ServiceID: fastly.ToPointer("abc2"), Name: fastly.ToPointer("test2"), Type: fastly.ToPointer("vcl")},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: fmt.Sprintf("--store-id %s", storeID),
 			API: &mock.API{
@@ -322,7 +322,7 @@ func TestUpdateStoreCommand(t *testing.T) {
 	)
 	now := time.Now()
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      fmt.Sprintf("--store-id %s", storeID),
 			WantError: "error parsing arguments: required flag --name not provided",

@@ -14,7 +14,7 @@ import (
 )
 
 func TestVersionClone(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",
@@ -58,7 +58,7 @@ func TestVersionClone(t *testing.T) {
 }
 
 func TestVersionList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:       "--service-id 123",
 			API:        &mock.API{ListVersionsFn: testutil.ListVersions},
@@ -95,7 +95,7 @@ func TestVersionList(t *testing.T) {
 }
 
 func TestVersionUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --comment foo --autoclone",
 			API: &mock.API{
@@ -128,7 +128,7 @@ func TestVersionUpdate(t *testing.T) {
 }
 
 func TestVersionActivate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -181,7 +181,7 @@ func TestVersionActivate(t *testing.T) {
 }
 
 func TestVersionDeactivate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -216,7 +216,7 @@ func TestVersionDeactivate(t *testing.T) {
 }
 
 func TestVersionLock(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -243,7 +243,7 @@ func TestVersionLock(t *testing.T) {
 }
 
 func TestVersionStage(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -294,7 +294,7 @@ func TestVersionStage(t *testing.T) {
 }
 
 func TestVersionUnstage(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
@@ -483,7 +483,7 @@ func lockVersionError(_ context.Context, _ *fastly.LockVersionInput) (*fastly.Ve
 }
 
 func TestVersionValidate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",

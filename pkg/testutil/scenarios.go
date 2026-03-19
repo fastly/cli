@@ -21,36 +21,24 @@ import (
 	"github.com/fastly/cli/pkg/threadsafe"
 )
 
+type NoAPIFunc func()
+
 // CLIScenario represents a CLI test case to be validated.
 //
 // Most of the fields in this struct are optional; if they are not
 // provided RunCLIScenario will not apply the behavior indicated for
 // those fields.
-type CLIScenario struct {
+type CLIScenario[F any] struct {
 	// API is a mock API implementation which can be used by the
 	// command under test
-	API *mock.API
+	API         *mock.API
+	APIFuncMock func() F
 	// Args is the input arguments for the command to execute (not
 	// including the command names themselves).
 	Args string
 	// Client is a mock http.Client that will be used as part of a
 	// *fastly.Client instance passed into the test code.
 	Client *http.Client
-	// CommandHook is a function that will be called when the
-	// command-to-be-tested has been located in the global slice
-	// of argparser.Command structs. This function can modify the
-	// struct before returning, and those modifications will take
-	// effect for the execution of the scenario (and be discarded
-	// when the scenario execution is complete).
-	//
-	// The intent of this function is to inject a mock API
-	// function into the Command struct, but it can be used for
-	// any other suitable modification to the Command
-	// struct. Users of this function must be careful to avoid
-	// modifying the Command struct in ways which would make the
-	// test results invalid when compared to the unmodified
-	// Command struct.
-	CommandHook func(argparser.Command)
 	// ConfigPath will be copied into global.Data.ConfigPath
 	ConfigPath string
 	// ConfigFile will be copied into global.Data.ConfigFile
@@ -61,7 +49,7 @@ type CLIScenario struct {
 	// DontWantOutputs will cause the scenario to fail if any of
 	// the strings appear in stdout
 	DontWantOutputs []string
-	Env             *EnvConfig
+	Env             *EnvConfig[F]
 	// EnvVars contains environment variables which will be set
 	// during the execution of the scenario
 	EnvVars map[string]string
@@ -69,12 +57,12 @@ type CLIScenario struct {
 	Name            string
 	PathContentFlag *PathContentFlag
 	// Setup function can perform additional setup before the scenario is run
-	Setup func(t *testing.T, scenario *CLIScenario, opts *global.Data)
+	Setup func(t *testing.T, scenario *CLIScenario[F], opts *global.Data)
 	// Stdin contains input to be read by the application
 	Stdin []string
 	// Validator function can perform additional validation on the results
 	// of the scenario
-	Validator func(t *testing.T, scenario *CLIScenario, opts *global.Data, stdout *threadsafe.Buffer)
+	Validator func(t *testing.T, scenario *CLIScenario[F], opts *global.Data, stdout *threadsafe.Buffer)
 	// WantError will cause the scenario to fail if this string
 	// does not appear in an Error
 	WantError string
@@ -100,19 +88,19 @@ type PathContentFlag struct {
 // EnvConfig provides the details required to setup a temporary test
 // environment, and optionally a function to run which accepts the
 // environment directory and can modify fields in the CLIScenario.
-type EnvConfig struct {
+type EnvConfig[F any] struct {
 	Opts *EnvOpts
 	// EditScenario holds a function which will be called after
 	// the temporary environment has been created but before the
 	// scenario setup (and execution) begin; it can make any
 	// modifications to the CLIScenario that are needed
-	EditScenario func(*CLIScenario, string)
+	EditScenario func(*CLIScenario[F], string)
 }
 
 // RunCLIScenario executes a CLIScenario struct.
 // The Arg field of the scenario is prepended with the content of the 'command'
 // slice passed in to construct the complete command to be executed.
-func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
+func RunCLIScenario[F any](t *testing.T, command []string, scenario CLIScenario[F]) {
 	t.Run(scenario.Name, func(t *testing.T) {
 		var (
 			commandsHook = func(_ []argparser.Command) {}
@@ -204,14 +192,20 @@ func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 			scenario.Setup(t, &scenario, opts)
 		}
 
-		if scenario.CommandHook != nil {
+		if scenario.APIFuncMock != nil {
 			fullCommand := strings.Join(command, " ")
 			commandsHook = func(cmds []argparser.Command) {
 				for index := range cmds {
-					if cmds[index].Name() == fullCommand {
-						scenario.CommandHook(cmds[index])
-						break
+					if cmds[index].Name() != fullCommand {
+						continue
 					}
+
+					if c, ok := cmds[index].(argparser.HookableCommand[F]); ok {
+						c.SetHook(scenario.APIFuncMock())
+					} else {
+						t.Errorf("unexpected command structure type found for '%s'", cmds[index].Name())
+					}
+					break
 				}
 			}
 		}
@@ -298,7 +292,7 @@ func RunCLIScenario(t *testing.T, command []string, scenario CLIScenario) {
 }
 
 // RunCLIScenarios executes the CLIScenario structs from the slice passed in.
-func RunCLIScenarios(t *testing.T, command []string, scenarios []CLIScenario) {
+func RunCLIScenarios[F any](t *testing.T, command []string, scenarios []CLIScenario[F]) {
 	for _, scenario := range scenarios {
 		RunCLIScenario(t, command, scenario)
 	}

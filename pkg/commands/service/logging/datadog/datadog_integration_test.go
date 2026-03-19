@@ -16,7 +16,7 @@ import (
 )
 
 func TestDatadogCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
 			API: &mock.API{
@@ -40,7 +40,7 @@ func TestDatadogCreate(t *testing.T) {
 }
 
 func TestDatadogList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -78,7 +78,7 @@ func TestDatadogList(t *testing.T) {
 }
 
 func TestDatadogDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -104,7 +104,7 @@ func TestDatadogDescribe(t *testing.T) {
 }
 
 func TestDatadogUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -132,7 +132,7 @@ func TestDatadogUpdate(t *testing.T) {
 }
 
 func TestDatadogDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

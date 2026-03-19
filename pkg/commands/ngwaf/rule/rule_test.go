@@ -62,7 +62,7 @@ var complexRule = rules.Rule{
 }
 
 func TestRuleCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --path flag",
 			Args:      "",
@@ -129,7 +129,7 @@ func TestRuleCreate(t *testing.T) {
 }
 
 func TestRuleDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --rule-id flag",
 			Args:      "",
@@ -186,7 +186,7 @@ func TestRuleDelete(t *testing.T) {
 }
 
 func TestRuleGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --rule-id flag",
 			Args:      "",
@@ -283,7 +283,7 @@ func TestRuleList(t *testing.T) {
 		Meta: rules.MetaRules{},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate internal server error",
 			Args: "",
@@ -354,7 +354,7 @@ func TestRuleUpdate(t *testing.T) {
 		RuleID:      ruleID,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --rule-id flag",
 			Args:      fmt.Sprintf("--path %s", rulePath),

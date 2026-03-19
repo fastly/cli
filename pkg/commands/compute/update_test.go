@@ -11,7 +11,7 @@ import (
 )
 
 func TestUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "package API error",
 			Args: "-s 123 --version 1 --package pkg/package.tar.gz --autoclone",
@@ -20,7 +20,7 @@ func TestUpdate(t *testing.T) {
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageError,
 			},
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{
@@ -43,7 +43,7 @@ func TestUpdate(t *testing.T) {
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdatePackageFn: updatePackageOk,
 			},
-			Env: &testutil.EnvConfig{
+			Env: &testutil.EnvConfig[testutil.NoAPIFunc]{
 				Opts: &testutil.EnvOpts{
 					Copy: []testutil.FileIO{
 						{

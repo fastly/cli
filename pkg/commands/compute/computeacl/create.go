@@ -15,19 +15,28 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// APICreateFunc defines the type of 'mock' function which can be
+// provided by tests to to replace the function from go-fastly. The
+// signature must exactly match the corresponding function in
+// go-fastly.
+type APICreateFunc func(context.Context, *fastly.Client, *computeacls.CreateInput) (*computeacls.ComputeACL, error)
+
 // CreateCommand calls the Fastly API to create a compute ACL.
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	// APIHook provides an injection point for tests to provide a
-	// 'mock' function to replace the function from go-fastly. The
-	// signature must exactly match the corresponding function in
-	// go-fastly.
-	APIHook func(context.Context, *fastly.Client, *computeacls.CreateInput) (*computeacls.ComputeACL, error)
+	apiHook APICreateFunc
 
 	// Required.
 	name string
+}
+
+// SetHook allows a test to supply a 'mock' function to replace the
+// function from go-fastly, and satisfies the
+// argparser.HookableCommand interface.
+func (c *CreateCommand) SetHook(f APICreateFunc) {
+	c.apiHook = f
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -36,7 +45,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Base: argparser.Base{
 			Globals: g,
 		},
-		APIHook: computeacls.Create,
+		apiHook: computeacls.Create,
 	}
 
 	c.CmdClause = parent.Command("create", "Create a compute ACL")
@@ -61,7 +70,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	acl, err := c.APIHook(context.TODO(), fc, &computeacls.CreateInput{
+	acl, err := c.apiHook(context.TODO(), fc, &computeacls.CreateInput{
 		Name: &c.name,
 	})
 	if err != nil {

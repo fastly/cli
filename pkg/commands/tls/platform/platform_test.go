@@ -20,7 +20,7 @@ const (
 )
 
 func TestTLSPlatformUpload(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --cert-blob flag",
 			Args:      "--intermediates-blob example",
@@ -59,7 +59,7 @@ func TestTLSPlatformUpload(t *testing.T) {
 }
 
 func TestTLSPlatformDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -90,7 +90,7 @@ func TestTLSPlatformDelete(t *testing.T) {
 }
 
 func TestTLSPlatformDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			WantError: "error parsing arguments: required flag --id not provided",
@@ -127,7 +127,7 @@ func TestTLSPlatformDescribe(t *testing.T) {
 }
 
 func TestTLSPlatformList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: validateAPIError,
 			API: &mock.API{
@@ -161,7 +161,7 @@ func TestTLSPlatformList(t *testing.T) {
 }
 
 func TestTLSPlatformUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      validateMissingIDFlag,
 			Args:      "--cert-blob example --intermediates-blob example",

@@ -18,7 +18,7 @@ import (
 )
 
 func TestHTTPSCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
 			API: &mock.API{
@@ -50,7 +50,7 @@ func TestHTTPSCreate(t *testing.T) {
 }
 
 func TestHTTPSList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
@@ -88,7 +88,7 @@ func TestHTTPSList(t *testing.T) {
 }
 
 func TestHTTPSDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -114,7 +114,7 @@ func TestHTTPSDescribe(t *testing.T) {
 }
 
 func TestHTTPSUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1 --new-name log",
 			WantError: "error parsing arguments: required flag --name not provided",
@@ -142,7 +142,7 @@ func TestHTTPSUpdate(t *testing.T) {
 }
 
 func TestHTTPSDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "--service-id 123 --version 1",
 			WantError: "error parsing arguments: required flag --name not provided",

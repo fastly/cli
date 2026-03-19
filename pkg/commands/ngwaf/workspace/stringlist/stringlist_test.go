@@ -53,7 +53,7 @@ var stringlist2 = lists.List{
 }
 
 func TestStringListCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --entries flag",
 			Args:      fmt.Sprintf("--name %s --workspace-id %s", listName, workspaceID),
@@ -124,7 +124,7 @@ func TestStringListCreate(t *testing.T) {
 }
 
 func TestStringListDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --list-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
@@ -194,7 +194,7 @@ func TestStringListDelete(t *testing.T) {
 }
 
 func TestStringListGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --list-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),
@@ -274,7 +274,7 @@ func TestStringListList(t *testing.T) {
 		Meta: lists.MetaLists{},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate missing --workspace-id flag",
 			Args: "",
@@ -364,7 +364,7 @@ func TestStringListUpdate(t *testing.T) {
 			Type: string(scope.ScopeTypeWorkspace),
 		},
 	}
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --list-id flag",
 			Args:      fmt.Sprintf("--workspace-id %s", workspaceID),

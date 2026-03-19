@@ -32,7 +32,7 @@ var virtualpatch = virtualpatches.VirtualPatch{
 }
 
 func TestVirtualPatchRetrieve(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--virtual-patch-id %s", virtualpatchID),
@@ -113,7 +113,7 @@ func TestVirtualPatchList(t *testing.T) {
 		},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      "",
@@ -189,7 +189,7 @@ func TestVirtualPatchUpdate(t *testing.T) {
 		Mode:        "block",
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --workspace-id flag",
 			Args:      fmt.Sprintf("--virtual-patch-id %s", virtualpatchID),

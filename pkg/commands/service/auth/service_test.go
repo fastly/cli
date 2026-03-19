@@ -14,7 +14,7 @@ import (
 )
 
 func TestServiceAuthCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "missing required flag",
 			Args:      "",
@@ -38,7 +38,7 @@ func TestServiceAuthCreate(t *testing.T) {
 }
 
 func TestServiceAuthList(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "invalid flag combination",
 			Args:      "--verbose --json",
@@ -94,7 +94,7 @@ func TestServiceAuthList(t *testing.T) {
 }
 
 func TestServiceAuthDescribe(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "missing required flag",
 			Args:      "",
@@ -141,7 +141,7 @@ func TestServiceAuthDescribe(t *testing.T) {
 }
 
 func TestServiceAuthUpdate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "missing id flag",
 			Args:      "--permission full",
@@ -170,7 +170,7 @@ func TestServiceAuthUpdate(t *testing.T) {
 }
 
 func TestServiceAuthDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "missing required flag",
 			Args:      "",

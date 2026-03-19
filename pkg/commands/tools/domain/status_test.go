@@ -15,7 +15,7 @@ import (
 )
 
 func TestNewDomainsV1ToolsStatusCommand(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Args:      "",
 			WantError: "error parsing arguments: required argument 'domain' not provided",

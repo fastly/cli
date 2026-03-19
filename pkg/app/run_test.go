@@ -17,7 +17,7 @@ import (
 
 // If you add a Short flag and this test starts failing, it could be due to the same short flag existing at the global level.
 func TestShellCompletion(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "bash shell complete",
 			Args: "--completion-script-bash",

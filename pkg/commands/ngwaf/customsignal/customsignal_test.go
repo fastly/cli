@@ -34,7 +34,7 @@ var customSignal = signals.Signal{
 }
 
 func TestCustomSignalCreate(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --name flag",
 			Args:      fmt.Sprintf("--description %s", customSignalDescription),
@@ -87,7 +87,7 @@ func TestCustomSignalCreate(t *testing.T) {
 }
 
 func TestCustomSignalDelete(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --signal-id flag",
 			Args:      "",
@@ -144,7 +144,7 @@ func TestCustomSignalDelete(t *testing.T) {
 }
 
 func TestCustomSignalGet(t *testing.T) {
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --signal-id flag",
 			Args:      "",
@@ -229,7 +229,7 @@ func TestCustomSignalList(t *testing.T) {
 		Meta: signals.MetaSignals{},
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name: "validate internal server error",
 			Args: "",
@@ -301,7 +301,7 @@ func TestCustomSignalUpdate(t *testing.T) {
 		SignalID:    customSignalID,
 	}
 
-	scenarios := []testutil.CLIScenario{
+	scenarios := []testutil.CLIScenario[testutil.NoAPIFunc]{
 		{
 			Name:      "validate missing --signal-id flag",
 			Args:      fmt.Sprintf("--description %s", customSignalDescription),
