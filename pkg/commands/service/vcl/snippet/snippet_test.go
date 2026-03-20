@@ -361,6 +361,40 @@ func TestVCLSnippetDescribe(t *testing.T) {
 			Args:       "--dynamic --service-id 123 --snippet-id 456 --version 3",
 			WantOutput: "\nService ID: 123\nID: 456\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
 		},
+		{
+			Name: "validate --content flag outputs raw VCL only for versioned snippet",
+			API: &mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				GetSnippetFn:   getSnippet,
+			},
+			Args:       "--content --name foobar --service-id 123 --version 3",
+			WantOutput: "# some vcl content",
+		},
+		{
+			Name: "validate --content flag outputs raw VCL only for dynamic snippet",
+			API: &mock.API{
+				ListVersionsFn:      testutil.ListVersions,
+				GetDynamicSnippetFn: getDynamicSnippet,
+			},
+			Args:       "--content --dynamic --service-id 123 --snippet-id 456 --version 3",
+			WantOutput: "# some vcl content",
+		},
+		{
+			Name: "validate --content flag with --verbose returns error",
+			API: &mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      "--content --name foobar --service-id 123 --verbose --version 3",
+			WantError: "invalid flag combination, --content cannot be used together with --json or --verbose",
+		},
+		{
+			Name: "validate --content flag with --json returns error",
+			API: &mock.API{
+				ListVersionsFn: testutil.ListVersions,
+			},
+			Args:      "--content --json --name foobar --service-id 123 --version 3",
+			WantError: "invalid flag combination, --content cannot be used together with --json or --verbose",
+		},
 	}
 
 	testutil.RunCLIScenarios(t, []string{top.CommandName, root.CommandName, sub.CommandName, "describe"}, scenarios)
