@@ -132,7 +132,7 @@ var ErrPostBuildStopped = RemediationError{
 // --verbose or --json flag which are mutually exclusive behaviours.
 var ErrInvalidContentCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination, --content cannot be used together with --json or --verbose"),
-	Remediation: "Use either --content, --verbose or --json seperately.",
+	Remediation: "Use either --content, --verbose or --json separately.",
 }
 
 // ErrInvalidVerboseJSONCombo means the user provided both a --verbose and

@@ -8,7 +8,7 @@
 
 ### Enhancements:
 
-- feat(vcl/snippet): add support for the '--context' flag, allowing for the raw outout of VCL.  [#1706](https://github.com/fastly/cli/pull/1706)
+- feat(vcl/snippet): add support for the '--content' flag, allowing for the raw output of VCL.  [#1706](https://github.com/fastly/cli/pull/1706)
 
 ### Dependencies:
 
