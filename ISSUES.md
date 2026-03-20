@@ -1,6 +1,6 @@
 <div align="center">
   <h3 align="center">CLI Issues</h3>
-  <p align="center">Best practices for submitting an issue to the Fastly CLI respository.</p>
+  <p align="center">Best practices for submitting an issue to the Fastly CLI repository.</p>
 </div>
 
 ## Issue Type: Bug
@@ -25,7 +25,7 @@ Issues related to suggesting improvements to the CLI:
 
 ## Fastly Support
 
-CLI behavior specific to your environement or service / account should be routed to the Fastly support team @ support.fastly.com or support@fastly.com. 
+CLI behavior specific to your environment or service / account should be routed to the Fastly support team @ support.fastly.com or support@fastly.com. 
 
 - A feature is missing from your account / service
 - Partial content is returned that you may not have access to with your current Fastly account role
