@@ -179,7 +179,7 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) (
 
 // print displays the 'dynamic' information returned from the API.
 func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet) error {
-	// If --content flag is set, output only the raw VCL content
+	// If the --content flag is set, output only the raw VCL content.
 	if c.content.WasSet {
 		fmt.Fprint(out, fastly.ToValue(ds.Content))
 		return nil
@@ -199,7 +199,7 @@ func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet)
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
-	// If --content flag is set, output only the raw VCL content
+	// If the --content flag is set, output only the raw VCL content.
 	if c.content.WasSet {
 		fmt.Fprint(out, fastly.ToValue(s.Content))
 		return nil
