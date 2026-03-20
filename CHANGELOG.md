@@ -8,6 +8,8 @@
 
 ### Enhancements:
 
+- feat(vcl/snippet): add support for the '--context' flag, allowing for the raw outout of VCL.  [#1706](https://github.com/fastly/cli/pull/1706)
+
 ### Dependencies:
 
 ## [v14.1.1](https://github.com/fastly/cli/releases/tag/v14.1.1) (2026-03-18)
