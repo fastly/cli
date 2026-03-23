@@ -31,6 +31,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	})
 
 	// Optional.
+	c.CmdClause.Flag("content", "Outputs the raw content of the identified snippet").Action(c.content.Set).BoolVar(&c.content.Value)
 	c.CmdClause.Flag("dynamic", "Whether the VCL snippet is dynamic or versioned").Action(c.dynamic.Set).BoolVar(&c.dynamic.Value)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("name", "The name of the VCL snippet").StringVar(&c.name)
@@ -57,6 +58,7 @@ type DescribeCommand struct {
 	argparser.JSONOutput
 
 	dynamic        argparser.OptionalBool
+	content        argparser.OptionalBool
 	name           string
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
@@ -67,6 +69,14 @@ type DescribeCommand struct {
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+	// Ensure that the --content flag is not used
+	// with --verbose or --json
+	if c.Globals.Verbose() && c.content.WasSet {
+		return fsterr.ErrInvalidContentOutputCombo
+	}
+	if c.JSONOutput.Enabled && c.content.WasSet {
+		return fsterr.ErrInvalidContentOutputCombo
 	}
 
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
@@ -169,6 +179,12 @@ func (c *DescribeCommand) constructInput(serviceID string, serviceVersion int) (
 
 // print displays the 'dynamic' information returned from the API.
 func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet) error {
+	// If the --content flag is set, output only the raw VCL content.
+	if c.content.WasSet {
+		fmt.Fprint(out, fastly.ToValue(ds.Content))
+		return nil
+	}
+
 	fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(ds.ServiceID))
 	fmt.Fprintf(out, "ID: %s\n", fastly.ToValue(ds.SnippetID))
 	fmt.Fprintf(out, "Content: \n%s\n", text.SanitizeTerminalOutput(fastly.ToValue(ds.Content)))
@@ -183,6 +199,12 @@ func (c *DescribeCommand) printDynamic(out io.Writer, ds *fastly.DynamicSnippet)
 
 // print displays the information returned from the API.
 func (c *DescribeCommand) print(out io.Writer, s *fastly.Snippet) error {
+	// If the --content flag is set, output only the raw VCL content.
+	if c.content.WasSet {
+		fmt.Fprint(out, fastly.ToValue(s.Content))
+		return nil
+	}
+
 	if !c.Globals.Verbose() {
 		fmt.Fprintf(out, "\nService ID: %s\n", fastly.ToValue(s.ServiceID))
 	}
