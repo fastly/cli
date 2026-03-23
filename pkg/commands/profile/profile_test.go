@@ -336,6 +336,66 @@ func TestProfileToken(t *testing.T) {
 
 	scenarios := []testutil.CLIScenario{
 		{
+			Name: "validate deprecation warning appears by default",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+					},
+				},
+			},
+			WantOutputs: []string{"DEPRECATED", "This command will be removed", "123"},
+		},
+		{
+			Name: "validate --quiet suppresses deprecation warning",
+			Args: "--quiet",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+					},
+				},
+			},
+			WantOutput:      "123",
+			DontWantOutputs: []string{"DEPRECATED", "This command will be removed"},
+		},
+		{
 			Name: "validate the active profile non-SSO token is displayed by default",
 			Env: &testutil.EnvConfig{
 				Opts: &testutil.EnvOpts{
