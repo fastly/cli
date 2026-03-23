@@ -11,6 +11,8 @@
 - feat(vcl/snippet): add support for the '--content' flag, allowing for the raw output of VCL.  [#1706](https://github.com/fastly/cli/pull/1706)
 
 ### Dependencies:
+- build(deps): `github.com/fatih/color` from 1.18.0 to 1.19.0 ([#1707](https://github.com/fastly/cli/pull/1707))
+- build(deps): `github.com/klauspost/compress` from 1.18.4 to 1.18.5 ([#1707](https://github.com/fastly/cli/pull/1707))
 
 ## [v14.1.1](https://github.com/fastly/cli/releases/tag/v14.1.1) (2026-03-18)
 
