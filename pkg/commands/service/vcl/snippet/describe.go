@@ -70,13 +70,13 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	// Ensure that the --contenet flag is not used
+	// Ensure that the --content flag is not used
 	// with --verbose or --json
 	if c.Globals.Verbose() && c.content.WasSet {
-		return fsterr.ErrInvalidContentCombo
+		return fsterr.ErrInvalidContentOutputCombo
 	}
 	if c.JSONOutput.Enabled && c.content.WasSet {
-		return fsterr.ErrInvalidContentCombo
+		return fsterr.ErrInvalidContentOutputCombo
 	}
 
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{

@@ -128,9 +128,9 @@ var ErrPostBuildStopped = RemediationError{
 	Remediation: "Check the [scripts.post_build] in the fastly.toml manifest is safe to execute or skip this prompt using either `--auto-yes` or `--non-interactive`.",
 }
 
-// ErrInvalidContentCombo means the user provided --content along with the
+// ErrInvalidContentOutputCombo means the user provided --content along with the
 // --verbose or --json flags, which are mutually exclusive behaviours.
-var ErrInvalidContentCombo = RemediationError{
+var ErrInvalidContentOutputCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination, --content cannot be used together with --json or --verbose"),
 	Remediation: "Use either --content, --verbose or --json separately.",
 }
