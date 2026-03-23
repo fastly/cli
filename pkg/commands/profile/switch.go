@@ -30,7 +30,9 @@ func NewSwitchCommand(parent argparser.Registerer, g *global.Data) *SwitchComman
 
 // Exec invokes the application logic for the command.
 func (c *SwitchCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth use' instead.\n\n")
+	if !c.Globals.Flags.Quiet {
+		text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth use' instead.\n\n")
+	}
 
 	at := c.Globals.Config.GetAuthToken(c.profile)
 	if at == nil {
