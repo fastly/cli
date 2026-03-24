@@ -6,8 +6,15 @@
 
 ### Bug Fixes:
 
-- fix(auth): `fastly profile`, `fastly sso` and `fastly auth-token` commands now correctly respect the `--quiet` flag [#1710](https://github.com/fastly/cli/pull/1710)
+### Enhancements:
 
+### Dependencies:
+
+## [v14.1.2](https://github.com/fastly/cli/releases/tag/v14.1.2) (2026-03-24)
+
+### Bug Fixes:
+
+- fix(auth): `fastly profile`, `fastly sso` and `fastly auth-token` commands now correctly respect the `--quiet` flag [#1710](https://github.com/fastly/cli/pull/1710)
 
 ### Enhancements:
 
