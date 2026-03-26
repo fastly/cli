@@ -7,13 +7,15 @@ assignees: ''
 
 ---
 
-<!-- Note: Queries specific to your environment or account configuration should be routed to our support
-      team @ https://support.fastly.com. 
-    
-    **Example:** When running `fastly service vcl snippet create`, an error is thrown that the provided 
-    VCL is not valid
+<!-- 
+  **Note**:  Please keep in mind that if your issue requires troubleshooting that will require any details that you aren't comfortable disclosing in this public forum (such as service IDs), you will need to open a Fastly support ticket instead: https://support.fastly.com. 
+  
+  Bug reports opened here:
+    - Do not have an SLA
+    - Should not be a duplicate of an existing support ticket that you have already created, or vice versa
+    - May take longer to solve compared to our dedicated support team
 
-    More details on submitting issues can be found here: https://github.com/fastly/cli/blob/main/ISSUES.md 
+  More details on submitting issues can be found here: https://github.com/fastly/cli/blob/main/ISSUES.md 
 -->
 
 **Version**
