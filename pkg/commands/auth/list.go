@@ -53,13 +53,19 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 			if err != nil && c.Globals.ErrLog != nil {
 				c.Globals.ErrLog.Add(err)
 			}
+
+			label := ""
+			if entry.RefreshExpiresAt != "" {
+				label = "session "
+			}
+
 			switch status {
 			case StatusExpiringSoon:
 				summary := ExpirationSummary(status, expires, now)
-				expiryStr = " " + text.BoldYellow(fmt.Sprintf("[%s]", summary))
+				expiryStr = " " + text.BoldYellow(fmt.Sprintf("[%s%s]", label, summary))
 			case StatusExpired:
 				summary := ExpirationSummary(status, expires, now)
-				expiryStr = " " + text.BoldRed(fmt.Sprintf("[%s]", summary))
+				expiryStr = " " + text.BoldRed(fmt.Sprintf("[%s%s]", label, summary))
 			case StatusOK, StatusNoExpiry, StatusNeedsReauth:
 			}
 		}

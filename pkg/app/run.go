@@ -541,7 +541,11 @@ func checkTokenExpirationWarning(data *global.Data, commandName string) {
 
 	summary := authcmd.ExpirationSummary(status, expires, time.Now())
 	remediation := authcmd.ExpirationRemediation(at.Type)
-	text.Warning(data.Output, "Your active token %s. %s\n", summary, remediation)
+	label := ""
+	if at.RefreshExpiresAt != "" {
+		label = "session "
+	}
+	text.Warning(data.Output, "Your active token %s%s. %s\n", label, summary, remediation)
 }
 
 // isAuthRelatedCommand reports whether commandName belongs to an auth-related

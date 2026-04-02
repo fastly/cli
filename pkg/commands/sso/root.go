@@ -36,7 +36,9 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 
 // Exec implements the command interface.
 func (c *RootCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth login --sso --token <name>' instead.\n\n")
+	if !c.Globals.Flags.Quiet {
+		text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth login --sso --token <name>' instead.\n\n")
+	}
 
 	tokenName, isFallback := c.resolveTokenName()
 
