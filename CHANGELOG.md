@@ -29,7 +29,7 @@
 
 ### Enhancements:
 
-- feat(auth): add `auth token` subcommand to output the active API token for use in shell substitutions (e.g. `$(fastly auth token)`). Refuses to print to a terminal to prevent accidental exposure.
+- feat(auth): add `auth token` subcommand to output the active API token for use in shell substitutions (e.g. `$(fastly auth token)`).
 - feat(auth): `auth login --sso` now requires `--token <name>` to explicitly name the stored token. This prevents accidentally overwriting tokens in multi-user SSO workflows. [#1676](https://github.com/fastly/cli/pull/1676)
 - feat(auth): add `FASTLY_DISABLE_AUTH_COMMAND` env var to hide the `fastly auth` command tree from help, completions, and invocation. [#1676](https://github.com/fastly/cli/pull/1676)
 - feat(auth): when `FASTLY_DISABLE_AUTH_COMMAND` is set, the `--token`/`-t` global flag is also disabled. Use `FASTLY_API_TOKEN` or stored config tokens instead. [#1676](https://github.com/fastly/cli/pull/1676)
