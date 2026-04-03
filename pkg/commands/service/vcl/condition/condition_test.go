@@ -86,7 +86,7 @@ func TestConditionUpdate(t *testing.T) {
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateConditionFn: updateConditionOK,
 			},
-			WantError: "error parsing arguments: must provide either --new-name, --statement, --type or --priority to update condition",
+			WantError: "error parsing arguments: must provide either --new-name, --statement, --type, --priority or --comment to update condition",
 		},
 		{
 			Args: "--service-id 123 --version 1 --name always_false --new-name false_always --autoclone",
