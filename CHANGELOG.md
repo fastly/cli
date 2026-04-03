@@ -9,6 +9,7 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `github.com/go-jose/go-jose/v3` from 3.0.4 to 3.0.5 ([#1713](https://github.com/fastly/cli/pull/1713))
 
 ## [v14.2.0](https://github.com/fastly/cli/releases/tag/v14.2.0) (2026-03-24)
 
