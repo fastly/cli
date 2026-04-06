@@ -9,6 +9,9 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `github.com/andybalholm/brotli` from 1.2.0 to 1.2.1 ([#1716](https://github.com/fastly/cli/pull/1716))
+- build(deps): `github.com/go-jose/go-jose/v3` from 3.0.4 to 3.0.5 ([#1716](https://github.com/fastly/cli/pull/1716))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.21 to 0.0.22 ([#1716](https://github.com/fastly/cli/pull/1716))
 
 ## [v14.2.0](https://github.com/fastly/cli/releases/tag/v14.2.0) (2026-03-24)
 
