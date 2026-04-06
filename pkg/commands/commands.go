@@ -201,9 +201,10 @@ func Define( // nolint:revive // function-length
 		authList := authcmd.NewListCommand(authCmdRoot.CmdClause, data)
 		authShow := authcmd.NewShowCommand(authCmdRoot.CmdClause, data)
 		authUse := authcmd.NewUseCommand(authCmdRoot.CmdClause, data)
+		authRevoke := authcmd.NewRevokeCommand(authCmdRoot.CmdClause, data)
 		authCommands = []argparser.Command{
 			authCmdRoot, authLogin, authAdd, authDelete,
-			authList, authShow, authUse,
+			authList, authShow, authUse, authRevoke,
 		}
 
 		authtokenCmdRoot := authtoken.NewRootCommand(app, data)
