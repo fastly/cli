@@ -97,8 +97,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
 	// If no argument are provided, error with useful message.
-	if !c.newName.WasSet && !c.priority.WasSet && !c.statement.WasSet && !c.conditionType.WasSet {
-		return fmt.Errorf("error parsing arguments: must provide either --new-name, --statement, --type or --priority to update condition")
+	if !c.newName.WasSet && !c.priority.WasSet && !c.statement.WasSet && !c.conditionType.WasSet && !c.comment.WasSet {
+		return fmt.Errorf("error parsing arguments: must provide either --new-name, --statement, --type, --priority or --comment to update condition")
 	}
 
 	if c.newName.WasSet {
@@ -114,7 +114,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.input.Statement = &c.statement.Value
 	}
 	if c.comment.WasSet {
-		c.input.Statement = &c.comment.Value
+		c.input.Comment = &c.comment.Value
 	}
 
 	r, err := c.Globals.APIClient.UpdateCondition(context.TODO(), &c.input)

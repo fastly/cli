@@ -6,6 +6,9 @@
 
 ### Bug Fixes:
 
+- fix(vcl/condition): `--comment` flag in `condition update` now correctly sets the comment instead of overwriting the statement
+- fix(manifest): `env_file` parsing no longer rejects values containing `=` characters (e.g. `KEY=val=ue`).
+
 ### Enhancements:
 
 ### Dependencies:
