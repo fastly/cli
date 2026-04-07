@@ -6,11 +6,17 @@
 
 ### Bug Fixes:
 
+- fix(vcl/condition): `--comment` flag in `condition update` now correctly sets the comment instead of overwriting the statement
+- fix(manifest): `env_file` parsing no longer rejects values containing `=` characters (e.g. `KEY=val=ue`).
+
 ### Enhancements:
 
 - feat(auth): add `auth revoke` subcommand for revoking API tokens via `--current`, `--name`, `--token-value`, `--id`, or `--file` (bulk)
 
 ### Dependencies:
+- build(deps): `github.com/andybalholm/brotli` from 1.2.0 to 1.2.1 ([#1716](https://github.com/fastly/cli/pull/1716))
+- build(deps): `github.com/go-jose/go-jose/v3` from 3.0.4 to 3.0.5 ([#1716](https://github.com/fastly/cli/pull/1716))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.21 to 0.0.22 ([#1716](https://github.com/fastly/cli/pull/1716))
 
 ## [v14.2.0](https://github.com/fastly/cli/releases/tag/v14.2.0) (2026-03-24)
 
