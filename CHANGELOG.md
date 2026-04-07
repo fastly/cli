@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(vcl/condition): `--comment` flag in `condition update` now correctly sets the comment instead of overwriting the statement
+
 ### Enhancements:
 
 ### Dependencies:
