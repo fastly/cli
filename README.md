@@ -18,7 +18,9 @@
 - [Commands](https://www.fastly.com/documentation/reference/cli#command-groups)
 - [Development](https://github.com/fastly/cli/blob/main/DEVELOPMENT.md)
 - [Testing](https://github.com/fastly/cli/blob/main/TESTING.md)
+- [Issues](https://github.com/fastly/cli/blob/main/ISSUES.md)
 - [Documentation](https://github.com/fastly/cli/blob/main/DOCUMENTATION.md)
+
 
 ## Environment Variables
 

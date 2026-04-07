@@ -43,7 +43,9 @@ type ListCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	text.Deprecated(out, "The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
+	if !c.Globals.Flags.Quiet && !c.JSONOutput.Enabled {
+		text.Deprecated(out, "The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
+	}
 
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
@@ -55,7 +57,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	)
 
 	if err = c.customerID.Parse(); err == nil {
-		if !c.customerID.WasSet && !c.Globals.Flags.Quiet {
+		if !c.customerID.WasSet && !c.Globals.Flags.Quiet && !c.JSONOutput.Enabled {
 			text.Info(out, "Listing customer tokens for the FASTLY_CUSTOMER_ID environment variable\n\n")
 		}
 		input := c.constructInput()

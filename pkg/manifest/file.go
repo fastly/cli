@@ -264,9 +264,10 @@ func (f *File) ParseEnvFile() error {
 	if err != nil {
 		return fmt.Errorf("failed to open path '%s': %w", path, err)
 	}
+	defer r.Close()
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		parts := strings.Split(scanner.Text(), "=")
+		parts := strings.SplitN(scanner.Text(), "=", 2)
 		if len(parts) != 2 {
 			return fmt.Errorf("failed to scan env_file '%s': invalid KEY=VALUE format: %#v", path, parts)
 		}

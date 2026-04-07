@@ -28,7 +28,9 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 // Exec invokes the application logic for the command.
 func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
-	text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth list' instead.\n\n")
+	if !c.Globals.Flags.Quiet && !c.JSONOutput.Enabled {
+		text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth list' instead.\n\n")
+	}
 
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
