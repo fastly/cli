@@ -11,7 +11,7 @@
 
 ### Enhancements:
 
-- feat(auth): add `auth revoke` subcommand for revoking API tokens via `--current`, `--name`, `--token-value`, `--id`, or `--file` (bulk)
+- feat(auth): add `auth revoke` subcommand for revoking API tokens via `--current`, `--name`, `--token-value`, `--id`, or `--file` (bulk) [#1717](https://github.com/fastly/cli/pull/1717)
 
 ### Dependencies:
 - build(deps): `github.com/andybalholm/brotli` from 1.2.0 to 1.2.1 ([#1716](https://github.com/fastly/cli/pull/1716))
