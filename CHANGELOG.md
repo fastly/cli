@@ -8,6 +8,8 @@
 
 ### Enhancements:
 
+- feat(auth): add `auth revoke` subcommand for revoking API tokens via `--current`, `--name`, `--token-value`, `--id`, or `--file` (bulk)
+
 ### Dependencies:
 
 ## [v14.2.0](https://github.com/fastly/cli/releases/tag/v14.2.0) (2026-03-24)
