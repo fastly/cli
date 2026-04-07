@@ -213,6 +213,8 @@ func Exec(data *global.Data) error {
 	// - argparser.ArgsIsHelpJSON() == true
 	// - shell autocompletion flag provided
 	switch commandName {
+	case "help--json":
+		fallthrough
 	case "help--format=json":
 		fallthrough
 	case "help--formatjson":
@@ -331,8 +333,12 @@ func Exec(data *global.Data) error {
 
 	checkTokenExpirationWarning(data, commandName)
 
-	f := checkForUpdates(data.Versioners.CLI, commandName, data.Flags.Quiet || data.Flags.JSON)
-	defer f(data.Output)
+	f := checkForUpdates(data.Versioners.CLI, commandName)
+	defer func() {
+		if !data.Flags.Quiet && !data.Flags.JSON {
+			f(data.Output)
+		}
+	}()
 
 	return command.Exec(data.Input, data.Output)
 }
@@ -696,9 +702,9 @@ func configureClients(token, apiEndpoint string, acf global.APIClientFactory, de
 	return apiClient, rtsClient, nil
 }
 
-func checkForUpdates(av github.AssetVersioner, commandName string, quietMode bool) func(io.Writer) {
+func checkForUpdates(av github.AssetVersioner, commandName string) func(io.Writer) {
 	if av != nil && commandName != "update" && !version.IsPreRelease(revision.AppVersion) {
-		return update.CheckAsync(revision.AppVersion, av, quietMode)
+		return update.CheckAsync(revision.AppVersion, av)
 	}
 	return func(_ io.Writer) {
 		// no-op

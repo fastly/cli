@@ -43,6 +43,20 @@ func TestOriginInspector(t *testing.T) {
 			wantOutput: "status",
 		},
 		{
+			name: "success json alias",
+			args: args("stats origin-inspector --service-id 123 --json"),
+			api: mock.API{
+				GetOriginMetricsForServiceJSONFn: getOriginMetricsJSONOK,
+			},
+			wantOutput: "status",
+		},
+		{
+			name:      "verbose json combo",
+			args:      args("stats origin-inspector --service-id 123 --json --verbose"),
+			api:       mock.API{},
+			wantError: "invalid flag combination",
+		},
+		{
 			name: "non-success status",
 			args: args("stats origin-inspector --service-id 123"),
 			api: mock.API{

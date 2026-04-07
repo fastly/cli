@@ -21,6 +21,7 @@ type UsageCommand struct {
 	byService  bool
 	formatFlag string
 	from       string
+	jsonFlag   bool
 	region     string
 	to         string
 }
@@ -38,13 +39,18 @@ func NewUsageCommand(parent argparser.Registerer, g *global.Data) *UsageCommand 
 	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
 	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.region)
 	c.CmdClause.Flag("by-service", "Break down usage by service").BoolVar(&c.byService)
-	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
 
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *UsageCommand) Exec(_ io.Reader, out io.Writer) error {
+	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+		return err
+	}
+
 	input := fastly.GetUsageInput{}
 	if c.by != "" {
 		input.By = &c.by

@@ -8,8 +8,9 @@
 
 - fix(vcl/condition): `--comment` flag in `condition update` now correctly sets the comment instead of overwriting the statement
 - fix(manifest): `env_file` parsing no longer rejects values containing `=` characters (e.g. `KEY=val=ue`).
-
 ### Enhancements:
+
+- feat(stats): accept `--json` / `-j` as an alias for `--format=json` on all stats and help subcommands, matching the flag style used by the rest of the CLI.
 
 ### Dependencies:
 - build(deps): `github.com/andybalholm/brotli` from 1.2.0 to 1.2.1 ([#1716](https://github.com/fastly/cli/pull/1716))
