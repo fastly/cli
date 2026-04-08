@@ -21,6 +21,8 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
+// errCancelled is returned when a user declines a confirmation prompt.
+// It signals intentional cancellation, not a failure condition.
 var errCancelled = errors.New("cancelled")
 
 // RevokeCommand revokes a token via the API and removes it from local config.
