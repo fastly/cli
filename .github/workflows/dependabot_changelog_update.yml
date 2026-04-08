@@ -6,6 +6,8 @@ on:
       - opened
       - synchronize
       - reopened
+permissions:
+  contents: read
 jobs:
   dependabot-changelog-update:
     if: github.actor == 'dependabot[bot]'
