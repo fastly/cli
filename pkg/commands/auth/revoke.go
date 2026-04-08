@@ -207,11 +207,15 @@ func (c *RevokeCommand) revokeByID(out io.Writer) error {
 		TokenID: c.id,
 	})
 	if err != nil {
-		c.Globals.ErrLog.Add(err)
-		return err
+		if isAlreadyGone(err) {
+			text.Warning(out, "Token was already revoked remotely\n")
+		} else {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+	} else {
+		text.Success(out, "Revoked token '%s'", c.id)
 	}
-
-	text.Success(out, "Revoked token '%s'", c.id)
 	names := findLocalTokensByID(&c.Globals.Config, c.id)
 	if len(names) == 0 {
 		text.Info(out, "No local token entry with matching API token ID found; local cleanup skipped\n")
@@ -320,12 +324,14 @@ func (c *RevokeCommand) confirmDefaultRevocation(names []string, in io.Reader, o
 	return nil
 }
 
+func isAlreadyGone(err error) bool {
+	var httpErr *fastly.HTTPError
+	return errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusNotFound
+}
+
 func isSelfAlreadyGone(err error) bool {
 	var httpErr *fastly.HTTPError
-	if errors.As(err, &httpErr) {
-		return httpErr.StatusCode == http.StatusUnauthorized || httpErr.StatusCode == http.StatusNotFound
-	}
-	return false
+	return isAlreadyGone(err) || (errors.As(err, &httpErr) && httpErr.StatusCode == http.StatusUnauthorized)
 }
 
 func readTokenValue(flag string, in io.Reader) (string, error) {
