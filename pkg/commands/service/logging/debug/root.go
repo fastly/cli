@@ -19,9 +19,13 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// RootCommand is the parent command for all subcommands in this package.
-// It should be installed under the primary root command.
-type RootCommand struct {
+// batch wraps errors for sending to the output loop.
+type batch struct {
+	Errors []fastly.LoggingEndpointError
+}
+
+// DebugCommand is the command for streaming logging endpoint errors.
+type DebugCommand struct {
 	argparser.Base
 
 	serviceName     argparser.OptionalServiceNameID
@@ -31,7 +35,7 @@ type RootCommand struct {
 	filter          string
 	printTimestamps bool
 	jsonOutput      bool
-	batchCh         chan Batch
+	batchCh         chan batch
 	dieCh           chan struct{}
 	doneCh          chan struct{}
 }
@@ -39,9 +43,9 @@ type RootCommand struct {
 // CommandName is the string to be used to invoke this command.
 const CommandName = "debug"
 
-// NewRootCommand returns a new command registered in the parent.
-func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
-	var c RootCommand
+// NewDebugCommand returns a new command registered in the parent.
+func NewDebugCommand(parent argparser.Registerer, g *global.Data) *DebugCommand {
+	var c DebugCommand
 	c.Globals = g
 	c.CmdClause = parent.Command(CommandName, "Stream live logging endpoint errors")
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -65,7 +69,7 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 }
 
 // Exec implements the command interface.
-func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *DebugCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -77,7 +81,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.serviceID = serviceID
 
 	c.dieCh = make(chan struct{})
-	c.batchCh = make(chan Batch)
+	c.batchCh = make(chan batch)
 	c.doneCh = make(chan struct{})
 
 	text.Info(out, "Streaming logging endpoint errors for service %s\n\n", c.serviceID)
@@ -108,7 +112,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 // stream fetches error data from the API and sends it to the output loop.
-func (c *RootCommand) stream(out io.Writer) error {
+func (c *DebugCommand) stream(out io.Writer) error {
 	var curWindow *uint64
 	if c.from != 0 {
 		curWindow = &c.from
@@ -148,7 +152,7 @@ func (c *RootCommand) stream(out io.Writer) error {
 
 		// Send errors to the output loop
 		if len(resp.Errors) > 0 {
-			c.batchCh <- Batch{Errors: resp.Errors}
+			c.batchCh <- batch{Errors: resp.Errors}
 		}
 
 		// Check for next link to continue streaming
@@ -173,7 +177,7 @@ func (c *RootCommand) stream(out io.Writer) error {
 }
 
 // outputLoop processes the errors out of band from the request/response loop.
-func (c *RootCommand) outputLoop(out io.Writer) {
+func (c *DebugCommand) outputLoop(out io.Writer) {
 	for {
 		select {
 		case <-c.dieCh:
@@ -185,7 +189,7 @@ func (c *RootCommand) outputLoop(out io.Writer) {
 }
 
 // printErrors prints error entries.
-func (c *RootCommand) printErrors(out io.Writer, errors []fastly.LoggingEndpointError) {
+func (c *DebugCommand) printErrors(out io.Writer, errors []fastly.LoggingEndpointError) {
 	if len(errors) == 0 {
 		return
 	}
@@ -245,9 +249,4 @@ func (c *RootCommand) printErrors(out io.Writer, errors []fastly.LoggingEndpoint
 	if f, ok := out.(*os.File); ok {
 		_ = f.Sync()
 	}
-}
-
-// Batch wraps errors for sending to the output loop.
-type Batch struct {
-	Errors []fastly.LoggingEndpointError
 }
