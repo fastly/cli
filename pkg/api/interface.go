@@ -250,6 +250,7 @@ type Interface interface {
 	GetOriginMetricsForServiceJSON(context.Context, *fastly.GetOriginMetricsInput, any) error
 
 	CreateManagedLogging(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+	GetLoggingEndpointErrors(context.Context, *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error)
 
 	GetGeneratedVCL(context.Context, *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
 

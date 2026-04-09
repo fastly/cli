@@ -11,6 +11,7 @@
 ### Enhancements:
 
 - feat(auth): add `auth revoke` subcommand for revoking API tokens via `--current`, `--name`, `--token-value`, `--id`, or `--file` (bulk) [#1717](https://github.com/fastly/cli/pull/1717)
+- feat(service/logging/debug): add support for logging endpoint error streaming via the `service logging debug` subcommand [#1721](https://github.com/fastly/cli/pull/1721)
 - feat(stats): accept `--json` / `-j` as an alias for `--format=json` on all stats and help subcommands, matching the flag style used by the rest of the CLI [#1719](https://github.com/fastly/cli/pull/1719)
 
 ### Dependencies:
