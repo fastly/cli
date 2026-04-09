@@ -17,6 +17,10 @@
 - build(deps): `github.com/andybalholm/brotli` from 1.2.0 to 1.2.1 ([#1716](https://github.com/fastly/cli/pull/1716))
 - build(deps): `github.com/go-jose/go-jose/v3` from 3.0.4 to 3.0.5 ([#1716](https://github.com/fastly/cli/pull/1716))
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.21 to 0.0.22 ([#1716](https://github.com/fastly/cli/pull/1716))
+- build(deps): `github.com/mattn/go-isatty` from 0.0.20 to 0.0.21 ([#1720](https://github.com/fastly/cli/pull/1720))
+- build(deps): `golang.org/x/sys` from 0.42.0 to 0.43.0 ([#1720](https://github.com/fastly/cli/pull/1720))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.17.0 to 3.18.0 ([#1720](https://github.com/fastly/cli/pull/1720))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.22 to 0.0.23 ([#1720](https://github.com/fastly/cli/pull/1720))
 
 ## [v14.2.0](https://github.com/fastly/cli/releases/tag/v14.2.0) (2026-03-24)
 
