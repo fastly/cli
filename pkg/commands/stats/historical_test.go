@@ -33,6 +33,18 @@ func TestHistorical(t *testing.T) {
 			WantOutput: historicalJSONOK,
 		},
 		{
+			Name:       "success with json alias",
+			Args:       "--service-id=123 --json",
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
+			WantOutput: historicalJSONOK,
+		},
+		{
+			Name:      "verbose json combo",
+			Args:      "--service-id=123 --json --verbose",
+			API:       &mock.API{GetStatsJSONFn: getStatsJSONOK},
+			WantError: "invalid flag combination",
+		},
+		{
 			Name:            "success with field filter",
 			Args:            "--service-id=123 --field=bandwidth",
 			API:             &mock.API{GetStatsJSONFn: getStatsJSONFieldOK},

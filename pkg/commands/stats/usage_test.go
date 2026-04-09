@@ -38,6 +38,18 @@ func TestUsage(t *testing.T) {
 			wantOutput: "bandwidth",
 		},
 		{
+			name:       "success json alias",
+			args:       args("stats usage --json"),
+			api:        mock.API{GetUsageFn: getUsageOK},
+			wantOutput: "bandwidth",
+		},
+		{
+			name:      "verbose json combo",
+			args:      args("stats usage --json --verbose"),
+			api:       mock.API{GetUsageFn: getUsageOK},
+			wantError: "invalid flag combination",
+		},
+		{
 			name:       "success by-service",
 			args:       args("stats usage --by-service"),
 			api:        mock.API{GetUsageByServiceFn: getUsageByServiceOK},

@@ -37,6 +37,18 @@ func TestAggregate(t *testing.T) {
 			wantOutput: `"start_time":0`,
 		},
 		{
+			name:       "success json alias",
+			args:       args("stats aggregate --json"),
+			api:        mock.API{GetAggregateJSONFn: getAggregateJSONOK},
+			wantOutput: `"start_time":0`,
+		},
+		{
+			name:      "verbose json combo",
+			args:      args("stats aggregate --json --verbose"),
+			api:       mock.API{GetAggregateJSONFn: getAggregateJSONOK},
+			wantError: "invalid flag combination",
+		},
+		{
 			name:      "non-success status",
 			args:      args("stats aggregate"),
 			api:       mock.API{GetAggregateJSONFn: getAggregateJSONNonSuccess},

@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/argparser"
+	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
 
@@ -26,4 +27,17 @@ func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 // Exec implements the command interface.
 func (c *RootCommand) Exec(_ io.Reader, _ io.Writer) error {
 	panic("unreachable")
+}
+
+func resolveJSONFormat(formatFlag *string, jsonFlag bool, g *global.Data) error {
+	if jsonFlag {
+		*formatFlag = "json"
+	}
+	if *formatFlag == "json" {
+		g.Flags.JSON = true
+		if g.Verbose() {
+			return fsterr.ErrInvalidVerboseJSONCombo
+		}
+	}
+	return nil
 }
