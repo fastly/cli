@@ -25,7 +25,7 @@ type batch struct {
 }
 
 // DebugCommand is the command for streaming logging endpoint errors.
-type DebugCommand struct {
+type DebugCommand struct { // nolint:revive // stuttering is intentional per PR feedback
 	argparser.Base
 
 	serviceName     argparser.OptionalServiceNameID
