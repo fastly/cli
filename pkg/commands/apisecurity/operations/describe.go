@@ -7,8 +7,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v13/fastly"
-	"github.com/fastly/go-fastly/v13/fastly/apisecurity/operations"
+	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v14/fastly/apisecurity/operations"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
