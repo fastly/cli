@@ -21,6 +21,7 @@
 - build(deps): `golang.org/x/sys` from 0.42.0 to 0.43.0 ([#1720](https://github.com/fastly/cli/pull/1720))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.17.0 to 3.18.0 ([#1720](https://github.com/fastly/cli/pull/1720))
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.22 to 0.0.23 ([#1720](https://github.com/fastly/cli/pull/1720))
+- build(deps): `github.com/fastly/go-fastly/v14` from 13.1.2 to 14.2.0 ([#1722](https://github.com/fastly/cli/pull/1722))
 
 ## [v14.2.0](https://github.com/fastly/cli/releases/tag/v14.2.0) (2026-03-24)
 

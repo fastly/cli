@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly/apisecurity/operations"
+	"github.com/fastly/go-fastly/v14/fastly/apisecurity/operations"
 
 	apisecurity "github.com/fastly/cli/pkg/commands/apisecurity"
 	root "github.com/fastly/cli/pkg/commands/apisecurity/operations"
