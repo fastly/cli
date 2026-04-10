@@ -24,8 +24,8 @@ type batch struct {
 	Errors []fastly.LoggingEndpointError
 }
 
-// DebugCommand is the command for streaming logging endpoint errors.
-type DebugCommand struct { // nolint:revive // stuttering is intentional per PR feedback
+// Command is the command for streaming logging endpoint errors.
+type Command struct {
 	argparser.Base
 
 	serviceName     argparser.OptionalServiceNameID
@@ -44,8 +44,8 @@ type DebugCommand struct { // nolint:revive // stuttering is intentional per PR 
 const CommandName = "debug"
 
 // NewDebugCommand returns a new command registered in the parent.
-func NewDebugCommand(parent argparser.Registerer, g *global.Data) *DebugCommand {
-	var c DebugCommand
+func NewDebugCommand(parent argparser.Registerer, g *global.Data) *Command {
+	var c Command
 	c.Globals = g
 	c.CmdClause = parent.Command(CommandName, "Stream live logging endpoint errors")
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -69,7 +69,7 @@ func NewDebugCommand(parent argparser.Registerer, g *global.Data) *DebugCommand 
 }
 
 // Exec implements the command interface.
-func (c *DebugCommand) Exec(_ io.Reader, out io.Writer) error {
+func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (c *DebugCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 // stream fetches error data from the API and sends it to the output loop.
-func (c *DebugCommand) stream(out io.Writer) error {
+func (c *Command) stream(out io.Writer) error {
 	var curWindow *uint64
 	if c.from != 0 {
 		curWindow = &c.from
@@ -177,7 +177,7 @@ func (c *DebugCommand) stream(out io.Writer) error {
 }
 
 // outputLoop processes the errors out of band from the request/response loop.
-func (c *DebugCommand) outputLoop(out io.Writer) {
+func (c *Command) outputLoop(out io.Writer) {
 	for {
 		select {
 		case <-c.dieCh:
@@ -189,7 +189,7 @@ func (c *DebugCommand) outputLoop(out io.Writer) {
 }
 
 // printErrors prints error entries.
-func (c *DebugCommand) printErrors(out io.Writer, errors []fastly.LoggingEndpointError) {
+func (c *Command) printErrors(out io.Writer, errors []fastly.LoggingEndpointError) {
 	if len(errors) == 0 {
 		return
 	}
