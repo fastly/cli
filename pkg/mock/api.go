@@ -239,7 +239,8 @@ type API struct {
 	GetOriginMetricsForServiceFn     func(context.Context, *fastly.GetOriginMetricsInput) (*fastly.OriginInspector, error)
 	GetOriginMetricsForServiceJSONFn func(context.Context, *fastly.GetOriginMetricsInput, any) error
 
-	CreateManagedLoggingFn func(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+	CreateManagedLoggingFn     func(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+	GetLoggingEndpointErrorsFn func(context.Context, *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error)
 
 	GetGeneratedVCLFn func(context.Context, *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
 
@@ -1371,6 +1372,11 @@ func (m API) GetOriginMetricsForServiceJSON(ctx context.Context, i *fastly.GetOr
 // CreateManagedLogging implements Interface.
 func (m API) CreateManagedLogging(ctx context.Context, i *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error) {
 	return m.CreateManagedLoggingFn(ctx, i)
+}
+
+// GetLoggingEndpointErrors implements Interface.
+func (m API) GetLoggingEndpointErrors(ctx context.Context, i *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error) {
+	return m.GetLoggingEndpointErrorsFn(ctx, i)
 }
 
 // GetGeneratedVCL implements Interface.
