@@ -6,8 +6,17 @@
 
 ### Bug Fixes:
 
-- fix(vcl/condition): `--comment` flag in `condition update` now correctly sets the comment instead of overwriting the statement
-- fix(manifest): `env_file` parsing no longer rejects values containing `=` characters (e.g. `KEY=val=ue`).
+### Enhancements:
+
+### Dependencies:
+
+## [v14.3.0](https://github.com/fastly/cli/releases/tag/v14.3.0) (2026-04-10)
+
+### Bug Fixes:
+
+- fix(vcl/condition): `--comment` flag in `condition update` now correctly sets the comment instead of overwriting the statement [#1714](https://github.com/fastly/cli/pull/1714)
+- fix(manifest): `env_file` parsing no longer rejects values containing `=` characters (e.g. `KEY=val=ue`) [#1715](https://github.com/fastly/cli/pull/1715)
+
 ### Enhancements:
 
 - feat(auth): add `auth revoke` subcommand for revoking API tokens via `--current`, `--name`, `--token-value`, `--id`, or `--file` (bulk) [#1717](https://github.com/fastly/cli/pull/1717)
@@ -15,6 +24,7 @@
 - feat(stats): accept `--json` / `-j` as an alias for `--format=json` on all stats and help subcommands, matching the flag style used by the rest of the CLI [#1719](https://github.com/fastly/cli/pull/1719)
 
 ### Dependencies:
+
 - build(deps): `github.com/andybalholm/brotli` from 1.2.0 to 1.2.1 ([#1716](https://github.com/fastly/cli/pull/1716))
 - build(deps): `github.com/go-jose/go-jose/v3` from 3.0.4 to 3.0.5 ([#1716](https://github.com/fastly/cli/pull/1716))
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.21 to 0.0.22 ([#1716](https://github.com/fastly/cli/pull/1716))
@@ -35,6 +45,7 @@
 - feat(vcl/snippet): add support for the '--content' flag, allowing for the raw output of VCL.  [#1706](https://github.com/fastly/cli/pull/1706)
 
 ### Dependencies:
+
 - build(deps): `github.com/fatih/color` from 1.18.0 to 1.19.0 ([#1707](https://github.com/fastly/cli/pull/1707))
 - build(deps): `github.com/klauspost/compress` from 1.18.4 to 1.18.5 ([#1707](https://github.com/fastly/cli/pull/1707))
 
