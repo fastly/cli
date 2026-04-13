@@ -10,6 +10,12 @@
 
 ### Dependencies:
 
+## [v14.3.1](https://github.com/fastly/cli/releases/tag/v14.3.1) (2026-04-13)
+
+### Bug Fixes:
+
+- fix(publish_release): add back perms for publishing to npm [#1724](https://github.com/fastly/cli/pull/1724)
+
 ## [v14.3.0](https://github.com/fastly/cli/releases/tag/v14.3.0) (2026-04-10)
 
 ### Bug Fixes:
