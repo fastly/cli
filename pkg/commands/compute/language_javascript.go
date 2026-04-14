@@ -25,16 +25,6 @@ import (
 // This makes the experience less confusing as users didn't expect file changes.
 var JsDefaultBuildCommand = fmt.Sprintf("npm exec js-compute-runtime ./src/index.js %s", binWasmPath)
 
-// JsDefaultBuildCommandForWebpack is a build command compiled into the CLI
-// binary so it can be used as a fallback for customer's who have an existing
-// Compute project using the 'default' JS Starter Kit, and are simply upgrading
-// their CLI version and might not be familiar with the changes in the 4.0.0
-// release with regards to how build logic has moved to the fastly.toml manifest.
-//
-// NOTE: For this variation of the build script to be added to the user's
-// fastly.toml will require a successful check for the webpack dependency.
-var JsDefaultBuildCommandForWebpack = fmt.Sprintf("npm exec webpack && npm exec js-compute-runtime ./bin/index.js %s", binWasmPath)
-
 // JsSourceDirectory represents the source code directory.
 const JsSourceDirectory = "src"
 
@@ -98,14 +88,13 @@ type JavaScript struct {
 	manifestFilename string
 	// metadataFilterEnvVars is a comma-separated list of user defined env vars.
 	metadataFilterEnvVars string
-	// nodeModulesDir is the resolved path to node_modules (may be in parent dir for monorepos).
-	nodeModulesDir string
+	// nodeModulesDirs is the set of node_modules directories found walking up the tree.
+	// Supports monorepo/hoisted setups where dependencies may be split across levels.
+	nodeModulesDirs []string
 	// nonInteractive is the --non-interactive flag.
 	nonInteractive bool
 	// output is the users terminal stdout stream
 	output io.Writer
-	// pkgDir is the resolved directory containing package.json.
-	pkgDir string
 	// postBuild is a custom script executed after the build but before the Wasm
 	// binary is added to the .tar.gz archive.
 	postBuild string
@@ -176,11 +165,7 @@ func (j *JavaScript) Build() error {
 		if err := j.verifyToolchain(); err != nil {
 			return err
 		}
-		cmd, err := j.getDefaultBuildCommand()
-		if err != nil {
-			return err
-		}
-		j.build = cmd
+		j.build = j.getDefaultBuildCommand()
 		j.defaultBuild = true
 	} else if j.isDefaultBuildScript() {
 		if err := j.verifyToolchain(); err != nil {
@@ -210,56 +195,6 @@ func (j *JavaScript) Build() error {
 	}
 
 	return bt.Build()
-}
-
-func (j JavaScript) checkForWebpack() (bool, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return false, err
-	}
-
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return false, err
-	}
-
-	found, path, err := search("package.json", wd, home)
-	if err != nil {
-		return false, err
-	}
-
-	if found {
-		// gosec flagged this:
-		// G304 (CWE-22): Potential file inclusion via variable
-		//
-		// Disabling as the path is determined by our own logic.
-		/* #nosec */
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return false, err
-		}
-
-		var pkg NPMPackage
-
-		err = json.Unmarshal(data, &pkg)
-		if err != nil {
-			return false, err
-		}
-
-		for k := range pkg.DevDependencies {
-			if k == "webpack" {
-				return true, nil
-			}
-		}
-
-		for k := range pkg.Dependencies {
-			if k == "webpack" {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
 }
 
 // search recurses up the directory tree looking for the given file.
@@ -455,21 +390,24 @@ Then retry your command.`,
 	}
 }
 
-// findNodeModules searches for node_modules starting from startDir and moving up.
-// Supports monorepo/hoisted setups where node_modules is in a parent directory.
-func (j *JavaScript) findNodeModules(startDir, home string) (found bool, path string) {
+// findAllNodeModules collects every node_modules directory from startDir up to
+// (but not including) the user's home directory. The result is ordered nearest
+// first, which matches the Node.js module resolution order.
+func (j *JavaScript) findAllNodeModules(startDir, home string) []string {
+	var dirs []string
 	dir := startDir
 	for {
 		candidate := filepath.Join(dir, "node_modules")
 		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
-			return true, candidate
+			dirs = append(dirs, candidate)
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir || dir == home {
-			return false, ""
+			break
 		}
 		dir = parent
 	}
+	return dirs
 }
 
 // verifyDependencies checks that package.json and node_modules exist.
@@ -508,9 +446,9 @@ Then retry your command.`, initCmd, installCmd),
 		}
 	}
 
-	j.pkgDir = filepath.Dir(pkgPath)
-	nodeModulesFound, nodeModulesPath := j.findNodeModules(j.pkgDir, home)
-	if !nodeModulesFound {
+	pkgDir := filepath.Dir(pkgPath)
+	j.nodeModulesDirs = j.findAllNodeModules(pkgDir, home)
+	if len(j.nodeModulesDirs) == 0 {
 		installCmd := "npm install"
 		if j.runtime != nil && j.runtime.PkgMgr == "bun" {
 			installCmd = "bun install"
@@ -525,79 +463,40 @@ This will install all dependencies from package.json.
 Then retry your command.`, installCmd),
 		}
 	}
-	j.nodeModulesDir = nodeModulesPath
 
 	if j.verbose {
 		text.Info(j.output, "Found package.json at %s\n", pkgPath)
-		text.Info(j.output, "Found node_modules at %s\n", nodeModulesPath)
+		for _, d := range j.nodeModulesDirs {
+			text.Info(j.output, "Found node_modules at %s\n", d)
+		}
 	}
 	return nil
 }
 
-// verifyWebpackInstalled checks that webpack is installed if used.
-func (j *JavaScript) verifyWebpackInstalled() error {
-	hasWebpack, err := j.checkForWebpack()
-	if err != nil {
-		return fmt.Errorf("failed to check for webpack in package.json: %w", err)
-	}
-	if !hasWebpack {
-		return nil
-	}
-
-	binDir := filepath.Join(j.nodeModulesDir, ".bin")
-	for _, name := range []string{"webpack", "webpack.cmd"} {
-		if _, err := os.Stat(filepath.Join(binDir, name)); err == nil {
+// verifyJsComputeRuntime checks that @fastly/js-compute is installed.
+func (j *JavaScript) verifyJsComputeRuntime() error {
+	for _, nmDir := range j.nodeModulesDirs {
+		runtimePath := filepath.Join(nmDir, "@fastly", "js-compute")
+		if _, err := os.Stat(runtimePath); err == nil {
 			if j.verbose {
-				text.Info(j.output, "Found webpack in node_modules\n")
+				text.Info(j.output, "Found @fastly/js-compute runtime in %s\n", nmDir)
 			}
 			return nil
 		}
 	}
-
-	installCmd := "npm install"
-	installSpecific := "npm install webpack webpack-cli --save-dev"
-	verifyCmd := "npx webpack --version"
-	bunTip := ""
+	installCmd := "npm install @fastly/js-compute"
 	if j.runtime != nil && j.runtime.PkgMgr == "bun" {
-		installCmd = "bun install"
-		installSpecific = "bun add -d webpack webpack-cli"
-		verifyCmd = "bunx webpack --version"
-		bunTip = "\n\nTip: Bun has a built-in bundler. You may not need webpack at all."
+		installCmd = "bun add @fastly/js-compute"
 	}
 	return fsterr.RemediationError{
-		Inner: fmt.Errorf("webpack is listed in package.json but not installed"),
-		Remediation: fmt.Sprintf(`Your project uses webpack but it's not installed.
-
-Run: %s
-Or specifically: %s
-Verify with: %s
-
-Then retry your command.%s`, installCmd, installSpecific, verifyCmd, bunTip),
-	}
-}
-
-// verifyJsComputeRuntime checks that @fastly/js-compute is installed.
-func (j *JavaScript) verifyJsComputeRuntime() error {
-	runtimePath := filepath.Join(j.nodeModulesDir, "@fastly", "js-compute")
-	if _, err := os.Stat(runtimePath); os.IsNotExist(err) {
-		installCmd := "npm install @fastly/js-compute"
-		if j.runtime != nil && j.runtime.PkgMgr == "bun" {
-			installCmd = "bun add @fastly/js-compute"
-		}
-		return fsterr.RemediationError{
-			Inner: fmt.Errorf("@fastly/js-compute package not found"),
-			Remediation: fmt.Sprintf(`The Fastly JavaScript Compute runtime is not installed.
+		Inner: fmt.Errorf("@fastly/js-compute package not found"),
+		Remediation: fmt.Sprintf(`The Fastly JavaScript Compute runtime is not installed.
 
 Run: %s
 
 This package is required to compile JavaScript for Fastly Compute.
 Then retry your command.`, installCmd),
-		}
 	}
-	if j.verbose {
-		text.Info(j.output, "Found @fastly/js-compute runtime\n")
-	}
-	return nil
 }
 
 // verifyToolchain checks that a JavaScript runtime is installed and accessible.
@@ -613,9 +512,6 @@ func (j *JavaScript) verifyToolchain() error {
 	if err := j.verifyDependencies(); err != nil {
 		return err
 	}
-	if err := j.verifyWebpackInstalled(); err != nil {
-		return err
-	}
 	if err := j.verifyJsComputeRuntime(); err != nil {
 		return err
 	}
@@ -623,19 +519,9 @@ func (j *JavaScript) verifyToolchain() error {
 }
 
 // getDefaultBuildCommand returns the appropriate build command for the detected runtime.
-func (j *JavaScript) getDefaultBuildCommand() (string, error) {
-	hasWebpack, err := j.checkForWebpack()
-	if err != nil {
-		return "", err
-	}
+func (j *JavaScript) getDefaultBuildCommand() string {
 	if j.runtime != nil && j.runtime.PkgMgr == "bun" {
-		if hasWebpack {
-			return fmt.Sprintf("bunx webpack && bunx js-compute-runtime ./bin/index.js %s", binWasmPath), nil
-		}
-		return fmt.Sprintf("bunx js-compute-runtime ./src/index.js %s", binWasmPath), nil
+		return fmt.Sprintf("bunx js-compute-runtime ./src/index.js %s", binWasmPath)
 	}
-	if hasWebpack {
-		return JsDefaultBuildCommandForWebpack, nil
-	}
-	return JsDefaultBuildCommand, nil
+	return JsDefaultBuildCommand
 }

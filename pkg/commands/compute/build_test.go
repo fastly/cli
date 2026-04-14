@@ -549,7 +549,7 @@ func TestBuildJavaScript(t *testing.T) {
 			language = "javascript"
 
       [scripts]
-      build = "%s"`, compute.JsDefaultBuildCommandForWebpack),
+      build = "%s"`, compute.JsDefaultBuildCommand),
 			wantOutput: []string{
 				"Creating ./bin directory (for Wasm binary)",
 				"Built package",
@@ -592,7 +592,6 @@ func TestBuildJavaScript(t *testing.T) {
 				T: t,
 				Copy: []testutil.FileIO{
 					{Src: filepath.Join("testdata", "build", "javascript", "package.json"), Dst: "package.json"},
-					{Src: filepath.Join("testdata", "build", "javascript", "webpack.config.js"), Dst: "webpack.config.js"},
 					{Src: filepath.Join("testdata", "build", "javascript", "src", "index.js"), Dst: filepath.Join("src", "index.js")},
 				},
 				Write: []testutil.FileIO{

@@ -346,44 +346,50 @@ func TestJavaScript_detectRuntime_NodeMissingNpm(t *testing.T) {
 	}
 }
 
-func TestJavaScript_findNodeModules(t *testing.T) {
-	// Create directory structure: project/subdir with node_modules in project
+func TestJavaScript_findAllNodeModules(t *testing.T) {
+	// Create directory structure:
+	// tmpDir/project/node_modules (parent)
+	// tmpDir/project/subdir/node_modules (child)
 	tmpDir := t.TempDir()
 	projectDir := filepath.Join(tmpDir, "project")
 	subDir := filepath.Join(projectDir, "subdir")
-	nodeModulesDir := filepath.Join(projectDir, "node_modules")
+	parentNM := filepath.Join(projectDir, "node_modules")
+	childNM := filepath.Join(subDir, "node_modules")
 
-	if err := os.MkdirAll(subDir, 0o755); err != nil {
+	if err := os.MkdirAll(childNM, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(nodeModulesDir, 0o755); err != nil {
+	if err := os.MkdirAll(parentNM, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
 	j := &JavaScript{}
 
-	// Should find node_modules in parent directory
-	found, path := j.findNodeModules(subDir, tmpDir)
-	if !found {
-		t.Error("expected to find node_modules")
+	// From subDir should find both, nearest first
+	dirs := j.findAllNodeModules(subDir, tmpDir)
+	if len(dirs) != 2 {
+		t.Fatalf("expected 2 node_modules dirs, got %d: %v", len(dirs), dirs)
 	}
-	if path != nodeModulesDir {
-		t.Errorf("expected path %q, got %q", nodeModulesDir, path)
+	if dirs[0] != childNM {
+		t.Errorf("expected first dir %q, got %q", childNM, dirs[0])
+	}
+	if dirs[1] != parentNM {
+		t.Errorf("expected second dir %q, got %q", parentNM, dirs[1])
 	}
 
-	// Should find node_modules in current directory
-	found, path = j.findNodeModules(projectDir, tmpDir)
-	if !found {
-		t.Error("expected to find node_modules")
+	// From projectDir should find only one
+	dirs = j.findAllNodeModules(projectDir, tmpDir)
+	if len(dirs) != 1 {
+		t.Fatalf("expected 1 node_modules dir, got %d: %v", len(dirs), dirs)
 	}
-	if path != nodeModulesDir {
-		t.Errorf("expected path %q, got %q", nodeModulesDir, path)
+	if dirs[0] != parentNM {
+		t.Errorf("expected path %q, got %q", parentNM, dirs[0])
 	}
 
 	// Should not find node_modules above home
-	found, _ = j.findNodeModules(tmpDir, tmpDir)
-	if found {
-		t.Error("expected not to find node_modules above home")
+	dirs = j.findAllNodeModules(tmpDir, tmpDir)
+	if len(dirs) != 0 {
+		t.Errorf("expected no node_modules dirs, got %v", dirs)
 	}
 }
 
@@ -462,10 +468,10 @@ func TestJavaScript_verifyJsComputeRuntime_NotInstalled(t *testing.T) {
 	}
 
 	j := &JavaScript{
-		output:         &bytes.Buffer{},
-		verbose:        false,
-		nodeModulesDir: nodeModulesDir,
-		runtime:        &JSRuntime{Name: "node", PkgMgr: "npm"},
+		output:          &bytes.Buffer{},
+		verbose:         false,
+		nodeModulesDirs: []string{nodeModulesDir},
+		runtime:         &JSRuntime{Name: "node", PkgMgr: "npm"},
 	}
 
 	err := j.verifyJsComputeRuntime()
@@ -488,15 +494,41 @@ func TestJavaScript_verifyJsComputeRuntime_Installed(t *testing.T) {
 	}
 
 	j := &JavaScript{
-		output:         &bytes.Buffer{},
-		verbose:        false,
-		nodeModulesDir: nodeModulesDir,
-		runtime:        &JSRuntime{Name: "node", PkgMgr: "npm"},
+		output:          &bytes.Buffer{},
+		verbose:         false,
+		nodeModulesDirs: []string{nodeModulesDir},
+		runtime:         &JSRuntime{Name: "node", PkgMgr: "npm"},
 	}
 
 	err := j.verifyJsComputeRuntime()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestJavaScript_verifyJsComputeRuntime_InParentNodeModules(t *testing.T) {
+	// Monorepo: @fastly/js-compute is hoisted to root node_modules
+	tmpDir := t.TempDir()
+	rootNM := filepath.Join(tmpDir, "node_modules")
+	childNM := filepath.Join(tmpDir, "app", "node_modules")
+	runtimeDir := filepath.Join(rootNM, "@fastly", "js-compute")
+	if err := os.MkdirAll(runtimeDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(childNM, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	j := &JavaScript{
+		output:          &bytes.Buffer{},
+		verbose:         false,
+		nodeModulesDirs: []string{childNM, rootNM},
+		runtime:         &JSRuntime{Name: "node", PkgMgr: "npm"},
+	}
+
+	err := j.verifyJsComputeRuntime()
+	if err != nil {
+		t.Fatalf("expected to find @fastly/js-compute in parent node_modules: %v", err)
 	}
 }
 
@@ -520,89 +552,23 @@ func TestJavaScript_isDefaultBuildScript(t *testing.T) {
 	}
 }
 
-func TestJavaScript_getDefaultBuildCommand_NodeWithWebpack(t *testing.T) {
-	tmpDir := t.TempDir()
-	// #nosec G306
-	if err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(`{"devDependencies":{"webpack":"5.0.0"}}`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	originalWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(originalWd) }()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatal(err)
-	}
-
+func TestJavaScript_getDefaultBuildCommand_Node(t *testing.T) {
 	j := &JavaScript{
-		output:  &bytes.Buffer{},
-		verbose: false,
 		runtime: &JSRuntime{Name: "node", PkgMgr: "npm"},
 	}
 
-	cmd, err := j.getDefaultBuildCommand()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if cmd != JsDefaultBuildCommandForWebpack {
-		t.Errorf("expected webpack command, got %q", cmd)
-	}
-}
-
-func TestJavaScript_getDefaultBuildCommand_NodeNoWebpack(t *testing.T) {
-	tmpDir := t.TempDir()
-	// #nosec G306
-	if err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(`{}`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	originalWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(originalWd) }()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatal(err)
-	}
-
-	j := &JavaScript{
-		output:  &bytes.Buffer{},
-		verbose: false,
-		runtime: &JSRuntime{Name: "node", PkgMgr: "npm"},
-	}
-
-	cmd, err := j.getDefaultBuildCommand()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
+	cmd := j.getDefaultBuildCommand()
 	if cmd != JsDefaultBuildCommand {
 		t.Errorf("expected default command, got %q", cmd)
 	}
 }
 
 func TestJavaScript_getDefaultBuildCommand_Bun(t *testing.T) {
-	tmpDir := t.TempDir()
-	// #nosec G306
-	if err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(`{}`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	originalWd, _ := os.Getwd()
-	defer func() { _ = os.Chdir(originalWd) }()
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatal(err)
-	}
-
 	j := &JavaScript{
-		output:  &bytes.Buffer{},
-		verbose: false,
 		runtime: &JSRuntime{Name: "bun", PkgMgr: "bun"},
 	}
 
-	cmd, err := j.getDefaultBuildCommand()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	// Should use bunx instead of npm exec
+	cmd := j.getDefaultBuildCommand()
 	if cmd == JsDefaultBuildCommand {
 		t.Errorf("expected bun command, got npm command %q", cmd)
 	}
