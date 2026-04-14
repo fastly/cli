@@ -40,18 +40,17 @@ type checkResult struct {
 
 // CheckAsync is a helper function for running Check asynchronously.
 //
-// Launches a goroutine to perform a check for the latest CLI version using the
-// provided context and return a function that will print an informative message
-// to the writer if there is a newer version available.
+// Launches a goroutine to perform a check for the latest CLI version and
+// returns a function that will print an informative message to the writer if
+// there is a newer version available.
 //
 // Callers should invoke CheckAsync via
 //
 //	f := CheckAsync(...)
-//	defer f()
+//	defer f(w)
 func CheckAsync(
 	currentVersion string,
 	av github.AssetVersioner,
-	quietMode bool,
 ) (printResults func(io.Writer)) {
 	results := make(chan checkResult, 1)
 	go func() {
@@ -61,7 +60,7 @@ func CheckAsync(
 
 	return func(w io.Writer) {
 		result := <-results
-		if result.shouldUpdate && !quietMode {
+		if result.shouldUpdate {
 			fmt.Fprintf(w, "\n")
 			fmt.Fprintf(w, "A new version of the Fastly CLI is available.\n")
 			fmt.Fprintf(w, "Current version: %s\n", result.current)

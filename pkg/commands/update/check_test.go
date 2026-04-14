@@ -102,7 +102,6 @@ func TestCheckAsync(t *testing.T) {
 			f := update.CheckAsync(
 				testcase.currentVersion,
 				testcase.av,
-				false,
 			)
 			f(&buf)
 

@@ -3,15 +3,21 @@ package app_test
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"encoding/json"
 	"io"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/fastly/go-fastly/v14/fastly"
+
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
+	"github.com/fastly/cli/pkg/mock"
+	"github.com/fastly/cli/pkg/revision"
 	"github.com/fastly/cli/pkg/testutil"
 )
 
@@ -206,6 +212,65 @@ func TestExecJSONLeavesStdoutCleanAndWritesWarningToStderr(t *testing.T) {
 	}
 	if !strings.Contains(stderr.String(), "expires in") {
 		t.Errorf("expected expiry warning on stderr, got: %s", stderr.String())
+	}
+}
+
+// TestStatsJSONSuppressesUpdateNotice verifies that --json and --format=json on
+// stats commands suppress the deferred update-check notice, keeping stdout as
+// clean JSON. This is the regression test for the timing bug where
+// data.Flags.JSON was set inside Exec but the update check captured the flag
+// value before Exec ran.
+func TestStatsJSONSuppressesUpdateNotice(t *testing.T) {
+	origVersion := revision.AppVersion
+	revision.AppVersion = "0.0.1"
+	t.Cleanup(func() { revision.AppVersion = origVersion })
+
+	aggregateOK := func(_ context.Context, _ *fastly.GetAggregateInput, o any) error {
+		msg := []byte(`{"status":"success","meta":{},"msg":null,"data":[{"start_time":0}]}`)
+		return json.Unmarshal(msg, o)
+	}
+
+	for _, flag := range []string{"--json", "--format=json"} {
+		t.Run(flag, func(t *testing.T) {
+			var stdout bytes.Buffer
+			args := testutil.SplitArgs("stats aggregate " + flag)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				data := testutil.MockGlobalData(args, &stdout)
+				data.APIClientFactory = mock.APIClient(mock.API{
+					GetAggregateJSONFn: aggregateOK,
+				})
+				data.Versioners.CLI = mock.AssetVersioner{AssetVersion: "99.0.0"}
+				return data, nil
+			}
+			err := app.Run(args, nil)
+			if err != nil {
+				t.Fatalf("app.Run returned unexpected error: %v", err)
+			}
+			if strings.Contains(stdout.String(), "new version") {
+				t.Errorf("update notice should be suppressed in JSON mode, got: %s", stdout.String())
+			}
+		})
+	}
+}
+
+// TestHelpJSON verifies that `help --json` takes the same early-exit path as
+// `help --format=json`.
+func TestHelpJSON(t *testing.T) {
+	for _, flag := range []string{"--json", "--format=json", "--format json"} {
+		t.Run(flag, func(t *testing.T) {
+			var stdout bytes.Buffer
+			args := testutil.SplitArgs("help " + flag)
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(args, &stdout), nil
+			}
+			err := app.Run(args, nil)
+			if err != nil {
+				t.Fatalf("app.Run returned unexpected error: %v", err)
+			}
+			if !strings.Contains(stdout.String(), `"commands"`) {
+				t.Errorf("expected JSON usage output containing \"commands\", got: %s", stdout.String())
+			}
+		})
 	}
 }
 

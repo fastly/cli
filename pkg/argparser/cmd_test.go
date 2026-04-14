@@ -45,6 +45,58 @@ func TestIsGlobalFlagsOnly(t *testing.T) {
 	}
 }
 
+func TestArgsIsHelpJSON(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want bool
+	}{
+		{
+			name: "help --format=json",
+			args: []string{"help", "--format=json"},
+			want: true,
+		},
+		{
+			name: "help --format json",
+			args: []string{"help", "--format", "json"},
+			want: true,
+		},
+		{
+			name: "help --json",
+			args: []string{"help", "--json"},
+			want: true,
+		},
+		{
+			name: "help only",
+			args: []string{"help"},
+			want: false,
+		},
+		{
+			name: "help --format=yaml",
+			args: []string{"help", "--format=yaml"},
+			want: false,
+		},
+		{
+			name: "help --json extra",
+			args: []string{"help", "--json", "extra"},
+			want: false,
+		},
+		{
+			name: "empty",
+			args: []string{},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := argparser.ArgsIsHelpJSON(tt.args); got != tt.want {
+				t.Errorf("ArgsIsHelpJSON(%v) = %v, want %v", tt.args, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsGlobalFlagsOnlyDisabledAuth(t *testing.T) {
 	t.Setenv(env.DisableAuthCommand, "1")
 

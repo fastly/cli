@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v14/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -19,6 +19,7 @@ type AggregateCommand struct {
 	by         string
 	formatFlag string
 	from       string
+	jsonFlag   bool
 	region     string
 	to         string
 }
@@ -35,13 +36,18 @@ func NewAggregateCommand(parent argparser.Registerer, g *global.Data) *Aggregate
 	c.CmdClause.Flag("to", "End time").StringVar(&c.to)
 	c.CmdClause.Flag("by", "Aggregation period (minute/hour/day)").EnumVar(&c.by, "minute", "hour", "day")
 	c.CmdClause.Flag("region", "Filter by region ('stats regions' to list)").StringVar(&c.region)
-	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
 
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *AggregateCommand) Exec(_ io.Reader, out io.Writer) error {
+	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+		return err
+	}
+
 	input := fastly.GetAggregateInput{}
 	if c.by != "" {
 		input.By = &c.by

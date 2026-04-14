@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v14/fastly"
 
 	"github.com/fastly/kingpin"
 
@@ -263,11 +263,11 @@ func DisplayServiceID(sid, flag string, s manifest.Source, out io.Writer) {
 }
 
 // ArgsIsHelpJSON determines whether the supplied command arguments are exactly
-// `help --format=json` or `help --format json`.
+// `help --format=json`, `help --format json`, or `help --json`.
 func ArgsIsHelpJSON(args []string) bool {
 	switch len(args) {
 	case 2:
-		if args[0] == "help" && args[1] == "--format=json" {
+		if args[0] == "help" && (args[1] == "--format=json" || args[1] == "--json") {
 			return true
 		}
 	case 3:

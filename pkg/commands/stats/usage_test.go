@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v14/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -36,6 +36,18 @@ func TestUsage(t *testing.T) {
 			args:       args("stats usage --format=json"),
 			api:        mock.API{GetUsageFn: getUsageOK},
 			wantOutput: "bandwidth",
+		},
+		{
+			name:       "success json alias",
+			args:       args("stats usage --json"),
+			api:        mock.API{GetUsageFn: getUsageOK},
+			wantOutput: "bandwidth",
+		},
+		{
+			name:      "verbose json combo",
+			args:      args("stats usage --json --verbose"),
+			api:       mock.API{GetUsageFn: getUsageOK},
+			wantError: "invalid flag combination",
 		},
 		{
 			name:       "success by-service",

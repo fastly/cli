@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v14/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
@@ -19,6 +19,7 @@ type RealtimeCommand struct {
 	argparser.Base
 
 	formatFlag  string
+	jsonFlag    bool
 	serviceName argparser.OptionalServiceNameID
 }
 
@@ -43,13 +44,18 @@ func NewRealtimeCommand(parent argparser.Registerer, g *global.Data) *RealtimeCo
 		Dst:         &c.serviceName.Value,
 	})
 
-	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
 
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *RealtimeCommand) Exec(_ io.Reader, out io.Writer) error {
+	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+		return err
+	}
+
 	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err

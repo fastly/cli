@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v14/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -26,6 +26,7 @@ type DomainInspectorCommand struct {
 	formatFlag  string
 	from        string
 	groupBy     []string
+	jsonFlag    bool
 	limit       int
 	metrics     []string
 	regions     []string
@@ -64,13 +65,18 @@ func NewDomainInspectorCommand(parent argparser.Registerer, g *global.Data) *Dom
 	c.CmdClause.Flag("group-by", "Dimensions to group by (repeatable)").StringsVar(&c.groupBy)
 	c.CmdClause.Flag("limit", "Max entries to return").IntVar(&c.limit)
 	c.CmdClause.Flag("cursor", "Pagination cursor from a previous response").StringVar(&c.cursor)
-	c.CmdClause.Flag("format", "Output format (json)").EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("format", "Output format (json)").Hidden().EnumVar(&c.formatFlag, "json")
+	c.CmdClause.Flag("json", argparser.FlagJSONDesc).Short('j').BoolVar(&c.jsonFlag)
 
 	return &c
 }
 
 // Exec implements the command interface.
 func (c *DomainInspectorCommand) Exec(_ io.Reader, out io.Writer) error {
+	if err := resolveJSONFormat(&c.formatFlag, c.jsonFlag, c.Globals); err != nil {
+		return err
+	}
+
 	serviceID, source, flag, err := argparser.ServiceID(c.serviceName, *c.Globals.Manifest, c.Globals.APIClient, c.Globals.ErrLog)
 	if err != nil {
 		return err

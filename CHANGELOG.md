@@ -6,15 +6,44 @@
 
 ### Bug Fixes:
 
-- fix(vcl/condition): `--comment` flag in `condition update` now correctly sets the comment instead of overwriting the statement
-- fix(manifest): `env_file` parsing no longer rejects values containing `=` characters (e.g. `KEY=val=ue`).
-
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `golang.org/x/term` from 0.41.0 to 0.42.0 ([#1726](https://github.com/fastly/cli/pull/1726))
+- build(deps): `golang.org/x/crypto` from 0.49.0 to 0.50.0 ([#1726](https://github.com/fastly/cli/pull/1726))
+- build(deps): `golang.org/x/mod` from 0.34.0 to 0.35.0 ([#1726](https://github.com/fastly/cli/pull/1726))
+- build(deps): `golang.org/x/net` from 0.52.0 to 0.53.0 ([#1726](https://github.com/fastly/cli/pull/1726))
+- build(deps): `golang.org/x/text` from 0.35.0 to 0.36.0 ([#1726](https://github.com/fastly/cli/pull/1726))
+
+## [v14.3.1](https://github.com/fastly/cli/releases/tag/v14.3.1) (2026-04-13)
+
+### Bug Fixes:
+
+- fix(publish_release): add back perms for publishing to npm [#1724](https://github.com/fastly/cli/pull/1724)
+
+## [v14.3.0](https://github.com/fastly/cli/releases/tag/v14.3.0) (2026-04-10)
+
+### Bug Fixes:
+
+- fix(vcl/condition): `--comment` flag in `condition update` now correctly sets the comment instead of overwriting the statement [#1714](https://github.com/fastly/cli/pull/1714)
+- fix(manifest): `env_file` parsing no longer rejects values containing `=` characters (e.g. `KEY=val=ue`) [#1715](https://github.com/fastly/cli/pull/1715)
+
+### Enhancements:
+
+- feat(auth): add `auth revoke` subcommand for revoking API tokens via `--current`, `--name`, `--token-value`, `--id`, or `--file` (bulk) [#1717](https://github.com/fastly/cli/pull/1717)
+- feat(service/logging/debug): add support for logging endpoint error streaming via the `service logging debug` subcommand [#1721](https://github.com/fastly/cli/pull/1721)
+- feat(stats): accept `--json` / `-j` as an alias for `--format=json` on all stats and help subcommands, matching the flag style used by the rest of the CLI [#1719](https://github.com/fastly/cli/pull/1719)
+
+### Dependencies:
+
 - build(deps): `github.com/andybalholm/brotli` from 1.2.0 to 1.2.1 ([#1716](https://github.com/fastly/cli/pull/1716))
 - build(deps): `github.com/go-jose/go-jose/v3` from 3.0.4 to 3.0.5 ([#1716](https://github.com/fastly/cli/pull/1716))
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.21 to 0.0.22 ([#1716](https://github.com/fastly/cli/pull/1716))
+- build(deps): `github.com/mattn/go-isatty` from 0.0.20 to 0.0.21 ([#1720](https://github.com/fastly/cli/pull/1720))
+- build(deps): `golang.org/x/sys` from 0.42.0 to 0.43.0 ([#1720](https://github.com/fastly/cli/pull/1720))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.17.0 to 3.18.0 ([#1720](https://github.com/fastly/cli/pull/1720))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.22 to 0.0.23 ([#1720](https://github.com/fastly/cli/pull/1720))
+- build(deps): `github.com/fastly/go-fastly/v14` from 13.1.2 to 14.2.0 ([#1722](https://github.com/fastly/cli/pull/1722))
 
 ## [v14.2.0](https://github.com/fastly/cli/releases/tag/v14.2.0) (2026-03-24)
 
@@ -27,6 +56,7 @@
 - feat(vcl/snippet): add support for the '--content' flag, allowing for the raw output of VCL.  [#1706](https://github.com/fastly/cli/pull/1706)
 
 ### Dependencies:
+
 - build(deps): `github.com/fatih/color` from 1.18.0 to 1.19.0 ([#1707](https://github.com/fastly/cli/pull/1707))
 - build(deps): `github.com/klauspost/compress` from 1.18.4 to 1.18.5 ([#1707](https://github.com/fastly/cli/pull/1707))
 

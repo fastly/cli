@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v14/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/stats"
 	"github.com/fastly/cli/pkg/mock"
@@ -31,6 +31,18 @@ func TestHistorical(t *testing.T) {
 			Args:       "--service-id=123 --format=json",
 			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
 			WantOutput: historicalJSONOK,
+		},
+		{
+			Name:       "success with json alias",
+			Args:       "--service-id=123 --json",
+			API:        &mock.API{GetStatsJSONFn: getStatsJSONOK},
+			WantOutput: historicalJSONOK,
+		},
+		{
+			Name:      "verbose json combo",
+			Args:      "--service-id=123 --json --verbose",
+			API:       &mock.API{GetStatsJSONFn: getStatsJSONOK},
+			WantError: "invalid flag combination",
 		},
 		{
 			Name:            "success with field filter",

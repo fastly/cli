@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v14/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -41,6 +41,20 @@ func TestDomainInspector(t *testing.T) {
 				GetDomainMetricsForServiceJSONFn: getDomainMetricsJSONOK,
 			},
 			wantOutput: "status",
+		},
+		{
+			name: "success json alias",
+			args: args("stats domain-inspector --service-id 123 --json"),
+			api: mock.API{
+				GetDomainMetricsForServiceJSONFn: getDomainMetricsJSONOK,
+			},
+			wantOutput: "status",
+		},
+		{
+			name:      "verbose json combo",
+			args:      args("stats domain-inspector --service-id 123 --json --verbose"),
+			api:       mock.API{},
+			wantError: "invalid flag combination",
 		},
 		{
 			name: "non-success status",

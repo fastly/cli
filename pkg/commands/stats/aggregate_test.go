@@ -7,7 +7,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v14/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -35,6 +35,18 @@ func TestAggregate(t *testing.T) {
 			args:       args("stats aggregate --format=json"),
 			api:        mock.API{GetAggregateJSONFn: getAggregateJSONOK},
 			wantOutput: `"start_time":0`,
+		},
+		{
+			name:       "success json alias",
+			args:       args("stats aggregate --json"),
+			api:        mock.API{GetAggregateJSONFn: getAggregateJSONOK},
+			wantOutput: `"start_time":0`,
+		},
+		{
+			name:      "verbose json combo",
+			args:      args("stats aggregate --json --verbose"),
+			api:       mock.API{GetAggregateJSONFn: getAggregateJSONOK},
+			wantError: "invalid flag combination",
 		},
 		{
 			name:      "non-success status",

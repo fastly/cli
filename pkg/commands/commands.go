@@ -121,6 +121,7 @@ import (
 	serviceloggingbigquery "github.com/fastly/cli/pkg/commands/service/logging/bigquery"
 	serviceloggingcloudfiles "github.com/fastly/cli/pkg/commands/service/logging/cloudfiles"
 	serviceloggingdatadog "github.com/fastly/cli/pkg/commands/service/logging/datadog"
+	serviceloggingdebug "github.com/fastly/cli/pkg/commands/service/logging/debug"
 	serviceloggingdigitalocean "github.com/fastly/cli/pkg/commands/service/logging/digitalocean"
 	serviceloggingelasticsearch "github.com/fastly/cli/pkg/commands/service/logging/elasticsearch"
 	serviceloggingftp "github.com/fastly/cli/pkg/commands/service/logging/ftp"
@@ -201,10 +202,11 @@ func Define( // nolint:revive // function-length
 		authList := authcmd.NewListCommand(authCmdRoot.CmdClause, data)
 		authShow := authcmd.NewShowCommand(authCmdRoot.CmdClause, data)
 		authUse := authcmd.NewUseCommand(authCmdRoot.CmdClause, data)
+		authRevoke := authcmd.NewRevokeCommand(authCmdRoot.CmdClause, data)
 		authToken := authcmd.NewTokenCommand(authCmdRoot.CmdClause, data)
 		authCommands = []argparser.Command{
 			authCmdRoot, authLogin, authAdd, authDelete,
-			authList, authShow, authUse, authToken,
+			authList, authShow, authUse, authRevoke, authToken,
 		}
 
 		authtokenCmdRoot := authtoken.NewRootCommand(app, data)
@@ -549,6 +551,7 @@ func Define( // nolint:revive // function-length
 	servicevclSnippetList := servicevclsnippet.NewListCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	serviceloggingCmdRoot := servicelogging.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceloggingDebugCmd := serviceloggingdebug.NewDebugCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingAzureblobCmdRoot := serviceloggingazureblob.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingAzureblobCreate := serviceloggingazureblob.NewCreateCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
 	serviceloggingAzureblobDelete := serviceloggingazureblob.NewDeleteCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
@@ -1171,6 +1174,7 @@ func Define( // nolint:revive // function-length
 		kvstoreentryDescribe,
 		kvstoreentryList,
 		logtailCmdRoot,
+		serviceloggingDebugCmd,
 		serviceloggingAzureblobCmdRoot,
 		serviceloggingAzureblobCreate,
 		serviceloggingAzureblobDelete,
