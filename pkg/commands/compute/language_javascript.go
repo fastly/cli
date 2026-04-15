@@ -25,6 +25,9 @@ import (
 // This makes the experience less confusing as users didn't expect file changes.
 var JsDefaultBuildCommand = fmt.Sprintf("npm exec js-compute-runtime ./src/index.js %s", binWasmPath)
 
+// BunDefaultBuildCommand is the default build command when Bun is the detected runtime.
+var BunDefaultBuildCommand = fmt.Sprintf("bunx js-compute-runtime ./src/index.js %s", binWasmPath)
+
 // JsSourceDirectory represents the source code directory.
 const JsSourceDirectory = "src"
 
@@ -521,7 +524,7 @@ func (j *JavaScript) verifyToolchain() error {
 // getDefaultBuildCommand returns the appropriate build command for the detected runtime.
 func (j *JavaScript) getDefaultBuildCommand() string {
 	if j.runtime != nil && j.runtime.PkgMgr == "bun" {
-		return fmt.Sprintf("bunx js-compute-runtime ./src/index.js %s", binWasmPath)
+		return BunDefaultBuildCommand
 	}
 	return JsDefaultBuildCommand
 }
