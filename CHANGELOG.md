@@ -13,6 +13,8 @@
 
 ### Enhancements:
 
+- feat(compute): add support for cpp for compute ([#1773](https://github.com/fastly/cli/pull/1773))
+
 ### Dependencies:
 - build(deps): `golang.org/x/term` from 0.41.0 to 0.42.0 ([#1726](https://github.com/fastly/cli/pull/1726))
 - build(deps): `golang.org/x/crypto` from 0.49.0 to 0.50.0 ([#1726](https://github.com/fastly/cli/pull/1726))

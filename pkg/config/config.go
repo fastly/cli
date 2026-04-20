@@ -104,6 +104,7 @@ type Versioner struct {
 
 // Language represents Compute language specific configuration.
 type Language struct {
+	CPP  CPP  `toml:"cpp"`
 	Go   Go   `toml:"go"`
 	Rust Rust `toml:"rust"`
 }
@@ -134,6 +135,16 @@ type Rust struct {
 	ToolchainConstraint string `toml:"toolchain_constraint"`
 
 	// WasmWasiTarget is the Rust compilation target for Wasi capable Wasm.
+	WasmWasiTarget string `toml:"wasm_wasi_target"`
+}
+
+// CPP represents C++ Compute language specific configuration.
+type CPP struct {
+	// ToolchainConstraint is the `clang++` toolchain constraint for the compiler
+	// that we support (a range is expected, e.g. >= 14.0.0).
+	ToolchainConstraint string `toml:"toolchain_constraint"`
+
+	// WasmWasiTarget is the C++ compilation target for Wasi capable Wasm.
 	WasmWasiTarget string `toml:"wasm_wasi_target"`
 }
 
@@ -168,6 +179,7 @@ type Profile struct {
 
 // StarterKitLanguages represents language specific starter kits.
 type StarterKitLanguages struct {
+	CPP        []StarterKit `toml:"cpp"`
 	Go         []StarterKit `toml:"go"`
 	JavaScript []StarterKit `toml:"javascript"`
 	Rust       []StarterKit `toml:"rust"`
