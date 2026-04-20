@@ -184,10 +184,6 @@ var ComputeBuildRemediation = strings.Join([]string{
 	"See more at https://www.fastly.com/documentation/reference/compute/fastly-toml",
 }, " ")
 
-// ComputeTrialRemediation suggests contacting customer manager to enable the
-// free trial feature flag.
-var ComputeTrialRemediation = "For more help with this error see fastly.help/cli/ecp-feature"
-
 // ProfileRemediation suggests running auth commands.
 func ProfileRemediation() string {
 	if env.AuthCommandDisabled() {

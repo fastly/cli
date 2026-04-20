@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(compute/deploy): remove compute trial activation code because trials no longer exist ([#1730](https://github.com/fastly/cli/pull/1730))
+
 ### Enhancements:
 
 ### Dependencies:
