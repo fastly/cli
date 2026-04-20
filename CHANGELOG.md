@@ -7,6 +7,7 @@
 ### Bug Fixes:
 
 - fix(compute/deploy): remove compute trial activation code because trials no longer exist ([#1730](https://github.com/fastly/cli/pull/1730))
+- fix(auth): SSO token expiration status now reflects the actual API token lifetime (~12 hours) instead of the internal JWT refresh token (~30 minutes), preventing spurious warnings and premature re-authentication
 
 ### Enhancements:
 
