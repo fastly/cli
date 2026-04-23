@@ -80,7 +80,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
           # IMPORTANT: Disable caching to prevent cache restore errors later.
           cache: false
-      - uses: acifani/setup-tinygo@v2
+      - uses: acifani/setup-tinygo@v3
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: "Install Rust"
