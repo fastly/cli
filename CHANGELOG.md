@@ -98,6 +98,8 @@
 - feat(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug. ([#1653](https://github.com/fastly/cli/pull/1653))
 - feat(service/vcl): escape control characters when displaying VCL content for cleaner terminal output ([#1637](https://github.com/fastly/cli/pull/1637))
 
+- feat(compute/deploy): Apply \[setup.products] for enabling products during initial deploy ([#1617](https://github.com/fastly/cli/pull/1617))
+
 ### Dependencies:
 
 - build(deps): `golang.org/x/net` from 0.50.0 to 0.51.0 ([#1674](https://github.com/fastly/cli/pull/1674))

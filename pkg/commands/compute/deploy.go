@@ -724,6 +724,7 @@ type ServiceResources struct {
 	objectStores *setup.KVStores
 	kvStores     *setup.KVStores
 	secretStores *setup.SecretStores
+	products     *setup.Products
 }
 
 // ConstructNewServiceResources instantiates multiple [setup] config resources for a
@@ -794,6 +795,17 @@ func (c *DeployCommand) ConstructNewServiceResources(
 		Stdin:          in,
 		Stdout:         out,
 	}
+
+	sr.products = &setup.Products{
+		APIClient:      c.Globals.APIClient,
+		AcceptDefaults: c.Globals.Flags.AcceptDefaults,
+		NonInteractive: c.Globals.Flags.NonInteractive,
+		ServiceID:      serviceID,
+		ServiceVersion: serviceVersion,
+		Setup:          c.Globals.Manifest.File.Setup.Products,
+		Stdin:          in,
+		Stdout:         out,
+	}
 }
 
 // ConfigureServiceResources calls the .Predefined() and .Configure() methods
@@ -848,6 +860,13 @@ func (c *DeployCommand) ConfigureServiceResources(sr ServiceResources, serviceID
 		}
 	}
 
+	if sr.products.Predefined() {
+		if err := sr.products.Configure(); err != nil {
+			errLogService(c.Globals.ErrLog, err, serviceID, serviceVersion)
+			return fmt.Errorf("error configuring service products: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -864,6 +883,7 @@ func (c *DeployCommand) CreateServiceResources(
 	sr.objectStores.Spinner = spinner
 	sr.kvStores.Spinner = spinner
 	sr.secretStores.Spinner = spinner
+	sr.products.Spinner = spinner
 
 	if err := sr.backends.Create(); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -910,6 +930,17 @@ func (c *DeployCommand) CreateServiceResources(
 	}
 
 	if err := sr.secretStores.Create(); err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Accept defaults": c.Globals.Flags.AcceptDefaults,
+			"Auto-yes":        c.Globals.Flags.AutoYes,
+			"Non-interactive": c.Globals.Flags.NonInteractive,
+			"Service ID":      serviceID,
+			"Service Version": serviceVersion,
+		})
+		return err
+	}
+
+	if err := sr.products.Create(); err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Accept defaults": c.Globals.Flags.AcceptDefaults,
 			"Auto-yes":        c.Globals.Flags.AutoYes,
