@@ -255,7 +255,7 @@ func Exec(data *global.Data) error {
 	}
 
 	// User can set env.DebugMode env var or the --debug-mode boolean flag.
-	// This will prioritise the flag over the env var.
+	// This will prioritize the flag over the env var.
 	if data.Flags.Debug {
 		data.Env.DebugMode = "true"
 	}
