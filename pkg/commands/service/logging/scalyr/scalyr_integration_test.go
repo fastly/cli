@@ -177,7 +177,7 @@ func createScalyrOK(_ context.Context, i *fastly.CreateScalyrInput) (*fastly.Sca
 		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
 	}
 
-	// Avoids null pointer dereference for test cases with missing required params.
+	// Avoids null pointer dereference for test cases missing required params.
 	// If omitted, tests are guaranteed to panic.
 	if i.Name != nil {
 		s.Name = i.Name
