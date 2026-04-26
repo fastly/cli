@@ -45,7 +45,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantOutput: "Updated Image Optimizer default settings for service 123 (version 1)\n\nAllow Video: true\nJPEG Quality: 85\nJPEG Type: auto\nResize Filter: lanczos3\nUpscale: false\nWebP: true\nWebP Quality: 85\n",
 		},
 		{
-			Name: "validate successful upate of the --resize, --webp-quality and --jpeg-quality flags",
+			Name: "validate successful update of the --resize, --webp-quality and --jpeg-quality flags",
 			Args: "--service-id 123 --version 1 --resize-filter bicubic --webp-quality 90 --jpeg-quality 80",
 			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
