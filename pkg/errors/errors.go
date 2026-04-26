@@ -177,7 +177,7 @@ var ErrInvalidKVCombo = RemediationError{
 }
 
 // ErrInvalidStdinFileDirCombo means the user provided more than one of --stdin,
-// --file or --dir flags, which are mutally exclusive behaviours.
+// --file or --dir flags, which are mutually exclusive behaviours.
 var ErrInvalidStdinFileDirCombo = RemediationError{
 	Inner:       fmt.Errorf("invalid flag combination"),
 	Remediation: "Use only one of --stdin, --file or --dir.",
