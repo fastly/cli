@@ -15,7 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// GetCommand calls the Fastly API to fetch the value of a key from an kv store.
+// GetCommand calls the Fastly API to fetch the value of a key from a kv store.
 type GetCommand struct {
 	argparser.Base
 	argparser.JSONOutput
