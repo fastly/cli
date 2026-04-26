@@ -34,7 +34,7 @@ type Versioners struct {
 
 // Data holds global-ish configuration data from all sources: environment
 // variables, config files, and flags. It has methods to give each parameter to
-// the components that need it, including the place the parameter came from,
+// the components that need it, including the place from which the parameter came,
 // which is a requirement.
 //
 // If the same parameter is defined in multiple places, it is resolved according

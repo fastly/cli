@@ -8,7 +8,7 @@ import (
 
 // Data holds global-ish manifest data from manifest files, and flag sources.
 // It has methods to give each parameter to the components that need it,
-// including the place the parameter came from, which is a requirement.
+// including the place from which the parameter came, which is a requirement.
 //
 // If the same parameter is defined in multiple places, it is resolved according
 // to the following priority order: the manifest file (lowest priority) and then
