@@ -143,7 +143,7 @@ func TestRateLimitList(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
-func TesRateLimittUpdate(t *testing.T) {
+func TestRateLimitUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate UpdateERL API error",
