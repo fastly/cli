@@ -606,7 +606,7 @@ func validateDirectoryPermissions(dst string) text.SpinnerProcess {
 }
 
 // PromptOrReturn will prompt the user for information missing from the
-// fastly.toml manifest file, otherwise if it already exists then the value is
+// fastly.toml manifest file; otherwise, if it already exists then the value is
 // returned as is.
 func (c *InitCommand) PromptOrReturn(email string, in io.Reader, out io.Writer) (name, description string, authors []string, err error) {
 	flags := c.Globals.Flags
@@ -690,7 +690,7 @@ func promptPackageDescription(flags global.Flags, desc string, in io.Reader, out
 // either via the corresponding CLI flag or the manifest file.
 //
 // It will use a default of the user's email found within the manifest, if set
-// there, otherwise the value will be an empty slice.
+// there; otherwise, the value will be an empty slice.
 //
 // FIXME: Handle prompting for multiple authors.
 func promptPackageAuthors(flags global.Flags, authors []string, manifestEmail string, in io.Reader, out io.Writer) ([]string, error) {
@@ -1015,7 +1015,7 @@ mimes:
 	}
 
 	if archive != nil {
-		// Ensure there is a file extension on our filename, otherwise we won't
+		// Ensure there is a file extension on our filename; otherwise, we won't
 		// know what type of archive format we're dealing with when we come to call
 		// the archive.Extract() method.
 		if ext == "" {

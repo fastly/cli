@@ -186,7 +186,7 @@ func (g *Asset) Download(endpoint string) (bin string, err error) {
 	return moveExtractedBinary(g.binary, extractedBinary)
 }
 
-// URL returns the downloadable asset URL if set, otherwise calls the API metadata endpoint.
+// URL returns the downloadable asset URL if set; otherwise, calls the API metadata endpoint.
 func (g *Asset) URL() (url string, err error) {
 	if g.url != "" {
 		return g.url, nil
@@ -203,7 +203,7 @@ func (g *Asset) URL() (url string, err error) {
 	return g.url, nil
 }
 
-// LatestVersion returns the asset LatestVersion if set, otherwise calls the API metadata endpoint.
+// LatestVersion returns the asset LatestVersion if set; otherwise, calls the API metadata endpoint.
 func (g *Asset) LatestVersion() (version string, err error) {
 	if g.version != "" {
 		return g.version, nil
@@ -308,7 +308,7 @@ type AssetVersioner interface {
 	RequestedVersion() (version string)
 	// SetRequestedVersion sets the version of the asset to be downloaded.
 	SetRequestedVersion(version string)
-	// URL returns the asset URL if set, otherwise calls the API metadata endpoint.
+	// URL returns the asset URL if set; otherwise, calls the API metadata endpoint.
 	URL() (url string, err error)
 	// LatestVersion returns the latest version.
 	LatestVersion() (version string, err error)

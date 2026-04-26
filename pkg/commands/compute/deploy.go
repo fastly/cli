@@ -505,7 +505,7 @@ func (c *DeployCommand) NewService(manifestFilename string, spinner text.Spinner
 	)
 
 	if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
-		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the %s file, otherwise follow the prompts to create a service now.\n\n", manifestFilename)
+		text.Output(out, "There is no Fastly service associated with this package. To connect to an existing service add the Service ID to the %s file; otherwise, follow the prompts to create a service now.\n\n", manifestFilename)
 		text.Output(out, "Press ^C at any time to quit.")
 
 		if c.Globals.Manifest.File.Setup.Defined() {

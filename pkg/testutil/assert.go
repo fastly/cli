@@ -108,7 +108,7 @@ func AssertRemediationErrorContains(t *testing.T, err error, target string) {
 //
 // Example: Some flags will internally be passed to `argparser.Content` to acquire
 // the value. If passed a file path, then we expect the testdata/<fixture> to
-// have been read, otherwise we expect the given flag value to have been used.
+// have been read; otherwise, we expect the given flag value to have been used.
 func AssertPathContentFlag(flag string, wantError string, args []string, fixture string, content string, t *testing.T) {
 	if wantError == "" {
 		for i, a := range args {

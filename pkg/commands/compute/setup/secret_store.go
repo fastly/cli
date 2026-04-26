@@ -219,7 +219,7 @@ func (s *SecretStores) Create() error {
 		}
 
 		err = s.Spinner.Process(fmt.Sprintf("Creating resource link between service and Secret Store '%s'...", store.Name), func(_ *text.SpinnerWrapper) error {
-			// We need to link the secret store to the C@E Service, otherwise the service
+			// We need to link the secret store to the C@E Service; otherwise, the service
 			// will not have access to the store.
 			_, err = s.APIClient.CreateResource(context.TODO(), &fastly.CreateResourceInput{
 				ServiceID:      s.ServiceID,
