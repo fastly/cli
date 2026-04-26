@@ -353,7 +353,7 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 // in the fastly.toml [viceroy.viceroy_version]. Otherwise, if not installed, we
 // install it in the same directory as the application configuration data.
 //
-// In the case of a network failure we fallback to the latest installed version of the
+// In the case of a network failure we fall back to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
 func (c *ServeCommand) GetViceroy(spinner text.Spinner, out io.Writer, manifestPath string) (bin string, err error) {
 	if c.ViceroyBinPath != "" {

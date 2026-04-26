@@ -468,7 +468,7 @@ func TestInit(t *testing.T) {
 
 				// we need to define stdin as the init process prompts the user multiple
 				// times, but we don't need to provide any values as all our prompts will
-				// fallback to default values if the input is unrecognised.
+				// fall back to default values if the input is unrecognised.
 				opts.Input = strings.NewReader(testcase.stdin)
 				return opts, nil
 			}
