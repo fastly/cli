@@ -36,7 +36,7 @@ func TestImageOptimizerDefaultsUpdate(t *testing.T) {
 			WantError: "problem with field 'ResizeFilter, Webp, WebpQuality, JpegType, JpegQuality, Upscale, AllowVideo': at least one of the available optional fields is required",
 		},
 		{
-			Name: "valudate successful boolean updates of webp, upscale and allow-video",
+			Name: "validate successful boolean updates of webp, upscale and allow-video",
 			Args: "--service-id 123 --version 1 --webp=true --upscale=false --allow-video=true",
 			API: &mock.API{
 				ListVersionsFn:                        testutil.ListVersions,
