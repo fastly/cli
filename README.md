@@ -57,7 +57,7 @@ Refer to [CONTRIBUTING.md](https://github.com/fastly/cli/blob/main/CONTRIBUTING.
 If you encounter any non-security-related bug or unexpected behavior, please [file an issue][bug]
 using the bug report template.
 
-Please also check the [CHANGELOG](https://github.com/fastly/cli/blob/main/CHANGELOG.md) for any breaking-changes or migration guidance.
+Please check the [CHANGELOG](https://github.com/fastly/cli/blob/main/CHANGELOG.md) for any breaking-changes or migration guidance.
 
 ### Security issues
 
