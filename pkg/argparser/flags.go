@@ -362,7 +362,7 @@ func (j *JSONOutput) JSONFlag() BoolFlagOpts {
 	}
 }
 
-// WriteJSON checks whether the enabled flag is set or not. If set,
+// WriteJSON checks whether or not the enabled flag is set. If set,
 // then the given value is written as JSON to out. Otherwise, false is returned.
 func (j *JSONOutput) WriteJSON(out io.Writer, value any) (bool, error) {
 	if !j.Enabled {
