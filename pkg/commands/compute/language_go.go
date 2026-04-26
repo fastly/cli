@@ -203,7 +203,7 @@ func (g *Go) Build() error {
 // We do this because the 0.2.0 release of the compute-sdk-go bumps the TinyGo
 // version requirement to 0.28.1 and we want to avoid any scenarios where a
 // bump in SDK version causes the user's build to break (which would happen for
-// users with a pre-existing project who happen to update their CLI version: the
+// users with a preexisting project who happen to update their CLI version: the
 // new CLI version would have a TinyGo constraint that would be higher than
 // before and would stop their build from working).
 //

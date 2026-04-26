@@ -114,7 +114,7 @@ type Go struct {
 	TinyGoConstraint string `toml:"tinygo_constraint"`
 
 	// TinyGoConstraintFallback is a fallback `tinygo` version for users who have
-	// a pre-existing project with a 0.1.x Fastly Go SDK specified.
+	// a preexisting project with a 0.1.x Fastly Go SDK specified.
 	TinyGoConstraintFallback string `toml:"tinygo_constraint_fallback"`
 
 	// ToolchainConstraint is the `go` version that we support with WASI.
