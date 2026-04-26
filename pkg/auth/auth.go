@@ -30,7 +30,7 @@ const ClientID = "fastly-cli"
 // redirectPath is the path in the internal webserver which will receive the authorization code.
 const redirectPath = "/callback"
 
-// redirectURL is the endpoint the auth provider will pass an authorization code to.
+// redirectURL is the endpoint to which the auth provider will pass an authorization code.
 const redirectURL = "http://localhost:8080" + redirectPath
 
 // OIDCMetadata is OpenID Connect's metadata discovery mechanism.
