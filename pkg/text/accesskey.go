@@ -21,7 +21,7 @@ func PrintAccessKey(out io.Writer, accessKey *accesskeys.AccessKey) {
 // PrintAccessKeyTbl displays access keys in a table format.
 func PrintAccessKeyTbl(out io.Writer, accessKeys []accesskeys.AccessKey) {
 	tbl := NewTable(out)
-	tbl.AddHeader("ID", "Secret", "Description", "Permssion", "Buckets", "Created At")
+	tbl.AddHeader("ID", "Secret", "Description", "Permission", "Buckets", "Created At")
 
 	if accessKeys == nil {
 		tbl.Print()
