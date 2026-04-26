@@ -200,7 +200,7 @@ func TestBuildRust(t *testing.T) {
 			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
 			// this works fine on *nix systems. But once Windows did `os.Rename()` and
 			// move tmpBin to binPath it would no longer be able to set permissions on
-			// the binPath because it didn't think the file existed any more. My guess
+			// the binPath because it didn't think the file existed anymore. My guess
 			// is that moving a file over itself causes Windows to remove the file.
 			//
 			// So to work around that issue I just create two separate files because
@@ -394,7 +394,7 @@ func TestBuildGo(t *testing.T) {
 			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
 			// this works fine on *nix systems. But once Windows did `os.Rename()` and
 			// move tmpBin to binPath it would no longer be able to set permissions on
-			// the binPath because it didn't think the file existed any more. My guess
+			// the binPath because it didn't think the file existed anymore. My guess
 			// is that moving a file over itself causes Windows to remove the file.
 			//
 			// So to work around that issue I just create two separate files because
@@ -576,7 +576,7 @@ func TestBuildJavaScript(t *testing.T) {
 			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
 			// this works fine on *nix systems. But once Windows did `os.Rename()` and
 			// move tmpBin to binPath it would no longer be able to set permissions on
-			// the binPath because it didn't think the file existed any more. My guess
+			// the binPath because it didn't think the file existed anymore. My guess
 			// is that moving a file over itself causes Windows to remove the file.
 			//
 			// So to work around that issue I just create two separate files because
@@ -766,7 +766,7 @@ func TestBuildOther(t *testing.T) {
 			// `wasmtoolsBinName` and used that for both `tmpBin` and `binPath` and
 			// this works fine on *nix systems. But once Windows did `os.Rename()` and
 			// move tmpBin to binPath it would no longer be able to set permissions on
-			// the binPath because it didn't think the file existed any more. My guess
+			// the binPath because it didn't think the file existed anymore. My guess
 			// is that moving a file over itself causes Windows to remove the file.
 			//
 			// So to work around that issue I just create two separate files because
