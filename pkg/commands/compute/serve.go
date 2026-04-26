@@ -928,7 +928,7 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 	//   - path to the routes file to use
 	// - A routes file that sets up the routes. In our case, we:
 	//   - wires up a backend name (id) to the server host
-	//   - if the backend sets an override host, then we set thatt
+	//   - if the backend sets an override host, then we set that
 	//   - if the backend enables HTTPS, then we enable that
 	//   - if the backend has a path prefix, then we set that up
 	//   - enables WebSocket-over-HTTP
