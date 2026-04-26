@@ -81,7 +81,7 @@ type PathContentFlag struct {
 	Content func() string
 }
 
-// EnvConfig provides the details required to setup a temporary test
+// EnvConfig provides the details required to set up a temporary test
 // environment, and optionally a function to run which accepts the
 // environment directory and can modify fields in the CLIScenario.
 type EnvConfig struct {
