@@ -212,8 +212,7 @@ var logMutex sync.Mutex
 // when that call can be handled internally by the .Add() method.
 var Now = time.Now
 
-// FileRotationSize represents the size the log file needs to be before we
-// truncate it.
+// FileRotationSize represents the log file size before we truncate it.
 //
 // NOTE: To enable easier testing of the log rotation logic, we don't define
 // this as a constant but as a variable so the test file can mutate the value
