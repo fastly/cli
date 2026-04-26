@@ -30,7 +30,7 @@ func (c *ConfigFile) Write(config any) error {
 }
 
 // NewNonExistentConfigFile is a test helper function which constructs a new
-// non-existent config file interface.
+// nonexistent config file interface.
 func NewNonExistentConfigFile() *ConfigFile {
 	return &ConfigFile{
 		PathFn: func() string {

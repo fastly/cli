@@ -390,10 +390,10 @@ func TestAuthToken_CRUD(t *testing.T) {
 		t.Fatalf("expected default %q, got %q", "second", f.Auth.Default)
 	}
 
-	// Try to set default to a non-existent token.
+	// Try to set default to a nonexistent token.
 	err = f.SetDefaultAuthToken("nonexistent")
 	if err == nil {
-		t.Fatal("expected error when setting default to non-existent token")
+		t.Fatal("expected error when setting default to nonexistent token")
 	}
 
 	// Delete a non-default token.
@@ -412,10 +412,10 @@ func TestAuthToken_CRUD(t *testing.T) {
 		t.Fatalf("expected default to remain %q, got %q", "second", f.Auth.Default)
 	}
 
-	// Delete a non-existent token.
+	// Delete a nonexistent token.
 	deleted = f.DeleteAuthToken("nonexistent")
 	if deleted {
-		t.Fatal("expected DeleteAuthToken to return false for non-existent token")
+		t.Fatal("expected DeleteAuthToken to return false for nonexistent token")
 	}
 
 	// Delete from nil tokens map.
@@ -532,7 +532,7 @@ func TestGetDefaultAuthToken(t *testing.T) {
 	f.Auth.Default = "ghost"
 	name, tok = f.GetDefaultAuthToken()
 	if name != "" || tok != nil {
-		t.Fatalf("expected empty name and nil token when default references non-existent token, got name=%q tok=%v", name, tok)
+		t.Fatalf("expected empty name and nil token when default references nonexistent token, got name=%q tok=%v", name, tok)
 	}
 }
 
