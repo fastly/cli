@@ -110,7 +110,7 @@ func TestAccessKeysDelete(t *testing.T) {
 						Status:     http.StatusText(http.StatusBadRequest),
 						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(`
 							{
-    							"title": "invalid Acess Key ID",
+    							"title": "invalid Access Key ID",
     							"status": 400
 							}
 						`))),
@@ -167,7 +167,7 @@ func TestAccessKeysGet(t *testing.T) {
 						Status:     http.StatusText(http.StatusBadRequest),
 						Body: io.NopCloser(bytes.NewReader(testutil.GenJSON(`
 							{
-    							"title": "invalid Acess Key ID",
+    							"title": "invalid Access Key ID",
     							"status": 400
 							}
 						`))),
