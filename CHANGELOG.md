@@ -224,6 +224,8 @@ both the old and new forms are:
 - feat(service/resourcelink): moved the `resource-link` commands under the `service` command, with an unlisted and deprecated alias of `resource-link` ([#1635](https://github.com/fastly/cli/pull/1635))
 - feat(service/logging): moved the `logging` commands under the `service` command, with an unlisted and deprecated alias of `logging` ([#1642](https://github.com/fastly/cli/pull/1642))
 - feat(service/auth): moved the `service-auth` commands under the `service` command and renamed to `auth`, with an unlisted and deprecated alias of `service-auth` ([#1643](https://github.com/fastly/cli/pull/1643))
+- feat(compute/build): improved error messaging for JavaScript builds with pre-flight toolchain verification including Bun runtime support ([#1640](https://github.com/fastly/cli/pull/1640))
+
 ### Bug fixes:
 
 - fix(docker): Use base image toolchain instead of reinstalling stable, which could pull in an unvalidated Rust version.
