@@ -147,7 +147,7 @@ func TestExecQuietSuppressesExpiryWarning(t *testing.T) {
 	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 		data := testutil.MockGlobalData(args, &stdout)
 		// Set the default token to expire soon so a warning would fire without --quiet.
-		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
+		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(20 * time.Minute).Format(time.RFC3339)
 		return data, nil
 	}
 	err := app.Run(args, nil)
@@ -169,7 +169,7 @@ func TestExecConfigShowsExpiryWarning(t *testing.T) {
 	args := testutil.SplitArgs("config -l")
 	app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 		data := testutil.MockGlobalData(args, &stdout)
-		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
+		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(20 * time.Minute).Format(time.RFC3339)
 		return data, nil
 	}
 	err := app.Run(args, nil)
@@ -199,7 +199,7 @@ func TestExecJSONLeavesStdoutCleanAndWritesWarningToStderr(t *testing.T) {
 		data := testutil.MockGlobalData(args, &stdout)
 		data.ErrOutput = &stderr
 		data.Flags.JSON = true
-		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
+		data.Config.Auth.Tokens["user"].APITokenExpiresAt = time.Now().Add(20 * time.Minute).Format(time.RFC3339)
 		return data, nil
 	}
 	err := app.Run(args, nil)
