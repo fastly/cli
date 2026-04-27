@@ -457,7 +457,13 @@ func checkAndRefreshAuthSSOToken(name string, at *config.AuthToken, data *global
 			return false, fmt.Errorf("invalid refresh_expires_at %q: %w", at.RefreshExpiresAt, err)
 		}
 		if time.Now().After(refreshExpires) {
-			return true, nil // both expired, needs full re-auth
+			if at.APITokenExpiresAt != "" {
+				apiExpires, err := time.Parse(time.RFC3339, at.APITokenExpiresAt)
+				if err == nil && time.Now().Before(apiExpires) {
+					return false, nil
+				}
+			}
+			return true, nil
 		}
 	}
 

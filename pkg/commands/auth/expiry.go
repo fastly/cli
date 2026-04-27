@@ -27,7 +27,7 @@ const (
 
 const (
 	// expiryWarningThreshold is the warning window for API tokens and SSO refresh tokens.
-	expiryWarningThreshold = 7 * 24 * time.Hour
+	expiryWarningThreshold = 30 * time.Minute
 	// accessOnlyWarningThreshold is the warning window when only an access token
 	// expiry is available (no refresh token). This is shorter because access
 	// tokens are short-lived and auto-refresh.
@@ -70,10 +70,15 @@ func staticExpirationStatus(at *config.AuthToken, now time.Time) (ExpirationStat
 	return classifyExpiry(expires, now, expiryWarningThreshold), expires, nil
 }
 
-// ssoExpirationStatus handles expiration for SSO tokens. It prefers
-// RefreshExpiresAt (the user-actionable deadline) and falls back to
-// AccessExpiresAt when refresh info is missing or malformed.
+// ssoExpirationStatus handles expiration for SSO tokens.
 func ssoExpirationStatus(at *config.AuthToken, now time.Time) (ExpirationStatus, time.Time, error) {
+	if at.APITokenExpiresAt != "" {
+		expires, err := time.Parse(time.RFC3339, at.APITokenExpiresAt)
+		if err == nil {
+			return classifyExpiry(expires, now, expiryWarningThreshold), expires, nil
+		}
+	}
+
 	if at.RefreshToken != "" && at.RefreshExpiresAt == "" {
 		return StatusNoExpiry, time.Time{}, nil
 	}
@@ -83,7 +88,6 @@ func ssoExpirationStatus(at *config.AuthToken, now time.Time) (ExpirationStatus,
 		if err == nil {
 			return classifyExpiry(expires, now, expiryWarningThreshold), expires, nil
 		}
-		// Malformed refresh_expires_at; fall through to access token.
 	}
 
 	if at.AccessExpiresAt != "" {
@@ -94,11 +98,6 @@ func ssoExpirationStatus(at *config.AuthToken, now time.Time) (ExpirationStatus,
 		return StatusNoExpiry, time.Time{}, fmt.Errorf("invalid access_expires_at %q: %w", at.AccessExpiresAt, err)
 	}
 
-	// Neither field set.
-	if at.RefreshExpiresAt != "" {
-		// RefreshExpiresAt was set but malformed, and no AccessExpiresAt to fall back to.
-		return StatusNoExpiry, time.Time{}, fmt.Errorf("invalid refresh_expires_at %q", at.RefreshExpiresAt)
-	}
 	return StatusNoExpiry, time.Time{}, nil
 }
 
