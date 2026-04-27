@@ -55,23 +55,23 @@ builds:
 # https://goreleaser.com/customization/archive/
 archives:
   - id: nix
-    builds: [macos, linux]
+    ids: [macos, linux]
     <<: &archive_defaults
       name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
       files:
         - none*
     wrap_in_directory: false
-    format: tar.gz
+    formats: [tar.gz]
   - id: windows-tar
-    builds: [windows]
+    ids: [windows]
     <<: *archive_defaults
     wrap_in_directory: false
-    format: tar.gz
+    formats: [tar.gz]
   - id: windows-zip
-    builds: [windows]
+    ids: [windows]
     <<: *archive_defaults
     wrap_in_directory: false
-    format: zip
+    formats: [zip]
 # https://goreleaser.com/customization/aur/
 aurs:
   - homepage: "https://github.com/fastly/cli"
