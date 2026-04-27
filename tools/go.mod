@@ -218,7 +218,7 @@ require (
 	github.com/ipfs/go-ipld-cbor v0.2.0 // indirect
 	github.com/ipfs/go-ipld-format v0.6.2 // indirect
 	github.com/ipfs/go-log v1.0.5 // indirect
-	github.com/ipfs/go-log/v2 v2.8.1 // indirect
+	github.com/ipfs/go-log/v2 v2.9.1 // indirect
 	github.com/ipfs/go-metrics-interface v0.3.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jedisct1/go-minisign v0.0.0-20241212093149-d2f9f49435c7 // indirect
