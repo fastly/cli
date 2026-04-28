@@ -7,6 +7,7 @@
 ### Bug Fixes:
 
 - fix(compute/deploy): remove compute trial activation code because trials no longer exist ([#1730](https://github.com/fastly/cli/pull/1730))
+- fix(auth): SSO token expiration status now reflects the actual API token lifetime (~12 hours) instead of the internal JWT refresh token (~30 minutes), preventing spurious warnings and premature re-authentication [#1728](https://github.com/fastly/cli/pull/1728)
 
 ### Enhancements:
 
@@ -17,6 +18,7 @@
 - build(deps): `golang.org/x/net` from 0.52.0 to 0.53.0 ([#1726](https://github.com/fastly/cli/pull/1726))
 - build(deps): `golang.org/x/text` from 0.35.0 to 0.36.0 ([#1726](https://github.com/fastly/cli/pull/1726))
 - build(deps): `acifani/setup-tinygo` from 2 to 3 ([#1729](https://github.com/fastly/cli/pull/1729))
+- build(deps): `github.com/mattn/go-isatty` from 0.0.21 to 0.0.22 ([#1735](https://github.com/fastly/cli/pull/1735))
 
 ## [v14.3.1](https://github.com/fastly/cli/releases/tag/v14.3.1) (2026-04-13)
 

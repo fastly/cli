@@ -62,18 +62,26 @@ func TestGetExpirationStatus(t *testing.T) {
 			wantStatus: authcmd.StatusOK,
 		},
 		{
-			name: "static expiring soon (within 7 days)",
+			name: "static not expiring soon (3 days out)",
 			token: &config.AuthToken{
 				Type:              config.AuthTokenTypeStatic,
 				APITokenExpiresAt: now.Add(3 * 24 * time.Hour).Format(time.RFC3339),
 			},
+			wantStatus: authcmd.StatusOK,
+		},
+		{
+			name: "static expiring soon (within 30 minutes)",
+			token: &config.AuthToken{
+				Type:              config.AuthTokenTypeStatic,
+				APITokenExpiresAt: now.Add(20 * time.Minute).Format(time.RFC3339),
+			},
 			wantStatus: authcmd.StatusExpiringSoon,
 		},
 		{
-			name: "static expiring soon (exactly 7 days)",
+			name: "static expiring soon (exactly 30 minutes)",
 			token: &config.AuthToken{
 				Type:              config.AuthTokenTypeStatic,
-				APITokenExpiresAt: now.Add(7 * 24 * time.Hour).Format(time.RFC3339),
+				APITokenExpiresAt: now.Add(30 * time.Minute).Format(time.RFC3339),
 			},
 			wantStatus: authcmd.StatusExpiringSoon,
 		},
@@ -97,6 +105,42 @@ func TestGetExpirationStatus(t *testing.T) {
 
 		// SSO tokens: RefreshExpiresAt primary.
 		{
+			name: "sso api_token_expires_at preferred over refresh",
+			token: &config.AuthToken{
+				Type:              config.AuthTokenTypeSSO,
+				APITokenExpiresAt: now.Add(30 * 24 * time.Hour).Format(time.RFC3339),
+				RefreshExpiresAt:  now.Add(25 * time.Minute).Format(time.RFC3339),
+			},
+			wantStatus: authcmd.StatusOK,
+		},
+		{
+			name: "sso api_token_expires_at not expiring soon (3 days out)",
+			token: &config.AuthToken{
+				Type:              config.AuthTokenTypeSSO,
+				APITokenExpiresAt: now.Add(3 * 24 * time.Hour).Format(time.RFC3339),
+				RefreshExpiresAt:  now.Add(25 * time.Minute).Format(time.RFC3339),
+			},
+			wantStatus: authcmd.StatusOK,
+		},
+		{
+			name: "sso api_token_expires_at expiring soon (within 30 minutes)",
+			token: &config.AuthToken{
+				Type:              config.AuthTokenTypeSSO,
+				APITokenExpiresAt: now.Add(15 * time.Minute).Format(time.RFC3339),
+				RefreshExpiresAt:  now.Add(25 * time.Minute).Format(time.RFC3339),
+			},
+			wantStatus: authcmd.StatusExpiringSoon,
+		},
+		{
+			name: "sso api_token_expires_at expired",
+			token: &config.AuthToken{
+				Type:              config.AuthTokenTypeSSO,
+				APITokenExpiresAt: now.Add(-1 * time.Hour).Format(time.RFC3339),
+				RefreshExpiresAt:  now.Add(-2 * time.Hour).Format(time.RFC3339),
+			},
+			wantStatus: authcmd.StatusExpired,
+		},
+		{
 			name: "sso refresh OK",
 			token: &config.AuthToken{
 				Type:             config.AuthTokenTypeSSO,
@@ -105,10 +149,18 @@ func TestGetExpirationStatus(t *testing.T) {
 			wantStatus: authcmd.StatusOK,
 		},
 		{
-			name: "sso refresh expiring soon",
+			name: "sso refresh not expiring soon (3 days out)",
 			token: &config.AuthToken{
 				Type:             config.AuthTokenTypeSSO,
 				RefreshExpiresAt: now.Add(3 * 24 * time.Hour).Format(time.RFC3339),
+			},
+			wantStatus: authcmd.StatusOK,
+		},
+		{
+			name: "sso refresh expiring soon (within 30 minutes)",
+			token: &config.AuthToken{
+				Type:             config.AuthTokenTypeSSO,
+				RefreshExpiresAt: now.Add(20 * time.Minute).Format(time.RFC3339),
 			},
 			wantStatus: authcmd.StatusExpiringSoon,
 		},
@@ -164,7 +216,7 @@ func TestGetExpirationStatus(t *testing.T) {
 				RefreshExpiresAt: "garbage",
 			},
 			wantStatus: authcmd.StatusNoExpiry,
-			wantErr:    true,
+			wantErr:    false,
 		},
 		{
 			name: "sso no refresh, malformed access",
@@ -195,10 +247,18 @@ func TestGetExpirationStatus(t *testing.T) {
 
 		// Unknown type falls through to static-style check.
 		{
-			name: "unknown type with expiry",
+			name: "unknown type with expiry (not soon)",
 			token: &config.AuthToken{
 				Type:              "unknown",
 				APITokenExpiresAt: now.Add(3 * 24 * time.Hour).Format(time.RFC3339),
+			},
+			wantStatus: authcmd.StatusOK,
+		},
+		{
+			name: "unknown type with expiry (within 30 minutes)",
+			token: &config.AuthToken{
+				Type:              "unknown",
+				APITokenExpiresAt: now.Add(10 * time.Minute).Format(time.RFC3339),
 			},
 			wantStatus: authcmd.StatusExpiringSoon,
 		},
