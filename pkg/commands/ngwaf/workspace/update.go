@@ -32,7 +32,7 @@ type UpdateCommand struct {
 	defaultBlockingCode argparser.OptionalInt
 	defaultRedirectURL  argparser.OptionalString
 	clientIPHeaders     argparser.OptionalString
-	IPAnonymization     argparser.OptionalString
+	ipAnonymization     argparser.OptionalString
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -55,7 +55,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("clientIPHeaders", "Specify the request header containing the client IP address. Input accepted as colon separated string.").Action(c.clientIPHeaders.Set).StringVar(&c.clientIPHeaders.Value)
 	c.CmdClause.Flag("defaultBlockingCode", "Default status code that is returned when a request to your web application is blocked.").Action(c.defaultBlockingCode.Set).IntVar(&c.defaultBlockingCode.Value)
 	c.CmdClause.Flag("defaultRedirectURL", "Redirect url to be used if code 301 or 302 is used.").Action(c.defaultRedirectURL.Set).StringVar(&c.defaultRedirectURL.Value)
-	c.CmdClause.Flag("ipAnonymization", "Agents will anonymize IP addresses according to the option selected.").Action(c.IPAnonymization.Set).StringVar(&c.IPAnonymization.Value)
+	c.CmdClause.Flag("ipAnonymization", "Agents will anonymize IP addresses according to the option selected.").Action(c.ipAnonymization.Set).StringVar(&c.ipAnonymization.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -96,8 +96,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.defaultRedirectURL.WasSet {
 		input.DefaultRedirectURL = &c.defaultRedirectURL.Value
 	}
-	if c.IPAnonymization.WasSet {
-		input.IPAnonymization = &c.IPAnonymization.Value
+	if c.ipAnonymization.WasSet {
+		input.IPAnonymization = &c.ipAnonymization.Value
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
