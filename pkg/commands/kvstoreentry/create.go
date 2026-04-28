@@ -54,7 +54,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	return &c
 }
 
-// CreateCommand calls the Fastly API to insert a key into an kv store.
+// CreateCommand calls the Fastly API to insert a key into a kv store.
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput

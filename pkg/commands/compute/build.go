@@ -672,7 +672,7 @@ func updateWasmtools(
 
 // identifyToolchain determines the programming language.
 //
-// It prioritises the --language flag over the manifest field.
+// It prioritizes the --language flag over the manifest field.
 // Will error if neither are provided.
 // Lastly, it will normalise with a trim and lowercase.
 func identifyToolchain(c *BuildCommand) (string, error) {
