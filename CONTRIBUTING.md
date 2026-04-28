@@ -6,9 +6,9 @@ idea and implementation strategy before submitting a PR.
 
 1. Fork the repository.
 2. Create an `upstream` remote.
-```bash
-$ git remote add upstream git@github.com:fastly/cli.git
-```
+    ```bash
+    $ git remote add upstream git@github.com:fastly/cli.git
+    ```
 3. Create a feature branch.
 4. Write tests.
 5. Run the linter and formatter `make all`. 
