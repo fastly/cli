@@ -127,6 +127,26 @@ jobs:
       - name: Build docker images
         run: |
           for dockerFile in Dockerfile*; do docker build -f $dockerFile . ; done
+  tools-build:
+    name: "goreleaser tools build"
+    if: contains(github.event.pull_request.labels.*.name, 'tools')
+    needs: [config]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+      - name: "Install Go"
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: tools/go.mod
+      - name: "Config Artifact"
+        uses: actions/download-artifact@v8
+        with:
+          name: config-artifact-${{ github.sha }}
+      - name: "Move Config"
+        run: mv config.toml pkg/config/config.toml
+      - name: "Test goreleaser tools build"
+        run: go tool -modfile=tools/go.mod goreleaser build --single-target --snapshot --skip=post-hooks --skip=validate
   golangci-latest:
     name: lint-latest (informational)
     needs: [config]
