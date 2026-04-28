@@ -74,7 +74,7 @@ func TestConfigRead(t *testing.T) {
 
 	for _, testcase := range scenarios {
 		t.Run(testcase.name, func(t *testing.T) {
-			// We're going to chdir to an temp environment,
+			// We're going to chdir to a temp environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
 			if err != nil {
@@ -167,7 +167,7 @@ func TestConfigRead(t *testing.T) {
 
 // TestUseStatic validates legacy user data is migrated successfully.
 func TestUseStatic(t *testing.T) {
-	// We're going to chdir to an temp environment,
+	// We're going to chdir to a temp environment,
 	// so save the PWD to return to, afterwards.
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -294,7 +294,7 @@ func TestInvalidConfig(t *testing.T) {
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.Name, func(t *testing.T) {
-			// We're going to chdir to an temp environment,
+			// We're going to chdir to a temp environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
 			if err != nil {

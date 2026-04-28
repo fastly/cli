@@ -515,7 +515,7 @@ func TestInit_ExistingService(t *testing.T) {
 		expectInManifest  []string
 		expectNoManifest  bool
 		expectInError     string
-		suppresBeacon     bool
+		suppressBeacon    bool
 	}{
 		{
 			name: "when the service exists",
@@ -624,7 +624,7 @@ func TestInit_ExistingService(t *testing.T) {
 			args:          testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4EN"),
 			expectInError: "--from url seems invalid",
 			// Not a valid URL OR Service ID
-			suppresBeacon: true,
+			suppressBeacon: true,
 		},
 		{
 			name: "service has a cloned_from value",
@@ -778,7 +778,7 @@ func TestInit_ExistingService(t *testing.T) {
 
 			t.Log(stdout.String())
 
-			if testcase.suppresBeacon {
+			if testcase.suppressBeacon {
 				testutil.AssertLength(t, 0, httpClient.Requests)
 			} else {
 				testutil.AssertLength(t, 1, httpClient.Requests)

@@ -12,7 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// CreateCommand calls the Fastly API to create an kv store.
+// CreateCommand calls the Fastly API to create a kv store.
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput

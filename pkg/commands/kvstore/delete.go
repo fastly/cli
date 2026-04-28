@@ -15,7 +15,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// DeleteCommand calls the Fastly API to delete an kv store.
+// DeleteCommand calls the Fastly API to delete a kv store.
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput

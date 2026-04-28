@@ -34,7 +34,7 @@ func PrintKVStoreKeys(out io.Writer, prefix string, keys []string) {
 	}
 }
 
-// PrintKVStoreKeyValue pretty prints a value from an kv store to a
+// PrintKVStoreKeyValue pretty prints a value from a kv store to a
 // given io.Writer. Consumers can provide a prefix string which will be used as
 // a prefix to each line, useful for indentation.
 func PrintKVStoreKeyValue(out io.Writer, prefix string, key, value string) {
