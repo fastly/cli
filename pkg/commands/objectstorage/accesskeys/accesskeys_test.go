@@ -303,7 +303,7 @@ Created (UTC): 2021-06-15 23:00
 `) + "\n"
 
 var listAccessKeysString = strings.TrimSpace(`
-D      Secret  Description  Permission         Buckets  Created At
+ID      Secret  Description  Permission         Buckets  Created At
 foo     bar     bat          read-only-objects  all      0001-01-01 00:00:00 +0000 UTC
 foobar  baz     bizz         read-only-objects  [b1 b2]  0001-01-01 00:00:00 +0000 UTC
 `) + "\n"
