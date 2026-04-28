@@ -139,7 +139,7 @@ jobs:
         with:
           go-version-file: tools/go.mod
       - name: "Test goreleaser tools build"
-        run: go tool -modfile=tools/go.mod goreleaser build --single-target --skip=post-hooks --skip=validate
+        run: go tool -modfile=tools/go.mod goreleaser build --single-target --snapshot --skip=post-hooks --skip=validate
   golangci-latest:
     name: lint-latest (informational)
     needs: [config]
