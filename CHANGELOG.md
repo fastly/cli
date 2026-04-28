@@ -4,6 +4,8 @@
 
 ### Breaking:
 
+- fix(ngwaf/workspace): change flag name to match API spec ((#1768)[https://github.com/fastly/cli/pull/1768])
+
 ### Bug Fixes:
 
 - fix(compute/deploy): remove compute trial activation code because trials no longer exist ([#1730](https://github.com/fastly/cli/pull/1730))
