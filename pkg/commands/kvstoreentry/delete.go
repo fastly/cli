@@ -24,7 +24,7 @@ const DeleteKeysPoolSize int = 100
 // stopping the goroutines from executing.
 const DeleteKeysMaxErrors int = 100
 
-// DeleteCommand calls the Fastly API to delete an kv store.
+// DeleteCommand calls the Fastly API to delete a kv store.
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput

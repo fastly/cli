@@ -84,7 +84,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 		Dst:         &c.ServiceName.Value,
 	})
 	c.CmdClause.Flag("user", "Your Grafana Cloud Logs User ID.").Action(c.User.Set).StringVar(&c.User.Value)
-	c.CmdClause.Flag("auth-token", "Your Granana Access Policy Token").Action(c.Token.Set).StringVar(&c.Token.Value)
+	c.CmdClause.Flag("auth-token", "Your Grafana Access Policy Token").Action(c.Token.Set).StringVar(&c.Token.Value)
 	c.CmdClause.Flag("url", "URL of your Grafana Instance").Action(c.URL.Set).StringVar(&c.URL.Value)
 	c.CmdClause.Flag("index", "Stream identifier").Action(c.Index.Set).StringVar(&c.Index.Value)
 	return &c

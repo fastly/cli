@@ -365,7 +365,7 @@ func TestServiceDelete(t *testing.T) {
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			// We're going to chdir to an temp environment,
+			// We're going to chdir to a temp environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
 			if err != nil {

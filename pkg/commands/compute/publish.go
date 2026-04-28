@@ -178,10 +178,10 @@ func (c *PublishCommand) Deploy(in io.Reader, out io.Writer) error {
 		c.deploy.PackagePath = c.pkg.Value
 	}
 	if c.serviceName.WasSet {
-		c.deploy.ServiceName = c.serviceName // deploy's field is a argparser.OptionalServiceNameID
+		c.deploy.ServiceName = c.serviceName // deploy's field is an argparser.OptionalServiceNameID
 	}
 	if c.serviceVersion.WasSet {
-		c.deploy.ServiceVersion = c.serviceVersion // deploy's field is a argparser.OptionalServiceVersion
+		c.deploy.ServiceVersion = c.serviceVersion // deploy's field is an argparser.OptionalServiceVersion
 	}
 	if c.domain.WasSet {
 		c.deploy.Domain = c.domain.Value
