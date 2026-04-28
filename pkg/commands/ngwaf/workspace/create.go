@@ -53,7 +53,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("clientIPHeaders", "Specify the request header containing the client IP address. Input accepted as colon separated string.").Action(c.clientIPHeaders.Set).StringVar(&c.clientIPHeaders.Value)
 	c.CmdClause.Flag("defaultBlockingCode", "Default status code that is returned when a request to your web application is blocked.").Action(c.defaultBlockingCode.Set).IntVar(&c.defaultBlockingCode.Value)
 	c.CmdClause.Flag("defaultRedirectURL", "Redirect url to be used if code 301 or 302 is used.").Action(c.defaultRedirectURL.Set).StringVar(&c.defaultRedirectURL.Value)
-	c.CmdClause.Flag("IPAnonymization", "Agents will anonymize IP addresses according to the option selected.").Action(c.ipAnonymization.Set).StringVar(&c.ipAnonymization.Value)
+	c.CmdClause.Flag("ipAnonymization", "Agents will anonymize IP addresses according to the option selected.").Action(c.ipAnonymization.Set).StringVar(&c.ipAnonymization.Value)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
