@@ -19,6 +19,74 @@ import (
 	"github.com/fastly/cli/pkg/threadsafe"
 )
 
+func TestBuildUnknownLanguage(t *testing.T) {
+	if os.Getenv("TEST_COMPUTE_BUILD") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
+	}
+	args := testutil.SplitArgs
+
+	scenarios := []struct {
+		name           string
+		args           []string
+		fastlyManifest string
+		wantError      string
+	}{
+		{
+			name: "empty language",
+			args: args("compute build"),
+			fastlyManifest: `
+				manifest_version = 2
+				name = "test"`,
+			wantError: "language cannot be empty, please provide a language",
+		},
+		{
+			name: "unknown language",
+			args: args("compute build"),
+			fastlyManifest: `
+				manifest_version = 2
+				name = "test"
+				language = "foobar"`,
+			wantError: "unsupported language foobar",
+		},
+	}
+
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
+		t.Run(testcase.name, func(t *testing.T) {
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Write: []testutil.FileIO{
+					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
+				},
+			})
+			defer os.RemoveAll(rootdir)
+
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
+
+			var stdout threadsafe.Buffer
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				return testutil.MockGlobalData(testcase.args, &stdout), nil
+			}
+			err = app.Run(testcase.args, nil)
+
+			t.Log(stdout.String())
+
+			testutil.AssertErrorContains(t, err, testcase.wantError)
+		})
+	}
+}
+
 func TestBuildRust(t *testing.T) {
 	if os.Getenv("TEST_COMPUTE_BUILD_RUST") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
 		t.Log("skipping test")
@@ -42,23 +110,6 @@ func TestBuildRust(t *testing.T) {
 			args:                 args("compute build"),
 			wantError:            "error reading fastly.toml: file not found",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
-		},
-		{
-			name: "empty language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"`,
-			wantError: "language cannot be empty, please provide a language",
-		},
-		{
-			name: "unknown language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "foobar"`,
-			wantError: "unsupported language foobar",
 		},
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
@@ -299,23 +350,6 @@ func TestBuildGo(t *testing.T) {
 			wantError:            "error reading fastly.toml: file not found",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
 		},
-		{
-			name: "empty language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"`,
-			wantError: "language cannot be empty, please provide a language",
-		},
-		{
-			name: "unknown language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "foobar"`,
-			wantError: "unsupported language foobar",
-		},
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
 		// default build script inserted.
@@ -490,23 +524,6 @@ func TestBuildJavaScript(t *testing.T) {
 			args:                 args("compute build"),
 			wantError:            "error reading fastly.toml: file not found",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
-		},
-		{
-			name: "empty language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"`,
-			wantError: "language cannot be empty, please provide a language",
-		},
-		{
-			name: "unknown language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "foobar"`,
-			wantError: "unsupported language foobar",
 		},
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
@@ -684,23 +701,6 @@ func TestBuildCPP(t *testing.T) {
 			args:                 args("compute build"),
 			wantError:            "error reading fastly.toml: file not found",
 			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
-		},
-		{
-			name: "empty language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"`,
-			wantError: "language cannot be empty, please provide a language",
-		},
-		{
-			name: "unknown language",
-			args: args("compute build"),
-			fastlyManifest: `
-			manifest_version = 2
-			name = "test"
-			language = "foobar"`,
-			wantError: "unsupported language foobar",
 		},
 		// The following test validates that the project compiles successfully even
 		// though the fastly.toml manifest has no build script. There should be a
