@@ -42,6 +42,13 @@ func TestInit(t *testing.T) {
 			Branch: "main",
 		},
 	}
+	skCPP := []config.StarterKit{
+		{
+			Name:   "Default",
+			Path:   "https://github.com/fastly/compute-starter-kit-cpp-default",
+			Branch: "main",
+		},
+	}
 
 	scenarios := []struct {
 		name             string
@@ -402,6 +409,16 @@ func TestInit(t *testing.T) {
 			configFile: config.File{
 				StarterKits: config.StarterKitLanguages{
 					JavaScript: skJS,
+				},
+			},
+			manifestIncludes: `name = "fastly-temp`,
+		},
+		{
+			name: "with C++ language",
+			args: args("compute init --language cpp"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					CPP: skCPP,
 				},
 			},
 			manifestIncludes: `name = "fastly-temp`,
