@@ -24,6 +24,7 @@ func TestBuildUnknownLanguage(t *testing.T) {
 		t.Log("skipping test")
 		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
 	}
+
 	args := testutil.SplitArgs
 
 	scenarios := []struct {
@@ -59,13 +60,21 @@ func TestBuildUnknownLanguage(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			wasmtoolsBinName := "wasm-tools"
+			latestDownloaded := wasmtoolsBinName + "-latest-downloaded"
+
 			rootdir := testutil.NewEnv(testutil.EnvOpts{
 				T: t,
 				Write: []testutil.FileIO{
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 2.0.0`, Dst: latestDownloaded, Executable: true},
 					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
 				},
 			})
 			defer os.RemoveAll(rootdir)
+			wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
 
 			if err := os.Chdir(rootdir); err != nil {
 				t.Fatal(err)
@@ -76,7 +85,17 @@ func TestBuildUnknownLanguage(t *testing.T) {
 
 			var stdout threadsafe.Buffer
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
-				return testutil.MockGlobalData(testcase.args, &stdout), nil
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				opts.Versioners = global.Versioners{
+					WasmTools: mock.AssetVersioner{
+						AssetVersion:    "1.2.3",
+						BinaryFilename:  wasmtoolsBinName,
+						DownloadOK:      true,
+						DownloadedFile:  latestDownloaded,
+						InstallFilePath: wasmtoolsBinPath,
+					},
+				}
+				return opts, nil
 			}
 			err = app.Run(testcase.args, nil)
 
