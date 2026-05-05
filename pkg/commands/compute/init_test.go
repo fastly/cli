@@ -48,6 +48,11 @@ func TestInit(t *testing.T) {
 			Path:   "https://github.com/fastly/compute-starter-kit-cpp-default",
 			Branch: "main",
 		},
+		{
+			Name:   "Empty",
+			Path:   "https://github.com/fastly/compute-starter-kit-cpp-empty",
+			Branch: "main",
+		},
 	}
 
 	scenarios := []struct {
@@ -422,6 +427,20 @@ func TestInit(t *testing.T) {
 				},
 			},
 			manifestIncludes: `name = "fastly-temp`,
+		},
+		{
+			name: "with --from set to C++ empty starter kit",
+			args: args("compute init --from https://github.com/fastly/compute-starter-kit-cpp-empty"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					CPP: skCPP,
+				},
+			},
+			wantOutput: []string{
+				"Fetching package template",
+				"Reading fastly.toml",
+				"SUCCESS: Initialized package",
+			},
 		},
 		// NOTE: This test verifies that we don't fetch a remote project.
 		// Whether that be a starter kit or custom project template.
