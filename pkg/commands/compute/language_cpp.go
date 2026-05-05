@@ -23,7 +23,10 @@ import (
 // NOTE: In the 5.x CLI releases we persisted the default to the fastly.toml
 // We no longer do that. In 6.x we use the default and just inform the user.
 // This makes the experience less confusing as users didn't expect file changes.
-var CPPDefaultBuildCommand = fmt.Sprintf("clang++ -O3 --target=wasm32-wasip1 -o %s main.cpp", binWasmPath)
+const CPPDefaultBuildCommand = "clang++ -O3 --target=%s -o %s main.cpp"
+
+// CPPDefaultWasmWasiTarget is the expected C++ WasmWasi build target.
+const CPPDefaultWasmWasiTarget = "wasm32-wasip1"
 
 // CPPSourceDirectory represents the source code directory.
 const CPPSourceDirectory = "."
@@ -109,7 +112,7 @@ func (cpp *CPP) Dependencies() map[string]string {
 // Build compiles the user's source code into a Wasm binary.
 func (cpp *CPP) Build() error {
 	if cpp.build == "" {
-		cpp.build = CPPDefaultBuildCommand
+		cpp.build = fmt.Sprintf(CPPDefaultBuildCommand, CPPDefaultWasmWasiTarget, binWasmPath)
 		cpp.defaultBuild = true
 		if !cpp.verbose {
 			text.Break(cpp.output)
@@ -121,6 +124,11 @@ func (cpp *CPP) Build() error {
 	cpp.toolchainConstraint(
 		"clang++", `clang version (?P<version>\d+\.\d+\.\d+)`, cpp.config.ToolchainConstraint,
 	)
+
+	wasmWasiTarget := cpp.config.WasmWasiTarget
+	if wasmWasiTarget != "" && wasmWasiTarget != CPPDefaultWasmWasiTarget {
+		return fmt.Errorf("the default build in .fastly/config.toml should produce a %s binary, but was instead set to produce a %s binary", CPPDefaultWasmWasiTarget, wasmWasiTarget)
+	}
 
 	bt := BuildToolchain{
 		autoYes:               cpp.autoYes,

@@ -748,6 +748,23 @@ func TestBuildCPP(t *testing.T) {
 			},
 		},
 		{
+			name: "wasmwasi target error",
+			args: args("compute build --verbose"),
+			applicationConfig: &config.File{
+				Language: config.Language{
+					CPP: config.CPP{
+						ToolchainConstraint: ">= 14.0.0",
+						WasmWasiTarget:      "wasm32-wasi",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "cpp"`,
+			wantError: "the default build in .fastly/config.toml should produce a wasm32-wasip1 binary, but was instead set to produce a wasm32-wasi binary",
+		},
+		{
 			name: "build error",
 			args: args("compute build"),
 			applicationConfig: &config.File{
