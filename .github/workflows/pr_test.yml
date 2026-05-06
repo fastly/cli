@@ -69,7 +69,65 @@ jobs:
         tinygo-version: [0.31.2]
         go-version: [1.25.x]
         node-version: [18]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+      - name: "Install Go"
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go-version }}
+          # IMPORTANT: Disable caching to prevent cache restore errors later.
+          cache: false
+      - uses: acifani/setup-tinygo@v3
+        with:
+          tinygo-version: ${{ matrix.tinygo-version }}
+      - name: "Install Rust"
+        uses: dtolnay/rust-toolchain@stable
+      - name: "Add wasm32-wasip1 Rust target"
+        run: rustup target add wasm32-wasip1 --toolchain stable
+      - name: "Validate Rust toolchain"
+        run: rustup show && rustup target list --installed --toolchain stable
+        shell: bash
+      - name: "Install Node"
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: "Config Artifact"
+        uses: actions/download-artifact@v8
+        with:
+          name: config-artifact-${{ github.sha }}
+      - name: "Move Config"
+        run: mv config.toml pkg/config/config.toml
+      - name: "Modify git cloned repo files 'modified' times"
+        run: go run ./scripts/go-test-cache/main.go
+      # NOTE: Windows should fail quietly running pre-requisite target of `test`.
+      #
+      # On Windows, executing `make config` directly works fine.
+      # But when `config` is a pre-requisite to running `test`, it fails.
+      # But only when run via GitHub Actions.
+      # The ../../scripts/config.sh isn't run because you can't nest PowerShell instances.
+      # Each GitHub Action 'run' step is a PowerShell instance.
+      # And each instance is run as: powershell.exe -command ". '...'"
+      - name: "Test suite"
+        run: make test
+        shell: bash
+        env:
+          # NOTE: The following lets us focus the test run while debugging.
+          # TEST_ARGS: "-run TestBuild ./pkg/commands/compute/..."
+          TEST_COMPUTE_INIT: true
+          TEST_COMPUTE_BUILD: true
+          TEST_COMPUTE_DEPLOY: true
+  test-release:
+    if: contains(github.head_ref, 'release')
+    needs: [config]
+    strategy:
+      matrix:
+        tinygo-version: [0.31.2]
+        go-version: [1.25.x]
+        node-version: [18]
+        platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: "Checkout code"
