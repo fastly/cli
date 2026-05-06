@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	root "github.com/fastly/cli/pkg/commands/service"
@@ -512,7 +512,7 @@ func getServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.Service
 	}, nil
 }
 
-func describeServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceOK(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
 		ServiceID:  fastly.ToPointer("123"),
 		Name:       fastly.ToPointer("Foo"),
@@ -551,7 +551,7 @@ func describeServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.Se
 	}, nil
 }
 
-func describeServiceError(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceError(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	return nil, errTest
 }
 
