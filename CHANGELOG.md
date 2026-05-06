@@ -22,6 +22,9 @@
 - build(deps): `acifani/setup-tinygo` from 2 to 3 ([#1729](https://github.com/fastly/cli/pull/1729))
 - build(deps): `github.com/mattn/go-isatty` from 0.0.21 to 0.0.22 ([#1735](https://github.com/fastly/cli/pull/1735))
 - build(deps): `github.com/hashicorp/cap` from 0.12.0 to 0.13.0 ([#1771](https://github.com/fastly/cli/pull/1771))
+- build(deps): `github.com/Masterminds/semver/v3` from 3.4.0 to 3.5.0 ([#1775](https://github.com/fastly/cli/pull/1775))
+- build(deps): `github.com/fsnotify/fsnotify` from 1.9.0 to 1.10.1 ([#1775](https://github.com/fastly/cli/pull/1775))
+- build(deps): `github.com/klauspost/compress` from 1.18.5 to 1.18.6 ([#1775](https://github.com/fastly/cli/pull/1775))
 
 ## [v14.3.1](https://github.com/fastly/cli/releases/tag/v14.3.1) (2026-04-13)
 
