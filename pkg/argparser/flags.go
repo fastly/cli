@@ -116,41 +116,53 @@ type OptionalServiceVersion struct {
 
 // Parse returns a service version based on the given user input.
 func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fastly.Version, error) {
-	vs, err := client.ListVersions(context.TODO(), &fastly.ListVersionsInput{
-		ServiceID: sid,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error listing service versions: %w", err)
-	}
-	if len(vs) == 0 {
-		return nil, errors.New("error listing service versions: no versions available")
+	// When no --version flag is provided (WasSet=false), treat it as "latest".
+	// This is the default behavior for commands that don't require an explicit version.
+	if sv.Value == "" && !sv.WasSet {
+		sv.Value = "latest"
 	}
 
-	// Sort versions into descending order.
-	sort.Slice(vs, func(i, j int) bool {
-		return fastly.ToValue(vs[i].Number) > fastly.ToValue(vs[j].Number)
-	})
-
-	var v *fastly.Version
+	// When a specific numeric version is provided, use it directly.
+	if n, err := strconv.Atoi(sv.Value); err == nil {
+		return client.GetVersion(context.TODO(), &fastly.GetVersionInput{
+			ServiceID:      sid,
+			ServiceVersion: n,
+		})
+	}
 
 	switch strings.ToLower(sv.Value) {
 	case "latest":
+		vs, err := client.ListVersions(context.TODO(), &fastly.ListVersionsInput{
+			ServiceID: sid,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error listing service versions: %w", err)
+		}
+		if len(vs) == 0 {
+			return nil, errors.New("no service versions available")
+		}
+		// Sort versions into descending order to ensure we get the latest
+		sort.Slice(vs, func(i, j int) bool {
+			return fastly.ToValue(vs[i].Number) > fastly.ToValue(vs[j].Number)
+		})
 		return vs[0], nil
 	case "active":
-		v, err = GetActiveVersion(vs)
-	case "": // no --version flag provided
-		v, err = GetActiveVersion(vs)
+		serviceDetails, err := client.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{
+			ServiceID: sid,
+			Filters: []fastly.ServiceDetailsFilter{
+				{Key: "versions.active", Value: true},
+			},
+		})
 		if err != nil {
-			return vs[0], nil //lint:ignore nilerr if no active version, return latest version
+			return nil, fmt.Errorf("error getting service details: %w", err)
 		}
+		if serviceDetails.ActiveVersion == nil {
+			return nil, fmt.Errorf("no active service version found")
+		}
+		return serviceDetails.ActiveVersion, nil
 	default:
-		v, err = GetSpecifiedVersion(vs, sv.Value)
+		return nil, fmt.Errorf("invalid version value %q: must be a version number, \"latest\", or \"active\"", sv.Value)
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	return v, nil
 }
 
 // OptionalServiceNameID represents a mapping between a Fastly service name and
@@ -249,7 +261,8 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 			Remediation: fsterr.AutoCloneRemediation,
 		}
 	}
-	if ac.Value && (v.Active != nil && *v.Active || v.Locked != nil && *v.Locked) {
+	stateUnknown := v.Active == nil && v.Locked == nil
+	if ac.Value && (stateUnknown || v.Active != nil && *v.Active || v.Locked != nil && *v.Locked) {
 		version, err := client.CloneVersion(context.TODO(), &fastly.CloneVersionInput{
 			ServiceID:      sid,
 			ServiceVersion: fastly.ToValue(v.Number),
@@ -267,32 +280,6 @@ func (ac *OptionalAutoClone) Parse(v *fastly.Version, sid string, verbose bool, 
 
 	// Treat the function as a no-op if the version is editable.
 	return v, nil
-}
-
-// GetActiveVersion returns the active service version.
-func GetActiveVersion(vs []*fastly.Version) (*fastly.Version, error) {
-	for _, v := range vs {
-		if fastly.ToValue(v.Active) {
-			return v, nil
-		}
-	}
-	return nil, fmt.Errorf("no active service version found")
-}
-
-// GetSpecifiedVersion returns the specified service version.
-func GetSpecifiedVersion(vs []*fastly.Version, version string) (*fastly.Version, error) {
-	i, err := strconv.Atoi(version)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, v := range vs {
-		if fastly.ToValue(v.Number) == i {
-			return v, nil
-		}
-	}
-
-	return nil, fmt.Errorf("specified service version not found: %s", version)
 }
 
 // Content determines if the given flag value is a file path, and if so read

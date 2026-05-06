@@ -20,7 +20,7 @@ func TestHoneycombCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --dataset log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateHoneycombFn: createHoneycombOK,
 			},
@@ -29,7 +29,7 @@ func TestHoneycombCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --dataset log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateHoneycombFn: createHoneycombError,
 			},
@@ -44,7 +44,7 @@ func TestHoneycombList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListHoneycombsFn: listHoneycombsOK,
 			},
 			WantOutput: listHoneycombsShortOutput,
@@ -52,7 +52,7 @@ func TestHoneycombList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListHoneycombsFn: listHoneycombsOK,
 			},
 			WantOutput: listHoneycombsVerboseOutput,
@@ -60,7 +60,7 @@ func TestHoneycombList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListHoneycombsFn: listHoneycombsOK,
 			},
 			WantOutput: listHoneycombsVerboseOutput,
@@ -68,7 +68,7 @@ func TestHoneycombList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListHoneycombsFn: listHoneycombsError,
 			},
 			WantError: errTest.Error(),
@@ -86,7 +86,7 @@ func TestHoneycombDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				GetHoneycombFn: getHoneycombError,
 			},
 			WantError: errTest.Error(),
@@ -94,7 +94,7 @@ func TestHoneycombDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				GetHoneycombFn: getHoneycombOK,
 			},
 			WantOutput: describeHoneycombOutput,
@@ -112,7 +112,7 @@ func TestHoneycombUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateHoneycombFn: updateHoneycombError,
 			},
@@ -121,7 +121,7 @@ func TestHoneycombUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateHoneycombFn: updateHoneycombOK,
 			},
@@ -140,7 +140,7 @@ func TestHoneycombDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteHoneycombFn: deleteHoneycombError,
 			},
@@ -149,7 +149,7 @@ func TestHoneycombDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteHoneycombFn: deleteHoneycombOK,
 			},

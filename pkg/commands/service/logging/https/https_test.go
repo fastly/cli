@@ -71,6 +71,9 @@ func TestCreateHTTPSInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.wantError == errors.ErrNoServiceID.Error() {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			var bs []byte
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
@@ -114,7 +117,7 @@ func TestUpdateHTTPSInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetHTTPSFn:     getHTTPSOK,
 			},
@@ -148,7 +151,7 @@ func TestUpdateHTTPSInput(t *testing.T) {
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetHTTPSFn:     getHTTPSOK,
 			},
@@ -168,6 +171,9 @@ func TestUpdateHTTPSInput(t *testing.T) {
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.wantError == errors.ErrNoServiceID.Error() {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			testcase.cmd.Globals.APIClient = testcase.api
 
 			var bs []byte
@@ -210,6 +216,7 @@ func createCommandRequired() *https.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
+		GetVersionFn:   testutil.GetVersion,
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
@@ -248,6 +255,7 @@ func createCommandAll() *https.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
+		GetVersionFn:   testutil.GetVersion,
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
@@ -299,6 +307,7 @@ func createCommandAll() *https.CreateCommand {
 func createCommandMissingServiceID() *https.CreateCommand {
 	res := createCommandAll()
 	res.Manifest = manifest.Data{}
+	res.ServiceVersion = argparser.OptionalServiceVersion{}
 	return res
 }
 
@@ -392,5 +401,6 @@ func updateCommandAll() *https.UpdateCommand {
 func updateCommandMissingServiceID() *https.UpdateCommand {
 	res := updateCommandAll()
 	res.Manifest = manifest.Data{}
+	res.ServiceVersion = argparser.OptionalServiceVersion{}
 	return res
 }

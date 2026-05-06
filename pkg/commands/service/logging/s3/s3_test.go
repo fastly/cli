@@ -83,6 +83,9 @@ func TestCreateS3Input(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.wantError == errors.ErrNoServiceID.Error() {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			var bs []byte
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
@@ -126,7 +129,7 @@ func TestUpdateS3Input(t *testing.T) {
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetS3Fn:        getS3OK,
 			},
@@ -140,7 +143,7 @@ func TestUpdateS3Input(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetS3Fn:        getS3OK,
 			},
@@ -181,6 +184,9 @@ func TestUpdateS3Input(t *testing.T) {
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.wantError == errors.ErrNoServiceID.Error() {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			testcase.cmd.Globals.APIClient = testcase.api
 
 			var bs []byte
@@ -223,6 +229,7 @@ func createCommandRequired() *s3.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
+		GetVersionFn:   testutil.GetVersion,
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
@@ -263,6 +270,7 @@ func createCommandRequiredIAMRole() *s3.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
+		GetVersionFn:   testutil.GetVersion,
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
@@ -302,6 +310,7 @@ func createCommandAll() *s3.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
+		GetVersionFn:   testutil.GetVersion,
 		ListVersionsFn: testutil.ListVersions,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
@@ -351,6 +360,7 @@ func createCommandAll() *s3.CreateCommand {
 func createCommandMissingServiceID() *s3.CreateCommand {
 	res := createCommandAll()
 	res.Manifest = manifest.Data{}
+	res.ServiceVersion = argparser.OptionalServiceVersion{}
 	return res
 }
 
@@ -444,6 +454,7 @@ func updateCommandAll() *s3.UpdateCommand {
 func updateCommandMissingServiceID() *s3.UpdateCommand {
 	res := updateCommandAll()
 	res.Manifest = manifest.Data{}
+	res.ServiceVersion = argparser.OptionalServiceVersion{}
 	return res
 }
 

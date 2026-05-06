@@ -129,6 +129,10 @@ func TestOriginInspector(t *testing.T) {
 	}
 	for _, tc := range scenarios {
 		t.Run(tc.name, func(t *testing.T) {
+			// Clear FASTLY_SERVICE_ID for tests that validate missing service ID
+			if tc.name == "missing service ID" {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			var stdout bytes.Buffer
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts := testutil.MockGlobalData(tc.args, &stdout)

@@ -2,6 +2,7 @@ package snippet_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/fastly/go-fastly/v15/fastly"
@@ -19,28 +20,13 @@ func TestVCLSnippetCreate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--content /path/to/snippet.vcl --name foo --type recv --version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--content ./testdata/snippet.vcl --name foo --type recv --service-id 123 --version 2",
-			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate CreateSnippet API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateSnippetFn: func(_ context.Context, _ *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
@@ -51,7 +37,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 		{
 			Name: "validate CreateSnippet API success for versioned Snippet",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -85,7 +71,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 		{
 			Name: "validate CreateSnippet API success for dynamic Snippet",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -119,7 +105,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 		{
 			Name: "validate Priority set",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -153,7 +139,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
@@ -188,7 +174,7 @@ func TestVCLSnippetCreate(t *testing.T) {
 		{
 			Name: "validate CreateSnippet API success with inline Snippet content",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateSnippetFn: func(_ context.Context, i *fastly.CreateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -239,28 +225,13 @@ func TestVCLSnippetDelete(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--name foobar --version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 2",
-			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate DeleteSnippet API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				DeleteSnippetFn: func(_ context.Context, _ *fastly.DeleteSnippetInput) error {
 					return testutil.Err
 				},
@@ -271,7 +242,7 @@ func TestVCLSnippetDelete(t *testing.T) {
 		{
 			Name: "validate DeleteSnippet API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				DeleteSnippetFn: func(_ context.Context, _ *fastly.DeleteSnippetInput) error {
 					return nil
 				},
@@ -280,15 +251,69 @@ func TestVCLSnippetDelete(t *testing.T) {
 			WantOutput: "Deleted VCL snippet 'foobar' (service: 123, version: 3)",
 		},
 		{
+			Name: "validate API error when modifying active version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				DeleteSnippetFn: func(_ context.Context, i *fastly.DeleteSnippetInput) error {
+					return fmt.Errorf("Cannot update version %d. Versions that have been activated cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--name foobar --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been activated cannot be updated",
+		},
+		{
+			Name: "validate API error when modifying locked version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				DeleteSnippetFn: func(_ context.Context, i *fastly.DeleteSnippetInput) error {
+					return fmt.Errorf("Cannot update version %d. Versions that have been locked cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--name foobar --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been locked cannot be updated",
+		},
+		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSnippetFn: func(_ context.Context, _ *fastly.DeleteSnippetInput) error {
 					return nil
 				},
 			},
 			Args:       "--autoclone --name foo --service-id 123 --version 1",
+			WantOutput: "Deleted VCL snippet 'foo' (service: 123, version: 4)",
+		},
+		{
+			Name: "validate --autoclone on locked version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				DeleteSnippetFn: func(_ context.Context, i *fastly.DeleteSnippetInput) error {
+					// Verify operation happens on the cloned version (4), not original (2)
+					if i.ServiceVersion != 4 {
+						return fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return nil
+				},
+			},
+			Args:       "--autoclone --name foo --service-id 123 --version 2",
+			WantOutput: "Deleted VCL snippet 'foo' (service: 123, version: 4)",
+		},
+		{
+			Name: "validate --autoclone on editable version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				DeleteSnippetFn: func(_ context.Context, i *fastly.DeleteSnippetInput) error {
+					// Verify operation happens on the cloned version (4), not original (3)
+					if i.ServiceVersion != 4 {
+						return fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return nil
+				},
+			},
+			Args:       "--autoclone --name foo --service-id 123 --version 3",
 			WantOutput: "Deleted VCL snippet 'foo' (service: 123, version: 4)",
 		},
 	}
@@ -310,7 +335,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate missing --name flag with versioned snippet",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --name with a versioned VCL snippet",
@@ -318,7 +343,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate missing --snippet-id flag with dynamic snippet",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--dynamic --service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --snippet-id with a dynamic VCL snippet",
@@ -326,7 +351,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate GetSnippet API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				GetSnippetFn: func(_ context.Context, _ *fastly.GetSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
@@ -337,8 +362,8 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate GetSnippet API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSnippetFn:   getSnippet,
+				GetVersionFn: testutil.GetVersion,
+				GetSnippetFn: getSnippet,
 			},
 			Args:       "--name foobar --service-id 123 --version 3",
 			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nID: 456\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
@@ -346,8 +371,8 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate missing --autoclone flag is OK",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSnippetFn:   getSnippet,
+				GetVersionFn: testutil.GetVersion,
+				GetSnippetFn: getSnippet,
 			},
 			Args:       "--name foobar --service-id 123 --version 1",
 			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nID: 456\nPriority: 0\nDynamic: false\nType: recv\nContent: \n# some vcl content\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
@@ -355,7 +380,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate dynamic GetSnippet API success",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				GetDynamicSnippetFn: getDynamicSnippet,
 			},
 			Args:       "--dynamic --service-id 123 --snippet-id 456 --version 3",
@@ -364,8 +389,8 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate --content flag outputs raw VCL only for versioned snippet",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSnippetFn:   getSnippet,
+				GetVersionFn: testutil.GetVersion,
+				GetSnippetFn: getSnippet,
 			},
 			Args:       "--content --name foobar --service-id 123 --version 3",
 			WantOutput: "# some vcl content",
@@ -373,7 +398,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate --content flag outputs raw VCL only for dynamic snippet",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				GetDynamicSnippetFn: getDynamicSnippet,
 			},
 			Args:       "--content --dynamic --service-id 123 --snippet-id 456 --version 3",
@@ -382,7 +407,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate --content flag with --verbose returns error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--content --name foobar --service-id 123 --verbose --version 3",
 			WantError: "invalid flag combination, --content cannot be used together with --json or --verbose",
@@ -390,7 +415,7 @@ func TestVCLSnippetDescribe(t *testing.T) {
 		{
 			Name: "validate --content flag with --json returns error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--content --json --name foobar --service-id 123 --version 3",
 			WantError: "invalid flag combination, --content cannot be used together with --json or --verbose",
@@ -414,7 +439,7 @@ func TestVCLSnippetList(t *testing.T) {
 		{
 			Name: "validate ListSnippets API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				ListSnippetsFn: func(_ context.Context, _ *fastly.ListSnippetsInput) ([]*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
@@ -425,7 +450,7 @@ func TestVCLSnippetList(t *testing.T) {
 		{
 			Name: "validate ListSnippets API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				ListSnippetsFn: listSnippets,
 			},
 			Args:       "--service-id 123 --version 3",
@@ -434,7 +459,7 @@ func TestVCLSnippetList(t *testing.T) {
 		{
 			Name: "validate missing --autoclone flag is OK",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				ListSnippetsFn: listSnippets,
 			},
 			Args:       "--service-id 123 --version 1",
@@ -443,7 +468,7 @@ func TestVCLSnippetList(t *testing.T) {
 		{
 			Name: "validate missing --verbose flag",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				ListSnippetsFn: listSnippets,
 			},
 			Args:       "--service-id 123 --verbose --version 1",
@@ -464,28 +489,13 @@ func TestVCLSnippetUpdate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--service-id 123 --version 2",
-			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate versioned snippet missing --name",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--content inline_vcl --new-name bar --service-id 123 --type recv --version 3",
 			WantError: "error parsing arguments: must provide --name to update a versioned VCL snippet",
@@ -493,7 +503,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 		{
 			Name: "validate dynamic snippet missing --snippet-id",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--content inline_vcl --dynamic --service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --snippet-id to update a dynamic VCL snippet",
@@ -501,7 +511,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 		{
 			Name: "validate versioned snippet with --snippet-id is not allowed",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--content inline_vcl --new-name foobar --service-id 123 --snippet-id 456 --version 3",
 			WantError: "error parsing arguments: --snippet-id is not supported when updating a versioned VCL snippet",
@@ -509,7 +519,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 		{
 			Name: "validate dynamic snippet with --new-name is not allowed",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--content inline_vcl --dynamic --new-name foobar --service-id 123 --snippet-id 456 --version 3",
 			WantError: "error parsing arguments: --new-name is not supported when updating a dynamic VCL snippet",
@@ -517,7 +527,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateSnippet API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				UpdateSnippetFn: func(_ context.Context, _ *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					return nil, testutil.Err
 				},
@@ -528,7 +538,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateSnippet API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				UpdateSnippetFn: func(_ context.Context, i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -550,7 +560,7 @@ func TestVCLSnippetUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateDynamicSnippet API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				UpdateDynamicSnippetFn: func(_ context.Context, i *fastly.UpdateDynamicSnippetInput) (*fastly.DynamicSnippet, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -567,9 +577,31 @@ func TestVCLSnippetUpdate(t *testing.T) {
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},
 		{
+			Name: "validate API error when modifying active version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				UpdateSnippetFn: func(_ context.Context, i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+					return nil, fmt.Errorf("Cannot update version %d. Versions that have been activated cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3",
+			WantError: "Cannot update version 3. Versions that have been activated cannot be updated",
+		},
+		{
+			Name: "validate API error when modifying locked version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				UpdateSnippetFn: func(_ context.Context, i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+					return nil, fmt.Errorf("Cannot update version %d. Versions that have been locked cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--content inline_vcl --name foo --new-name bar --service-id 123 --type recv --version 3",
+			WantError: "Cannot update version 3. Versions that have been locked cannot be updated",
+		},
+		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSnippetFn: func(_ context.Context, i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
 					// Track the contents parsed
@@ -586,6 +618,60 @@ func TestVCLSnippetUpdate(t *testing.T) {
 				},
 			},
 			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 1",
+			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
+		},
+		{
+			Name: "validate --autoclone on locked version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				UpdateSnippetFn: func(_ context.Context, i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+					// Verify operation happens on the cloned version (4), not original (2)
+					if i.ServiceVersion != 4 {
+						return nil, fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					// Track the contents parsed
+					content = *i.Content
+
+					return &fastly.Snippet{
+						Content:        i.Content,
+						Name:           i.NewName,
+						Priority:       i.Priority,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						Type:           i.Type,
+					}, nil
+				},
+			},
+			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 2",
+			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
+		},
+		{
+			Name: "validate --autoclone on editable version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				UpdateSnippetFn: func(_ context.Context, i *fastly.UpdateSnippetInput) (*fastly.Snippet, error) {
+					// Verify operation happens on the cloned version (4), not original (3)
+					if i.ServiceVersion != 4 {
+						return nil, fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					// Track the contents parsed
+					content = *i.Content
+
+					return &fastly.Snippet{
+						Content:        i.Content,
+						Name:           i.NewName,
+						Priority:       i.Priority,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						Type:           i.Type,
+					}, nil
+				},
+			},
+			Args:            "--autoclone --content inline_vcl --name foo --new-name bar --priority 1 --service-id 123 --type recv --version 3",
 			WantOutput:      "Updated VCL snippet 'bar' (previously: 'foo', service: 123, version: 4, type: recv, priority: 1)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "snippet.vcl", Content: func() string { return content }},
 		},

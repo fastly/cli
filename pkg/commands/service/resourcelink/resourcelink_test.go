@@ -27,12 +27,14 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		},
 		{
 			Args:      "--resource-id abc --version latest",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		// Success.
 		{
 			Args: "--resource-id abc --service-id 123 --version 42",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
@@ -64,6 +66,7 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--resource-id abc --service-id 123 --version 42 --name testing",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
@@ -95,6 +98,8 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--resource-id abc --service-id 123 --version=latest --autoclone",
 			API: &mock.API{
+				GetVersionFn:        testutil.GetVersion,
+				GetServiceDetailsFn: testutil.GetServiceDetails,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
 					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil
@@ -140,6 +145,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		},
 		{
 			Args:      "--id LINK-ID --version 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -150,6 +156,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 42 --id LINKID",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
@@ -172,6 +179,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 42 --id LINKID --autoclone",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
 					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil
@@ -208,6 +216,7 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 		},
 		{
 			Args:      "--id LINK-ID --version 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -218,6 +227,7 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 42 --id LINKID",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
@@ -269,12 +279,14 @@ func TestListServiceResourceCommand(t *testing.T) {
 		},
 		{
 			Args:      "--version 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		// Success.
 		{
 			Args: "--service-id 123 --version 42",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
@@ -349,6 +361,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		},
 		{
 			Args:      "--id LINK-ID --name new-name --version 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -363,6 +376,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--id LINK-ID --name new-name --service-id 123 --version 42",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
 				},
@@ -399,6 +413,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--id LINK-ID --name new-name --service-id 123 --version 42 --autoclone",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
 					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil

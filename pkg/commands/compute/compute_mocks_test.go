@@ -196,8 +196,23 @@ func getConfigStoreOk(_ context.Context, _ *fastly.GetConfigStoreInput) (*fastly
 	}, nil
 }
 
-func getServiceDetailsWasm(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
-	return &fastly.ServiceDetail{
+func getServiceDetailsWasm(_ context.Context, i *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
+	detail := &fastly.ServiceDetail{
 		Type: fastly.ToPointer("wasm"),
-	}, nil
+		Version: &fastly.Version{
+			Number: fastly.ToPointer(1),
+		},
+	}
+
+	// If filtering for active version, also set ActiveVersion field
+	for _, filter := range i.Filters {
+		if filter.Key == "versions.active" && filter.Value {
+			detail.ActiveVersion = &fastly.Version{
+				Number: fastly.ToPointer(1),
+				Active: fastly.ToPointer(true),
+			}
+		}
+	}
+
+	return detail, nil
 }

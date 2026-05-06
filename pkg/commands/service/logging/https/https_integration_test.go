@@ -22,7 +22,7 @@ func TestHTTPSCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHTTPSFn:  createHTTPSOK,
 			},
@@ -31,7 +31,7 @@ func TestHTTPSCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHTTPSFn:  createHTTPSError,
 			},
@@ -40,7 +40,7 @@ func TestHTTPSCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --compression-codec zstd --gzip-level 9 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -54,32 +54,32 @@ func TestHTTPSList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListHTTPSFn:    listHTTPSsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListHTTPSFn:  listHTTPSsOK,
 			},
 			WantOutput: listHTTPSsShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListHTTPSFn:    listHTTPSsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListHTTPSFn:  listHTTPSsOK,
 			},
 			WantOutput: listHTTPSsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListHTTPSFn:    listHTTPSsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListHTTPSFn:  listHTTPSsOK,
 			},
 			WantOutput: listHTTPSsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListHTTPSFn:    listHTTPSsError,
+				GetVersionFn: testutil.GetVersion,
+				ListHTTPSFn:  listHTTPSsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -96,16 +96,16 @@ func TestHTTPSDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetHTTPSFn:     getHTTPSError,
+				GetVersionFn: testutil.GetVersion,
+				GetHTTPSFn:   getHTTPSError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetHTTPSFn:     getHTTPSOK,
+				GetVersionFn: testutil.GetVersion,
+				GetHTTPSFn:   getHTTPSOK,
 			},
 			WantOutput: describeHTTPSOutput,
 		},
@@ -122,7 +122,7 @@ func TestHTTPSUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHTTPSFn:  updateHTTPSError,
 			},
@@ -131,7 +131,7 @@ func TestHTTPSUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHTTPSFn:  updateHTTPSOK,
 			},
@@ -150,7 +150,7 @@ func TestHTTPSDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHTTPSFn:  deleteHTTPSError,
 			},
@@ -159,7 +159,7 @@ func TestHTTPSDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHTTPSFn:  deleteHTTPSOK,
 			},
