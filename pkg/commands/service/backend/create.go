@@ -32,6 +32,8 @@ type CreateCommand struct {
 	firstByteTimeout    argparser.OptionalInt
 	healthCheck         argparser.OptionalString
 	maxConn             argparser.OptionalInt
+	maxUse              argparser.OptionalInt
+	maxLifetime         argparser.OptionalInt
 	maxTLSVersion       argparser.OptionalString
 	minTLSVersion       argparser.OptionalString
 	name                argparser.OptionalString
@@ -89,6 +91,8 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.firstByteTimeout.Set).IntVar(&c.firstByteTimeout.Value)
 	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").Action(c.healthCheck.Set).StringVar(&c.healthCheck.Value)
 	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.maxConn.Set).IntVar(&c.maxConn.Value)
+	c.CmdClause.Flag("max-use", "Maximum number of requests allowed over a single, pooled HTTP keepalive connection to this backend; 0 is treated as unlimited.").Action(c.maxUse.Set).IntVar(&c.maxUse.Value)
+	c.CmdClause.Flag("max-lifetime", "Maximum time from creation (in milliseconds) that a pooled HTTP keepalive connection will be eligible for reuse; 0 is treated as unlimited.").Action(c.maxLifetime.Set).IntVar(&c.maxLifetime.Value)
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.maxTLSVersion.Set).StringVar(&c.maxTLSVersion.Value)
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.minTLSVersion.Set).StringVar(&c.minTLSVersion.Value)
 	c.CmdClause.Flag("name", "Backend name").Short('n').Action(c.name.Set).StringVar(&c.name.Value)
@@ -179,6 +183,12 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	if c.maxConn.WasSet {
 		input.MaxConn = &c.maxConn.Value
+	}
+	if c.maxUse.WasSet {
+		input.MaxUse = &c.maxUse.Value
+	}
+	if c.maxLifetime.WasSet {
+		input.MaxLifetime = &c.maxLifetime.Value
 	}
 	if c.maxTLSVersion.WasSet {
 		input.MaxTLSVersion = &c.maxTLSVersion.Value
