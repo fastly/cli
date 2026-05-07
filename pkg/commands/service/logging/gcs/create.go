@@ -202,7 +202,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Created GCS logging endpoint %s (service %s version %d)",
 		fastly.ToValue(d.Name),
 		fastly.ToValue(d.ServiceID),

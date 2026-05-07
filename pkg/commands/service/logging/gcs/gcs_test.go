@@ -206,7 +206,7 @@ func createCommandRequired() *gcs.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &gcs.CreateCommand{
@@ -246,7 +246,7 @@ func createCommandAll() *gcs.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &gcs.CreateCommand{

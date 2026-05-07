@@ -253,7 +253,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated S3 logging endpoint %s (service %s version %d)",
 		fastly.ToValue(s3.Name),
 		fastly.ToValue(s3.ServiceID),

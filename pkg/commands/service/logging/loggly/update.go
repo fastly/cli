@@ -154,7 +154,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Loggly logging endpoint %s (service %s version %d)",
 		fastly.ToValue(loggly.Name),
 		fastly.ToValue(loggly.ServiceID),

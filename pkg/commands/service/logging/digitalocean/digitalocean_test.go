@@ -208,7 +208,7 @@ func createCommandRequired() *digitalocean.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &digitalocean.CreateCommand{
@@ -248,7 +248,7 @@ func createCommandAll() *digitalocean.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &digitalocean.CreateCommand{

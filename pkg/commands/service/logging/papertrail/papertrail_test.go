@@ -191,7 +191,7 @@ func createCommandRequired() *papertrail.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &papertrail.CreateCommand{
@@ -229,7 +229,7 @@ func createCommandAll() *papertrail.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &papertrail.CreateCommand{

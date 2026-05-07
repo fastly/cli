@@ -121,7 +121,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		prev = fmt.Sprintf("previously: %s, ", c.endpointName)
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated New Relic OTLP logging endpoint '%s' (%sservice: %s, version: %d)",
 		fastly.ToValue(l.Name),
 		prev,

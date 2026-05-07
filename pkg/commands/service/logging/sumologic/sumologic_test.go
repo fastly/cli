@@ -191,7 +191,7 @@ func createCommandOK() *sumologic.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &sumologic.CreateCommand{
@@ -235,7 +235,7 @@ func createCommandRequired() *sumologic.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &sumologic.CreateCommand{

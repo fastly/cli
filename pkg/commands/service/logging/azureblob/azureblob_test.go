@@ -210,7 +210,7 @@ func createCommandRequired() *azureblob.CreateCommand {
 	// uses a testcase.api field to assign the mock API to the global client.
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &azureblob.CreateCommand{
@@ -250,7 +250,7 @@ func createCommandAll() *azureblob.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-				CloneVersionFn: testutil.CloneVersionResult(4),
+		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &azureblob.CreateCommand{

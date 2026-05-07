@@ -170,7 +170,7 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 42 --id LINKID --autoclone",
 			API: &mock.API{
-				GetVersionFn: func(_ context.Context, i *fastly.GetVersionInput) (*fastly.Version, error) {
+				GetVersionFn: func(_ context.Context, _ *fastly.GetVersionInput) (*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
 					return &fastly.Version{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}, nil
 				},
@@ -394,7 +394,7 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--id LINK-ID --name new-name --service-id 123 --version 42 --autoclone",
 			API: &mock.API{
-				GetVersionFn: func(_ context.Context, i *fastly.GetVersionInput) (*fastly.Version, error) {
+				GetVersionFn: func(_ context.Context, _ *fastly.GetVersionInput) (*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
 					return &fastly.Version{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}, nil
 				},

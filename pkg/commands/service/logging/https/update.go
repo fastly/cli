@@ -234,7 +234,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated HTTPS logging endpoint %s (service %s version %d)",
 		fastly.ToValue(https.Name),
 		fastly.ToValue(https.ServiceID),
