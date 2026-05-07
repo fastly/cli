@@ -331,6 +331,16 @@ func GetServiceDetails(_ context.Context, i *fastly.GetServiceDetailsInput) (*fa
 			detail.Version = version
 			detail.Versions = append(detail.Versions, version)
 		}
+		if filter.Key == "versions.staged" && filter.Value {
+			version := &fastly.Version{
+				ServiceID: fastly.ToPointer(i.ServiceID),
+				Number:    fastly.ToPointer(4),
+				Staging:   fastly.ToPointer(true),
+				UpdatedAt: MustParseTimeRFC3339("2000-01-04T01:00:00Z"),
+			}
+			detail.Version = version
+			detail.Versions = append(detail.Versions, version)
+		}
 	}
 
 	return detail, nil

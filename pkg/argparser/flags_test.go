@@ -32,6 +32,10 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 			flagValue:   "active",
 			wantVersion: 1,
 		},
+		"staged": {
+			flagValue:   "staged",
+			wantVersion: 4,
+		},
 		"empty with WasSet": {
 			flagValue:   "",
 			errExpected: true,
@@ -142,6 +146,15 @@ func getServiceDetails(_ context.Context, i *fastly.GetServiceDetailsInput) (*fa
 				Number:    fastly.ToPointer(1),
 				Active:    fastly.ToPointer(true),
 				UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-01T01:00:00Z"),
+			}
+			return result, nil
+		}
+		if filter.Key == "versions.staged" && filter.Value {
+			result.Version = &fastly.Version{
+				ServiceID: fastly.ToPointer(i.ServiceID),
+				Number:    fastly.ToPointer(4),
+				Staging:   fastly.ToPointer(true),
+				UpdatedAt: testutil.MustParseTimeRFC3339("2000-01-04T01:00:00Z"),
 			}
 			return result, nil
 		}
