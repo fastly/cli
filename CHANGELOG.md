@@ -25,6 +25,7 @@
 - build(deps): `github.com/Masterminds/semver/v3` from 3.4.0 to 3.5.0 ([#1775](https://github.com/fastly/cli/pull/1775))
 - build(deps): `github.com/fsnotify/fsnotify` from 1.9.0 to 1.10.1 ([#1775](https://github.com/fastly/cli/pull/1775))
 - build(deps): `github.com/klauspost/compress` from 1.18.5 to 1.18.6 ([#1775](https://github.com/fastly/cli/pull/1775))
+- build(deps): `github.com/fastly/go-fastly/v15` from 14.2.0 to 15.0.1([#1778](https://github.com/fastly/terraform-provider-fastly/pull/1778))
 
 ## [v14.3.1](https://github.com/fastly/cli/releases/tag/v14.3.1) (2026-04-13)
 

@@ -17,7 +17,7 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/mholt/archiver/v3"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
@@ -1143,7 +1143,7 @@ func (c *DeployCommand) ExistingServiceVersion(serviceID string, out io.Writer) 
 
 	// Validate that we're dealing with a Compute 'wasm' service and not a
 	// VCL service, for which we cannot upload a wasm package format to.
-	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceInput{ServiceID: serviceID})
+	serviceDetails, err := c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{ServiceID: serviceID})
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"Service ID":      serviceID,

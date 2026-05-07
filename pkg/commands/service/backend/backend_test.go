@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/backend"
@@ -496,6 +496,8 @@ var listBackendsJSONOutput = strings.TrimSpace(`
     "Hostname": null,
     "KeepAliveTime": null,
     "MaxConn": null,
+    "MaxUse": null,
+    "MaxLifetime": null,
     "MaxTLSVersion": null,
     "MinTLSVersion": null,
     "Name": "test.com",
@@ -536,6 +538,8 @@ var listBackendsJSONOutput = strings.TrimSpace(`
     "Hostname": null,
     "KeepAliveTime": null,
     "MaxConn": null,
+    "MaxUse": null,
+    "MaxLifetime": null,
     "MaxTLSVersion": null,
     "MinTLSVersion": null,
     "Name": "example.com",

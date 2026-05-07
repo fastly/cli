@@ -19,7 +19,7 @@ import (
 
 	cp "github.com/otiai10/copy"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
@@ -275,7 +275,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				serviceVersion int
 			)
 			err = spinner.Process("Fetching service details", func(_ *text.SpinnerWrapper) error {
-				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceInput{
+				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{
 					ServiceID: c.CloneFrom,
 				})
 				if err != nil {

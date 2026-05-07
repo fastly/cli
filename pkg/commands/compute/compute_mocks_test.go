@@ -7,7 +7,7 @@ package compute_test
 import (
 	"context"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -196,7 +196,7 @@ func getConfigStoreOk(_ context.Context, _ *fastly.GetConfigStoreInput) (*fastly
 	}, nil
 }
 
-func getServiceDetailsWasm(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func getServiceDetailsWasm(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
 		Type: fastly.ToPointer("wasm"),
 	}, nil
