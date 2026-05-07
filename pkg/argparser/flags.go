@@ -115,6 +115,13 @@ type OptionalServiceVersion struct {
 }
 
 // Parse returns a service version based on the given user input.
+//
+// Supported values:
+//   - Numeric version (e.g., "1", "2", "42"): Returns the specified version
+//   - "active": Returns the currently active version
+//   - "staged": Returns the currently staged version
+//   - "latest": Returns the highest version number (latest version)
+//   - Omitted (no flag provided): Returns active version, falls back to latest if no active version exists
 func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fastly.Version, error) {
 	// When no --version flag is provided (WasSet=false), default to "active" to preserve
 	// the original behavior of trying active version first, with fallback to latest.

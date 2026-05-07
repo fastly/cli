@@ -28,7 +28,7 @@ var (
 	// FlagVersionName is the flag name.
 	FlagVersionName = "version"
 	// FlagVersionDesc is the flag description.
-	FlagVersionDesc = "'latest', 'active', or the number of a specific Fastly service version"
+	FlagVersionDesc = "'latest', 'active', 'staged', or the number of a specific Fastly service version"
 )
 
 // PaginationDirection is a list of directions the page results can be displayed.
