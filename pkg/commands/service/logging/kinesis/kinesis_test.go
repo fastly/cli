@@ -211,8 +211,7 @@ func createCommandRequired() *kinesis.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{
@@ -253,8 +252,7 @@ func createCommandRequiredIAMRole() *kinesis.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{
@@ -294,8 +292,7 @@ func createCommandAll() *kinesis.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &kinesis.CreateCommand{

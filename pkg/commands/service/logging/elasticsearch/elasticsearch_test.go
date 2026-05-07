@@ -210,8 +210,7 @@ func createCommandRequired() *elasticsearch.CreateCommand {
 	}
 	globals.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &elasticsearch.CreateCommand{
@@ -250,8 +249,7 @@ func createCommandAll() *elasticsearch.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &elasticsearch.CreateCommand{

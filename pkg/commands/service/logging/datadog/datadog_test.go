@@ -191,8 +191,7 @@ func createCommandOK() *datadog.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &datadog.CreateCommand{
@@ -236,8 +235,7 @@ func createCommandRequired() *datadog.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &datadog.CreateCommand{

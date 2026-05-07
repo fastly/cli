@@ -203,8 +203,7 @@ func createCommandRequired() *bigquery.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &bigquery.CreateCommand{
@@ -246,8 +245,7 @@ func createCommandAll() *bigquery.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &bigquery.CreateCommand{

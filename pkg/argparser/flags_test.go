@@ -72,10 +72,8 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 				}
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if err == nil {
-				if c.errExpected {
-					t.Fatalf("expected error, have %v", v)
-				}
+			if c.errExpected {
+				t.Fatalf("expected error, have %v", v)
 			}
 
 			want := c.wantVersion
@@ -212,6 +210,14 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 			flagOmitted: true,
 			errExpected: true,
 		},
+		"version state unknown with autoclone": {
+			version: &fastly.Version{
+				Number: fastly.ToPointer(1),
+				Active: nil,
+				Locked: nil,
+			},
+			wantVersion: 2,
+		},
 	}
 
 	for name, c := range cases {
@@ -242,10 +248,8 @@ func TestOptionalAutoCloneParse(t *testing.T) {
 				}
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if err == nil {
-				if c.errExpected {
-					t.Fatalf("expected error, have %v", v)
-				}
+			if c.errExpected {
+				t.Fatalf("expected error, have %v", v)
 			}
 
 			want := c.wantVersion

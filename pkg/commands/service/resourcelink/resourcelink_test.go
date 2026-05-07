@@ -35,9 +35,6 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 			Args: "--resource-id abc --service-id 123 --version 42",
 			API: &mock.API{
 				GetVersionFn: testutil.GetVersion,
-				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
-				},
 				CreateResourceFn: func(_ context.Context, i *fastly.CreateResourceInput) (*fastly.Resource, error) {
 					if got, want := *i.ResourceID, "abc"; got != want {
 						return nil, fmt.Errorf("ResourceID: got %q, want %q", got, want)
@@ -67,9 +64,6 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 			Args: "--resource-id abc --service-id 123 --version 42 --name testing",
 			API: &mock.API{
 				GetVersionFn: testutil.GetVersion,
-				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
-				},
 				CreateResourceFn: func(_ context.Context, i *fastly.CreateResourceInput) (*fastly.Resource, error) {
 					if got, want := *i.ResourceID, "abc"; got != want {
 						return nil, fmt.Errorf("ResourceID: got %q, want %q", got, want)
@@ -157,9 +151,6 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 			Args: "--service-id 123 --version 42 --id LINKID",
 			API: &mock.API{
 				GetVersionFn: testutil.GetVersion,
-				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
-				},
 				DeleteResourceFn: func(_ context.Context, i *fastly.DeleteResourceInput) error {
 					if got, want := i.ResourceID, "LINKID"; got != want {
 						return fmt.Errorf("ID: got %q, want %q", got, want)
@@ -179,10 +170,9 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 42 --id LINKID --autoclone",
 			API: &mock.API{
-				GetVersionFn: testutil.GetVersion,
-				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+				GetVersionFn: func(_ context.Context, i *fastly.GetVersionInput) (*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
-					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil
+					return &fastly.Version{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}, nil
 				},
 				CloneVersionFn: func(_ context.Context, _ *fastly.CloneVersionInput) (*fastly.Version, error) {
 					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
@@ -228,9 +218,6 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 			Args: "--service-id 123 --version 42 --id LINKID",
 			API: &mock.API{
 				GetVersionFn: testutil.GetVersion,
-				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
-				},
 				GetResourceFn: func(_ context.Context, i *fastly.GetResourceInput) (*fastly.Resource, error) {
 					if got, want := i.ResourceID, "LINKID"; got != want {
 						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
@@ -287,9 +274,6 @@ func TestListServiceResourceCommand(t *testing.T) {
 			Args: "--service-id 123 --version 42",
 			API: &mock.API{
 				GetVersionFn: testutil.GetVersion,
-				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
-				},
 				ListResourcesFn: func(_ context.Context, i *fastly.ListResourcesInput) ([]*fastly.Resource, error) {
 					if got, want := i.ServiceID, "123"; got != want {
 						return nil, fmt.Errorf("ServiceID: got %q, want %q", got, want)
@@ -377,9 +361,6 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 			Args: "--id LINK-ID --name new-name --service-id 123 --version 42",
 			API: &mock.API{
 				GetVersionFn: testutil.GetVersion,
-				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
-					return []*fastly.Version{{Number: fastly.ToPointer(42)}}, nil
-				},
 				UpdateResourceFn: func(_ context.Context, i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
 					if got, want := i.ResourceID, "LINK-ID"; got != want {
 						return nil, fmt.Errorf("ID: got %q, want %q", got, want)
@@ -413,10 +394,9 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 		{
 			Args: "--id LINK-ID --name new-name --service-id 123 --version 42 --autoclone",
 			API: &mock.API{
-				GetVersionFn: testutil.GetVersion,
-				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+				GetVersionFn: func(_ context.Context, i *fastly.GetVersionInput) (*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
-					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil
+					return &fastly.Version{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}, nil
 				},
 				CloneVersionFn: func(_ context.Context, _ *fastly.CloneVersionInput) (*fastly.Version, error) {
 					return &fastly.Version{Number: fastly.ToPointer(43)}, nil

@@ -211,8 +211,7 @@ func createCommandRequired() *openstack.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &openstack.CreateCommand{
@@ -253,8 +252,7 @@ func createCommandAll() *openstack.CreateCommand {
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
 		GetVersionFn:   testutil.GetVersion,
-		ListVersionsFn: testutil.ListVersions,
-		CloneVersionFn: testutil.CloneVersionResult(4),
+				CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
 	return &openstack.CreateCommand{
