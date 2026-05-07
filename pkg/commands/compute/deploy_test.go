@@ -176,8 +176,9 @@ func TestDeploy(t *testing.T) {
 			name: "list versions error",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				GetServiceFn:   getServiceOK,
-				ListVersionsFn: testutil.ListVersionsError,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasmNoActive,
+				ListVersionsFn:      testutil.ListVersionsError,
 			},
 			wantError: fmt.Sprintf("error listing service versions: %s", testutil.Err.Error()),
 		},

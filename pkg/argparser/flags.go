@@ -116,10 +116,10 @@ type OptionalServiceVersion struct {
 
 // Parse returns a service version based on the given user input.
 func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fastly.Version, error) {
-	// When no --version flag is provided (WasSet=false), treat it as "latest".
-	// This is the default behavior for commands that don't require an explicit version.
+	// When no --version flag is provided (WasSet=false), default to "active" to preserve
+	// the original behavior of trying active version first, with fallback to latest.
 	if sv.Value == "" && !sv.WasSet {
-		sv.Value = "latest"
+		sv.Value = "active"
 	}
 
 	// When a specific numeric version is provided, use it directly.
@@ -131,6 +131,26 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 	}
 
 	switch strings.ToLower(sv.Value) {
+	case "active":
+		serviceDetails, err := client.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{
+			ServiceID: sid,
+			Filters: []fastly.ServiceDetailsFilter{
+				{Key: "versions.active", Value: true},
+			},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error getting service details: %w", err)
+		}
+		// If active version exists, return it
+		if serviceDetails.ActiveVersion != nil {
+			return serviceDetails.ActiveVersion, nil
+		}
+		// If flag was explicitly set to "active" but no active version exists, return error
+		if sv.WasSet {
+			return nil, fmt.Errorf("no active service version found")
+		}
+		// If flag was not explicitly set and there's no active version, fall through to latest
+		fallthrough
 	case "latest":
 		vs, err := client.ListVersions(context.TODO(), &fastly.ListVersionsInput{
 			ServiceID: sid,
@@ -146,20 +166,6 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 			return fastly.ToValue(vs[i].Number) > fastly.ToValue(vs[j].Number)
 		})
 		return vs[0], nil
-	case "active":
-		serviceDetails, err := client.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{
-			ServiceID: sid,
-			Filters: []fastly.ServiceDetailsFilter{
-				{Key: "versions.active", Value: true},
-			},
-		})
-		if err != nil {
-			return nil, fmt.Errorf("error getting service details: %w", err)
-		}
-		if serviceDetails.ActiveVersion == nil {
-			return nil, fmt.Errorf("no active service version found")
-		}
-		return serviceDetails.ActiveVersion, nil
 	default:
 		return nil, fmt.Errorf("invalid version value %q: must be a version number, \"latest\", or \"active\"", sv.Value)
 	}

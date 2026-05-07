@@ -38,7 +38,7 @@ func TestOptionalServiceVersionParse(t *testing.T) {
 		},
 		"omitted": {
 			flagOmitted: true,
-			wantVersion: 4, // Returns latest version when flag not provided
+			wantVersion: 1, // Returns active version when flag not provided (falls back to latest if no active)
 		},
 		"specific version": {
 			flagValue:   "2",

@@ -216,3 +216,13 @@ func getServiceDetailsWasm(_ context.Context, i *fastly.GetServiceDetailsInput) 
 
 	return detail, nil
 }
+
+func getServiceDetailsWasmNoActive(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
+	// Returns service details with no active version, forcing fallback to latest
+	return &fastly.ServiceDetail{
+		Type: fastly.ToPointer("wasm"),
+		Version: &fastly.Version{
+			Number: fastly.ToPointer(1),
+		},
+	}, nil
+}
