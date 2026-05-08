@@ -19,12 +19,13 @@ func TestDomainCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--version 1",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateDomainFn: createDomainOK,
 			},
@@ -33,7 +34,7 @@ func TestDomainCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateDomainFn: createDomainError,
 			},
@@ -48,48 +49,48 @@ func TestDomainList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDomainsFn:  listDomainsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListDomainsFn: listDomainsOK,
 			},
 			WantOutput: listDomainsShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDomainsFn:  listDomainsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListDomainsFn: listDomainsOK,
 			},
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDomainsFn:  listDomainsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListDomainsFn: listDomainsOK,
 			},
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
 			Args: "--verbose --service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDomainsFn:  listDomainsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListDomainsFn: listDomainsOK,
 			},
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
 			Args: "-v --service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDomainsFn:  listDomainsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListDomainsFn: listDomainsOK,
 			},
 			WantOutput: listDomainsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDomainsFn:  listDomainsError,
+				GetVersionFn:  testutil.GetVersion,
+				ListDomainsFn: listDomainsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -106,16 +107,16 @@ func TestDomainDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetDomainFn:    getDomainError,
+				GetVersionFn: testutil.GetVersion,
+				GetDomainFn:  getDomainError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetDomainFn:    getDomainOK,
+				GetVersionFn: testutil.GetVersion,
+				GetDomainFn:  getDomainOK,
 			},
 			WantOutput: describeDomainOutput,
 		},
@@ -132,7 +133,7 @@ func TestDomainUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainOK,
 			},
@@ -141,7 +142,7 @@ func TestDomainUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainError,
 			},
@@ -150,7 +151,7 @@ func TestDomainUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateDomainFn: updateDomainOK,
 			},
@@ -169,7 +170,7 @@ func TestDomainDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteDomainFn: deleteDomainError,
 			},
@@ -178,7 +179,7 @@ func TestDomainDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteDomainFn: deleteDomainOK,
 			},
@@ -197,12 +198,13 @@ func TestDomainValidate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate missing --name flag",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 			},
 			Args:      "--service-id 123 --version 3",
 			WantError: "error parsing arguments: must provide --name flag",
@@ -210,7 +212,7 @@ func TestDomainValidate(t *testing.T) {
 		{
 			Name: "validate ValidateDomain API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				ValidateDomainFn: func(_ context.Context, _ *fastly.ValidateDomainInput) (*fastly.DomainValidationResult, error) {
 					return nil, testutil.Err
 				},
@@ -221,7 +223,7 @@ func TestDomainValidate(t *testing.T) {
 		{
 			Name: "validate ValidateAllDomains API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				ValidateAllDomainsFn: func(_ context.Context, _ *fastly.ValidateAllDomainsInput) ([]*fastly.DomainValidationResult, error) {
 					return nil, testutil.Err
 				},
@@ -232,7 +234,7 @@ func TestDomainValidate(t *testing.T) {
 		{
 			Name: "validate ValidateDomain API success",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ValidateDomainFn: validateDomain,
 			},
 			Args:       "--name foo.example.com --service-id 123 --version 3",
@@ -241,7 +243,7 @@ func TestDomainValidate(t *testing.T) {
 		{
 			Name: "validate ValidateAllDomains API success",
 			API: &mock.API{
-				ListVersionsFn:       testutil.ListVersions,
+				GetVersionFn:         testutil.GetVersion,
 				ValidateAllDomainsFn: validateAllDomains,
 			},
 			Args:       "--all --service-id 123 --version 3",
@@ -250,7 +252,7 @@ func TestDomainValidate(t *testing.T) {
 		{
 			Name: "validate missing --autoclone flag is OK",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ValidateDomainFn: validateDomain,
 			},
 			Args:       "--name foo.example.com --service-id 123 --version 1",

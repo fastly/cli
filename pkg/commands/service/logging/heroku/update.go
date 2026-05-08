@@ -160,7 +160,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Heroku logging endpoint %s (service %s version %d)",
 		fastly.ToValue(heroku.Name),
 		fastly.ToValue(heroku.ServiceID),

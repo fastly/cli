@@ -21,7 +21,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn:       testutil.ListVersions,
+				GetVersionFn:         testutil.GetVersion,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				CreateDigitalOceanFn: createDigitalOceanOK,
 			},
@@ -30,7 +30,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn:       testutil.ListVersions,
+				GetVersionFn:         testutil.GetVersion,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				CreateDigitalOceanFn: createDigitalOceanError,
 			},
@@ -39,7 +39,7 @@ func TestDigitalOceanCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --secret-key abc --compression-codec zstd --gzip-level 9 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -53,7 +53,7 @@ func TestDigitalOceanList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
 			WantOutput: listDigitalOceansShortOutput,
@@ -61,7 +61,7 @@ func TestDigitalOceanList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
 			WantOutput: listDigitalOceansVerboseOutput,
@@ -69,7 +69,7 @@ func TestDigitalOceanList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				ListDigitalOceansFn: listDigitalOceansOK,
 			},
 			WantOutput: listDigitalOceansVerboseOutput,
@@ -77,7 +77,7 @@ func TestDigitalOceanList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				ListDigitalOceansFn: listDigitalOceansError,
 			},
 			WantError: errTest.Error(),
@@ -95,7 +95,7 @@ func TestDigitalOceanDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				GetDigitalOceanFn: getDigitalOceanError,
 			},
 			WantError: errTest.Error(),
@@ -103,7 +103,7 @@ func TestDigitalOceanDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				GetDigitalOceanFn: getDigitalOceanOK,
 			},
 			WantOutput: describeDigitalOceanOutput,
@@ -121,7 +121,7 @@ func TestDigitalOceanUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:       testutil.ListVersions,
+				GetVersionFn:         testutil.GetVersion,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				UpdateDigitalOceanFn: updateDigitalOceanError,
 			},
@@ -130,7 +130,7 @@ func TestDigitalOceanUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:       testutil.ListVersions,
+				GetVersionFn:         testutil.GetVersion,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				UpdateDigitalOceanFn: updateDigitalOceanOK,
 			},
@@ -149,7 +149,7 @@ func TestDigitalOceanDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:       testutil.ListVersions,
+				GetVersionFn:         testutil.GetVersion,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				DeleteDigitalOceanFn: deleteDigitalOceanError,
 			},
@@ -158,7 +158,7 @@ func TestDigitalOceanDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:       testutil.ListVersions,
+				GetVersionFn:         testutil.GetVersion,
 				CloneVersionFn:       testutil.CloneVersionResult(4),
 				DeleteDigitalOceanFn: deleteDigitalOceanOK,
 			},

@@ -161,7 +161,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Logshuttle logging endpoint %s (service %s version %d)",
 		fastly.ToValue(logshuttle.Name),
 		fastly.ToValue(logshuttle.ServiceID),

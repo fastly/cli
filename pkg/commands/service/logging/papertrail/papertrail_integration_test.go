@@ -21,7 +21,7 @@ func TestPapertrailCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com:123 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreatePapertrailFn: createPapertrailOK,
 			},
@@ -30,7 +30,7 @@ func TestPapertrailCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com:123 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreatePapertrailFn: createPapertrailError,
 			},
@@ -45,7 +45,7 @@ func TestPapertrailList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			WantOutput: listPapertrailsShortOutput,
@@ -53,7 +53,7 @@ func TestPapertrailList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			WantOutput: listPapertrailsVerboseOutput,
@@ -61,7 +61,7 @@ func TestPapertrailList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ListPapertrailsFn: listPapertrailsOK,
 			},
 			WantOutput: listPapertrailsVerboseOutput,
@@ -69,7 +69,7 @@ func TestPapertrailList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ListPapertrailsFn: listPapertrailsError,
 			},
 			WantError: errTest.Error(),
@@ -87,7 +87,7 @@ func TestPapertrailDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				GetPapertrailFn: getPapertrailError,
 			},
 			WantError: errTest.Error(),
@@ -95,7 +95,7 @@ func TestPapertrailDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				GetPapertrailFn: getPapertrailOK,
 			},
 			WantOutput: describePapertrailOutput,
@@ -113,7 +113,7 @@ func TestPapertrailUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdatePapertrailFn: updatePapertrailError,
 			},
@@ -122,7 +122,7 @@ func TestPapertrailUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdatePapertrailFn: updatePapertrailOK,
 			},
@@ -141,7 +141,7 @@ func TestPapertrailDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeletePapertrailFn: deletePapertrailError,
 			},
@@ -150,7 +150,7 @@ func TestPapertrailDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeletePapertrailFn: deletePapertrailOK,
 			},

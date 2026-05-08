@@ -50,10 +50,12 @@ func TestDictionaryItemsList(t *testing.T) {
 		},
 		{
 			Args:      "--dictionary-id 456",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetDictionaryItemsFn: func(ctx context.Context, _ *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
 					return fastly.NewPaginator[fastly.DictionaryItem](ctx, &mock.HTTPClient{
 						Errors: []error{
@@ -68,6 +70,7 @@ func TestDictionaryItemsList(t *testing.T) {
 		},
 		{
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetDictionaryItemsFn: func(ctx context.Context, _ *fastly.GetDictionaryItemsInput) *fastly.ListPaginator[fastly.DictionaryItem] {
 					return fastly.NewPaginator[fastly.DictionaryItem](ctx, &mock.HTTPClient{
 						Errors: []error{nil},

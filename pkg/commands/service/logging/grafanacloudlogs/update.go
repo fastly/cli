@@ -168,7 +168,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Grafana Cloud Logs logging endpoint %s (service %s version %d)",
 		fastly.ToValue(grafanacloudlogs.Name),
 		fastly.ToValue(grafanacloudlogs.ServiceID),

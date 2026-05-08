@@ -21,7 +21,7 @@ func TestBlobStorageCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBlobStorageFn: createBlobStorageOK,
 			},
@@ -30,7 +30,7 @@ func TestBlobStorageCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBlobStorageFn: createBlobStorageError,
 			},
@@ -39,7 +39,7 @@ func TestBlobStorageCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --account-name account --container log --sas-token abc --compression-codec zstd --gzip-level 9 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateBlobStorageFn: createBlobStorageError,
 			},
@@ -54,7 +54,7 @@ func TestBlobStorageList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListBlobStoragesFn: listBlobStoragesOK,
 			},
 			WantOutput: listBlobStoragesShortOutput,
@@ -62,7 +62,7 @@ func TestBlobStorageList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListBlobStoragesFn: listBlobStoragesOK,
 			},
 			WantOutput: listBlobStoragesVerboseOutput,
@@ -70,7 +70,7 @@ func TestBlobStorageList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListBlobStoragesFn: listBlobStoragesOK,
 			},
 			WantOutput: listBlobStoragesVerboseOutput,
@@ -78,7 +78,7 @@ func TestBlobStorageList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListBlobStoragesFn: listBlobStoragesError,
 			},
 			WantError: errTest.Error(),
@@ -96,7 +96,7 @@ func TestBlobStorageDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				GetBlobStorageFn: getBlobStorageError,
 			},
 			WantError: errTest.Error(),
@@ -104,7 +104,7 @@ func TestBlobStorageDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				GetBlobStorageFn: getBlobStorageOK,
 			},
 			WantOutput: describeBlobStorageOutput,
@@ -122,7 +122,7 @@ func TestBlobStorageUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				UpdateBlobStorageFn: updateBlobStorageError,
 			},
@@ -131,7 +131,7 @@ func TestBlobStorageUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				UpdateBlobStorageFn: updateBlobStorageOK,
 			},
@@ -150,7 +150,7 @@ func TestBlobStorageDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				DeleteBlobStorageFn: deleteBlobStorageError,
 			},
@@ -159,7 +159,7 @@ func TestBlobStorageDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				DeleteBlobStorageFn: deleteBlobStorageOK,
 			},

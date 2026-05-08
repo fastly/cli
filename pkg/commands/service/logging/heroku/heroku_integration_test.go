@@ -21,7 +21,7 @@ func TestHerokuCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --url example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHerokuFn: createHerokuOK,
 			},
@@ -30,7 +30,7 @@ func TestHerokuCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --url example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateHerokuFn: createHerokuError,
 			},
@@ -45,32 +45,32 @@ func TestHerokuList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListHerokusFn:  listHerokusOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListHerokusFn: listHerokusOK,
 			},
 			WantOutput: listHerokusShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListHerokusFn:  listHerokusOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListHerokusFn: listHerokusOK,
 			},
 			WantOutput: listHerokusVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListHerokusFn:  listHerokusOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListHerokusFn: listHerokusOK,
 			},
 			WantOutput: listHerokusVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListHerokusFn:  listHerokusError,
+				GetVersionFn:  testutil.GetVersion,
+				ListHerokusFn: listHerokusError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -87,16 +87,16 @@ func TestHerokuDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetHerokuFn:    getHerokuError,
+				GetVersionFn: testutil.GetVersion,
+				GetHerokuFn:  getHerokuError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetHerokuFn:    getHerokuOK,
+				GetVersionFn: testutil.GetVersion,
+				GetHerokuFn:  getHerokuOK,
 			},
 			WantOutput: describeHerokuOutput,
 		},
@@ -113,7 +113,7 @@ func TestHerokuUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHerokuFn: updateHerokuError,
 			},
@@ -122,7 +122,7 @@ func TestHerokuUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateHerokuFn: updateHerokuOK,
 			},
@@ -141,7 +141,7 @@ func TestHerokuDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHerokuFn: deleteHerokuError,
 			},
@@ -150,7 +150,7 @@ func TestHerokuDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteHerokuFn: deleteHerokuOK,
 			},

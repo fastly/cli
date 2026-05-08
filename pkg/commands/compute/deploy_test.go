@@ -176,8 +176,9 @@ func TestDeploy(t *testing.T) {
 			name: "list versions error",
 			args: args("compute deploy --service-id 123 --token 123"),
 			api: mock.API{
-				GetServiceFn:   getServiceOK,
-				ListVersionsFn: testutil.ListVersionsError,
+				GetServiceFn:        getServiceOK,
+				GetServiceDetailsFn: getServiceDetailsWasmNoActive,
+				ListVersionsFn:      testutil.ListVersionsError,
 			},
 			wantError: fmt.Sprintf("error listing service versions: %s", testutil.Err.Error()),
 		},
@@ -188,7 +189,8 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionError,
 				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
+				ListDomainsFn:       listDomainsOk,
 			},
 			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
 		},
@@ -199,7 +201,8 @@ func TestDeploy(t *testing.T) {
 				CloneVersionFn:      testutil.CloneVersionError,
 				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
+				ListDomainsFn:       listDomainsOk,
 			},
 			wantError: fmt.Sprintf("error cloning service version: %s", testutil.Err.Error()),
 		},
@@ -446,8 +449,8 @@ func TestDeploy(t *testing.T) {
 				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
+				GetVersionFn:        testutil.GetVersion,
 				ListDomainsFn:       listDomainsOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -477,11 +480,11 @@ func TestDeploy(t *testing.T) {
 			args: args("compute deploy --service-id 123 --token 123 --package pkg/package.tar.gz --version 3 --verbose"),
 			api: mock.API{
 				ActivateVersionFn:   activateVersionOk,
+				GetVersionFn:        testutil.GetVersion,
 				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -512,8 +515,8 @@ func TestDeploy(t *testing.T) {
 				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
+				GetVersionFn:        testutil.GetVersion,
 				ListDomainsFn:       listDomainsOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -539,8 +542,8 @@ func TestDeploy(t *testing.T) {
 				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
+				GetVersionFn:        testutil.GetVersion,
 				ListDomainsFn:       listDomainsOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -567,7 +570,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -593,8 +595,8 @@ func TestDeploy(t *testing.T) {
 				GetPackageFn:        getPackageOk,
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
+				GetVersionFn:        testutil.GetVersion,
 				ListDomainsFn:       listDomainsOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 				UpdateVersionFn:     updateVersionOk,
 			},
@@ -1055,7 +1057,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceDetailsFn: getServiceDetailsWasm,
 				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1194,7 +1195,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:            getServiceOK,
 				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
-				ListVersionsFn:          testutil.ListVersions,
 				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
@@ -1254,7 +1254,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:            getServiceOK,
 				ListConfigStoresFn:      listConfigStoresOk,
 				ListDomainsFn:           listDomainsOk,
-				ListVersionsFn:          testutil.ListVersions,
 				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
@@ -1314,7 +1313,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:            getServiceOK,
 				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
-				ListVersionsFn:          testutil.ListVersions,
 				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
@@ -1367,7 +1365,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:            getServiceOK,
 				ListConfigStoresFn:      listConfigStoresEmpty,
 				ListDomainsFn:           listDomainsOk,
-				ListVersionsFn:          testutil.ListVersions,
 				UpdateConfigStoreItemFn: updateConfigStoreItemOK,
 				UpdatePackageFn:         updatePackageOk,
 			},
@@ -1469,7 +1466,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceDetailsFn:    getServiceDetailsWasm,
 				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1516,7 +1512,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceDetailsFn:    getServiceDetailsWasm,
 				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1564,7 +1559,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceDetailsFn:    getServiceDetailsWasm,
 				GetServiceFn:           getServiceOK,
 				ListDomainsFn:          listDomainsOk,
-				ListVersionsFn:         testutil.ListVersions,
 				UpdatePackageFn:        updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1664,7 +1658,6 @@ func TestDeploy(t *testing.T) {
 				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
 				ListKVStoresFn:      listKVStoresOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1725,7 +1718,6 @@ func TestDeploy(t *testing.T) {
 				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
 				ListKVStoresFn:      listKVStoresEmpty,
-				ListVersionsFn:      testutil.ListVersions,
 			},
 			httpClientRes: []*http.Response{
 				mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
@@ -1771,7 +1763,6 @@ func TestDeploy(t *testing.T) {
 				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
 				ListKVStoresFn:      listKVStoresEmpty,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1824,7 +1815,6 @@ func TestDeploy(t *testing.T) {
 				InsertKVStoreKeyFn:  createKVStoreItemOK,
 				ListDomainsFn:       listDomainsOk,
 				ListKVStoresFn:      listKVStoresEmpty,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1933,7 +1923,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListSecretStoresFn:  listSecretStoresOk,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -1997,7 +1986,6 @@ func TestDeploy(t *testing.T) {
 				GetServiceFn:        getServiceOK,
 				ListDomainsFn:       listDomainsOk,
 				ListSecretStoresFn:  listSecretStoresEmpty,
-				ListVersionsFn:      testutil.ListVersions,
 				UpdatePackageFn:     updatePackageOk,
 			},
 			httpClientRes: []*http.Response{
@@ -2049,6 +2037,10 @@ func TestDeploy(t *testing.T) {
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
+			// Clear FASTLY_SERVICE_ID for tests that create a new service
+			if testcase.api.CreateServiceFn != nil {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			// Because the manifest can be mutated on each test scenario, we recreate
 			// the file each time.
 			manifestContent := `manifest_version = 2
@@ -2238,6 +2230,7 @@ func TestDeploy_ActivateBeacon(t *testing.T) {
 		GetPackageFn:        getPackageOk,
 		GetServiceDetailsFn: getServiceDetailsWasm,
 		GetServiceFn:        getServiceOK,
+		GetVersionFn:        testutil.GetVersion,
 		ListDomainsFn:       listDomainsOk,
 		ListVersionsFn:      testutil.ListVersions,
 		UpdatePackageFn:     updatePackageOk,

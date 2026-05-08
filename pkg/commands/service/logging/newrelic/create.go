@@ -113,7 +113,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Created New Relic logging endpoint '%s' (service: %s, version: %d)",
 		fastly.ToValue(l.Name),
 		fastly.ToValue(l.ServiceID),

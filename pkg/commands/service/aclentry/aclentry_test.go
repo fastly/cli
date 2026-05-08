@@ -25,16 +25,19 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name:      "validate missing --ip flag",
 			Args:      "--acl-id 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--acl-id 123 --ip 127.0.0.1",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate CreateACLEntry API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				CreateACLEntryFn: func(_ context.Context, _ *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
@@ -45,6 +48,7 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name: "validate CreateACLEntry API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				CreateACLEntryFn: func(_ context.Context, i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return &fastly.ACLEntry{
 						ACLID:     fastly.ToPointer(i.ACLID),
@@ -60,6 +64,7 @@ func TestACLEntryCreate(t *testing.T) {
 		{
 			Name: "validate CreateACLEntry API success with negated IP",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				CreateACLEntryFn: func(_ context.Context, i *fastly.CreateACLEntryInput) (*fastly.ACLEntry, error) {
 					return &fastly.ACLEntry{
 						ACLID:     fastly.ToPointer(i.ACLID),
@@ -93,11 +98,13 @@ func TestACLEntryDelete(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--acl-id 123 --id 456",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate DeleteACL API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				DeleteACLEntryFn: func(_ context.Context, _ *fastly.DeleteACLEntryInput) error {
 					return testutil.Err
 				},
@@ -108,6 +115,7 @@ func TestACLEntryDelete(t *testing.T) {
 		{
 			Name: "validate DeleteACL API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				DeleteACLEntryFn: func(_ context.Context, _ *fastly.DeleteACLEntryInput) error {
 					return nil
 				},
@@ -135,11 +143,13 @@ func TestACLEntryDescribe(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--acl-id 123 --id 456",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate GetACL API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetACLEntryFn: func(_ context.Context, _ *fastly.GetACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
@@ -150,6 +160,7 @@ func TestACLEntryDescribe(t *testing.T) {
 		{
 			Name: "validate GetACL API success",
 			API: &mock.API{
+				GetVersionFn:  testutil.GetVersion,
 				GetACLEntryFn: getACLEntry,
 			},
 			Args:       "--acl-id 123 --id 456 --service-id 123",
@@ -169,11 +180,13 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--acl-id 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate ListACLEntries API error (via GetNext() call)",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetACLEntriesFn: func(ctx context.Context, _ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
 					return fastly.NewPaginator[fastly.ACLEntry](ctx, &mock.HTTPClient{
 						Errors: []error{
@@ -189,6 +202,7 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate ListACLEntries API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetACLEntriesFn: func(ctx context.Context, _ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
 					return fastly.NewPaginator[fastly.ACLEntry](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -231,6 +245,7 @@ func TestACLEntryList(t *testing.T) {
 		{
 			Name: "validate --verbose flag",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetACLEntriesFn: func(ctx context.Context, _ *fastly.GetACLEntriesInput) *fastly.ListPaginator[fastly.ACLEntry] {
 					return fastly.NewPaginator[fastly.ACLEntry](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -318,6 +333,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--acl-id 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -328,6 +344,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateACL API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				UpdateACLEntryFn: func(_ context.Context, _ *fastly.UpdateACLEntryInput) (*fastly.ACLEntry, error) {
 					return nil, testutil.Err
 				},
@@ -338,6 +355,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate error from --file set with invalid json",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				BatchModifyACLEntriesFn: func(_ context.Context, _ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
@@ -348,6 +366,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate error from --file set with zero json entries",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				BatchModifyACLEntriesFn: func(_ context.Context, _ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
@@ -358,6 +377,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate success with --file",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				BatchModifyACLEntriesFn: func(_ context.Context, _ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},
@@ -372,6 +392,7 @@ func TestACLEntryUpdate(t *testing.T) {
 		{
 			Name: "validate success with --file as inline json",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				BatchModifyACLEntriesFn: func(_ context.Context, _ *fastly.BatchModifyACLEntriesInput) error {
 					return nil
 				},

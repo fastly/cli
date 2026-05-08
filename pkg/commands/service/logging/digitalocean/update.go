@@ -215,7 +215,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated DigitalOcean Spaces logging endpoint %s (service %s version %d)",
 		fastly.ToValue(digitalocean.Name),
 		fastly.ToValue(digitalocean.ServiceID),

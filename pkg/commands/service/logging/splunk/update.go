@@ -185,7 +185,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Splunk logging endpoint %s (service %s version %d)",
 		fastly.ToValue(splunk.Name),
 		fastly.ToValue(splunk.ServiceID),

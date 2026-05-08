@@ -70,6 +70,7 @@ func TestServiceList(t *testing.T) {
 		{
 			Name: "api failure",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{
@@ -85,6 +86,7 @@ func TestServiceList(t *testing.T) {
 		{
 			Name: "success with pagination",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -123,6 +125,7 @@ func TestServiceList(t *testing.T) {
 		{
 			Name: "success with verbose",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -199,6 +202,7 @@ func TestServiceDescribe(t *testing.T) {
 			Name:      "no service id",
 			Args:      "",
 			API:       &mock.API{GetServiceDetailsFn: describeServiceOK},
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -266,9 +270,11 @@ func TestServiceUpdate(t *testing.T) {
 			Name: "no service id",
 			Args: "",
 			API: &mock.API{
+				GetVersionFn:    testutil.GetVersion,
 				GetServiceFn:    getServiceOK,
 				UpdateServiceFn: updateServiceOK,
 			},
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{

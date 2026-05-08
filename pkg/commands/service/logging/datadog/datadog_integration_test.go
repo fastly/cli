@@ -20,7 +20,7 @@ func TestDatadogCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateDatadogFn: createDatadogOK,
 			},
@@ -29,7 +29,7 @@ func TestDatadogCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateDatadogFn: createDatadogError,
 			},
@@ -44,32 +44,32 @@ func TestDatadogList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDatadogFn:  listDatadogsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListDatadogFn: listDatadogsOK,
 			},
 			WantOutput: listDatadogsShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDatadogFn:  listDatadogsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListDatadogFn: listDatadogsOK,
 			},
 			WantOutput: listDatadogsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDatadogFn:  listDatadogsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListDatadogFn: listDatadogsOK,
 			},
 			WantOutput: listDatadogsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListDatadogFn:  listDatadogsError,
+				GetVersionFn:  testutil.GetVersion,
+				ListDatadogFn: listDatadogsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -86,16 +86,16 @@ func TestDatadogDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetDatadogFn:   getDatadogError,
+				GetVersionFn: testutil.GetVersion,
+				GetDatadogFn: getDatadogError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetDatadogFn:   getDatadogOK,
+				GetVersionFn: testutil.GetVersion,
+				GetDatadogFn: getDatadogOK,
 			},
 			WantOutput: describeDatadogOutput,
 		},
@@ -112,7 +112,7 @@ func TestDatadogUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateDatadogFn: updateDatadogError,
 			},
@@ -121,7 +121,7 @@ func TestDatadogUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateDatadogFn: updateDatadogOK,
 			},
@@ -140,7 +140,7 @@ func TestDatadogDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteDatadogFn: deleteDatadogError,
 			},
@@ -149,7 +149,7 @@ func TestDatadogDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteDatadogFn: deleteDatadogOK,
 			},

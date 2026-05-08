@@ -212,7 +212,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Elasticsearch logging endpoint %s (service %s version %d)",
 		fastly.ToValue(elasticsearch.Name),
 		fastly.ToValue(elasticsearch.ServiceID),

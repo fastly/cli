@@ -184,7 +184,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated BigQuery logging endpoint %s (service %s version %d)",
 		fastly.ToValue(bq.Name),
 		fastly.ToValue(bq.ServiceID),

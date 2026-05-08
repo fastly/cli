@@ -21,7 +21,7 @@ func TestOpenstackCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateOpenstackFn: createOpenstackOK,
 			},
@@ -30,7 +30,7 @@ func TestOpenstackCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateOpenstackFn: createOpenstackError,
 			},
@@ -39,7 +39,7 @@ func TestOpenstackCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --access-key foo --user user --url https://example.com --compression-codec zstd --gzip-level 9 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -53,7 +53,7 @@ func TestOpenstackList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			WantOutput: listOpenstacksShortOutput,
@@ -61,7 +61,7 @@ func TestOpenstackList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			WantOutput: listOpenstacksVerboseOutput,
@@ -69,7 +69,7 @@ func TestOpenstackList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListOpenstacksFn: listOpenstacksOK,
 			},
 			WantOutput: listOpenstacksVerboseOutput,
@@ -77,7 +77,7 @@ func TestOpenstackList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListOpenstacksFn: listOpenstacksError,
 			},
 			WantError: errTest.Error(),
@@ -95,7 +95,7 @@ func TestOpenstackDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				GetOpenstackFn: getOpenstackError,
 			},
 			WantError: errTest.Error(),
@@ -103,7 +103,7 @@ func TestOpenstackDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				GetOpenstackFn: getOpenstackOK,
 			},
 			WantOutput: describeOpenstackOutput,
@@ -121,7 +121,7 @@ func TestOpenstackUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateOpenstackFn: updateOpenstackError,
 			},
@@ -130,7 +130,7 @@ func TestOpenstackUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateOpenstackFn: updateOpenstackOK,
 			},
@@ -149,7 +149,7 @@ func TestOpenstackDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteOpenstackFn: deleteOpenstackError,
 			},
@@ -158,7 +158,7 @@ func TestOpenstackDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteOpenstackFn: deleteOpenstackOK,
 			},

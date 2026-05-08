@@ -21,7 +21,7 @@ func TestFTPCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com --user anonymous --password foo@example.com --compression-codec zstd --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateFTPFn:    createFTPOK,
 			},
@@ -30,7 +30,7 @@ func TestFTPCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com --user anonymous --password foo@example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateFTPFn:    createFTPError,
 			},
@@ -39,7 +39,7 @@ func TestFTPCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com --user anonymous --password foo@example.com --compression-codec zstd --gzip-level 9 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -53,32 +53,32 @@ func TestFTPList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListFTPsFn:     listFTPsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListFTPsFn:   listFTPsOK,
 			},
 			WantOutput: listFTPsShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListFTPsFn:     listFTPsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListFTPsFn:   listFTPsOK,
 			},
 			WantOutput: listFTPsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListFTPsFn:     listFTPsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListFTPsFn:   listFTPsOK,
 			},
 			WantOutput: listFTPsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListFTPsFn:     listFTPsError,
+				GetVersionFn: testutil.GetVersion,
+				ListFTPsFn:   listFTPsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -95,16 +95,16 @@ func TestFTPDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetFTPFn:       getFTPError,
+				GetVersionFn: testutil.GetVersion,
+				GetFTPFn:     getFTPError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetFTPFn:       getFTPOK,
+				GetVersionFn: testutil.GetVersion,
+				GetFTPFn:     getFTPOK,
 			},
 			WantOutput: describeFTPOutput,
 		},
@@ -121,7 +121,7 @@ func TestFTPUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateFTPFn:    updateFTPError,
 			},
@@ -130,7 +130,7 @@ func TestFTPUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateFTPFn:    updateFTPOK,
 			},
@@ -149,7 +149,7 @@ func TestFTPDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteFTPFn:    deleteFTPError,
 			},
@@ -158,7 +158,7 @@ func TestFTPDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteFTPFn:    deleteFTPOK,
 			},

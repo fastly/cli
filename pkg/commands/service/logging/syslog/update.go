@@ -203,7 +203,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Syslog logging endpoint %s (service %s version %d)",
 		fastly.ToValue(syslog.Name),
 		fastly.ToValue(syslog.ServiceID),
