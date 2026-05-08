@@ -24,6 +24,6 @@ func NewGetCommand(parent argparser.Registerer, g *global.Data) *GetCommand {
 
 // Exec implements the command interface.
 func (c *GetCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service imageoptimizerdefaults get' command instead.")
+	text.Deprecated("Use the 'service imageoptimizerdefaults get' command instead.")
 	return c.GetCommand.Exec(in, out)
 }

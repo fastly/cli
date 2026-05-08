@@ -25,7 +25,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 // Exec implements the command interface.
 func (c *ListCommand) Exec(in io.Reader, out io.Writer) error {
 	if !c.JSONOutput.Enabled {
-		text.Deprecated(out, "Use the 'service logging googlepubsub list' command instead.")
+		text.Deprecated("Use the 'service logging googlepubsub list' command instead.")
 	}
 	return c.ListCommand.Exec(in, out)
 }

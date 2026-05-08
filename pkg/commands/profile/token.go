@@ -36,7 +36,7 @@ const defaultTokenTTL time.Duration = 5 * time.Minute
 // Exec implements the command interface.
 func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	if !c.Globals.Flags.Quiet {
-		text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth show' instead.\n\n")
+		text.Deprecated("This command will be removed in a future release. Use 'fastly auth show' instead.\n\n")
 	}
 
 	var name string

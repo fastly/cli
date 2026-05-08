@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -130,13 +131,6 @@ func TestPrefixes(t *testing.T) {
 		args   []any
 		want   string
 	}{
-		{
-			name:   "Deprecated",
-			f:      text.Deprecated,
-			format: "Test string %d.",
-			args:   []any{123},
-			want:   "DEPRECATED: Test string 123.\n",
-		},
 		{
 			name:   "Error",
 			f:      text.Error,
@@ -309,5 +303,30 @@ func TestParseBreaks(t *testing.T) {
 				t.Errorf("want: %s, have: %s", testcase.txt, txt)
 			}
 		})
+	}
+}
+
+func TestDeprecated(t *testing.T) {
+	// Save original stderr and create pipe to capture output
+	origStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+
+	// Call Deprecated
+	text.Deprecated("Test warning message %d.", 123)
+
+	// Restore stderr and close writer
+	os.Stderr = origStderr
+	w.Close()
+
+	// Read captured output
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	output := buf.String()
+
+	// Verify output contains expected text
+	want := "DEPRECATED: Test warning message 123.\n"
+	if output != want {
+		t.Errorf("Deprecated output mismatch:\ngot:  %q\nwant: %q", output, want)
 	}
 }

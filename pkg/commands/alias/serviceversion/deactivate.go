@@ -24,6 +24,6 @@ func NewDeactivateCommand(parent argparser.Registerer, g *global.Data) *Deactiva
 
 // Exec implements the command interface.
 func (c *DeactivateCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service version deactivate' command instead.")
+	text.Deprecated("Use the 'service version deactivate' command instead.")
 	return c.DeactivateCommand.Exec(in, out)
 }
