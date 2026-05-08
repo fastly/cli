@@ -321,7 +321,9 @@ func TestDeprecated(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("failed to read from pipe: %v", err)
+	}
 	output := buf.String()
 
 	// Verify output contains expected text
