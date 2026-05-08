@@ -24,6 +24,6 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 // Exec implements the command interface.
 func (c *UpdateCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service logging honeycomb update' command instead.")
+	text.Deprecated("Use the 'service logging honeycomb update' command instead.")
 	return c.UpdateCommand.Exec(in, out)
 }

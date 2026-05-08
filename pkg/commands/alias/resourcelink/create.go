@@ -25,7 +25,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 // Exec implements the command interface.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	if !c.JSONOutput.Enabled {
-		text.Deprecated(out, "Use the 'service resource-link create' command instead.")
+		text.Deprecated("Use the 'service resource-link create' command instead.")
 	}
 	return c.CreateCommand.Exec(in, out)
 }

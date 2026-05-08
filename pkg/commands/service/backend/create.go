@@ -224,7 +224,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.SSLCertHostname = &c.sslCertHostname.Value
 	}
 	if c.sslCheckCert.WasSet {
-		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
+		text.Deprecated("The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
 		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(c.sslCheckCert.Value))
 	}
 	if c.sslCiphers.WasSet {

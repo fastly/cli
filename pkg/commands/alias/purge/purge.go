@@ -24,6 +24,6 @@ func NewCommand(parent argparser.Registerer, g *global.Data) *Command {
 
 // Exec implements the command interface.
 func (c *Command) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service purge' command instead.")
+	text.Deprecated("Use the 'service purge' command instead.")
 	return c.PurgeCommand.Exec(in, out)
 }

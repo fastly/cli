@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(text): send deprecation warnings to stderr instead of stdout ((#1782)[https://github.com/fastly/cli/pull/1782])
+
 ### Enhancements:
 
 ### Dependencies:
