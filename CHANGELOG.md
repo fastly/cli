@@ -16,7 +16,7 @@
 
 ### Breaking:
 
-- breaking(ngwaf/workspace): change flag name to match API spec ((#1768)[https://github.com/fastly/cli/pull/1768])
+- breaking(ngwaf/workspace): change flag name to match API spec ([#1768](https://github.com/fastly/cli/pull/1768]))
 
 ### Bug Fixes:
 
