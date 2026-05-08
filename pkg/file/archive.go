@@ -1,6 +1,7 @@
 package file
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/fs"
@@ -8,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 
 	"github.com/fastly/cli/pkg/errors"
 )
@@ -90,10 +91,69 @@ func (a *ArchiveBase) SetFilename(n string) {
 	a.Name = n
 }
 
+// ExtractArchive extracts an archive file to a destination directory.
+// The filter function, if provided, determines which files to extract based on their path in the archive.
+// If filter returns false for a file, it will be skipped.
+func ExtractArchive(archivePath, destDir string, filter func(string) bool) error {
+	ctx := context.Background()
+
+	input, err := os.Open(archivePath)
+	if err != nil {
+		return fmt.Errorf("error opening archive: %w", err)
+	}
+	defer input.Close()
+
+	format, stream, err := archives.Identify(ctx, archivePath, input)
+	if err != nil {
+		return fmt.Errorf("error identifying archive format: %w", err)
+	}
+
+	if ex, ok := format.(archives.Extractor); ok {
+		err = ex.Extract(ctx, stream, func(_ context.Context, f archives.FileInfo) error {
+			// Apply filter if provided
+			if filter != nil && !filter(f.NameInArchive) {
+				return nil
+			}
+
+			destPath := filepath.Join(destDir, f.NameInArchive)
+
+			if f.IsDir() {
+				return os.MkdirAll(destPath, 0o755)
+			}
+
+			if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+				return err
+			}
+
+			outFile, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, f.Mode())
+			if err != nil {
+				return err
+			}
+			defer outFile.Close()
+
+			rc, err := f.Open()
+			if err != nil {
+				return err
+			}
+			defer rc.Close()
+
+			_, err = io.Copy(outFile, rc)
+			return err
+		})
+		if err != nil {
+			return fmt.Errorf("error extracting contents from archive: %w", err)
+		}
+	} else {
+		return fmt.Errorf("format does not support extraction")
+	}
+
+	return nil
+}
+
 // Extract all files and folders from the collection.
 func (a ArchiveBase) Extract() error {
-	if err := archiver.Unarchive(a.Filename(), a.Dst); err != nil {
-		return fmt.Errorf("error extracting contents from archive: %w", err)
+	if err := ExtractArchive(a.Filename(), a.Dst, nil); err != nil {
+		return err
 	}
 
 	if _, err := os.Stat("fastly.toml"); err == nil {
