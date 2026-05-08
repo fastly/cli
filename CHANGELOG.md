@@ -11,6 +11,11 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `golang.org/x/sys` from 0.43.0 to 0.44.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+- build(deps): `golang.org/x/term` from 0.42.0 to 0.43.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+- build(deps): `golang.org/x/crypto` from 0.50.0 to 0.51.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+- build(deps): `golang.org/x/mod` from 0.35.0 to 0.36.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+- build(deps): `golang.org/x/text` from 0.36.0 to 0.37.0 ([#1785](https://github.com/fastly/cli/pull/1785))
 
 ## [v15.0.0](https://github.com/fastly/cli/releases/tag/v15.0.0) (2026-05-08)
 
