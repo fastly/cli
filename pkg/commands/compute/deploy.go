@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/kennygrant/sanitize"
-	"github.com/mholt/archiver/v3"
 
 	"github.com/fastly/go-fastly/v15/fastly"
 
@@ -24,6 +23,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/compute/setup"
 	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/file"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/internal/beacon"
 	"github.com/fastly/cli/pkg/lookup"
@@ -425,7 +425,8 @@ func readManifestFromPackageArchive(data *manifest.Data, packageFlag, manifestFi
 	}
 	defer os.RemoveAll(dst)
 
-	if err = archiver.Unarchive(packageFlag, dst); err != nil {
+	// Extract archive using shared utility
+	if err = file.ExtractArchive(packageFlag, dst, nil); err != nil {
 		return fmt.Errorf("error extracting package '%s': %w", packageFlag, err)
 	}
 

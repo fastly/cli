@@ -1,7 +1,6 @@
 package compute
 
 import (
-	"archive/tar"
 	"bytes"
 	"crypto/sha512"
 	"errors"
@@ -12,7 +11,7 @@ import (
 	"sort"
 
 	"github.com/kennygrant/sanitize"
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -179,18 +178,15 @@ func (c *HashFilesCommand) Build(in io.Reader, out io.Writer) error {
 func getFilesHash(pkgPath string) (string, error) {
 	contents := make(map[string]*bytes.Buffer)
 
-	if err := packageFiles(pkgPath, func(f archiver.File) error {
-		// We want the full path here and not f.Name(), which is only the
-		// filename.
-		//
-		// This is safe to do - we already verified it in packageFiles().
-		header, ok := f.Header.(*tar.Header)
-		if !ok {
-			return errors.New("failed to convert file type into *tar.Header")
-		}
-		entry := header.Name
+	if err := packageFiles(pkgPath, func(f archives.FileInfo) error {
+		entry := f.NameInArchive
 		contents[entry] = &bytes.Buffer{}
-		if _, err := io.Copy(contents[entry], f); err != nil {
+		rc, err := f.Open()
+		if err != nil {
+			return fmt.Errorf("error opening %s: %w", entry, err)
+		}
+		defer rc.Close()
+		if _, err := io.Copy(contents[entry], rc); err != nil {
 			return fmt.Errorf("error reading %s: %w", entry, err)
 		}
 		return nil

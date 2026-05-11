@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/kennygrant/sanitize"
-	"github.com/mholt/archiver/v3"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -111,15 +110,12 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 			return fmt.Errorf("error copying manifest to '%s': %w", dst, err)
 		}
 
-		tar := archiver.NewTarGz()
-		tar.OverwriteExisting = true
 		{
 			dir := fmt.Sprintf("pkg/%s", filename)
-			src := []string{dir}
 			dst := fmt.Sprintf("%s.tar.gz", dir)
-			if err = tar.Archive(src, dst); err != nil {
+			if err = createTarGz(dir, dst); err != nil {
 				c.Globals.ErrLog.AddWithContext(err, map[string]any{
-					"Path (absolute)":             src,
+					"Path (absolute)":             dir,
 					"Wasm destination (absolute)": dst,
 				})
 				return fmt.Errorf("error copying wasm binary to '%s': %w", dst, err)
@@ -155,19 +151,14 @@ func (c *PackCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 	}
 
 	return spinner.Process(fmt.Sprintf("Creating %s.tar.gz file", filename), func(_ *text.SpinnerWrapper) error {
-		tar := archiver.NewTarGz()
-		tar.OverwriteExisting = true
-		{
-			dir := "pkg/package"
-			src := []string{dir}
-			dst := fmt.Sprintf("%s.tar.gz", dir)
-			if err = tar.Archive(src, dst); err != nil {
-				c.Globals.ErrLog.AddWithContext(err, map[string]any{
-					"Tar source":      dir,
-					"Tar destination": dst,
-				})
-				return err
-			}
+		dir := "pkg/package"
+		dst := fmt.Sprintf("%s.tar.gz", dir)
+		if err = createTarGz(dir, dst); err != nil {
+			c.Globals.ErrLog.AddWithContext(err, map[string]any{
+				"Tar source":      dir,
+				"Tar destination": dst,
+			})
+			return err
 		}
 		return nil
 	})

@@ -13,6 +13,7 @@
 - feat(compute): add file field support for setup.kv_stores bulk import ([#1784](https://github.com/fastly/cli/pull/1784))
 
 ### Dependencies:
+- refactor(deps): migrate from `mholt/archiver/v3` to `mholt/archives` v0.1.5 ([#1787](https://github.com/fastly/cli/pull/1787))
 - build(deps): `golang.org/x/sys` from 0.43.0 to 0.44.0 ([#1785](https://github.com/fastly/cli/pull/1785))
 - build(deps): `golang.org/x/term` from 0.42.0 to 0.43.0 ([#1785](https://github.com/fastly/cli/pull/1785))
 - build(deps): `golang.org/x/crypto` from 0.50.0 to 0.51.0 ([#1785](https://github.com/fastly/cli/pull/1785))
