@@ -12,7 +12,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/apisecurity/tags"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v14/fastly/apisecurity/operations"
+	"github.com/fastly/go-fastly/v15/fastly/apisecurity/operations"
 )
 
 const (
@@ -38,6 +38,7 @@ func TestTagsCreate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--name %s", tagName),
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -110,6 +111,7 @@ func TestTagsDelete(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--tag-id %s", tagID),
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -172,6 +174,7 @@ func TestTagsGet(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--tag-id %s", tagID),
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -261,6 +264,7 @@ func TestTagsList(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -357,6 +361,7 @@ func TestTagsUpdate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      fmt.Sprintf("--tag-id %s --name %s --description %s", tagID, updatedTagName, updatedTagDesc),
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{

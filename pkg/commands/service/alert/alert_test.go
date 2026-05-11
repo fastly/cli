@@ -10,7 +10,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/service/alert"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 )
 
 func TestAlertsCreate(t *testing.T) {
@@ -200,6 +200,7 @@ func TestAlertsDelete(t *testing.T) {
 			Name: "ok",
 			Args: "--id ABC",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				DeleteAlertDefinitionFn: func(_ context.Context, _ *fastly.DeleteAlertDefinitionInput) error {
 					return nil
 				},
@@ -220,6 +221,7 @@ func TestAlertsDescribe(t *testing.T) {
 			Name: "ok",
 			Args: "--id ABC",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetAlertDefinitionFn: func(_ context.Context, _ *fastly.GetAlertDefinitionInput) (*fastly.AlertDefinition, error) {
 					response := &mockDefinition
 					return response, nil
@@ -292,6 +294,7 @@ func TestAlertsList(t *testing.T) {
 		{
 			Name: "validate ListAlerts API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListAlertDefinitionsFn: func(_ context.Context, _ *fastly.ListAlertDefinitionsInput) (*fastly.AlertDefinitionsResponse, error) {
 					response := &fastly.AlertDefinitionsResponse{
 						Data: []fastly.AlertDefinition{mockDefinition},
@@ -372,6 +375,7 @@ func TestAlertsHistoryList(t *testing.T) {
 		{
 			Name: "validate ListAlerts API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListAlertHistoryFn: func(_ context.Context, _ *fastly.ListAlertHistoryInput) (*fastly.AlertHistoryResponse, error) {
 					response := &fastly.AlertHistoryResponse{
 						Data: []fastly.AlertHistory{mockHistory},

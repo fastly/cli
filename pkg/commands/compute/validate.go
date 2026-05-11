@@ -1,14 +1,14 @@
 package compute
 
 import (
-	"archive/tar"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/kennygrant/sanitize"
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -90,9 +90,9 @@ func validatePackageContent(pkgPath string) error {
 		"main.wasm":       false,
 	}
 
-	if err := packageFiles(pkgPath, func(f archiver.File) error {
+	if err := packageFiles(pkgPath, func(f archives.FileInfo) error {
 		for k := range files {
-			if k == f.Name() {
+			if filepath.Base(f.NameInArchive) == k {
 				files[k] = true
 			}
 		}
@@ -113,45 +113,27 @@ func validatePackageContent(pkgPath string) error {
 // packageFiles is a utility function to iterate over the package content.
 // It attempts to unarchive and read a tar.gz file from a specific path,
 // calling fn on each file in the archive.
-func packageFiles(path string, fn func(archiver.File) error) error {
+func packageFiles(path string, fn func(archives.FileInfo) error) error {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return fmt.Errorf("error reading package: %w", err)
 	}
 	defer file.Close() // #nosec G307
 
-	tr := archiver.NewTarGz()
-	err = tr.Open(file, 0)
+	format, stream, err := archives.Identify(context.Background(), path, file)
 	if err != nil {
-		return fmt.Errorf("error unarchiving package: %w", err)
-	}
-	defer tr.Close()
-
-	for {
-		f, err := tr.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return fmt.Errorf("error reading package: %w", err)
-		}
-
-		header, ok := f.Header.(*tar.Header)
-		if !ok || header.Typeflag != tar.TypeReg {
-			f.Close()
-			continue
-		}
-
-		if err = fn(f); err != nil {
-			f.Close()
-			return err
-		}
-
-		err = f.Close()
-		if err != nil {
-			return fmt.Errorf("error closing file: %w", err)
-		}
+		return fmt.Errorf("error identifying archive format: %w", err)
 	}
 
-	return nil
+	if ex, ok := format.(archives.Extractor); ok {
+		return ex.Extract(context.Background(), stream, func(_ context.Context, f archives.FileInfo) error {
+			// Skip directories
+			if f.IsDir() {
+				return nil
+			}
+			return fn(f)
+		})
+	}
+
+	return fmt.Errorf("format does not support extraction")
 }

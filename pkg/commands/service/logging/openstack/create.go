@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"4d63.com/optional"
 
@@ -213,7 +213,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Created OpenStack logging endpoint %s (service %s version %d)",
 		fastly.ToValue(d.Name),
 		fastly.ToValue(d.ServiceID),

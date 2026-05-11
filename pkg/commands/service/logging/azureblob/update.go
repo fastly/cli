@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"4d63.com/optional"
 
@@ -207,7 +207,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Azure Blob Storage logging endpoint %s (service %s version %d)",
 		fastly.ToValue(azureblob.Name),
 		fastly.ToValue(azureblob.ServiceID),

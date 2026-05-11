@@ -9,7 +9,7 @@ import (
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/healthcheck"
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -19,12 +19,13 @@ func TestHealthCheckCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--version 1",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateHealthCheckFn: createHealthCheckError,
 			},
@@ -35,7 +36,7 @@ func TestHealthCheckCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone --timeout 10",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				CreateHealthCheckFn: createHealthCheckOK,
 			},
@@ -50,7 +51,7 @@ func TestHealthCheckList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
 			WantOutput: listHealthChecksShortOutput,
@@ -58,7 +59,7 @@ func TestHealthCheckList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
 			WantOutput: listHealthChecksVerboseOutput,
@@ -66,7 +67,7 @@ func TestHealthCheckList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
 			WantOutput: listHealthChecksVerboseOutput,
@@ -74,7 +75,7 @@ func TestHealthCheckList(t *testing.T) {
 		{
 			Args: "--verbose --service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
 			WantOutput: listHealthChecksVerboseOutput,
@@ -82,7 +83,7 @@ func TestHealthCheckList(t *testing.T) {
 		{
 			Args: "-v --service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListHealthChecksFn: listHealthChecksOK,
 			},
 			WantOutput: listHealthChecksVerboseOutput,
@@ -90,7 +91,7 @@ func TestHealthCheckList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				ListHealthChecksFn: listHealthChecksError,
 			},
 			WantError: errTest.Error(),
@@ -108,7 +109,7 @@ func TestHealthCheckDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				GetHealthCheckFn: getHealthCheckError,
 			},
 			WantError: errTest.Error(),
@@ -116,7 +117,7 @@ func TestHealthCheckDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				GetHealthCheckFn: getHealthCheckOK,
 			},
 			WantOutput: describeHealthCheckOutput,
@@ -134,7 +135,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				UpdateHealthCheckFn: updateHealthCheckOK,
 			},
@@ -142,7 +143,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				UpdateHealthCheckFn: updateHealthCheckError,
 			},
@@ -151,7 +152,7 @@ func TestHealthCheckUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --new-name www.example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				UpdateHealthCheckFn: updateHealthCheckOK,
 			},
@@ -170,7 +171,7 @@ func TestHealthCheckDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				DeleteHealthCheckFn: deleteHealthCheckError,
 			},
@@ -179,7 +180,7 @@ func TestHealthCheckDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name www.test.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				CloneVersionFn:      testutil.CloneVersionResult(4),
 				DeleteHealthCheckFn: deleteHealthCheckOK,
 			},

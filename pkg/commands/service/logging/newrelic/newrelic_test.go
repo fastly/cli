@@ -2,9 +2,10 @@ package newrelic_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	serviceRoot "github.com/fastly/cli/pkg/commands/service"
 	loggingRoot "github.com/fastly/cli/pkg/commands/service/logging"
@@ -18,28 +19,13 @@ func TestNewRelicCreate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--key abc --name foo --version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--key abc --name foo --service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--key abc --name foo --service-id 123 --version 2",
-			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate CreateNewRelic API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateNewRelicFn: func(_ context.Context, _ *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
 				},
@@ -50,7 +36,7 @@ func TestNewRelicCreate(t *testing.T) {
 		{
 			Name: "validate CreateNewRelic API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateNewRelicFn: func(_ context.Context, i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
 						Name:           i.Name,
@@ -65,7 +51,7 @@ func TestNewRelicCreate(t *testing.T) {
 		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateNewRelicFn: func(_ context.Context, i *fastly.CreateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
@@ -98,28 +84,13 @@ func TestNewRelicDelete(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--name foobar --version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 2",
-			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate DeleteNewRelic API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
 					return testutil.Err
 				},
@@ -130,7 +101,7 @@ func TestNewRelicDelete(t *testing.T) {
 		{
 			Name: "validate DeleteNewRelic API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
 					return nil
 				},
@@ -139,15 +110,69 @@ func TestNewRelicDelete(t *testing.T) {
 			WantOutput: "Deleted New Relic logging endpoint 'foobar' (service: 123, version: 3)",
 		},
 		{
+			Name: "validate API error when modifying active version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				DeleteNewRelicFn: func(_ context.Context, i *fastly.DeleteNewRelicInput) error {
+					return fmt.Errorf("Cannot update version %d. Versions that have been activated cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--name foobar --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been activated cannot be updated",
+		},
+		{
+			Name: "validate API error when modifying locked version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				DeleteNewRelicFn: func(_ context.Context, i *fastly.DeleteNewRelicInput) error {
+					return fmt.Errorf("Cannot update version %d. Versions that have been locked cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--name foobar --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been locked cannot be updated",
+		},
+		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteNewRelicFn: func(_ context.Context, _ *fastly.DeleteNewRelicInput) error {
 					return nil
 				},
 			},
 			Args:       "--autoclone --name foo --service-id 123 --version 1",
+			WantOutput: "Deleted New Relic logging endpoint 'foo' (service: 123, version: 4)",
+		},
+		{
+			Name: "validate --autoclone on locked version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				DeleteNewRelicFn: func(_ context.Context, i *fastly.DeleteNewRelicInput) error {
+					// Verify operation happens on the cloned version (4), not original (2)
+					if i.ServiceVersion != 4 {
+						return fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return nil
+				},
+			},
+			Args:       "--autoclone --name foo --service-id 123 --version 2",
+			WantOutput: "Deleted New Relic logging endpoint 'foo' (service: 123, version: 4)",
+		},
+		{
+			Name: "validate --autoclone on editable version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				DeleteNewRelicFn: func(_ context.Context, i *fastly.DeleteNewRelicInput) error {
+					// Verify operation happens on the cloned version (4), not original (3)
+					if i.ServiceVersion != 4 {
+						return fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return nil
+				},
+			},
+			Args:       "--autoclone --name foo --service-id 123 --version 3",
 			WantOutput: "Deleted New Relic logging endpoint 'foo' (service: 123, version: 4)",
 		},
 	}
@@ -175,7 +200,7 @@ func TestNewRelicDescribe(t *testing.T) {
 		{
 			Name: "validate GetNewRelic API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				GetNewRelicFn: func(_ context.Context, _ *fastly.GetNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
 				},
@@ -186,8 +211,8 @@ func TestNewRelicDescribe(t *testing.T) {
 		{
 			Name: "validate GetNewRelic API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetNewRelicFn:  getNewRelic,
+				GetVersionFn:  testutil.GetVersion,
+				GetNewRelicFn: getNewRelic,
 			},
 			Args:       "--name foobar --service-id 123 --version 3",
 			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nPlacement: \nProcessing region: \nRegion: \nResponse Condition: \nService ID: 123\nService Version: 3\nToken: abc\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
@@ -195,8 +220,8 @@ func TestNewRelicDescribe(t *testing.T) {
 		{
 			Name: "validate missing --autoclone flag is OK",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetNewRelicFn:  getNewRelic,
+				GetVersionFn:  testutil.GetVersion,
+				GetNewRelicFn: getNewRelic,
 			},
 			Args:       "--name foobar --service-id 123 --version 1",
 			WantOutput: "\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\nFormat: \nFormat Version: 0\nName: foobar\nPlacement: \nProcessing region: \nRegion: \nResponse Condition: \nService ID: 123\nService Version: 1\nToken: abc\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\n",
@@ -220,7 +245,7 @@ func TestNewRelicList(t *testing.T) {
 		{
 			Name: "validate ListNewRelics API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				ListNewRelicFn: func(_ context.Context, _ *fastly.ListNewRelicInput) ([]*fastly.NewRelic, error) {
 					return nil, testutil.Err
 				},
@@ -231,7 +256,7 @@ func TestNewRelicList(t *testing.T) {
 		{
 			Name: "validate ListNewRelics API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				ListNewRelicFn: listNewRelic,
 			},
 			Args:       "--service-id 123 --version 3",
@@ -240,7 +265,7 @@ func TestNewRelicList(t *testing.T) {
 		{
 			Name: "validate missing --autoclone flag is OK",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				ListNewRelicFn: listNewRelic,
 			},
 			Args:       "--service-id 123 --version 1",
@@ -249,7 +274,7 @@ func TestNewRelicList(t *testing.T) {
 		{
 			Name: "validate missing --verbose flag",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				ListNewRelicFn: listNewRelic,
 			},
 			Args:       "--service-id 123 --verbose --version 1",
@@ -275,28 +300,13 @@ func TestNewRelicUpdate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--name foobar --version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 2",
-			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate UpdateNewRelic API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				UpdateNewRelicFn: func(_ context.Context, _ *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return nil, testutil.Err
 				},
@@ -307,7 +317,7 @@ func TestNewRelicUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateNewRelic API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
 						Name:           i.NewName,
@@ -320,9 +330,31 @@ func TestNewRelicUpdate(t *testing.T) {
 			WantOutput: "Updated New Relic logging endpoint 'beepboop' (previously: foobar, service: 123, version: 3)",
 		},
 		{
+			Name: "validate API error when modifying active version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
+					return nil, fmt.Errorf("Cannot update version %d. Versions that have been activated cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--name foobar --new-name beepboop --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been activated cannot be updated",
+		},
+		{
+			Name: "validate API error when modifying locked version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
+					return nil, fmt.Errorf("Cannot update version %d. Versions that have been locked cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--name foobar --new-name beepboop --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been locked cannot be updated",
+		},
+		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
 					return &fastly.NewRelic{
@@ -333,6 +365,46 @@ func TestNewRelicUpdate(t *testing.T) {
 				},
 			},
 			Args:       "--autoclone --name foobar --new-name beepboop --service-id 123 --version 1",
+			WantOutput: "Updated New Relic logging endpoint 'beepboop' (previously: foobar, service: 123, version: 4)",
+		},
+		{
+			Name: "validate --autoclone on locked version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
+					// Verify operation happens on the cloned version (4), not original (2)
+					if i.ServiceVersion != 4 {
+						return nil, fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return &fastly.NewRelic{
+						Name:           i.NewName,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+					}, nil
+				},
+			},
+			Args:       "--autoclone --name foobar --new-name beepboop --service-id 123 --version 2",
+			WantOutput: "Updated New Relic logging endpoint 'beepboop' (previously: foobar, service: 123, version: 4)",
+		},
+		{
+			Name: "validate --autoclone on editable version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				UpdateNewRelicFn: func(_ context.Context, i *fastly.UpdateNewRelicInput) (*fastly.NewRelic, error) {
+					// Verify operation happens on the cloned version (4), not original (3)
+					if i.ServiceVersion != 4 {
+						return nil, fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return &fastly.NewRelic{
+						Name:           i.NewName,
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+					}, nil
+				},
+			},
+			Args:       "--autoclone --name foobar --new-name beepboop --service-id 123 --version 3",
 			WantOutput: "Updated New Relic logging endpoint 'beepboop' (previously: foobar, service: 123, version: 4)",
 		},
 	}

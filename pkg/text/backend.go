@@ -6,7 +6,7 @@ import (
 
 	"github.com/segmentio/textio"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 )
 
 // PrintBackend pretty prints a fastly.Backend structure in verbose format
@@ -22,6 +22,8 @@ func PrintBackend(out io.Writer, prefix string, b *fastly.Backend) {
 	fmt.Fprintf(out, "Override host: %v\n", fastly.ToValue(b.OverrideHost))
 	fmt.Fprintf(out, "Connect timeout: %v\n", fastly.ToValue(b.ConnectTimeout))
 	fmt.Fprintf(out, "Max connections: %v\n", fastly.ToValue(b.MaxConn))
+	fmt.Fprintf(out, "Max connection use: %v\n", fastly.ToValue(b.MaxUse))
+	fmt.Fprintf(out, "Max connection lifetime: %v\n", fastly.ToValue(b.MaxLifetime))
 	fmt.Fprintf(out, "First byte timeout: %v\n", fastly.ToValue(b.FirstByteTimeout))
 	fmt.Fprintf(out, "Between bytes timeout: %v\n", fastly.ToValue(b.BetweenBytesTimeout))
 	fmt.Fprintf(out, "Auto loadbalance: %v\n", fastly.ToValue(b.AutoLoadbalance))

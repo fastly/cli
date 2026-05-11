@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"4d63.com/optional"
 
@@ -250,7 +250,8 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Updated Kafka logging endpoint %s (service %s version %d)",
 		fastly.ToValue(kafka.Name),
 		fastly.ToValue(kafka.ServiceID),

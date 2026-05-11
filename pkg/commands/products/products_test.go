@@ -11,6 +11,7 @@ func TestProductEnablement(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "validate missing Service ID",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "failed to identify Service ID: error reading service: no service ID found",
 		},
 		{

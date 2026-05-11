@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
 
-// DescribeCommand calls the Fastly API to fetch the value of a key from an kv store.
+// DescribeCommand calls the Fastly API to fetch the value of a key from a kv store.
 type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
