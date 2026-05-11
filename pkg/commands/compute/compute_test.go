@@ -1,12 +1,13 @@
 package compute_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 
 	"github.com/fastly/kingpin"
 
@@ -229,15 +230,34 @@ func TestCreatePackageArchive(t *testing.T) {
 	testutil.AssertNoError(t, err)
 
 	var files, directories []string
-	if err := archiver.Walk(destination, func(f archiver.File) error {
-		if f.IsDir() {
-			directories = append(directories, f.Name())
-		} else {
-			files = append(files, f.Name())
-		}
-		return nil
-	}); err != nil {
+
+	// Walk the archive using archives API
+	input, err := os.Open(destination)
+	if err != nil {
 		t.Fatal(err)
+	}
+	defer input.Close()
+
+	format, stream, err := archives.Identify(context.Background(), destination, input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if ex, ok := format.(archives.Extractor); ok {
+		err = ex.Extract(context.Background(), stream, func(_ context.Context, f archives.FileInfo) error {
+			name := filepath.Base(f.NameInArchive)
+			if f.IsDir() {
+				directories = append(directories, name)
+			} else {
+				files = append(files, name)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	} else {
+		t.Fatal("format does not support extraction")
 	}
 
 	wantDirectories := []string{"cli", "src"}
