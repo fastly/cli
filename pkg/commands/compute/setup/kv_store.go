@@ -2,6 +2,7 @@ package setup
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -68,11 +69,7 @@ func (o *KVStores) Configure() error {
 		}
 
 		if kvs != nil {
-			for _, store := range kvs.Data {
-				// Avoid gosec loop aliasing check
-				store := store
-				existingStores = append(existingStores, store)
-			}
+			existingStores = append(existingStores, kvs.Data...)
 			if cur, ok := kvs.Meta["next_cursor"]; ok && cur != "" && cur != cursor {
 				cursor = cur
 				continue
@@ -117,6 +114,22 @@ func (o *KVStores) Configure() error {
 		}
 
 		var items []KVStoreItem
+
+		// Handle top-level file field for bulk loading
+		if settings.File != "" {
+			if len(settings.Items) > 0 {
+				return errors.RemediationError{
+					Inner:       fmt.Errorf("invalid config: both 'file' and 'items' were set"),
+					Remediation: fmt.Sprintf("Edit the [setup.kv_stores.%s] configuration to use either 'file' or 'items', not both", name),
+				}
+			}
+
+			fileItems, err := loadKVStoreFile(settings.File)
+			if err != nil {
+				return fmt.Errorf("failed to load KV Store file '%s': %w", settings.File, err)
+			}
+			items = fileItems
+		}
 
 		for key, item := range settings.Items {
 			if item.Value != "" && item.File != "" {
@@ -290,4 +303,48 @@ func (o *KVStores) Create() error {
 // fastly.toml file using a [setup] configuration block.
 func (o *KVStores) Predefined() bool {
 	return len(o.Setup) > 0
+}
+
+// loadKVStoreFile loads KV Store items from a JSON file.
+func loadKVStoreFile(filePath string) ([]KVStoreItem, error) {
+	abs, err := filepath.Abs(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct absolute path for '%s': %w", filePath, err)
+	}
+
+	// G304 (CWE-22): Potential file inclusion via variable
+	// Disabling as we trust the source of the variable.
+	// #nosec
+	data, err := os.ReadFile(abs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file '%s': %w", abs, err)
+	}
+
+	var jsonData map[string]any
+	if err := json.Unmarshal(data, &jsonData); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON file: %w", err)
+	}
+
+	var items []KVStoreItem
+	for key, val := range jsonData {
+		// Handle string values directly
+		if strVal, ok := val.(string); ok {
+			items = append(items, KVStoreItem{
+				Key:   key,
+				Value: strVal,
+			})
+		} else {
+			// For non-string values, marshal back to JSON string
+			jsonVal, err := json.Marshal(val)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal value for key '%s': %w", key, err)
+			}
+			items = append(items, KVStoreItem{
+				Key:   key,
+				Value: string(jsonVal),
+			})
+		}
+	}
+
+	return items, nil
 }
