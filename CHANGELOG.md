@@ -6,11 +6,38 @@
 
 ### Bug Fixes:
 
-- fix(compute/deploy): remove compute trial activation code because trials no longer exist ([#1730](https://github.com/fastly/cli/pull/1730))
+- fix(text): send deprecation warnings to stderr instead of stdout ([#1782](https://github.com/fastly/cli/pull/1782))
 
 ### Enhancements:
 
+- feat(compute): add file field support for setup.kv_stores bulk import ([#1784](https://github.com/fastly/cli/pull/1784))
+
 ### Dependencies:
+- refactor(deps): migrate from `mholt/archiver/v3` to `mholt/archives` v0.1.5 ([#1787](https://github.com/fastly/cli/pull/1787))
+- build(deps): `golang.org/x/sys` from 0.43.0 to 0.44.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+- build(deps): `golang.org/x/term` from 0.42.0 to 0.43.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+- build(deps): `golang.org/x/crypto` from 0.50.0 to 0.51.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+- build(deps): `golang.org/x/mod` from 0.35.0 to 0.36.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+- build(deps): `golang.org/x/text` from 0.36.0 to 0.37.0 ([#1785](https://github.com/fastly/cli/pull/1785))
+
+## [v15.0.0](https://github.com/fastly/cli/releases/tag/v15.0.0) (2026-05-08)
+
+### Breaking:
+
+- breaking(ngwaf/workspace): change flag name to match API spec ([#1768](https://github.com/fastly/cli/pull/1768]))
+
+### Bug Fixes:
+
+- fix(compute/deploy): remove compute trial activation code because trials no longer exist ([#1730](https://github.com/fastly/cli/pull/1730))
+- fix(auth): SSO token expiration status now reflects the actual API token lifetime (~12 hours) instead of the internal JWT refresh token (~30 minutes), preventing spurious warnings and premature re-authentication [#1728](https://github.com/fastly/cli/pull/1728)
+- fix(argparser): skip ListVersions API call for numeric versions [#1774](https://github.com/fastly/cli/pull/1774)
+
+### Enhancements:
+
+- feat(service/backend): add support for the `max_use` and `max_lifetime` parameters ([#1779](https://github.com/fastly/cli/pull/1779))
+
+### Dependencies:
+
 - build(deps): `golang.org/x/term` from 0.41.0 to 0.42.0 ([#1726](https://github.com/fastly/cli/pull/1726))
 - build(deps): `golang.org/x/crypto` from 0.49.0 to 0.50.0 ([#1726](https://github.com/fastly/cli/pull/1726))
 - build(deps): `golang.org/x/mod` from 0.34.0 to 0.35.0 ([#1726](https://github.com/fastly/cli/pull/1726))
@@ -18,6 +45,11 @@
 - build(deps): `golang.org/x/text` from 0.35.0 to 0.36.0 ([#1726](https://github.com/fastly/cli/pull/1726))
 - build(deps): `acifani/setup-tinygo` from 2 to 3 ([#1729](https://github.com/fastly/cli/pull/1729))
 - build(deps): `github.com/mattn/go-isatty` from 0.0.21 to 0.0.22 ([#1735](https://github.com/fastly/cli/pull/1735))
+- build(deps): `github.com/hashicorp/cap` from 0.12.0 to 0.13.0 ([#1771](https://github.com/fastly/cli/pull/1771))
+- build(deps): `github.com/Masterminds/semver/v3` from 3.4.0 to 3.5.0 ([#1775](https://github.com/fastly/cli/pull/1775))
+- build(deps): `github.com/fsnotify/fsnotify` from 1.9.0 to 1.10.1 ([#1775](https://github.com/fastly/cli/pull/1775))
+- build(deps): `github.com/klauspost/compress` from 1.18.5 to 1.18.6 ([#1775](https://github.com/fastly/cli/pull/1775))
+- build(deps): `github.com/fastly/go-fastly/v15` from 14.2.0 to 15.0.1([#1778](https://github.com/fastly/terraform-provider-fastly/pull/1778))
 
 ## [v14.3.1](https://github.com/fastly/cli/releases/tag/v14.3.1) (2026-04-13)
 
@@ -207,13 +239,13 @@ both the old and new forms are:
 - feat(compute/hashfiles): remove hashsum subcommand ([#1608](https://github.com/fastly/cli/pull/1608))
 - feat(ngwaf/rules): add support for CRUD operations for NGWAF rules ([#1605](https://github.com/fastly/cli/pull/1605))
 - feat(compute/deploy): added the `--no-default-domain` flag to allow for the skipping of automatic domain creation when deploying a Compute service([#1610](https://github.com/fastly/cli/pull/1610))
-- refactor(argparser/flags.go): add flag conversion utilities for converting string flags to bools and checking ascending and desecnding flags ([#1611](https://github.com/fastly/cli/pull/1611))
+- refactor(argparser/flags.go): add flag conversion utilities for converting string flags to bools and checking ascending and descending flags ([#1611](https://github.com/fastly/cli/pull/1611))
 - feat(service/purge): Add 'service purge' command as replacement for 'purge', with an unlisted and deprecated alias of 'purge'. ([#1612](https://github.com/fastly/cli/pull/1612))
 - feat(service/version): Add 'service version ...' commands as replacements for 'service-version ...', with unlisted and deprecated aliases of 'service-version ...'. ([#1614](https://github.com/fastly/cli/pull/1614))
 - feat(service/vcl): moved the `vcl` command under the `service` command, with an unlisted and deprecated alias of `vcl` ([#1616](https://github.com/fastly/cli/pull/1616))
 - feat(service/healthcheck): moved the `healthcheck` command under the `service` command, with an unlisted and deprecated alias of `healthcheck` ([#1619](https://github.com/fastly/cli/pull/1619))
 - feat(service/backend): moved the `backend` command under the `service` command, with an unlisted and deprecated alias of `backend` ([#1621](https://github.com/fastly/cli/pull/1621))
-- feat(service/acl): moved the `acl` and `aclentry` commands under the `service` command, with a unlisted and deprecated aliases of `acl` and `aclentry` ([#1621](https://github.com/fastly/cli/pull/1624))
+- feat(service/acl): moved the `acl` and `aclentry` commands under the `service` command, with unlisted and deprecated aliases of `acl` and `aclentry` ([#1621](https://github.com/fastly/cli/pull/1624))
 - feat(version): If the latest version is at least one major version higher than the current version, provide links to the release notes for the major version(s) so the user can review them before upgrading. ([#1623](https://github.com/fastly/cli/pull/1623))
 - feat(service/imageoptimizerdefaults): moved the `imageoptimizerdefaults` commands under the `service` command, with an unlisted and deprecated alias of `imageoptimizerdefaults` ([#1627](https://github.com/fastly/cli/pull/1627))
 - feat(service/alert): moved the `alerts` command to the `service alert` command, with an unlisted and deprecated alias of `alerts` ([#1616](https://github.com/fastly/cli/pull/1626))

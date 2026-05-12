@@ -24,6 +24,6 @@ func NewUnstageCommand(parent argparser.Registerer, g *global.Data) *UnstageComm
 
 // Exec implements the command interface.
 func (c *UnstageCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service version unstage' command instead.")
+	text.Deprecated("Use the 'service version unstage' command instead.")
 	return c.UnstageCommand.Exec(in, out)
 }

@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -36,7 +36,7 @@ type DescribeCommand struct {
 // Exec invokes the application logic for the command.
 func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	if !c.Globals.Flags.Quiet && !c.JSONOutput.Enabled {
-		text.Deprecated(out, "The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
+		text.Deprecated("The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
 	}
 
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {

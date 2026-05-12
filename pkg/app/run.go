@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/cap/oidc"
 	"github.com/skratchdot/open-golang/open"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/kingpin"
 
@@ -255,7 +255,7 @@ func Exec(data *global.Data) error {
 	}
 
 	// User can set env.DebugMode env var or the --debug-mode boolean flag.
-	// This will prioritise the flag over the env var.
+	// This will prioritize the flag over the env var.
 	if data.Flags.Debug {
 		data.Env.DebugMode = "true"
 	}
@@ -457,7 +457,13 @@ func checkAndRefreshAuthSSOToken(name string, at *config.AuthToken, data *global
 			return false, fmt.Errorf("invalid refresh_expires_at %q: %w", at.RefreshExpiresAt, err)
 		}
 		if time.Now().After(refreshExpires) {
-			return true, nil // both expired, needs full re-auth
+			if at.APITokenExpiresAt != "" {
+				apiExpires, err := time.Parse(time.RFC3339, at.APITokenExpiresAt)
+				if err == nil && time.Now().Before(apiExpires) {
+					return false, nil
+				}
+			}
+			return true, nil
 		}
 	}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -12,7 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// CreateCommand calls the Fastly API to create an kv store.
+// CreateCommand calls the Fastly API to create a kv store.
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput

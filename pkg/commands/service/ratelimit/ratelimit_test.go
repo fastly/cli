@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/ratelimit"
@@ -17,6 +17,7 @@ func TestRateLimitCreate(t *testing.T) {
 		{
 			Name: "validate CreateERL API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				CreateERLFn: func(_ context.Context, _ *fastly.CreateERLInput) (*fastly.ERL, error) {
 					return nil, testutil.Err
 				},
@@ -28,6 +29,7 @@ func TestRateLimitCreate(t *testing.T) {
 		{
 			Name: "validate CreateERL API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				CreateERLFn: func(_ context.Context, i *fastly.CreateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
 						Name:          i.Name,
@@ -49,6 +51,7 @@ func TestRateLimitDelete(t *testing.T) {
 		{
 			Name: "validate DeleteERL API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				DeleteERLFn: func(_ context.Context, _ *fastly.DeleteERLInput) error {
 					return testutil.Err
 				},
@@ -59,6 +62,7 @@ func TestRateLimitDelete(t *testing.T) {
 		{
 			Name: "validate DeleteERL API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				DeleteERLFn: func(_ context.Context, _ *fastly.DeleteERLInput) error {
 					return nil
 				},
@@ -76,6 +80,7 @@ func TestRateLimitDescribe(t *testing.T) {
 		{
 			Name: "validate GetERL API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetERLFn: func(_ context.Context, _ *fastly.GetERLInput) (*fastly.ERL, error) {
 					return nil, testutil.Err
 				},
@@ -86,6 +91,7 @@ func TestRateLimitDescribe(t *testing.T) {
 		{
 			Name: "validate ListERL API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetERLFn: func(_ context.Context, _ *fastly.GetERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
 						RateLimiterID:      fastly.ToPointer("123"),
@@ -110,6 +116,7 @@ func TestRateLimitList(t *testing.T) {
 		{
 			Name: "validate ListERL API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListERLsFn: func(_ context.Context, _ *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 					return nil, testutil.Err
 				},
@@ -121,6 +128,7 @@ func TestRateLimitList(t *testing.T) {
 		{
 			Name: "validate ListERL API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				ListERLsFn: func(_ context.Context, _ *fastly.ListERLsInput) ([]*fastly.ERL, error) {
 					return []*fastly.ERL{
 						{
@@ -143,11 +151,12 @@ func TestRateLimitList(t *testing.T) {
 	testutil.RunCLIScenarios(t, []string{root.CommandName, sub.CommandName, "list"}, scenarios)
 }
 
-func TesRateLimittUpdate(t *testing.T) {
+func TesRateLimitUpdate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "validate UpdateERL API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				UpdateERLFn: func(_ context.Context, _ *fastly.UpdateERLInput) (*fastly.ERL, error) {
 					return nil, testutil.Err
 				},
@@ -158,6 +167,7 @@ func TesRateLimittUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateERL API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				UpdateERLFn: func(_ context.Context, i *fastly.UpdateERLInput) (*fastly.ERL, error) {
 					return &fastly.ERL{
 						Name:          i.Name,

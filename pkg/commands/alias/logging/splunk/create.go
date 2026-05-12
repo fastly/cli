@@ -24,6 +24,6 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 // Exec implements the command interface.
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service logging splunk create' command instead.")
+	text.Deprecated("Use the 'service logging splunk create' command instead.")
 	return c.CreateCommand.Exec(in, out)
 }

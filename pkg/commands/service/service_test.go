@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	root "github.com/fastly/cli/pkg/commands/service"
@@ -70,6 +70,7 @@ func TestServiceList(t *testing.T) {
 		{
 			Name: "api failure",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{
@@ -85,6 +86,7 @@ func TestServiceList(t *testing.T) {
 		{
 			Name: "success with pagination",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -123,6 +125,7 @@ func TestServiceList(t *testing.T) {
 		{
 			Name: "success with verbose",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				GetServicesFn: func(ctx context.Context, _ *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service] {
 					return fastly.NewPaginator[fastly.Service](ctx, &mock.HTTPClient{
 						Errors: []error{nil},
@@ -199,6 +202,7 @@ func TestServiceDescribe(t *testing.T) {
 			Name:      "no service id",
 			Args:      "",
 			API:       &mock.API{GetServiceDetailsFn: describeServiceOK},
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -266,9 +270,11 @@ func TestServiceUpdate(t *testing.T) {
 			Name: "no service id",
 			Args: "",
 			API: &mock.API{
+				GetVersionFn:    testutil.GetVersion,
 				GetServiceFn:    getServiceOK,
 				UpdateServiceFn: updateServiceOK,
 			},
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -365,7 +371,7 @@ func TestServiceDelete(t *testing.T) {
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
-			// We're going to chdir to an temp environment,
+			// We're going to chdir to a temp environment,
 			// so save the PWD to return to, afterwards.
 			pwd, err := os.Getwd()
 			if err != nil {
@@ -512,7 +518,7 @@ func getServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.Service
 	}, nil
 }
 
-func describeServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceOK(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
 		ServiceID:  fastly.ToPointer("123"),
 		Name:       fastly.ToPointer("Foo"),
@@ -551,7 +557,7 @@ func describeServiceOK(_ context.Context, _ *fastly.GetServiceInput) (*fastly.Se
 	}, nil
 }
 
-func describeServiceError(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func describeServiceError(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	return nil, errTest
 }
 

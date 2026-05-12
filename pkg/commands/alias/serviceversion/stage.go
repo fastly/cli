@@ -24,6 +24,6 @@ func NewStageCommand(parent argparser.Registerer, g *global.Data) *StageCommand 
 
 // Exec implements the command interface.
 func (c *StageCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service version stage' command instead.")
+	text.Deprecated("Use the 'service version stage' command instead.")
 	return c.StageCommand.Exec(in, out)
 }

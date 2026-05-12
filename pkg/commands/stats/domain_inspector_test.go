@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -65,9 +65,11 @@ func TestDomainInspector(t *testing.T) {
 			wantError: "non-success response",
 		},
 		{
-			name:      "missing service ID",
-			args:      args("stats domain-inspector"),
-			api:       mock.API{},
+			name: "missing service ID",
+			args: args("stats domain-inspector"),
+			api: mock.API{
+				GetDomainMetricsForServiceFn: getDomainMetricsOK,
+			},
 			wantError: "error reading service",
 		},
 		{
@@ -129,6 +131,10 @@ func TestDomainInspector(t *testing.T) {
 	}
 	for _, tc := range scenarios {
 		t.Run(tc.name, func(t *testing.T) {
+			// Clear FASTLY_SERVICE_ID for tests that validate missing service ID
+			if tc.name == "missing service ID" {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			var stdout bytes.Buffer
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts := testutil.MockGlobalData(tc.args, &stdout)

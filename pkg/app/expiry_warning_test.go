@@ -16,7 +16,7 @@ import (
 // expiringTokenData returns a global.Data configured with a stored token that
 // expires soon. Callers can override Flags and commandName to test suppression.
 func expiringTokenData(out *bytes.Buffer) *global.Data {
-	soon := time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
+	soon := time.Now().Add(20 * time.Minute).Format(time.RFC3339)
 	return &global.Data{
 		Output:    out,
 		ErrOutput: out,
@@ -38,7 +38,7 @@ func expiringTokenData(out *bytes.Buffer) *global.Data {
 }
 
 func TestCheckTokenExpirationWarning(t *testing.T) {
-	soon := time.Now().Add(3 * 24 * time.Hour).Format(time.RFC3339)
+	soon := time.Now().Add(20 * time.Minute).Format(time.RFC3339)
 	farFuture := time.Now().Add(60 * 24 * time.Hour).Format(time.RFC3339)
 
 	tests := []struct {

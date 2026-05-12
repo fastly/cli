@@ -24,6 +24,6 @@ func NewLockCommand(parent argparser.Registerer, g *global.Data) *LockCommand {
 
 // Exec implements the command interface.
 func (c *LockCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service version lock' command instead.")
+	text.Deprecated("Use the 'service version lock' command instead.")
 	return c.LockCommand.Exec(in, out)
 }

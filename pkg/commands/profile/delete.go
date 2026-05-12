@@ -28,7 +28,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	if !c.Globals.Flags.Quiet {
-		text.Deprecated(out, "This command will be removed in a future release. Use 'fastly auth delete' instead.\n\n")
+		text.Deprecated("This command will be removed in a future release. Use 'fastly auth delete' instead.\n\n")
 	}
 
 	if !c.Globals.Config.DeleteAuthToken(c.profile) {
