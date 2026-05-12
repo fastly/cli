@@ -111,7 +111,7 @@ aurs:
     git_ssh_command: 'ssh -i {{ .KeyPath }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -F /dev/null'
 
 # https://goreleaser.com/customization/homebrew/
-brews:
+homebrew_casks:
   - name: fastly
     ids: [nix]
     repository:
@@ -120,7 +120,7 @@ brews:
     skip_upload: auto
     description: A CLI for interacting with the Fastly platform
     homepage: https://github.com/fastly/cli
-    directory: Formula
+    directory: Casks
     custom_block: |
       head do
         url "https://github.com/fastly/cli.git"
