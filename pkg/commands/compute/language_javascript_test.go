@@ -539,9 +539,15 @@ func TestJavaScript_isDefaultBuildScript(t *testing.T) {
 	}{
 		{"npm run build", true},
 		{"bun run build", true},
+		{"  npm run build  ", true},
+		{"NODE_ENV=production npm run build", true},
+		{"PATH=./node_modules/.bin:$PATH npm run build", true},
+		{"NODE_ENV=production FOO=bar bun run build", true},
 		{"", false},
 		{"custom-build-cmd", false},
 		{"npm run build && echo done", false},
+		{"=value npm run build", false},
+		{"./scripts/build npm run build", false},
 	}
 
 	for _, tt := range tests {

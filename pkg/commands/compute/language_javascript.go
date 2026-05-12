@@ -34,6 +34,18 @@ const JsSourceDirectory = "src"
 // ErrNpmMissing is returned when Node.js is found but npm is not installed.
 var ErrNpmMissing = errors.New("node found but npm missing")
 
+// ErrNoJSRuntime is returned when neither node nor bun can be found on PATH.
+var ErrNoJSRuntime = errors.New("no JavaScript runtime found (node or bun)")
+
+// ErrPackageJSONMissing is returned when the project has no package.json.
+var ErrPackageJSONMissing = errors.New("package.json not found")
+
+// ErrNodeModulesMissing is returned when node_modules has not been installed.
+var ErrNodeModulesMissing = errors.New("node_modules directory not found - dependencies not installed")
+
+// ErrJsComputeMissing is returned when @fastly/js-compute is not installed.
+var ErrJsComputeMissing = errors.New("@fastly/js-compute package not found")
+
 // JSRuntime represents a detected JavaScript runtime.
 type JSRuntime struct {
 	// Name is the runtime name (node or bun).
@@ -150,16 +162,42 @@ func (j *JavaScript) Dependencies() map[string]string {
 	return deps
 }
 
-// isDefaultBuildScript reports whether the configured build script is one of
-// the well-known defaults used by Fastly starter kits (e.g. "npm run build"
-// or "bun run build"). These scripts delegate to the same toolchain that the
-// CLI would invoke directly, so the same verification logic applies.
+// isDefaultBuildScript reports whether the configured build script is the
+// well-known default used by Fastly starter kits (e.g. "npm run build" or
+// "bun run build"). Leading "KEY=value" environment-variable assignments are
+// tolerated so values like "NODE_ENV=production npm run build" still match.
+// These scripts delegate to the same toolchain that the CLI would invoke
+// directly, so the same verification logic applies.
 func (j *JavaScript) isDefaultBuildScript() bool {
-	switch j.build {
-	case "npm run build", "bun run build":
-		return true
+	tokens := strings.Fields(j.build)
+	for len(tokens) > 0 && isEnvAssignment(tokens[0]) {
+		tokens = tokens[1:]
 	}
-	return false
+	if len(tokens) != 3 || tokens[1] != "run" || tokens[2] != "build" {
+		return false
+	}
+	return tokens[0] == "npm" || tokens[0] == "bun"
+}
+
+// isEnvAssignment reports whether a token looks like a shell environment-variable
+// assignment (NAME=value). Only the name portion is validated; the value may
+// contain any characters, including path separators (e.g. PATH=./node_modules/.bin:$PATH).
+func isEnvAssignment(token string) bool {
+	name, _, ok := strings.Cut(token, "=")
+	if !ok || name == "" {
+		return false
+	}
+	for i, r := range name {
+		switch {
+		case r == '_':
+		case r >= 'A' && r <= 'Z':
+		case r >= 'a' && r <= 'z':
+		case i > 0 && r >= '0' && r <= '9':
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 // Build compiles the user's source code into a Wasm binary.
@@ -204,18 +242,15 @@ func (j *JavaScript) Build() error {
 func search(filename, wd, home string) (found bool, path string, err error) {
 	parent := filepath.Dir(wd)
 
-	var noManifest bool
 	path = filepath.Join(wd, filename)
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		noManifest = true
-	}
-
-	// We've found the manifest.
-	if !noManifest {
+	_, statErr := os.Stat(path)
+	switch {
+	case statErr == nil:
 		return true, path, nil
+	case !errors.Is(statErr, os.ErrNotExist):
+		return false, "", statErr
 	}
 
-	// NOTE: The first condition catches if we reach the user's 'root' directory.
 	if wd != parent && wd != home {
 		return search(filename, parent, home)
 	}
@@ -266,31 +301,30 @@ func (j *JavaScript) checkNode() (*JSRuntime, error) {
 	}, nil
 }
 
-// detectProjectRuntime checks lockfiles to determine which runtime the project uses.
-// Searches from package.json location upward to handle workspace setups where
-// bun.lockb is at the workspace root but package.json is in a subpackage.
-// Only accepts bun.lockb if it's alongside a package.json (same dir) to avoid
-// picking up unrelated lockfiles in parent directories.
-// Returns "bun" if bun.lockb exists, "node" otherwise (default).
-func (j *JavaScript) detectProjectRuntime() string {
+// detectProjectRuntime checks lockfiles to determine which runtime the project
+// uses. It searches from package.json upward so workspace setups (lockfile at
+// the workspace root, package.json in a subpackage) are detected. A bun.lockb
+// counts only when it sits beside a package.json, which avoids picking up
+// unrelated lockfiles in parent directories. Returns "bun" if a Bun project
+// is detected, "node" otherwise.
+func (j *JavaScript) detectProjectRuntime() (string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
-		return "node"
+		return "", err
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "node"
+		return "", err
 	}
 
-	// Find package.json first to locate the project/subpackage root
 	found, pkgPath, err := search("package.json", wd, home)
-	if err != nil || !found {
-		return "node"
+	if err != nil {
+		return "", err
+	}
+	if !found {
+		return "node", nil
 	}
 
-	// Search upward from package.json for bun.lockb (handles workspaces)
-	// Only accept bun.lockb if the same directory also has package.json
-	// (ensures we're in a proper Bun project/workspace, not picking up unrelated lockfiles)
 	dir := filepath.Dir(pkgPath)
 	for {
 		hasBunLock := false
@@ -300,10 +334,9 @@ func (j *JavaScript) detectProjectRuntime() string {
 				break
 			}
 		}
-		// Only count bun.lockb if this directory also has package.json
 		if hasBunLock {
 			if _, err := os.Stat(filepath.Join(dir, "package.json")); err == nil {
-				return "bun"
+				return "bun", nil
 			}
 		}
 		parent := filepath.Dir(dir)
@@ -313,22 +346,26 @@ func (j *JavaScript) detectProjectRuntime() string {
 		dir = parent
 	}
 
-	// Default to Node.js (npm) for package-lock.json, yarn.lock, pnpm-lock.yaml, or no lockfile
-	return "node"
+	return "node", nil
 }
 
 // detectRuntime checks for available JavaScript runtimes.
 // Respects the project's lockfile to determine preferred runtime.
 func (j *JavaScript) detectRuntime() (*JSRuntime, error) {
-	projectRuntime := j.detectProjectRuntime()
+	projectRuntime, err := j.detectProjectRuntime()
+	if err != nil {
+		return nil, err
+	}
 
-	// Track errors for better messaging
-	var nodeErr error
+	var nodeErr, bunErr error
 	var nodeRuntime, bunRuntime *JSRuntime
 
-	// Check both runtimes to provide accurate error messages
-	bunRuntime, _ = j.checkBun()
+	bunRuntime, bunErr = j.checkBun()
 	nodeRuntime, nodeErr = j.checkNode()
+
+	if j.verbose && bunRuntime == nil && bunErr != nil && !errors.Is(bunErr, exec.ErrNotFound) {
+		text.Warning(j.output, "Bun was found on PATH but could not be queried: %v\n", bunErr)
+	}
 
 	// Use project's preferred runtime if available
 	if projectRuntime == "bun" && bunRuntime != nil {
@@ -358,7 +395,6 @@ func (j *JavaScript) detectRuntime() (*JSRuntime, error) {
 		return bunRuntime, nil
 	}
 
-	// Provide specific error if Node exists but npm is missing
 	if errors.Is(nodeErr, ErrNpmMissing) {
 		return nil, fsterr.RemediationError{
 			Inner: nodeErr,
@@ -370,12 +406,12 @@ Install npm (usually bundled with Node.js):
 
 Verify: npm --version
 
-Then retry your command.`,
+Then retry the build.`,
 		}
 	}
 
 	return nil, fsterr.RemediationError{
-		Inner: fmt.Errorf("no JavaScript runtime found (node or bun)"),
+		Inner: ErrNoJSRuntime,
 		Remediation: `A JavaScript runtime is required to build Compute applications.
 
 Install one of the following:
@@ -389,7 +425,7 @@ Option 2 - Bun:
   curl -fsSL https://bun.sh/install | bash
   Verify: bun --version
 
-Then retry your command.`,
+Then retry the build.`,
 	}
 }
 
@@ -436,7 +472,7 @@ func (j *JavaScript) verifyDependencies() error {
 			installCmd = "bun add @fastly/js-compute"
 		}
 		return fsterr.RemediationError{
-			Inner: fmt.Errorf("package.json not found"),
+			Inner: ErrPackageJSONMissing,
 			Remediation: fmt.Sprintf(`A package.json file is required for JavaScript Compute projects.
 
 Ensure you're in the correct project directory, or use --dir to specify the project root.
@@ -445,7 +481,7 @@ To initialize a new project:
   %s
   %s
 
-Then retry your command.`, initCmd, installCmd),
+Then retry the build.`, initCmd, installCmd),
 		}
 	}
 
@@ -457,13 +493,13 @@ Then retry your command.`, initCmd, installCmd),
 			installCmd = "bun install"
 		}
 		return fsterr.RemediationError{
-			Inner: fmt.Errorf("node_modules directory not found - dependencies not installed"),
+			Inner: ErrNodeModulesMissing,
 			Remediation: fmt.Sprintf(`Dependencies have not been installed.
 
 Run: %s
 
 This will install all dependencies from package.json.
-Then retry your command.`, installCmd),
+Then retry the build.`, installCmd),
 		}
 	}
 
@@ -492,13 +528,13 @@ func (j *JavaScript) verifyJsComputeRuntime() error {
 		installCmd = "bun add @fastly/js-compute"
 	}
 	return fsterr.RemediationError{
-		Inner: fmt.Errorf("@fastly/js-compute package not found"),
+		Inner: ErrJsComputeMissing,
 		Remediation: fmt.Sprintf(`The Fastly JavaScript Compute runtime is not installed.
 
 Run: %s
 
 This package is required to compile JavaScript for Fastly Compute.
-Then retry your command.`, installCmd),
+Then retry the build.`, installCmd),
 	}
 }
 
