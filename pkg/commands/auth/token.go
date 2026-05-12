@@ -33,6 +33,10 @@ func (c *TokenCommand) Exec(_ io.Reader, out io.Writer) error {
 		}
 	}
 
+	if err := c.Globals.ValidateProfileFlag(); err != nil {
+		return err
+	}
+
 	token, src := c.Globals.Token()
 	if src == lookup.SourceUndefined || token == "" {
 		return fsterr.RemediationError{

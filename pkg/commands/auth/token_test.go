@@ -3,6 +3,7 @@ package auth_test
 import (
 	"bytes"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/fastly/kingpin"
@@ -67,5 +68,59 @@ func TestToken_NonTTY_NoToken(t *testing.T) {
 	}
 	if re.Inner == nil || re.Inner.Error() != "no API token configured" {
 		t.Errorf("unexpected inner error: %v", re.Inner)
+	}
+}
+
+func TestToken_NonTTY_ProfileFlagUnknown(t *testing.T) {
+	var buf bytes.Buffer
+	g := globalDataWithToken("test-api-token-value")
+	g.Flags.Profile = "bogus"
+
+	cmd := newTokenCommand(g)
+	err := cmd.Exec(nil, &buf)
+	if err == nil {
+		t.Fatal("expected error for unknown --profile")
+	}
+	var re fsterr.RemediationError
+	if !errors.As(err, &re) {
+		t.Fatalf("expected RemediationError, got %T: %v", err, err)
+	}
+	if re.Inner == nil || !strings.Contains(re.Inner.Error(), `"bogus"`) {
+		t.Errorf("unexpected inner error: %v", re.Inner)
+	}
+	if buf.Len() != 0 {
+		t.Errorf("expected no token to be written, got: %q", buf.String())
+	}
+}
+
+func TestToken_NonTTY_ProfileFlagKnown(t *testing.T) {
+	var buf bytes.Buffer
+	g := globalDataWithToken("default-token")
+	g.Config.Auth.Tokens["alt"] = &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "alt-token"}
+	g.Flags.Profile = "alt"
+
+	cmd := newTokenCommand(g)
+	err := cmd.Exec(nil, &buf)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	if got := buf.String(); got != "alt-token" {
+		t.Errorf("expected token %q, got %q", "alt-token", got)
+	}
+}
+
+func TestToken_NonTTY_TokenFlagBeatsProfileFlag(t *testing.T) {
+	var buf bytes.Buffer
+	g := globalDataWithToken("default-token")
+	g.Flags.Token = "raw-xyz"
+	g.Flags.Profile = "bogus"
+
+	cmd := newTokenCommand(g)
+	err := cmd.Exec(nil, &buf)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	if got := buf.String(); got != "raw-xyz" {
+		t.Errorf("expected token %q, got %q", "raw-xyz", got)
 	}
 }

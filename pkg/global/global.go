@@ -97,11 +97,11 @@ type Data struct {
 // Order of precedence:
 //   - The --token flag (if it matches a stored auth token name, use that token).
 //   - The --token flag (treated as a raw API token).
+//   - The --profile/-o flag (must match a stored auth token name).
 //   - The FASTLY_API_TOKEN environment variable.
 //   - The `profile` manifest field mapped to an auth token name.
 //   - The default [auth] token (if configured).
 func (d *Data) Token() (string, lookup.Source) {
-	// --token: check if it matches a stored auth token name first.
 	if d.Flags.Token != "" {
 		if at := d.Config.GetAuthToken(d.Flags.Token); at != nil && at.Token != "" {
 			return at.Token, lookup.SourceAuth
@@ -109,7 +109,13 @@ func (d *Data) Token() (string, lookup.Source) {
 		return d.Flags.Token, lookup.SourceFlag
 	}
 
-	// FASTLY_API_TOKEN
+	if d.Flags.Profile != "" {
+		if at, ok := d.profileFlagToken(); ok {
+			return at.Token, lookup.SourceAuth
+		}
+		return "", lookup.SourceUndefined
+	}
+
 	if d.Env.APIToken != "" {
 		return d.Env.APIToken, lookup.SourceEnvironment
 	}
@@ -120,7 +126,6 @@ func (d *Data) Token() (string, lookup.Source) {
 		}
 	}
 
-	// [auth] section default token.
 	if _, at := d.Config.GetDefaultAuthToken(); at != nil && at.Token != "" {
 		return at.Token, lookup.SourceAuth
 	}
@@ -128,13 +133,43 @@ func (d *Data) Token() (string, lookup.Source) {
 	return "", lookup.SourceUndefined
 }
 
+func (d *Data) profileFlagToken() (*config.AuthToken, bool) {
+	if d.Flags.Profile == "" {
+		return nil, false
+	}
+	at := d.Config.GetAuthToken(d.Flags.Profile)
+	if at == nil || at.Token == "" {
+		return nil, false
+	}
+	return at, true
+}
+
+// ValidateProfileFlag returns an error if --profile/-o is set to a name that
+// does not resolve to a stored auth token. --token outranks --profile and
+// short-circuits the check.
+func (d *Data) ValidateProfileFlag() error {
+	if d.Flags.Token != "" || d.Flags.Profile == "" {
+		return nil
+	}
+	if _, ok := d.profileFlagToken(); ok {
+		return nil
+	}
+	return fsterr.ErrProfileFlagNotFound(d.Flags.Profile)
+}
+
 // AuthTokenName returns the name of the auth token being used, if any.
 // This is used for display purposes and for SSO refresh of named tokens.
 func (d *Data) AuthTokenName() string {
-	// If --token matches a stored auth token name, return that name.
 	if d.Flags.Token != "" {
 		if at := d.Config.GetAuthToken(d.Flags.Token); at != nil {
 			return d.Flags.Token
+		}
+		return ""
+	}
+
+	if d.Flags.Profile != "" {
+		if _, ok := d.profileFlagToken(); ok {
+			return d.Flags.Profile
 		}
 		return ""
 	}
@@ -144,7 +179,6 @@ func (d *Data) AuthTokenName() string {
 			return d.Manifest.File.Profile
 		}
 	}
-	// Otherwise return the default auth token name.
 	name, _ := d.Config.GetDefaultAuthToken()
 	return name
 }

@@ -52,6 +52,10 @@ func (c *RevokeCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
+	if err := c.Globals.ValidateProfileFlag(); err != nil {
+		return err
+	}
+
 	switch {
 	case c.current:
 		return c.revokeCurrent(in, out)
