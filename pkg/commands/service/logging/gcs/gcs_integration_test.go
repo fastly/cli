@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -21,7 +21,7 @@ func TestGCSCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateGCSFn:    createGCSOK,
 			},
@@ -30,7 +30,7 @@ func TestGCSCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --account-name service-account-id --project-id gcp-prj-id --period 86400 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateGCSFn:    createGCSOK,
 			},
@@ -39,7 +39,7 @@ func TestGCSCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateGCSFn:    createGCSError,
 			},
@@ -48,7 +48,7 @@ func TestGCSCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --bucket log --user foo@example.com --secret-key foo --period 86400 --compression-codec zstd --gzip-level 9 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -62,32 +62,32 @@ func TestGCSList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListGCSsFn:     listGCSsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListGCSsFn:   listGCSsOK,
 			},
 			WantOutput: listGCSsShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListGCSsFn:     listGCSsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListGCSsFn:   listGCSsOK,
 			},
 			WantOutput: listGCSsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListGCSsFn:     listGCSsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListGCSsFn:   listGCSsOK,
 			},
 			WantOutput: listGCSsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListGCSsFn:     listGCSsError,
+				GetVersionFn: testutil.GetVersion,
+				ListGCSsFn:   listGCSsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -104,16 +104,16 @@ func TestGCSDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetGCSFn:       getGCSError,
+				GetVersionFn: testutil.GetVersion,
+				GetGCSFn:     getGCSError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetGCSFn:       getGCSOK,
+				GetVersionFn: testutil.GetVersion,
+				GetGCSFn:     getGCSOK,
 			},
 			WantOutput: describeGCSOutput,
 		},
@@ -130,7 +130,7 @@ func TestGCSUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateGCSFn:    updateGCSError,
 			},
@@ -139,7 +139,7 @@ func TestGCSUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateGCSFn:    updateGCSOK,
 			},
@@ -158,7 +158,7 @@ func TestGCSDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteGCSFn:    deleteGCSError,
 			},
@@ -167,7 +167,7 @@ func TestGCSDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteGCSFn:    deleteGCSOK,
 			},

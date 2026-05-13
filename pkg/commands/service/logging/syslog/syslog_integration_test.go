@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -21,7 +21,7 @@ func TestSyslogCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogOK,
 			},
@@ -30,7 +30,7 @@ func TestSyslogCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address 127.0.0.1 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSyslogFn: createSyslogError,
 			},
@@ -45,32 +45,32 @@ func TestSyslogList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSyslogsFn:  listSyslogsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListSyslogsFn: listSyslogsOK,
 			},
 			WantOutput: listSyslogsShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSyslogsFn:  listSyslogsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListSyslogsFn: listSyslogsOK,
 			},
 			WantOutput: listSyslogsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSyslogsFn:  listSyslogsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListSyslogsFn: listSyslogsOK,
 			},
 			WantOutput: listSyslogsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSyslogsFn:  listSyslogsError,
+				GetVersionFn:  testutil.GetVersion,
+				ListSyslogsFn: listSyslogsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -87,16 +87,16 @@ func TestSyslogDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSyslogFn:    getSyslogError,
+				GetVersionFn: testutil.GetVersion,
+				GetSyslogFn:  getSyslogError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSyslogFn:    getSyslogOK,
+				GetVersionFn: testutil.GetVersion,
+				GetSyslogFn:  getSyslogOK,
 			},
 			WantOutput: describeSyslogOutput,
 		},
@@ -113,7 +113,7 @@ func TestSyslogUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogError,
 			},
@@ -122,7 +122,7 @@ func TestSyslogUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSyslogFn: updateSyslogOK,
 			},
@@ -141,7 +141,7 @@ func TestSyslogDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogError,
 			},
@@ -150,7 +150,7 @@ func TestSyslogDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSyslogFn: deleteSyslogOK,
 			},

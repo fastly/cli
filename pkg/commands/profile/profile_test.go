@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/config"
@@ -362,7 +362,7 @@ func TestProfileToken(t *testing.T) {
 					},
 				},
 			},
-			WantOutputs: []string{"DEPRECATED", "This command will be removed", "123"},
+			WantOutputs: []string{"123"},
 		},
 		{
 			Name: "validate --quiet suppresses deprecation warning",
@@ -392,8 +392,7 @@ func TestProfileToken(t *testing.T) {
 					},
 				},
 			},
-			WantOutput:      "123",
-			DontWantOutputs: []string{"DEPRECATED", "This command will be removed"},
+			WantOutput: "123",
 		},
 		{
 			Name: "validate the active profile non-SSO token is displayed by default",

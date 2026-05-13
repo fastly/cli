@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/ed25519"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
@@ -18,7 +18,7 @@ type API struct {
 	GetServicesFn       func(context.Context, *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service]
 	ListServicesFn      func(context.Context, *fastly.ListServicesInput) ([]*fastly.Service, error)
 	GetServiceFn        func(context.Context, *fastly.GetServiceInput) (*fastly.Service, error)
-	GetServiceDetailsFn func(context.Context, *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
+	GetServiceDetailsFn func(context.Context, *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error)
 	UpdateServiceFn     func(context.Context, *fastly.UpdateServiceInput) (*fastly.Service, error)
 	DeleteServiceFn     func(context.Context, *fastly.DeleteServiceInput) error
 	SearchServiceFn     func(context.Context, *fastly.SearchServiceInput) (*fastly.Service, error)
@@ -450,7 +450,7 @@ func (m API) GetService(ctx context.Context, i *fastly.GetServiceInput) (*fastly
 }
 
 // GetServiceDetails implements Interface.
-func (m API) GetServiceDetails(ctx context.Context, i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func (m API) GetServiceDetails(ctx context.Context, i *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	return m.GetServiceDetailsFn(ctx, i)
 }
 

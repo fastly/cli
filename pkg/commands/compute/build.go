@@ -2,6 +2,7 @@ package compute
 
 import (
 	"bufio"
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -17,7 +18,7 @@ import (
 	"time"
 
 	"github.com/kennygrant/sanitize"
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 	"golang.org/x/text/cases"
 	textlang "golang.org/x/text/language"
 
@@ -791,11 +792,47 @@ func CreatePackageArchive(files []string, destination string) error {
 		}
 	}
 
-	tar := archiver.NewTarGz()
-	tar.OverwriteExisting = true //
-	tar.MkdirAll = true          // make destination directory if it doesn't exist
+	return createTarGz(dir, destination)
+}
 
-	return tar.Archive([]string{dir}, destination)
+// createTarGz creates a .tar.gz archive from a directory.
+func createTarGz(sourceDir, destFile string) error {
+	ctx := context.Background()
+
+	// Map files from disk
+	files, err := archives.FilesFromDisk(ctx, nil, map[string]string{
+		sourceDir: "",
+	})
+	if err != nil {
+		return fmt.Errorf("failed to map files from disk: %w", err)
+	}
+
+	// Ensure parent directory exists
+	destDir := filepath.Dir(destFile)
+	if err := os.MkdirAll(destDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Create output file
+	out, err := os.Create(destFile)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer out.Close()
+
+	// Create compressed archive format
+	format := archives.CompressedArchive{
+		Compression: archives.Gz{},
+		Archival:    archives.Tar{},
+	}
+
+	// Create the archive
+	err = format.Archive(ctx, out, files)
+	if err != nil {
+		return fmt.Errorf("failed to create archive: %w", err)
+	}
+
+	return nil
 }
 
 // FileNameWithoutExtension returns a filename with its extension stripped.

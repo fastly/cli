@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -21,7 +21,7 @@ func TestLogshuttleCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --auth-token abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateLogshuttleFn: createLogshuttleOK,
 			},
@@ -30,7 +30,7 @@ func TestLogshuttleCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --auth-token abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateLogshuttleFn: createLogshuttleError,
 			},
@@ -45,7 +45,7 @@ func TestLogshuttleList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ListLogshuttlesFn: listLogshuttlesOK,
 			},
 			WantOutput: listLogshuttlesShortOutput,
@@ -53,7 +53,7 @@ func TestLogshuttleList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ListLogshuttlesFn: listLogshuttlesOK,
 			},
 			WantOutput: listLogshuttlesVerboseOutput,
@@ -61,7 +61,7 @@ func TestLogshuttleList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ListLogshuttlesFn: listLogshuttlesOK,
 			},
 			WantOutput: listLogshuttlesVerboseOutput,
@@ -69,7 +69,7 @@ func TestLogshuttleList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ListLogshuttlesFn: listLogshuttlesError,
 			},
 			WantError: errTest.Error(),
@@ -87,7 +87,7 @@ func TestLogshuttleDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				GetLogshuttleFn: getLogshuttleError,
 			},
 			WantError: errTest.Error(),
@@ -95,7 +95,7 @@ func TestLogshuttleDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				GetLogshuttleFn: getLogshuttleOK,
 			},
 			WantOutput: describeLogshuttleOutput,
@@ -113,7 +113,7 @@ func TestLogshuttleUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateLogshuttleFn: updateLogshuttleError,
 			},
@@ -122,7 +122,7 @@ func TestLogshuttleUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateLogshuttleFn: updateLogshuttleOK,
 			},
@@ -141,7 +141,7 @@ func TestLogshuttleDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteLogshuttleFn: deleteLogshuttleError,
 			},
@@ -150,7 +150,7 @@ func TestLogshuttleDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteLogshuttleFn: deleteLogshuttleOK,
 			},

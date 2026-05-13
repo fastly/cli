@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/cloudfiles"
@@ -67,6 +67,9 @@ func TestCreateCloudfilesInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.wantError == errors.ErrNoServiceID.Error() {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			var bs []byte
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
@@ -110,7 +113,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			name: "no update",
 			cmd:  updateCommandNoUpdate(),
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetCloudfilesFn: getCloudfilesOK,
 			},
@@ -124,7 +127,7 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				GetCloudfilesFn: getCloudfilesOK,
 			},
@@ -161,6 +164,9 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.wantError == errors.ErrNoServiceID.Error() {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			testcase.cmd.Globals.APIClient = testcase.api
 
 			var bs []byte
@@ -203,7 +209,7 @@ func createCommandRequired() *cloudfiles.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetVersion,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
@@ -243,7 +249,7 @@ func createCommandAll() *cloudfiles.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetVersion,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
@@ -289,6 +295,7 @@ func createCommandAll() *cloudfiles.CreateCommand {
 func createCommandMissingServiceID() *cloudfiles.CreateCommand {
 	res := createCommandAll()
 	res.Manifest = manifest.Data{}
+	res.ServiceVersion = argparser.OptionalServiceVersion{}
 	return res
 }
 
@@ -378,5 +385,6 @@ func updateCommandAll() *cloudfiles.UpdateCommand {
 func updateCommandMissingServiceID() *cloudfiles.UpdateCommand {
 	res := updateCommandAll()
 	res.Manifest = manifest.Data{}
+	res.ServiceVersion = argparser.OptionalServiceVersion{}
 	return res
 }

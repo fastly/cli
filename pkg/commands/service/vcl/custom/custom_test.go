@@ -2,9 +2,10 @@ package custom_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	top "github.com/fastly/cli/pkg/commands/service"
 	root "github.com/fastly/cli/pkg/commands/service/vcl"
@@ -17,25 +18,9 @@ func TestVCLCustomCreate(t *testing.T) {
 	var content string
 	scenarios := []testutil.CLIScenario{
 		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--content ./testdata/example.vcl --name foo --service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--content ./testdata/example.vcl --name foo --service-id 123 --version 2",
-			WantError: "service version 2 is locked",
-		},
-		{
 			Name: "validate CreateVCL API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateVCLFn: func(_ context.Context, _ *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
@@ -46,7 +31,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		{
 			Name: "validate CreateVCL API success for non-main VCL",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -76,7 +61,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		{
 			Name: "validate CreateVCL API success for main VCL",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					// Track the contents parsed
@@ -107,7 +92,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
@@ -138,7 +123,7 @@ func TestVCLCustomCreate(t *testing.T) {
 		{
 			Name: "validate CreateVCL API success with inline VCL content",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				CreateVCLFn: func(_ context.Context, i *fastly.CreateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -185,28 +170,13 @@ func TestVCLCustomDelete(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--name foobar --version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 2",
-			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate DeleteVCL API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
 					return testutil.Err
 				},
@@ -217,7 +187,7 @@ func TestVCLCustomDelete(t *testing.T) {
 		{
 			Name: "validate DeleteVCL API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
 					return nil
 				},
@@ -226,15 +196,69 @@ func TestVCLCustomDelete(t *testing.T) {
 			WantOutput: "Deleted custom VCL 'foobar' (service: 123, version: 3)",
 		},
 		{
+			Name: "validate API error when modifying active version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				DeleteVCLFn: func(_ context.Context, i *fastly.DeleteVCLInput) error {
+					return fmt.Errorf("Cannot update version %d. Versions that have been activated cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--name foobar --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been activated cannot be updated",
+		},
+		{
+			Name: "validate API error when modifying locked version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				DeleteVCLFn: func(_ context.Context, i *fastly.DeleteVCLInput) error {
+					return fmt.Errorf("Cannot update version %d. Versions that have been locked cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--name foobar --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been locked cannot be updated",
+		},
+		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteVCLFn: func(_ context.Context, _ *fastly.DeleteVCLInput) error {
 					return nil
 				},
 			},
 			Args:       "--autoclone --name foo --service-id 123 --version 1",
+			WantOutput: "Deleted custom VCL 'foo' (service: 123, version: 4)",
+		},
+		{
+			Name: "validate --autoclone on locked version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				DeleteVCLFn: func(_ context.Context, i *fastly.DeleteVCLInput) error {
+					// Verify operation happens on the cloned version (4), not original (2)
+					if i.ServiceVersion != 4 {
+						return fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return nil
+				},
+			},
+			Args:       "--autoclone --name foo --service-id 123 --version 2",
+			WantOutput: "Deleted custom VCL 'foo' (service: 123, version: 4)",
+		},
+		{
+			Name: "validate --autoclone on editable version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				DeleteVCLFn: func(_ context.Context, i *fastly.DeleteVCLInput) error {
+					// Verify operation happens on the cloned version (4), not original (3)
+					if i.ServiceVersion != 4 {
+						return fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return nil
+				},
+			},
+			Args:       "--autoclone --name foo --service-id 123 --version 3",
 			WantOutput: "Deleted custom VCL 'foo' (service: 123, version: 4)",
 		},
 	}
@@ -262,7 +286,7 @@ func TestVCLCustomDescribe(t *testing.T) {
 		{
 			Name: "validate GetVCL API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				GetVCLFn: func(_ context.Context, _ *fastly.GetVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
@@ -273,8 +297,8 @@ func TestVCLCustomDescribe(t *testing.T) {
 		{
 			Name: "validate GetVCL API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetVCLFn:       getVCL,
+				GetVersionFn: testutil.GetVersion,
+				GetVCLFn:     getVCL,
 			},
 			Args:       "--name foobar --service-id 123 --version 3",
 			WantOutput: "\nService ID: 123\nService Version: 3\n\nName: foobar\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
@@ -282,8 +306,8 @@ func TestVCLCustomDescribe(t *testing.T) {
 		{
 			Name: "validate missing --autoclone flag is OK",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetVCLFn:       getVCL,
+				GetVersionFn: testutil.GetVersion,
+				GetVCLFn:     getVCL,
 			},
 			Args:       "--name foobar --service-id 123 --version 1",
 			WantOutput: "\nService ID: 123\nService Version: 1\n\nName: foobar\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
@@ -302,12 +326,13 @@ func TestVCLCustomList(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate ListVCLs API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				ListVCLsFn: func(_ context.Context, _ *fastly.ListVCLsInput) ([]*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
@@ -318,8 +343,8 @@ func TestVCLCustomList(t *testing.T) {
 		{
 			Name: "validate ListVCLs API success",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListVCLsFn:     listVCLs,
+				GetVersionFn: testutil.GetVersion,
+				ListVCLsFn:   listVCLs,
 			},
 			Args:       "--service-id 123 --version 3",
 			WantOutput: "SERVICE ID  VERSION  NAME  MAIN\n123         3        foo   true\n123         3        bar   false\n",
@@ -327,8 +352,8 @@ func TestVCLCustomList(t *testing.T) {
 		{
 			Name: "validate missing --autoclone flag is OK",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListVCLsFn:     listVCLs,
+				GetVersionFn: testutil.GetVersion,
+				ListVCLsFn:   listVCLs,
 			},
 			Args:       "--service-id 123 --version 1",
 			WantOutput: "SERVICE ID  VERSION  NAME  MAIN\n123         1        foo   true\n123         1        bar   false\n",
@@ -336,8 +361,8 @@ func TestVCLCustomList(t *testing.T) {
 		{
 			Name: "validate missing --verbose flag",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListVCLsFn:     listVCLs,
+				GetVersionFn: testutil.GetVersion,
+				ListVCLsFn:   listVCLs,
 			},
 			Args:       "--service-id 123 --verbose --version 1",
 			WantOutput: "Fastly API endpoint: https://api.fastly.com\nFastly API token provided via config file (auth: user)\n\nService ID (via --service-id): 123\n\nService Version: 1\n\nName: foo\nMain: true\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n\nName: bar\nMain: false\nContent: \n# some vcl content\n\nCreated at: 2021-06-15 23:00:00 +0000 UTC\nUpdated at: 2021-06-15 23:00:00 +0000 UTC\nDeleted at: 2021-06-15 23:00:00 +0000 UTC\n",
@@ -363,28 +388,13 @@ func TestVCLCustomUpdate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--name foobar --version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'active' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 1",
-			WantError: "service version 1 is active",
-		},
-		{
-			Name: "validate missing --autoclone flag with 'locked' service",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			Args:      "--name foobar --service-id 123 --version 2",
-			WantError: "service version 2 is locked",
 		},
 		{
 			Name: "validate UpdateVCL API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				UpdateVCLFn: func(_ context.Context, _ *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
@@ -395,7 +405,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateVCL API success with --new-name",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					return &fastly.VCL{
 						Content:        fastly.ToPointer("# untouched"),
@@ -412,7 +422,7 @@ func TestVCLCustomUpdate(t *testing.T) {
 		{
 			Name: "validate UpdateVCL API success with --content",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
 					content = *i.Content
@@ -431,9 +441,31 @@ func TestVCLCustomUpdate(t *testing.T) {
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "example.vcl", Content: func() string { return content }},
 		},
 		{
+			Name: "validate API error when modifying active version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					return nil, fmt.Errorf("Cannot update version %d. Versions that have been activated cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--content updated --name foobar --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been activated cannot be updated",
+		},
+		{
+			Name: "validate API error when modifying locked version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					return nil, fmt.Errorf("Cannot update version %d. Versions that have been locked cannot be updated", i.ServiceVersion)
+				},
+			},
+			Args:      "--content updated --name foobar --service-id 123 --version 3",
+			WantError: "Cannot update version 3. Versions that have been locked cannot be updated",
+		},
+		{
 			Name: "validate --autoclone results in cloned service version",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
 					// Track the contents parsed
@@ -449,6 +481,58 @@ func TestVCLCustomUpdate(t *testing.T) {
 				},
 			},
 			Args:            "--autoclone --content ./testdata/example.vcl --name foo --service-id 123 --version 1",
+			WantOutput:      "Updated custom VCL 'foo' (service: 123, version: 4)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "example.vcl", Content: func() string { return content }},
+		},
+		{
+			Name: "validate --autoclone on locked version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					// Verify operation happens on the cloned version (4), not original (2)
+					if i.ServiceVersion != 4 {
+						return nil, fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					// Track the contents parsed
+					content = *i.Content
+
+					return &fastly.VCL{
+						Content:        i.Content,
+						Main:           fastly.ToPointer(true),
+						Name:           fastly.ToPointer(i.Name),
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+					}, nil
+				},
+			},
+			Args:            "--autoclone --content ./testdata/example.vcl --name foo --service-id 123 --version 2",
+			WantOutput:      "Updated custom VCL 'foo' (service: 123, version: 4)",
+			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "example.vcl", Content: func() string { return content }},
+		},
+		{
+			Name: "validate --autoclone on editable version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				UpdateVCLFn: func(_ context.Context, i *fastly.UpdateVCLInput) (*fastly.VCL, error) {
+					// Verify operation happens on the cloned version (4), not original (3)
+					if i.ServiceVersion != 4 {
+						return nil, fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					// Track the contents parsed
+					content = *i.Content
+
+					return &fastly.VCL{
+						Content:        i.Content,
+						Main:           fastly.ToPointer(true),
+						Name:           fastly.ToPointer(i.Name),
+						ServiceID:      fastly.ToPointer(i.ServiceID),
+						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+					}, nil
+				},
+			},
+			Args:            "--autoclone --content ./testdata/example.vcl --name foo --service-id 123 --version 3",
 			WantOutput:      "Updated custom VCL 'foo' (service: 123, version: 4)",
 			PathContentFlag: &testutil.PathContentFlag{Flag: "content", Fixture: "example.vcl", Content: func() string { return content }},
 		},

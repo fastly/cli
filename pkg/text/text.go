@@ -216,12 +216,13 @@ func BreakN(w io.Writer, n int) {
 }
 
 // Deprecated is a wrapper for fmt.Fprintf with a bold red "DEPRECATED: " prefix.
-func Deprecated(w io.Writer, format string, args ...any) {
+// Deprecation warnings are always written to stderr.
+func Deprecated(format string, args ...any) {
 	prefix, suffix, txt := ParseBreaks(format)
 	if suffix == 0 {
 		suffix++
 	}
-	fmt.Fprintf(w, WrapString(BoldRed, "DEPRECATED", txt, prefix, suffix), args...)
+	fmt.Fprintf(os.Stderr, WrapString(BoldRed, "DEPRECATED", txt, prefix, suffix), args...)
 }
 
 // Error is a wrapper for fmt.Fprintf with a bold red "ERROR: " prefix.

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v14/fastly"
-	"github.com/fastly/go-fastly/v14/fastly/ngwaf/v1/scope"
+	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/scope"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/ngwaf/ngwaflist"

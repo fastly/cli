@@ -24,6 +24,6 @@ func NewActivateCommand(parent argparser.Registerer, g *global.Data) *ActivateCo
 
 // Exec implements the command interface.
 func (c *ActivateCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service version activate' command instead.")
+	text.Deprecated("Use the 'service version activate' command instead.")
 	return c.ActivateCommand.Exec(in, out)
 }

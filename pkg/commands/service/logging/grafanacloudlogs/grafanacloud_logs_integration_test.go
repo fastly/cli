@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v14/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	parent "github.com/fastly/cli/pkg/commands/service/logging"
@@ -20,7 +20,7 @@ func TestGrafanaCloudLogsCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --user 123456 --url https://test123.grafana.net --auth-token testtoken --index `{\"label\": \"value\" }` --autoclone",
 			API: &mock.API{
-				ListVersionsFn:           testutil.ListVersions,
+				GetVersionFn:             testutil.GetVersion,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				CreateGrafanaCloudLogsFn: createGrafanaCloudLogsOK,
 			},
@@ -29,7 +29,7 @@ func TestGrafanaCloudLogsCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url https://test123.grafana.net --auth-token testtoken --index `{\"label\": \"value\" }` --autoclone",
 			API: &mock.API{
-				ListVersionsFn:           testutil.ListVersions,
+				GetVersionFn:             testutil.GetVersion,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				CreateGrafanaCloudLogsFn: createGrafanaCloudLogsError,
 			},
@@ -44,7 +44,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:         testutil.ListVersions,
+				GetVersionFn:           testutil.GetVersion,
 				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
 			WantOutput: listGrafanaCloudLogsShortOutput,
@@ -52,7 +52,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:         testutil.ListVersions,
+				GetVersionFn:           testutil.GetVersion,
 				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
 			WantOutput: listGrafanaCloudLogsVerboseOutput,
@@ -60,7 +60,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:         testutil.ListVersions,
+				GetVersionFn:           testutil.GetVersion,
 				ListGrafanaCloudLogsFn: listGrafanaCloudLogsOK,
 			},
 			WantOutput: listGrafanaCloudLogsVerboseOutput,
@@ -68,7 +68,7 @@ func TestGrafanaCloudLogsList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:         testutil.ListVersions,
+				GetVersionFn:           testutil.GetVersion,
 				ListGrafanaCloudLogsFn: listGrafanaCloudLogsError,
 			},
 			WantError: errTest.Error(),
@@ -86,7 +86,7 @@ func TestGrafanaCloudLogsDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:        testutil.ListVersions,
+				GetVersionFn:          testutil.GetVersion,
 				GetGrafanaCloudLogsFn: getGrafanaCloudLogsError,
 			},
 			WantError: errTest.Error(),
@@ -94,7 +94,7 @@ func TestGrafanaCloudLogsDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:        testutil.ListVersions,
+				GetVersionFn:          testutil.GetVersion,
 				GetGrafanaCloudLogsFn: getGrafanaCloudLogsOK,
 			},
 			WantOutput: describeGrafanaCloudLogsOutput,
@@ -112,7 +112,7 @@ func TestGrafanaCloudLogsUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:           testutil.ListVersions,
+				GetVersionFn:             testutil.GetVersion,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				UpdateGrafanaCloudLogsFn: updateGrafanaCloudLogsError,
 			},
@@ -121,7 +121,7 @@ func TestGrafanaCloudLogsUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:           testutil.ListVersions,
+				GetVersionFn:             testutil.GetVersion,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				UpdateGrafanaCloudLogsFn: updateGrafanaCloudLogsOK,
 			},
@@ -140,7 +140,7 @@ func TestGrafanaCloudLogsDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:           testutil.ListVersions,
+				GetVersionFn:             testutil.GetVersion,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				DeleteGrafanaCloudLogsFn: deleteGrafanaCloudLogsError,
 			},
@@ -149,7 +149,7 @@ func TestGrafanaCloudLogsDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:           testutil.ListVersions,
+				GetVersionFn:             testutil.GetVersion,
 				CloneVersionFn:           testutil.CloneVersionResult(4),
 				DeleteGrafanaCloudLogsFn: deleteGrafanaCloudLogsOK,
 			},
