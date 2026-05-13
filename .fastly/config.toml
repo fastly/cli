@@ -25,6 +25,10 @@ toolchain_constraint_tinygo = ">= 1.18"    # Go toolchain constraint for use wit
 toolchain_constraint = ">= 1.78 != 1.91.0 != 1.93.0"
 wasm_wasi_target = "wasm32-wasip1"
 
+[language.cpp]
+toolchain_constraint = ">= 14.0.0"
+wasm_wasi_target = "wasm32-wasip1"
+
 [wasm-tools]
 ttl = "24h"
 

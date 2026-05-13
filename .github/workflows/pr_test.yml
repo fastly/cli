@@ -16,6 +16,11 @@ permissions:
 concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
+env:
+  GO_VERSION: 1.25.x
+  GOLANGCI_LINT_VERSION: v2.4
+  WASI_SDK_VERSION: 25
+  WASI_SDK_FULL_VERSION: "25.0"
 jobs:
   changelog:
     if: github.actor != 'dependabot[bot]'
@@ -47,7 +52,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
       - name: "Install dependencies"
         run: make mod-download
         shell: bash
@@ -60,7 +65,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.4
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
           only-new-issues: true
   test:
     needs: [config]
@@ -94,6 +99,12 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+      - name: "Install WASI SDK"
+        run: |
+          wget -q https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${{ env.WASI_SDK_VERSION }}/wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-x86_64-linux.tar.gz
+          tar xzf wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-x86_64-linux.tar.gz
+          echo "$(pwd)/wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-x86_64-linux/bin" >> $GITHUB_PATH
+        shell: bash
       - name: "Config Artifact"
         uses: actions/download-artifact@v8
         with:
@@ -152,6 +163,27 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+      - name: "Install WASI SDK (Ubuntu)"
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          wget -q https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${{ env.WASI_SDK_VERSION }}/wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-x86_64-linux.tar.gz
+          tar xzf wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-x86_64-linux.tar.gz
+          echo "$(pwd)/wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-x86_64-linux/bin" >> $GITHUB_PATH
+        shell: bash
+      - name: "Install WASI SDK (macOS)"
+        if: matrix.platform == 'macos-latest'
+        run: |
+          wget -q https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${{ env.WASI_SDK_VERSION }}/wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-arm64-macos.tar.gz
+          tar xzf wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-arm64-macos.tar.gz
+          echo "$(pwd)/wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-arm64-macos/bin" >> $GITHUB_PATH
+        shell: bash
+      - name: "Install WASI SDK (Windows)"
+        if: matrix.platform == 'windows-latest'
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${{ env.WASI_SDK_VERSION }}/wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-x86_64-windows.tar.gz" -OutFile "wasi-sdk.tar.gz"
+          tar -xzf wasi-sdk.tar.gz
+          echo "$PWD/wasi-sdk-${{ env.WASI_SDK_FULL_VERSION }}-x86_64-windows/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
       - name: "Config Artifact"
         uses: actions/download-artifact@v8
         with:
@@ -226,7 +258,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
       - name: Run golangci-lint@latest
         id: lint
         uses: golangci/golangci-lint-action@v9
