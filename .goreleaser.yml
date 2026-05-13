@@ -111,7 +111,7 @@ aurs:
     git_ssh_command: 'ssh -i {{ .KeyPath }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -F /dev/null'
 
 # https://goreleaser.com/customization/homebrew/
-homebrew_casks:
+brews:
   - name: fastly
     ids: [nix]
     repository:
@@ -120,18 +120,18 @@ homebrew_casks:
     skip_upload: auto
     description: A CLI for interacting with the Fastly platform
     homepage: https://github.com/fastly/cli
-    directory: Casks
+    directory: Formula
     custom_block: |
       head do
         url "https://github.com/fastly/cli.git"
         depends_on "go"
       end
-    install: |
+    install: |-
       system "make" if build.head?
       bin.install "fastly"
       (bash_completion/"fastly.sh").write `#{bin}/fastly --completion-script-bash`
       (zsh_completion/"_fastly").write `#{bin}/fastly --completion-script-zsh`
-    test: |
+    test: |-
       help_text = shell_output("#{bin}/fastly --help")
       assert_includes help_text, "Usage:"
 
