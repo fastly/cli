@@ -6,7 +6,15 @@
 
 ### Bug Fixes:
 
-- fix(auth): honor deprecated `--profile`/`-o` when resolving the API token; an unknown profile name is now a hard error instead of a silent fallback to the default token
+### Enhancements:
+
+### Dependencies:
+
+## [v15.1.0](https://github.com/fastly/cli/releases/tag/v15.1.0) (2026-05-13)
+
+### Bug Fixes:
+
+- fix(auth): honor deprecated `--profile`/`-o` when resolving the API token; an unknown profile name is now a hard error instead of a silent fallback to the default token ([#1792](https://github.com/fastly/cli/pull/1792))
 - fix(text): send deprecation warnings to stderr instead of stdout ([#1782](https://github.com/fastly/cli/pull/1782))
 
 ### Enhancements:
