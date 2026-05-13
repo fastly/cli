@@ -57,7 +57,7 @@ type InitCommand struct {
 }
 
 // Languages is a list of supported language options.
-var Languages = []string{"rust", "javascript", "go", "other"}
+var Languages = []string{"rust", "javascript", "go", "cpp", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
 func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
