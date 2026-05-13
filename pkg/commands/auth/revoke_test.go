@@ -414,6 +414,52 @@ func TestAuthRevoke(t *testing.T) {
 			WantRemediation: "one token ID per line",
 		},
 
+		{
+			Name:            "revoke --current with unknown --profile rejected",
+			Args:            "revoke --current --profile bogus",
+			WantError:       `profile "bogus"`,
+			WantRemediation: "fastly auth",
+		},
+		{
+			Name:            "revoke --name with unknown --profile rejected",
+			Args:            "revoke --name secondary --profile bogus",
+			WantError:       `profile "bogus"`,
+			WantRemediation: "fastly auth",
+		},
+		{
+			Name:            "revoke --token-value with unknown --profile rejected",
+			Args:            "revoke --token-value tok-secondary --profile bogus",
+			WantError:       `profile "bogus"`,
+			WantRemediation: "fastly auth",
+		},
+		{
+			Name:            "revoke --id with unknown --profile rejected",
+			Args:            "revoke --id some-id --profile bogus",
+			WantError:       `profile "bogus"`,
+			WantRemediation: "fastly auth",
+		},
+		{
+			Name:            "revoke --file with unknown --profile rejected",
+			Args:            fmt.Sprintf("revoke --file %s --profile bogus", writeTokenIDFile(t, "id-1\n")),
+			WantError:       `profile "bogus"`,
+			WantRemediation: "fastly auth",
+		},
+		{
+			Name: "revoke --current with --token flag wins over unknown --profile",
+			Args: "revoke --current --token tok-stored --profile bogus",
+			API:  &mock.API{DeleteTokenSelfFn: deleteTokenSelfOK},
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "mytoken",
+					Tokens: config.AuthTokens{
+						"mytoken": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "tok-stored"},
+					},
+				},
+			},
+			Stdin:       []string{"y"},
+			WantOutputs: []string{"Revoked current token"},
+		},
+
 		// API client factory failure
 		{
 			Name: "API client factory failure on --name",

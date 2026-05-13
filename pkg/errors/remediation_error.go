@@ -184,6 +184,14 @@ var ComputeBuildRemediation = strings.Join([]string{
 	"See more at https://www.fastly.com/documentation/reference/compute/fastly-toml",
 }, " ")
 
+// ErrProfileFlagNotFound is returned when --profile names an unknown auth token.
+func ErrProfileFlagNotFound(name string) RemediationError {
+	return RemediationError{
+		Inner:       fmt.Errorf("profile %q (from --profile) not found in auth config", name),
+		Remediation: ProfileRemediation(),
+	}
+}
+
 // ProfileRemediation suggests running auth commands.
 func ProfileRemediation() string {
 	if env.AuthCommandDisabled() {

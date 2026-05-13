@@ -32,6 +32,10 @@ func NewShowCommand(parent argparser.Registerer, g *global.Data) *ShowCommand {
 }
 
 func (c *ShowCommand) Exec(_ io.Reader, out io.Writer) error {
+	if err := c.Globals.ValidateProfileFlag(); err != nil {
+		return err
+	}
+
 	if c.name == "" {
 		_, src := c.Globals.Token()
 		switch src {
