@@ -360,6 +360,26 @@
         "https://www.fastly.com/documentation/reference/api/services/package#put-package"
       ]
     },
+    "metadata": {
+      "examples": [
+        {
+          "cmd": "fastly compute metadata --enable",
+          "title": "Enable all metadata collection information"
+        },
+        {
+          "cmd": "fastly compute metadata --disable",
+          "title": "Disable all metadata collection information"
+        },
+        {
+          "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
+          "title": "Enable specific metadata collection information"
+        },
+        {
+          "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
+          "title": "Disable specific metadata collection information"
+        }
+      ]
+    },
     "validate": {
       "examples": [
         {
@@ -413,7 +433,7 @@
       ]
     }
   },
-  "dictionary-item": {
+  "dictionary-entry": {
     "create": {
       "apis": [
         "https://www.fastly.com/documentation/reference/api/dictionaries/dictionary-item#create-dictionary-item"
@@ -1274,26 +1294,6 @@
       }
     }
   },
-  "metadata": {
-    "examples": [
-      {
-        "cmd": "fastly compute metadata --enable",
-        "title": "Enable all metadata collection information"
-      },
-      {
-        "cmd": "fastly compute metadata --disable",
-        "title": "Disable all metadata collection information"
-      },
-      {
-        "cmd": "fastly compute metadata --enable-build --enable-machine --enable-package",
-        "title": "Enable specific metadata collection information"
-      },
-      {
-        "cmd": "fastly compute metadata --disable-build --disable-machine --disable-package",
-        "title": "Disable specific metadata collection information"
-      }
-    ]
-  },
   "pops": {
     "apis": [
       "https://www.fastly.com/documentation/reference/api/utils/pops#list-pops"
@@ -1313,7 +1313,7 @@
       "https://www.fastly.com/documentation/reference/api/purging#purge-single-url"
     ]
   },
-  "search": {
+  "service": {
     "create": {
       "apis": [
         "https://www.fastly.com/documentation/reference/api/services/service#create-service"
