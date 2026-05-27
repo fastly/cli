@@ -5,6 +5,7 @@
 ### Breaking:
 
 ### Bug Fixes:
+- fix(docs): corrected stale and missing API reference links in usage.json metadata([#1803](https://github.com/fastly/cli/pull/1803))
 
 ### Enhancements:
 
