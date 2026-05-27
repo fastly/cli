@@ -1697,6 +1697,712 @@
       ]
     }
   },
+  "ngwaf": {
+    "workspace": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/workspaces/#create-a-workspace"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/workspaces/#remove-a-workspace"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/workspaces/#get-a-workspace"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/workspaces/#list-workspaces"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/workspaces/#edit-a-workspace"
+        ]
+      },
+      "redaction": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/redactions/#create-redaction"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/redactions/#remove-redaction"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/redactions/#list-redactions"
+          ]
+        },
+        "retrieve": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/redactions/#retrieve-redaction"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/redactions/#edit-redaction"
+          ]
+        }
+      },
+      "country-list": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateWorkspaceList"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteWorkspaceList"
+          ]
+        },
+        "get": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetWorkspaceListByID"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListWorkspaceLists"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateWorkspaceList"
+          ]
+        }
+      },
+      "customsignal": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#create-a-workspace-custom-signal"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#remove-a-workspace-custom-signal"
+          ]
+        },
+        "get": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#get-a-workspace-custom-signal"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#list-workspace-custom-signals"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#edit-a-workspace-custom-signal"
+          ]
+        }
+      },
+      "ip-list": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateWorkspaceList"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteWorkspaceList"
+          ]
+        },
+        "get": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetWorkspaceListByID"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListWorkspaceLists"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateWorkspaceList"
+          ]
+        }
+      },
+      "rule": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#create-rule"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#remove-a-rule"
+          ]
+        },
+        "get": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#retrieve-rule"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#list-rules"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#edit-rule"
+          ]
+        }
+      },
+      "signal-list": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateWorkspaceList"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteWorkspaceList"
+          ]
+        },
+        "get": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetWorkspaceListByID"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListWorkspaceLists"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateWorkspaceList"
+          ]
+        }
+      },
+      "string-list": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateWorkspaceList"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteWorkspaceList"
+          ]
+        },
+        "get": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetWorkspaceListByID"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListWorkspaceLists"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateWorkspaceList"
+          ]
+        }
+      },
+      "threshold": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/thresholds/#create-a-new-workspace-threshold"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/thresholds/#remove-a-threshold"
+          ]
+        },
+        "get": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/thresholds/#retrieve-threshold"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/thresholds/#list-thresholds"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/thresholds/#edit-threshold"
+          ]
+        }
+      },
+      "wildcard-list": {
+        "create": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateWorkspaceList"
+          ]
+        },
+        "delete": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteWorkspaceList"
+          ]
+        },
+        "get": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetWorkspaceListByID"
+          ]
+        },
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListWorkspaceLists"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateWorkspaceList"
+          ]
+        }
+      },
+      "virtualpatch": {
+        "list": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/virtual-patches/#list-virtual-patches"
+          ]
+        },
+        "retrieve": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/virtual-patches/#retrieve-virtual-patch"
+          ]
+        },
+        "update": {
+          "apis": [
+            "https://www.fastly.com/documentation/reference/api/ngwaf/virtual-patches/#edit-virtual-patch"
+          ]
+        }
+      },
+      "alert": {
+        "datadog": {
+          "create": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafCreateWorkspaceAlert"
+            ]
+          },
+          "delete": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafDeleteWorkspaceAlert"
+            ]
+          },
+          "get": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafGetWorkspaceAlertByID"
+            ]
+          },
+          "list": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafListWorkspaceAlerts"
+            ]
+          },
+          "update": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafPatchWorkspaceAlert"
+            ]
+          }
+        },
+        "jira": {
+          "create": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafCreateWorkspaceAlert"
+            ]
+          },
+          "delete": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafDeleteWorkspaceAlert"
+            ]
+          },
+          "get": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafGetWorkspaceAlertByID"
+            ]
+          },
+          "list": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafListWorkspaceAlerts"
+            ]
+          },
+          "update": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafPatchWorkspaceAlert"
+            ]
+          }
+        },
+        "mailinglist": {
+          "create": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafCreateWorkspaceAlert"
+            ]
+          },
+          "delete": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafDeleteWorkspaceAlert"
+            ]
+          },
+          "get": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafGetWorkspaceAlertByID"
+            ]
+          },
+          "list": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafListWorkspaceAlerts"
+            ]
+          },
+          "update": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafPatchWorkspaceAlert"
+            ]
+          }
+        },
+        "microsoftteams": {
+          "create": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafCreateWorkspaceAlert"
+            ]
+          },
+          "delete": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafDeleteWorkspaceAlert"
+            ]
+          },
+          "get": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafGetWorkspaceAlertByID"
+            ]
+          },
+          "list": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafListWorkspaceAlerts"
+            ]
+          },
+          "update": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafPatchWorkspaceAlert"
+            ]
+          }
+        },
+        "opsgenie": {
+          "create": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafCreateWorkspaceAlert"
+            ]
+          },
+          "delete": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafDeleteWorkspaceAlert"
+            ]
+          },
+          "get": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafGetWorkspaceAlertByID"
+            ]
+          },
+          "list": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafListWorkspaceAlerts"
+            ]
+          },
+          "update": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafPatchWorkspaceAlert"
+            ]
+          }
+        },
+        "pagerduty": {
+          "create": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafCreateWorkspaceAlert"
+            ]
+          },
+          "delete": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafDeleteWorkspaceAlert"
+            ]
+          },
+          "get": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafGetWorkspaceAlertByID"
+            ]
+          },
+          "list": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafListWorkspaceAlerts"
+            ]
+          },
+          "update": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafPatchWorkspaceAlert"
+            ]
+          }
+        },
+        "slack": {
+          "create": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafCreateWorkspaceAlert"
+            ]
+          },
+          "delete": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafDeleteWorkspaceAlert"
+            ]
+          },
+          "get": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafGetWorkspaceAlertByID"
+            ]
+          },
+          "list": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafListWorkspaceAlerts"
+            ]
+          },
+          "update": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafPatchWorkspaceAlert"
+            ]
+          }
+        },
+        "webhook": {
+          "create": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafCreateWorkspaceAlert"
+            ]
+          },
+          "delete": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafDeleteWorkspaceAlert"
+            ]
+          },
+          "get": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafGetWorkspaceAlertByID"
+            ]
+          },
+          "get-signing-key": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#getWorkspaceAlertSigningKey"
+            ]
+          },
+          "list": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafListWorkspaceAlerts"
+            ]
+          },
+          "rotate-signing-key": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#postWorkspaceAlertSigningKey"
+            ]
+          },
+          "update": {
+            "apis": [
+              "https://www.fastly.com/documentation/reference/api/ngwaf/workspace-alerts/#ngwafPatchWorkspaceAlert"
+            ]
+          }
+        }
+      }
+    },
+    "country-list": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateList"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteList"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetListByID"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListLists"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateList"
+        ]
+      }
+    },
+    "customsignal": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#create-a-new-account-level-custom-signal"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#remove-an-account-level-custom-signal"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#get-an-account-level-custom-signal"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#get-account-level-custom-signals"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/signals/#edit-an-account-level-custom-signal"
+        ]
+      }
+    },
+    "ip-list": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateList"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteList"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetListByID"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListLists"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateList"
+        ]
+      }
+    },
+    "rule": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#create-account-rule"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#remove-an-account-rule"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#retrieve-account-rule"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#list-account-rules"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/rules/#edit-account-rule"
+        ]
+      }
+    },
+    "signal-list": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateList"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteList"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetListByID"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListLists"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateList"
+        ]
+      }
+    },
+    "string-list": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateList"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteList"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetListByID"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListLists"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateList"
+        ]
+      }
+    },
+    "wildcard-list": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafCreateList"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafDeleteList"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafGetListByID"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafListLists"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/ngwaf/lists/#ngwafUpdateList"
+        ]
+      }
+    }
+  },
   "object-storage": {
     "access-keys": {
       "create": {
