@@ -1547,5 +1547,383 @@
         ]
       }
     }
+  },
+  "apisecurity": {
+    "discovered-operations": {
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#list-discovered-operations"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#update-discovered-operations"
+        ]
+      }
+    },
+    "operations": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#create-operation"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#list-operations"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#retrieve-operation"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#update-operation"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#delete-operation"
+        ]
+      },
+      "add-tags": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#bulk-add-tags-to-operations"
+        ]
+      }
+    },
+    "tags": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#create-operation-tag"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#list-operation-tags"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#retrieve-operation-tag"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#update-operation-tag"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/api-security/operations/#delete-operation-tag"
+        ]
+      }
+    }
+  },
+  "config-store": {
+    "create": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/config-store/#create-a-config-store"
+      ]
+    },
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/config-store/#delete-a-config-store"
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/config-store/#describe-a-config-store"
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/config-store/#list-config-stores"
+      ]
+    },
+    "update": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/config-store/#update-a-config-store"
+      ]
+    }
+  },
+  "dashboard": {
+    "create": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/custom-dashboards/#create-a-new-dashboard"
+      ]
+    },
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/custom-dashboards/#delete-an-existing-dashboard"
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/custom-dashboards/#retrieve-a-dashboard-by-id"
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/custom-dashboards/#list-all-custom-dashboards"
+      ]
+    },
+    "update": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/custom-dashboards/#update-an-existing-dashboard"
+      ]
+    }
+  },
+  "kv-store": {
+    "create": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/kv-store/#create-a-kv-store"
+      ]
+    },
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/kv-store/#delete-a-kv-store"
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/kv-store/#describe-a-kv-store"
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/kv-store/#list-all-kv-stores"
+      ]
+    }
+  },
+  "object-storage": {
+    "access-keys": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/services/resources/object-storage-access-keys/#create-an-access-key"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/services/resources/object-storage-access-keys/#delete-an-access-key"
+        ]
+      },
+      "get": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/services/resources/object-storage-access-keys/#get-an-access-key"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/services/resources/object-storage-access-keys/#list-access-keys"
+        ]
+      }
+    }
+  },
+  "products": {
+    "apis": [
+      "https://www.fastly.com/documentation/reference/api/products/"
+    ]
+  },
+  "secret-store": {
+    "create": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/secret-store/#create-secret-store"
+      ]
+    },
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/secret-store/#delete-secret-store"
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/secret-store/#get-secret-store"
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/secret-store/#get-secret-stores"
+      ]
+    }
+  },
+  "secret-store-entry": {
+    "create": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/secret-store-secret/#create-secret"
+      ]
+    },
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/secret-store-secret/#delete-secret"
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/secret-store-secret/#get-secret"
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/services/resources/secret-store-secret/#get-secrets"
+      ]
+    }
+  },
+  "tls-config": {
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/configuration/#get-tls-config"
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/configuration/#list-tls-configs"
+      ]
+    },
+    "update": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/configuration/#update-tls-config"
+      ]
+    }
+  },
+  "tls-custom": {
+    "activation": {
+      "enable": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/activations/#enable-tls-for-a-domain-using-a-custom-certificate"
+        ]
+      },
+      "disable": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/activations/#disable-tls-on-a-domain"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/activations/#get-a-tls-activation"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/activations/#list-tls-activations"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/activations/#update-a-certificate"
+        ]
+      }
+    },
+    "certificate": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/certificates/#create-tls-cert"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/certificates/#delete-tls-cert"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/certificates/#get-tls-cert"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/certificates/#list-tls-certs"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/certificates/#update-tls-cert"
+        ]
+      }
+    },
+    "domain": {
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/domains/#list-tls-domains"
+        ]
+      }
+    },
+    "private-key": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/private-keys/#create-a-tls-private-key"
+        ]
+      },
+      "delete": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/private-keys/#delete-a-tls-private-key"
+        ]
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/private-keys/#get-a-tls-private-key"
+        ]
+      },
+      "list": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/tls/custom-certs/private-keys/#list-tls-private-keys"
+        ]
+      }
+    }
+  },
+  "tls-platform": {
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/platform/#delete-bulk-tls-cert"
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/platform/#get-tls-bulk-cert"
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/platform/#list-tls-bulk-certs"
+      ]
+    },
+    "update": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/platform/#update-bulk-tls-cert"
+      ]
+    },
+    "upload": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/platform/#upload-tls-bulk-cert"
+      ]
+    }
+  },
+  "tls-subscription": {
+    "create": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/subs/#create-tls-sub"
+      ]
+    },
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/subs/#delete-tls-sub"
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/subs/#get-tls-sub"
+      ]
+    },
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/subs/#list-tls-subs"
+      ]
+    },
+    "update": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/tls/subs/#patch-tls-sub"
+      ]
+    }
   }
 }
