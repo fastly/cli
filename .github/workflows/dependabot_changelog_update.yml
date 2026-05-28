@@ -8,15 +8,21 @@ on:
       - reopened
 permissions:
   contents: read
-  pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 jobs:
   dependabot-changelog-update:
-    if: github.actor == 'dependabot[bot]'
+    name: Append changelog entry
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # add the Skip-Changelog label when the PR doesn't need an entry
     steps:
       - name: Check labels
         id: check-labels
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const labels = context.payload.pull_request.labels.map(l => l.name);
@@ -34,28 +40,31 @@ jobs:
       - name: Generate a GitHub token
         if: steps.check-labels.outputs.result == 'true'
         id: github-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ vars.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: "cli"
+          permission-contents: write
+          permission-pull-requests: write
       - name: Checkout code
         if: steps.check-labels.outputs.result == 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           token: ${{ steps.github-token.outputs.token }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
       - name: Generate changelog entry
         if: steps.check-labels.outputs.result == 'true'
-        uses: dangoslen/dependabot-changelog-helper@v4
+        uses: dangoslen/dependabot-changelog-helper@291c8cb629d7cd7b57ea065782c435ec2bedb138 # v4.3.0
         with:
           activationLabels: dependencies
           changelogPath: './CHANGELOG.md'
           entryPrefix: 'build(deps): '
       - name: Commit changelog entry
         if: steps.check-labels.outputs.result == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
         with:
           commit_message: "docs(CHANGELOG.md): add dependency bump from dependabot"
