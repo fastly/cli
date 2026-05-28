@@ -15,6 +15,11 @@
 - build(deps): `github.com/nwaples/rardecode/v2` from 2.2.0 to 2.2.2 ([#1795](https://github.com/fastly/cli/pull/1795))
 - build(deps): `go4.org` from 0.0.0-20230225012048-214862532bf5 to 0.0.0-20260112195520-a5071408f32f ([#1795](https://github.com/fastly/cli/pull/1795))
 - build(deps): `golang.org/x/net` from 0.53.0 to 0.54.0 ([#1795](https://github.com/fastly/cli/pull/1795))
+- build(deps): `golang.org/x/sys` from 0.44.0 to 0.45.0 ([#1801](https://github.com/fastly/cli/pull/1801))
+- build(deps): `golang.org/x/crypto` from 0.51.0 to 0.52.0 ([#1801](https://github.com/fastly/cli/pull/1801))
+- build(deps): `github.com/bodgit/sevenzip` from 1.6.2 to 1.6.4 ([#1801](https://github.com/fastly/cli/pull/1801))
+- build(deps): `github.com/nwaples/rardecode/v2` from 2.2.2 to 2.2.3 ([#1801](https://github.com/fastly/cli/pull/1801))
+- build(deps): `golang.org/x/net` from 0.54.0 to 0.55.0 ([#1801](https://github.com/fastly/cli/pull/1801))
 
 ## [v15.1.0](https://github.com/fastly/cli/releases/tag/v15.1.0) (2026-05-13)
 
