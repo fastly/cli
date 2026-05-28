@@ -14,11 +14,16 @@ before:
   hooks:
     - go mod tidy
     - go mod download
+    # Stage the embedded Viceroy assets for every supported platform.
+    # The viceroy_embed build tag (set on each per-platform build below)
+    # pulls these in via //go:embed.
+    - ./scripts/fetch-viceroy.sh --all
 
 # https://goreleaser.com/customization/builds/
 builds:
   - <<: &build_defaults
       main: ./cmd/fastly
+      tags: [viceroy_embed]
       ldflags:
         - -s -w -X "github.com/fastly/cli/pkg/revision.AppVersion=v{{ .Version }}"
         - -X "github.com/fastly/cli/pkg/revision.GitCommit={{ .ShortCommit }}"

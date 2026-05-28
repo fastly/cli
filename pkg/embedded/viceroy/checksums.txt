@@ -1,0 +1,12 @@
+# SHA-256 checksums of the raw Viceroy executables, pre-compression.
+# Format matches `sha256sum`. Refresh via:
+#   scripts/fetch-viceroy.sh --all --refresh-checksums
+# Building with -tags viceroy_embed verifies the downloaded asset matches.
+#
+# Pinned Viceroy version: see VICEROY_VERSION.
+
+20c6790dacd5ca86d599a5c2f0ca2083dc609b8ad87708504482e3a31c02b087  viceroy_darwin_amd64
+8957c60ef2059688b58f7581ec55b1ed6c7128ed0aac25d0f81d64b52f62da02  viceroy_darwin_arm64
+e2173c8799f73850e657e3722ce5000d3338ccdf6246790688a6b8ae8e53b896  viceroy_linux_amd64
+ef4c8d71eaabd7729c4848b246f501fdf4d3f703c1f57f3e964d81e02d38bc7d  viceroy_linux_arm64
+1f98b49e3114865ed79538d3dd86e7bb2d2d08da8ad4658d4cb925166a211817  viceroy_windows_amd64

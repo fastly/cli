@@ -11,6 +11,20 @@ SHELL := /usr/bin/env bash -o pipefail ## Set the shell to use for finding Go fi
 build: config ## Compile program (CGO disabled)
 	CGO_ENABLED=0 $(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
+# Requires curl, tar, zstd, shasum on PATH.
+.PHONY: embed-viceroy
+embed-viceroy: ## Stage embedded Viceroy asset for the host platform
+	@./scripts/fetch-viceroy.sh --host
+
+.PHONY: embed-viceroy-all
+embed-viceroy-all: ## Stage embedded Viceroy assets for all supported platforms
+	@./scripts/fetch-viceroy.sh --all
+
+# Run `make embed-viceroy` first to stage the asset.
+.PHONY: build-embedded
+build-embedded: config ## Compile program with embedded Viceroy
+	CGO_ENABLED=0 $(GO_BIN) build -tags viceroy_embed $(GO_ARGS) ./cmd/fastly
+
 ## Allows overriding go executable.
 GO_BIN ?= go
 ## Enables support for tools such as https://github.com/rakyll/gotest

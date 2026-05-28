@@ -34,6 +34,7 @@ import (
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/check"
+	"github.com/fastly/cli/pkg/embedded/viceroy"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
 	"github.com/fastly/cli/pkg/filesystem"
@@ -375,6 +376,20 @@ func (c *ServeCommand) GetViceroy(spinner text.Spinner, out io.Writer, manifestP
 		return filepath.Abs(path)
 	}
 
+	// Prefer the embedded binary when its version satisfies the manifest
+	// pin and the user is not forcing a refresh; this short-circuits the
+	// exec(viceroy --version) probe and download flow below.
+	if viceroy.Supported() && !c.ForceCheckViceroyLatest && embeddedVersionMatches(c.ViceroyVersioner.RequestedVersion(), viceroy.Version()) {
+		extracted, extractErr := viceroy.Extract(github.InstallDir)
+		if extractErr == nil {
+			if c.Globals.Verbose() {
+				text.Info(out, "Using embedded Viceroy v%s: %s\n\n", viceroy.Version(), extracted)
+			}
+			return extracted, nil
+		}
+		c.Globals.ErrLog.Add(extractErr)
+	}
+
 	bin = filepath.Join(github.InstallDir, c.ViceroyVersioner.BinaryName())
 
 	// NOTE: When checking if Viceroy is installed we don't use
@@ -432,6 +447,25 @@ func (c *ServeCommand) GetViceroy(spinner text.Spinner, out io.Writer, manifestP
 		return bin, err
 	}
 	return bin, nil
+}
+
+// embeddedVersionMatches reports whether a fastly.toml `viceroy_version`
+// pin is satisfied by the embedded Viceroy. An empty pin matches; a pin
+// that fails to parse does not, so the regular download path surfaces
+// the parse error to the user.
+func embeddedVersionMatches(pinned, embedded string) bool {
+	if pinned == "" {
+		return true
+	}
+	p, err := semver.Parse(strings.TrimPrefix(pinned, "v"))
+	if err != nil {
+		return false
+	}
+	e, err := semver.Parse(strings.TrimPrefix(embedded, "v"))
+	if err != nil {
+		return false
+	}
+	return p.Equals(e)
 }
 
 // checkViceroyEnvVar indicates if the CLI should use a Viceroy binary exposed

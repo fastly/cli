@@ -1,3 +1,5 @@
+//go:build !viceroy_embed
+
 package version_test
 
 import (
