@@ -26,7 +26,11 @@ jobs:
           go-version: '1.26.x'
           cache: false
       - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: stable
+          cache: false
+          rustflags: ""
       - name: "Generate static app config"
         run: make config
       # Passing the raw SSH private key causes an error:

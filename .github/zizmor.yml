@@ -5,10 +5,6 @@ rules:
   unpinned-uses:
     config:
       policies:
-        # dtolnay/rust-toolchain is designed to be referenced by toolchain
-        # channel (e.g. `@stable`, `@nightly`); pinning to a commit defeats
-        # the action's purpose of installing the current Rust release.
-        dtolnay/rust-toolchain: ref-pin
         "*": hash-pin
   cache-poisoning:
     ignore:
@@ -17,12 +13,6 @@ rules:
       - publish_release.yml
   superfluous-actions:
     ignore:
-      # dtolnay/rust-toolchain installs the requested channel (`stable`,
-      # `nightly`, ...) and writes a rust-toolchain.toml override; replacing
-      # it with a raw `rustup` invocation would lose that behaviour.
-      - merge_to_main.yml
-      - pr_test.yml
-      - tag_to_draft_release.yml
       # stefanzweifel/git-auto-commit-action signs commits, sets the
       # author/committer to github-actions, and pushes only when the tree
       # actually changed. Inlining `git add && git commit && git push` would
