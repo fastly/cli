@@ -1295,6 +1295,10 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 				if !ok {
 					return
 				}
+				// Ignore attribute-only (Chmod) events; on macOS an atime bump alone would loop.
+				if !isContentChange(event.Op) {
+					continue
+				}
 				debounced(func() {
 					eventHandler(event.Name, event.Op)
 				})
@@ -1391,6 +1395,15 @@ func readIgnoreFile(path string) (lines []string) {
 		return lines
 	}
 	return strings.Split(string(bs), "\n")
+}
+
+// isContentChange reports whether op is a content or existence change
+// (Create/Write/Remove/Rename) and not an attribute-only Chmod. fsnotify
+// recommends ignoring Chmod; see its "Why do I get many Chmod events?" FAQ:
+// https://github.com/fsnotify/fsnotify#why-do-i-get-many-chmod-events
+func isContentChange(op fsnotify.Op) bool {
+	return op.Has(fsnotify.Create) || op.Has(fsnotify.Write) ||
+		op.Has(fsnotify.Remove) || op.Has(fsnotify.Rename)
 }
 
 func watchFile(path string, watcher *fsnotify.Watcher, verbose bool, out io.Writer) {
