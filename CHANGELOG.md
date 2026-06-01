@@ -6,6 +6,7 @@
 
 ### Bug Fixes:
 - fix(docs): corrected stale and missing API reference links in usage.json metadata([#1803](https://github.com/fastly/cli/pull/1803))
+- fix(compute): `serve --watch` no longer rebuilds on attribute-only (Chmod) filesystem events, preventing an endless rebuild loop when another process changes a watched file's metadata such as its access time ([#1808](https://github.com/fastly/cli/pull/1808))
 
 ### Enhancements:
 
