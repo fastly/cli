@@ -25,9 +25,9 @@ type CreateCommand struct {
 	name string
 
 	// Optional.
-	description       argparser.OptionalString
-	xfrTSIGKeyID      argparser.OptionalString
-	xfrPrimAddress    argparser.OptionalStringSlice
+	description        argparser.OptionalString
+	xfrTSIGKeyID       argparser.OptionalString
+	xfrPrimAddress     argparser.OptionalStringSlice
 	xfrPrimDescription argparser.OptionalStringSlice
 }
 

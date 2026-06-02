@@ -18,10 +18,10 @@ import (
 )
 
 const (
-	tsigKeyID    = "tsig-key-id-123"
-	tsigKeyName  = "my-tsig-key"
-	tsigAlgo     = "hmac-sha256"
-	tsigSecret   = "dGVzdHNlY3JldA=="
+	tsigKeyID   = "tsig-key-id-123"
+	tsigKeyName = "my-tsig-key"
+	tsigAlgo    = "hmac-sha256"
+	tsigSecret  = "dGVzdHNlY3JldA==" // #nosec G101 (CWE-798)
 )
 
 var testKey = tsigkeys.TSIGKey{
@@ -58,7 +58,7 @@ func TestTSIGKeyCreate(t *testing.T) {
 			WantError: "TSIG key names cannot exceed 255 characters",
 		},
 		{
-			Args: fmt.Sprintf("--verbose --json --name %s --algorithm %s --secret %s", tsigKeyName, tsigAlgo, tsigSecret),
+			Args:      fmt.Sprintf("--verbose --json --name %s --algorithm %s --secret %s", tsigKeyName, tsigAlgo, tsigSecret),
 			WantError: "invalid flag combination, --verbose and --json",
 		},
 		{
