@@ -8,6 +8,7 @@
 - fix(docs): corrected stale and missing API reference links in usage.json metadata([#1803](https://github.com/fastly/cli/pull/1803))
 
 ### Enhancements:
+- fix(compute/init): Add starter kits for C++ language [#1807](https://github.com/fastly/cli/pull/1807)
 
 ### Dependencies:
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.1 to 1.6.2 ([#1795](https://github.com/fastly/cli/pull/1795))
