@@ -7,6 +7,7 @@
 ### Bug Fixes:
 
 ### Enhancements:
+- feat(dns): add support for DNS Zones and TSIG Keys ([#1809](https://github.com/fastly/cli/pull/1809))
 
 ### Dependencies:
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.1 to 1.6.2 ([#1795](https://github.com/fastly/cli/pull/1795))
