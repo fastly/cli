@@ -8,6 +8,7 @@
 - fix(docs): corrected stale and missing API reference links in usage.json metadata([#1803](https://github.com/fastly/cli/pull/1803))
 
 ### Enhancements:
+- feat(dns): add support for DNS Zones and TSIG Keys ([#1809](https://github.com/fastly/cli/pull/1809))
 - fix(compute/init): Add starter kits for C++ language [#1807](https://github.com/fastly/cli/pull/1807)
 
 ### Dependencies:

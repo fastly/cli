@@ -64,6 +64,9 @@ import (
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	"github.com/fastly/cli/pkg/commands/dashboard"
 	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
+	"github.com/fastly/cli/pkg/commands/dns"
+	dnstsigkey "github.com/fastly/cli/pkg/commands/dns/tsigkey"
+	dnszone "github.com/fastly/cli/pkg/commands/dns/zone"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
@@ -282,6 +285,19 @@ func Define( // nolint:revive // function-length
 	dashboardItemDescribe := dashboardItem.NewDescribeCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemUpdate := dashboardItem.NewUpdateCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemDelete := dashboardItem.NewDeleteCommand(dashboardItemCmdRoot.CmdClause, data)
+	dnsCmdRoot := dns.NewRootCommand(app, data)
+	dnsTSIGKeyCmdRoot := dnstsigkey.NewRootCommand(dnsCmdRoot.CmdClause, data)
+	dnsTSIGKeyCreate := dnstsigkey.NewCreateCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsTSIGKeyDelete := dnstsigkey.NewDeleteCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsTSIGKeyDescribe := dnstsigkey.NewDescribeCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsTSIGKeyList := dnstsigkey.NewListCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsTSIGKeyUpdate := dnstsigkey.NewUpdateCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsZoneCmdRoot := dnszone.NewRootCommand(dnsCmdRoot.CmdClause, data)
+	dnsZoneCreate := dnszone.NewCreateCommand(dnsZoneCmdRoot.CmdClause, data)
+	dnsZoneDelete := dnszone.NewDeleteCommand(dnsZoneCmdRoot.CmdClause, data)
+	dnsZoneDescribe := dnszone.NewDescribeCommand(dnsZoneCmdRoot.CmdClause, data)
+	dnsZoneList := dnszone.NewListCommand(dnsZoneCmdRoot.CmdClause, data)
+	dnsZoneUpdate := dnszone.NewUpdateCommand(dnsZoneCmdRoot.CmdClause, data)
 	domainCmdRoot := domain.NewRootCommand(app, data)
 	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, data)
 	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, data)
@@ -1156,6 +1172,19 @@ func Define( // nolint:revive // function-length
 		dashboardItemDescribe,
 		dashboardItemUpdate,
 		dashboardItemDelete,
+		dnsCmdRoot,
+		dnsTSIGKeyCmdRoot,
+		dnsTSIGKeyCreate,
+		dnsTSIGKeyDelete,
+		dnsTSIGKeyDescribe,
+		dnsTSIGKeyList,
+		dnsTSIGKeyUpdate,
+		dnsZoneCmdRoot,
+		dnsZoneCreate,
+		dnsZoneDelete,
+		dnsZoneDescribe,
+		dnsZoneList,
+		dnsZoneUpdate,
 		domainCmdRoot,
 		domainCreate,
 		domainDelete,
