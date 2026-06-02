@@ -3,6 +3,7 @@ package zone
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 
@@ -56,6 +57,13 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
+	}
+
+	if c.xfrPrimDescription.WasSet && !c.xfrPrimAddress.WasSet {
+		return fmt.Errorf("--primary-description requires --primary-address")
+	}
+	if len(c.xfrPrimDescription.Value) > len(c.xfrPrimAddress.Value) {
+		return fmt.Errorf("--primary-description cannot be provided more times than --primary-address")
 	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)

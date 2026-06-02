@@ -66,6 +66,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("invalid --name value %q: zone names cannot exceed 255 characters", c.name)
 	}
 
+	if c.xfrPrimDescription.WasSet && !c.xfrPrimAddress.WasSet {
+		return fmt.Errorf("--primary-description requires --primary-address")
+	}
+	if len(c.xfrPrimDescription.Value) > len(c.xfrPrimAddress.Value) {
+		return fmt.Errorf("--primary-description cannot be provided more times than --primary-address")
+	}
+
 	// zoneType must be explicitly set to 'secondary' as it's the only possible API value.
 	zoneType := "secondary"
 	input := &dnszones.CreateInput{

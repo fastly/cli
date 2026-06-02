@@ -61,6 +61,14 @@ func TestZoneCreate(t *testing.T) {
 			WantError: "invalid flag combination, --verbose and --json",
 		},
 		{
+			Args:      "--name example.com --primary-description foo",
+			WantError: "--primary-description requires --primary-address",
+		},
+		{
+			Args:      "--name example.com --primary-address 1.2.3.4 --primary-description foo --primary-description bar",
+			WantError: "--primary-description cannot be provided more times than --primary-address",
+		},
+		{
 			Args: "--name example.com --json",
 			Client: &http.Client{
 				Transport: &testutil.MockRoundTripper{
@@ -265,6 +273,14 @@ func TestZoneUpdate(t *testing.T) {
 		{
 			Args:      "--verbose --json --zone-id " + zoneID,
 			WantError: "invalid flag combination, --verbose and --json",
+		},
+		{
+			Args:      "--zone-id " + zoneID + " --primary-description foo",
+			WantError: "--primary-description requires --primary-address",
+		},
+		{
+			Args:      "--zone-id " + zoneID + " --primary-address 1.2.3.4 --primary-description foo --primary-description bar",
+			WantError: "--primary-description cannot be provided more times than --primary-address",
 		},
 		{
 			Args: "--zone-id " + zoneID + " --description updated-description",
