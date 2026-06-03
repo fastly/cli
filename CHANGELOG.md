@@ -6,6 +6,7 @@
 
 ### Bug Fixes:
 - fix(docs): corrected stale and missing API reference links in usage.json metadata([#1803](https://github.com/fastly/cli/pull/1803))
+- fix(docs): expand and correct API reference links for `fastly service` subcommands in usage.json metadata ([#1810](https://github.com/fastly/cli/pull/1810))
 
 ### Enhancements:
 - feat(dns): add support for DNS Zones and TSIG Keys ([#1809](https://github.com/fastly/cli/pull/1809))
