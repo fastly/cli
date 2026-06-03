@@ -11,6 +11,7 @@
 ### Enhancements:
 - feat(dns): add support for DNS Zones and TSIG Keys ([#1809](https://github.com/fastly/cli/pull/1809))
 - fix(compute/init): Add starter kits for C++ language [#1807](https://github.com/fastly/cli/pull/1807)
+- feat(compute/init): add support for Python language
 
 ### Dependencies:
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.1 to 1.6.2 ([#1795](https://github.com/fastly/cli/pull/1795))
