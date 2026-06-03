@@ -72,6 +72,7 @@ config
 config-store
 config-store-entry
 dashboard
+dns
 domain
 install
 ip-list
