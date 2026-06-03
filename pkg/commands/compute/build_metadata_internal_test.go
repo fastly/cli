@@ -11,7 +11,7 @@ import (
 //
 // Because the production code runs exec.Command under the hood, we mock it by writing
 // a temporary executable bash script to disk that outputs the mock JSON we expect.
-// We use a bash heredoc (cat << 'EOF') so that the JSON structure and inner quotes 
+// We use a bash heredoc (cat << 'EOF') so that the JSON structure and inner quotes
 // are written exactly as-is, avoiding platform-specific shell escape/echo issues.
 func mockWasmToolsScript(staticOutput string) string {
 	return "#!/usr/bin/env bash\ncat << 'EOF'\n" + staticOutput + "\nEOF"
@@ -42,7 +42,7 @@ func TestReadExistingFastlyData(t *testing.T) {
 	if err := os.MkdirAll("bin", 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(binWasmPath, []byte("mock-wasm-binary"), 0o644); err != nil {
+	if err := os.WriteFile(binWasmPath, []byte("mock-wasm-binary"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -91,7 +91,8 @@ func TestReadExistingFastlyData(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			wasmtoolsBin := filepath.Join(rootdir, "mock-wasm-tools")
 			scriptContent := mockWasmToolsScript(tc.jsonOutput)
-			if err := os.WriteFile(wasmtoolsBin, []byte(scriptContent), 0o755); err != nil {
+			// #nosec G306 -- mock binary must be executable
+			if err := os.WriteFile(wasmtoolsBin, []byte(scriptContent), 0o700); err != nil {
 				t.Fatal(err)
 			}
 
