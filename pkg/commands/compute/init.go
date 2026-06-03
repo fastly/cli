@@ -782,6 +782,18 @@ func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader
 	var option string
 	flags := c.Globals.Flags
 
+	if len(kits) == 0 {
+		if flags.AcceptDefaults || flags.NonInteractive {
+			return "", "", "", errors.New("no default starter kits configured for this language; please specify a template using the --from flag")
+		}
+		text.Info(out, "\nNo default starter kits are currently configured for this language.")
+		option, err = text.Input(out, "Please paste a template git URL: ", in, nil)
+		if err != nil {
+			return "", "", "", fmt.Errorf("error reading input: %w", err)
+		}
+		return option, "", "", nil
+	}
+
 	if !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Output(out, "\n%s", text.Bold("Starter kit:"))
 		for i, kit := range kits {
