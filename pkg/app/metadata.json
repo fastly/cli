@@ -1061,7 +1061,7 @@
     "openstack": {
       "create": {
         "apis": [
-          "https://www.fastly.com/documentation/reference/api/logging/openstack#get-log-openstack"
+          "https://www.fastly.com/documentation/reference/api/logging/openstack#create-log-openstack"
         ]
       },
       "delete": {
@@ -1233,7 +1233,7 @@
       },
       "describe": {
         "apis": [
-          "https://www.fastly.com/documentation/reference/api/logging/sumologic#list-log-sumologic"
+          "https://www.fastly.com/documentation/reference/api/logging/sumologic#get-log-sumologic"
         ]
       },
       "list": {
@@ -2288,7 +2288,7 @@
         },
         "describe": {
           "apis": [
-            "https://www.fastly.com/documentation/reference/api/logging/sumologic#list-log-sumologic"
+            "https://www.fastly.com/documentation/reference/api/logging/sumologic#get-log-sumologic"
           ]
         },
         "list": {
@@ -2475,6 +2475,11 @@
             "https://www.fastly.com/documentation/reference/api/vcl-services/snippet#update-snippet"
           ]
         }
+      },
+      "describe": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/vcl-services/vcl#get-custom-vcl-generated"
+        ]
       }
     },
     "version": {
