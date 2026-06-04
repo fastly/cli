@@ -23,6 +23,12 @@
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.2 to 1.6.4 ([#1801](https://github.com/fastly/cli/pull/1801))
 - build(deps): `github.com/nwaples/rardecode/v2` from 2.2.2 to 2.2.3 ([#1801](https://github.com/fastly/cli/pull/1801))
 - build(deps): `golang.org/x/net` from 0.54.0 to 0.55.0 ([#1801](https://github.com/fastly/cli/pull/1801))
+- build(deps): `github.com/rogpeppe/go-internal` from 1.14.1 to 1.15.0 ([#1813](https://github.com/fastly/cli/pull/1813))
+- build(deps): `github.com/stangelandcl/ppmd` from 0.1.0 to 0.1.1 ([#1813](https://github.com/fastly/cli/pull/1813))
+- build(deps): `github.com/mattn/go-colorable` from 0.1.14 to 0.1.15 ([#1813](https://github.com/fastly/cli/pull/1813))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.23 to 0.0.24 ([#1813](https://github.com/fastly/cli/pull/1813))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.26 to 4.1.27 ([#1813](https://github.com/fastly/cli/pull/1813))
+- build(deps): `github.com/fastly/go-fastly/v15` from 15.0.1 to 15.0.2 ([#1813](https://github.com/fastly/cli/pull/1813))
 
 ## [v15.1.0](https://github.com/fastly/cli/releases/tag/v15.1.0) (2026-05-13)
 
