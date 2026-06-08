@@ -184,9 +184,13 @@ var ComputeBuildRemediation = strings.Join([]string{
 	"See more at https://www.fastly.com/documentation/reference/compute/fastly-toml",
 }, " ")
 
-// ComputeTrialRemediation suggests contacting customer manager to enable the
-// free trial feature flag.
-var ComputeTrialRemediation = "For more help with this error see fastly.help/cli/ecp-feature"
+// ErrProfileFlagNotFound is returned when --profile names an unknown auth token.
+func ErrProfileFlagNotFound(name string) RemediationError {
+	return RemediationError{
+		Inner:       fmt.Errorf("profile %q (from --profile) not found in auth config", name),
+		Remediation: ProfileRemediation(),
+	}
+}
 
 // ProfileRemediation suggests running auth commands.
 func ProfileRemediation() string {

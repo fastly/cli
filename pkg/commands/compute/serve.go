@@ -928,7 +928,7 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 	//   - path to the routes file to use
 	// - A routes file that sets up the routes. In our case, we:
 	//   - wires up a backend name (id) to the server host
-	//   - if the backend sets an override host, then we set thatt
+	//   - if the backend sets an override host, then we set that
 	//   - if the backend enables HTTPS, then we enable that
 	//   - if the backend has a path prefix, then we set that up
 	//   - enables WebSocket-over-HTTP
@@ -1253,7 +1253,7 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 		// We do this because if we didn't, then we'd get an error after one
 		// restart of the viceroy executable: "os: process already finished".
 		//
-		// This error happens happens because the compute.watchFiles() function is
+		// This error happens because the compute.watchFiles() function is
 		// run in a goroutine and so it will keep running with a copy of the
 		// fstexec.Streaming command instance that wraps a process which has
 		// already been terminated.
@@ -1294,6 +1294,10 @@ func watchFiles(root string, gi *ignore.GitIgnore, verbose bool, s *fstexec.Stre
 			case event, ok := <-watcher.Events:
 				if !ok {
 					return
+				}
+				// Ignore attribute-only (Chmod) events; on macOS an atime bump alone would loop.
+				if !isContentChange(event.Op) {
+					continue
 				}
 				debounced(func() {
 					eventHandler(event.Name, event.Op)
@@ -1391,6 +1395,15 @@ func readIgnoreFile(path string) (lines []string) {
 		return lines
 	}
 	return strings.Split(string(bs), "\n")
+}
+
+// isContentChange reports whether op is a content or existence change
+// (Create/Write/Remove/Rename) and not an attribute-only Chmod. fsnotify
+// recommends ignoring Chmod; see its "Why do I get many Chmod events?" FAQ:
+// https://github.com/fsnotify/fsnotify#why-do-i-get-many-chmod-events
+func isContentChange(op fsnotify.Op) bool {
+	return op.Has(fsnotify.Create) || op.Has(fsnotify.Write) ||
+		op.Has(fsnotify.Remove) || op.Has(fsnotify.Rename)
 }
 
 func watchFile(path string, watcher *fsnotify.Watcher, verbose bool, out io.Writer) {

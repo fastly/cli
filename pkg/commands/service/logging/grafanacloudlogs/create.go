@@ -12,7 +12,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 )
 
 // CreateCommand calls the Fastly API to create a GrafanaCloudLogs logging endpoint.
@@ -166,7 +166,8 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out,
+	text.Success(
+		out,
 		"Created Grafana Cloud Logs logging endpoint %s (service %s version %d)",
 		fastly.ToValue(d.Name),
 		fastly.ToValue(d.ServiceID),

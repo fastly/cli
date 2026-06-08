@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -21,7 +21,7 @@ func TestBigQueryCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --autoclone",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
 				CreateBigQueryFn: createBigQueryOK,
 			},
@@ -30,7 +30,7 @@ func TestBigQueryCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --project-id project123 --dataset logs --table logs --user user@domain.com --secret-key `\"-----BEGIN RSA PRIVATE KEY-----MIIEogIBAAKCA\"` --autoclone",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
 				CreateBigQueryFn: createBigQueryError,
 			},
@@ -45,7 +45,7 @@ func TestBigQueryList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListBigQueriesFn: listBigQueriesOK,
 			},
 			WantOutput: listBigQueriesShortOutput,
@@ -53,7 +53,7 @@ func TestBigQueryList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListBigQueriesFn: listBigQueriesOK,
 			},
 			WantOutput: listBigQueriesVerboseOutput,
@@ -61,7 +61,7 @@ func TestBigQueryList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListBigQueriesFn: listBigQueriesOK,
 			},
 			WantOutput: listBigQueriesVerboseOutput,
@@ -69,7 +69,7 @@ func TestBigQueryList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListBigQueriesFn: listBigQueriesError,
 			},
 			WantError: errTest.Error(),
@@ -87,16 +87,16 @@ func TestBigQueryDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetBigQueryFn:  getBigQueryError,
+				GetVersionFn:  testutil.GetVersion,
+				GetBigQueryFn: getBigQueryError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetBigQueryFn:  getBigQueryOK,
+				GetVersionFn:  testutil.GetVersion,
+				GetBigQueryFn: getBigQueryOK,
 			},
 			WantOutput: describeBigQueryOutput,
 		},
@@ -113,7 +113,7 @@ func TestBigQueryUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
 				UpdateBigQueryFn: updateBigQueryError,
 			},
@@ -122,7 +122,7 @@ func TestBigQueryUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
 				UpdateBigQueryFn: updateBigQueryOK,
 			},
@@ -141,7 +141,7 @@ func TestBigQueryDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
 				DeleteBigQueryFn: deleteBigQueryError,
 			},
@@ -150,7 +150,7 @@ func TestBigQueryDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				CloneVersionFn:   testutil.CloneVersionResult(4),
 				DeleteBigQueryFn: deleteBigQueryOK,
 			},

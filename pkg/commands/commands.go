@@ -64,6 +64,9 @@ import (
 	"github.com/fastly/cli/pkg/commands/configstoreentry"
 	"github.com/fastly/cli/pkg/commands/dashboard"
 	dashboardItem "github.com/fastly/cli/pkg/commands/dashboard/item"
+	"github.com/fastly/cli/pkg/commands/dns"
+	dnstsigkey "github.com/fastly/cli/pkg/commands/dns/tsigkey"
+	dnszone "github.com/fastly/cli/pkg/commands/dns/zone"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
@@ -121,6 +124,7 @@ import (
 	serviceloggingbigquery "github.com/fastly/cli/pkg/commands/service/logging/bigquery"
 	serviceloggingcloudfiles "github.com/fastly/cli/pkg/commands/service/logging/cloudfiles"
 	serviceloggingdatadog "github.com/fastly/cli/pkg/commands/service/logging/datadog"
+	serviceloggingdebug "github.com/fastly/cli/pkg/commands/service/logging/debug"
 	serviceloggingdigitalocean "github.com/fastly/cli/pkg/commands/service/logging/digitalocean"
 	serviceloggingelasticsearch "github.com/fastly/cli/pkg/commands/service/logging/elasticsearch"
 	serviceloggingftp "github.com/fastly/cli/pkg/commands/service/logging/ftp"
@@ -201,9 +205,11 @@ func Define( // nolint:revive // function-length
 		authList := authcmd.NewListCommand(authCmdRoot.CmdClause, data)
 		authShow := authcmd.NewShowCommand(authCmdRoot.CmdClause, data)
 		authUse := authcmd.NewUseCommand(authCmdRoot.CmdClause, data)
+		authRevoke := authcmd.NewRevokeCommand(authCmdRoot.CmdClause, data)
+		authToken := authcmd.NewTokenCommand(authCmdRoot.CmdClause, data)
 		authCommands = []argparser.Command{
 			authCmdRoot, authLogin, authAdd, authDelete,
-			authList, authShow, authUse,
+			authList, authShow, authUse, authRevoke, authToken,
 		}
 
 		authtokenCmdRoot := authtoken.NewRootCommand(app, data)
@@ -279,6 +285,19 @@ func Define( // nolint:revive // function-length
 	dashboardItemDescribe := dashboardItem.NewDescribeCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemUpdate := dashboardItem.NewUpdateCommand(dashboardItemCmdRoot.CmdClause, data)
 	dashboardItemDelete := dashboardItem.NewDeleteCommand(dashboardItemCmdRoot.CmdClause, data)
+	dnsCmdRoot := dns.NewRootCommand(app, data)
+	dnsTSIGKeyCmdRoot := dnstsigkey.NewRootCommand(dnsCmdRoot.CmdClause, data)
+	dnsTSIGKeyCreate := dnstsigkey.NewCreateCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsTSIGKeyDelete := dnstsigkey.NewDeleteCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsTSIGKeyDescribe := dnstsigkey.NewDescribeCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsTSIGKeyList := dnstsigkey.NewListCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsTSIGKeyUpdate := dnstsigkey.NewUpdateCommand(dnsTSIGKeyCmdRoot.CmdClause, data)
+	dnsZoneCmdRoot := dnszone.NewRootCommand(dnsCmdRoot.CmdClause, data)
+	dnsZoneCreate := dnszone.NewCreateCommand(dnsZoneCmdRoot.CmdClause, data)
+	dnsZoneDelete := dnszone.NewDeleteCommand(dnsZoneCmdRoot.CmdClause, data)
+	dnsZoneDescribe := dnszone.NewDescribeCommand(dnsZoneCmdRoot.CmdClause, data)
+	dnsZoneList := dnszone.NewListCommand(dnsZoneCmdRoot.CmdClause, data)
+	dnsZoneUpdate := dnszone.NewUpdateCommand(dnsZoneCmdRoot.CmdClause, data)
 	domainCmdRoot := domain.NewRootCommand(app, data)
 	domainCreate := domain.NewCreateCommand(domainCmdRoot.CmdClause, data)
 	domainDelete := domain.NewDeleteCommand(domainCmdRoot.CmdClause, data)
@@ -548,6 +567,7 @@ func Define( // nolint:revive // function-length
 	servicevclSnippetList := servicevclsnippet.NewListCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	serviceloggingCmdRoot := servicelogging.NewRootCommand(serviceCmdRoot.CmdClause, data)
+	serviceloggingDebugCmd := serviceloggingdebug.NewDebugCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingAzureblobCmdRoot := serviceloggingazureblob.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingAzureblobCreate := serviceloggingazureblob.NewCreateCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
 	serviceloggingAzureblobDelete := serviceloggingazureblob.NewDeleteCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
@@ -1152,6 +1172,19 @@ func Define( // nolint:revive // function-length
 		dashboardItemDescribe,
 		dashboardItemUpdate,
 		dashboardItemDelete,
+		dnsCmdRoot,
+		dnsTSIGKeyCmdRoot,
+		dnsTSIGKeyCreate,
+		dnsTSIGKeyDelete,
+		dnsTSIGKeyDescribe,
+		dnsTSIGKeyList,
+		dnsTSIGKeyUpdate,
+		dnsZoneCmdRoot,
+		dnsZoneCreate,
+		dnsZoneDelete,
+		dnsZoneDescribe,
+		dnsZoneList,
+		dnsZoneUpdate,
 		domainCmdRoot,
 		domainCreate,
 		domainDelete,
@@ -1170,6 +1203,7 @@ func Define( // nolint:revive // function-length
 		kvstoreentryDescribe,
 		kvstoreentryList,
 		logtailCmdRoot,
+		serviceloggingDebugCmd,
 		serviceloggingAzureblobCmdRoot,
 		serviceloggingAzureblobCreate,
 		serviceloggingAzureblobDelete,

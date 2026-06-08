@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/vcl"
@@ -21,12 +21,13 @@ func TestVCLDescribe(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 3",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate DescribeVCL API error",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
 				GetGeneratedVCLFn: func(_ context.Context, _ *fastly.GetGeneratedVCLInput) (*fastly.VCL, error) {
 					return nil, testutil.Err
 				},
@@ -37,7 +38,7 @@ func TestVCLDescribe(t *testing.T) {
 		{
 			Name: "validate DescribeVCL API success",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				GetGeneratedVCLFn: getVCL,
 			},
 			Args:       "--service-id 123 --version 3",
@@ -46,7 +47,7 @@ func TestVCLDescribe(t *testing.T) {
 		{
 			Name: "validate missing --verbose flag",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				GetGeneratedVCLFn: getVCL,
 			},
 			Args:       "--service-id 123 --verbose --version 1",

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	purge "github.com/fastly/cli/pkg/commands/service/purge"
@@ -23,6 +23,7 @@ func TestPurgeAll(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--all",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -33,6 +34,7 @@ func TestPurgeAll(t *testing.T) {
 		{
 			Name: "validate PurgeAll API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeAllFn: func(_ context.Context, _ *fastly.PurgeAllInput) (*fastly.Purge, error) {
 					return nil, testutil.Err
 				},
@@ -43,6 +45,7 @@ func TestPurgeAll(t *testing.T) {
 		{
 			Name: "validate PurgeAll API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeAllFn: func(_ context.Context, _ *fastly.PurgeAllInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
 						Status: fastly.ToPointer(testStatus),
@@ -73,11 +76,13 @@ func TestPurgeKeys(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--file ./testdata/keys",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate PurgeKeys API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeKeysFn: func(_ context.Context, _ *fastly.PurgeKeysInput) (map[string]string, error) {
 					return nil, testutil.Err
 				},
@@ -88,6 +93,7 @@ func TestPurgeKeys(t *testing.T) {
 		{
 			Name: "validate PurgeKeys API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeKeysFn: func(_ context.Context, i *fastly.PurgeKeysInput) (map[string]string, error) {
 					// Track the keys parsed
 					keys = i.Keys
@@ -130,11 +136,13 @@ func TestPurgeKey(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--key " + testKey,
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name: "validate PurgeKeys API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeKeysFn: func(_ context.Context, _ *fastly.PurgeKeysInput) (map[string]string, error) {
 					return nil, testutil.Err
 				},
@@ -145,6 +153,7 @@ func TestPurgeKey(t *testing.T) {
 		{
 			Name: "validate PurgeKeys API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeKeysFn: func(_ context.Context, _ *fastly.PurgeKeysInput) (map[string]string, error) {
 					return map[string]string{
 						testKey: testPurgeID,
@@ -157,6 +166,7 @@ func TestPurgeKey(t *testing.T) {
 		{
 			Name: "validate PurgeKeys API success with soft purge",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeKeysFn: func(_ context.Context, _ *fastly.PurgeKeysInput) (map[string]string, error) {
 					return map[string]string{
 						testKey: testPurgeID,
@@ -183,6 +193,7 @@ func TestPurgeURL(t *testing.T) {
 		{
 			Name: "validate Purge API error",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeFn: func(_ context.Context, _ *fastly.PurgeInput) (*fastly.Purge, error) {
 					return nil, testutil.Err
 				},
@@ -193,6 +204,7 @@ func TestPurgeURL(t *testing.T) {
 		{
 			Name: "validate Purge API success",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeFn: func(_ context.Context, _ *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
 						Status:  fastly.ToPointer(testStatus),
@@ -206,6 +218,7 @@ func TestPurgeURL(t *testing.T) {
 		{
 			Name: "validate Purge API success with soft purge",
 			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
 				PurgeFn: func(_ context.Context, _ *fastly.PurgeInput) (*fastly.Purge, error) {
 					return &fastly.Purge{
 						Status:  fastly.ToPointer(testStatus),

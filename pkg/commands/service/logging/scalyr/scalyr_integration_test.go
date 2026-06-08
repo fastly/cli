@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	fsterrs "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/mock"
@@ -20,9 +20,10 @@ import (
 func TestScalyrCreate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Args: "--name log --version 1 --auth-token abc --autoclone",
+			Args:    "--name log --version 1 --auth-token abc --autoclone",
+			EnvVars: map[string]string{"FASTLY_SERVICE_ID": ""},
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: fsterrs.ErrNoServiceID.Error(),
@@ -30,7 +31,7 @@ func TestScalyrCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateScalyrFn: createScalyrOK,
 			},
@@ -39,7 +40,7 @@ func TestScalyrCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --auth-token abc --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateScalyrFn: createScalyrError,
 			},
@@ -54,32 +55,32 @@ func TestScalyrList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListScalyrsFn:  listScalyrsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListScalyrsFn: listScalyrsOK,
 			},
 			WantOutput: listScalyrsShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListScalyrsFn:  listScalyrsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListScalyrsFn: listScalyrsOK,
 			},
 			WantOutput: listScalyrsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListScalyrsFn:  listScalyrsOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListScalyrsFn: listScalyrsOK,
 			},
 			WantOutput: listScalyrsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListScalyrsFn:  listScalyrsError,
+				GetVersionFn:  testutil.GetVersion,
+				ListScalyrsFn: listScalyrsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -96,16 +97,16 @@ func TestScalyrDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetScalyrFn:    getScalyrError,
+				GetVersionFn: testutil.GetVersion,
+				GetScalyrFn:  getScalyrError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetScalyrFn:    getScalyrOK,
+				GetVersionFn: testutil.GetVersion,
+				GetScalyrFn:  getScalyrOK,
 			},
 			WantOutput: describeScalyrOutput,
 		},
@@ -122,7 +123,7 @@ func TestScalyrUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateScalyrFn: updateScalyrError,
 			},
@@ -131,7 +132,7 @@ func TestScalyrUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateScalyrFn: updateScalyrOK,
 			},
@@ -150,7 +151,7 @@ func TestScalyrDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteScalyrFn: deleteScalyrError,
 			},
@@ -159,7 +160,7 @@ func TestScalyrDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteScalyrFn: deleteScalyrOK,
 			},

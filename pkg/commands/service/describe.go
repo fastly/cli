@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -20,7 +20,7 @@ type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	Input       fastly.GetServiceInput
+	Input       fastly.GetServiceDetailsInput
 	serviceName argparser.OptionalServiceNameID
 }
 

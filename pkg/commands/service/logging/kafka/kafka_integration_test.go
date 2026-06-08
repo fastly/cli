@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -21,7 +21,7 @@ func TestKafkaCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --topic logs --brokers 127.0.0.1127.0.0.2 --parse-log-keyvals --max-batch-size 1024 --use-sasl --auth-method plain --username user --password password --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateKafkaFn:  createKafkaOK,
 			},
@@ -30,7 +30,7 @@ func TestKafkaCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --topic logs --brokers 127.0.0.1127.0.0.2 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateKafkaFn:  createKafkaError,
 			},
@@ -45,32 +45,32 @@ func TestKafkaList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKafkasFn:   listKafkasOK,
+				GetVersionFn: testutil.GetVersion,
+				ListKafkasFn: listKafkasOK,
 			},
 			WantOutput: listKafkasShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKafkasFn:   listKafkasOK,
+				GetVersionFn: testutil.GetVersion,
+				ListKafkasFn: listKafkasOK,
 			},
 			WantOutput: listKafkasVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKafkasFn:   listKafkasOK,
+				GetVersionFn: testutil.GetVersion,
+				ListKafkasFn: listKafkasOK,
 			},
 			WantOutput: listKafkasVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKafkasFn:   listKafkasError,
+				GetVersionFn: testutil.GetVersion,
+				ListKafkasFn: listKafkasError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -87,16 +87,16 @@ func TestKafkaDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetKafkaFn:     getKafkaError,
+				GetVersionFn: testutil.GetVersion,
+				GetKafkaFn:   getKafkaError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetKafkaFn:     getKafkaOK,
+				GetVersionFn: testutil.GetVersion,
+				GetKafkaFn:   getKafkaOK,
 			},
 			WantOutput: describeKafkaOutput,
 		},
@@ -113,7 +113,7 @@ func TestKafkaUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateKafkaFn:  updateKafkaError,
 			},
@@ -122,7 +122,7 @@ func TestKafkaUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateKafkaFn:  updateKafkaOK,
 			},
@@ -131,7 +131,7 @@ func TestKafkaUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --parse-log-keyvals --max-batch-size 1024 --use-sasl --auth-method plain --username user --password password --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateKafkaFn:  updateKafkaSASL,
 			},
@@ -150,7 +150,7 @@ func TestKafkaDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteKafkaFn:  deleteKafkaError,
 			},
@@ -159,7 +159,7 @@ func TestKafkaDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteKafkaFn:  deleteKafkaOK,
 			},

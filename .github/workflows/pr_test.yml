@@ -10,90 +10,213 @@ on:
       - unlabeled
     branches:
       - main
+permissions:
+  contents: read
 # Stop any in-flight CI jobs when a new commit is pushed.
 concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
+env:
+  GO_VERSION: 1.25.x
+  GOLANGCI_LINT_VERSION: v2.4
+  WASI_SDK_VERSION: 25
+  WASI_SDK_FULL_VERSION: "25.0"
 jobs:
   changelog:
-    if: github.actor != 'dependabot[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: dangoslen/changelog-enforcer@v3
-  config:
+    name: Enforce changelog entry
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: dangoslen/changelog-enforcer@8b5e9dc3121363bb7c0115f8533404d92af382de # v3.7.0
+  config:
+    name: Build static app config
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: stable
+          cache: false
+          rustflags: ""
       - name: "Generate static app config"
         run: make config
       - name: "Config Artifact"
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
   lint:
+    name: Lint (pinned golangci version)
     needs: [config]
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
-      - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@stable
-      - name: Install Go
-        uses: actions/setup-go@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          go-version: 1.25.x
+          persist-credentials: false
+      - name: "Install Rust"
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: stable
+          cache: false
+          rustflags: ""
+      - name: Install Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
       - name: "Install dependencies"
         run: make mod-download
         shell: bash
       - name: "Config Artifact"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
         run: mv config.toml pkg/config/config.toml
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9.2.1
         with:
-          version: v2.4
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
           only-new-issues: true
   test:
+    name: Test (${{ matrix.platform }})
     needs: [config]
     strategy:
       matrix:
         tinygo-version: [0.31.2]
         go-version: [1.25.x]
         node-version: [18]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: "Install Go"
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           go-version: ${{ matrix.go-version }}
           # IMPORTANT: Disable caching to prevent cache restore errors later.
           cache: false
-      - uses: acifani/setup-tinygo@v2
+      - uses: acifani/setup-tinygo@dd8a7075d951a7595b2ef2123ed0ab1af0c13e56 # v3.0.0
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: "Install Rust"
-        uses: dtolnay/rust-toolchain@stable
-      - name: "Add wasm32-wasip1 Rust target"
-        run: rustup target add wasm32-wasip1 --toolchain stable
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: stable
+          target: wasm32-wasip1
+          cache: false
+          rustflags: ""
       - name: "Validate Rust toolchain"
         run: rustup show && rustup target list --installed --toolchain stable
         shell: bash
       - name: "Install Node"
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ matrix.node-version }}
+      - name: "Install WASI SDK"
+        run: |
+          wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
+          tar xzf "wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
+          echo "$(pwd)/wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux/bin" >> "$GITHUB_PATH"
+        shell: bash
       - name: "Config Artifact"
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: config-artifact-${{ github.sha }}
+      - name: "Move Config"
+        run: mv config.toml pkg/config/config.toml
+      - name: "Modify git cloned repo files 'modified' times"
+        run: go run ./scripts/go-test-cache/main.go
+      # NOTE: Windows should fail quietly running pre-requisite target of `test`.
+      #
+      # On Windows, executing `make config` directly works fine.
+      # But when `config` is a pre-requisite to running `test`, it fails.
+      # But only when run via GitHub Actions.
+      # The ../../scripts/config.sh isn't run because you can't nest PowerShell instances.
+      # Each GitHub Action 'run' step is a PowerShell instance.
+      # And each instance is run as: powershell.exe -command ". '...'"
+      - name: "Test suite"
+        run: make test
+        shell: bash
+        env:
+          # NOTE: The following lets us focus the test run while debugging.
+          # TEST_ARGS: "-run TestBuild ./pkg/commands/compute/..."
+          TEST_COMPUTE_INIT: true
+          TEST_COMPUTE_BUILD: true
+          TEST_COMPUTE_DEPLOY: true
+  test-release:
+    name: Test release (${{ matrix.platform }})
+    if: contains(github.head_ref, 'release')
+    needs: [config]
+    strategy:
+      matrix:
+        tinygo-version: [0.31.2]
+        go-version: [1.25.x]
+        node-version: [18]
+        platform: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: "Install Go"
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: ${{ matrix.go-version }}
+          # IMPORTANT: Disable caching to prevent cache restore errors later.
+          cache: false
+      - uses: acifani/setup-tinygo@dd8a7075d951a7595b2ef2123ed0ab1af0c13e56 # v3.0.0
+        with:
+          tinygo-version: ${{ matrix.tinygo-version }}
+      - name: "Install Rust"
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: stable
+          target: wasm32-wasip1
+          cache: false
+          rustflags: ""
+      - name: "Validate Rust toolchain"
+        run: rustup show && rustup target list --installed --toolchain stable
+        shell: bash
+      - name: "Install Node"
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: "Install WASI SDK (Ubuntu)"
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
+          tar xzf "wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
+          echo "$(pwd)/wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux/bin" >> "$GITHUB_PATH"
+        shell: bash
+      - name: "Install WASI SDK (macOS)"
+        if: matrix.platform == 'macos-latest'
+        run: |
+          wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_FULL_VERSION}-arm64-macos.tar.gz"
+          tar xzf "wasi-sdk-${WASI_SDK_FULL_VERSION}-arm64-macos.tar.gz"
+          echo "$(pwd)/wasi-sdk-${WASI_SDK_FULL_VERSION}-arm64-macos/bin" >> "$GITHUB_PATH"
+        shell: bash
+      - name: "Install WASI SDK (Windows)"
+        if: matrix.platform == 'windows-latest'
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${env:WASI_SDK_VERSION}/wasi-sdk-${env:WASI_SDK_FULL_VERSION}-x86_64-windows.tar.gz" -OutFile "wasi-sdk.tar.gz"
+          tar -xzf wasi-sdk.tar.gz
+          echo "$PWD/wasi-sdk-${env:WASI_SDK_FULL_VERSION}-x86_64-windows/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
+      - name: "Config Artifact"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
@@ -118,13 +241,38 @@ jobs:
           TEST_COMPUTE_BUILD: true
           TEST_COMPUTE_DEPLOY: true
   docker-builds:
+    name: Build docker images
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Build docker images
         run: |
           for dockerFile in Dockerfile*; do docker build -f $dockerFile . ; done
+  tools-build:
+    name: "goreleaser tools build"
+    if: contains(github.event.pull_request.labels.*.name, 'tools')
+    needs: [config]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: "Install Go"
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: tools/go.mod
+      - name: "Config Artifact"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: config-artifact-${{ github.sha }}
+      - name: "Move Config"
+        run: mv config.toml pkg/config/config.toml
+      - name: "Test goreleaser tools build"
+        run: go tool -modfile=tools/go.mod goreleaser build --single-target --snapshot --skip=post-hooks --skip=validate
   golangci-latest:
     name: lint-latest (informational)
     needs: [config]
@@ -132,11 +280,12 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Download config artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config
@@ -144,20 +293,22 @@ jobs:
         run: |
           test -f pkg/config/config.toml || { echo "missing pkg/config/config.toml"; ls -la pkg/config; exit 1; }
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
       - name: Run golangci-lint@latest
         id: lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9.2.1
         with:
           version: latest
           only-new-issues: true
         continue-on-error: true
       - name: Report lint summary
+        env:
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
         run: |
-          if [ "${{ steps.lint.outcome }}" == "success" ]; then
-            echo "✅ golangci-lint@latest passed." >> $GITHUB_STEP_SUMMARY
+          if [ "$LINT_OUTCOME" = "success" ]; then
+            echo "✅ golangci-lint@latest passed." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "⚠️ golangci-lint@latest failed (informational only)." >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ golangci-lint@latest failed (informational only)." >> "$GITHUB_STEP_SUMMARY"
           fi

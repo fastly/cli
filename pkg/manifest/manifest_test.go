@@ -308,3 +308,55 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 		t.Fatalf("testing section between original and updated fastly.toml do not match (-want +got):\n%s", diff)
 	}
 }
+
+func TestParseEnvFile(t *testing.T) {
+	tests := map[string]struct {
+		content  string
+		wantVars []string
+		wantErr  bool
+	}{
+		"simple key=value": {
+			content:  "FOO=bar\n",
+			wantVars: []string{"FOO=bar"},
+		},
+		"value contains equals sign": {
+			content:  "SECRET=dGVzdA==\n",
+			wantVars: []string{"SECRET=dGVzdA=="},
+		},
+		"multiple entries with equals in values": {
+			content:  "A=1\nB=x=y=z\n",
+			wantVars: []string{"A=1", "B=x=y=z"},
+		},
+		"invalid line without equals": {
+			content: "BADLINE\n",
+			wantErr: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			tmp := t.TempDir()
+			envPath := filepath.Join(tmp, ".env")
+			if err := os.WriteFile(envPath, []byte(tc.content), 0o600); err != nil {
+				t.Fatal(err)
+			}
+
+			f := &manifest.File{}
+			f.Scripts.EnvFile = envPath
+
+			err := f.ParseEnvFile()
+			if tc.wantErr {
+				if err == nil {
+					t.Fatal("expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if diff := cmp.Diff(tc.wantVars, f.Scripts.EnvVars); diff != "" {
+				t.Fatalf("EnvVars mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}

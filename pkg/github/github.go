@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/mholt/archiver/v3"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/debug"
+	"github.com/fastly/cli/pkg/file"
 	fstruntime "github.com/fastly/cli/pkg/runtime"
 )
 
@@ -357,7 +357,11 @@ func extractBinary(archive, binaryName, dst, assetBase string, nested bool) (bin
 		// which itself contains the `wasm-tools` binary
 		extractPath = strings.TrimSuffix(assetBase, extension)
 	}
-	if err := archiver.Extract(archive, extractPath, dst); err != nil {
+
+	// Extract using shared utility function
+	if err := file.ExtractArchive(archive, dst, func(name string) bool {
+		return strings.HasPrefix(name, extractPath)
+	}); err != nil {
 		return "", fmt.Errorf("failed to extract binary: %w", err)
 	}
 

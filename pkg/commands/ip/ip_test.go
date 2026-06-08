@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/mock"

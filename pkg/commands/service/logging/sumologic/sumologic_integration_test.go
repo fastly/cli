@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	parent "github.com/fastly/cli/pkg/commands/service/logging"
@@ -20,7 +20,7 @@ func TestSumologicCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateSumologicFn: createSumologicOK,
 			},
@@ -29,7 +29,7 @@ func TestSumologicCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				CreateSumologicFn: createSumologicError,
 			},
@@ -44,7 +44,7 @@ func TestSumologicList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListSumologicsFn: listSumologicsOK,
 			},
 			WantOutput: listSumologicsShortOutput,
@@ -52,7 +52,7 @@ func TestSumologicList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListSumologicsFn: listSumologicsOK,
 			},
 			WantOutput: listSumologicsVerboseOutput,
@@ -60,7 +60,7 @@ func TestSumologicList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListSumologicsFn: listSumologicsOK,
 			},
 			WantOutput: listSumologicsVerboseOutput,
@@ -68,7 +68,7 @@ func TestSumologicList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListSumologicsFn: listSumologicsError,
 			},
 			WantError: errTest.Error(),
@@ -86,7 +86,7 @@ func TestSumologicDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				GetSumologicFn: getSumologicError,
 			},
 			WantError: errTest.Error(),
@@ -94,7 +94,7 @@ func TestSumologicDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				GetSumologicFn: getSumologicOK,
 			},
 			WantOutput: describeSumologicOutput,
@@ -112,7 +112,7 @@ func TestSumologicUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateSumologicFn: updateSumologicError,
 			},
@@ -121,7 +121,7 @@ func TestSumologicUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				UpdateSumologicFn: updateSumologicOK,
 			},
@@ -140,7 +140,7 @@ func TestSumologicDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteSumologicFn: deleteSumologicError,
 			},
@@ -149,7 +149,7 @@ func TestSumologicDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				DeleteSumologicFn: deleteSumologicOK,
 			},

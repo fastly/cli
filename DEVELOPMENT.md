@@ -68,7 +68,7 @@ The resulting configuration is then saved to disk at `./pkg/config/config.toml` 
 
 When a user installs the CLI for the first time, they'll have no existing config and so the embedded config will be used. In the future, when the user updates their CLI, the existing config they have will be used.
 
-If the config has changed in any way, then you (the CLI developer) should ensure the `config_version` number is bumped before publishing a new CLI release. This is because when the user updates to that new CLI version and the invoke the CLI, the CLI will identify a mismatch between the user's local config version and the embedded config version. This will cause the embedded config to be merged with the local config and consequently the user's config will be updated to include the new fields.
+If the config has changed in any way, then you (the CLI developer) should ensure the `config_version` number is bumped before publishing a new CLI release. This is because when the user updates to that new CLI version and they invoke the CLI, the CLI will identify a mismatch between the user's local config version and the embedded config version. This will cause the embedded config to be merged with the local config and consequently the user's config will be updated to include the new fields.
 
 > **NOTE:** The CLI does provide a `fastly config --reset` option that resets the config to a version compatible with the user's current CLI version. This is fallback for users who run into issues for whatever reason.
 

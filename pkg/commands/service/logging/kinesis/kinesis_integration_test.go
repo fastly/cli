@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -21,7 +21,7 @@ func TestKinesisCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --region us-east-1 --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
@@ -29,7 +29,7 @@ func TestKinesisCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
@@ -37,7 +37,7 @@ func TestKinesisCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --region us-east-1 --access-key foo --secret-key bar --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --access-key and --secret-key flags are mutually exclusive with the --iam-role flag",
@@ -45,7 +45,7 @@ func TestKinesisCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --access-key foo --secret-key bar --region us-east-1 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateKinesisFn: createKinesisOK,
 			},
@@ -54,7 +54,7 @@ func TestKinesisCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --stream-name log --access-key foo --secret-key bar --region us-east-1 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateKinesisFn: createKinesisError,
 			},
@@ -63,7 +63,7 @@ func TestKinesisCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log2 --stream-name log --region us-east-1 --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateKinesisFn: createKinesisOK,
 			},
@@ -72,7 +72,7 @@ func TestKinesisCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log2 --stream-name log --region us-east-1 --iam-role arn:aws:iam::123456789012:role/KinesisAccess --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				CreateKinesisFn: createKinesisError,
 			},
@@ -87,32 +87,32 @@ func TestKinesisList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKinesisFn:  listKinesesOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListKinesisFn: listKinesesOK,
 			},
 			WantOutput: listKinesesShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKinesisFn:  listKinesesOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListKinesisFn: listKinesesOK,
 			},
 			WantOutput: listKinesesVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKinesisFn:  listKinesesOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListKinesisFn: listKinesesOK,
 			},
 			WantOutput: listKinesesVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListKinesisFn:  listKinesesError,
+				GetVersionFn:  testutil.GetVersion,
+				ListKinesisFn: listKinesesError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -129,16 +129,16 @@ func TestKinesisDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetKinesisFn:   getKinesisError,
+				GetVersionFn: testutil.GetVersion,
+				GetKinesisFn: getKinesisError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetKinesisFn:   getKinesisOK,
+				GetVersionFn: testutil.GetVersion,
+				GetKinesisFn: getKinesisOK,
 			},
 			WantOutput: describeKinesisOutput,
 		},
@@ -155,7 +155,7 @@ func TestKinesisUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateKinesisFn: updateKinesisError,
 			},
@@ -164,7 +164,7 @@ func TestKinesisUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --region us-west-1 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateKinesisFn: updateKinesisOK,
 			},
@@ -183,7 +183,7 @@ func TestKinesisDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteKinesisFn: deleteKinesisError,
 			},
@@ -192,7 +192,7 @@ func TestKinesisDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				DeleteKinesisFn: deleteKinesisOK,
 			},

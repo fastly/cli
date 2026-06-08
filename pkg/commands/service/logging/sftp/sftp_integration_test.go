@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -21,7 +21,7 @@ func TestSFTPCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com --user user --ssh-known-hosts knownHosts() --port 80 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSFTPFn:   createSFTPOK,
 			},
@@ -30,7 +30,7 @@ func TestSFTPCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com --user user --ssh-known-hosts knownHosts() --port 80 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSFTPFn:   createSFTPError,
 			},
@@ -39,7 +39,7 @@ func TestSFTPCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --address example.com --user anonymous --ssh-known-hosts knownHosts() --port 80 --compression-codec zstd --gzip-level 9 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -53,32 +53,32 @@ func TestSFTPList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSFTPsFn:    listSFTPsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListSFTPsFn:  listSFTPsOK,
 			},
 			WantOutput: listSFTPsShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSFTPsFn:    listSFTPsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListSFTPsFn:  listSFTPsOK,
 			},
 			WantOutput: listSFTPsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSFTPsFn:    listSFTPsOK,
+				GetVersionFn: testutil.GetVersion,
+				ListSFTPsFn:  listSFTPsOK,
 			},
 			WantOutput: listSFTPsVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSFTPsFn:    listSFTPsError,
+				GetVersionFn: testutil.GetVersion,
+				ListSFTPsFn:  listSFTPsError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -95,16 +95,16 @@ func TestSFTPDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSFTPFn:      getSFTPError,
+				GetVersionFn: testutil.GetVersion,
+				GetSFTPFn:    getSFTPError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSFTPFn:      getSFTPOK,
+				GetVersionFn: testutil.GetVersion,
+				GetSFTPFn:    getSFTPOK,
 			},
 			WantOutput: describeSFTPOutput,
 		},
@@ -121,7 +121,7 @@ func TestSFTPUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSFTPFn:   updateSFTPError,
 			},
@@ -130,7 +130,7 @@ func TestSFTPUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSFTPFn:   updateSFTPOK,
 			},
@@ -149,7 +149,7 @@ func TestSFTPDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSFTPFn:   deleteSFTPError,
 			},
@@ -158,7 +158,7 @@ func TestSFTPDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSFTPFn:   deleteSFTPOK,
 			},

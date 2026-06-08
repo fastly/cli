@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/config"
@@ -39,6 +39,18 @@ func TestInit(t *testing.T) {
 		{
 			Name:   "Default",
 			Path:   "https://github.com/fastly/compute-starter-kit-javascript-default",
+			Branch: "main",
+		},
+	}
+	skCPP := []config.StarterKit{
+		{
+			Name:   "Default",
+			Path:   "https://github.com/fastly/compute-starter-kit-cpp-default",
+			Branch: "main",
+		},
+		{
+			Name:   "Empty",
+			Path:   "https://github.com/fastly/compute-starter-kit-cpp-empty",
 			Branch: "main",
 		},
 	}
@@ -406,6 +418,30 @@ func TestInit(t *testing.T) {
 			},
 			manifestIncludes: `name = "fastly-temp`,
 		},
+		{
+			name: "with C++ language",
+			args: args("compute init --language cpp"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					CPP: skCPP,
+				},
+			},
+			manifestIncludes: `name = "fastly-temp`,
+		},
+		{
+			name: "with --from set to C++ empty starter kit",
+			args: args("compute init --from https://github.com/fastly/compute-starter-kit-cpp-empty"),
+			configFile: config.File{
+				StarterKits: config.StarterKitLanguages{
+					CPP: skCPP,
+				},
+			},
+			wantOutput: []string{
+				"Fetching package template",
+				"Reading fastly.toml",
+				"SUCCESS: Initialized package",
+			},
+		},
 		// NOTE: This test verifies that we don't fetch a remote project.
 		// Whether that be a starter kit or custom project template.
 		// This is because "other" indicates an unsupported platform language.
@@ -509,18 +545,18 @@ func TestInit_ExistingService(t *testing.T) {
 	scenarios := []struct {
 		name              string
 		args              []string
-		getServiceDetails func(context.Context, *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
+		getServiceDetails func(context.Context, *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error)
 		getPackage        func(context.Context, *fastly.GetPackageInput) (*fastly.Package, error)
 		expectInOutput    []string
 		expectInManifest  []string
 		expectNoManifest  bool
 		expectInError     string
-		suppresBeacon     bool
+		suppressBeacon    bool
 	}{
 		{
 			name: "when the service exists",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ context.Context, gsi *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, gsi *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 				if gsi.ServiceID != *serviceID {
 					return nil, &fastly.HTTPError{
 						StatusCode: http.StatusNotFound,
@@ -569,7 +605,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "when the service doesn't exist",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 				return nil, &fastly.HTTPError{
 					StatusCode: http.StatusNotFound,
 				}
@@ -583,7 +619,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service has no versions that include package metadata",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID:     serviceID,
 					Name:          fastly.NullString("test-service"),
@@ -610,7 +646,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service is vcl",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Type:      fastly.NullString("vcl"),
@@ -624,12 +660,12 @@ func TestInit_ExistingService(t *testing.T) {
 			args:          testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4EN"),
 			expectInError: "--from url seems invalid",
 			// Not a valid URL OR Service ID
-			suppresBeacon: true,
+			suppressBeacon: true,
 		},
 		{
 			name: "service has a cloned_from value",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Name:      fastly.NullString("cloned-service"),
@@ -655,7 +691,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service has an unreachable cloned_from value",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Name:      fastly.NullString("cloned-service"),
@@ -681,7 +717,7 @@ func TestInit_ExistingService(t *testing.T) {
 		{
 			name: "service has active version greater than 1",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
-			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 				return &fastly.ServiceDetail{
 					ServiceID: serviceID,
 					Name:      fastly.NullString("cloned-service"),
@@ -778,7 +814,7 @@ func TestInit_ExistingService(t *testing.T) {
 
 			t.Log(stdout.String())
 
-			if testcase.suppresBeacon {
+			if testcase.suppressBeacon {
 				testutil.AssertLength(t, 0, httpClient.Requests)
 			} else {
 				testutil.AssertLength(t, 1, httpClient.Requests)

@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -41,7 +41,9 @@ type DeleteCommand struct {
 
 // Exec invokes the application logic for the command.
 func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
-	text.Deprecated(out, "The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
+	if !c.Globals.Flags.Quiet {
+		text.Deprecated("The 'auth-token' command tree will be removed in a future release. Use the Fastly API directly to manage API tokens.\n\n")
+	}
 
 	if !c.current && c.file == "" && c.id == "" {
 		return fmt.Errorf("error parsing arguments: must provide either the --current, --file or --id flag")

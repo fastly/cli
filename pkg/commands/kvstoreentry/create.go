@@ -13,7 +13,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/api"
 	"github.com/fastly/cli/pkg/argparser"
@@ -54,7 +54,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	return &c
 }
 
-// CreateCommand calls the Fastly API to insert a key into an kv store.
+// CreateCommand calls the Fastly API to insert a key into a kv store.
 type CreateCommand struct {
 	argparser.Base
 	argparser.JSONOutput

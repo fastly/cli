@@ -16,9 +16,6 @@ import (
 	"github.com/fastly/cli/pkg/useragent"
 )
 
-// EdgeComputeTrial is the API endpoint for activating a compute trial.
-const EdgeComputeTrial = "/customer/%s/edge-compute-trial"
-
 // RequestTimeout is the timeout for the API network request.
 const RequestTimeout = 5 * time.Second
 

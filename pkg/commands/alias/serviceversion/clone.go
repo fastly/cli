@@ -25,7 +25,7 @@ func NewCloneCommand(parent argparser.Registerer, g *global.Data) *CloneCommand 
 // Exec implements the command interface.
 func (c *CloneCommand) Exec(in io.Reader, out io.Writer) error {
 	if !c.JSONOutput.Enabled {
-		text.Deprecated(out, "Use the 'service version clone' command instead.")
+		text.Deprecated("Use the 'service version clone' command instead.")
 	}
 	return c.CloneCommand.Exec(in, out)
 }

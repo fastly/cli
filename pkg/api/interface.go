@@ -5,7 +5,7 @@ import (
 	"crypto/ed25519"
 	"net/http"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 )
 
 // HTTPClient models a concrete http.Client. It's a consumer contract for some
@@ -26,7 +26,7 @@ type Interface interface {
 	GetServices(context.Context, *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service]
 	ListServices(context.Context, *fastly.ListServicesInput) ([]*fastly.Service, error)
 	GetService(context.Context, *fastly.GetServiceInput) (*fastly.Service, error)
-	GetServiceDetails(context.Context, *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
+	GetServiceDetails(context.Context, *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error)
 	UpdateService(context.Context, *fastly.UpdateServiceInput) (*fastly.Service, error)
 	DeleteService(context.Context, *fastly.DeleteServiceInput) error
 	SearchService(context.Context, *fastly.SearchServiceInput) (*fastly.Service, error)
@@ -250,6 +250,7 @@ type Interface interface {
 	GetOriginMetricsForServiceJSON(context.Context, *fastly.GetOriginMetricsInput, any) error
 
 	CreateManagedLogging(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+	GetLoggingEndpointErrors(context.Context, *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error)
 
 	GetGeneratedVCL(context.Context, *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
 

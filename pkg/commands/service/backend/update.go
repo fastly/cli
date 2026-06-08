@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"4d63.com/optional"
 
@@ -31,6 +31,8 @@ type UpdateCommand struct {
 	HealthCheck         argparser.OptionalString
 	Hostname            argparser.OptionalString
 	MaxConn             argparser.OptionalInt
+	MaxUse              argparser.OptionalInt
+	MaxLifetime         argparser.OptionalInt
 	MaxTLSVersion       argparser.OptionalString
 	MinTLSVersion       argparser.OptionalString
 	NewName             argparser.OptionalString
@@ -87,6 +89,8 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("first-byte-timeout", "How long to wait for the first bytes in milliseconds").Action(c.FirstByteTimeout.Set).IntVar(&c.FirstByteTimeout.Value)
 	c.CmdClause.Flag("healthcheck", "The name of the healthcheck to use with this backend").Action(c.HealthCheck.Set).StringVar(&c.HealthCheck.Value)
 	c.CmdClause.Flag("max-conn", "Maximum number of connections").Action(c.MaxConn.Set).IntVar(&c.MaxConn.Value)
+	c.CmdClause.Flag("max-use", "Maximum number of requests allowed over a single, pooled HTTP keepalive connection to this backend; 0 is treated as unlimited.").Action(c.MaxUse.Set).IntVar(&c.MaxUse.Value)
+	c.CmdClause.Flag("max-lifetime", "Maximum time from creation (in milliseconds) that a pooled HTTP keepalive connection will be eligible for reuse; 0 is treated as unlimited.").Action(c.MaxLifetime.Set).IntVar(&c.MaxLifetime.Value)
 	c.CmdClause.Flag("max-tls-version", "Maximum allowed TLS version on SSL connections to this backend").Action(c.MaxTLSVersion.Set).StringVar(&c.MaxTLSVersion.Value)
 	c.CmdClause.Flag("min-tls-version", "Minimum allowed TLS version on SSL connections to this backend").Action(c.MinTLSVersion.Set).StringVar(&c.MinTLSVersion.Value)
 	c.CmdClause.Flag("new-name", "New backend name").Action(c.NewName.Set).StringVar(&c.NewName.Value)
@@ -189,6 +193,13 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.MaxConn = &c.MaxConn.Value
 	}
 
+	if c.MaxUse.WasSet {
+		input.MaxUse = &c.MaxUse.Value
+	}
+	if c.MaxLifetime.WasSet {
+		input.MaxLifetime = &c.MaxLifetime.Value
+	}
+
 	if c.FirstByteTimeout.WasSet {
 		input.FirstByteTimeout = &c.FirstByteTimeout.Value
 	}
@@ -226,7 +237,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if c.SSLCheckCert.WasSet {
-		text.Deprecated(out, "The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
+		text.Deprecated("The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
 		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(c.SSLCheckCert.Value))
 	}
 

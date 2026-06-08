@@ -124,6 +124,7 @@ func MockGlobalData(args []string, stdout io.Writer) *global.Data {
 		ConfigPath: configPath,
 		Env:        config.Environment{},
 		ErrLog:     errors.Log,
+		ErrOutput:  stdout,
 		ExecuteWasmTools: func(bin string, args []string, d *global.Data) error {
 			fmt.Printf("bin: %s\n", bin)
 			fmt.Printf("args: %#v\n", args)

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/openstack"
@@ -68,6 +68,9 @@ func TestCreateOpenstackInput(t *testing.T) {
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.wantError == errors.ErrNoServiceID.Error() {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			var bs []byte
 			out := bytes.NewBuffer(bs)
 			verboseMode := true
@@ -111,7 +114,7 @@ func TestUpdateOpenstackInput(t *testing.T) {
 			name: "all values set flag serviceID",
 			cmd:  updateCommandAll(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetOpenstackFn: getOpenstackOK,
 			},
@@ -142,7 +145,7 @@ func TestUpdateOpenstackInput(t *testing.T) {
 			name: "no updates",
 			cmd:  updateCommandNoUpdates(),
 			api: mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				GetOpenstackFn: getOpenstackOK,
 			},
@@ -162,6 +165,9 @@ func TestUpdateOpenstackInput(t *testing.T) {
 	for testcaseIdx := range scenarios {
 		testcase := &scenarios[testcaseIdx]
 		t.Run(testcase.name, func(t *testing.T) {
+			if testcase.wantError == errors.ErrNoServiceID.Error() {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			testcase.cmd.Globals.APIClient = testcase.api
 
 			var bs []byte
@@ -204,7 +210,7 @@ func createCommandRequired() *openstack.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetVersion,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
@@ -245,7 +251,7 @@ func createCommandAll() *openstack.CreateCommand {
 		Output: &b,
 	}
 	g.APIClient, _ = mock.APIClient(mock.API{
-		ListVersionsFn: testutil.ListVersions,
+		GetVersionFn:   testutil.GetVersion,
 		CloneVersionFn: testutil.CloneVersionResult(4),
 	})("token", "endpoint", false)
 
@@ -291,6 +297,7 @@ func createCommandAll() *openstack.CreateCommand {
 func createCommandMissingServiceID() *openstack.CreateCommand {
 	res := createCommandAll()
 	res.Manifest = manifest.Data{}
+	res.ServiceVersion = argparser.OptionalServiceVersion{}
 	return res
 }
 
@@ -380,5 +387,6 @@ func updateCommandAll() *openstack.UpdateCommand {
 func updateCommandMissingServiceID() *openstack.UpdateCommand {
 	res := updateCommandAll()
 	res.Manifest = manifest.Data{}
+	res.ServiceVersion = argparser.OptionalServiceVersion{}
 	return res
 }

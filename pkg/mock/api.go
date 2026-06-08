@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/ed25519"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 )
 
 // API is a mock implementation of api.Interface that's used for testing.
@@ -18,7 +18,7 @@ type API struct {
 	GetServicesFn       func(context.Context, *fastly.GetServicesInput) *fastly.ListPaginator[fastly.Service]
 	ListServicesFn      func(context.Context, *fastly.ListServicesInput) ([]*fastly.Service, error)
 	GetServiceFn        func(context.Context, *fastly.GetServiceInput) (*fastly.Service, error)
-	GetServiceDetailsFn func(context.Context, *fastly.GetServiceInput) (*fastly.ServiceDetail, error)
+	GetServiceDetailsFn func(context.Context, *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error)
 	UpdateServiceFn     func(context.Context, *fastly.UpdateServiceInput) (*fastly.Service, error)
 	DeleteServiceFn     func(context.Context, *fastly.DeleteServiceInput) error
 	SearchServiceFn     func(context.Context, *fastly.SearchServiceInput) (*fastly.Service, error)
@@ -239,7 +239,8 @@ type API struct {
 	GetOriginMetricsForServiceFn     func(context.Context, *fastly.GetOriginMetricsInput) (*fastly.OriginInspector, error)
 	GetOriginMetricsForServiceJSONFn func(context.Context, *fastly.GetOriginMetricsInput, any) error
 
-	CreateManagedLoggingFn func(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+	CreateManagedLoggingFn     func(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
+	GetLoggingEndpointErrorsFn func(context.Context, *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error)
 
 	GetGeneratedVCLFn func(context.Context, *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
 
@@ -449,7 +450,7 @@ func (m API) GetService(ctx context.Context, i *fastly.GetServiceInput) (*fastly
 }
 
 // GetServiceDetails implements Interface.
-func (m API) GetServiceDetails(ctx context.Context, i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
+func (m API) GetServiceDetails(ctx context.Context, i *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
 	return m.GetServiceDetailsFn(ctx, i)
 }
 
@@ -1371,6 +1372,11 @@ func (m API) GetOriginMetricsForServiceJSON(ctx context.Context, i *fastly.GetOr
 // CreateManagedLogging implements Interface.
 func (m API) CreateManagedLogging(ctx context.Context, i *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error) {
 	return m.CreateManagedLoggingFn(ctx, i)
+}
+
+// GetLoggingEndpointErrors implements Interface.
+func (m API) GetLoggingEndpointErrors(ctx context.Context, i *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error) {
+	return m.GetLoggingEndpointErrorsFn(ctx, i)
 }
 
 // GetGeneratedVCL implements Interface.

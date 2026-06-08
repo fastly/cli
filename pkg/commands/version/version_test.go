@@ -23,7 +23,7 @@ func TestVersion(t *testing.T) {
 		t.Skip("skipping test due to unix specific mock shell script")
 	}
 
-	// We're going to chdir to an temp environment,
+	// We're going to chdir to a temp environment,
 	// so save the PWD to return to, afterwards.
 	pwd, err := os.Getwd()
 	if err != nil {

@@ -44,7 +44,7 @@ When running the tests locally, if you don't have the relevant language ecosyste
 
 > **NOTE**: you might notice a discrepancy between CI and your local environment which is caused by the difference in Rust toolchain versions as defined in .github/workflows/pr_test.yml which specifies the version required to be tested for in CI. Running `rustup toolchain install <version>` and `rustup target add wasm32-wasip1 --toolchain <version>` will resolve any failing integration tests you may be running locally.
 
-To the run the full test suite:
+To run the full test suite:
 
 ```sh
 TEST_COMPUTE_INIT=1 TEST_COMPUTE_BUILD=1 TEST_COMPUTE_DEPLOY=1 TEST_COMMAND=gotest make all

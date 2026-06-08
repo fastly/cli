@@ -19,7 +19,7 @@ import (
 
 	cp "github.com/otiai10/copy"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/config"
@@ -57,7 +57,7 @@ type InitCommand struct {
 }
 
 // Languages is a list of supported language options.
-var Languages = []string{"rust", "javascript", "go", "other"}
+var Languages = []string{"rust", "javascript", "go", "cpp", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
 func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
@@ -275,7 +275,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 				serviceVersion int
 			)
 			err = spinner.Process("Fetching service details", func(_ *text.SpinnerWrapper) error {
-				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceInput{
+				serviceDetails, err = c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{
 					ServiceID: c.CloneFrom,
 				})
 				if err != nil {

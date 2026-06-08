@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/cap/oidc"
 	"github.com/skratchdot/open-golang/open"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/kingpin"
 
@@ -172,6 +172,7 @@ var Init = func(args []string, stdin io.Reader) (*global.Data, error) {
 		ConfigPath:       config.FilePath,
 		Env:              e,
 		ErrLog:           fsterr.Log,
+		ErrOutput:        os.Stderr,
 		ExecuteWasmTools: compute.ExecuteWasmTools,
 		HTTPClient:       httpClient,
 		Manifest:         &md,
@@ -200,9 +201,11 @@ func Exec(data *global.Data) error {
 		return err
 	}
 
-	// Check for --json flag early and set quiet mode if found.
+	// Check for --json flag early. JSON mode suppresses stdout-bound noise
+	// (metadata notices, update checks) but still allows stderr warnings
+	// (token expiry, profile mismatch) so they don't corrupt JSON output.
 	if slices.Contains(data.Args, "--json") {
-		data.Flags.Quiet = true
+		data.Flags.JSON = true
 	}
 
 	// We short-circuit the execution for specific cases:
@@ -210,6 +213,8 @@ func Exec(data *global.Data) error {
 	// - argparser.ArgsIsHelpJSON() == true
 	// - shell autocompletion flag provided
 	switch commandName {
+	case "help--json":
+		fallthrough
 	case "help--format=json":
 		fallthrough
 	case "help--formatjson":
@@ -219,7 +224,7 @@ func Exec(data *global.Data) error {
 	}
 
 	metadataDisable, _ := strconv.ParseBool(data.Env.WasmMetadataDisable)
-	if !slices.Contains(data.Args, "--metadata-disable") && !metadataDisable && !data.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) && !data.Flags.Quiet {
+	if !slices.Contains(data.Args, "--metadata-disable") && !metadataDisable && !data.Config.CLI.MetadataNoticeDisplayed && commandCollectsData(commandName) && !data.Flags.Quiet && !data.Flags.JSON {
 		text.Important(data.Output, "The Fastly CLI is configured to collect data related to Wasm builds (e.g. compilation times, resource usage, and other non-identifying data). To learn more about what data is being collected, why, and how to disable it: https://www.fastly.com/documentation/reference/cli")
 		text.Break(data.Output)
 		data.Config.CLI.MetadataNoticeDisplayed = true
@@ -230,7 +235,7 @@ func Exec(data *global.Data) error {
 		time.Sleep(5 * time.Second) // this message is only displayed once so give the user a chance to see it before it possibly scrolls off screen
 	}
 
-	if data.Flags.Quiet {
+	if data.Flags.Quiet || data.Flags.JSON {
 		data.Manifest.File.SetQuiet(true)
 	}
 
@@ -250,7 +255,7 @@ func Exec(data *global.Data) error {
 	}
 
 	// User can set env.DebugMode env var or the --debug-mode boolean flag.
-	// This will prioritise the flag over the env var.
+	// This will prioritize the flag over the env var.
 	if data.Flags.Debug {
 		data.Env.DebugMode = "true"
 	}
@@ -284,12 +289,12 @@ func Exec(data *global.Data) error {
 			data.AuthServer = authServer
 		}
 
-		if !data.Flags.Quiet && data.Flags.Token == "" && data.Env.APIToken == "" && data.Manifest != nil && data.Manifest.File.Profile != "" {
+		if !data.Flags.Quiet && data.Flags.Token == "" && data.Flags.Profile == "" && data.Env.APIToken == "" && data.Manifest != nil && data.Manifest.File.Profile != "" {
 			if data.Config.GetAuthToken(data.Manifest.File.Profile) == nil {
 				if defaultName, _ := data.Config.GetDefaultAuthToken(); defaultName != "" {
-					text.Warning(data.Output, "fastly.toml profile %q not found in auth config, using default token %q.\n", data.Manifest.File.Profile, defaultName)
+					text.Warning(data.ErrOutput, "fastly.toml profile %q not found in auth config, using default token %q.\n", data.Manifest.File.Profile, defaultName)
 				} else {
-					text.Warning(data.Output, "fastly.toml profile %q not found in auth config and no default token is configured.\n", data.Manifest.File.Profile)
+					text.Warning(data.ErrOutput, "fastly.toml profile %q not found in auth config and no default token is configured.\n", data.Manifest.File.Profile)
 				}
 			}
 		}
@@ -316,7 +321,7 @@ func Exec(data *global.Data) error {
 			displayToken(tokenSource, data)
 		}
 		if !data.Flags.Quiet {
-			checkConfigPermissions(tokenSource, data.Output)
+			checkConfigPermissions(tokenSource, data.ErrOutput)
 		}
 
 		data.APIClient, data.RTSClient, err = configureClients(token, apiEndpoint, data.APIClientFactory, data.Flags.Debug)
@@ -328,8 +333,12 @@ func Exec(data *global.Data) error {
 
 	checkTokenExpirationWarning(data, commandName)
 
-	f := checkForUpdates(data.Versioners.CLI, commandName, data.Flags.Quiet)
-	defer f(data.Output)
+	f := checkForUpdates(data.Versioners.CLI, commandName)
+	defer func() {
+		if !data.Flags.Quiet && !data.Flags.JSON {
+			f(data.Output)
+		}
+	}()
 
 	return command.Exec(data.Input, data.Output)
 }
@@ -388,6 +397,10 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 // Tokens from --token (raw, unavailable when FASTLY_DISABLE_AUTH_COMMAND is
 // set) or FASTLY_API_TOKEN are assumed to be valid.
 func processToken(data *global.Data) (token string, tokenSource lookup.Source, err error) {
+	if err := data.ValidateProfileFlag(); err != nil {
+		return "", lookup.SourceUndefined, err
+	}
+
 	token, tokenSource = data.Token()
 
 	switch tokenSource {
@@ -448,7 +461,13 @@ func checkAndRefreshAuthSSOToken(name string, at *config.AuthToken, data *global
 			return false, fmt.Errorf("invalid refresh_expires_at %q: %w", at.RefreshExpiresAt, err)
 		}
 		if time.Now().After(refreshExpires) {
-			return true, nil // both expired, needs full re-auth
+			if at.APITokenExpiresAt != "" {
+				apiExpires, err := time.Parse(time.RFC3339, at.APITokenExpiresAt)
+				if err == nil && time.Now().Before(apiExpires) {
+					return false, nil
+				}
+			}
+			return true, nil
 		}
 	}
 
@@ -506,9 +525,10 @@ func checkAndRefreshAuthSSOToken(name string, at *config.AuthToken, data *global
 // This matches the set hidden by FASTLY_DISABLE_AUTH_COMMAND (pkg/env/env.go).
 var authRelatedCommands = []string{"auth", "auth-token", "sso", "profile", "whoami"}
 
-// checkTokenExpirationWarning prints a warning if the active stored token is
-// about to expire. Only fires for SourceAuth tokens; env/flag tokens are opaque.
-// Suppressed for auth-related commands and when --quiet or --json is active.
+// checkTokenExpirationWarning prints a warning to stderr if the active stored
+// token is about to expire. Only fires for SourceAuth tokens; env/flag tokens
+// are opaque. Suppressed for auth-related commands and when --quiet is active.
+// In --json mode the warning still fires (written to stderr via data.ErrOutput).
 func checkTokenExpirationWarning(data *global.Data, commandName string) {
 	if data.Flags.Quiet {
 		return
@@ -545,7 +565,7 @@ func checkTokenExpirationWarning(data *global.Data, commandName string) {
 	if at.RefreshExpiresAt != "" {
 		label = "session "
 	}
-	text.Warning(data.Output, "Your active token %s%s. %s\n", label, summary, remediation)
+	text.Warning(data.ErrOutput, "Your active token %s%s. %s\n", label, summary, remediation)
 }
 
 // isAuthRelatedCommand reports whether commandName belongs to an auth-related
@@ -692,9 +712,9 @@ func configureClients(token, apiEndpoint string, acf global.APIClientFactory, de
 	return apiClient, rtsClient, nil
 }
 
-func checkForUpdates(av github.AssetVersioner, commandName string, quietMode bool) func(io.Writer) {
+func checkForUpdates(av github.AssetVersioner, commandName string) func(io.Writer) {
 	if av != nil && commandName != "update" && !version.IsPreRelease(revision.AppVersion) {
-		return update.CheckAsync(revision.AppVersion, av, quietMode)
+		return update.CheckAsync(revision.AppVersion, av)
 	}
 	return func(_ io.Writer) {
 		// no-op

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -21,7 +21,7 @@ func TestCloudfilesCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --user username --bucket log --access-key foo --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateCloudfilesFn: createCloudfilesOK,
 			},
@@ -30,7 +30,7 @@ func TestCloudfilesCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --user username --bucket log --access-key foo --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				CreateCloudfilesFn: createCloudfilesError,
 			},
@@ -39,7 +39,7 @@ func TestCloudfilesCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --user username --bucket log --access-key foo --compression-codec zstd --gzip-level 9 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
@@ -53,7 +53,7 @@ func TestCloudfilesList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListCloudfilesFn: listCloudfilesOK,
 			},
 			WantOutput: listCloudfilesShortOutput,
@@ -61,7 +61,7 @@ func TestCloudfilesList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListCloudfilesFn: listCloudfilesOK,
 			},
 			WantOutput: listCloudfilesVerboseOutput,
@@ -69,7 +69,7 @@ func TestCloudfilesList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListCloudfilesFn: listCloudfilesOK,
 			},
 			WantOutput: listCloudfilesVerboseOutput,
@@ -77,7 +77,7 @@ func TestCloudfilesList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:   testutil.ListVersions,
+				GetVersionFn:     testutil.GetVersion,
 				ListCloudfilesFn: listCloudfilesError,
 			},
 			WantError: errTest.Error(),
@@ -95,7 +95,7 @@ func TestCloudfilesDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				GetCloudfilesFn: getCloudfilesError,
 			},
 			WantError: errTest.Error(),
@@ -103,7 +103,7 @@ func TestCloudfilesDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				GetCloudfilesFn: getCloudfilesOK,
 			},
 			WantOutput: describeCloudfilesOutput,
@@ -121,7 +121,7 @@ func TestCloudfilesUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateCloudfilesFn: updateCloudfilesError,
 			},
@@ -130,7 +130,7 @@ func TestCloudfilesUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				UpdateCloudfilesFn: updateCloudfilesOK,
 			},
@@ -149,7 +149,7 @@ func TestCloudfilesDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteCloudfilesFn: deleteCloudfilesError,
 			},
@@ -158,7 +158,7 @@ func TestCloudfilesDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn:     testutil.ListVersions,
+				GetVersionFn:       testutil.GetVersion,
 				CloneVersionFn:     testutil.CloneVersionResult(4),
 				DeleteCloudfilesFn: deleteCloudfilesOK,
 			},

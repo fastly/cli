@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -41,6 +41,20 @@ func TestOriginInspector(t *testing.T) {
 				GetOriginMetricsForServiceJSONFn: getOriginMetricsJSONOK,
 			},
 			wantOutput: "status",
+		},
+		{
+			name: "success json alias",
+			args: args("stats origin-inspector --service-id 123 --json"),
+			api: mock.API{
+				GetOriginMetricsForServiceJSONFn: getOriginMetricsJSONOK,
+			},
+			wantOutput: "status",
+		},
+		{
+			name:      "verbose json combo",
+			args:      args("stats origin-inspector --service-id 123 --json --verbose"),
+			api:       mock.API{},
+			wantError: "invalid flag combination",
 		},
 		{
 			name: "non-success status",
@@ -115,6 +129,10 @@ func TestOriginInspector(t *testing.T) {
 	}
 	for _, tc := range scenarios {
 		t.Run(tc.name, func(t *testing.T) {
+			// Clear FASTLY_SERVICE_ID for tests that validate missing service ID
+			if tc.name == "missing service ID" {
+				t.Setenv("FASTLY_SERVICE_ID", "")
+			}
 			var stdout bytes.Buffer
 			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
 				opts := testutil.MockGlobalData(tc.args, &stdout)

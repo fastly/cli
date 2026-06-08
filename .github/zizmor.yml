@@ -1,0 +1,20 @@
+# zizmor configuration.
+# https://docs.zizmor.sh/configuration/
+
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "*": hash-pin
+  cache-poisoning:
+    ignore:
+      # setup-node@v6 only enables caching when the `cache:` input is set.
+      # This workflow does not set it, so no cache is written.
+      - publish_release.yml
+  superfluous-actions:
+    ignore:
+      # stefanzweifel/git-auto-commit-action signs commits, sets the
+      # author/committer to github-actions, and pushes only when the tree
+      # actually changed. Inlining `git add && git commit && git push` would
+      # lose those guarantees.
+      - dependabot_changelog_update.yml

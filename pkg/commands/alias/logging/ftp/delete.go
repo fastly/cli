@@ -24,6 +24,6 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 
 // Exec implements the command interface.
 func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
-	text.Deprecated(out, "Use the 'service logging ftp delete' command instead.")
+	text.Deprecated("Use the 'service logging ftp delete' command instead.")
 	return c.DeleteCommand.Exec(in, out)
 }

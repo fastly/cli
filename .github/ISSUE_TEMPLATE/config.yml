@@ -1,0 +1,2 @@
+# Disable blank issues for non-maintainers. 
+blank_issues_enabled: false

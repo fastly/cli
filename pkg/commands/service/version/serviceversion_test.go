@@ -2,10 +2,11 @@ package version_test
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/version"
@@ -18,6 +19,7 @@ func TestVersionClone(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
@@ -29,7 +31,7 @@ func TestVersionClone(t *testing.T) {
 			Name: "validate successful clone",
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantOutput: "Cloned service 123 version 1 to version 4",
@@ -38,7 +40,7 @@ func TestVersionClone(t *testing.T) {
 			Name: "validate successful clone json output",
 			Args: "--service-id 123 --version 1 --json",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantOutput: cloneServiceVersionJSONOutput,
@@ -47,7 +49,7 @@ func TestVersionClone(t *testing.T) {
 			Name: "validate error will be passed through if cloning fails",
 			Args: "--service-id 456 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionError,
 			},
 			WantError: testutil.Err.Error(),
@@ -99,7 +101,7 @@ func TestVersionUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --comment foo --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateVersionFn: updateVersionOK,
 			},
@@ -108,7 +110,7 @@ func TestVersionUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 			},
 			WantError: "error parsing arguments: required flag --comment not provided",
@@ -116,7 +118,7 @@ func TestVersionUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --comment foo --autoclone",
 			API: &mock.API{
-				ListVersionsFn:  testutil.ListVersions,
+				GetVersionFn:    testutil.GetVersion,
 				CloneVersionFn:  testutil.CloneVersionResult(4),
 				UpdateVersionFn: updateVersionError,
 			},
@@ -134,16 +136,9 @@ func TestVersionActivate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
-			Args: "--service-id 123 --version 1",
-			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-			},
-			WantError: "service version 1 is active",
-		},
-		{
 			Args: "--service-id 123 --version 1 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionError,
 			},
@@ -152,7 +147,7 @@ func TestVersionActivate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionOK,
 			},
@@ -161,19 +156,95 @@ func TestVersionActivate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 2 --autoclone",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				CloneVersionFn:    testutil.CloneVersionResult(4),
 				ActivateVersionFn: activateVersionOK,
 			},
 			WantOutput: "Activated service 123 version 4",
 		},
 		{
-			Args: "--service-id 123 --version 3 --autoclone",
+			Name: "validate API error when modifying active version",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn: testutil.GetVersion,
+				ActivateVersionFn: func(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+					return nil, fmt.Errorf("Cannot activate version %d. Versions that have been activated cannot be activated", i.ServiceVersion)
+				},
+			},
+			Args:      "--service-id 123 --version 3",
+			WantError: "Cannot activate version 3. Versions that have been activated cannot be activated",
+		},
+		{
+			Name: "validate API error when modifying locked version",
+			API: &mock.API{
+				GetVersionFn: testutil.GetVersion,
+				ActivateVersionFn: func(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+					return nil, fmt.Errorf("Cannot activate version %d. Versions that have been locked cannot be activated", i.ServiceVersion)
+				},
+			},
+			Args:      "--service-id 123 --version 3",
+			WantError: "Cannot activate version 3. Versions that have been locked cannot be activated",
+		},
+		{
+			Args: "--service-id 123 --version 3",
+			API: &mock.API{
+				GetVersionFn:      testutil.GetVersion,
 				ActivateVersionFn: activateVersionOK,
 			},
 			WantOutput: "Activated service 123 version 3",
+		},
+		{
+			Name: "validate --autoclone results in cloned service version",
+			API: &mock.API{
+				GetVersionFn:      testutil.GetVersion,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				ActivateVersionFn: activateVersionOK,
+			},
+			Args:       "--service-id 123 --version 3 --autoclone",
+			WantOutput: "Activated service 123 version 4",
+		},
+		{
+			Name: "validate --autoclone on locked version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				ActivateVersionFn: func(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+					if i.ServiceVersion != 4 {
+						return nil, fmt.Errorf("expected activation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return &fastly.Version{
+						Number:    fastly.ToPointer(i.ServiceVersion),
+						ServiceID: fastly.ToPointer("123"),
+						Active:    fastly.ToPointer(true),
+						Deployed:  fastly.ToPointer(true),
+						CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+						UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+					}, nil
+				},
+			},
+			Args:       "--service-id 123 --version 3 --autoclone",
+			WantOutput: "Activated service 123 version 4",
+		},
+		{
+			Name: "validate --autoclone on editable version",
+			API: &mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				ActivateVersionFn: func(_ context.Context, i *fastly.ActivateVersionInput) (*fastly.Version, error) {
+					if i.ServiceVersion != 4 {
+						return nil, fmt.Errorf("expected activation on cloned version 4, got %d", i.ServiceVersion)
+					}
+					return &fastly.Version{
+						Number:    fastly.ToPointer(i.ServiceVersion),
+						ServiceID: fastly.ToPointer("123"),
+						Active:    fastly.ToPointer(true),
+						Deployed:  fastly.ToPointer(true),
+						CreatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+						UpdatedAt: testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
+					}, nil
+				},
+			},
+			Args:       "--service-id 123 --version 3 --autoclone",
+			WantOutput: "Activated service 123 version 4",
 		},
 	}
 
@@ -184,12 +255,13 @@ func TestVersionDeactivate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--service-id 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				DeactivateVersionFn: deactivateVersionOK,
 			},
 			WantOutput: "Deactivated service 123 version 1",
@@ -197,7 +269,7 @@ func TestVersionDeactivate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 3",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				DeactivateVersionFn: deactivateVersionOK,
 			},
 			WantError: "service version 3 is not active",
@@ -205,7 +277,7 @@ func TestVersionDeactivate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				DeactivateVersionFn: deactivateVersionError,
 			},
 			WantError: testutil.Err.Error(),
@@ -219,21 +291,22 @@ func TestVersionLock(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--service-id 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				LockVersionFn:  lockVersionOK,
+				GetVersionFn:  testutil.GetVersion,
+				LockVersionFn: lockVersionOK,
 			},
 			WantOutput: "Locked service 123 version 1",
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				LockVersionFn:  lockVersionError,
+				GetVersionFn:  testutil.GetVersion,
+				LockVersionFn: lockVersionError,
 			},
 			WantError: testutil.Err.Error(),
 		},
@@ -246,28 +319,13 @@ func TestVersionStage(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--service-id 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error parsing arguments: required flag --version not provided",
-		},
-		{
-			Args: "--service-id 123 --version 1",
-			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
-				ActivateVersionFn: stageVersionOK,
-			},
-			WantError: "service version 1 is active",
-		},
-		{
-			Args: "--service-id 123 --version 2",
-			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
-				ActivateVersionFn: stageVersionOK,
-			},
-			WantError: "service version 2 is locked",
 		},
 		{
 			Args: "--service-id 123 --version 3",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ActivateVersionFn: stageVersionError,
 			},
 			WantError: testutil.Err.Error(),
@@ -275,7 +333,7 @@ func TestVersionStage(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 3",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ActivateVersionFn: stageVersionOK,
 			},
 			WantOutput: "Staged service 123 version 3",
@@ -283,7 +341,7 @@ func TestVersionStage(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 4",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ActivateVersionFn: stageVersionOK,
 			},
 			WantOutput: "Staged service 123 version 4",
@@ -297,12 +355,13 @@ func TestVersionUnstage(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      "--service-id 123",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				DeactivateVersionFn: unstageVersionOK,
 			},
 			WantError: "service version 1 is not staged",
@@ -310,7 +369,7 @@ func TestVersionUnstage(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 3",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				DeactivateVersionFn: unstageVersionError,
 			},
 			WantError: "service version 3 is not staged",
@@ -318,7 +377,7 @@ func TestVersionUnstage(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 4",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				DeactivateVersionFn: unstageVersionError,
 			},
 			WantError: testutil.Err.Error(),
@@ -326,7 +385,7 @@ func TestVersionUnstage(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 4",
 			API: &mock.API{
-				ListVersionsFn:      testutil.ListVersions,
+				GetVersionFn:        testutil.GetVersion,
 				DeactivateVersionFn: unstageVersionOK,
 			},
 			WantOutput: "Unstaged service 123 version 4",
@@ -355,10 +414,10 @@ var cloneServiceVersionJSONOutput = strings.TrimSpace(`
 
 var listVersionsShortOutput = strings.TrimSpace(`
 NUMBER  ACTIVE  STAGED  LAST EDITED (UTC)
-1       true    false   2000-01-01 01:00
-2       false   false   2000-01-02 01:00
-3       false   false   2000-01-03 01:00
 4       false   true    2000-01-04 01:00
+3       false   false   2000-01-03 01:00
+2       false   false   2000-01-02 01:00
+1       true    false   2000-01-01 01:00
 `) + "\n"
 
 var listVersionsVerboseOutput = strings.TrimSpace(`
@@ -369,24 +428,24 @@ Service ID (via --service-id): 123
 
 Versions: 4
 	Version 1/4
-		Number: 1
-		Service ID: 123
-		Active: true
-		Last edited (UTC): 2000-01-01 01:00
-	Version 2/4
-		Number: 2
-		Service ID: 123
-		Locked: true
-		Last edited (UTC): 2000-01-02 01:00
-	Version 3/4
-		Number: 3
-		Service ID: 123
-		Last edited (UTC): 2000-01-03 01:00
-	Version 4/4
 		Number: 4
 		Service ID: 123
 		Staged: true
 		Last edited (UTC): 2000-01-04 01:00
+	Version 2/4
+		Number: 3
+		Service ID: 123
+		Last edited (UTC): 2000-01-03 01:00
+	Version 3/4
+		Number: 2
+		Service ID: 123
+		Locked: true
+		Last edited (UTC): 2000-01-02 01:00
+	Version 4/4
+		Number: 1
+		Service ID: 123
+		Active: true
+		Last edited (UTC): 2000-01-01 01:00
 `) + "\n\n"
 
 func updateVersionOK(_ context.Context, i *fastly.UpdateVersionInput) (*fastly.Version, error) {
@@ -498,7 +557,7 @@ func TestVersionValidate(t *testing.T) {
 			Name: "validate successful - valid version without message",
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ValidateVersionFn: validateVersionValid(""),
 			},
 			WantOutput: "Service 123 version 1 is valid",
@@ -507,7 +566,7 @@ func TestVersionValidate(t *testing.T) {
 			Name: "validate successful - valid version with message",
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ValidateVersionFn: validateVersionValid("All checks passed"),
 			},
 			WantOutput: "Service 123 version 1 is valid: All checks passed",
@@ -516,7 +575,7 @@ func TestVersionValidate(t *testing.T) {
 			Name: "validate successful - invalid version without message",
 			Args: "--service-id 123 --version 2",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ValidateVersionFn: validateVersionInvalid(""),
 			},
 			WantOutput: "Service 123 version 2 is not valid",
@@ -525,7 +584,7 @@ func TestVersionValidate(t *testing.T) {
 			Name: "validate successful - invalid version with message",
 			Args: "--service-id 123 --version 2",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ValidateVersionFn: validateVersionInvalid("Missing required backend"),
 			},
 			WantOutput: "Service 123 version 2 is not valid: Missing required backend",
@@ -534,7 +593,7 @@ func TestVersionValidate(t *testing.T) {
 			Name: "validate with json output - valid version",
 			Args: "--service-id 123 --version 1 --json",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ValidateVersionFn: validateVersionValid("All checks passed"),
 			},
 			WantOutput: validateVersionValidJSONOutput,
@@ -543,7 +602,7 @@ func TestVersionValidate(t *testing.T) {
 			Name: "validate with json output - invalid version",
 			Args: "--service-id 123 --version 2 --json",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ValidateVersionFn: validateVersionInvalid("Missing required backend"),
 			},
 			WantOutput: validateVersionInvalidJSONOutput,
@@ -552,7 +611,7 @@ func TestVersionValidate(t *testing.T) {
 			Name: "validate error from API",
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn:    testutil.ListVersions,
+				GetVersionFn:      testutil.GetVersion,
 				ValidateVersionFn: validateVersionError,
 			},
 			WantError: testutil.Err.Error(),

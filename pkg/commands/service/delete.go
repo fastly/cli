@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
@@ -61,7 +61,7 @@ func (c *DeleteCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 
 	if c.force {
-		s, err := c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceInput{
+		s, err := c.Globals.APIClient.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{
 			ServiceID: serviceID,
 		})
 		if err != nil {

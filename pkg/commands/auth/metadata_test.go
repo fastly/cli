@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/config"
@@ -346,6 +346,48 @@ func TestAuthShow(t *testing.T) {
 			DontWantOutputs: []string{
 				"(default)",
 			},
+		},
+		{
+			Name: "show with unknown --profile rejected",
+			Args: "show --profile bogus",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "user",
+					Tokens: config.AuthTokens{
+						"user": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "t"},
+					},
+				},
+			},
+			WantError:       `profile "bogus"`,
+			WantRemediation: "fastly auth",
+		},
+		{
+			Name: "show with known --profile uses that profile",
+			Args: "show --profile alt",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "user",
+					Tokens: config.AuthTokens{
+						"user": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "t"},
+						"alt":  &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "alt-token", Email: "a@example.com"},
+					},
+				},
+			},
+			WantOutputs: []string{"Name: alt", "a@example.com"},
+		},
+		{
+			Name: "show with --token raw --profile bogus skips profile validation",
+			Args: "show --token raw --profile bogus",
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "user",
+					Tokens: config.AuthTokens{
+						"user": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "t"},
+					},
+				},
+			},
+			WantError:      "current token is not stored",
+			DontWantOutput: "not found in auth config",
 		},
 	}
 

@@ -47,7 +47,7 @@ GOLANGCI_LINT := $(BIN_DIR)/golangci-lint
 # EXAMPLE:
 # make release GORELEASER_ARGS="--clean --skip=post-hooks --skip=validate"
 release: $(GO_FILES) ## Build executables using goreleaser
-	$(GO_BIN) tool -modfile=tools.mod goreleaser build ${GORELEASER_ARGS}
+	$(GO_BIN) tool -modfile=tools/go.mod goreleaser build ${GORELEASER_ARGS}
 
 # Useful for attaching a debugger such as https://github.com/go-delve/delve
 debug:
@@ -121,7 +121,7 @@ scaffold-category:
 # e.g. make graph PKG_IMPORT_PATH=github.com/fastly/cli/pkg/commands/kvstoreentry
 .PHONY: graph
 graph: ## Graph generates a call graph that focuses on the specified package
-	$(GO_BIN) tool -modfile=tools.mod go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
+	$(GO_BIN) tool -modfile=tools/go.mod go-callvis -file "callvis" -focus "$(PKG_IMPORT_PATH)" ./cmd/fastly/
 	@rm callvis.gv
 
 .PHONY: deps-app-update

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/config"
@@ -335,6 +335,65 @@ func TestProfileToken(t *testing.T) {
 	longTTLExpireAt := now.Add(60 * time.Second)
 
 	scenarios := []testutil.CLIScenario{
+		{
+			Name: "validate deprecation warning appears by default",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+					},
+				},
+			},
+			WantOutputs: []string{"123"},
+		},
+		{
+			Name: "validate --quiet suppresses deprecation warning",
+			Args: "--quiet",
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+					},
+				},
+			},
+			WantOutput: "123",
+		},
 		{
 			Name: "validate the active profile non-SSO token is displayed by default",
 			Env: &testutil.EnvConfig{

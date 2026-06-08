@@ -131,6 +131,127 @@ func TestToken(t *testing.T) {
 			wantToken:  "",
 			wantSource: lookup.SourceUndefined,
 		},
+		{
+			name: "profile flag matches stored auth token",
+			data: &global.Data{
+				Flags: global.Flags{Profile: "alt"},
+				Config: config.File{
+					Auth: config.Auth{
+						Default: "user",
+						Tokens: config.AuthTokens{
+							"user": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "default-token"},
+							"alt":  &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "alt-token"},
+						},
+					},
+				},
+			},
+			wantToken:  "alt-token",
+			wantSource: lookup.SourceAuth,
+		},
+		{
+			name: "profile flag unknown does not fall back even when env/manifest/default exist",
+			data: &global.Data{
+				Flags: global.Flags{Profile: "missing"},
+				Env:   config.Environment{APIToken: "env-token"},
+				Manifest: &manifest.Data{
+					File: manifest.File{Profile: "proj"},
+				},
+				Config: config.File{
+					Auth: config.Auth{
+						Default: "user",
+						Tokens: config.AuthTokens{
+							"user": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "default-token"},
+							"proj": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "project-token"},
+						},
+					},
+				},
+			},
+			wantToken:  "",
+			wantSource: lookup.SourceUndefined,
+		},
+		{
+			name: "profile flag matches stored entry with empty token returns undefined",
+			data: &global.Data{
+				Flags: global.Flags{Profile: "blank"},
+				Config: config.File{
+					Auth: config.Auth{
+						Default: "user",
+						Tokens: config.AuthTokens{
+							"user":  &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "default-token"},
+							"blank": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: ""},
+						},
+					},
+				},
+			},
+			wantToken:  "",
+			wantSource: lookup.SourceUndefined,
+		},
+		{
+			name: "token flag raw value wins over profile flag",
+			data: &global.Data{
+				Flags: global.Flags{Token: "raw-xyz", Profile: "alt"},
+				Config: config.File{
+					Auth: config.Auth{
+						Tokens: config.AuthTokens{
+							"alt": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "alt-token"},
+						},
+					},
+				},
+			},
+			wantToken:  "raw-xyz",
+			wantSource: lookup.SourceFlag,
+		},
+		{
+			name: "token flag matching stored name wins over profile flag",
+			data: &global.Data{
+				Flags: global.Flags{Token: "primary", Profile: "alt"},
+				Config: config.File{
+					Auth: config.Auth{
+						Tokens: config.AuthTokens{
+							"primary": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "primary-token"},
+							"alt":     &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "alt-token"},
+						},
+					},
+				},
+			},
+			wantToken:  "primary-token",
+			wantSource: lookup.SourceAuth,
+		},
+		{
+			name: "profile flag wins over env var",
+			data: &global.Data{
+				Flags: global.Flags{Profile: "alt"},
+				Env:   config.Environment{APIToken: "env-token"},
+				Config: config.File{
+					Auth: config.Auth{
+						Tokens: config.AuthTokens{
+							"alt": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "alt-token"},
+						},
+					},
+				},
+			},
+			wantToken:  "alt-token",
+			wantSource: lookup.SourceAuth,
+		},
+		{
+			name: "profile flag wins over manifest profile",
+			data: &global.Data{
+				Flags: global.Flags{Profile: "alt"},
+				Manifest: &manifest.Data{
+					File: manifest.File{Profile: "proj"},
+				},
+				Config: config.File{
+					Auth: config.Auth{
+						Tokens: config.AuthTokens{
+							"alt":  &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "alt-token"},
+							"proj": &config.AuthToken{Type: config.AuthTokenTypeStatic, Token: "project-token"},
+						},
+					},
+				},
+			},
+			wantToken:  "alt-token",
+			wantSource: lookup.SourceAuth,
+		},
 	}
 
 	for _, tt := range tests {
@@ -228,6 +349,57 @@ func TestAuthTokenName(t *testing.T) {
 				},
 			},
 			wantName: "user",
+		},
+		{
+			name: "profile flag matches stored name with non-empty token",
+			data: &global.Data{
+				Flags: global.Flags{Profile: "alt"},
+				Config: config.File{
+					Auth: config.Auth{
+						Default: "user",
+						Tokens: config.AuthTokens{
+							"user": &config.AuthToken{Token: "t"},
+							"alt":  &config.AuthToken{Token: "alt-token"},
+						},
+					},
+				},
+			},
+			wantName: "alt",
+		},
+		{
+			name: "profile flag matches stored entry with empty token returns empty",
+			data: &global.Data{
+				Flags: global.Flags{Profile: "blank"},
+				Config: config.File{
+					Auth: config.Auth{
+						Default: "user",
+						Tokens: config.AuthTokens{
+							"user":  &config.AuthToken{Token: "t"},
+							"blank": &config.AuthToken{Token: ""},
+						},
+					},
+				},
+			},
+			wantName: "",
+		},
+		{
+			name: "profile flag unknown returns empty without falling through",
+			data: &global.Data{
+				Flags: global.Flags{Profile: "missing"},
+				Manifest: &manifest.Data{
+					File: manifest.File{Profile: "proj"},
+				},
+				Config: config.File{
+					Auth: config.Auth{
+						Default: "user",
+						Tokens: config.AuthTokens{
+							"user": &config.AuthToken{Token: "t"},
+							"proj": &config.AuthToken{Token: "t2"},
+						},
+					},
+				},
+			},
+			wantName: "",
 		},
 	}
 

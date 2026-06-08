@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	parent "github.com/fastly/cli/pkg/commands/service/logging"
@@ -20,7 +20,7 @@ func TestSplunkCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSplunkFn: createSplunkOK,
 			},
@@ -29,7 +29,7 @@ func TestSplunkCreate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name log --url example.com --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				CreateSplunkFn: createSplunkError,
 			},
@@ -44,32 +44,32 @@ func TestSplunkList(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSplunksFn:  listSplunksOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListSplunksFn: listSplunksOK,
 			},
 			WantOutput: listSplunksShortOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 --verbose",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSplunksFn:  listSplunksOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListSplunksFn: listSplunksOK,
 			},
 			WantOutput: listSplunksVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1 -v",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSplunksFn:  listSplunksOK,
+				GetVersionFn:  testutil.GetVersion,
+				ListSplunksFn: listSplunksOK,
 			},
 			WantOutput: listSplunksVerboseOutput,
 		},
 		{
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				ListSplunksFn:  listSplunksError,
+				GetVersionFn:  testutil.GetVersion,
+				ListSplunksFn: listSplunksError,
 			},
 			WantError: errTest.Error(),
 		},
@@ -86,16 +86,16 @@ func TestSplunkDescribe(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSplunkFn:    getSplunkError,
+				GetVersionFn: testutil.GetVersion,
+				GetSplunkFn:  getSplunkError,
 			},
 			WantError: errTest.Error(),
 		},
 		{
 			Args: "--service-id 123 --version 1 --name logs",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
-				GetSplunkFn:    getSplunkOK,
+				GetVersionFn: testutil.GetVersion,
+				GetSplunkFn:  getSplunkOK,
 			},
 			WantOutput: describeSplunkOutput,
 		},
@@ -112,7 +112,7 @@ func TestSplunkUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSplunkFn: updateSplunkError,
 			},
@@ -121,7 +121,7 @@ func TestSplunkUpdate(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --new-name log --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				UpdateSplunkFn: updateSplunkOK,
 			},
@@ -140,7 +140,7 @@ func TestSplunkDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSplunkFn: deleteSplunkError,
 			},
@@ -149,7 +149,7 @@ func TestSplunkDelete(t *testing.T) {
 		{
 			Args: "--service-id 123 --version 1 --name logs --autoclone",
 			API: &mock.API{
-				ListVersionsFn: testutil.ListVersions,
+				GetVersionFn:   testutil.GetVersion,
 				CloneVersionFn: testutil.CloneVersionResult(4),
 				DeleteSplunkFn: deleteSplunkOK,
 			},

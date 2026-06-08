@@ -10,10 +10,24 @@ updates:
       go-dependencies:
         patterns:
           - "*"
+  - package-ecosystem: "gomod"
+    directory: "/tools"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    labels:
+      - "tools"
+    groups:
+      go-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "github_actions"
     groups:
       gha-dependencies:
         patterns:
