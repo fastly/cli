@@ -163,7 +163,7 @@
 - feat(compute/build): Block version 1.93.0 of Rust to avoid a wasm32-wasip2 bug. ([#1653](https://github.com/fastly/cli/pull/1653))
 - feat(service/vcl): escape control characters when displaying VCL content for cleaner terminal output ([#1637](https://github.com/fastly/cli/pull/1637))
 
-- feat(compute/deploy): Apply \[setup.products] for enabling products during initial deploy ([#1617](https://github.com/fastly/cli/pull/1617))
+- feat(compute/deploy): Apply \[setup.products] for enabling products during initial deploy or publish ([#1617](https://github.com/fastly/cli/pull/1617))
 
 ### Dependencies:
 
