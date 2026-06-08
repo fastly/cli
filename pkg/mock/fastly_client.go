@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/fastly/go-fastly/v13/fastly"
+	"github.com/fastly/go-fastly/v15/fastly"
 )
 
 func NewFastlyClient(httpClient *HTTPClient) (*fastly.Client, error) {
