@@ -140,3 +140,10 @@ type SetupProductNGWAF struct {
 }
 
 var _ SetupProductSettings = (*SetupProductNGWAF)(nil)
+
+type SetupProductDdosProtection struct {
+	SetupProduct
+	Mode string `toml:"mode,omitempty"`
+}
+
+var _ SetupProductSettings = (*SetupProductDdosProtection)(nil)

@@ -92,6 +92,18 @@ func NewProductNGWAF(workspaceID string) *ProductNGWAF {
 	}
 }
 
+type ProductDdosProtection struct {
+	Product
+	Mode string
+}
+
+func NewProductDdosProtection(mode string) *ProductDdosProtection {
+	return &ProductDdosProtection{
+		Product: *NewProductEnabled(),
+		Mode:    mode,
+	}
+}
+
 var _ ProductSettings = (*ProductNGWAF)(nil)
 
 type productsSpec struct {
@@ -167,15 +179,27 @@ func init() {
 			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
 				return setupProducts.DdosProtection
 			},
-			configure: func(_ io.Writer, p *ProductsMap, _ manifest.SetupProductSettings) error {
-				p.DdosProtection = NewProductEnabled()
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				ddosProtectionSetupProduct, ok := sp.(*manifest.SetupProductDdosProtection)
+				if !ok {
+					return fmt.Errorf("unexpected: Incorrect type for setupProduct")
+				}
+				if strings.TrimSpace(ddosProtectionSetupProduct.Mode) == "" {
+					return fmt.Errorf("mode is required")
+				}
+				text.Output(w, "  mode: %s", ddosProtectionSetupProduct.Mode)
+				p.DdosProtection = NewProductDdosProtection(ddosProtectionSetupProduct.Mode)
 				return nil
 			},
 			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
 				return products.DdosProtection
 			},
-			enable: func(fc *fastly.Client, _ ProductSettings, serviceID string) error {
-				_, err := ddosprotection.Enable(context.TODO(), fc, serviceID)
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				ddosProtectionProduct, ok := product.(*ProductDdosProtection)
+				if !ok {
+					return fmt.Errorf("unexpected: Incorrect type for product")
+				}
+				_, err := ddosprotection.Enable(context.TODO(), fc, serviceID, ddosprotection.EnableInput{Mode: ddosProtectionProduct.Mode})
 				return err
 			},
 		},
