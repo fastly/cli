@@ -275,9 +275,7 @@ func (s *Server) ValidateAndRetrieveAPIToken(accessToken string) (string, *APITo
 		return "", nil, errors.New("failed to extract azp from JWT claims")
 	}
 	if azp != ClientID {
-		if !ok {
-			return "", nil, fmt.Errorf("failed to match expected azp: %s", azp)
-		}
+		return "", nil, fmt.Errorf("failed to match expected azp: %s", azp)
 	}
 
 	aud, ok := claims["aud"]
@@ -286,9 +284,7 @@ func (s *Server) ValidateAndRetrieveAPIToken(accessToken string) (string, *APITo
 	}
 
 	if aud != s.APIEndpoint {
-		if !ok {
-			return "", nil, fmt.Errorf("failed to match expected aud: %s", s.APIEndpoint)
-		}
+		return "", nil, fmt.Errorf("failed to match expected aud: %s", s.APIEndpoint)
 	}
 
 	email, ok := claims["email"]
