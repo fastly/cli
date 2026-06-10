@@ -78,5 +78,11 @@ env = "ENV_FOURTH"
 
 [setup]
 [setup.products]
+[setup.products.ddos_protection]
+enable = true
+mode = "log"
 [setup.products.fanout]
 enable = true
+[setup.products.ngwaf]
+enable = true
+workspace_id = "7JFbo4RNA0OKdFWC04r6B3"
