@@ -93,24 +93,24 @@ type SetupSecretStoreEntry struct {
 }
 
 type SetupProducts struct {
-	APIDiscovery        *SetupProduct      `toml:"api_discovery,omitempty"`
-	BotManagement       *SetupProduct      `toml:"bot_management,omitempty"`
-	BrotliCompression   *SetupProduct      `toml:"brotli_compression,omitempty"`
-	DdosProtection      *SetupProductDdosProtection      `toml:"ddos_protection,omitempty"`
-	DomainInspector     *SetupProduct      `toml:"domain_inspector,omitempty"`
-	Fanout              *SetupProduct      `toml:"fanout,omitempty"`
-	ImageOptimizer      *SetupProduct      `toml:"image_optimizer,omitempty"`
-	LogExplorerInsights *SetupProduct      `toml:"log_explorer_insights,omitempty"`
-	NGWAF               *SetupProductNGWAF `toml:"ngwaf,omitempty"`
-	OriginInspector     *SetupProduct      `toml:"origin_inspector,omitempty"`
-	WebSockets          *SetupProduct      `toml:"websockets,omitempty"`
+	APIDiscovery        *SetupProduct               `toml:"api_discovery,omitempty"`
+	BotManagement       *SetupProduct               `toml:"bot_management,omitempty"`
+	BrotliCompression   *SetupProduct               `toml:"brotli_compression,omitempty"`
+	DDoSProtection      *SetupProductDDoSProtection `toml:"ddos_protection,omitempty"`
+	DomainInspector     *SetupProduct               `toml:"domain_inspector,omitempty"`
+	Fanout              *SetupProduct               `toml:"fanout,omitempty"`
+	ImageOptimizer      *SetupProduct               `toml:"image_optimizer,omitempty"`
+	LogExplorerInsights *SetupProduct               `toml:"log_explorer_insights,omitempty"`
+	NGWAF               *SetupProductNGWAF          `toml:"ngwaf,omitempty"`
+	OriginInspector     *SetupProduct               `toml:"origin_inspector,omitempty"`
+	WebSockets          *SetupProduct               `toml:"websockets,omitempty"`
 }
 
 func (p *SetupProducts) AnyDefined() bool {
 	return p != nil && (p.APIDiscovery != nil ||
 		p.BotManagement != nil ||
 		p.BrotliCompression != nil ||
-		p.DdosProtection != nil ||
+		p.DDoSProtection != nil ||
 		p.DomainInspector != nil ||
 		p.Fanout != nil ||
 		p.ImageOptimizer != nil ||
@@ -141,9 +141,9 @@ type SetupProductNGWAF struct {
 
 var _ SetupProductSettings = (*SetupProductNGWAF)(nil)
 
-type SetupProductDdosProtection struct {
+type SetupProductDDoSProtection struct {
 	SetupProduct
 	Mode string `toml:"mode,omitempty"`
 }
 
-var _ SetupProductSettings = (*SetupProductDdosProtection)(nil)
+var _ SetupProductSettings = (*SetupProductDDoSProtection)(nil)

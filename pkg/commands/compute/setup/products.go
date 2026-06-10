@@ -52,7 +52,7 @@ type ProductsMap struct {
 	APIDiscovery        ProductSettings
 	BotManagement       ProductSettings
 	BrotliCompression   ProductSettings
-	DdosProtection      ProductSettings
+	DDoSProtection      ProductSettings
 	DomainInspector     ProductSettings
 	Fanout              ProductSettings
 	ImageOptimizer      ProductSettings
@@ -92,19 +92,21 @@ func NewProductNGWAF(workspaceID string) *ProductNGWAF {
 	}
 }
 
-type ProductDdosProtection struct {
+var _ ProductSettings = (*ProductNGWAF)(nil)
+
+type ProductDDoSProtection struct {
 	Product
 	Mode string
 }
 
-func NewProductDdosProtection(mode string) *ProductDdosProtection {
-	return &ProductDdosProtection{
+func NewProductDDoSProtection(mode string) *ProductDDoSProtection {
+	return &ProductDDoSProtection{
 		Product: *NewProductEnabled(),
 		Mode:    mode,
 	}
 }
 
-var _ ProductSettings = (*ProductNGWAF)(nil)
+var _ ProductSettings = (*ProductDDoSProtection)(nil)
 
 type productsSpec struct {
 	id                   string
@@ -177,10 +179,10 @@ func init() {
 			id:   ddosprotection.ProductID,
 			name: ddosprotection.ProductName,
 			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
-				return setupProducts.DdosProtection
+				return setupProducts.DDoSProtection
 			},
 			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
-				ddosProtectionSetupProduct, ok := sp.(*manifest.SetupProductDdosProtection)
+				ddosProtectionSetupProduct, ok := sp.(*manifest.SetupProductDDoSProtection)
 				if !ok {
 					return fmt.Errorf("unexpected: Incorrect type for setupProduct")
 				}
@@ -188,14 +190,14 @@ func init() {
 					return fmt.Errorf("mode is required")
 				}
 				text.Output(w, "  mode: %s", ddosProtectionSetupProduct.Mode)
-				p.DdosProtection = NewProductDdosProtection(ddosProtectionSetupProduct.Mode)
+				p.DDoSProtection = NewProductDDoSProtection(ddosProtectionSetupProduct.Mode)
 				return nil
 			},
 			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
-				return products.DdosProtection
+				return products.DDoSProtection
 			},
 			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
-				ddosProtectionProduct, ok := product.(*ProductDdosProtection)
+				ddosProtectionProduct, ok := product.(*ProductDDoSProtection)
 				if !ok {
 					return fmt.Errorf("unexpected: Incorrect type for product")
 				}
