@@ -58,6 +58,37 @@ func (c *HTTPClient) Do(r *http.Request) (*http.Response, error) {
 	return c.Responses[c.Index], c.Errors[c.Index]
 }
 
+// NewHTTPClient returns a mock HTTP Client that returns stubbed responses and errors.
+func NewHTTPClient(res []*http.Response, err []error, saveRequests bool) *HTTPClient {
+	if len(res) != len(err) {
+		panic("mock.HTTPClient: Responses and Errors length mismatch")
+	}
+	return &HTTPClient{
+		Index:        -1,
+		Responses:    res,
+		Errors:       err,
+		SaveRequests: saveRequests,
+	}
+}
+
+// NewHTTPClientDefault returns a mock HTTP Client that returns stubbed responses and
+// errors, and saves requests.
+func NewHTTPClientDefault(res []*http.Response, err []error) *HTTPClient {
+	return NewHTTPClient(res, err, true)
+}
+
+// NewHTTPClientWithResponses returns a mock HTTP Client that returns stubbed response and
+// no errors, and saves requests.
+func NewHTTPClientWithResponses(res []*http.Response) *HTTPClient {
+	return NewHTTPClientDefault(res, make([]error, len(res)))
+}
+
+// NewHTTPClientWithErrors returns a mock HTTP Client that returns errors with no responses,
+// and saves requests.
+func NewHTTPClientWithErrors(err []error) *HTTPClient {
+	return NewHTTPClientDefault(make([]*http.Response, len(err)), err)
+}
+
 // HTMLClient returns a mock HTTP Client that returns a stubbed response or
 // error.
 func HTMLClient(res []*http.Response, err []error) api.HTTPClient {
@@ -84,4 +115,11 @@ func NewHTTPResponse(statusCode int, headers map[string]string, body io.ReadClos
 		Body:       body,
 		Header:     h,
 	}
+}
+
+func NewNetHTTPClientWithMockHTTPClient(httpClient *HTTPClient) *http.Client {
+	netHTTPClient := &http.Client{
+		Transport: NewRoundTripper(httpClient),
+	}
+	return netHTTPClient
 }
