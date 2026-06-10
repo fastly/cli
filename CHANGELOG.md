@@ -30,6 +30,13 @@
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.23 to 0.0.24 ([#1813](https://github.com/fastly/cli/pull/1813))
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.26 to 4.1.27 ([#1813](https://github.com/fastly/cli/pull/1813))
 - build(deps): `github.com/fastly/go-fastly/v15` from 15.0.1 to 15.0.2 ([#1813](https://github.com/fastly/cli/pull/1813))
+- build(deps): `golang.org/x/sys` from 0.45.0 to 0.46.0 ([#1819](https://github.com/fastly/cli/pull/1819))
+- build(deps): `golang.org/x/term` from 0.43.0 to 0.44.0 ([#1819](https://github.com/fastly/cli/pull/1819))
+- build(deps): `golang.org/x/crypto` from 0.52.0 to 0.53.0 ([#1819](https://github.com/fastly/cli/pull/1819))
+- build(deps): `golang.org/x/mod` from 0.36.0 to 0.37.0 ([#1819](https://github.com/fastly/cli/pull/1819))
+- build(deps): `golang.org/x/sync` from 0.20.0 to 0.21.0 ([#1819](https://github.com/fastly/cli/pull/1819))
+- build(deps): `golang.org/x/text` from 0.37.0 to 0.38.0 ([#1819](https://github.com/fastly/cli/pull/1819))
+- build(deps): `github.com/fastly/go-fastly/v15` from 15.0.2 to 15.0.3 ([#1819](https://github.com/fastly/cli/pull/1819))
 
 ## [v15.1.0](https://github.com/fastly/cli/releases/tag/v15.1.0) (2026-05-13)
 
