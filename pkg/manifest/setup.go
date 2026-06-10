@@ -96,7 +96,7 @@ type SetupProducts struct {
 	APIDiscovery        *SetupProduct      `toml:"api_discovery,omitempty"`
 	BotManagement       *SetupProduct      `toml:"bot_management,omitempty"`
 	BrotliCompression   *SetupProduct      `toml:"brotli_compression,omitempty"`
-	DdosProtection      *SetupProduct      `toml:"ddos_protection,omitempty"`
+	DdosProtection      *SetupProductDdosProtection      `toml:"ddos_protection,omitempty"`
 	DomainInspector     *SetupProduct      `toml:"domain_inspector,omitempty"`
 	Fanout              *SetupProduct      `toml:"fanout,omitempty"`
 	ImageOptimizer      *SetupProduct      `toml:"image_optimizer,omitempty"`
