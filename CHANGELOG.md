@@ -22,6 +22,7 @@
 
 - feat(dns): add support for DNS Zones and TSIG Keys ([#1809](https://github.com/fastly/cli/pull/1809))
 - fix(compute/init): Add starter kits for C++ language [#1807](https://github.com/fastly/cli/pull/1807)
+- feat(compute/init): add support for Python language [#1811](https://github.com/fastly/cli/pull/1811)
 
 ### Dependencies:
 
