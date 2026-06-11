@@ -10,6 +10,7 @@ import (
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/embedded/viceroy"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
@@ -71,11 +72,18 @@ func TestGetViceroy(t *testing.T) {
 
 	var out bytes.Buffer
 
+	// Pin a version that cannot match the embedded one so this test always
+	// exercises the download path, regardless of whether the binary was
+	// built with the viceroy_embed tag.
 	av := mock.AssetVersioner{
 		AssetVersion:   "1.2.3",
 		BinaryFilename: viceroyBinName,
 		DownloadOK:     true,
 		DownloadedFile: binPath,
+		Requested:      "0.0.0-test",
+	}
+	if av.Requested == viceroy.Version() {
+		t.Fatalf("test sentinel version %q collides with embedded version", av.Requested)
 	}
 
 	var file config.File
