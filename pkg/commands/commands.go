@@ -80,6 +80,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/ngwaf/rule"
 	"github.com/fastly/cli/pkg/commands/ngwaf/signallist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/stringlist"
+	"github.com/fastly/cli/pkg/commands/ngwaf/timeseries"
 	"github.com/fastly/cli/pkg/commands/ngwaf/wildcardlist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert"
@@ -93,6 +94,7 @@ import (
 	workspaceAlertWebhook "github.com/fastly/cli/pkg/commands/ngwaf/workspace/alert/webhook"
 	wscountrylist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/countrylist"
 	wscustomsignal "github.com/fastly/cli/pkg/commands/ngwaf/workspace/customsignal"
+	wstimeseries "github.com/fastly/cli/pkg/commands/ngwaf/workspace/timeseries"
 	wsiplist "github.com/fastly/cli/pkg/commands/ngwaf/workspace/iplist"
 	"github.com/fastly/cli/pkg/commands/ngwaf/workspace/redaction"
 	workspaceRule "github.com/fastly/cli/pkg/commands/ngwaf/workspace/rule"
@@ -367,6 +369,8 @@ func Define( // nolint:revive // function-length
 	ngwafStringListGet := stringlist.NewGetCommand(ngwafStringListRoot.CmdClause, data)
 	ngwafStringListList := stringlist.NewListCommand(ngwafStringListRoot.CmdClause, data)
 	ngwafStringListUpdate := stringlist.NewUpdateCommand(ngwafStringListRoot.CmdClause, data)
+	ngwafTimeseriesRoot := timeseries.NewRootCommand(ngwafRoot.CmdClause, data)
+	ngwafTimeseriesList := timeseries.NewListCommand(ngwafTimeseriesRoot.CmdClause, data)
 	ngwafWildcardListRoot := wildcardlist.NewRootCommand(ngwafRoot.CmdClause, data)
 	ngwafWildcardListCreate := wildcardlist.NewCreateCommand(ngwafWildcardListRoot.CmdClause, data)
 	ngwafWildcardListDelete := wildcardlist.NewDeleteCommand(ngwafWildcardListRoot.CmdClause, data)
@@ -379,6 +383,8 @@ func Define( // nolint:revive // function-length
 	ngwafWorkspaceCountryListGet := wscountrylist.NewGetCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
 	ngwafWorkspaceCountryListList := wscountrylist.NewListCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
 	ngwafWorkspaceCountryListUpdate := wscountrylist.NewUpdateCommand(ngwafWorkspaceCountryListRoot.CmdClause, data)
+	ngwafWorkspaceTimeseriesRoot := wstimeseries.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
+	ngwafWorkspaceTimeseriesGet := wstimeseries.NewGetCommand(ngwafWorkspaceTimeseriesRoot.CmdClause, data)
 	ngwafWorkspaceCustomSignalRoot := wscustomsignal.NewRootCommand(ngwafWorkspaceRoot.CmdClause, data)
 	ngwafWorkspaceCustomSignalCreate := wscustomsignal.NewCreateCommand(ngwafWorkspaceCustomSignalRoot.CmdClause, data)
 	ngwafWorkspaceCustomSignalDelete := wscustomsignal.NewDeleteCommand(ngwafWorkspaceCustomSignalRoot.CmdClause, data)
@@ -1410,6 +1416,8 @@ func Define( // nolint:revive // function-length
 		ngwafStringListGet,
 		ngwafStringListList,
 		ngwafStringListUpdate,
+		ngwafTimeseriesRoot,
+		ngwafTimeseriesList,
 		ngwafWildcardListCreate,
 		ngwafWildcardListDelete,
 		ngwafWildcardListGet,
@@ -1421,6 +1429,8 @@ func Define( // nolint:revive // function-length
 		ngwafWorkspaceCountryListGet,
 		ngwafWorkspaceCountryListList,
 		ngwafWorkspaceCountryListUpdate,
+		ngwafWorkspaceTimeseriesRoot,
+		ngwafWorkspaceTimeseriesGet,
 		ngwafWorkspaceCustomSignalRoot,
 		ngwafWorkspaceCustomSignalCreate,
 		ngwafWorkspaceCustomSignalDelete,
