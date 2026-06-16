@@ -8,6 +8,8 @@
 
 ### Enhancements:
 
+- feat(kvstoreentry/delete): Add support for multiple-key deletion using a key prefix. ([#XXX](https://github.com/fastly/cli/pull/XXX))
+
 ### Dependencies:
 
 ## [v15.2.0](https://github.com/fastly/cli/releases/tag/v15.2.0) (2026-06-10)

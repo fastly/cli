@@ -203,15 +203,27 @@ func TestDeleteCommand(t *testing.T) {
 		},
 		{
 			Args:      "--store-id " + storeID,
-			WantError: "invalid command, neither --all or --key provided",
+			WantError: "invalid command, none of --all, --prefix, or --key provided",
 		},
 		{
 			Args:      "--json --all --store-id " + storeID,
-			WantError: "invalid flag combination, --all and --json",
+			WantError: "invalid flag combination, --all/--prefix and --json",
 		},
 		{
-			Args:      "--key a-key --all --store-id " + storeID,
-			WantError: "invalid flag combination, --all and --key",
+			Args:      "--json --prefix a-prefix --store-id " + storeID,
+			WantError: "invalid flag combination, --all/--prefix and --json",
+		},
+		{
+			Args:      "--all --key a-key --store-id " + storeID,
+			WantError: "invalid flag combination, more than one of --all, --prefix, or --key specified",
+		},
+		{
+			Args:      "--key a-key --prefix a-prefix --store-id " + storeID,
+			WantError: "invalid flag combination, more than one of --all, --prefix, or --key specified",
+		},
+		{
+			Args:      "--all --prefix a-prefix --store-id " + storeID,
+			WantError: "invalid flag combination, more than one of --all, --prefix, or --key specified",
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --key %s", storeID, itemKey),
@@ -290,6 +302,38 @@ func TestDeleteCommand(t *testing.T) {
 		},
 		{
 			Args: fmt.Sprintf("--store-id %s --all --auto-yes", storeID),
+			API: &mock.API{
+				NewListKVStoreKeysPaginatorFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
+					return &mockKVStoresEntriesPaginator{
+						next: true,
+						keys: []string{"foo", "bar", "baz"},
+					}
+				},
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
+					return errors.New("whoops")
+				},
+			},
+			WantError: "failed to delete 3 keys",
+		},
+		{
+			// there is no way to mock the effect of the --prefix flag
+			Args: fmt.Sprintf("--store-id %s --prefix a-prefix --auto-yes", storeID),
+			API: &mock.API{
+				NewListKVStoreKeysPaginatorFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
+					return &mockKVStoresEntriesPaginator{
+						next: true,
+						keys: []string{"foo", "bar", "baz"},
+					}
+				},
+				DeleteKVStoreKeyFn: func(_ context.Context, _ *fastly.DeleteKVStoreKeyInput) error {
+					return nil
+				},
+			},
+			WantOutput: "Deleting keys...",
+		},
+		{
+			// there is no way to mock the effect of the --prefix flag
+			Args: fmt.Sprintf("--store-id %s --prefix a-prefix --auto-yes", storeID),
 			API: &mock.API{
 				NewListKVStoreKeysPaginatorFn: func(_ context.Context, _ *fastly.ListKVStoreKeysInput) fastly.PaginatorKVStoreEntries {
 					return &mockKVStoresEntriesPaginator{
