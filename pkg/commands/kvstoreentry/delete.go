@@ -28,7 +28,8 @@ const DeleteKeysMaxErrors int = 100
 type DeleteCommand struct {
 	argparser.Base
 	argparser.JSONOutput
-	key argparser.OptionalString
+	key    argparser.OptionalString
+	prefix argparser.OptionalString
 
 	// NOTE: Public fields can be set via `kv-store delete`.
 	DeleteAll         bool
@@ -46,7 +47,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("delete", "Delete a key")
+	c.CmdClause = parent.Command("delete", "Delete one, multiple, or all keys")
 
 	// Required.
 	c.CmdClause.Flag("store-id", "Store ID").Short('s').Required().StringVar(&c.StoreID)
@@ -58,6 +59,7 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for a delete operation to proceed").StringVar(&c.IfGenerationMatch)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').Action(c.key.Set).StringVar(&c.key.Value)
+	c.CmdClause.Flag("prefix", "Delete items whose keys match this prefix").Action(c.prefix.Set).StringVar(&c.prefix.Value)
 	c.CmdClause.Flag("max-errors", "The number of errors to accept before stopping (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysMaxErrors)).Short('m').IntVar(&c.MaxErrors)
 
 	return &c
@@ -69,14 +71,20 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 	// TODO: Support --json for bulk deletions.
-	if c.DeleteAll && c.JSONOutput.Enabled {
-		return fsterr.ErrInvalidDeleteAllJSONKeyCombo
+	if (c.DeleteAll || c.prefix.WasSet) && c.JSONOutput.Enabled {
+		return fsterr.ErrInvalidDeleteMultipleJSONKeyCombo
 	}
 	if c.DeleteAll && c.key.WasSet {
-		return fsterr.ErrInvalidDeleteAllKeyCombo
+		return fsterr.ErrInvalidDeleteMultipleKeyCombo
 	}
-	if !c.DeleteAll && !c.key.WasSet {
-		return fsterr.ErrMissingDeleteAllKeyCombo
+	if c.DeleteAll && c.prefix.WasSet {
+		return fsterr.ErrInvalidDeleteMultipleKeyCombo
+	}
+	if c.prefix.WasSet && c.key.WasSet {
+		return fsterr.ErrInvalidDeleteMultipleKeyCombo
+	}
+	if !c.DeleteAll && !c.prefix.WasSet && !c.key.WasSet {
+		return fsterr.ErrMissingDeleteMultipleKeyCombo
 	}
 
 	if c.DeleteAll {
@@ -91,7 +99,22 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			}
 			text.Break(out)
 		}
-		return c.DeleteAllKeys(out)
+		return c.DeleteMultipleKeys(out, "")
+	}
+
+	if c.prefix.WasSet {
+		if !c.Globals.Flags.AutoYes && !c.Globals.Flags.NonInteractive {
+			text.Warning(out, "This may delete MANY entries from your store!\n\n")
+			cont, err := text.AskYesNo(out, "Are you sure you want to continue? [y/N]: ", in)
+			if err != nil {
+				return err
+			}
+			if !cont {
+				return nil
+			}
+			text.Break(out)
+		}
+		return c.DeleteMultipleKeys(out, c.prefix.Value)
 	}
 
 	input := fastly.DeleteKVStoreKeyInput{
@@ -133,9 +156,9 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 	return nil
 }
 
-// DeleteAllKeys deletes all keys within the specified KV Store.
+// DeleteMultipleKeys deletes multiple keys from the specified KV Store.
 // NOTE: It's a public method as it can be called via `kv-store delete --all`.
-func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
+func (c *DeleteCommand) DeleteMultipleKeys(out io.Writer, prefix string) error {
 	spinnerMessage := "Deleting keys"
 	var spinner text.Spinner
 
@@ -152,6 +175,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 
 	p := c.Globals.APIClient.NewListKVStoreKeysPaginator(context.TODO(), &fastly.ListKVStoreKeysInput{
 		StoreID: c.StoreID,
+		Prefix:  prefix,
 	})
 
 	errorsCh := make(chan string, c.MaxErrors)

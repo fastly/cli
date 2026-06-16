@@ -73,7 +73,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			PoolSize:  c.poolSize,
 			StoreID:   c.Input.StoreID,
 		}
-		if err := dc.DeleteAllKeys(out); err != nil {
+		if err := dc.DeleteMultipleKeys(out, ""); err != nil {
 			return err
 		}
 		text.Break(out)
