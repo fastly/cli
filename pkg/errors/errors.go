@@ -163,6 +163,29 @@ var ErrMissingDeleteAllKeyCombo = RemediationError{
 	Remediation: "Provide at least one of: --all or --key, not both.",
 }
 
+// ErrInvalidDeleteMultipleJSONKeyCombo means the user requested
+// multiple-key delete and provided the --json flag which are mutually
+// exclusive behaviours.
+var ErrInvalidDeleteMultipleJSONKeyCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid flag combination, --all/--prefix and --json"),
+	Remediation: "Use either --all/--prefix or --json, not both.",
+}
+
+// ErrInvalidDeleteMultipleKeyCombo means the user more than one of
+// the --all, --prefix, and --key flags which are mutually exclusive
+// behaviours.
+var ErrInvalidDeleteMultipleKeyCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid flag combination, more than one of --all, --prefix, or --key specified"),
+	Remediation: "Use --all, --prefix, or --key, not more than one.",
+}
+
+// ErrMissingDeleteMultipleKeyCombo means the user omitted all of the
+// --all, --prefix, and --key flags and we need one of them.
+var ErrMissingDeleteMultipleKeyCombo = RemediationError{
+	Inner:       fmt.Errorf("invalid command, none of --all, --prefix, or --key provided"),
+	Remediation: "Provide one of --all, --prefix, or --key.",
+}
+
 // ErrNoSTDINData indicates the --stdin flag was specified but no data was piped
 // into stdin.
 var ErrNoSTDINData = RemediationError{
