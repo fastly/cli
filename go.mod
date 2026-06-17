@@ -49,7 +49,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mikelolasagasti/xz v1.0.1 // indirect
 	github.com/minio/minlz v1.1.1 // indirect
-	github.com/nwaples/rardecode/v2 v2.2.3 // indirect
+	github.com/nwaples/rardecode/v2 v2.2.5 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
@@ -79,7 +79,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
-	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/text v0.38.0
