@@ -247,6 +247,10 @@ func (c *DeleteCommand) DeleteMultipleKeys(out io.Writer, prefix string) error {
 		return fmt.Errorf("failed to stop spinner: %w", err)
 	}
 
-	text.Success(out, "\nDeleted all keys from KV Store '%s'", c.StoreID)
+	if prefix == "" {
+		text.Success(out, "\nDeleted all keys from KV Store '%s'", c.StoreID)
+	} else {
+		text.Success(out, "\nDeleted %s keys from KV Store '%s'", strconv.FormatUint(deleteCount.Load(), 10), c.StoreID)
+	}
 	return nil
 }
