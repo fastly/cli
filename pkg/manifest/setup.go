@@ -94,7 +94,7 @@ type SetupSecretStoreEntry struct {
 
 type SetupProducts struct {
 	APIDiscovery        *SetupProduct               `toml:"api_discovery,omitempty"`
-	BotManagement       *SetupProduct               `toml:"bot_management,omitempty"`
+	BotManagement       *SetupProductBotManagement  `toml:"bot_management,omitempty"`
 	BrotliCompression   *SetupProduct               `toml:"brotli_compression,omitempty"`
 	DDoSProtection      *SetupProductDDoSProtection `toml:"ddos_protection,omitempty"`
 	DomainInspector     *SetupProduct               `toml:"domain_inspector,omitempty"`
@@ -134,12 +134,12 @@ func (p *SetupProduct) Enabled() bool {
 	return p != nil && p.Enable
 }
 
-type SetupProductNGWAF struct {
+type SetupProductBotManagement struct {
 	SetupProduct
-	WorkspaceID string `toml:"workspace_id,omitempty"`
+	ContentGuard string `toml:"contentguard,omitempty"`
 }
 
-var _ SetupProductSettings = (*SetupProductNGWAF)(nil)
+var _ SetupProductSettings = (*SetupProductBotManagement)(nil)
 
 type SetupProductDDoSProtection struct {
 	SetupProduct
@@ -147,3 +147,10 @@ type SetupProductDDoSProtection struct {
 }
 
 var _ SetupProductSettings = (*SetupProductDDoSProtection)(nil)
+
+type SetupProductNGWAF struct {
+	SetupProduct
+	WorkspaceID string `toml:"workspace_id,omitempty"`
+}
+
+var _ SetupProductSettings = (*SetupProductNGWAF)(nil)
