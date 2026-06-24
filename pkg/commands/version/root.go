@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/embedded/viceroy"
 	"github.com/fastly/cli/pkg/github"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/revision"
@@ -39,7 +40,12 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	fmt.Fprintf(out, "Fastly CLI version %s (%s)\n", revision.AppVersion, revision.GitCommit)
 	fmt.Fprintf(out, "Built with %s (%s)\n", revision.GoVersion, Now().Format("2006-01-02"))
 
-	viceroy := filepath.Join(github.InstallDir, c.Globals.Versioners.Viceroy.BinaryName())
+	viceroyBin := filepath.Join(github.InstallDir, c.Globals.Versioners.Viceroy.BinaryName())
+	if viceroy.Supported() {
+		if extracted, err := viceroy.Extract(github.InstallDir); err == nil {
+			viceroyBin = extracted
+		}
+	}
 	// gosec flagged this:
 	// G204 (CWE-78): Subprocess launched with variable
 	// Disabling as we lookup the binary in a trusted location. For this to be a
@@ -47,7 +53,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 	// attacker could swap the actual viceroy executable for something malicious.
 	/* #nosec */
 	// nosemgrep
-	command := exec.Command(viceroy, "--version")
+	command := exec.Command(viceroyBin, "--version")
 	if stdoutStderr, err := command.CombinedOutput(); err == nil {
 		fmt.Fprintf(out, "Viceroy version: %s", stdoutStderr)
 	}

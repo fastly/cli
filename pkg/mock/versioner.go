@@ -9,6 +9,9 @@ type AssetVersioner struct {
 	DownloadOK      bool
 	DownloadedFile  string
 	InstallFilePath string
+	// Requested controls the value returned by RequestedVersion. An empty
+	// string mimics "not pinned in fastly.toml".
+	Requested string
 }
 
 // BinaryName implements github.Versioner interface.
@@ -26,6 +29,9 @@ func (av AssetVersioner) DownloadLatest() (string, error) {
 
 // DownloadVersion implements github.Versioner interface.
 func (av AssetVersioner) DownloadVersion(_ string) (string, error) {
+	if av.DownloadOK {
+		return av.DownloadedFile, nil
+	}
 	return "", nil
 }
 
@@ -46,7 +52,7 @@ func (av AssetVersioner) LatestVersion() (string, error) {
 
 // RequestedVersion implements github.Versioner interface.
 func (av AssetVersioner) RequestedVersion() (version string) {
-	return ""
+	return av.Requested
 }
 
 // SetRequestedVersion implements github.Versioner interface.
