@@ -72,43 +72,6 @@ archives:
     <<: *archive_defaults
     wrap_in_directory: false
     formats: [zip]
-# https://goreleaser.com/customization/aur/
-aurs:
-  - homepage: "https://github.com/fastly/cli"
-    description: "A CLI for interacting with the Fastly platform"
-    maintainers:
-      - 'oss@fastly.com'
-    license: "Apache license 2.0"
-    skip_upload: auto
-    provides:
-      - fastly
-    conflicts:
-      - fastly
-
-    # The SSH private key that should be used to commit to the Git repository.
-    # This can either be a path or the key contents.
-    #
-    # WARNING: do not expose your private key in the config file!
-    private_key: '{{ .Env.AUR_KEY }}'
-
-    # The AUR Git URL for this package.
-    # Defaults to empty.
-    git_url: 'ssh://aur@aur.archlinux.org/fastly-bin.git'
-
-    # List of packages that are not needed for the software to function,
-    # but provide additional features.
-    #
-    # Must be in the format `package: short description of the extra functionality`.
-    #
-    # Defaults to empty.
-    optdepends:
-      - 'viceroy: for running service locally'
-
-    # The value to be passed to `GIT_SSH_COMMAND`.
-    #
-    #
-    # Defaults to `ssh -i {{ .KeyPath }} -o StrictHostKeyChecking=accept-new -F /dev/null`.
-    git_ssh_command: 'ssh -i {{ .KeyPath }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -F /dev/null'
 
 # https://goreleaser.com/customization/homebrew/
 brews:
@@ -117,7 +80,7 @@ brews:
     repository:
       owner: fastly
       name: homebrew-tap
-    skip_upload: auto
+    skip_upload: true # Formula will be uploaded by publish_release workflow
     description: A CLI for interacting with the Fastly platform
     homepage: https://github.com/fastly/cli
     directory: Formula
