@@ -14,6 +14,7 @@
 ### Dependencies:
 - build(deps): `github.com/nwaples/rardecode/v2` from 2.2.3 to 2.2.5 ([#1825](https://github.com/fastly/cli/pull/1825))
 - build(deps): `golang.org/x/net` from 0.55.0 to 0.56.0 ([#1825](https://github.com/fastly/cli/pull/1825))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.18.0 to 3.19.0 ([#1829](https://github.com/fastly/cli/pull/1829))
 
 ## [v15.2.0](https://github.com/fastly/cli/releases/tag/v15.2.0) (2026-06-10)
 
