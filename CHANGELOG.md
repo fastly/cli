@@ -9,6 +9,7 @@
 ### Enhancements:
 
 - feat(kvstoreentry/delete): Add support for multiple-key deletion using a key prefix. ([#XXX](https://github.com/fastly/cli/pull/XXX))
+- feat(compute/deploy): Support 'contentguard' configuration on 'bot_management' product under \[setup.products] ([#1827](https://github.com/fastly/cli/pull/1827))
 
 ### Dependencies:
 
