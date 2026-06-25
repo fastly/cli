@@ -753,7 +753,7 @@ func commandRequiresToken(command argparser.Command) bool {
 			return text.IsFastlyID(initCmd.CloneFrom)
 		}
 		return false
-	case "compute build", "compute hash-files", "compute metadata", "compute pack", "compute serve", "compute validate":
+	case "compute build", "compute hash-files", "compute install-viceroy", "compute metadata", "compute pack", "compute serve", "compute validate":
 		return false
 	}
 	commandName = strings.Split(commandName, " ")[0]

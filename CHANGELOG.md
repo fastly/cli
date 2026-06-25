@@ -11,6 +11,7 @@
 - feat(kvstoreentry/delete): Add support for multiple-key deletion using a key prefix. ([#XXX](https://github.com/fastly/cli/pull/XXX))
 - build(dockerfile-go): add Go Dockerfile alongside the existing Node and Rust ones ([#XXX](https://github.com/fastly/cli/pull/1828))
 - feat(compute/deploy): Support 'contentguard' configuration on 'bot_management' product under \[setup.products] ([#1827](https://github.com/fastly/cli/pull/1827))
+- feat(compute): add `install-viceroy` command to pre-install the Viceroy binary ([#1833](https://github.com/fastly/cli/pull/1833))
 
 ### Dependencies:
 - build(deps): `github.com/nwaples/rardecode/v2` from 2.2.3 to 2.2.5 ([#1825](https://github.com/fastly/cli/pull/1825))
