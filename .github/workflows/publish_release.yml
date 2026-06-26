@@ -36,6 +36,7 @@ jobs:
         with:
           repository: fastly/homebrew-tap
           token: ${{ steps.github-token.outputs.token }}
+          persist-credentials: true
           path: homebrew-tap
       - name: "Copy formula to homebrew-tap repository"
         run: |
