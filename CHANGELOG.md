@@ -8,11 +8,18 @@
 
 ### Enhancements:
 
-- feat(kvstoreentry/delete): Add support for multiple-key deletion using a key prefix. ([#XXX](https://github.com/fastly/cli/pull/XXX))
-- build(dockerfile-go): add Go Dockerfile alongside the existing Node and Rust ones ([#XXX](https://github.com/fastly/cli/pull/1828))
+### Dependencies:
+
+## [v15.3.0](https://github.com/fastly/cli/releases/tag/v15.3.0) (2026-06-26)
+
+### Enhancements:
+
+- feat(kvstoreentry/delete): Add support for multiple-key deletion using a key prefix. ([#1822](https://github.com/fastly/cli/pull/1822))
+- build(dockerfile-go): add Go Dockerfile alongside the existing Node and Rust ones ([#1828](https://github.com/fastly/cli/pull/1828))
 - feat(compute/deploy): Support 'contentguard' configuration on 'bot_management' product under \[setup.products] ([#1827](https://github.com/fastly/cli/pull/1827))
 
 ### Dependencies:
+
 - build(deps): `github.com/nwaples/rardecode/v2` from 2.2.3 to 2.2.5 ([#1825](https://github.com/fastly/cli/pull/1825))
 - build(deps): `golang.org/x/net` from 0.55.0 to 0.56.0 ([#1825](https://github.com/fastly/cli/pull/1825))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.18.0 to 3.19.0 ([#1829](https://github.com/fastly/cli/pull/1829))
