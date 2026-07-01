@@ -6,7 +6,7 @@
 
 ### Bug Fixes:
 
-- fix(auth): accept SSO JWT audiences with or without a trailing slash when validating the Fastly API endpoint.
+- fix(auth): accept SSO JWT audiences with or without a trailing slash when validating the Fastly API endpoint. ([#1837](https://github.com/fastly/cli/pull/1837))
 
 ### Enhancements:
 
