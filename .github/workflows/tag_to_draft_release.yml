@@ -28,7 +28,7 @@ jobs:
           go-version: '1.26.x'
           cache: false
       - name: "Install Rust"
-        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
         with:
           toolchain: stable
           cache: false
@@ -36,7 +36,7 @@ jobs:
       - name: "Generate static app config"
         run: make config
       - name: "Run GoReleaser"
-        uses: goreleaser/goreleaser-action@5daf1e915a5f0af01ddbcd89a43b8061ff4f1a89 # v7.2.2
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           # goreleaser version (NOT goreleaser-action version)
           # update inline with the Makefile
