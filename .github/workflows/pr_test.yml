@@ -41,7 +41,7 @@ jobs:
         with:
           persist-credentials: false
       - name: "Install Rust"
-        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
         with:
           toolchain: stable
           cache: false
@@ -63,7 +63,7 @@ jobs:
         with:
           persist-credentials: false
       - name: "Install Rust"
-        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
         with:
           toolchain: stable
           cache: false
@@ -82,7 +82,7 @@ jobs:
       - name: "Move Config"
         run: mv config.toml pkg/config/config.toml
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9.2.1
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           only-new-issues: true
@@ -111,7 +111,7 @@ jobs:
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: "Install Rust"
-        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
         with:
           toolchain: stable
           target: wasm32-wasip1
@@ -181,7 +181,7 @@ jobs:
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - name: "Install Rust"
-        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
         with:
           toolchain: stable
           target: wasm32-wasip1
@@ -298,7 +298,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
       - name: Run golangci-lint@latest
         id: lint
-        uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9.2.1
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: latest
           only-new-issues: true
