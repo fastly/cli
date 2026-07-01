@@ -283,8 +283,8 @@ func (s *Server) ValidateAndRetrieveAPIToken(accessToken string) (string, *APITo
 		return "", nil, errors.New("failed to extract aud from JWT claims")
 	}
 
-	if aud != s.APIEndpoint {
-		return "", nil, fmt.Errorf("failed to match expected aud: %s", s.APIEndpoint)
+	if err := validateAudienceClaim(aud, s.APIEndpoint); err != nil {
+		return "", nil, err
 	}
 
 	email, ok := claims["email"]
@@ -303,6 +303,24 @@ func (s *Server) ValidateAndRetrieveAPIToken(accessToken string) (string, *APITo
 		return "", nil, fmt.Errorf("failed to type assert 'email' (%#v) to a string", email)
 	}
 	return e, at, nil
+}
+
+func validateAudienceClaim(aud any, apiEndpoint string) error {
+	audString, ok := aud.(string)
+	if !ok {
+		return fmt.Errorf("failed to type assert 'aud' (%#v) to a string", aud)
+	}
+
+	if !audienceMatchesAPIEndpoint(audString, apiEndpoint) {
+		return fmt.Errorf("failed to match expected aud %q, got %q", apiEndpoint, audString)
+	}
+	return nil
+}
+
+func audienceMatchesAPIEndpoint(aud, apiEndpoint string) bool {
+	// The auth provider has returned audiences with and without a trailing slash
+	// for the same API endpoint. Accept either form for compatibility.
+	return strings.TrimSuffix(aud, "/") == strings.TrimSuffix(apiEndpoint, "/")
 }
 
 // VerifyJWTSignature calls the jwks_uri endpoint and extracts its claims.
