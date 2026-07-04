@@ -12,10 +12,12 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// InstallCommand installs the Viceroy binary that `compute serve` otherwise
-// downloads on first use. It shares the install logic via viceroyInstaller
-// (see viceroy.go), and is intended to pre-warm container images so that
-// `compute serve` doesn't need network access at runtime.
+// InstallCommand pre-installs the tools that `compute` subcommands otherwise
+// download on first use. Today that's the Viceroy binary used by
+// `compute serve` (installed via viceroyInstaller, see viceroy.go); it's
+// intended to be extended to cover other tooling (e.g. wasm-tools for
+// `compute build`) so container images can be pre-warmed and don't need
+// network access at runtime.
 type InstallCommand struct {
 	argparser.Base
 }
@@ -24,7 +26,7 @@ type InstallCommand struct {
 func NewInstallCommand(parent argparser.Registerer, g *global.Data) *InstallCommand {
 	var c InstallCommand
 	c.Globals = g
-	c.CmdClause = parent.Command("install-viceroy", "Download and install the Viceroy binary used by `compute serve`")
+	c.CmdClause = parent.Command("install-tools", "Download and install the tools used by `compute` subcommands (currently the Viceroy binary used by `compute serve`)")
 	return &c
 }
 

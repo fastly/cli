@@ -25,7 +25,7 @@ var viceroyError = fsterr.RemediationError{
 }
 
 // viceroyInstaller installs/updates the Viceroy binary. It is the shared
-// implementation used by both `compute serve` and `compute install-viceroy`.
+// implementation used by both `compute serve` and `compute install-tools`.
 type viceroyInstaller struct {
 	Globals   *global.Data
 	Versioner github.AssetVersioner

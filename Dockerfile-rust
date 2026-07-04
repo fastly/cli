@@ -21,7 +21,7 @@ USER fastly
 # directory (where `compute serve` later looks for it).
 #
 # TODO: Enable once https://github.com/fastly/cli/pull/1833 was released
-# RUN fastly compute install-viceroy
+# RUN fastly compute install-tools
 
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/fastly"]

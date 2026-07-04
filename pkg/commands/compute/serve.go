@@ -348,7 +348,7 @@ func (c *ServeCommand) setBackendsWithDefaultOverrideHostIfMissing(out io.Writer
 // In the case of a network failure we fallback to the latest installed version of the
 // Viceroy binary as long as one is installed and has the correct permissions.
 //
-// The install logic is shared with `compute install-viceroy` (see viceroy.go).
+// The install logic is shared with `compute install-tools` (see viceroy.go).
 func (c *ServeCommand) GetViceroy(spinner text.Spinner, out io.Writer, manifestPath string) (bin string, err error) {
 	return viceroyInstaller{
 		Globals:          c.Globals,

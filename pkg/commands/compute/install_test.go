@@ -17,14 +17,14 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
-// TestInstallViceroy validates that `compute install-viceroy` installs Viceroy
+// TestInstallTools validates that `compute install-tools` installs Viceroy
 // to the appropriate directory using the same install path as `compute serve`.
 //
 // As with TestGetViceroy, there isn't an executable binary in the test
 // environment, so the `<binary> --version` subprocess call errors and the
 // installer downloads the (mocked) latest release, which `os.Rename()` then
 // moves into the install directory.
-func TestInstallViceroy(t *testing.T) {
+func TestInstallTools(t *testing.T) {
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)

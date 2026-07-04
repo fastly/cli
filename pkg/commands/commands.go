@@ -254,7 +254,7 @@ func Define( // nolint:revive // function-length
 	computeDeploy := compute.NewDeployCommand(computeCmdRoot.CmdClause, data)
 	computeHashFiles := compute.NewHashFilesCommand(computeCmdRoot.CmdClause, data, computeBuild)
 	computeInit := compute.NewInitCommand(computeCmdRoot.CmdClause, data)
-	computeInstallViceroy := compute.NewInstallCommand(computeCmdRoot.CmdClause, data)
+	computeInstallTools := compute.NewInstallCommand(computeCmdRoot.CmdClause, data)
 	computeMetadata := compute.NewMetadataCommand(computeCmdRoot.CmdClause, data)
 	computePack := compute.NewPackCommand(computeCmdRoot.CmdClause, data)
 	computePublish := compute.NewPublishCommand(computeCmdRoot.CmdClause, data, computeBuild, computeDeploy)
@@ -1142,7 +1142,7 @@ func Define( // nolint:revive // function-length
 		computeDeploy,
 		computeHashFiles,
 		computeInit,
-		computeInstallViceroy,
+		computeInstallTools,
 		computeMetadata,
 		computePack,
 		computePublish,
