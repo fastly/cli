@@ -12,6 +12,8 @@
 
 ### Dependencies:
 
+- build(deps): `github.com/fastly/go-fastly/v15` from 15.0.3 to 16 ([#1841](https://github.com/fastly/cli/pull/1841))
+
 ## [v15.3.0](https://github.com/fastly/cli/releases/tag/v15.3.0) (2026-06-26)
 
 ### Enhancements:

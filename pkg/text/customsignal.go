@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/signals"
+	"github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/signals"
 )
 
 // PrintCustomSignal displays an NGWAF custom signal.

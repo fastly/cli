@@ -13,7 +13,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/ngwaf/workspace/threshold"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/workspaces/thresholds"
+	"github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/workspaces/thresholds"
 )
 
 const (
