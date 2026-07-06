@@ -11,7 +11,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/ngwaf/timeseries"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	gots "github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/timeseries"
+	gots "github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/timeseries"
 )
 
 var timeseriesResponse = gots.Timeseries{

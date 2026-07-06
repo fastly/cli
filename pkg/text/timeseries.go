@@ -5,8 +5,8 @@ import (
 	"io"
 	"sort"
 
-	"github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/timeseries"
-	wsts "github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/workspaces/timeseries"
+	"github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/timeseries"
+	wsts "github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/workspaces/timeseries"
 )
 
 // PrintTimeseries displays timeseries data points in a table.

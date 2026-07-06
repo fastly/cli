@@ -9,8 +9,8 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v15/fastly"
-	gots "github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/workspaces/timeseries"
+	"github.com/fastly/go-fastly/v16/fastly"
+	gots "github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/workspaces/timeseries"
 )
 
 // GetCommand calls the Fastly API to get workspace-level time series metrics.
