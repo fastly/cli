@@ -88,5 +88,4 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	text.PrintTimeseries(out, result)
 	return nil
-
 }
