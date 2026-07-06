@@ -6,7 +6,7 @@ import (
 
 	"github.com/segmentio/textio"
 
-	"github.com/fastly/go-fastly/v15/fastly/dns/v1/tsigkeys"
+	"github.com/fastly/go-fastly/v16/fastly/dns/v1/tsigkeys"
 )
 
 // PrintTSIGKey pretty prints a tsigkeys.TSIGKey in verbose format to a given

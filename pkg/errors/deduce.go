@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v16/fastly"
 )
 
 // httpStatusError is satisfied by any error that carries an HTTP status code.

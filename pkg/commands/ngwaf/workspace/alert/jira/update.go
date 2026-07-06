@@ -10,8 +10,8 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v15/fastly"
-	"github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/workspaces/alerts/jira"
+	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/workspaces/alerts/jira"
 )
 
 // UpdateCommand calls the Fastly API to update Jira alerts.

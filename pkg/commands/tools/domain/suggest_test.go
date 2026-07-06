@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
-	"github.com/fastly/go-fastly/v15/fastly/domainmanagement/v1/tools/suggest"
+	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v16/fastly/domainmanagement/v1/tools/suggest"
 
 	"github.com/fastly/cli/pkg/commands/tools"
 	"github.com/fastly/cli/pkg/commands/tools/domain"

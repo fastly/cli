@@ -6,7 +6,7 @@ import (
 
 	"github.com/segmentio/textio"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v16/fastly"
 )
 
 // PrintBackend pretty prints a fastly.Backend structure in verbose format

@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/cli/pkg/api/undocumented"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v16/fastly"
 )
 
 func TestDeduce(t *testing.T) {

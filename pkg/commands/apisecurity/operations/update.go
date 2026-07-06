@@ -7,8 +7,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v15/fastly"
-	"github.com/fastly/go-fastly/v15/fastly/apisecurity/operations"
+	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v16/fastly/apisecurity/operations"
 
 	"github.com/fastly/kingpin"
 
