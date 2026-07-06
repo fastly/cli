@@ -7,7 +7,7 @@ import (
 
 	"github.com/segmentio/textio"
 
-	"github.com/fastly/go-fastly/v15/fastly/dns/v1/dnszones"
+	"github.com/fastly/go-fastly/v16/fastly/dns/v1/dnszones"
 )
 
 // PrintDNSZone pretty prints a dnszones.Zone in verbose format to a given

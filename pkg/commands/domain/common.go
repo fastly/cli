@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v15/fastly/domainmanagement/v1/domains"
+	"github.com/fastly/go-fastly/v16/fastly/domainmanagement/v1/domains"
 
 	"github.com/fastly/cli/pkg/text"
 )

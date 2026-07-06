@@ -9,7 +9,7 @@ import (
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/healthcheck"
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v16/fastly"
 
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"

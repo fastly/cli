@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v16/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/https"

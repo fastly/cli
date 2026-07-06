@@ -13,7 +13,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/service/dictionaryentry"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v16/fastly"
 )
 
 func TestDictionaryItemDescribe(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
-	"github.com/fastly/go-fastly/v15/fastly/dns/v1/dnszones"
+	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v16/fastly/dns/v1/dnszones"
 
 	dnsroot "github.com/fastly/cli/pkg/commands/dns"
 	root "github.com/fastly/cli/pkg/commands/dns/zone"

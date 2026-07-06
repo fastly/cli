@@ -9,8 +9,8 @@ import (
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v15/fastly"
-	"github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/workspaces/alerts/webhook"
+	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/workspaces/alerts/webhook"
 )
 
 // ListCommand calls the Fastly API to list Webhook alerts.

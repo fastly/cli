@@ -12,18 +12,18 @@ import (
 	fsterrors "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/text"
-	"github.com/fastly/go-fastly/v15/fastly"
-	"github.com/fastly/go-fastly/v15/fastly/products/apidiscovery"
-	"github.com/fastly/go-fastly/v15/fastly/products/botmanagement"
-	"github.com/fastly/go-fastly/v15/fastly/products/brotlicompression"
-	"github.com/fastly/go-fastly/v15/fastly/products/ddosprotection"
-	"github.com/fastly/go-fastly/v15/fastly/products/domaininspector"
-	"github.com/fastly/go-fastly/v15/fastly/products/fanout"
-	"github.com/fastly/go-fastly/v15/fastly/products/imageoptimizer"
-	"github.com/fastly/go-fastly/v15/fastly/products/logexplorerinsights"
-	"github.com/fastly/go-fastly/v15/fastly/products/ngwaf"
-	"github.com/fastly/go-fastly/v15/fastly/products/origininspector"
-	"github.com/fastly/go-fastly/v15/fastly/products/websockets"
+	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v16/fastly/products/apidiscovery"
+	"github.com/fastly/go-fastly/v16/fastly/products/botmanagement"
+	"github.com/fastly/go-fastly/v16/fastly/products/brotlicompression"
+	"github.com/fastly/go-fastly/v16/fastly/products/ddosprotection"
+	"github.com/fastly/go-fastly/v16/fastly/products/domaininspector"
+	"github.com/fastly/go-fastly/v16/fastly/products/fanout"
+	"github.com/fastly/go-fastly/v16/fastly/products/imageoptimizer"
+	"github.com/fastly/go-fastly/v16/fastly/products/logexplorerinsights"
+	"github.com/fastly/go-fastly/v16/fastly/products/ngwaf"
+	"github.com/fastly/go-fastly/v16/fastly/products/origininspector"
+	"github.com/fastly/go-fastly/v16/fastly/products/websockets"
 )
 
 // Products represents the service state related to Products defined
@@ -80,19 +80,19 @@ func (p *Product) Enabled() bool {
 	return p != nil && p.Enable
 }
 
-type ProductNGWAF struct {
+type ProductBotManagement struct {
 	Product
-	WorkspaceID string
+	ContentGuard string
 }
 
-func NewProductNGWAF(workspaceID string) *ProductNGWAF {
-	return &ProductNGWAF{
-		Product:     *NewProductEnabled(),
-		WorkspaceID: workspaceID,
+func NewProductBotManagement(contentGuard string) *ProductBotManagement {
+	return &ProductBotManagement{
+		Product:      *NewProductEnabled(),
+		ContentGuard: contentGuard,
 	}
 }
 
-var _ ProductSettings = (*ProductNGWAF)(nil)
+var _ ProductSettings = (*ProductBotManagement)(nil)
 
 type ProductDDoSProtection struct {
 	Product
@@ -107,6 +107,20 @@ func NewProductDDoSProtection(mode string) *ProductDDoSProtection {
 }
 
 var _ ProductSettings = (*ProductDDoSProtection)(nil)
+
+type ProductNGWAF struct {
+	Product
+	WorkspaceID string
+}
+
+func NewProductNGWAF(workspaceID string) *ProductNGWAF {
+	return &ProductNGWAF{
+		Product:     *NewProductEnabled(),
+		WorkspaceID: workspaceID,
+	}
+}
+
+var _ ProductSettings = (*ProductNGWAF)(nil)
 
 type productsSpec struct {
 	id                   string
@@ -145,15 +159,31 @@ func init() {
 			getSetupProduct: func(setupProducts *manifest.SetupProducts) manifest.SetupProductSettings {
 				return setupProducts.BotManagement
 			},
-			configure: func(_ io.Writer, p *ProductsMap, _ manifest.SetupProductSettings) error {
-				p.BotManagement = NewProductEnabled()
+			configure: func(w io.Writer, p *ProductsMap, sp manifest.SetupProductSettings) error {
+				botManagementSetupProduct, ok := sp.(*manifest.SetupProductBotManagement)
+				if !ok {
+					return fmt.Errorf("unexpected: Incorrect type for setupProduct")
+				}
+				if strings.TrimSpace(botManagementSetupProduct.ContentGuard) == "" {
+					return fmt.Errorf("contentguard is required")
+				}
+				text.Output(w, "  contentguard: %s", botManagementSetupProduct.ContentGuard)
+				p.BotManagement = NewProductBotManagement(botManagementSetupProduct.ContentGuard)
 				return nil
 			},
 			getConfiguredProduct: func(products *ProductsMap) ProductSettings {
 				return products.BotManagement
 			},
-			enable: func(fc *fastly.Client, _ ProductSettings, serviceID string) error {
+			enable: func(fc *fastly.Client, product ProductSettings, serviceID string) error {
+				botManagementProduct, ok := product.(*ProductBotManagement)
+				if !ok {
+					return fmt.Errorf("unexpected: Incorrect type for product")
+				}
 				_, err := botmanagement.Enable(context.TODO(), fc, serviceID)
+				if err != nil {
+					return fmt.Errorf("unexpected: Unable to Enable product")
+				}
+				_, err = botmanagement.UpdateConfiguration(context.TODO(), fc, serviceID, botmanagement.ConfigureInput{ContentGuard: botManagementProduct.ContentGuard})
 				return err
 			},
 		},

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v15/fastly/ngwaf/v1/workspaces"
+	"github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/workspaces"
 )
 
 // PrintWorkspace displays a workspace.

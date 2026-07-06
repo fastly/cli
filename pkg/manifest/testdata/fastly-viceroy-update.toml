@@ -78,6 +78,9 @@ env = "ENV_FOURTH"
 
 [setup]
 [setup.products]
+[setup.products.bot_management]
+enable = true
+contentguard = "on"
 [setup.products.ddos_protection]
 enable = true
 mode = "log"

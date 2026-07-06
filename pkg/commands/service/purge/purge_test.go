@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v16/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	purge "github.com/fastly/cli/pkg/commands/service/purge"

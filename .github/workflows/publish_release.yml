@@ -1,4 +1,4 @@
-name: NPM Release
+name: Publish Release
 on:
   workflow_dispatch:
   release:
@@ -10,6 +10,47 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  homebrew_release:
+    name: Publish Homebrew formula
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Generate a GitHub token"
+        id: github-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            ${{ github.repository }}
+            homebrew-tap
+          permission-contents: write
+      - name: "Download Homebrew formula artifact"
+        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
+        with:
+          workflow: tag_to_draft_release.yml
+          name: homebrew-formula-${{ github.event.release.tag_name }}
+          github_token: ${{ steps.github-token.outputs.token }}
+      - name: "Checkout homebrew-tap repository"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: fastly/homebrew-tap
+          token: ${{ steps.github-token.outputs.token }}
+          persist-credentials: true
+          path: homebrew-tap
+      - name: "Copy formula to homebrew-tap repository"
+        run: |
+          cp fastly.rb homebrew-tap/Formula/fastly.rb
+      - name: "Commit and push Homebrew formula"
+        working-directory: homebrew-tap
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/fastly.rb
+          git commit -m "Update fastly formula to ${RELEASE_TAG}"
+          git push
   npm_release:
     name: Publish npm packages
     runs-on: ubuntu-latest
@@ -19,7 +60,7 @@ jobs:
       packages: write # publish to the GitHub Packages registry
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - name: "Fetch unshallow repo"
