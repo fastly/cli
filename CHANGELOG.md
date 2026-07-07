@@ -7,6 +7,7 @@
 ### Bug Fixes:
 
 - fix(auth): accept SSO JWT audiences with or without a trailing slash when validating the Fastly API endpoint. ([#1837](https://github.com/fastly/cli/pull/1837))
+- feat(compute): add `install-tools` command to pre-install the Viceroy binary ([#1833](https://github.com/fastly/cli/pull/1833))
 
 ### Enhancements:
 - feat(ngwaf/timeseries): add support for account and workspace times series commands ([#1823](https://github.com/fastly/cli/pull/1823))
