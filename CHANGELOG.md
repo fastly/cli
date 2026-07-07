@@ -10,6 +10,7 @@
 - feat(compute): add `install-tools` command to pre-install the Viceroy binary ([#1833](https://github.com/fastly/cli/pull/1833))
 
 ### Enhancements:
+- build(docker): enable compute install-tools ([#1842](https://github.com/fastly/cli/pull/1842))
 - feat(ngwaf/timeseries): add support for account and workspace times series commands ([#1823](https://github.com/fastly/cli/pull/1823))
 
 ### Dependencies:

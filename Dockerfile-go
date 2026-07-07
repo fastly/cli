@@ -16,9 +16,7 @@ USER fastly
 # Pre-install Viceroy so the image is self-contained (no download at runtime).
 # Must run as the `fastly` user, since Viceroy installs into that user's config
 # directory (where `compute serve` later looks for it).
-#
-# TODO: Enable once https://github.com/fastly/cli/pull/1833 was released
-# RUN fastly compute install-tools
+RUN fastly compute install-tools
 
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/fastly"]
