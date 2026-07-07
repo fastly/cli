@@ -10,8 +10,11 @@
 - feat(compute): add `install-tools` command to pre-install the Viceroy binary ([#1833](https://github.com/fastly/cli/pull/1833))
 
 ### Enhancements:
+- feat(ngwaf/timeseries): add support for account and workspace times series commands ([#1823](https://github.com/fastly/cli/pull/1823))
 
 ### Dependencies:
+
+- build(deps): `github.com/fastly/go-fastly/v15` from 15.0.3 to 16 ([#1841](https://github.com/fastly/cli/pull/1841))
 
 ## [v15.3.0](https://github.com/fastly/cli/releases/tag/v15.3.0) (2026-06-26)
 
@@ -31,7 +34,7 @@
 
 ### Bug Fixes:
 
-- fix(docs): corrected stale and missing API reference links in usage.json metadata([#1803](https://github.com/fastly/cli/pull/1803))
+- fix(docs): corrected stale and missing API reference links in usage.json metadata ([#1803](https://github.com/fastly/cli/pull/1803))
 - fix(compute): `serve --watch` no longer rebuilds on attribute-only (Chmod) filesystem events, preventing an endless rebuild loop when another process changes a watched file's metadata such as its access time ([#1808](https://github.com/fastly/cli/pull/1808))
 - fix(docs): expand and correct API reference links for `fastly service` subcommands in usage.json metadata ([#1810](https://github.com/fastly/cli/pull/1810))
 
