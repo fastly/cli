@@ -6,6 +6,14 @@
 
 ### Bug Fixes:
 
+### Enhancements:
+
+### Dependencies:
+
+## [v15.4.0](https://github.com/fastly/cli/releases/tag/v15.4.0) (2026-07-08)
+
+### Bug Fixes:
+
 - fix(auth): accept SSO JWT audiences with or without a trailing slash when validating the Fastly API endpoint. ([#1837](https://github.com/fastly/cli/pull/1837))
 - feat(compute): add `install-tools` command to pre-install the Viceroy binary ([#1833](https://github.com/fastly/cli/pull/1833))
 
