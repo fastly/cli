@@ -13,7 +13,13 @@
 - feat(ngwaf/timeseries): add support for account and workspace times series commands ([#1823](https://github.com/fastly/cli/pull/1823))
 
 ### Dependencies:
-
+- build(deps): `github.com/fastly/go-fastly/v15` from 15.0.3 to 16 ([#1841](https://github.com/fastly/cli/pull/1841))
+- build(deps): `golang.org/x/sys` from 0.46.0 to 0.47.0 ([#1843](https://github.com/fastly/cli/pull/1843))
+- build(deps): `golang.org/x/term` from 0.44.0 to 0.45.0 ([#1843](https://github.com/fastly/cli/pull/1843))
+- build(deps): `golang.org/x/mod` from 0.37.0 to 0.38.0 ([#1843](https://github.com/fastly/cli/pull/1843))
+- build(deps): `golang.org/x/sync` from 0.21.0 to 0.22.0 ([#1843](https://github.com/fastly/cli/pull/1843))
+- build(deps): `golang.org/x/text` from 0.38.0 to 0.40.0 ([#1843](https://github.com/fastly/cli/pull/1843))
+- build(deps): `github.com/fastly/go-fastly/v16` from 16.0.0 to 16.0.1 ([#1843](https://github.com/fastly/cli/pull/1843))
 - build(deps): `github.com/fastly/go-fastly/v15` from 15.0.3 to 16 ([#1841](https://github.com/fastly/cli/pull/1841))
 
 ## [v15.3.0](https://github.com/fastly/cli/releases/tag/v15.3.0) (2026-06-26)
