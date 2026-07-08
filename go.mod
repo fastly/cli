@@ -21,8 +21,8 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/segmentio/textio v1.2.0
 	github.com/tomnomnom/linkheader v0.0.0-20250811210735-e5fe3b51442e
-	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/term v0.44.0
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/term v0.45.0
 )
 
 require (
@@ -34,7 +34,7 @@ require (
 	github.com/theckman/yacspin v0.13.12
 	golang.org/x/crypto v0.53.0
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
-	golang.org/x/mod v0.37.0
+	golang.org/x/mod v0.38.0
 )
 
 require (
@@ -81,8 +81,8 @@ require (
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sync v0.21.0 // indirect
-	golang.org/x/text v0.38.0
+	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/text v0.40.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
@@ -90,7 +90,7 @@ require (
 require (
 	4d63.com/optional v0.2.0
 	github.com/creack/pty v1.1.24
-	github.com/fastly/go-fastly/v16 v16.0.0
+	github.com/fastly/go-fastly/v16 v16.0.1
 	github.com/mholt/archives v0.1.5
 	github.com/mitchellh/go-ps v1.0.0
 )
