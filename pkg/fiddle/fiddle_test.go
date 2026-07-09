@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/fastly/cli/pkg/fiddle"
 )
@@ -30,6 +31,15 @@ func fakeFiddle(t *testing.T) *httptest.Server {
 	})
 	mux.HandleFunc("PUT /fiddle/{id}", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, `{"fiddle":{"id":%q,"srcVersion":1},"valid":false,"lintStatus":{"recv":[{"level":"error","line":0,"message":"boom"}]}}`, r.PathValue("id"))
+	})
+	mux.HandleFunc("POST /fiddle/{id}/execute", func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, `{"sessionID":"feedbeef00","streamHost":""}`)
+	})
+	mux.HandleFunc("GET /results/{sid}/stream", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, "event: waitingForSync\ndata: {}\n\n")
+		fmt.Fprint(w, "event: updateResult\ndata: {\"execHost\":\"s-r-cafe0123v0-1-100.exec9.fiddle.fastly.dev\",\n")
+		fmt.Fprint(w, "data: \"clientFetches\":{\"a\":{\"status\":200,\"complete\":true,\"resp\":\"HTTP/2 200 OK\\ncontent-type: text/plain\",\"bodyPreview\":\"hi\",\"bodyBytesReceived\":2,\"isText\":true}}}\n\n")
 	})
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
@@ -63,6 +73,27 @@ func TestCreateAndUpdate(t *testing.T) {
 	}
 	if len(saved.LintStatus["recv"]) != 1 || saved.LintStatus["recv"][0].Message != "boom" {
 		t.Fatalf("unexpected lint status: %+v", saved.LintStatus)
+	}
+}
+
+func TestRunParsesStream(t *testing.T) {
+	client := testClient(fakeFiddle(t))
+	result, err := client.Run(context.Background(), "cafe0123", 1, fiddle.StreamOptions{
+		WantFetches: 1,
+		MaxWait:     5 * time.Second,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.CompleteFetches() != 1 {
+		t.Fatalf("expected one complete fetch, got %+v", result)
+	}
+	fetch := result.ClientFetch["a"]
+	if fetch.Status != 200 || fetch.BodyPreview != "hi" {
+		t.Fatalf("unexpected fetch: %+v", fetch)
+	}
+	if !strings.Contains(result.ExecHost, "cafe0123v0") {
+		t.Fatalf("unexpected exec host: %q", result.ExecHost)
 	}
 }
 
