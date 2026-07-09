@@ -180,3 +180,15 @@ func TestVCLRun(t *testing.T) {
 	}
 	testutil.RunCLIScenarios(t, []string{"vcl", "run"}, scenarios)
 }
+
+func TestVCLServeValidation(t *testing.T) {
+	scenarios := []testutil.CLIScenario{
+		{
+			Name:      "validate no VCL given",
+			Args:      "",
+			WantError: "no VCL given",
+			EnvVars:   isolatedHome(t),
+		},
+	}
+	testutil.RunCLIScenarios(t, []string{"vcl", "serve"}, scenarios)
+}

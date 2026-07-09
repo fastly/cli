@@ -1,4 +1,5 @@
-// Package vcl implements sandbox-backed VCL testing commands.
+// Package vcl implements the sandbox-backed VCL testing commands: check,
+// run, and serve.
 // They compile and exercise VCL on real Fastly edge nodes before any
 // service exists, using the Fiddle service (https://fiddle.fastly.dev) as
 // infrastructure.
@@ -36,7 +37,8 @@ import (
 // origin.
 const defaultOrigin = "https://http-me.fastly.dev"
 
-// specFlags collects the flags that describe the VCL and its origins.
+// specFlags collects the flags shared by check, run, and serve that
+// describe the VCL and its origins.
 type specFlags struct {
 	origins   []string
 	slotFiles map[string]*string
@@ -103,22 +105,32 @@ func (s *specFlags) buildVCL(positional []string) (map[string]string, vclSources
 			Remediation: "Pass at least one VCL file, either positionally (recv.vcl) or with a subroutine flag (--recv=FILE).",
 		}
 	}
+	vcl, err := readSources(sources)
+	if err != nil {
+		return nil, nil, err
+	}
+	return vcl, sources, nil
+}
+
+// readSources loads subroutine bodies from already-resolved files, so serve
+// can re-read them on a --watch reload.
+func readSources(sources vclSources) (map[string]string, error) {
 	vcl := map[string]string{}
 	for slot, path := range sources {
 		data, err := os.ReadFile(path) // #nosec G304 (user-supplied path)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		body := string(data)
 		if m := subWrapper.FindStringSubmatch(body); m != nil {
-			return nil, nil, fsterr.RemediationError{
+			return nil, fsterr.RemediationError{
 				Inner:       fmt.Errorf("%s contains a subroutine declaration (sub vcl_%s { ... })", path, m[1]),
 				Remediation: "Provide only the body of the subroutine; the sandbox adds the sub wrapper and the Fastly boilerplate itself.",
 			}
 		}
 		vcl[slot] = body
 	}
-	return vcl, sources, nil
+	return vcl, nil
 }
 
 // buildOrigins validates the --origin flags, falling back to the default
