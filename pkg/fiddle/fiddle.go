@@ -4,6 +4,7 @@
 //
 //   - VCL is sent as "vcl" but comes back as "src".
 //   - "valid" means "it compiles" after a create or update, but "it ran at least once" on a GET.
+//   - Results come over a server-sent events stream whose sessions expire quickly, and a new fiddle can take up to two minutes to reach the edge.
 package fiddle
 
 import (
@@ -14,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // DefaultEndpoint is the public Fiddle service.
@@ -178,4 +180,35 @@ func (c *Client) Create(ctx context.Context, spec Spec) (*SavedFiddle, error) {
 // When only the requests change, the edge doesn't need to sync again, which makes this much faster than Create.
 func (c *Client) Update(ctx context.Context, id string, spec Spec) (*SavedFiddle, error) {
 	return c.save(ctx, http.MethodPut, "/fiddle/"+id, spec)
+}
+
+// Execute runs the fiddle's requests on the edge and returns a session ID to pass to WaitForResult.
+// Runs with the same cacheID share a cache, so use a new one to start cold.
+func (c *Client) Execute(ctx context.Context, id string, cacheID int) (string, error) {
+	data, err := c.do(ctx, http.MethodPost, fmt.Sprintf("/fiddle/%s/execute?cacheID=%d", id, cacheID), nil)
+	if err != nil {
+		return "", err
+	}
+	var out struct {
+		SessionID string `json:"sessionID"`
+	}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return "", fmt.Errorf("unexpected response from sandbox: %w", err)
+	}
+	if out.SessionID == "" {
+		return "", fmt.Errorf("sandbox did not return an execution session")
+	}
+	return out.SessionID, nil
+}
+
+// sleep is like time.Sleep, but returns early when the context is done.
+func sleep(ctx context.Context, d time.Duration) error {
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-t.C:
+		return nil
+	}
 }
