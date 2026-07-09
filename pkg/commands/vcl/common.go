@@ -96,22 +96,32 @@ func (s *specFlags) buildVCL(positional []string) (map[string]string, vclSources
 			Remediation: "Pass at least one VCL file, either positionally (recv.vcl) or with a subroutine flag (--recv=FILE).",
 		}
 	}
+	vcl, err := readSources(sources)
+	if err != nil {
+		return nil, nil, err
+	}
+	return vcl, sources, nil
+}
+
+// readSources reads the subroutine bodies.
+// It's separate from buildVCL so that serve --watch can reload the same files.
+func readSources(sources vclSources) (map[string]string, error) {
 	vcl := map[string]string{}
 	for slot, path := range sources {
 		data, err := os.ReadFile(path) // #nosec G304 (user-supplied path)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		body := string(data)
 		if m := subWrapper.FindStringSubmatch(body); m != nil {
-			return nil, nil, fsterr.RemediationError{
+			return nil, fsterr.RemediationError{
 				Inner:       fmt.Errorf("%s contains a subroutine declaration (sub vcl_%s { ... })", path, m[1]),
 				Remediation: "Provide only the body of the subroutine; the sandbox adds the sub wrapper and the Fastly boilerplate itself.",
 			}
 		}
 		vcl[slot] = body
 	}
-	return vcl, sources, nil
+	return vcl, nil
 }
 
 // buildOrigins checks the --origin flags, and falls back to the test origin when there are none.

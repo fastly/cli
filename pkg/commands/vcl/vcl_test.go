@@ -143,3 +143,12 @@ func TestVCLRun(t *testing.T) {
 		},
 	})
 }
+
+func TestVCLServeValidation(t *testing.T) {
+	runVCL(t, "serve", []testutil.CLIScenario{
+		{
+			Name:      "validate no VCL given",
+			WantError: "no VCL given",
+		},
+	})
+}
