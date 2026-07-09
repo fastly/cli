@@ -755,7 +755,7 @@ func commandRequiresToken(command argparser.Command) bool {
 		return false
 	case "compute build", "compute hash-files", "compute install-tools", "compute metadata", "compute pack", "compute serve", "compute validate":
 		return false
-	case "vcl check":
+	case "vcl check", "vcl run":
 		return false
 	}
 	commandName = strings.Split(commandName, " ")[0]
