@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -138,6 +139,30 @@ func (s *specFlags) client(g *global.Data) *fiddle.Client {
 	}
 }
 
+// printOrigins shows the backend-to-origin mapping when it isn't obvious.
+func printOrigins(out io.Writer, origins []string, defaulted bool) {
+	if defaulted {
+		text.Info(out, "No --origin given; requests go to the test origin %s.", defaultOrigin)
+		return
+	}
+	if len(origins) > 1 {
+		for i, o := range origins {
+			text.Output(out, "Backend F_origin_%d = %s", i, o)
+		}
+	}
+}
+
+// lastCacheHop turns an X-Cache value like "MISS, HIT" into the part the client saw.
+func lastCacheHop(v string) string {
+	parts := strings.Split(v, ",")
+	return strings.TrimSpace(parts[len(parts)-1])
+}
+
+// freshCacheID picks a new cache bucket, which is how we get a cold cache.
+func freshCacheID() int {
+	return rand.IntN(1_000_000_000) + 1 // #nosec G404 (bucket name, not security)
+}
+
 // diagnostic is a compiler message that doesn't depend on Fiddle's format.
 type diagnostic struct {
 	Subroutine string `json:"subroutine"`
@@ -196,6 +221,9 @@ var errCompileFailed = fsterr.RemediationError{
 // If the file gets lost, the next run just starts from scratch.
 type sandboxState struct {
 	ID string `json:"id"`
+	// CacheID is shared across runs, so running the same request twice can show a MISS and then a HIT.
+	// --fresh-cache picks a new one.
+	CacheID int `json:"cache_id"`
 
 	path string
 }
