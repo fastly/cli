@@ -13,6 +13,32 @@ import (
 	"github.com/fastly/cli/pkg/fiddle"
 )
 
+func TestParseExecHost(t *testing.T) {
+	h, err := fiddle.ParseExecHost("48254ae8ff-94b79f4b-1f31ceb6v0-12347-100.exec64.fiddle.fastly.dev")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if h.FiddleID != "1f31ceb6" || h.Version != 0 || h.Pool != "exec64" {
+		t.Fatalf("unexpected parse: %+v", h)
+	}
+	want := "00fa571c00-00000000-1f31ceb6v0-42-100.exec64.fiddle.fastly.dev"
+	if got := h.Hostname(42); got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+
+	for _, bad := range []string{
+		"",
+		"example.com",
+		"a-b.exec64.fiddle.fastly.dev",
+		"a-b-cv1-d-e.example.com",
+		"a-b-noversion-d-e.exec64.fiddle.fastly.dev",
+	} {
+		if _, err := fiddle.ParseExecHost(bad); err == nil {
+			t.Errorf("expected error for %q", bad)
+		}
+	}
+}
+
 // fakeFiddle is a minimal in-memory Fiddle API.
 func fakeFiddle(t *testing.T) *httptest.Server {
 	t.Helper()
