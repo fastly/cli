@@ -33,6 +33,16 @@ func fakeSandbox(t *testing.T, valid bool) *httptest.Server {
 	mux.HandleFunc("PUT /fiddle/{id}", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, envelope(r.PathValue("id")))
 	})
+	mux.HandleFunc("POST /fiddle/{id}/execute", func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, `{"sessionID":"feedbeef00","streamHost":""}`)
+	})
+	mux.HandleFunc("GET /results/{sid}/stream", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, `event: updateResult
+data: {"execHost":"s-r-cafe0123v0-1-100.exec9.fiddle.fastly.dev","clientFetches":{"a":{"status":200,"complete":true,"resp":"HTTP/2 200 OK\ncontent-type: text/plain\nx-cache: MISS","bodyPreview":"hello","bodyBytesReceived":5,"isText":true}},"events":[{"type":"vcl-sub","fnName":"recv","attribs":{"return":"lookup"}}]}
+
+`)
+	})
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
 	return server
@@ -123,4 +133,50 @@ func TestVCLCheck(t *testing.T) {
 		},
 	}
 	testutil.RunCLIScenarios(t, []string{"vcl", "check"}, scenarios)
+}
+
+func TestVCLRun(t *testing.T) {
+	dir := t.TempDir()
+	recv := writeVCL(t, dir, "recv.vcl", "set req.http.X = \"1\";\n")
+	valid := fakeSandbox(t, true)
+
+	scenarios := []testutil.CLIScenario{
+		{
+			Name:      "reject unknown client-from",
+			Args:      recv + " --client-from atlantis --sandbox-endpoint " + valid.URL,
+			WantError: `unknown --client-from value "atlantis"`,
+			EnvVars:   isolatedHome(t),
+		},
+		{
+			Name:      "reject unknown connection",
+			Args:      recv + " --connection h3 --sandbox-endpoint " + valid.URL,
+			WantError: `unknown --connection value "h3"`,
+			EnvVars:   isolatedHome(t),
+		},
+		{
+			Name:      "reject malformed header",
+			Args:      recv + " --header nocolon --sandbox-endpoint " + valid.URL,
+			WantError: `header "nocolon" is not in 'Name: value' form`,
+			EnvVars:   isolatedHome(t),
+		},
+		{
+			Name:       "replay a request",
+			Args:       recv + " --path /hello --sandbox-endpoint " + valid.URL,
+			WantOutput: "GET /hello → 200 (text/plain, 5 bytes, MISS)",
+			EnvVars:    isolatedHome(t),
+		},
+		{
+			Name:       "replay body is shown",
+			Args:       recv + " --path /hello --sandbox-endpoint " + valid.URL,
+			WantOutput: "hello",
+			EnvVars:    isolatedHome(t),
+		},
+		{
+			Name:       "json output",
+			Args:       recv + " --json --sandbox-endpoint " + valid.URL,
+			WantOutput: `"provider": "fiddle"`,
+			EnvVars:    isolatedHome(t),
+		},
+	}
+	testutil.RunCLIScenarios(t, []string{"vcl", "run"}, scenarios)
 }
