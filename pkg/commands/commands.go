@@ -1014,6 +1014,7 @@ func Define( // nolint:revive // function-length
 	aliasServiceAuthUpdate := aliasserviceauth.NewUpdateCommand(aliasServiceAuthRoot.CmdClause, data)
 	vclRoot := vcltesting.NewRootCommand(app, data)
 	vclCheck := vcltesting.NewCheckCommand(vclRoot.CmdClause, data)
+	vclRun := vcltesting.NewRunCommand(vclRoot.CmdClause, data)
 	aliasVclDescribe := aliasvcl.NewDescribeCommand(vclRoot.CmdClause, data)
 	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(vclRoot.CmdClause, data)
 	aliasVclConditionCreate := aliasvclcondition.NewCreateCommand(aliasVclConditionRoot.CmdClause, data)
@@ -1954,6 +1955,7 @@ func Define( // nolint:revive // function-length
 		aliasServiceAuthList,
 		aliasServiceAuthUpdate,
 		vclCheck,
+		vclRun,
 		aliasVclDescribe,
 		aliasVclConditionCreate,
 		aliasVclConditionDelete,

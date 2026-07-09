@@ -1,6 +1,7 @@
 // Package vcl implements sandbox-backed VCL testing commands.
-// They compile VCL on real Fastly edge nodes before any service exists,
-// using the Fiddle service (https://fiddle.fastly.dev) as infrastructure.
+// They compile and exercise VCL on real Fastly edge nodes before any
+// service exists, using the Fiddle service (https://fiddle.fastly.dev) as
+// infrastructure.
 // No Fiddle concept surfaces in the interface: the commands speak in terms
 // of VCL files, origins, and requests, so a local engine can replace the
 // sandbox later without breaking anyone.
@@ -11,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -146,8 +148,35 @@ func (s *specFlags) client(g *global.Data) *fiddle.Client {
 	}
 }
 
+// printOrigins shows the backend-to-origin mapping when it isn't obvious.
+func printOrigins(out io.Writer, origins []string, defaulted bool) {
+	if defaulted {
+		text.Info(out, "No --origin given; requests go to the test origin %s.", defaultOrigin)
+		return
+	}
+	if len(origins) > 1 {
+		for i, o := range origins {
+			text.Output(out, "Backend F_origin_%d = %s", i, o)
+		}
+	}
+}
+
+// lastCacheHop reduces a multi-hop X-Cache value ("MISS, HIT") to the hop
+// the client actually saw.
+func lastCacheHop(v string) string {
+	parts := strings.Split(v, ",")
+	return strings.TrimSpace(parts[len(parts)-1])
+}
+
+// freshCacheID picks a new cache bucket.
+// Requests sharing a bucket share cache state, so picking a fresh one is
+// how a cold cache is simulated.
+func freshCacheID() int {
+	return rand.IntN(1_000_000_000) + 1 // #nosec G404 (bucket name, not security)
+}
+
 // diagnostic is the provider-neutral form of a compile finding, used by
-// the text and JSON output of check.
+// text and JSON output of check and run.
 type diagnostic struct {
 	Subroutine string `json:"subroutine"`
 	File       string `json:"file,omitempty"`
@@ -209,6 +238,10 @@ var errCompileFailed = fsterr.RemediationError{
 // cold.
 type sandboxState struct {
 	ID string `json:"id"`
+	// CacheID is the cache bucket runs share, so consecutive runs can
+	// exercise MISS-then-HIT behavior.
+	// Rotated by --fresh-cache.
+	CacheID int `json:"cache_id"`
 }
 
 // sandboxStatePath keeps the state file next to the CLI's config file.
