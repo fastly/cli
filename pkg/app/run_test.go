@@ -101,6 +101,7 @@ update
 user
 version
 whoami
+vcl
 `,
 		},
 	}

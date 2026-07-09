@@ -21,7 +21,7 @@ const CommandName = "vcl"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version VCL").Hidden()
+	c.CmdClause = parent.Command(CommandName, "Test VCL on real Fastly edge nodes before deploying, and manipulate service version VCL")
 	return &c
 }
 
