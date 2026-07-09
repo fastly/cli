@@ -173,6 +173,7 @@ import (
 	domainTools "github.com/fastly/cli/pkg/commands/tools/domain"
 	"github.com/fastly/cli/pkg/commands/update"
 	"github.com/fastly/cli/pkg/commands/user"
+	vcltesting "github.com/fastly/cli/pkg/commands/vcl"
 	"github.com/fastly/cli/pkg/commands/version"
 	"github.com/fastly/cli/pkg/commands/whoami"
 	"github.com/fastly/cli/pkg/env"
@@ -913,21 +914,21 @@ func Define( // nolint:revive // function-length
 	aliasServiceAuthDescribe := aliasserviceauth.NewDescribeCommand(aliasServiceAuthRoot.CmdClause, data)
 	aliasServiceAuthList := aliasserviceauth.NewListCommand(aliasServiceAuthRoot.CmdClause, data)
 	aliasServiceAuthUpdate := aliasserviceauth.NewUpdateCommand(aliasServiceAuthRoot.CmdClause, data)
-	aliasVclRoot := aliasvcl.NewRootCommand(app, data)
-	aliasVclDescribe := aliasvcl.NewDescribeCommand(aliasVclRoot.CmdClause, data)
-	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(aliasVclRoot.CmdClause, data)
+	vclRoot := vcltesting.NewRootCommand(app, data)
+	aliasVclDescribe := aliasvcl.NewDescribeCommand(vclRoot.CmdClause, data)
+	aliasVclConditionRoot := aliasvclcondition.NewRootCommand(vclRoot.CmdClause, data)
 	aliasVclConditionCreate := aliasvclcondition.NewCreateCommand(aliasVclConditionRoot.CmdClause, data)
 	aliasVclConditionDelete := aliasvclcondition.NewDeleteCommand(aliasVclConditionRoot.CmdClause, data)
 	aliasVclConditionDescribe := aliasvclcondition.NewDescribeCommand(aliasVclConditionRoot.CmdClause, data)
 	aliasVclConditionList := aliasvclcondition.NewListCommand(aliasVclConditionRoot.CmdClause, data)
 	aliasVclConditionUpdate := aliasvclcondition.NewUpdateCommand(aliasVclConditionRoot.CmdClause, data)
-	aliasVclCustomRoot := aliasvclcustom.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclCustomRoot := aliasvclcustom.NewRootCommand(vclRoot.CmdClause, data)
 	aliasVclCustomCreate := aliasvclcustom.NewCreateCommand(aliasVclCustomRoot.CmdClause, data)
 	aliasVclCustomDelete := aliasvclcustom.NewDeleteCommand(aliasVclCustomRoot.CmdClause, data)
 	aliasVclCustomDescribe := aliasvclcustom.NewDescribeCommand(aliasVclCustomRoot.CmdClause, data)
 	aliasVclCustomList := aliasvclcustom.NewListCommand(aliasVclCustomRoot.CmdClause, data)
 	aliasVclCustomUpdate := aliasvclcustom.NewUpdateCommand(aliasVclCustomRoot.CmdClause, data)
-	aliasVclSnippetRoot := aliasvclsnippet.NewRootCommand(aliasVclRoot.CmdClause, data)
+	aliasVclSnippetRoot := aliasvclsnippet.NewRootCommand(vclRoot.CmdClause, data)
 	aliasVclSnippetCreate := aliasvclsnippet.NewCreateCommand(aliasVclSnippetRoot.CmdClause, data)
 	aliasVclSnippetDelete := aliasvclsnippet.NewDeleteCommand(aliasVclSnippetRoot.CmdClause, data)
 	aliasVclSnippetDescribe := aliasvclsnippet.NewDescribeCommand(aliasVclSnippetRoot.CmdClause, data)
