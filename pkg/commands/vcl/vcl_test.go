@@ -23,6 +23,16 @@ func fakeSandbox(t *testing.T, valid bool) *httptest.Server {
 	mux.HandleFunc("POST /fiddle", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprint(w, saved)
 	})
+	mux.HandleFunc("POST /fiddle/{id}/execute", func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, `{"sessionID":"feedbeef00"}`)
+	})
+	mux.HandleFunc("GET /results/{sid}/stream", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, `event: updateResult
+data: {"execHost":"s-r-cafe0123v0-1-100.exec9.fiddle.fastly.dev","clientFetches":{"a":{"status":200,"complete":true,"resp":"HTTP/2 200 OK\ncontent-type: text/plain\nx-cache: MISS","bodyPreview":"hello","bodyBytesReceived":5,"isText":true}},"events":[{"type":"vcl-sub","fnName":"recv","attribs":{"return":"lookup"}}]}
+
+`)
+	})
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
 	return server
@@ -96,6 +106,40 @@ func TestVCLCheck(t *testing.T) {
 			Args:       recv + " --json --sandbox-endpoint " + invalid.URL,
 			WantError:  "the VCL failed to compile",
 			WantOutput: `"valid": false`,
+		},
+	})
+}
+
+func TestVCLRun(t *testing.T) {
+	dir := t.TempDir()
+	recv := writeVCL(t, dir, "recv.vcl", "set req.http.X = \"1\";\n")
+	valid := fakeSandbox(t, true)
+
+	runVCL(t, "run", []testutil.CLIScenario{
+		{
+			Name:      "reject unknown client-from",
+			Args:      recv + " --client-from atlantis --sandbox-endpoint " + valid.URL,
+			WantError: `unknown --client-from value "atlantis"`,
+		},
+		{
+			Name:      "reject unknown connection",
+			Args:      recv + " --connection h3 --sandbox-endpoint " + valid.URL,
+			WantError: `unknown --connection value "h3"`,
+		},
+		{
+			Name:      "reject malformed header",
+			Args:      recv + " --header nocolon --sandbox-endpoint " + valid.URL,
+			WantError: `header "nocolon" is not in 'Name: value' form`,
+		},
+		{
+			Name:        "replay a request",
+			Args:        recv + " --path /greeting --sandbox-endpoint " + valid.URL,
+			WantOutputs: []string{"GET /greeting → 200 (text/plain, 5 bytes, MISS)", "hello"},
+		},
+		{
+			Name:       "json output",
+			Args:       recv + " --json --sandbox-endpoint " + valid.URL,
+			WantOutput: `"provider": "fiddle"`,
 		},
 	})
 }
