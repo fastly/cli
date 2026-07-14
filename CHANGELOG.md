@@ -10,6 +10,8 @@
 
 ### Enhancements:
 
+- feat(compute/init): Source starter kits from service ([#1846](https://github.com/fastly/cli/pull/1846))
+
 ### Dependencies:
 
 ## [v15.6.0](https://github.com/fastly/cli/releases/tag/v15.6.0) (2026-08-07)
