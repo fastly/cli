@@ -156,26 +156,21 @@ func (a ArchiveBase) Extract() error {
 		return err
 	}
 
-	if _, err := os.Stat("fastly.toml"); err == nil {
+	if _, err := os.Stat(filepath.Join(a.Dst, "fastly.toml")); err == nil {
 		return nil
 	}
 
 	// Looks like the package files are contained within a top-level directory
 	// that now need to be extracted.
-	wd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("error determining current directory: %w", err)
-	}
-
 	var dirContentToMove string
 
-	err = filepath.WalkDir(wd, func(path string, entry fs.DirEntry, err error) error {
+	err := filepath.WalkDir(a.Dst, func(path string, entry fs.DirEntry, err error) error {
 		// WalkDir() triggered an error
 		if err != nil {
 			return err
 		}
-		// We already check if the current directory had a manifest so skip it
-		if entry.IsDir() && path == wd {
+		// We already check if the destination directory had a manifest so skip it
+		if entry.IsDir() && path == a.Dst {
 			return nil
 		}
 		// We expect there to be a directory that contains the manifest

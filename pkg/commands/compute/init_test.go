@@ -30,32 +30,10 @@ func TestInit(t *testing.T) {
 		t.Skip("Set TEST_COMPUTE_INIT to run this test")
 	}
 
-	skRust := []config.StarterKit{
-		{
-			Name:   "Default",
-			Path:   "https://github.com/fastly/compute-starter-kit-rust-default",
-			Branch: "main",
-		},
-	}
-	skJS := []config.StarterKit{
-		{
-			Name:   "Default",
-			Path:   "https://github.com/fastly/compute-starter-kit-javascript-default",
-			Branch: "main",
-		},
-	}
-	skCPP := []config.StarterKit{
-		{
-			Name:   "Default",
-			Path:   "https://github.com/fastly/compute-starter-kit-cpp-default",
-			Branch: "main",
-		},
-		{
-			Name:   "Empty",
-			Path:   "https://github.com/fastly/compute-starter-kit-cpp-empty",
-			Branch: "main",
-		},
-	}
+	// NOTE: Starter kits are no longer sourced from a local config.File
+	// fixture -- the interactive prompt now fetches them live from the
+	// starter-kit edge service (see pkg/starterkit), so scenarios that rely
+	// on the default (option "1") kit selection exercise the real service.
 
 	scenarios := []struct {
 		name             string
@@ -89,13 +67,8 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
-			name: "name prompt",
-			args: args("compute init"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
+			name:  "name prompt",
+			args:  args("compute init"),
 			stdin: "foobar", // expect the first prompt to be for the package name.
 			wantOutput: []string{
 				"Fetching package template",
@@ -106,11 +79,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "description prompt empty",
 			args: args("compute init"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -120,11 +88,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with author",
 			args: args("compute init --author test@example.com"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -134,11 +97,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with multiple authors",
 			args: args("compute init --author test1@example.com --author test2@example.com"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -148,16 +106,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with --from set to starter kit repository",
 			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
-						},
-					},
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -167,16 +115,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with --from set to starter kit repository when dir with same name exists in pwd",
 			args: args("compute init --auto-yes --from https://github.com/fastly/compute-starter-kit-rust-default"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
-						},
-					},
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -189,16 +127,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with --from set to starter kit repository with .git extension and branch",
 			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default.git --branch main"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
-						},
-					},
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -208,16 +136,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with --from set to starter kit repository with .git extension and branch when dir with same name exists in pwd",
 			args: args("compute init --auto-yes --from https://github.com/fastly/compute-starter-kit-rust-default.git --branch main"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
-						},
-					},
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -230,16 +148,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with --from set to zip archive",
 			args: args("compute init --from https://github.com/fastly/compute-starter-kit-rust-default/archive/refs/heads/main.zip"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
-						},
-					},
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -249,16 +157,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with --from set to zip archive when file with same name exists in pwd",
 			args: args("compute init --auto-yes --from https://github.com/fastly/compute-starter-kit-rust-default/archive/refs/heads/main.zip"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
-						},
-					},
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -275,16 +173,24 @@ func TestInit(t *testing.T) {
 		{
 			name: "with --from set to tar.gz archive",
 			args: args("compute init --from https://github.com/Integralist/devnull/files/7339887/compute-starter-kit-rust-default-main.tar.gz"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: []config.StarterKit{
-						{
-							Name: "Default",
-							Path: "https://github.com/fastly/compute-starter-kit-rust-default.git",
-						},
-					},
-				},
+			wantOutput: []string{
+				"Fetching package template",
+				"Reading fastly.toml",
+				"SUCCESS: Initialized package",
 			},
+		},
+		{
+			name: "with --from set to starter-kit/<lang>/<name> reference",
+			args: args("compute init --from starter-kit/javascript/typescript-default"),
+			wantOutput: []string{
+				"Fetching package template",
+				"Reading fastly.toml",
+				"SUCCESS: Initialized package",
+			},
+		},
+		{
+			name: "with --from set to a legacy repo carrying a .starter-kit-id redirect",
+			args: args("compute init --from https://github.com/fastly/compute-starter-kit-typescript-default"),
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -294,11 +200,6 @@ func TestInit(t *testing.T) {
 		{
 			name: "with existing fastly.toml",
 			args: args("compute init --auto-yes"), // --force will ignore a directory that isn't empty
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
 			manifest: `
 			manifest_version = 2
 			service_id = 1234
@@ -315,18 +216,10 @@ func TestInit(t *testing.T) {
 		{
 			name: "no args and no user profiles means no email set for author field",
 			args: args("compute init"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
 			wantFiles: []string{
 				"Cargo.toml",
 				"fastly.toml",
 				"src/main.rs",
-			},
-			unwantedFiles: []string{
-				"SECURITY.md",
 			},
 			wantOutput: []string{
 				"Author (email):",
@@ -354,18 +247,12 @@ func TestInit(t *testing.T) {
 						},
 					},
 				},
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
 			},
 			manifestIncludes: `authors = ["test@example.com"]`,
 			wantFiles: []string{
 				"Cargo.toml",
 				"fastly.toml",
 				"src/main.rs",
-			},
-			unwantedFiles: []string{
-				"SECURITY.md",
 			},
 			wantOutput: []string{
 				"Fetching package template",
@@ -375,69 +262,39 @@ func TestInit(t *testing.T) {
 			},
 		},
 		{
-			name: "non empty directory",
-			args: args("compute init"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
+			name:      "non empty directory",
+			args:      args("compute init"),
 			wantError: "project directory not empty",
 			manifest: `
 			manifest_version = 2
 			name = "test"`,
 		},
 		{
-			name: "with default name inferred from directory",
-			args: args("compute init"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
+			name:             "with default name inferred from directory",
+			args:             args("compute init"),
 			manifestIncludes: `name = "fastly-temp`,
 		},
 		{
-			name: "with directory name inferred from --directory",
-			args: args("compute init --directory ./foo"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					Rust: skRust,
-				},
-			},
+			name:             "with directory name inferred from --directory",
+			args:             args("compute init --directory ./foo"),
 			stdin:            "Y",
 			manifest:         `manifest_version = 2`,
 			manifestPath:     "foo",
 			manifestIncludes: `name = "foo`,
 		},
 		{
-			name: "with JavaScript language",
-			args: args("compute init --language javascript"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					JavaScript: skJS,
-				},
-			},
+			name:             "with JavaScript language",
+			args:             args("compute init --language javascript"),
 			manifestIncludes: `name = "fastly-temp`,
 		},
 		{
-			name: "with C++ language",
-			args: args("compute init --language cpp"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					CPP: skCPP,
-				},
-			},
+			name:             "with C++ language",
+			args:             args("compute init --language cpp"),
 			manifestIncludes: `name = "fastly-temp`,
 		},
 		{
 			name: "with --from set to C++ empty starter kit",
 			args: args("compute init --from https://github.com/fastly/compute-starter-kit-cpp-empty"),
-			configFile: config.File{
-				StarterKits: config.StarterKitLanguages{
-					CPP: skCPP,
-				},
-			},
 			wantOutput: []string{
 				"Fetching package template",
 				"Reading fastly.toml",
@@ -554,6 +411,11 @@ func TestInit_ExistingService(t *testing.T) {
 		expectNoManifest  bool
 		expectInError     string
 		suppressBeacon    bool
+		// starterKitIDCheck is true when ClonedFrom is a fastly-org GitHub URL,
+		// which now triggers an extra HTTP call (the .starter-kit-id redirect
+		// lookup) before falling back to git-clone, in addition to the beacon
+		// notification call.
+		starterKitIDCheck bool
 	}{
 		{
 			name: "when the service exists",
@@ -688,7 +550,8 @@ func TestInit_ExistingService(t *testing.T) {
 					},
 				}, nil
 			},
-			expectInOutput: []string{"Initializing file structure from selected starter kit..."},
+			expectInOutput:    []string{"Initializing file structure from selected starter kit..."},
+			starterKitIDCheck: true,
 		},
 		{
 			name: "service has an unreachable cloned_from value",
@@ -714,7 +577,8 @@ func TestInit_ExistingService(t *testing.T) {
 					},
 				}, nil
 			},
-			expectInError: "could not fetch original source code",
+			expectInError:     "could not fetch original source code",
+			starterKitIDCheck: true,
 		},
 		{
 			name: "service has active version greater than 1",
@@ -774,15 +638,23 @@ func TestInit_ExistingService(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			// The body is closed by beacon.Notify.
+			//nolint: bodyclose
+			responses := []*http.Response{mock.NewHTTPResponse(http.StatusNoContent, nil, nil)}
+			errs := []error{nil}
+			if testcase.starterKitIDCheck {
+				// ClonePackageFromEndpoint now checks for a .starter-kit-id
+				// redirect marker before cloning a fastly-org repo; simulate
+				// "not found" so it falls through to the existing git-clone
+				// behavior these scenarios expect.
+				//nolint: bodyclose
+				responses = append([]*http.Response{mock.NewHTTPResponse(http.StatusNotFound, nil, io.NopCloser(strings.NewReader("")))}, responses...)
+				errs = append([]error{nil}, errs...)
+			}
+
 			httpClient := &mock.HTTPClient{
-				Responses: []*http.Response{
-					// The body is closed by beacon.Notify.
-					//nolint: bodyclose
-					mock.NewHTTPResponse(http.StatusNoContent, nil, nil),
-				},
-				Errors: []error{
-					nil,
-				},
+				Responses:    responses,
+				Errors:       errs,
 				Index:        -1,
 				SaveRequests: true,
 			}
@@ -819,8 +691,12 @@ func TestInit_ExistingService(t *testing.T) {
 			if testcase.suppressBeacon {
 				testutil.AssertLength(t, 0, httpClient.Requests)
 			} else {
-				testutil.AssertLength(t, 1, httpClient.Requests)
-				beaconReq := httpClient.Requests[0]
+				wantRequests := 1
+				if testcase.starterKitIDCheck {
+					wantRequests = 2
+				}
+				testutil.AssertLength(t, wantRequests, httpClient.Requests)
+				beaconReq := httpClient.Requests[len(httpClient.Requests)-1]
 				testutil.AssertEqual(t, "fastly-notification-relay.edgecompute.app", beaconReq.URL.Hostname())
 			}
 
