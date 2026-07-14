@@ -22,7 +22,6 @@ import (
 	"github.com/fastly/go-fastly/v16/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/debug"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	fstexec "github.com/fastly/cli/pkg/exec"
@@ -31,6 +30,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/internal/beacon"
 	"github.com/fastly/cli/pkg/manifest"
+	"github.com/fastly/cli/pkg/starterkit"
 	"github.com/fastly/cli/pkg/text"
 )
 
@@ -178,7 +178,7 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		}
 	}
 
-	languages := NewLanguages(c.Globals.Config.StarterKits)
+	languages := NewLanguages()
 
 	var language *Language
 
@@ -210,6 +210,15 @@ func (c *InitCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	// select a starter kit project.
 	triggerStarterKitPrompt := c.CloneFrom == "" && !mf.Exists() && language.Name != "other"
 	if triggerStarterKitPrompt {
+		client := starterkit.New(starterkit.DefaultEndpoint, c.Globals.HTTPClient, c.Globals.Flags.Debug)
+		if err := language.FetchStarterKits(client); err != nil {
+			c.Globals.ErrLog.Add(err)
+			return fsterr.RemediationError{
+				Inner:       fmt.Errorf("could not reach the starter kit service: %w", err),
+				Remediation: "Please check your network connection and try again.",
+			}
+		}
+
 		from, branch, tag, err = c.PromptForStarterKit(language.StarterKits, in, out)
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{
@@ -778,7 +787,7 @@ func validateLanguageOption(languages []*Language) func(string) error {
 // PromptForStarterKit prompts the user for a package starter kit.
 //
 // It returns the path to the starter kit, and the corresponding branch/tag.
-func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
+func (c *InitCommand) PromptForStarterKit(kits []starterkit.Kit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
 	var option string
 	flags := c.Globals.Flags
 
@@ -786,7 +795,7 @@ func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader
 		text.Output(out, "\n%s", text.Bold("Starter kit:"))
 		for i, kit := range kits {
 			fmt.Fprintf(out, "[%d] %s\n", i+1, text.Bold(kit.Name))
-			text.Indent(out, 4, "%s\n%s", kit.Description, kit.Path)
+			text.Indent(out, 4, "%s\n%s", kit.Description, kit.FromValue())
 		}
 		text.Info(out, "\nFor a complete list of Starter Kits:")
 		text.Indent(out, 4, "https://www.fastly.com/documentation/solutions/starters")
@@ -803,18 +812,20 @@ func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader
 		option = "1"
 	}
 
+	// NOTE: The starter-kit edge service has no concept of git refs, so
+	// branch/tag are always empty when resolving via a selected kit.
 	var i int
 	if i, err = strconv.Atoi(option); err == nil {
 		template := kits[i-1]
-		return template.Path, template.Branch, template.Tag, nil
+		return template.FromValue(), "", "", nil
 	}
 
 	return option, "", "", nil
 }
 
-func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) error {
+func validateTemplateOptionOrURL(templates []starterkit.Kit) func(string) error {
 	return func(input string) error {
-		msg := "must be a valid option or git URL"
+		msg := "must be a valid option, git URL, or starter-kit/<lang>/<name> reference"
 		if input == "" {
 			return nil
 		}
@@ -824,10 +835,13 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 			}
 			return nil
 		}
-		if !gitRepositoryRegEx.MatchString(input) {
-			return errors.New(msg)
+		if gitRepositoryRegEx.MatchString(input) {
+			return nil
 		}
-		return nil
+		if _, _, ok := starterkit.ParseFrom(input); ok {
+			return nil
+		}
+		return errors.New(msg)
 	}
 }
 
@@ -842,6 +856,22 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	text.Break(out)
 	msg := "Fetching package template"
 	spinner.Message(msg + "...")
+
+	// If --from is of the form starter-kit/<lang>/<name>, resolve it directly
+	// against the starter-kit edge service, bypassing local-dir/URL/git
+	// detection entirely.
+	if lang, name, ok := starterkit.ParseFrom(c.CloneFrom); ok {
+		client := starterkit.New(starterkit.DefaultEndpoint, c.Globals.HTTPClient, c.Globals.Flags.Debug)
+		if err := c.fetchAndExtractTarball(client.TarballURL(lang, name), archives); err != nil {
+			spinner.StopFailMessage(msg)
+			if spinErr := spinner.StopFail(); spinErr != nil {
+				return fmt.Errorf(text.SpinnerErrWrapper, spinErr, err)
+			}
+			return err
+		}
+		spinner.StopMessage(msg)
+		return spinner.Stop()
+	}
 
 	// If the user has provided a local file path, we'll recursively copy the
 	// directory to c.dir.
@@ -1062,9 +1092,154 @@ mimes:
 	return spinner.Stop()
 }
 
+// fetchAndExtractTarball downloads the archive at url and extracts it into
+// c.dir, using content-negotiation (matching the response's Content-Type
+// header or the url's file extension against archives) to determine the
+// archive format.
+//
+// NOTE: This does not touch the spinner. Callers are responsible for spinner
+// lifecycle around this call, matching how ClonePackageFromEndpoint (which
+// this is a sibling to) already leaves spinner handling to its callers.
+func (c *InitCommand) fetchAndExtractTarball(url string, archives []file.Archive) error {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		err = fmt.Errorf("failed to construct package request URL: %w", err)
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	for _, archive := range archives {
+		for _, mime := range archive.MimeTypes() {
+			req.Header.Add("Accept", mime)
+		}
+	}
+
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPRequest(req)
+	}
+	res, err := c.Globals.HTTPClient.Do(req)
+	if c.Globals.Flags.Debug {
+		debug.DumpHTTPResponse(res)
+	}
+	if err != nil {
+		err = fmt.Errorf("failed to get package '%s': %w", url, err)
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	defer res.Body.Close() // #nosec G307
+
+	if res.StatusCode != http.StatusOK {
+		err := fmt.Errorf("failed to get package '%s': %s", url, res.Status)
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	tempdir, err := tempDir("package-init-download")
+	if err != nil {
+		err = fmt.Errorf("error creating temporary path for package template download: %w", err)
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+	defer os.RemoveAll(tempdir)
+
+	filename := filepath.Join(tempdir, filepath.Base(url))
+	ext := filepath.Ext(filename)
+
+	// gosec flagged this:
+	// G304 (CWE-22): Potential file inclusion via variable
+	//
+	// Disabling as we require a user to configure their own environment.
+	/* #nosec */
+	f, err := os.Create(filename)
+	if err != nil {
+		err = fmt.Errorf("failed to create local %s archive: %w", filename, err)
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	if _, err := io.Copy(f, res.Body); err != nil {
+		err = fmt.Errorf("failed to write %s archive to disk: %w", filename, err)
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	// NOTE: We used to `defer` the closing of the file after its creation but
+	// realised that this caused issues on Windows as it was unable to rename the
+	// file as we still have the descriptor `f` open.
+	if err := f.Close(); err != nil {
+		c.Globals.ErrLog.Add(err)
+	}
+
+	var archive file.Archive
+
+mimes:
+	for _, mimetype := range res.Header.Values("Content-Type") {
+		for _, a := range archives {
+			for _, mime := range a.MimeTypes() {
+				if mimetype == mime {
+					archive = a
+					break mimes
+				}
+			}
+		}
+	}
+
+	if archive == nil {
+		for _, a := range archives {
+			for _, e := range a.Extensions() {
+				if ext == e {
+					archive = a
+					break
+				}
+			}
+		}
+	}
+
+	if archive == nil {
+		err := fmt.Errorf("could not determine archive format for '%s'", url)
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	// Ensure there is a file extension on our filename, otherwise we won't
+	// know what type of archive format we're dealing with when we come to call
+	// the archive.Extract() method.
+	if ext == "" {
+		filenameWithExt := filename + archive.Extensions()[0]
+		if err := os.Rename(filename, filenameWithExt); err != nil {
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
+		filename = filenameWithExt
+	}
+
+	archive.SetDestination(c.dir)
+	archive.SetFilename(filename)
+
+	if err := archive.Extract(); err != nil {
+		err = fmt.Errorf("failed to extract %s archive content: %w", filename, err)
+		c.Globals.ErrLog.Add(err)
+		return err
+	}
+
+	return nil
+}
+
 // ClonePackageFromEndpoint clones the given repo (from) into a temp directory,
 // then copies specific files to the destination directory (path).
+//
+// Before cloning a Fastly-owned repo, it checks for a root-level
+// .starter-kit-id marker file redirecting to the starter-kit edge service
+// (see starterKitRedirect). This lets legacy fastly/compute-starter-kit-*
+// repos transparently redirect any tool honoring the convention to the new
+// monorepo-backed source of truth, without the repos themselves being cloned.
 func (c *InitCommand) ClonePackageFromEndpoint(from, branch, tag string) error {
+	if fastlyOrgRegEx.MatchString(from) {
+		if lang, name, ok := starterKitRedirect(c.Globals.HTTPClient, from); ok {
+			client := starterkit.New(starterkit.DefaultEndpoint, c.Globals.HTTPClient, c.Globals.Flags.Debug)
+			return c.fetchAndExtractTarball(client.TarballURL(lang, name), file.Archives)
+		}
+	}
+
 	_, err := exec.LookPath("git")
 	if err != nil {
 		return fsterr.RemediationError{
