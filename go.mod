@@ -32,7 +32,7 @@ require (
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/theckman/yacspin v0.13.12
-	golang.org/x/crypto v0.53.0
+	golang.org/x/crypto v0.54.0
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
 	golang.org/x/mod v0.38.0
 )
@@ -40,7 +40,7 @@ require (
 require (
 	github.com/STARRY-S/zip v0.2.3 // indirect
 	github.com/bodgit/plumbing v1.3.0 // indirect
-	github.com/bodgit/sevenzip v1.6.4 // indirect
+	github.com/bodgit/sevenzip v1.6.5 // indirect
 	github.com/bodgit/windows v1.0.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dnaeon/go-vcr v1.2.0 // indirect
@@ -48,7 +48,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mikelolasagasti/xz v1.0.1 // indirect
-	github.com/minio/minlz v1.1.1 // indirect
+	github.com/minio/minlz v1.2.0 // indirect
 	github.com/nwaples/rardecode/v2 v2.2.5 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
@@ -62,7 +62,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.2.2 // indirect
-	github.com/coreos/go-oidc/v3 v3.19.0 // indirect
+	github.com/coreos/go-oidc/v3 v3.20.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
@@ -79,7 +79,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
-	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/text v0.40.0
