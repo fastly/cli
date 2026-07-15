@@ -20,6 +20,7 @@ type StageCommand struct {
 	Input          fastly.ActivateVersionInput
 	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
+	autoClone      argparser.OptionalAutoClone
 }
 
 // NewStageCommand returns a usable command registered under the parent.
@@ -45,6 +46,10 @@ func NewStageCommand(parent argparser.Registerer, g *global.Data) *StageCommand 
 		Dst:         &c.serviceVersion.Value,
 		Required:    true,
 	})
+	c.RegisterAutoCloneFlag(argparser.AutoCloneFlagOpts{
+		Action: c.autoClone.Set,
+		Dst:    &c.autoClone.Value,
+	})
 	return &c
 }
 
@@ -53,6 +58,7 @@ func (c *StageCommand) Exec(_ io.Reader, out io.Writer) error {
 	serviceID, serviceVersion, err := argparser.ServiceDetails(argparser.ServiceDetailsOpts{
 		Active:             optional.Of(false),
 		Locked:             optional.Of(false),
+		AutoCloneFlag:      c.autoClone,
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,

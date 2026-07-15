@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(service-version): support autoclone when staging a service version. ([#1850](https://github.com/fastly/cli/pull/1850))
+
 ### Enhancements:
 
 ### Dependencies:
