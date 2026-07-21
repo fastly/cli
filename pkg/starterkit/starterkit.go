@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/fastly/cli/pkg/api"
@@ -14,6 +15,42 @@ import (
 
 // DefaultEndpoint is the base URL of the starter-kit edge service.
 const DefaultEndpoint = "https://compute-starter-kits.fastly.dev"
+
+// RepoURL is the GitHub URL of the monorepo backing the starter-kit edge
+// service. Kits live under it at "starter-kits/<lang>/<name>".
+const RepoURL = "https://github.com/fastly/compute-starter-kits"
+
+// sourceURLRegEx matches a URL previously returned by sourceURL, e.g.
+// "https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/javascript/default".
+var sourceURLRegEx = regexp.MustCompile(`^https://github\.com/fastly/compute-starter-kits/tree/[^/]+/starter-kits/([^/]+)/([^/]+)/?$`)
+
+// sourceURL builds the canonical, browsable GitHub URL for the given
+// language/kit-name pair, on the monorepo's default branch.
+func sourceURL(lang, name string) string {
+	return fmt.Sprintf("%s/tree/main/starter-kits/%s/%s", RepoURL, lang, name)
+}
+
+// ParseSourceURL parses a URL previously returned by sourceURL (i.e. Kit.FromValue
+// or CanonicalSourceURL) back into its (lang, name) parts. Any other shape
+// returns ok == false.
+func ParseSourceURL(u string) (lang, name string, ok bool) {
+	m := sourceURLRegEx.FindStringSubmatch(u)
+	if m == nil {
+		return "", "", false
+	}
+	return m[1], m[2], true
+}
+
+// CanonicalSourceURL returns the canonical GitHub URL for a --from value of
+// the form "starter-kit/<lang>/<name>" (see ParseFrom). If from doesn't match
+// that shape, it's returned unchanged.
+func CanonicalSourceURL(from string) string {
+	lang, name, ok := ParseFrom(from)
+	if !ok {
+		return from
+	}
+	return sourceURL(lang, name)
+}
 
 // Catalog represents the catalog-specific metadata of a starter kit, i.e. how
 // it should be surfaced to end users (docs site, CLI, etc).
@@ -44,10 +81,11 @@ func (k Kit) KitName() string {
 	return strings.TrimPrefix(k.ID, k.Language+"-")
 }
 
-// FromValue returns the canonical --from value that resolves to this kit,
-// e.g. "starter-kit/javascript/typescript-default".
+// FromValue returns the canonical --from value that resolves to this kit: a
+// browsable GitHub URL into the compute-starter-kits monorepo, e.g.
+// "https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/javascript/typescript-default".
 func (k Kit) FromValue() string {
-	return "starter-kit/" + k.Language + "/" + k.KitName()
+	return sourceURL(k.Language, k.KitName())
 }
 
 // Manifest represents the full /kits response.

@@ -872,10 +872,16 @@ func (c *InitCommand) FetchPackageTemplate(branch, tag string, archives []file.A
 	msg := "Fetching package template"
 	spinner.Message(msg + "...")
 
-	// If --from is of the form starter-kit/<lang>/<name>, resolve it directly
-	// against the starter-kit edge service, bypassing local-dir/URL/git
-	// detection entirely.
-	if lang, name, ok := starterkit.ParseFrom(c.CloneFrom); ok {
+	// If --from is of the form starter-kit/<lang>/<name>, or a browsable URL
+	// into the compute-starter-kits monorepo (see starterkit.ParseSourceURL,
+	// e.g. as round-tripped through a previous run's cloned_from), resolve it
+	// directly against the starter-kit edge service, bypassing
+	// local-dir/URL/git detection entirely.
+	lang, name, ok := starterkit.ParseFrom(c.CloneFrom)
+	if !ok {
+		lang, name, ok = starterkit.ParseSourceURL(c.CloneFrom)
+	}
+	if ok {
 		client := starterkit.New(starterkit.DefaultEndpoint, c.Globals.HTTPClient, c.Globals.Flags.Debug)
 		if err := c.fetchAndExtractTarball(client.TarballURL(lang, name), archives); err != nil {
 			spinner.StopFailMessage(msg)
@@ -1248,9 +1254,17 @@ mimes:
 // repos transparently redirect any tool honoring the convention to the new
 // monorepo-backed source of truth, without the repos themselves being cloned.
 func (c *InitCommand) ClonePackageFromEndpoint(from, branch, tag string) error {
+	client := starterkit.New(starterkit.DefaultEndpoint, c.Globals.HTTPClient, c.Globals.Flags.Debug)
+
+	// If from is a browsable link into the compute-starter-kits monorepo
+	// (the canonical --from/cloned_from value for a kit, see Kit.FromValue),
+	// fetch the kit tarball directly rather than cloning the whole monorepo.
+	if lang, name, ok := starterkit.ParseSourceURL(from); ok {
+		return c.fetchAndExtractTarball(client.TarballURL(lang, name), file.Archives)
+	}
+
 	if fastlyOrgRegEx.MatchString(from) {
 		if lang, name, ok := starterKitRedirect(c.Globals.HTTPClient, from); ok {
-			client := starterkit.New(starterkit.DefaultEndpoint, c.Globals.HTTPClient, c.Globals.Flags.Debug)
 			return c.fetchAndExtractTarball(client.TarballURL(lang, name), file.Archives)
 		}
 	}
@@ -1374,7 +1388,7 @@ func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name
 					m.Description = desc
 					m.Authors = authors
 					m.Language = language.Name
-					m.ClonedFrom = c.CloneFrom
+					m.ClonedFrom = starterkit.CanonicalSourceURL(c.CloneFrom)
 					if err := m.Write(mp); err != nil {
 						return fmt.Errorf("error saving fastly.toml: %w", err)
 					}
@@ -1435,7 +1449,7 @@ func (c *InitCommand) UpdateManifest(m manifest.File, spinner text.Spinner, name
 		}
 	}
 
-	m.ClonedFrom = c.CloneFrom
+	m.ClonedFrom = starterkit.CanonicalSourceURL(c.CloneFrom)
 
 	err = spinner.Process("Saving manifest changes", func(_ *text.SpinnerWrapper) error {
 		if err := m.Write(mp); err != nil {

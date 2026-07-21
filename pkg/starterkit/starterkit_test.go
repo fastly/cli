@@ -86,7 +86,106 @@ func TestKitFromValue(t *testing.T) {
 		Language: "javascript",
 	}
 	testutil.AssertString(t, "typescript-kv-store", kit.KitName())
-	testutil.AssertString(t, "starter-kit/javascript/typescript-kv-store", kit.FromValue())
+	testutil.AssertString(t, "https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/javascript/typescript-kv-store", kit.FromValue())
+}
+
+func TestParseSourceURL(t *testing.T) {
+	for _, testcase := range []struct {
+		name     string
+		input    string
+		wantLang string
+		wantName string
+		wantOK   bool
+	}{
+		{
+			name:     "valid",
+			input:    "https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/javascript/typescript-default",
+			wantLang: "javascript",
+			wantName: "typescript-default",
+			wantOK:   true,
+		},
+		{
+			name:     "valid with hyphenated kit name and trailing slash",
+			input:    "https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/rust/connect-google-bigquery/",
+			wantLang: "rust",
+			wantName: "connect-google-bigquery",
+			wantOK:   true,
+		},
+		{
+			name:     "valid on a non-main ref",
+			input:    "https://github.com/fastly/compute-starter-kits/tree/some-branch/starter-kits/go/empty",
+			wantLang: "go",
+			wantName: "empty",
+			wantOK:   true,
+		},
+		{
+			name:   "missing starter-kits path segment",
+			input:  "https://github.com/fastly/compute-starter-kits/tree/main/javascript/typescript-default",
+			wantOK: false,
+		},
+		{
+			name:   "repo root, no kit path",
+			input:  "https://github.com/fastly/compute-starter-kits",
+			wantOK: false,
+		},
+		{
+			name:   "legacy per-kit repo",
+			input:  "https://github.com/fastly/compute-starter-kit-rust-default",
+			wantOK: false,
+		},
+		{
+			name:   "starter-kit short form",
+			input:  "starter-kit/javascript/typescript-default",
+			wantOK: false,
+		},
+		{
+			name:   "unrelated github url",
+			input:  "https://github.com/someuser/somekit",
+			wantOK: false,
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			lang, name, ok := starterkit.ParseSourceURL(testcase.input)
+			testutil.AssertBool(t, testcase.wantOK, ok)
+			if testcase.wantOK {
+				testutil.AssertString(t, testcase.wantLang, lang)
+				testutil.AssertString(t, testcase.wantName, name)
+			}
+		})
+	}
+}
+
+func TestCanonicalSourceURL(t *testing.T) {
+	for _, testcase := range []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "starter-kit short form is expanded",
+			input: "starter-kit/javascript/typescript-default",
+			want:  "https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/javascript/typescript-default",
+		},
+		{
+			name:  "already a URL is unchanged",
+			input: "https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/javascript/typescript-default",
+			want:  "https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/javascript/typescript-default",
+		},
+		{
+			name:  "unrelated git URL is unchanged",
+			input: "https://github.com/someuser/somekit",
+			want:  "https://github.com/someuser/somekit",
+		},
+		{
+			name:  "local path is unchanged",
+			input: "../some/local/dir",
+			want:  "../some/local/dir",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			testutil.AssertString(t, testcase.want, starterkit.CanonicalSourceURL(testcase.input))
+		})
+	}
 }
 
 func TestClientTarballURL(t *testing.T) {

@@ -1,6 +1,9 @@
 package compute_test
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"io"
@@ -22,6 +25,36 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
 )
+
+// buildTestTarballGz returns the bytes of a minimal tar.gz archive
+// containing a single file, for use as a fake starter-kit tarball response.
+func buildTestTarballGz(t *testing.T) []byte {
+	t.Helper()
+
+	var buf bytes.Buffer
+	gw := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(gw)
+
+	content := []byte("name = \"empty\"\nlanguage = \"rust\"\nmanifest_version = 3\n")
+	if err := tw.WriteHeader(&tar.Header{
+		Name: "fastly.toml",
+		Mode: 0o644,
+		Size: int64(len(content)),
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tw.Write(content); err != nil {
+		t.Fatal(err)
+	}
+	if err := tw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := gw.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	return buf.Bytes()
+}
 
 func TestInit(t *testing.T) {
 	args := testutil.SplitArgs
@@ -416,6 +449,11 @@ func TestInit_ExistingService(t *testing.T) {
 		// lookup) before falling back to git-clone, in addition to the beacon
 		// notification call.
 		starterKitIDCheck bool
+		// tarballFromMonorepo is true when ClonedFrom is a compute-starter-kits
+		// monorepo URL (see starterkit.ParseSourceURL), which fetches a kit
+		// tarball directly instead of falling back to git-clone, in addition
+		// to the beacon notification call.
+		tarballFromMonorepo bool
 	}{
 		{
 			name: "when the service exists",
@@ -554,6 +592,33 @@ func TestInit_ExistingService(t *testing.T) {
 			starterKitIDCheck: true,
 		},
 		{
+			name: "service has a cloned_from value pointing into the compute-starter-kits monorepo",
+			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
+			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
+				return &fastly.ServiceDetail{
+					ServiceID: serviceID,
+					Name:      fastly.NullString("cloned-service"),
+					Comment:   fastly.NullString(""),
+					Type:      fastly.NullString("wasm"),
+					ActiveVersion: &fastly.Version{
+						Number: fastly.ToPointer(1),
+					},
+				}, nil
+			},
+			getPackage: func(_ context.Context, _ *fastly.GetPackageInput) (*fastly.Package, error) {
+				return &fastly.Package{
+					ServiceID: serviceID,
+					PackageID: fastly.NullString("hVPTrHgswnF5KFwFKoQz1f"),
+					Metadata: &fastly.PackageMetadata{
+						ClonedFrom: fastly.ToPointer("https://github.com/fastly/compute-starter-kits/tree/main/starter-kits/rust/empty"),
+						Language:   fastly.ToPointer("rust"),
+					},
+				}, nil
+			},
+			expectInOutput:      []string{"Initializing file structure from selected starter kit..."},
+			tarballFromMonorepo: true,
+		},
+		{
 			name: "service has an unreachable cloned_from value",
 			args: testutil.SplitArgs("compute init --from LsyQ2UXDGk6d4ENjvgqTN4"),
 			getServiceDetails: func(_ context.Context, _ *fastly.GetServiceDetailsInput) (*fastly.ServiceDetail, error) {
@@ -651,6 +716,15 @@ func TestInit_ExistingService(t *testing.T) {
 				responses = append([]*http.Response{mock.NewHTTPResponse(http.StatusNotFound, nil, io.NopCloser(strings.NewReader("")))}, responses...)
 				errs = append([]error{nil}, errs...)
 			}
+			if testcase.tarballFromMonorepo {
+				// ClonePackageFromEndpoint recognizes the cloned_from URL as a
+				// compute-starter-kits monorepo link and fetches the kit
+				// tarball directly instead of git-cloning.
+				tarball := buildTestTarballGz(t)
+				//nolint: bodyclose
+				responses = append([]*http.Response{mock.NewHTTPResponse(http.StatusOK, map[string]string{"Content-Type": "application/gzip"}, io.NopCloser(bytes.NewReader(tarball)))}, responses...)
+				errs = append([]error{nil}, errs...)
+			}
 
 			httpClient := &mock.HTTPClient{
 				Responses:    responses,
@@ -692,7 +766,7 @@ func TestInit_ExistingService(t *testing.T) {
 				testutil.AssertLength(t, 0, httpClient.Requests)
 			} else {
 				wantRequests := 1
-				if testcase.starterKitIDCheck {
+				if testcase.starterKitIDCheck || testcase.tarballFromMonorepo {
 					wantRequests = 2
 				}
 				testutil.AssertLength(t, wantRequests, httpClient.Requests)
