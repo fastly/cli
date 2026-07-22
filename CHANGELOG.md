@@ -10,6 +10,8 @@
 
 ### Enhancements:
 
+- feat(compute/init): Source starter kits from service ([#1846](https://github.com/fastly/cli/pull/1846))
+
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.53.0 to 0.54.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.4 to 1.6.5 ([#1847](https://github.com/fastly/cli/pull/1847))

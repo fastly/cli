@@ -177,23 +177,6 @@ type Profile struct {
 	Token string `toml:"token" json:"token"`
 }
 
-// StarterKitLanguages represents language specific starter kits.
-type StarterKitLanguages struct {
-	CPP        []StarterKit `toml:"cpp"`
-	Go         []StarterKit `toml:"go"`
-	JavaScript []StarterKit `toml:"javascript"`
-	Rust       []StarterKit `toml:"rust"`
-}
-
-// StarterKit represents starter kit specific configuration.
-type StarterKit struct {
-	Name        string `toml:"name"`
-	Description string `toml:"description"`
-	Path        string `toml:"path"`
-	Tag         string `toml:"tag"`
-	Branch      string `toml:"branch"`
-}
-
 // ensureConfigDirExists creates the application configuration directory if it
 // doesn't already exist.
 func ensureConfigDirExists(path string) error {
@@ -215,8 +198,6 @@ type File struct {
 	Language Language `toml:"language"`
 	// Profiles represents legacy profile accounts (migrated to [auth]).
 	Profiles Profiles `toml:"profile,omitempty"`
-	// StarterKitLanguages represents language specific starter kits.
-	StarterKits StarterKitLanguages `toml:"starter-kits"`
 	// Viceroy represents viceroy specific configuration.
 	Viceroy Versioner `toml:"viceroy"`
 	// WasmMetadata represents what metadata will be collected.
