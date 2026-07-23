@@ -57,7 +57,7 @@ type InitCommand struct {
 }
 
 // Languages is a list of supported language options.
-var Languages = []string{"rust", "javascript", "go", "cpp", "other"}
+var Languages = []string{"rust", "javascript", "go", "cpp", "python", "other"}
 
 // NewInitCommand returns a usable command registered under the parent.
 func NewInitCommand(parent argparser.Registerer, g *global.Data) *InitCommand {
@@ -781,6 +781,18 @@ func validateLanguageOption(languages []*Language) func(string) error {
 func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader, out io.Writer) (from string, branch string, tag string, err error) {
 	var option string
 	flags := c.Globals.Flags
+
+	if len(kits) == 0 {
+		if flags.AcceptDefaults || flags.NonInteractive {
+			return "", "", "", errors.New("no default starter kits configured for this language; please specify a template using the --from flag")
+		}
+		text.Info(out, "\nNo default starter kits are currently configured for this language.")
+		option, err = text.Input(out, "Please paste a template git URL: ", in, nil)
+		if err != nil {
+			return "", "", "", fmt.Errorf("error reading input: %w", err)
+		}
+		return option, "", "", nil
+	}
 
 	if !flags.AcceptDefaults && !flags.NonInteractive {
 		text.Output(out, "\n%s", text.Bold("Starter kit:"))

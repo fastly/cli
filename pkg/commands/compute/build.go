@@ -330,13 +330,19 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	// Allow customer to specify their own env variables to be filtered.
 	ExtendStaticSecretEnvVars(c.MetadataFilterEnvVars)
 
-	dc := DataCollection{}
-
 	metadata := c.Globals.Config.WasmMetadata
 
 	// Only record basic data if user has disabled all other metadata collection.
 	if metadata.BuildInfo == "disable" && metadata.MachineInfo == "disable" && metadata.PackageInfo == "disable" && metadata.ScriptInfo == "disable" {
 		return c.AnnotateWasmBinaryShort(wasmtools, args)
+	}
+
+	// Seed from any fastly_data already embedded by the build tool (e.g. Python).
+	// This lets the build tool supply package_info while the CLI fills in the
+	// remaining fields it is responsible for.
+	dc := DataCollection{}
+	if existing := c.readExistingFastlyData(wasmtools); existing != nil {
+		dc = *existing
 	}
 
 	if metadata.BuildInfo == "enable" {
@@ -354,9 +360,11 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		}
 	}
 	if metadata.PackageInfo == "enable" {
-		dc.PackageInfo = DataCollectionPackageInfo{
-			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
-			Packages:   language.Dependencies(),
+		if dc.PackageInfo.Packages == nil {
+			dc.PackageInfo.Packages = language.Dependencies()
+		}
+		if dc.PackageInfo.ClonedFrom == "" {
+			dc.PackageInfo.ClonedFrom = c.Globals.Manifest.File.ClonedFrom
 		}
 	}
 	if metadata.ScriptInfo == "enable" {
@@ -375,6 +383,63 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	}
 	args = append(args, fmt.Sprintf("--processed-by=fastly_data=%s", data))
 	return c.Globals.ExecuteWasmTools(wasmtools, args, c.Globals)
+}
+
+// readExistingFastlyData reads any fastly_data already embedded in the Wasm
+// binary by the build tool. Returns nil if absent or unparseable.
+func (c *BuildCommand) readExistingFastlyData(wasmtools string) *DataCollection {
+	// #nosec G204 -- wasmtools path comes from trusted CLI config
+	out, err := exec.Command(wasmtools, "metadata", "show", "--json", binWasmPath).Output()
+	if err != nil {
+		return nil
+	}
+
+	// wasm-tools metadata show --json encodes producers differently for modules and components:
+	// - Wasm Modules: {"module":{"producers":[...]}}
+	// - Wasm Components: {"component":{"metadata":{"producers":[...]}}}
+	var meta struct {
+		Module struct {
+			Producers []json.RawMessage `json:"producers"`
+		} `json:"module"`
+		Component struct {
+			Metadata struct {
+				Producers []json.RawMessage `json:"producers"`
+			} `json:"metadata"`
+		} `json:"component"`
+	}
+	if err := json.Unmarshal(out, &meta); err != nil {
+		return nil
+	}
+
+	producers := meta.Component.Metadata.Producers
+	if len(producers) == 0 {
+		producers = meta.Module.Producers
+	}
+
+	for _, raw := range producers {
+		var pair [2]json.RawMessage
+		if err := json.Unmarshal(raw, &pair); err != nil {
+			continue
+		}
+		var field string
+		if err := json.Unmarshal(pair[0], &field); err != nil || field != "processed-by" {
+			continue
+		}
+		var entries map[string]string
+		if err := json.Unmarshal(pair[1], &entries); err != nil {
+			continue
+		}
+		val, ok := entries["fastly_data"]
+		if !ok {
+			continue
+		}
+		var dc DataCollection
+		if err := json.Unmarshal([]byte(val), &dc); err != nil {
+			return nil
+		}
+		return &dc
+	}
+	return nil
 }
 
 // ShowMetadata displays the metadata attached to the Wasm binary.
@@ -714,6 +779,12 @@ func language(toolchain, manifestFilename string, c *BuildCommand, in io.Reader,
 			Name:            "javascript",
 			SourceDirectory: JsSourceDirectory,
 			Toolchain:       NewJavaScript(c, in, manifestFilename, out, spinner),
+		})
+	case "python":
+		language = NewLanguage(&LanguageOptions{
+			Name:            "python",
+			SourceDirectory: PythonSourceDirectory,
+			Toolchain:       NewPython(c, in, manifestFilename, out, spinner),
 		})
 	case "rust":
 		language = NewLanguage(&LanguageOptions{
