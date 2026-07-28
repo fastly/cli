@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/digitalocean"
@@ -133,7 +133,37 @@ func TestUpdateDigitalOceanInput(t *testing.T) {
 				ResponseCondition: fastly.ToPointer("new8"),
 				MessageType:       fastly.ToPointer("new9"),
 				TimestampFormat:   fastly.ToPointer("new10"),
-				Placement:         fastly.ToPointer("new11"),
+				Placement:         fastly.NewNullable("new11"),
+				PublicKey:         fastly.ToPointer("new12"),
+				CompressionCodec:  fastly.ToPointer("new13"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:      testutil.GetVersion,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				GetDigitalOceanFn: getDigitalOceanOK,
+			},
+			want: &fastly.UpdateDigitalOceanInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				BucketName:        fastly.ToPointer("new2"),
+				Domain:            fastly.ToPointer("new3"),
+				AccessKey:         fastly.ToPointer("new4"),
+				SecretKey:         fastly.ToPointer("new5"),
+				Path:              fastly.ToPointer("new6"),
+				Period:            fastly.ToPointer(3601),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
+				MessageType:       fastly.ToPointer("new9"),
+				TimestampFormat:   fastly.ToPointer("new10"),
+				Placement:         fastly.NullValue[string](),
 				PublicKey:         fastly.ToPointer("new12"),
 				CompressionCodec:  fastly.ToPointer("new13"),
 			},
@@ -376,6 +406,12 @@ func updateCommandAll() *digitalocean.UpdateCommand {
 		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
 	}
+}
+
+func updateCommandPlacementReset() *digitalocean.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *digitalocean.UpdateCommand {

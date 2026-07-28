@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
-	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"4d63.com/optional"
 
@@ -151,7 +152,11 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) *fa
 		input.NewName = &c.newName.Value
 	}
 	if c.placement.WasSet {
-		input.Placement = &c.placement.Value
+		if strings.TrimSpace(c.placement.Value) == "" {
+			input.Placement = fastly.NullValue[string]()
+		} else {
+			input.Placement = fastly.NewNullable(c.placement.Value)
+		}
 	}
 	if c.processingregion.WasSet {
 		input.ProcessingRegion = &c.processingregion.Value

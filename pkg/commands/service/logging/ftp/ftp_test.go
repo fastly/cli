@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/ftp"
@@ -147,7 +147,37 @@ func TestUpdateFTPInput(t *testing.T) {
 				Format:            fastly.ToPointer("new6"),
 				ResponseCondition: fastly.ToPointer("new7"),
 				TimestampFormat:   fastly.ToPointer("new8"),
-				Placement:         fastly.ToPointer("new9"),
+				Placement:         fastly.NewNullable("new9"),
+				CompressionCodec:  fastly.ToPointer("new11"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetFTPFn:       getFTPOK,
+			},
+			want: &fastly.UpdateFTPInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Address:           fastly.ToPointer("new2"),
+				Port:              fastly.ToPointer(23),
+				PublicKey:         fastly.ToPointer("new10"),
+				Username:          fastly.ToPointer("new3"),
+				Password:          fastly.ToPointer("new4"),
+				Path:              fastly.ToPointer("new5"),
+				Period:            fastly.ToPointer(3601),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+				FormatVersion:     fastly.ToPointer(3),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new6"),
+				ResponseCondition: fastly.ToPointer("new7"),
+				TimestampFormat:   fastly.ToPointer("new8"),
+				Placement:         fastly.NullValue[string](),
 				CompressionCodec:  fastly.ToPointer("new11"),
 			},
 		},
@@ -374,6 +404,12 @@ func updateCommandAll() *ftp.UpdateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 	}
+}
+
+func updateCommandPlacementReset() *ftp.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *ftp.UpdateCommand {

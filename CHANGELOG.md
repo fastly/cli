@@ -7,6 +7,7 @@
 ### Bug Fixes:
 
 - fix(service-version): support autoclone when staging a service version. ([#1850](https://github.com/fastly/cli/pull/1850))
+- fix(logging): the `placement` flag for all loggging commands can now be reset back to `null` by setting it's value to `""` when it was previously set to another value ([#1855](https://github.com/fastly/cli/pull/1855))
 
 ### Enhancements:
 
@@ -16,6 +17,7 @@
 - build(deps): `github.com/minio/minlz` from 1.1.1 to 1.2.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.19.0 to 3.20.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `golang.org/x/net` from 0.56.0 to 0.57.0 ([#1847](https://github.com/fastly/cli/pull/1847))
+- build(deps): `github.com/fastly/go-fastly` from 16.0.1 to 17.0.0 ([#1855](https://github.com/fastly/cli/pull/1855))
 
 ## [v15.4.0](https://github.com/fastly/cli/releases/tag/v15.4.0) (2026-07-08)
 

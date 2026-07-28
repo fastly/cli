@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/scalyr"
@@ -131,7 +131,30 @@ func TestUpdateScalyrInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				Format:            fastly.ToPointer("new3"),
 				ResponseCondition: fastly.ToPointer("new4"),
-				Placement:         fastly.ToPointer("new5"),
+				Placement:         fastly.NewNullable("new5"),
+				Region:            fastly.ToPointer("new6"),
+				ProjectID:         fastly.ToPointer("new7"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetScalyrFn:    getScalyrOK,
+			},
+			want: &fastly.UpdateScalyrInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Token:             fastly.ToPointer("new2"),
+				FormatVersion:     fastly.ToPointer(3),
+				Format:            fastly.ToPointer("new3"),
+				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.NullValue[string](),
 				Region:            fastly.ToPointer("new6"),
 				ProjectID:         fastly.ToPointer("new7"),
 				ProcessingRegion:  fastly.ToPointer("eu"),
@@ -346,6 +369,12 @@ func updateCommandAll() *scalyr.UpdateCommand {
 		ProjectID:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *scalyr.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *scalyr.UpdateCommand {

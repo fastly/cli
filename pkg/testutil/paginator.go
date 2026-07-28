@@ -1,7 +1,7 @@
 package testutil
 
 import (
-	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 )
 
 // ServicesPaginator mocks the behaviour of a paginator for services.

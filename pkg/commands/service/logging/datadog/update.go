@@ -3,8 +3,9 @@ package datadog
 import (
 	"context"
 	"io"
+	"strings"
 
-	"github.com/fastly/go-fastly/v16/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"4d63.com/optional"
 
@@ -117,7 +118,11 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
+		if strings.TrimSpace(c.Placement.Value) == "" {
+			input.Placement = fastly.NullValue[string]()
+		} else {
+			input.Placement = fastly.NewNullable(c.Placement.Value)
+		}
 	}
 
 	if c.ProcessingRegion.WasSet {

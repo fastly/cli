@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/fastly/go-fastly/v16/fastly/ngwaf/v1/workspaces/thresholds"
+	"github.com/fastly/go-fastly/v17/fastly/ngwaf/v1/workspaces/thresholds"
 )
 
 // PrintThreshold displays a single threshold.
