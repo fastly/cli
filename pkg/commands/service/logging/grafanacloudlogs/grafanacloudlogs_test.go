@@ -134,7 +134,29 @@ func TestUpdateGrafanaCloudLogsInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				Format:            fastly.ToPointer("new6"),
 				ResponseCondition: fastly.ToPointer("new7"),
-				Placement:         fastly.ToPointer("new9"),
+				Placement:         fastly.NewNullable("new9"),
+				MessageType:       fastly.ToPointer("new10"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:          testutil.GetVersion,
+				CloneVersionFn:        testutil.CloneVersionResult(4),
+				GetGrafanaCloudLogsFn: getGrafanaCloudLogsOK,
+			},
+			want: &fastly.UpdateGrafanaCloudLogsInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				User:              fastly.ToPointer("new3"),
+				FormatVersion:     fastly.ToPointer(3),
+				Format:            fastly.ToPointer("new6"),
+				ResponseCondition: fastly.ToPointer("new7"),
+				Placement:         fastly.NullValue[string](),
 				MessageType:       fastly.ToPointer("new10"),
 				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
@@ -351,6 +373,12 @@ func updateCommandAll() *grafanacloudlogs.UpdateCommand {
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *grafanacloudlogs.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *grafanacloudlogs.UpdateCommand {

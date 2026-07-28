@@ -129,7 +129,38 @@ func TestUpdateElasticsearchInput(t *testing.T) {
 				Password:          fastly.ToPointer("new6"),
 				RequestMaxEntries: fastly.ToPointer(3),
 				RequestMaxBytes:   fastly.ToPointer(3),
-				Placement:         fastly.ToPointer("new7"),
+				Placement:         fastly.NewNullable("new7"),
+				Format:            fastly.ToPointer("new8"),
+				FormatVersion:     fastly.ToPointer(3),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+				ResponseCondition: fastly.ToPointer("new9"),
+				TLSCACert:         fastly.ToPointer("new10"),
+				TLSClientCert:     fastly.ToPointer("new11"),
+				TLSClientKey:      fastly.ToPointer("new12"),
+				TLSHostname:       fastly.ToPointer("new13"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:       testutil.GetVersion,
+				CloneVersionFn:     testutil.CloneVersionResult(4),
+				GetElasticsearchFn: getElasticsearchOK,
+			},
+			want: &fastly.UpdateElasticsearchInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Index:             fastly.ToPointer("new2"),
+				URL:               fastly.ToPointer("new3"),
+				Pipeline:          fastly.ToPointer("new4"),
+				User:              fastly.ToPointer("new5"),
+				Password:          fastly.ToPointer("new6"),
+				RequestMaxEntries: fastly.ToPointer(3),
+				RequestMaxBytes:   fastly.ToPointer(3),
+				Placement:         fastly.NullValue[string](),
 				Format:            fastly.ToPointer("new8"),
 				FormatVersion:     fastly.ToPointer(3),
 				ProcessingRegion:  fastly.ToPointer("eu"),
@@ -380,6 +411,12 @@ func updateCommandAll() *elasticsearch.UpdateCommand {
 		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
 	}
+}
+
+func updateCommandPlacementReset() *elasticsearch.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *elasticsearch.UpdateCommand {

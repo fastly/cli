@@ -3,6 +3,7 @@ package splunk
 import (
 	"context"
 	"io"
+	"strings"
 
 	"github.com/fastly/go-fastly/v16/fastly"
 
@@ -69,7 +70,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause.Flag("new-name", "New name of the Splunk logging object").Action(c.NewName.Set).StringVar(&c.NewName.Value)
 	logflags.Format(c.CmdClause, &c.Format)
 	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
-	c.CmdClause.Flag("placement", "	Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Placement.Set).StringVar(&c.Placement.Value)
+	logflags.Placement(c.CmdClause, &c.Placement)
 	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Splunk")
 	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
@@ -122,7 +123,11 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
+		if strings.TrimSpace(c.Placement.Value) == "" {
+			input.Placement = fastly.NullValue[string]()
+		} else {
+			input.Placement = fastly.NewNullable(c.Placement.Value)
+		}
 	}
 
 	if c.ProcessingRegion.WasSet {

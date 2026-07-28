@@ -134,7 +134,33 @@ func TestUpdateSplunkInput(t *testing.T) {
 				Format:            fastly.ToPointer("new3"),
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new4"),
-				Placement:         fastly.ToPointer("new5"),
+				Placement:         fastly.NewNullable("new5"),
+				Token:             fastly.ToPointer("new6"),
+				TLSCACert:         fastly.ToPointer("new7"),
+				TLSHostname:       fastly.ToPointer("new8"),
+				TLSClientCert:     fastly.ToPointer("new9"),
+				TLSClientKey:      fastly.ToPointer("new10"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetSplunkFn:    getSplunkOK,
+			},
+			want: &fastly.UpdateSplunkInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				URL:               fastly.ToPointer("new2"),
+				Format:            fastly.ToPointer("new3"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.NullValue[string](),
 				Token:             fastly.ToPointer("new6"),
 				TLSCACert:         fastly.ToPointer("new7"),
 				TLSHostname:       fastly.ToPointer("new8"),
@@ -359,6 +385,12 @@ func updateCommandAll() *splunk.UpdateCommand {
 		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *splunk.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *splunk.UpdateCommand {

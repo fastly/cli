@@ -129,7 +129,28 @@ func TestUpdateLogglyInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				Token:             fastly.ToPointer("new3"),
 				ResponseCondition: fastly.ToPointer("new4"),
-				Placement:         fastly.ToPointer("new5"),
+				Placement:         fastly.NewNullable("new5"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetLogglyFn:    getLogglyOK,
+			},
+			want: &fastly.UpdateLogglyInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Format:            fastly.ToPointer("new2"),
+				FormatVersion:     fastly.ToPointer(3),
+				Token:             fastly.ToPointer("new3"),
+				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.NullValue[string](),
 				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
@@ -338,6 +359,12 @@ func updateCommandAll() *loggly.UpdateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new5"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *loggly.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *loggly.UpdateCommand {

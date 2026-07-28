@@ -165,7 +165,42 @@ func TestUpdateS3Input(t *testing.T) {
 				MessageType:                  fastly.ToPointer("new8"),
 				ResponseCondition:            fastly.ToPointer("new9"),
 				TimestampFormat:              fastly.ToPointer("new10"),
-				Placement:                    fastly.ToPointer("new11"),
+				Placement:                    fastly.NewNullable("new11"),
+				Redundancy:                   fastly.ToPointer(fastly.S3RedundancyReduced),
+				ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
+				ServerSideEncryptionKMSKeyID: fastly.ToPointer("new12"),
+				PublicKey:                    fastly.ToPointer("new13"),
+				CompressionCodec:             fastly.ToPointer("new14"),
+				ProcessingRegion:             fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetS3Fn:        getS3OK,
+			},
+			want: &fastly.UpdateS3Input{
+				ServiceID:                    "123",
+				ServiceVersion:               4,
+				Name:                         "log",
+				NewName:                      fastly.ToPointer("new1"),
+				BucketName:                   fastly.ToPointer("new2"),
+				AccessKey:                    fastly.ToPointer("new3"),
+				SecretKey:                    fastly.ToPointer("new4"),
+				IAMRole:                      fastly.ToPointer(""),
+				Domain:                       fastly.ToPointer("new5"),
+				Path:                         fastly.ToPointer("new6"),
+				Period:                       fastly.ToPointer(3601),
+				GzipLevel:                    fastly.ToPointer(0),
+				Format:                       fastly.ToPointer("new7"),
+				FormatVersion:                fastly.ToPointer(3),
+				MessageType:                  fastly.ToPointer("new8"),
+				ResponseCondition:            fastly.ToPointer("new9"),
+				TimestampFormat:              fastly.ToPointer("new10"),
+				Placement:                    fastly.NullValue[string](),
 				Redundancy:                   fastly.ToPointer(fastly.S3RedundancyReduced),
 				ServerSideEncryption:         fastly.ToPointer(fastly.S3ServerSideEncryptionKMS),
 				ServerSideEncryptionKMSKeyID: fastly.ToPointer("new12"),
@@ -446,6 +481,12 @@ func updateCommandAll() *s3.UpdateCommand {
 		CompressionCodec:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
 		ProcessingRegion:             argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *s3.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *s3.UpdateCommand {

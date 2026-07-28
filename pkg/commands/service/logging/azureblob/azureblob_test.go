@@ -132,7 +132,37 @@ func TestUpdateBlobStorageInput(t *testing.T) {
 				ResponseCondition: fastly.ToPointer("new7"),
 				MessageType:       fastly.ToPointer("new8"),
 				TimestampFormat:   fastly.ToPointer("new9"),
-				Placement:         fastly.ToPointer("new10"),
+				Placement:         fastly.NewNullable("new10"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+				PublicKey:         fastly.ToPointer("new11"),
+				CompressionCodec:  fastly.ToPointer("new12"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:     testutil.GetVersion,
+				CloneVersionFn:   testutil.CloneVersionResult(4),
+				GetBlobStorageFn: getBlobStorageOK,
+			},
+			want: &fastly.UpdateBlobStorageInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "logs",
+				NewName:           fastly.ToPointer("new1"),
+				Container:         fastly.ToPointer("new2"),
+				AccountName:       fastly.ToPointer("new3"),
+				SASToken:          fastly.ToPointer("new4"),
+				Path:              fastly.ToPointer("new5"),
+				Period:            fastly.ToPointer(3601),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new6"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new7"),
+				MessageType:       fastly.ToPointer("new8"),
+				TimestampFormat:   fastly.ToPointer("new9"),
+				Placement:         fastly.NullValue[string](),
 				ProcessingRegion:  fastly.ToPointer("eu"),
 				PublicKey:         fastly.ToPointer("new11"),
 				CompressionCodec:  fastly.ToPointer("new12"),
@@ -378,6 +408,12 @@ func updateCommandAll() *azureblob.UpdateCommand {
 		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 	}
+}
+
+func updateCommandPlacementReset() *azureblob.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *azureblob.UpdateCommand {

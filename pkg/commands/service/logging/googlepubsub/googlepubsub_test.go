@@ -121,7 +121,31 @@ func TestUpdateGooglePubSubInput(t *testing.T) {
 				SecretKey:         fastly.ToPointer("new3"),
 				ProjectID:         fastly.ToPointer("new4"),
 				Topic:             fastly.ToPointer("new5"),
-				Placement:         fastly.ToPointer("new6"),
+				Placement:         fastly.NewNullable("new6"),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetPubsubFn:    getGooglePubSubOK,
+			},
+			want: &fastly.UpdatePubsubInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				User:              fastly.ToPointer("new2"),
+				SecretKey:         fastly.ToPointer("new3"),
+				ProjectID:         fastly.ToPointer("new4"),
+				Topic:             fastly.ToPointer("new5"),
+				Placement:         fastly.NullValue[string](),
 				Format:            fastly.ToPointer("new7"),
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new8"),
@@ -356,6 +380,12 @@ func updateCommandAll() *googlepubsub.UpdateCommand {
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *googlepubsub.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *googlepubsub.UpdateCommand {

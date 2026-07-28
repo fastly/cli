@@ -3,6 +3,7 @@ package scalyr
 import (
 	"context"
 	"io"
+	"strings"
 
 	"github.com/fastly/go-fastly/v16/fastly"
 
@@ -112,7 +113,11 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 	if c.Placement.WasSet {
-		input.Placement = &c.Placement.Value
+		if strings.TrimSpace(c.Placement.Value) == "" {
+			input.Placement = fastly.NullValue[string]()
+		} else {
+			input.Placement = fastly.NewNullable(c.Placement.Value)
+		}
 	}
 	if c.ProcessingRegion.WasSet {
 		input.ProcessingRegion = &c.ProcessingRegion.Value

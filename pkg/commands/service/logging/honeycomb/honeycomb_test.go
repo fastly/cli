@@ -132,7 +132,29 @@ func TestUpdateHoneycombInput(t *testing.T) {
 				Token:             fastly.ToPointer("new3"),
 				Dataset:           fastly.ToPointer("new4"),
 				ResponseCondition: fastly.ToPointer("new5"),
-				Placement:         fastly.ToPointer("new6"),
+				Placement:         fastly.NewNullable("new6"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetHoneycombFn: getHoneycombOK,
+			},
+			want: &fastly.UpdateHoneycombInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Format:            fastly.ToPointer("new2"),
+				FormatVersion:     fastly.ToPointer(3),
+				Token:             fastly.ToPointer("new3"),
+				Dataset:           fastly.ToPointer("new4"),
+				ResponseCondition: fastly.ToPointer("new5"),
+				Placement:         fastly.NullValue[string](),
 				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
@@ -344,6 +366,12 @@ func updateCommandAll() *honeycomb.UpdateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *honeycomb.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *honeycomb.UpdateCommand {

@@ -140,7 +140,38 @@ func TestUpdateCloudfilesInput(t *testing.T) {
 				BucketName:        fastly.ToPointer("new3"),
 				Path:              fastly.ToPointer("new4"),
 				Region:            fastly.ToPointer("new5"),
-				Placement:         fastly.ToPointer("new6"),
+				Placement:         fastly.NewNullable("new6"),
+				Period:            fastly.ToPointer(3601),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
+				MessageType:       fastly.ToPointer("new9"),
+				TimestampFormat:   fastly.ToPointer("new10"),
+				PublicKey:         fastly.ToPointer("new11"),
+				User:              fastly.ToPointer("new12"),
+				CompressionCodec:  fastly.ToPointer("new13"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:    testutil.GetVersion,
+				CloneVersionFn:  testutil.CloneVersionResult(4),
+				GetCloudfilesFn: getCloudfilesOK,
+			},
+			want: &fastly.UpdateCloudfilesInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				AccessKey:         fastly.ToPointer("new2"),
+				BucketName:        fastly.ToPointer("new3"),
+				Path:              fastly.ToPointer("new4"),
+				Region:            fastly.ToPointer("new5"),
+				Placement:         fastly.NullValue[string](),
 				Period:            fastly.ToPointer(3601),
 				GzipLevel:         fastly.ToPointer(0),
 				Format:            fastly.ToPointer("new7"),
@@ -380,6 +411,12 @@ func updateCommandAll() *cloudfiles.UpdateCommand {
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new13"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *cloudfiles.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *cloudfiles.UpdateCommand {

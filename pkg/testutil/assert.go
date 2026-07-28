@@ -9,6 +9,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/fastly/go-fastly/v16/fastly"
+
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/errors"
 )
@@ -16,7 +18,7 @@ import (
 // AssertEqual fatals a test if the parameters aren't equal.
 func AssertEqual(t *testing.T, want, have any) {
 	t.Helper()
-	if diff := cmp.Diff(want, have); diff != "" {
+	if diff := cmp.Diff(want, have, cmp.AllowUnexported(fastly.Nullable[string]{})); diff != "" {
 		t.Fatal(diff)
 	}
 }

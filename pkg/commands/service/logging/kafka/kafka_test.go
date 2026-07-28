@@ -141,7 +141,41 @@ func TestUpdateKafkaInput(t *testing.T) {
 				RequiredACKs:      fastly.ToPointer("new4"),
 				UseTLS:            fastly.ToPointer(fastly.Compatibool(false)),
 				CompressionCodec:  fastly.ToPointer("new5"),
-				Placement:         fastly.ToPointer("new6"),
+				Placement:         fastly.NewNullable("new6"),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new8"),
+				TLSCACert:         fastly.ToPointer("new9"),
+				TLSClientCert:     fastly.ToPointer("new10"),
+				TLSClientKey:      fastly.ToPointer("new11"),
+				TLSHostname:       fastly.ToPointer("new12"),
+				ParseLogKeyvals:   fastly.ToPointer(fastly.Compatibool(false)),
+				RequestMaxBytes:   fastly.ToPointer(22222),
+				AuthMethod:        fastly.ToPointer("plain"),
+				User:              fastly.ToPointer("new13"),
+				Password:          fastly.ToPointer("new14"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetKafkaFn:     getKafkaOK,
+			},
+			want: &fastly.UpdateKafkaInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Topic:             fastly.ToPointer("new2"),
+				Brokers:           fastly.ToPointer("new3"),
+				RequiredACKs:      fastly.ToPointer("new4"),
+				UseTLS:            fastly.ToPointer(fastly.Compatibool(false)),
+				CompressionCodec:  fastly.ToPointer("new5"),
+				Placement:         fastly.NullValue[string](),
 				Format:            fastly.ToPointer("new7"),
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new8"),
@@ -486,6 +520,12 @@ func updateCommandAll() *kafka.UpdateCommand {
 		Password:          argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *kafka.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandSASL(authMethod, user, password string) *kafka.UpdateCommand {

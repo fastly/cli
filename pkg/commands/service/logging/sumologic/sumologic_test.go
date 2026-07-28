@@ -130,7 +130,29 @@ func TestUpdateSumologicInput(t *testing.T) {
 				Format:            fastly.ToPointer("new3"),
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new4"),
-				Placement:         fastly.ToPointer("new5"),
+				Placement:         fastly.NewNullable("new5"),
+				MessageType:       fastly.ToPointer("new6"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetSumologicFn: getSumologicOK,
+			},
+			want: &fastly.UpdateSumologicInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				URL:               fastly.ToPointer("new2"),
+				Format:            fastly.ToPointer("new3"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new4"),
+				Placement:         fastly.NullValue[string](),
 				MessageType:       fastly.ToPointer("new6"),
 				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
@@ -342,6 +364,12 @@ func updateCommandAll() *sumologic.UpdateCommand {
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new6"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *sumologic.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *sumologic.UpdateCommand {
