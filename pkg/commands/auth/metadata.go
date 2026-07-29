@@ -53,7 +53,7 @@ func FetchTokenMetadata(g *global.Data, token string) (*TokenMetadata, error) {
 	}
 
 	if !anyOK {
-		return nil, fmt.Errorf("token validation failed: neither /current_user nor /tokens/self responded successfully")
+		return nil, fmt.Errorf("token validation failed: neither /current_user nor /tokens/self responded successfully: %w", err)
 	}
 
 	return md, nil
