@@ -105,7 +105,7 @@ func (c *CreateCommand) staticTokenFlow(makeDefault bool, in io.Reader, out io.W
 
 	var md *authcmd.TokenMetadata
 	err = spinner.Process("Validating token", func(_ *text.SpinnerWrapper) error {
-		md, err = authcmd.FetchTokenMetadata(c.Globals, token)
+		md, err = authcmd.FetchTokenMetadataLenient(c.Globals, token)
 		return err
 	})
 	if err != nil {

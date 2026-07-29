@@ -47,6 +47,34 @@ func TestProfileCreate(t *testing.T) {
 			},
 		},
 		{
+			Name: "validate profile creation works with a service-limited token",
+			Args: "foo",
+			API: &mock.API{
+				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
+					return nil, fmt.Errorf("unauthorized")
+				},
+				GetTokenSelfFn: getToken,
+			},
+			Stdin: []string{"some_token"},
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			WantOutputs: []string{
+				"Validating token",
+				"Profile 'foo' created",
+			},
+		},
+		{
 			Name: "validate profile duplication",
 			Args: "foo",
 			Env: &testutil.EnvConfig{
