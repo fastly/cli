@@ -22,6 +22,12 @@ updates:
       go-dependencies:
         patterns:
           - "*"
+    ignore:
+      # go-msix v1.0.0 has a breaking API change incompatible with the
+      # nfpm v2.47.0 in use by goreleaser; held at v0.3.1 until that's resolved.
+      # pending commit for nfpm: https://github.com/goreleaser/nfpm/commit/ce81cb6
+      - dependency-name: "go.digitalxero.dev/go-msix"
+        versions: [">= 1.0.0"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
