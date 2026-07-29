@@ -208,6 +208,30 @@ func TestAuthLogin(t *testing.T) {
 			},
 		},
 		{
+			Name: "login succeeds with a service-limited token",
+			Args: "login",
+			API: &mock.API{
+				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
+					return nil, fmt.Errorf("403 Forbidden")
+				},
+				GetTokenSelfFn: testTokenSelfFull,
+			},
+			Stdin: []string{
+				"my-login-token",
+			},
+			WantOutputs: []string{`Authenticated (token stored as "my-api-token")`, "Token saved to"},
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				at := opts.Config.GetAuthToken("my-api-token")
+				if at == nil {
+					t.Fatal("expected auth token 'my-api-token' to exist")
+				}
+				if at.Email != "" {
+					t.Errorf("want empty email for service-limited token, got %s", at.Email)
+				}
+			},
+		},
+		{
 			Name: "login falls back to default when API token has no name",
 			Args: "login",
 			API: &mock.API{
@@ -438,6 +462,12 @@ func TestAuthAddScopedToken(t *testing.T) {
 				},
 			},
 			WantError: "token validation failed: neither /current_user nor /tokens/self responded successfully",
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				if opts.Config.GetAuthToken("bad-token") != nil {
+					t.Error("expected token not to be saved when validation fails")
+				}
+			},
 		},
 		{
 			Name: "add without name gives friendly error for scoped token",

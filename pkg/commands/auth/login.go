@@ -45,7 +45,11 @@ func (c *LoginCommand) Exec(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Authenticated as %s (token stored as %q)", md.Email, name)
+	if md.Email != "" {
+		text.Success(out, "Authenticated as %s (token stored as %q)", md.Email, name)
+	} else {
+		text.Success(out, "Authenticated (token stored as %q)", name)
+	}
 	text.Info(out, "Token saved to %s", c.Globals.ConfigPath)
 	return nil
 }

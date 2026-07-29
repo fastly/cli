@@ -643,7 +643,11 @@ func promptForAuth(data *global.Data) (string, lookup.Source, error) {
 		return "", lookup.SourceUndefined, err
 	}
 
-	text.Success(data.Output, "Authenticated as %s (token stored as %q)", md.Email, name)
+	if md.Email != "" {
+		text.Success(data.Output, "Authenticated as %s (token stored as %q)", md.Email, name)
+	} else {
+		text.Success(data.Output, "Authenticated (token stored as %q)", name)
+	}
 	text.Info(data.Output, "Token saved to %s", data.ConfigPath)
 	return token, lookup.SourceAuth, nil
 }

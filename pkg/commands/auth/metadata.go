@@ -23,36 +23,13 @@ type TokenMetadata struct {
 	APITokenID        string
 }
 
-// FetchTokenMetadata validates a token by calling GetCurrentUser (required)
-// and GetTokenSelf (best-effort), returning metadata for storage.
+// FetchTokenMetadata validates a token by calling GetCurrentUser and
+// GetTokenSelf, returning metadata for storage.
+// Both calls are best-effort because scoped tokens may lack permission to
+// call /current_user, but at least one must succeed to confirm the token
+// is valid.
 // It constructs its own API client from the provided token string.
 func FetchTokenMetadata(g *global.Data, token string) (*TokenMetadata, error) {
-	endpoint, _ := g.APIEndpoint()
-	apiClient, err := g.APIClientFactory(token, endpoint, g.Flags.Debug)
-	if err != nil {
-		return nil, fmt.Errorf("error creating API client: %w", err)
-	}
-
-	user, err := apiClient.GetCurrentUser(context.TODO())
-	if err != nil {
-		return nil, fmt.Errorf("token validation failed (could not look up current user): %w", err)
-	}
-
-	md := &TokenMetadata{
-		Email:     fastly.ToValue(user.Login),
-		AccountID: fastly.ToValue(user.CustomerID),
-	}
-
-	fetchTokenSelf(g, apiClient, md)
-
-	return md, nil
-}
-
-// FetchTokenMetadataLenient is like FetchTokenMetadata but treats
-// GetCurrentUser as best-effort. Use this for scoped tokens that may lack
-// permission to call /current_user. At least one of GetCurrentUser or
-// GetTokenSelf must succeed to confirm the token is valid.
-func FetchTokenMetadataLenient(g *global.Data, token string) (*TokenMetadata, error) {
 	endpoint, _ := g.APIEndpoint()
 	apiClient, err := g.APIClientFactory(token, endpoint, g.Flags.Debug)
 	if err != nil {
@@ -76,7 +53,7 @@ func FetchTokenMetadataLenient(g *global.Data, token string) (*TokenMetadata, er
 	}
 
 	if !anyOK {
-		return nil, fmt.Errorf("token validation failed: neither /current_user nor /tokens/self responded successfully")
+		return nil, fmt.Errorf("token validation failed: neither /current_user nor /tokens/self responded successfully: %w", err)
 	}
 
 	return md, nil

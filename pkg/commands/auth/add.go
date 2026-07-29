@@ -36,7 +36,7 @@ func (c *AddCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fmt.Errorf("token %q already exists; use 'fastly auth delete %s' first", c.name, c.name)
 	}
 
-	md, err := FetchTokenMetadataLenient(c.Globals, c.token)
+	md, err := FetchTokenMetadata(c.Globals, c.token)
 	if err != nil {
 		return err
 	}
