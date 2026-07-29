@@ -462,6 +462,12 @@ func TestAuthAddScopedToken(t *testing.T) {
 				},
 			},
 			WantError: "token validation failed: neither /current_user nor /tokens/self responded successfully",
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				if opts.Config.GetAuthToken("bad-token") != nil {
+					t.Error("expected token not to be saved when validation fails")
+				}
+			},
 		},
 		{
 			Name: "add without name gives friendly error for scoped token",
