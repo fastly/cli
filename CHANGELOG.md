@@ -11,6 +11,8 @@
 
 ### Enhancements:
 
+- feat(profile): profiles can now be created and updated with service-limited tokens, which cannot access `/current_user` ([#1856](https://github.com/fastly/cli/pull/1856))
+
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.53.0 to 0.54.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.4 to 1.6.5 ([#1847](https://github.com/fastly/cli/pull/1847))
