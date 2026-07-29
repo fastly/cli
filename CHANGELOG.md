@@ -8,6 +8,7 @@
 
 - fix(service-version): support autoclone when staging a service version. ([#1850](https://github.com/fastly/cli/pull/1850))
 - fix(logging): the `placement` flag for all loggging commands can now be reset back to `null` by setting it's value to `""` when it was previously set to another value ([#1855](https://github.com/fastly/cli/pull/1855))
+- fix(profile): profiles can now be created and updated with service-limited tokens, which cannot access `/current_user` ([#1856](https://github.com/fastly/cli/pull/1856))
 
 ### Enhancements:
 

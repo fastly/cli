@@ -73,7 +73,9 @@ func display(name string, at *config.AuthToken, isDefault bool, out io.Writer, s
 	text.Output(out, style(name))
 	text.Break(out)
 	text.Output(out, "%s: %t", style("Default"), isDefault)
-	text.Output(out, "%s: %s", style("Email"), at.Email)
+	if at.Email != "" {
+		text.Output(out, "%s: %s", style("Email"), at.Email)
+	}
 	text.Output(out, "%s: %s", style("Token"), at.Token)
 	isSSO := at.Type == config.AuthTokenTypeSSO
 	text.Output(out, "%s: %t", style("SSO"), isSSO)
