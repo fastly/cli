@@ -19,6 +19,9 @@
 - build(deps): `github.com/coreos/go-oidc/v3` from 3.19.0 to 3.20.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `golang.org/x/net` from 0.56.0 to 0.57.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/fastly/go-fastly` from 16.0.1 to 17.0.0 ([#1855](https://github.com/fastly/cli/pull/1855))
+- build(deps): `github.com/mattn/go-isatty` from 0.0.23 to 0.0.24 ([#1857](https://github.com/fastly/cli/pull/1857))
+- build(deps): `github.com/nwaples/rardecode/v2` from 2.2.5 to 2.3.0 ([#1857](https://github.com/fastly/cli/pull/1857))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.24 to 0.0.27 ([#1857](https://github.com/fastly/cli/pull/1857))
 
 ## [v15.4.0](https://github.com/fastly/cli/releases/tag/v15.4.0) (2026-07-08)
 
