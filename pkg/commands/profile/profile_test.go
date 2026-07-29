@@ -11,8 +11,10 @@ import (
 
 	root "github.com/fastly/cli/pkg/commands/profile"
 	"github.com/fastly/cli/pkg/config"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
+	"github.com/fastly/cli/pkg/threadsafe"
 	fsttime "github.com/fastly/cli/pkg/time"
 )
 
@@ -72,6 +74,19 @@ func TestProfileCreate(t *testing.T) {
 			WantOutputs: []string{
 				"Validating token",
 				"Profile 'foo' created",
+			},
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				at := opts.Config.GetAuthToken("foo")
+				if at == nil {
+					t.Fatal("expected auth token 'foo' to exist")
+				}
+				if at.Email != "" {
+					t.Errorf("want empty email for service-limited token, got %s", at.Email)
+				}
+				if at.APITokenName != "Foo" {
+					t.Errorf("want APITokenName Foo, got %s", at.APITokenName)
+				}
 			},
 		},
 		{
@@ -733,6 +748,64 @@ func TestProfileUpdate(t *testing.T) {
 				"y", // we set the profile to be the default
 			},
 			WantOutput: "Profile 'bar' updated",
+		},
+		{
+			Name: "validate updating profile works with a service-limited token",
+			Args: "bar",
+			API: &mock.API{
+				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
+					return nil, fmt.Errorf("unauthorized")
+				},
+				GetTokenSelfFn: getToken,
+			},
+			Env: &testutil.EnvConfig{
+				Opts: &testutil.EnvOpts{
+					Copy: []testutil.FileIO{
+						{
+							Src: filepath.Join("testdata", "config.toml"),
+							Dst: "config.toml",
+						},
+					},
+				},
+				EditScenario: func(scenario *testutil.CLIScenario, rootdir string) {
+					scenario.ConfigPath = filepath.Join(rootdir, "config.toml")
+				},
+			},
+			ConfigFile: &config.File{
+				Auth: config.Auth{
+					Default: "foo",
+					Tokens: config.AuthTokens{
+						"foo": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "123",
+							Email: "foo@example.com",
+						},
+						"bar": &config.AuthToken{
+							Type:  config.AuthTokenTypeStatic,
+							Token: "456",
+							Email: "bar@example.com",
+						},
+					},
+				},
+			},
+			Stdin: []string{
+				"scoped_token",
+				"y",
+			},
+			WantOutput: "Profile 'bar' updated",
+			Validator: func(t *testing.T, _ *testutil.CLIScenario, opts *global.Data, _ *threadsafe.Buffer) {
+				t.Helper()
+				at := opts.Config.GetAuthToken("bar")
+				if at == nil {
+					t.Fatal("expected auth token 'bar' to exist")
+				}
+				if at.Token != "scoped_token" {
+					t.Errorf("want token scoped_token, got %s", at.Token)
+				}
+				if at.Email != "" {
+					t.Errorf("want empty email for service-limited token, got %s", at.Email)
+				}
+			},
 		},
 	}
 
