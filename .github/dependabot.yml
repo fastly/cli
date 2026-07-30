@@ -4,6 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
+      exclude:
+        - "github.com/fastly/go-fastly/*"
     allow:
       - dependency-type: "all"
     groups:
@@ -14,6 +18,8 @@ updates:
     directory: "/tools"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     allow:
       - dependency-type: "all"
     labels:
@@ -32,6 +38,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     labels:
       - "github_actions"
     groups:
