@@ -6,7 +6,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/kvstoreentry"
@@ -73,7 +73,7 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 			PoolSize:  c.poolSize,
 			StoreID:   c.Input.StoreID,
 		}
-		if err := dc.DeleteAllKeys(out); err != nil {
+		if err := dc.DeleteMultipleKeys(out, ""); err != nil {
 			return err
 		}
 		text.Break(out)

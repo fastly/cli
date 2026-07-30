@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/https"
@@ -137,7 +137,41 @@ func TestUpdateHTTPSInput(t *testing.T) {
 				Method:            fastly.ToPointer("new8"),
 				JSONFormat:        fastly.ToPointer("new9"),
 				Period:            fastly.ToPointer(5),
-				Placement:         fastly.ToPointer("new10"),
+				Placement:         fastly.NewNullable("new10"),
+				TLSCACert:         fastly.ToPointer("new11"),
+				TLSClientCert:     fastly.ToPointer("new12"),
+				TLSClientKey:      fastly.ToPointer("new13"),
+				TLSHostname:       fastly.ToPointer("new14"),
+				MessageType:       fastly.ToPointer("new15"),
+				FormatVersion:     fastly.ToPointer(3),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetHTTPSFn:     getHTTPSOK,
+			},
+			want: &fastly.UpdateHTTPSInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				ResponseCondition: fastly.ToPointer("new2"),
+				Format:            fastly.ToPointer("new3"),
+				URL:               fastly.ToPointer("new4"),
+				RequestMaxEntries: fastly.ToPointer(3),
+				RequestMaxBytes:   fastly.ToPointer(3),
+				ContentType:       fastly.ToPointer("new5"),
+				HeaderName:        fastly.ToPointer("new6"),
+				HeaderValue:       fastly.ToPointer("new7"),
+				Method:            fastly.ToPointer("new8"),
+				JSONFormat:        fastly.ToPointer("new9"),
+				Period:            fastly.ToPointer(5),
+				Placement:         fastly.NullValue[string](),
 				TLSCACert:         fastly.ToPointer("new11"),
 				TLSClientCert:     fastly.ToPointer("new12"),
 				TLSClientKey:      fastly.ToPointer("new13"),
@@ -394,6 +428,12 @@ func updateCommandAll() *https.UpdateCommand {
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
+}
+
+func updateCommandPlacementReset() *https.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *https.UpdateCommand {

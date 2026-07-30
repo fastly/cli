@@ -8,7 +8,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 )
 
 var blockTemplate = template.Must(template.New("stats_block").Parse(

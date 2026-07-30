@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/kinesis"
@@ -151,7 +151,32 @@ func TestUpdateKinesisInput(t *testing.T) {
 				Format:            fastly.ToPointer("new7"),
 				FormatVersion:     fastly.ToPointer(3),
 				ResponseCondition: fastly.ToPointer("new9"),
-				Placement:         fastly.ToPointer("new11"),
+				Placement:         fastly.NewNullable("new11"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetKinesisFn:   getKinesisOK,
+			},
+			want: &fastly.UpdateKinesisInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				StreamName:        fastly.ToPointer("new2"),
+				AccessKey:         fastly.ToPointer("new3"),
+				SecretKey:         fastly.ToPointer("new4"),
+				IAMRole:           fastly.ToPointer(""),
+				Region:            fastly.ToPointer("new5"),
+				Format:            fastly.ToPointer("new7"),
+				FormatVersion:     fastly.ToPointer(3),
+				ResponseCondition: fastly.ToPointer("new9"),
+				Placement:         fastly.NullValue[string](),
 				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
@@ -410,6 +435,12 @@ func updateCommandAll() *kinesis.UpdateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *kinesis.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *kinesis.UpdateCommand {

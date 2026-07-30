@@ -48,7 +48,7 @@ func CompressionCodec(command *kingpin.CmdClause, c *argparser.OptionalString) {
 
 // Placement defines the placement flag.
 func Placement(command *kingpin.CmdClause, c *argparser.OptionalString) {
-	command.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none or waf_debug. This field is not required and has no default value").Action(c.Set).StringVar(&c.Value)
+	command.Flag("placement", "Where in the generated VCL the logging call should be placed, overriding any format_version default. Can be none, which suppresses the logging call (the only valid value for Compute services). This field is not required and has no default value. When updating a Delivery service, pass an empty string to reset the endpoint back to automatic placement").Action(c.Set).StringVar(&c.Value)
 }
 
 // ProcessingRegion defines the processing-region flag.

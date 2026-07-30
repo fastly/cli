@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/sftp"
@@ -138,7 +138,40 @@ func TestUpdateSFTPInput(t *testing.T) {
 				Format:            fastly.ToPointer("new9"),
 				ResponseCondition: fastly.ToPointer("new10"),
 				TimestampFormat:   fastly.ToPointer("new11"),
-				Placement:         fastly.ToPointer("new12"),
+				Placement:         fastly.NewNullable("new12"),
+				MessageType:       fastly.ToPointer("new13"),
+				CompressionCodec:  fastly.ToPointer("new14"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetSFTPFn:      getSFTPOK,
+			},
+			want: &fastly.UpdateSFTPInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Address:           fastly.ToPointer("new2"),
+				Port:              fastly.ToPointer(81),
+				User:              fastly.ToPointer("new3"),
+				SSHKnownHosts:     fastly.ToPointer("new4"),
+				Password:          fastly.ToPointer("new5"),
+				PublicKey:         fastly.ToPointer("new6"),
+				SecretKey:         fastly.ToPointer("new7"),
+				Path:              fastly.ToPointer("new8"),
+				Period:            fastly.ToPointer(3601),
+				FormatVersion:     fastly.ToPointer(3),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new9"),
+				ResponseCondition: fastly.ToPointer("new10"),
+				TimestampFormat:   fastly.ToPointer("new11"),
+				Placement:         fastly.NullValue[string](),
 				MessageType:       fastly.ToPointer("new13"),
 				CompressionCodec:  fastly.ToPointer("new14"),
 				ProcessingRegion:  fastly.ToPointer("eu"),
@@ -388,6 +421,12 @@ func updateCommandAll() *sftp.UpdateCommand {
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new14"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *sftp.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *sftp.UpdateCommand {

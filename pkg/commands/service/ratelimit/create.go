@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"4d63.com/optional"
 

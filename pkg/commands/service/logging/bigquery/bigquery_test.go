@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/bigquery"
@@ -141,7 +141,33 @@ func TestUpdateBigQueryInput(t *testing.T) {
 				SecretKey:         fastly.ToPointer("new6"),
 				Template:          fastly.ToPointer("new7"),
 				ResponseCondition: fastly.ToPointer("new8"),
-				Placement:         fastly.ToPointer("new9"),
+				Placement:         fastly.NewNullable("new9"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+				Format:            fastly.ToPointer("new10"),
+				FormatVersion:     fastly.ToPointer(3),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetBigQueryFn:  getBigQueryOK,
+			},
+			want: &fastly.UpdateBigQueryInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				ProjectID:         fastly.ToPointer("new2"),
+				Dataset:           fastly.ToPointer("new3"),
+				Table:             fastly.ToPointer("new4"),
+				User:              fastly.ToPointer("new5"),
+				SecretKey:         fastly.ToPointer("new6"),
+				Template:          fastly.ToPointer("new7"),
+				ResponseCondition: fastly.ToPointer("new8"),
+				Placement:         fastly.NullValue[string](),
 				ProcessingRegion:  fastly.ToPointer("eu"),
 				Format:            fastly.ToPointer("new10"),
 				FormatVersion:     fastly.ToPointer(3),
@@ -366,6 +392,12 @@ func updateCommandAll() *bigquery.UpdateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 	}
+}
+
+func updateCommandPlacementReset() *bigquery.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *bigquery.UpdateCommand {

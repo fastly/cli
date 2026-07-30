@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/cap/oidc"
 	"github.com/skratchdot/open-golang/open"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/kingpin"
 
@@ -643,7 +643,11 @@ func promptForAuth(data *global.Data) (string, lookup.Source, error) {
 		return "", lookup.SourceUndefined, err
 	}
 
-	text.Success(data.Output, "Authenticated as %s (token stored as %q)", md.Email, name)
+	if md.Email != "" {
+		text.Success(data.Output, "Authenticated as %s (token stored as %q)", md.Email, name)
+	} else {
+		text.Success(data.Output, "Authenticated (token stored as %q)", name)
+	}
 	text.Info(data.Output, "Token saved to %s", data.ConfigPath)
 	return token, lookup.SourceAuth, nil
 }
@@ -753,7 +757,7 @@ func commandRequiresToken(command argparser.Command) bool {
 			return text.IsFastlyID(initCmd.CloneFrom)
 		}
 		return false
-	case "compute build", "compute hash-files", "compute metadata", "compute pack", "compute serve", "compute validate":
+	case "compute build", "compute hash-files", "compute install-tools", "compute metadata", "compute pack", "compute serve", "compute validate":
 		return false
 	}
 	commandName = strings.Split(commandName, " ")[0]

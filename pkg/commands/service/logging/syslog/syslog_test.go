@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/syslog"
@@ -145,7 +145,36 @@ func TestUpdateSyslogInput(t *testing.T) {
 				FormatVersion:     fastly.ToPointer(3),
 				MessageType:       fastly.ToPointer("new9"),
 				ResponseCondition: fastly.ToPointer("new10"),
-				Placement:         fastly.ToPointer("new11"),
+				Placement:         fastly.NewNullable("new11"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetSyslogFn:    getSyslogOK,
+			},
+			want: &fastly.UpdateSyslogInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Address:           fastly.ToPointer("new2"),
+				Port:              fastly.ToPointer(23),
+				UseTLS:            fastly.ToPointer(fastly.Compatibool(false)),
+				TLSCACert:         fastly.ToPointer("new3"),
+				TLSHostname:       fastly.ToPointer("new4"),
+				TLSClientCert:     fastly.ToPointer("new5"),
+				TLSClientKey:      fastly.ToPointer("new6"),
+				Token:             fastly.ToPointer("new7"),
+				Format:            fastly.ToPointer("new8"),
+				FormatVersion:     fastly.ToPointer(3),
+				MessageType:       fastly.ToPointer("new9"),
+				ResponseCondition: fastly.ToPointer("new10"),
+				Placement:         fastly.NullValue[string](),
 				ProcessingRegion:  fastly.ToPointer("eu"),
 			},
 		},
@@ -370,6 +399,12 @@ func updateCommandAll() *syslog.UpdateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *syslog.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *syslog.UpdateCommand {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/version"
@@ -321,6 +321,26 @@ func TestVersionStage(t *testing.T) {
 			Args:      "--service-id 123",
 			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Name: "validate --autoclone stages a clone of an active version",
+			Args: "--service-id 123 --version 1 --autoclone",
+			API: &mock.API{
+				GetVersionFn:      testutil.GetVersion,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				ActivateVersionFn: stageVersionOK,
+			},
+			WantOutput: "Staged service 123 version 4",
+		},
+		{
+			Name: "validate --autoclone stages a clone of a locked version",
+			Args: "--service-id 123 --version 2 --autoclone",
+			API: &mock.API{
+				GetVersionFn:      testutil.GetVersion,
+				CloneVersionFn:    testutil.CloneVersionResult(4),
+				ActivateVersionFn: stageVersionOK,
+			},
+			WantOutput: "Staged service 123 version 4",
 		},
 		{
 			Args: "--service-id 123 --version 3",

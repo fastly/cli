@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/fastly/go-fastly/v15/fastly"
+	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/service/logging/gcs"
@@ -144,7 +144,36 @@ func TestUpdateGCSInput(t *testing.T) {
 				Format:            fastly.ToPointer("new6"),
 				ResponseCondition: fastly.ToPointer("new7"),
 				TimestampFormat:   fastly.ToPointer("new8"),
-				Placement:         fastly.ToPointer("new9"),
+				Placement:         fastly.NewNullable("new9"),
+				MessageType:       fastly.ToPointer("new10"),
+				CompressionCodec:  fastly.ToPointer("new11"),
+				ProcessingRegion:  fastly.ToPointer("eu"),
+			},
+		},
+		{
+			name: "reset placement to null",
+			cmd:  updateCommandPlacementReset(),
+			api: mock.API{
+				GetVersionFn:   testutil.GetVersion,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+				GetGCSFn:       getGCSOK,
+			},
+			want: &fastly.UpdateGCSInput{
+				ServiceID:         "123",
+				ServiceVersion:    4,
+				Name:              "log",
+				NewName:           fastly.ToPointer("new1"),
+				Bucket:            fastly.ToPointer("new2"),
+				User:              fastly.ToPointer("new3"),
+				SecretKey:         fastly.ToPointer("new4"),
+				Path:              fastly.ToPointer("new5"),
+				Period:            fastly.ToPointer(3601),
+				FormatVersion:     fastly.ToPointer(3),
+				GzipLevel:         fastly.ToPointer(0),
+				Format:            fastly.ToPointer("new6"),
+				ResponseCondition: fastly.ToPointer("new7"),
+				TimestampFormat:   fastly.ToPointer("new8"),
+				Placement:         fastly.NullValue[string](),
 				MessageType:       fastly.ToPointer("new10"),
 				CompressionCodec:  fastly.ToPointer("new11"),
 				ProcessingRegion:  fastly.ToPointer("eu"),
@@ -372,6 +401,12 @@ func updateCommandAll() *gcs.UpdateCommand {
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
 	}
+}
+
+func updateCommandPlacementReset() *gcs.UpdateCommand {
+	c := updateCommandAll()
+	c.Placement = argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: ""}
+	return c
 }
 
 func updateCommandMissingServiceID() *gcs.UpdateCommand {

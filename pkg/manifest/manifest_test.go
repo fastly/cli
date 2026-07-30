@@ -233,9 +233,8 @@ func TestDataServiceID(t *testing.T) {
 	}
 }
 
-// This test validates that manually added changes, such as the toml
-// syntax for Viceroy local testing, are not accidentally deleted after
-// decoding and encoding flows.
+// This test validates that manually added changes to the toml syntax for
+// Viceroy local testing, are not accidentally deleted after decoding and encoding flows.
 func TestManifestPersistsLocalServerSection(t *testing.T) {
 	fpath := filepath.Join("./", "testdata", "fastly-viceroy-update.toml")
 
@@ -305,7 +304,82 @@ func TestManifestPersistsLocalServerSection(t *testing.T) {
 	}
 	want, got := originalTree.String(), localTree.String()
 	if diff := cmp.Diff(want, got); diff != "" {
-		t.Fatalf("testing section between original and updated fastly.toml do not match (-want +got):\n%s", diff)
+		t.Fatalf("testing [local_server] section between original and updated fastly.toml do not match (-want +got):\n%s", diff)
+	}
+}
+
+// This test validates that manually added changes to the toml syntax for
+// setup (initial deploy or publish), are not accidentally deleted after decoding and encoding flows.
+func TestManifestPersistsSetupSection(t *testing.T) {
+	fpath := filepath.Join("./", "testdata", "fastly-viceroy-update.toml")
+
+	b, err := os.ReadFile(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func(fpath string, b []byte) {
+		err := os.WriteFile(fpath, b, 0o600)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}(fpath, b)
+
+	original, err := toml.LoadFile(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ot := original.Get("setup")
+	if ot == nil {
+		t.Fatal("expected [setup] block to exist in fastly.toml but is missing")
+	}
+
+	osid := original.Get("service_id")
+	if osid != nil {
+		t.Fatal("did not expect service_id key to exist in fastly.toml but is present")
+	}
+
+	var m manifest.File
+
+	err = m.Read(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m.ServiceID = "a change occurred to the data structure"
+
+	err = m.Write(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	latest, err := toml.LoadFile(fpath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lsid := latest.Get("service_id")
+	if lsid == nil {
+		t.Fatal("expected service_id key to exist in fastly.toml but is missing")
+	}
+
+	lt := latest.Get("setup")
+	if lt == nil {
+		t.Fatal("expected [setup] block to exist in fastly.toml but is missing")
+	}
+
+	localTree, ok := lt.(*toml.Tree)
+	if !ok {
+		t.Fatal("failed to convert 'local' interface{} to toml.Tree")
+	}
+	originalTree, ok := ot.(*toml.Tree)
+	if !ok {
+		t.Fatal("failed to convert 'original' interface{} to toml.Tree")
+	}
+	want, got := originalTree.String(), localTree.String()
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("testing [setup] section between original and updated fastly.toml do not match (-want +got):\n%s", diff)
 	}
 }
 
