@@ -12,6 +12,8 @@
 
 ### Enhancements:
 
+- feat(integrations): add platform integrations command group ([#1868](https://github.com/fastly/cli/pull/1868))
+
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.53.0 to 0.54.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.4 to 1.6.5 ([#1847](https://github.com/fastly/cli/pull/1847))

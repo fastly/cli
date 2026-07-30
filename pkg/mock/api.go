@@ -347,6 +347,13 @@ type API struct {
 	UpdateServiceAuthorizationFn func(context.Context, *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	DeleteServiceAuthorizationFn func(context.Context, *fastly.DeleteServiceAuthorizationInput) error
 
+	SearchIntegrationsFn  func(context.Context, *fastly.SearchIntegrationsInput) (*fastly.SearchIntegrationsResponse, error)
+	CreateIntegrationFn   func(context.Context, *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error)
+	GetIntegrationFn      func(context.Context, *fastly.GetIntegrationInput) (*fastly.Integration, error)
+	UpdateIntegrationFn   func(context.Context, *fastly.UpdateIntegrationInput) error
+	DeleteIntegrationFn   func(context.Context, *fastly.DeleteIntegrationInput) error
+	GetIntegrationTypesFn func(context.Context) (*[]fastly.IntegrationType, error)
+
 	CreateConfigStoreFn       func(context.Context, *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error)
 	DeleteConfigStoreFn       func(context.Context, *fastly.DeleteConfigStoreInput) error
 	GetConfigStoreFn          func(context.Context, *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error)
@@ -1817,6 +1824,36 @@ func (m API) UpdateServiceAuthorization(ctx context.Context, i *fastly.UpdateSer
 // DeleteServiceAuthorization implements Interface.
 func (m API) DeleteServiceAuthorization(ctx context.Context, i *fastly.DeleteServiceAuthorizationInput) error {
 	return m.DeleteServiceAuthorizationFn(ctx, i)
+}
+
+// SearchIntegrations implements Interface.
+func (m API) SearchIntegrations(ctx context.Context, i *fastly.SearchIntegrationsInput) (*fastly.SearchIntegrationsResponse, error) {
+	return m.SearchIntegrationsFn(ctx, i)
+}
+
+// CreateIntegration implements Interface.
+func (m API) CreateIntegration(ctx context.Context, i *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
+	return m.CreateIntegrationFn(ctx, i)
+}
+
+// GetIntegration implements Interface.
+func (m API) GetIntegration(ctx context.Context, i *fastly.GetIntegrationInput) (*fastly.Integration, error) {
+	return m.GetIntegrationFn(ctx, i)
+}
+
+// UpdateIntegration implements Interface.
+func (m API) UpdateIntegration(ctx context.Context, i *fastly.UpdateIntegrationInput) error {
+	return m.UpdateIntegrationFn(ctx, i)
+}
+
+// DeleteIntegration implements Interface.
+func (m API) DeleteIntegration(ctx context.Context, i *fastly.DeleteIntegrationInput) error {
+	return m.DeleteIntegrationFn(ctx, i)
+}
+
+// GetIntegrationTypes implements Interface.
+func (m API) GetIntegrationTypes(ctx context.Context) (*[]fastly.IntegrationType, error) {
+	return m.GetIntegrationTypesFn(ctx)
 }
 
 // CreateConfigStore implements Interface.

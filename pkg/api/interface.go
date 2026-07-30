@@ -357,6 +357,13 @@ type Interface interface {
 	UpdateServiceAuthorization(context.Context, *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	DeleteServiceAuthorization(context.Context, *fastly.DeleteServiceAuthorizationInput) error
 
+	SearchIntegrations(context.Context, *fastly.SearchIntegrationsInput) (*fastly.SearchIntegrationsResponse, error)
+	CreateIntegration(context.Context, *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error)
+	GetIntegration(context.Context, *fastly.GetIntegrationInput) (*fastly.Integration, error)
+	UpdateIntegration(context.Context, *fastly.UpdateIntegrationInput) error
+	DeleteIntegration(context.Context, *fastly.DeleteIntegrationInput) error
+	GetIntegrationTypes(context.Context) (*[]fastly.IntegrationType, error)
+
 	CreateConfigStore(context.Context, *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error)
 	DeleteConfigStore(context.Context, *fastly.DeleteConfigStoreInput) error
 	GetConfigStore(context.Context, *fastly.GetConfigStoreInput) (*fastly.ConfigStore, error)

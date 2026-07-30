@@ -69,6 +69,12 @@ import (
 	dnszone "github.com/fastly/cli/pkg/commands/dns/zone"
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/install"
+	"github.com/fastly/cli/pkg/commands/integration"
+	integrationDatadog "github.com/fastly/cli/pkg/commands/integration/datadog"
+	integrationJiraIssue "github.com/fastly/cli/pkg/commands/integration/jiraissue"
+	integrationJSM "github.com/fastly/cli/pkg/commands/integration/jsm"
+	integrationOpsgenie "github.com/fastly/cli/pkg/commands/integration/opsgenie"
+	integrationSplunkOnCall "github.com/fastly/cli/pkg/commands/integration/splunkoncall"
 	"github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/commands/kvstore"
 	"github.com/fastly/cli/pkg/commands/kvstoreentry"
@@ -308,6 +314,26 @@ func Define( // nolint:revive // function-length
 	domainList := domain.NewListCommand(domainCmdRoot.CmdClause, data)
 	domainUpdate := domain.NewUpdateCommand(domainCmdRoot.CmdClause, data)
 	installRoot := install.NewRootCommand(app, data)
+	integrationRoot := integration.NewRootCommand(app, data)
+	integrationList := integration.NewListCommand(integrationRoot.CmdClause, data)
+	integrationDescribe := integration.NewDescribeCommand(integrationRoot.CmdClause, data)
+	integrationDelete := integration.NewDeleteCommand(integrationRoot.CmdClause, data)
+	integrationListTypes := integration.NewListTypesCommand(integrationRoot.CmdClause, data)
+	integrationDatadogRoot := integrationDatadog.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationDatadogCreate := integrationDatadog.NewCreateCommand(integrationDatadogRoot.CmdClause, data)
+	integrationDatadogUpdate := integrationDatadog.NewUpdateCommand(integrationDatadogRoot.CmdClause, data)
+	integrationJiraIssueRoot := integrationJiraIssue.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationJiraIssueCreate := integrationJiraIssue.NewCreateCommand(integrationJiraIssueRoot.CmdClause, data)
+	integrationJiraIssueUpdate := integrationJiraIssue.NewUpdateCommand(integrationJiraIssueRoot.CmdClause, data)
+	integrationJSMRoot := integrationJSM.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationJSMCreate := integrationJSM.NewCreateCommand(integrationJSMRoot.CmdClause, data)
+	integrationJSMUpdate := integrationJSM.NewUpdateCommand(integrationJSMRoot.CmdClause, data)
+	integrationOpsgenieRoot := integrationOpsgenie.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationOpsgenieCreate := integrationOpsgenie.NewCreateCommand(integrationOpsgenieRoot.CmdClause, data)
+	integrationOpsgenieUpdate := integrationOpsgenie.NewUpdateCommand(integrationOpsgenieRoot.CmdClause, data)
+	integrationSplunkOnCallRoot := integrationSplunkOnCall.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationSplunkOnCallCreate := integrationSplunkOnCall.NewCreateCommand(integrationSplunkOnCallRoot.CmdClause, data)
+	integrationSplunkOnCallUpdate := integrationSplunkOnCall.NewUpdateCommand(integrationSplunkOnCallRoot.CmdClause, data)
 	ipCmdRoot := ip.NewRootCommand(app, data)
 	kvstoreCmdRoot := kvstore.NewRootCommand(app, data)
 	kvstoreCreate := kvstore.NewCreateCommand(kvstoreCmdRoot.CmdClause, data)
@@ -1200,6 +1226,26 @@ func Define( // nolint:revive // function-length
 		domainList,
 		domainUpdate,
 		installRoot,
+		integrationRoot,
+		integrationList,
+		integrationDescribe,
+		integrationDelete,
+		integrationListTypes,
+		integrationDatadogRoot,
+		integrationDatadogCreate,
+		integrationDatadogUpdate,
+		integrationJiraIssueRoot,
+		integrationJiraIssueCreate,
+		integrationJiraIssueUpdate,
+		integrationJSMRoot,
+		integrationJSMCreate,
+		integrationJSMUpdate,
+		integrationOpsgenieRoot,
+		integrationOpsgenieCreate,
+		integrationOpsgenieUpdate,
+		integrationSplunkOnCallRoot,
+		integrationSplunkOnCallCreate,
+		integrationSplunkOnCallUpdate,
 		ipCmdRoot,
 		kvstoreCreate,
 		kvstoreDelete,
