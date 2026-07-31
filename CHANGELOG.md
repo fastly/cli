@@ -12,7 +12,7 @@
 
 ### Enhancements:
 
-- feat(integrations): add platform integrations command group ([#1868](https://github.com/fastly/cli/pull/1868))
+- feat(integrations): Add support for Notification Service Integrations ([#1868](https://github.com/fastly/cli/pull/1868))
 
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.53.0 to 0.54.0 ([#1847](https://github.com/fastly/cli/pull/1847))
