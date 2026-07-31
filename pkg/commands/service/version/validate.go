@@ -35,7 +35,6 @@ func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCo
 		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
-		Required:    true,
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
