@@ -7,11 +7,16 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/integration/datadog"
+	"github.com/fastly/cli/pkg/commands/integration/jiraissue"
+	"github.com/fastly/cli/pkg/commands/integration/jsm"
 	"github.com/fastly/cli/pkg/commands/integration/mail"
 	"github.com/fastly/cli/pkg/commands/integration/msteams"
 	"github.com/fastly/cli/pkg/commands/integration/newrelic"
+	"github.com/fastly/cli/pkg/commands/integration/opsgenie"
 	"github.com/fastly/cli/pkg/commands/integration/pagerduty"
 	"github.com/fastly/cli/pkg/commands/integration/slack"
+	"github.com/fastly/cli/pkg/commands/integration/splunkoncall"
 	"github.com/fastly/cli/pkg/commands/integration/webhook"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
@@ -22,16 +27,16 @@ import (
 // sub-families, offered as shell-completion hints for --type. Other type
 // values (e.g. legacy integration types) are still accepted.
 var knownIntegrationTypes = []string{
-	fastly.IntegrationTypeDatadog,
-	fastly.IntegrationTypeJiraIssue,
-	fastly.IntegrationTypeJSM,
-	fastly.IntegrationTypeOpsGenie,
-	fastly.IntegrationTypeSplunkOnCall,
+	datadog.CommandName,
+	jiraissue.CommandName,
+	jsm.CommandName,
 	mail.CommandName,
 	msteams.CommandName,
 	newrelic.CommandName,
+	opsgenie.CommandName,
 	pagerduty.CommandName,
 	slack.CommandName,
+	splunkoncall.CommandName,
 	webhook.CommandName,
 }
 
