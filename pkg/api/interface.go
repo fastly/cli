@@ -363,6 +363,9 @@ type Interface interface {
 	UpdateIntegration(context.Context, *fastly.UpdateIntegrationInput) error
 	DeleteIntegration(context.Context, *fastly.DeleteIntegrationInput) error
 	GetIntegrationTypes(context.Context) (*[]fastly.IntegrationType, error)
+	GetWebhookSigningKey(context.Context, *fastly.GetWebhookSigningKeyInput) (*fastly.WebhookSigningKeyResponse, error)
+	RotateWebhookSigningKey(context.Context, *fastly.RotateWebhookSigningKeyInput) (*fastly.WebhookSigningKeyResponse, error)
+	CreateMailinglistConfirmation(context.Context, *fastly.CreateMailinglistConfirmationInput) error
 
 	CreateConfigStore(context.Context, *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error)
 	DeleteConfigStore(context.Context, *fastly.DeleteConfigStoreInput) error

@@ -1,4 +1,4 @@
-package jsm
+package mail
 
 import (
 	"context"
@@ -12,14 +12,14 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// UpdateCommand calls the Fastly API to update a Jira Service Management notification integration.
+// UpdateCommand calls the Fastly API to update a Mailing List notification integration.
 type UpdateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
-	ID     string
-	APIKey string
+	ID      string
+	Address string
 
 	// Optional.
 	IntegrationName argparser.OptionalString
@@ -33,11 +33,11 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("update", "Update a Jira Service Management notification integration")
+	c.CmdClause = parent.Command("update", "Update a Mailing List notification integration")
 
 	// Required.
 	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
-	c.CmdClause.Flag("api-key", "Jira Service Management API key").Required().StringVar(&c.APIKey)
+	c.CmdClause.Flag("address", "The mailing list address to notify").Required().StringVar(&c.Address)
 
 	// Optional.
 	c.CmdClause.Flag("name", "The name of the integration").Short('n').Action(c.IntegrationName.Set).StringVar(&c.IntegrationName.Value)
@@ -53,12 +53,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	config := fastly.JSMConfig{APIKey: c.APIKey}
-
 	input := &fastly.UpdateIntegrationInput{
 		ID:     c.ID,
-		Type:   fastly.ToPointer(fastly.IntegrationTypeJSM),
-		Config: config.ToMap(),
+		Type:   fastly.ToPointer(CommandName),
+		Config: map[string]string{"address": c.Address},
 	}
 	if c.IntegrationName.WasSet {
 		input.Name = &c.IntegrationName.Value
@@ -84,6 +82,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Jira Service Management integration (id: %s)", c.ID)
+	text.Success(out, "Updated Mailing List integration (id: %s)", c.ID)
 	return nil
 }

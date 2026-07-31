@@ -36,7 +36,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause = parent.Command("update", "Update a Splunk On-Call notification integration")
 
 	// Required.
-	c.RegisterFlag(argparser.IntegrationIDFlag(&c.ID))
+	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
 	c.CmdClause.Flag("url", "The Splunk On-Call webhook URL").Required().StringVar(&c.URL)
 
 	// Optional.

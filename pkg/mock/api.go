@@ -347,12 +347,15 @@ type API struct {
 	UpdateServiceAuthorizationFn func(context.Context, *fastly.UpdateServiceAuthorizationInput) (*fastly.ServiceAuthorization, error)
 	DeleteServiceAuthorizationFn func(context.Context, *fastly.DeleteServiceAuthorizationInput) error
 
-	SearchIntegrationsFn  func(context.Context, *fastly.SearchIntegrationsInput) (*fastly.SearchIntegrationsResponse, error)
-	CreateIntegrationFn   func(context.Context, *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error)
-	GetIntegrationFn      func(context.Context, *fastly.GetIntegrationInput) (*fastly.Integration, error)
-	UpdateIntegrationFn   func(context.Context, *fastly.UpdateIntegrationInput) error
-	DeleteIntegrationFn   func(context.Context, *fastly.DeleteIntegrationInput) error
-	GetIntegrationTypesFn func(context.Context) (*[]fastly.IntegrationType, error)
+	SearchIntegrationsFn            func(context.Context, *fastly.SearchIntegrationsInput) (*fastly.SearchIntegrationsResponse, error)
+	CreateIntegrationFn             func(context.Context, *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error)
+	GetIntegrationFn                func(context.Context, *fastly.GetIntegrationInput) (*fastly.Integration, error)
+	UpdateIntegrationFn             func(context.Context, *fastly.UpdateIntegrationInput) error
+	DeleteIntegrationFn             func(context.Context, *fastly.DeleteIntegrationInput) error
+	GetIntegrationTypesFn           func(context.Context) (*[]fastly.IntegrationType, error)
+	GetWebhookSigningKeyFn          func(context.Context, *fastly.GetWebhookSigningKeyInput) (*fastly.WebhookSigningKeyResponse, error)
+	RotateWebhookSigningKeyFn       func(context.Context, *fastly.RotateWebhookSigningKeyInput) (*fastly.WebhookSigningKeyResponse, error)
+	CreateMailinglistConfirmationFn func(context.Context, *fastly.CreateMailinglistConfirmationInput) error
 
 	CreateConfigStoreFn       func(context.Context, *fastly.CreateConfigStoreInput) (*fastly.ConfigStore, error)
 	DeleteConfigStoreFn       func(context.Context, *fastly.DeleteConfigStoreInput) error
@@ -1854,6 +1857,21 @@ func (m API) DeleteIntegration(ctx context.Context, i *fastly.DeleteIntegrationI
 // GetIntegrationTypes implements Interface.
 func (m API) GetIntegrationTypes(ctx context.Context) (*[]fastly.IntegrationType, error) {
 	return m.GetIntegrationTypesFn(ctx)
+}
+
+// GetWebhookSigningKey implements Interface.
+func (m API) GetWebhookSigningKey(ctx context.Context, i *fastly.GetWebhookSigningKeyInput) (*fastly.WebhookSigningKeyResponse, error) {
+	return m.GetWebhookSigningKeyFn(ctx, i)
+}
+
+// RotateWebhookSigningKey implements Interface.
+func (m API) RotateWebhookSigningKey(ctx context.Context, i *fastly.RotateWebhookSigningKeyInput) (*fastly.WebhookSigningKeyResponse, error) {
+	return m.RotateWebhookSigningKeyFn(ctx, i)
+}
+
+// CreateMailinglistConfirmation implements Interface.
+func (m API) CreateMailinglistConfirmation(ctx context.Context, i *fastly.CreateMailinglistConfirmationInput) error {
+	return m.CreateMailinglistConfirmationFn(ctx, i)
 }
 
 // CreateConfigStore implements Interface.

@@ -7,6 +7,12 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/integration/mail"
+	"github.com/fastly/cli/pkg/commands/integration/msteams"
+	"github.com/fastly/cli/pkg/commands/integration/newrelic"
+	"github.com/fastly/cli/pkg/commands/integration/pagerduty"
+	"github.com/fastly/cli/pkg/commands/integration/slack"
+	"github.com/fastly/cli/pkg/commands/integration/webhook"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -21,6 +27,12 @@ var knownIntegrationTypes = []string{
 	fastly.IntegrationTypeJSM,
 	fastly.IntegrationTypeOpsGenie,
 	fastly.IntegrationTypeSplunkOnCall,
+	mail.CommandName,
+	msteams.CommandName,
+	newrelic.CommandName,
+	pagerduty.CommandName,
+	slack.CommandName,
+	webhook.CommandName,
 }
 
 // ListCommand calls the Fastly API to list notification integrations.

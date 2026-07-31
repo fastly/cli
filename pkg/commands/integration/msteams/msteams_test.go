@@ -1,4 +1,4 @@
-package splunkoncall_test
+package msteams_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly"
 
 	root "github.com/fastly/cli/pkg/commands/integration"
-	sub "github.com/fastly/cli/pkg/commands/integration/splunkoncall"
+	sub "github.com/fastly/cli/pkg/commands/integration/msteams"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
@@ -19,20 +19,20 @@ func TestCreateCommand(t *testing.T) {
 	const (
 		integrationName = "test123"
 		integrationID   = "integration-id-123"
-		webhookURL      = "https://alert.victorops.com/integrations/generic/xyz"
+		webhookURL      = "https://outlook.office.com/webhook/xyz"
 	)
 
 	scenarios := []testutil.CLIScenario{
 		{
-			Args:      fmt.Sprintf("--url %s", webhookURL),
+			Args:      fmt.Sprintf("--webhook %s", webhookURL),
 			WantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
 			Args:      fmt.Sprintf("--name %s", integrationName),
-			WantError: "error parsing arguments: required flag --url not provided",
+			WantError: "error parsing arguments: required flag --webhook not provided",
 		},
 		{
-			Args: fmt.Sprintf("--name %s --url %s", integrationName, webhookURL),
+			Args: fmt.Sprintf("--name %s --webhook %s", integrationName, webhookURL),
 			API: &mock.API{
 				CreateIntegrationFn: func(_ context.Context, _ *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
 					return nil, errors.New("invalid request")
@@ -41,22 +41,22 @@ func TestCreateCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: fmt.Sprintf("--name %s --url %s", integrationName, webhookURL),
+			Args: fmt.Sprintf("--name %s --webhook %s", integrationName, webhookURL),
 			API: &mock.API{
 				CreateIntegrationFn: func(_ context.Context, i *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
-					if fastly.ToValue(i.Type) != fastly.IntegrationTypeSplunkOnCall {
+					if fastly.ToValue(i.Type) != sub.CommandName {
 						return nil, fmt.Errorf("unexpected type: %s", fastly.ToValue(i.Type))
 					}
-					if i.Config["url"] != webhookURL {
-						return nil, fmt.Errorf("unexpected url: %s", i.Config["url"])
+					if i.Config["webhook"] != webhookURL {
+						return nil, fmt.Errorf("unexpected webhook: %s", i.Config["webhook"])
 					}
 					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
 				},
 			},
-			WantOutput: fstfmt.Success("Created Splunk On-Call integration '%s' (id: %s)", integrationName, integrationID),
+			WantOutput: fstfmt.Success("Created Microsoft Teams integration '%s' (id: %s)", integrationName, integrationID),
 		},
 		{
-			Args: fmt.Sprintf("--name %s --url %s --json", integrationName, webhookURL),
+			Args: fmt.Sprintf("--name %s --webhook %s --json", integrationName, webhookURL),
 			API: &mock.API{
 				CreateIntegrationFn: func(_ context.Context, _ *fastly.CreateIntegrationInput) (*fastly.CreateIntegrationResponse, error) {
 					return &fastly.CreateIntegrationResponse{ID: fastly.ToPointer(integrationID)}, nil
@@ -72,20 +72,20 @@ func TestCreateCommand(t *testing.T) {
 func TestUpdateCommand(t *testing.T) {
 	const (
 		integrationID = "integration-id-123"
-		webhookURL    = "https://alert.victorops.com/integrations/generic/xyz"
+		webhookURL    = "https://outlook.office.com/webhook/xyz"
 	)
 
 	scenarios := []testutil.CLIScenario{
 		{
-			Args:      fmt.Sprintf("--url %s", webhookURL),
+			Args:      fmt.Sprintf("--webhook %s", webhookURL),
 			WantError: "error parsing arguments: required argument 'id' not provided",
 		},
 		{
 			Args:      integrationID,
-			WantError: "error parsing arguments: required flag --url not provided",
+			WantError: "error parsing arguments: required flag --webhook not provided",
 		},
 		{
-			Args: fmt.Sprintf("%s --url %s", integrationID, webhookURL),
+			Args: fmt.Sprintf("%s --webhook %s", integrationID, webhookURL),
 			API: &mock.API{
 				UpdateIntegrationFn: func(_ context.Context, _ *fastly.UpdateIntegrationInput) error {
 					return errors.New("invalid request")
@@ -94,25 +94,25 @@ func TestUpdateCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: fmt.Sprintf("%s --url %s", integrationID, webhookURL),
+			Args: fmt.Sprintf("%s --webhook %s", integrationID, webhookURL),
 			API: &mock.API{
 				UpdateIntegrationFn: func(_ context.Context, i *fastly.UpdateIntegrationInput) error {
 					if i.ID != integrationID {
 						return fmt.Errorf("unexpected id: %s", i.ID)
 					}
-					if fastly.ToValue(i.Type) != fastly.IntegrationTypeSplunkOnCall {
+					if fastly.ToValue(i.Type) != sub.CommandName {
 						return fmt.Errorf("unexpected type: %s", fastly.ToValue(i.Type))
 					}
-					if i.Config["url"] != webhookURL {
-						return fmt.Errorf("unexpected url: %s", i.Config["url"])
+					if i.Config["webhook"] != webhookURL {
+						return fmt.Errorf("unexpected webhook: %s", i.Config["webhook"])
 					}
 					return nil
 				},
 			},
-			WantOutput: fstfmt.Success("Updated Splunk On-Call integration (id: %s)", integrationID),
+			WantOutput: fstfmt.Success("Updated Microsoft Teams integration (id: %s)", integrationID),
 		},
 		{
-			Args: fmt.Sprintf("%s --url %s --json", integrationID, webhookURL),
+			Args: fmt.Sprintf("%s --webhook %s --json", integrationID, webhookURL),
 			API: &mock.API{
 				UpdateIntegrationFn: func(_ context.Context, _ *fastly.UpdateIntegrationInput) error {
 					return nil

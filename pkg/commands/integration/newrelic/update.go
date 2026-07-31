@@ -1,4 +1,4 @@
-package jsm
+package newrelic
 
 import (
 	"context"
@@ -12,14 +12,15 @@ import (
 	"github.com/fastly/cli/pkg/text"
 )
 
-// UpdateCommand calls the Fastly API to update a Jira Service Management notification integration.
+// UpdateCommand calls the Fastly API to update a New Relic notification integration.
 type UpdateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
 	// Required.
-	ID     string
-	APIKey string
+	ID      string
+	Account string
+	APIKey  string
 
 	// Optional.
 	IntegrationName argparser.OptionalString
@@ -33,11 +34,12 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 			Globals: g,
 		},
 	}
-	c.CmdClause = parent.Command("update", "Update a Jira Service Management notification integration")
+	c.CmdClause = parent.Command("update", "Update a New Relic notification integration")
 
 	// Required.
 	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
-	c.CmdClause.Flag("api-key", "Jira Service Management API key").Required().StringVar(&c.APIKey)
+	c.CmdClause.Flag("account-id", "The New Relic account ID").Required().StringVar(&c.Account)
+	c.CmdClause.Flag("api-key", "The New Relic API key").Required().StringVar(&c.APIKey)
 
 	// Optional.
 	c.CmdClause.Flag("name", "The name of the integration").Short('n').Action(c.IntegrationName.Set).StringVar(&c.IntegrationName.Value)
@@ -53,12 +55,10 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	config := fastly.JSMConfig{APIKey: c.APIKey}
-
 	input := &fastly.UpdateIntegrationInput{
 		ID:     c.ID,
-		Type:   fastly.ToPointer(fastly.IntegrationTypeJSM),
-		Config: config.ToMap(),
+		Type:   fastly.ToPointer(CommandName),
+		Config: map[string]string{"account": c.Account, "key": c.APIKey},
 	}
 	if c.IntegrationName.WasSet {
 		input.Name = &c.IntegrationName.Value
@@ -84,6 +84,6 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	text.Success(out, "Updated Jira Service Management integration (id: %s)", c.ID)
+	text.Success(out, "Updated New Relic integration (id: %s)", c.ID)
 	return nil
 }

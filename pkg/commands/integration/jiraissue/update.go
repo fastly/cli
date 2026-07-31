@@ -40,7 +40,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause = parent.Command("update", "Update a Jira Issue notification integration")
 
 	// Required.
-	c.RegisterFlag(argparser.IntegrationIDFlag(&c.ID))
+	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
 	c.CmdClause.Flag("base-url", "The base URL of the Jira instance").Required().StringVar(&c.BaseURL)
 	c.CmdClause.Flag("username", "The Jira username (email address) used to authenticate").Required().StringVar(&c.Username)
 	c.CmdClause.Flag("api-token", "The Jira API token").Required().StringVar(&c.APIToken)

@@ -73,8 +73,14 @@ import (
 	integrationDatadog "github.com/fastly/cli/pkg/commands/integration/datadog"
 	integrationJiraIssue "github.com/fastly/cli/pkg/commands/integration/jiraissue"
 	integrationJSM "github.com/fastly/cli/pkg/commands/integration/jsm"
+	integrationMail "github.com/fastly/cli/pkg/commands/integration/mail"
+	integrationMSTeams "github.com/fastly/cli/pkg/commands/integration/msteams"
+	integrationNewRelic "github.com/fastly/cli/pkg/commands/integration/newrelic"
 	integrationOpsgenie "github.com/fastly/cli/pkg/commands/integration/opsgenie"
+	integrationPagerDuty "github.com/fastly/cli/pkg/commands/integration/pagerduty"
+	integrationSlack "github.com/fastly/cli/pkg/commands/integration/slack"
 	integrationSplunkOnCall "github.com/fastly/cli/pkg/commands/integration/splunkoncall"
+	integrationWebhook "github.com/fastly/cli/pkg/commands/integration/webhook"
 	"github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/commands/kvstore"
 	"github.com/fastly/cli/pkg/commands/kvstoreentry"
@@ -334,6 +340,27 @@ func Define( // nolint:revive // function-length
 	integrationSplunkOnCallRoot := integrationSplunkOnCall.NewRootCommand(integrationRoot.CmdClause, data)
 	integrationSplunkOnCallCreate := integrationSplunkOnCall.NewCreateCommand(integrationSplunkOnCallRoot.CmdClause, data)
 	integrationSplunkOnCallUpdate := integrationSplunkOnCall.NewUpdateCommand(integrationSplunkOnCallRoot.CmdClause, data)
+	integrationMailRoot := integrationMail.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationMailCreate := integrationMail.NewCreateCommand(integrationMailRoot.CmdClause, data)
+	integrationMailUpdate := integrationMail.NewUpdateCommand(integrationMailRoot.CmdClause, data)
+	integrationMailConfirm := integrationMail.NewConfirmCommand(integrationMailRoot.CmdClause, data)
+	integrationMSTeamsRoot := integrationMSTeams.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationMSTeamsCreate := integrationMSTeams.NewCreateCommand(integrationMSTeamsRoot.CmdClause, data)
+	integrationMSTeamsUpdate := integrationMSTeams.NewUpdateCommand(integrationMSTeamsRoot.CmdClause, data)
+	integrationNewRelicRoot := integrationNewRelic.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationNewRelicCreate := integrationNewRelic.NewCreateCommand(integrationNewRelicRoot.CmdClause, data)
+	integrationNewRelicUpdate := integrationNewRelic.NewUpdateCommand(integrationNewRelicRoot.CmdClause, data)
+	integrationPagerDutyRoot := integrationPagerDuty.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationPagerDutyCreate := integrationPagerDuty.NewCreateCommand(integrationPagerDutyRoot.CmdClause, data)
+	integrationPagerDutyUpdate := integrationPagerDuty.NewUpdateCommand(integrationPagerDutyRoot.CmdClause, data)
+	integrationSlackRoot := integrationSlack.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationSlackCreate := integrationSlack.NewCreateCommand(integrationSlackRoot.CmdClause, data)
+	integrationSlackUpdate := integrationSlack.NewUpdateCommand(integrationSlackRoot.CmdClause, data)
+	integrationWebhookRoot := integrationWebhook.NewRootCommand(integrationRoot.CmdClause, data)
+	integrationWebhookCreate := integrationWebhook.NewCreateCommand(integrationWebhookRoot.CmdClause, data)
+	integrationWebhookUpdate := integrationWebhook.NewUpdateCommand(integrationWebhookRoot.CmdClause, data)
+	integrationWebhookGetSigningKey := integrationWebhook.NewGetSigningKeyCommand(integrationWebhookRoot.CmdClause, data)
+	integrationWebhookRotateSigningKey := integrationWebhook.NewRotateSigningKeyCommand(integrationWebhookRoot.CmdClause, data)
 	ipCmdRoot := ip.NewRootCommand(app, data)
 	kvstoreCmdRoot := kvstore.NewRootCommand(app, data)
 	kvstoreCreate := kvstore.NewCreateCommand(kvstoreCmdRoot.CmdClause, data)
@@ -1246,6 +1273,27 @@ func Define( // nolint:revive // function-length
 		integrationSplunkOnCallRoot,
 		integrationSplunkOnCallCreate,
 		integrationSplunkOnCallUpdate,
+		integrationMailRoot,
+		integrationMailCreate,
+		integrationMailUpdate,
+		integrationMailConfirm,
+		integrationMSTeamsRoot,
+		integrationMSTeamsCreate,
+		integrationMSTeamsUpdate,
+		integrationNewRelicRoot,
+		integrationNewRelicCreate,
+		integrationNewRelicUpdate,
+		integrationPagerDutyRoot,
+		integrationPagerDutyCreate,
+		integrationPagerDutyUpdate,
+		integrationSlackRoot,
+		integrationSlackCreate,
+		integrationSlackUpdate,
+		integrationWebhookRoot,
+		integrationWebhookCreate,
+		integrationWebhookUpdate,
+		integrationWebhookGetSigningKey,
+		integrationWebhookRotateSigningKey,
 		ipCmdRoot,
 		kvstoreCreate,
 		kvstoreDelete,

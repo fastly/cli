@@ -36,7 +36,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause = parent.Command("update", "Update an OpsGenie notification integration")
 
 	// Required.
-	c.RegisterFlag(argparser.IntegrationIDFlag(&c.ID))
+	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
 	c.CmdClause.Flag("api-key", "OpsGenie API key").Required().StringVar(&c.APIKey)
 
 	// Optional.

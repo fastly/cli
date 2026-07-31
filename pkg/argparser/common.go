@@ -65,13 +65,3 @@ func StoreIDFlag(dst *string) StringFlagOpts {
 		Required:    true,
 	}
 }
-
-// IntegrationIDFlag returns an id flag definition for a notification integration.
-func IntegrationIDFlag(dst *string) StringFlagOpts {
-	return StringFlagOpts{
-		Name:        "id",
-		Description: "Integration ID",
-		Dst:         dst,
-		Required:    true,
-	}
-}

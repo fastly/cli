@@ -37,7 +37,7 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	c.CmdClause = parent.Command("update", "Update a Datadog notification integration")
 
 	// Required.
-	c.RegisterFlag(argparser.IntegrationIDFlag(&c.ID))
+	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
 	c.CmdClause.Flag("api-key", "Datadog API key").Required().StringVar(&c.APIKey)
 
 	// Optional.

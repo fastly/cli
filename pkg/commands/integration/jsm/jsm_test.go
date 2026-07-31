@@ -78,14 +78,14 @@ func TestUpdateCommand(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
 			Args:      fmt.Sprintf("--api-key %s", apiKey),
-			WantError: "error parsing arguments: required flag --id not provided",
+			WantError: "error parsing arguments: required argument 'id' not provided",
 		},
 		{
-			Args:      fmt.Sprintf("--id %s", integrationID),
+			Args:      integrationID,
 			WantError: "error parsing arguments: required flag --api-key not provided",
 		},
 		{
-			Args: fmt.Sprintf("--id %s --api-key %s", integrationID, apiKey),
+			Args: fmt.Sprintf("%s --api-key %s", integrationID, apiKey),
 			API: &mock.API{
 				UpdateIntegrationFn: func(_ context.Context, _ *fastly.UpdateIntegrationInput) error {
 					return errors.New("invalid request")
@@ -94,7 +94,7 @@ func TestUpdateCommand(t *testing.T) {
 			WantError: "invalid request",
 		},
 		{
-			Args: fmt.Sprintf("--id %s --api-key %s", integrationID, apiKey),
+			Args: fmt.Sprintf("%s --api-key %s", integrationID, apiKey),
 			API: &mock.API{
 				UpdateIntegrationFn: func(_ context.Context, i *fastly.UpdateIntegrationInput) error {
 					if i.ID != integrationID {
@@ -112,7 +112,7 @@ func TestUpdateCommand(t *testing.T) {
 			WantOutput: fstfmt.Success("Updated Jira Service Management integration (id: %s)", integrationID),
 		},
 		{
-			Args: fmt.Sprintf("--id %s --api-key %s --json", integrationID, apiKey),
+			Args: fmt.Sprintf("%s --api-key %s --json", integrationID, apiKey),
 			API: &mock.API{
 				UpdateIntegrationFn: func(_ context.Context, _ *fastly.UpdateIntegrationInput) error {
 					return nil
