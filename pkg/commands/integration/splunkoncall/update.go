@@ -18,10 +18,10 @@ type UpdateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	ID  string
-	URL string
+	ID string
 
 	// Optional.
+	URL             argparser.OptionalString
 	IntegrationName argparser.OptionalString
 	Description     argparser.OptionalString
 }
@@ -37,9 +37,9 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 	// Required.
 	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
-	c.CmdClause.Flag("url", "The Splunk On-Call webhook URL").Required().StringVar(&c.URL)
 
 	// Optional.
+	c.CmdClause.Flag("url", "The Splunk On-Call webhook URL").Action(c.URL.Set).StringVar(&c.URL.Value)
 	c.CmdClause.Flag("name", "The name of the integration").Short('n').Action(c.IntegrationName.Set).StringVar(&c.IntegrationName.Value)
 	c.CmdClause.Flag("description", "A description of the integration").Action(c.Description.Set).StringVar(&c.Description.Value)
 	c.RegisterFlagBool(c.JSONFlag())
@@ -53,12 +53,17 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	config := fastly.SplunkOnCallConfig{URL: c.URL}
+	config := map[string]string{}
+	if c.URL.WasSet {
+		config["url"] = c.URL.Value
+	}
 
 	input := &fastly.UpdateIntegrationInput{
-		ID:     c.ID,
-		Type:   fastly.ToPointer(fastly.IntegrationTypeSplunkOnCall),
-		Config: config.ToMap(),
+		ID:   c.ID,
+		Type: fastly.ToPointer(fastly.IntegrationTypeSplunkOnCall),
+	}
+	if len(config) > 0 {
+		input.Config = config
 	}
 	if c.IntegrationName.WasSet {
 		input.Name = &c.IntegrationName.Value

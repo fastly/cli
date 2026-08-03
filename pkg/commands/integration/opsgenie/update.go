@@ -18,10 +18,10 @@ type UpdateCommand struct {
 	argparser.JSONOutput
 
 	// Required.
-	ID     string
-	APIKey string
+	ID string
 
 	// Optional.
+	APIKey          argparser.OptionalString
 	IntegrationName argparser.OptionalString
 	Description     argparser.OptionalString
 }
@@ -37,9 +37,9 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 
 	// Required.
 	c.CmdClause.Arg("id", "Integration ID").Required().StringVar(&c.ID)
-	c.CmdClause.Flag("api-key", "OpsGenie API key").Required().StringVar(&c.APIKey)
 
 	// Optional.
+	c.CmdClause.Flag("api-key", "OpsGenie API key").Action(c.APIKey.Set).StringVar(&c.APIKey.Value)
 	c.CmdClause.Flag("name", "The name of the integration").Short('n').Action(c.IntegrationName.Set).StringVar(&c.IntegrationName.Value)
 	c.CmdClause.Flag("description", "A description of the integration").Action(c.Description.Set).StringVar(&c.Description.Value)
 	c.RegisterFlagBool(c.JSONFlag())
@@ -53,12 +53,17 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	config := fastly.OpsGenieConfig{APIKey: c.APIKey}
+	config := map[string]string{}
+	if c.APIKey.WasSet {
+		config["apikey"] = c.APIKey.Value
+	}
 
 	input := &fastly.UpdateIntegrationInput{
-		ID:     c.ID,
-		Type:   fastly.ToPointer(fastly.IntegrationTypeOpsGenie),
-		Config: config.ToMap(),
+		ID:   c.ID,
+		Type: fastly.ToPointer(fastly.IntegrationTypeOpsGenie),
+	}
+	if len(config) > 0 {
+		input.Config = config
 	}
 	if c.IntegrationName.WasSet {
 		input.Name = &c.IntegrationName.Value

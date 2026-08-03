@@ -81,8 +81,16 @@ func TestUpdateCommand(t *testing.T) {
 			WantError: "error parsing arguments: required argument 'id' not provided",
 		},
 		{
-			Args:      integrationID,
-			WantError: "error parsing arguments: required flag --url not provided",
+			Args: fmt.Sprintf("%s --name new-name", integrationID),
+			API: &mock.API{
+				UpdateIntegrationFn: func(_ context.Context, i *fastly.UpdateIntegrationInput) error {
+					if i.Config != nil {
+						return fmt.Errorf("unexpected config: %+v", i.Config)
+					}
+					return nil
+				},
+			},
+			WantOutput: fstfmt.Success("Updated Splunk On-Call integration (id: %s)", integrationID),
 		},
 		{
 			Args: fmt.Sprintf("%s --url %s", integrationID, webhookURL),
