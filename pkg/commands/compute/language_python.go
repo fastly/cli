@@ -97,10 +97,9 @@ func (p *Python) DefaultBuildScript() bool {
 
 // Dependencies returns the project's Python package dependencies.
 //
-// For Python, fastly-compute-py injects fastly_data directly into the Wasm
-// during the build, so the CLI does not need to collect dependencies separately.
-// The CLI's AnnotateWasmBinaryLong merges with the existing fastly_data rather
-// than overwriting it.
+// Returns empty because fastly-compute-py resolves the dependency set during
+// the build and embeds it into the Wasm itself, which AnnotateWasmBinaryLong
+// then reads back rather than overwriting.
 func (p *Python) Dependencies() map[string]string {
 	return make(map[string]string)
 }
@@ -161,7 +160,10 @@ func (p *Python) toolchainConstraint() error {
 func (p *Python) checkPythonVersion() error {
 	requiredConstraint := p.config.ToolchainConstraint
 	if requiredConstraint == "" {
-		requiredConstraint = ">= 3.11"
+		return fsterr.RemediationError{
+			Inner:       fmt.Errorf("no Python 'toolchain_constraint' found in the CLI config"),
+			Remediation: "Run `fastly config --reset` to restore a config compatible with the current CLI version.",
+		}
 	}
 
 	if p.verbose {
