@@ -2858,6 +2858,175 @@
       ]
     }
   },
+  "integration": {
+    "list": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/notifications/#search-integrations"
+      ]
+    },
+    "describe": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/notifications/#get-an-integration"
+      ]
+    },
+    "delete": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/notifications/#delete-an-integration"
+      ]
+    },
+    "list-types": {
+      "apis": [
+        "https://www.fastly.com/documentation/reference/api/observability/notifications/#get-integration-types"
+      ]
+    },
+    "datadog": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "jiraissue": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "jsm": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "opsgenie": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "splunkoncall": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "mail": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      },
+      "confirm": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-a-mailing-list-confirmation"
+        ]
+      }
+    },
+    "msteams": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "newrelic": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "pagerduty": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "slack": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      }
+    },
+    "webhook": {
+      "create": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#create-an-integration"
+        ]
+      },
+      "update": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#update-an-integration"
+        ]
+      },
+      "get-signing-key": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#get-a-webhook-signing-key"
+        ]
+      },
+      "rotate-signing-key": {
+        "apis": [
+          "https://www.fastly.com/documentation/reference/api/observability/notifications/#rotate-a-webhook-signing-key"
+        ]
+      }
+    }
+  },
   "kv-store": {
     "create": {
       "apis": [

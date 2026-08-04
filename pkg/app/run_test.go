@@ -75,6 +75,7 @@ dashboard
 dns
 domain
 install
+integration
 ip-list
 kv-store
 kv-store-entry

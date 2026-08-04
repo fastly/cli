@@ -13,6 +13,7 @@
 ### Enhancements:
 
 - feat(compute/init): add support for Python language ([#1811](https://github.com/fastly/cli/pull/1811))
+- feat(integrations): Add support for Notification Service Integrations ([#1868](https://github.com/fastly/cli/pull/1868))
 
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.53.0 to 0.54.0 ([#1847](https://github.com/fastly/cli/pull/1847))
@@ -24,6 +25,7 @@
 - build(deps): `github.com/mattn/go-isatty` from 0.0.23 to 0.0.24 ([#1857](https://github.com/fastly/cli/pull/1857))
 - build(deps): `github.com/nwaples/rardecode/v2` from 2.2.5 to 2.3.0 ([#1857](https://github.com/fastly/cli/pull/1857))
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.24 to 0.0.27 ([#1857](https://github.com/fastly/cli/pull/1857))
+- build(deps): `github.com/fastly/go-fastly/v17` from 17.0.0 to 17.1.0 ([#1862](https://github.com/fastly/cli/pull/1862))
 
 ## [v15.4.0](https://github.com/fastly/cli/releases/tag/v15.4.0) (2026-07-08)
 
