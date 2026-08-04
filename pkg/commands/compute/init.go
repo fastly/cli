@@ -787,7 +787,7 @@ func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader
 			return "", "", "", errors.New("no default starter kits configured for this language; please specify a template using the --from flag")
 		}
 		text.Info(out, "\nNo default starter kits are currently configured for this language.")
-		option, err = text.Input(out, "Please paste a template git URL: ", in, nil)
+		option, err = text.Input(out, "Please paste a template git URL: ", in)
 		if err != nil {
 			return "", "", "", fmt.Errorf("error reading input: %w", err)
 		}
