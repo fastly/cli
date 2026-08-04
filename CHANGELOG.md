@@ -12,6 +12,8 @@
 
 ### Enhancements:
 
+- feat(compute/init): add support for Python language ([#1811](https://github.com/fastly/cli/pull/1811))
+
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.53.0 to 0.54.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.4 to 1.6.5 ([#1847](https://github.com/fastly/cli/pull/1847))
@@ -70,7 +72,6 @@
 
 - feat(dns): add support for DNS Zones and TSIG Keys ([#1809](https://github.com/fastly/cli/pull/1809))
 - fix(compute/init): Add starter kits for C++ language [#1807](https://github.com/fastly/cli/pull/1807)
-- feat(compute/init): add support for Python language [#1811](https://github.com/fastly/cli/pull/1811)
 
 ### Dependencies:
 
