@@ -390,6 +390,7 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 // unparseable.
 func (c *BuildCommand) readExistingPackageInfo(wasmtools string) *DataCollectionPackageInfo {
 	// #nosec G204 -- wasmtools path comes from trusted CLI config
+	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
 	out, err := exec.Command(wasmtools, "metadata", "show", "--json", binWasmPath).Output()
 	if err != nil {
 		return nil

@@ -6,6 +6,14 @@
 
 ### Bug Fixes:
 
+### Enhancements:
+
+### Dependencies:
+
+## [v15.5.0](https://github.com/fastly/cli/releases/tag/v15.5.0) (2026-08-04)
+
+### Bug Fixes:
+
 - fix(service-version): support autoclone when staging a service version. ([#1850](https://github.com/fastly/cli/pull/1850))
 - fix(logging): the `placement` flag for all loggging commands can now be reset back to `null` by setting it's value to `""` when it was previously set to another value ([#1855](https://github.com/fastly/cli/pull/1855))
 - fix(profile): profiles can now be created and updated with service-limited tokens, which cannot access `/current_user` ([#1856](https://github.com/fastly/cli/pull/1856))
@@ -16,6 +24,7 @@
 - feat(integrations): Add support for Notification Service Integrations ([#1868](https://github.com/fastly/cli/pull/1868))
 
 ### Dependencies:
+
 - build(deps): `golang.org/x/crypto` from 0.53.0 to 0.54.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.4 to 1.6.5 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/minio/minlz` from 1.1.1 to 1.2.0 ([#1847](https://github.com/fastly/cli/pull/1847))
