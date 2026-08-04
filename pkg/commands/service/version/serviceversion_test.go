@@ -10,6 +10,7 @@ import (
 
 	root "github.com/fastly/cli/pkg/commands/service"
 	sub "github.com/fastly/cli/pkg/commands/service/version"
+	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/mock"
 	"github.com/fastly/cli/pkg/testutil"
 )
@@ -564,14 +565,48 @@ func lockVersionError(_ context.Context, _ *fastly.LockVersionInput) (*fastly.Ve
 func TestVersionValidate(t *testing.T) {
 	scenarios := []testutil.CLIScenario{
 		{
-			Name:      "validate missing --service-id flag",
+			Name:      "validate missing service ID",
 			Args:      "--version 1",
-			WantError: "error parsing arguments: required flag --service-id not provided",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
+			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --version flag",
 			Args:      "--service-id 123",
 			WantError: "error parsing arguments: required flag --version not provided",
+		},
+		{
+			Name:    "validate service ID from environment",
+			Args:    "--version latest",
+			EnvVars: map[string]string{"FASTLY_SERVICE_ID": "env-service"},
+			API: &mock.API{
+				ListVersionsFn:    testutil.ListVersions,
+				ValidateVersionFn: validateVersionForService("env-service", 4),
+			},
+			WantOutput: "Service env-service version 4 is valid",
+		},
+		{
+			Name:    "validate service ID from manifest",
+			Args:    "--version 1",
+			EnvVars: map[string]string{"FASTLY_SERVICE_ID": ""},
+			Setup: func(_ *testing.T, _ *testutil.CLIScenario, opts *global.Data) {
+				opts.Manifest.File.ServiceID = "manifest-service"
+			},
+			API: &mock.API{
+				GetVersionFn:      testutil.GetVersion,
+				ValidateVersionFn: validateVersionForService("manifest-service", 1),
+			},
+			WantOutput: "Service manifest-service version 1 is valid",
+		},
+		{
+			Name:    "validate explicit service ID overrides environment",
+			Args:    "--service-id flag-service --version 1",
+			EnvVars: map[string]string{"FASTLY_SERVICE_ID": "env-service"},
+			API: &mock.API{
+				GetVersionFn:      testutil.GetVersion,
+				ValidateVersionFn: validateVersionForService("flag-service", 1),
+			},
+			WantOutput: "Service flag-service version 1 is valid",
 		},
 		{
 			Name: "validate successful - valid version without message",
@@ -644,6 +679,19 @@ func TestVersionValidate(t *testing.T) {
 func validateVersionValid(message string) func(context.Context, *fastly.ValidateVersionInput) (bool, string, error) {
 	return func(_ context.Context, _ *fastly.ValidateVersionInput) (bool, string, error) {
 		return true, message, nil
+	}
+}
+
+func validateVersionForService(serviceID string, serviceVersion int) func(context.Context, *fastly.ValidateVersionInput) (bool, string, error) {
+	return func(_ context.Context, input *fastly.ValidateVersionInput) (bool, string, error) {
+		if input.ServiceID != serviceID || input.ServiceVersion != serviceVersion {
+			return false, "", fmt.Errorf(
+				"unexpected validate input: service ID %q, version %d",
+				input.ServiceID,
+				input.ServiceVersion,
+			)
+		}
+		return true, "", nil
 	}
 }
 
