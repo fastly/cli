@@ -17,7 +17,7 @@ func mockWasmToolsScript(staticOutput string) string {
 	return "#!/usr/bin/env bash\ncat << 'EOF'\n" + staticOutput + "\nEOF"
 }
 
-func TestReadExistingFastlyData(t *testing.T) {
+func TestReadExistingPackageInfo(t *testing.T) {
 	// Create a temporary directory for our mock environment
 	rootdir, err := os.MkdirTemp("", "fastly-metadata-test-*")
 	if err != nil {
@@ -49,30 +49,20 @@ func TestReadExistingFastlyData(t *testing.T) {
 	scenarios := []struct {
 		name         string
 		jsonOutput   string
-		expectedData *DataCollection
+		expectedData *DataCollectionPackageInfo
 	}{
 		{
 			name:       "extracts from component-based metadata structure",
 			jsonOutput: `{"component":{"metadata":{"producers":[["processed-by",{"fastly_data":"{\"package_info\":{\"packages\":{\"foo\":\"1.0.0\"}},\"script_info\":{\"build_script\":\"echo component\"}}"}]]}}}`,
-			expectedData: &DataCollection{
-				PackageInfo: DataCollectionPackageInfo{
-					Packages: map[string]string{"foo": "1.0.0"},
-				},
-				ScriptInfo: DataCollectionScriptInfo{
-					BuildScript: "echo component",
-				},
+			expectedData: &DataCollectionPackageInfo{
+				Packages: map[string]string{"foo": "1.0.0"},
 			},
 		},
 		{
 			name:       "extracts from module-based metadata structure",
 			jsonOutput: `{"module":{"producers":[["processed-by",{"fastly_data":"{\"package_info\":{\"packages\":{\"bar\":\"2.0.0\"}},\"script_info\":{\"build_script\":\"echo module\"}}"}]]}}`,
-			expectedData: &DataCollection{
-				PackageInfo: DataCollectionPackageInfo{
-					Packages: map[string]string{"bar": "2.0.0"},
-				},
-				ScriptInfo: DataCollectionScriptInfo{
-					BuildScript: "echo module",
-				},
+			expectedData: &DataCollectionPackageInfo{
+				Packages: map[string]string{"bar": "2.0.0"},
 			},
 		},
 		{
@@ -97,7 +87,7 @@ func TestReadExistingFastlyData(t *testing.T) {
 			}
 
 			cmd := &BuildCommand{}
-			actualData := cmd.readExistingFastlyData(wasmtoolsBin)
+			actualData := cmd.readExistingPackageInfo(wasmtoolsBin)
 
 			if tc.expectedData == nil {
 				if actualData != nil {
@@ -107,7 +97,7 @@ func TestReadExistingFastlyData(t *testing.T) {
 			}
 
 			if actualData == nil {
-				t.Fatal("expected non-nil DataCollection, got nil")
+				t.Fatal("expected non-nil DataCollectionPackageInfo, got nil")
 			}
 
 			// Validate values

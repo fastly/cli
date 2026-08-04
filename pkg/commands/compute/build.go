@@ -337,13 +337,7 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		return c.AnnotateWasmBinaryShort(wasmtools, args)
 	}
 
-	// Seed from any fastly_data already embedded by the build tool (e.g. Python).
-	// This lets the build tool supply package_info while the CLI fills in the
-	// remaining fields it is responsible for.
 	dc := DataCollection{}
-	if existing := c.readExistingFastlyData(wasmtools); existing != nil {
-		dc = *existing
-	}
 
 	if metadata.BuildInfo == "enable" {
 		dc.BuildInfo = DataCollectionBuildInfo{
@@ -360,11 +354,17 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 		}
 	}
 	if metadata.PackageInfo == "enable" {
-		if dc.PackageInfo.Packages == nil {
-			dc.PackageInfo.Packages = language.Dependencies()
+		dc.PackageInfo = DataCollectionPackageInfo{
+			ClonedFrom: c.Globals.Manifest.File.ClonedFrom,
+			Packages:   language.Dependencies(),
 		}
-		if dc.PackageInfo.ClonedFrom == "" {
-			dc.PackageInfo.ClonedFrom = c.Globals.Manifest.File.ClonedFrom
+		// Some build tools (e.g. Python's fastly-compute-py) resolve dependencies
+		// themselves and embed package_info directly, so the CLI has no way to
+		// collect them and must preserve what the build tool wrote.
+		if len(dc.PackageInfo.Packages) == 0 {
+			if existing := c.readExistingPackageInfo(wasmtools); existing != nil {
+				dc.PackageInfo.Packages = existing.Packages
+			}
 		}
 	}
 	if metadata.ScriptInfo == "enable" {
@@ -385,9 +385,10 @@ func (c *BuildCommand) AnnotateWasmBinaryLong(wasmtools string, args []string, l
 	return c.Globals.ExecuteWasmTools(wasmtools, args, c.Globals)
 }
 
-// readExistingFastlyData reads any fastly_data already embedded in the Wasm
-// binary by the build tool. Returns nil if absent or unparseable.
-func (c *BuildCommand) readExistingFastlyData(wasmtools string) *DataCollection {
+// readExistingPackageInfo reads the package_info of any fastly_data already
+// embedded in the Wasm binary by the build tool. Returns nil if absent or
+// unparseable.
+func (c *BuildCommand) readExistingPackageInfo(wasmtools string) *DataCollectionPackageInfo {
 	// #nosec G204 -- wasmtools path comes from trusted CLI config
 	out, err := exec.Command(wasmtools, "metadata", "show", "--json", binWasmPath).Output()
 	if err != nil {
@@ -437,7 +438,7 @@ func (c *BuildCommand) readExistingFastlyData(wasmtools string) *DataCollection 
 		if err := json.Unmarshal([]byte(val), &dc); err != nil {
 			return nil
 		}
-		return &dc
+		return &dc.PackageInfo
 	}
 	return nil
 }
