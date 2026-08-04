@@ -12,6 +12,7 @@
 
 ### Enhancements:
 
+- feat(compute/init): add support for Python language ([#1811](https://github.com/fastly/cli/pull/1811))
 - feat(integrations): Add support for Notification Service Integrations ([#1868](https://github.com/fastly/cli/pull/1868))
 
 ### Dependencies:

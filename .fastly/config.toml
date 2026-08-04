@@ -29,6 +29,11 @@ wasm_wasi_target = "wasm32-wasip1"
 toolchain_constraint = ">= 14.0.0"
 wasm_wasi_target = "wasm32-wasip1"
 
+[language.python]
+# The fastly-compute-py tool bundles Python 3.14 for the actual WASM build
+toolchain_constraint = ">= 3.12"
+uv_constraint = ">= 0.5.0"
+
 [wasm-tools]
 ttl = "24h"
 

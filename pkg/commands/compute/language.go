@@ -43,6 +43,11 @@ func NewLanguages(kits config.StarterKitLanguages) []*Language {
 			StarterKits: kits.CPP,
 		}),
 		NewLanguage(&LanguageOptions{
+			Name:        "python",
+			DisplayName: "Python",
+			StarterKits: kits.Python,
+		}),
+		NewLanguage(&LanguageOptions{
 			Name:        "other",
 			DisplayName: "Other ('bring your own' Wasm binary)",
 		}),
