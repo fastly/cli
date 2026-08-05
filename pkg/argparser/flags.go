@@ -174,19 +174,19 @@ func (sv *OptionalServiceVersion) Parse(sid string, client api.Interface) (*fast
 		})
 		return vs[0], nil
 	case "staged":
-		serviceDetails, err := client.GetServiceDetails(context.TODO(), &fastly.GetServiceDetailsInput{
+		// Find staged version by listing all versions and searching for staging=true.
+		vs, err := client.ListVersions(context.TODO(), &fastly.ListVersionsInput{
 			ServiceID: sid,
-			Filters: []fastly.ServiceDetailsFilter{
-				{Key: "versions.staged", Value: true},
-			},
 		})
 		if err != nil {
-			return nil, fmt.Errorf("error getting service details: %w", err)
+			return nil, fmt.Errorf("error listing service versions: %w", err)
 		}
-		if serviceDetails.Version == nil {
-			return nil, fmt.Errorf("no staged service version found")
+		for _, v := range vs {
+			if fastly.ToValue(v.Staging) {
+				return v, nil
+			}
 		}
-		return serviceDetails.Version, nil
+		return nil, fmt.Errorf("no staged service version found")
 	default:
 		return nil, fmt.Errorf("invalid version value %q: must be a version number, \"latest\", \"active\", or \"staged\"", sv.Value)
 	}
