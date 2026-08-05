@@ -9,6 +9,7 @@
 ### Enhancements:
 
 ### Dependencies:
+- build(deps): `github.com/rogpeppe/go-internal` from 1.15.0 to 1.16.0 ([#1871](https://github.com/fastly/cli/pull/1871))
 
 ## [v15.5.0](https://github.com/fastly/cli/releases/tag/v15.5.0) (2026-08-04)
 
