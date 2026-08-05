@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 env:
   GO_VERSION: 1.26.x
-  GOLANGCI_LINT_VERSION: v2.4
+  GOLANGCI_LINT_VERSION: v2.9
   WASI_SDK_VERSION: 25
   WASI_SDK_FULL_VERSION: "25.0"
 jobs:
