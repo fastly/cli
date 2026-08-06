@@ -55,6 +55,8 @@ import (
 	"github.com/fastly/cli/pkg/commands/apisecurity/discoveredoperations"
 	"github.com/fastly/cli/pkg/commands/apisecurity/operations"
 	"github.com/fastly/cli/pkg/commands/apisecurity/tags"
+	"github.com/fastly/cli/pkg/commands/auditlog"
+	"github.com/fastly/cli/pkg/commands/auditlog/eventmapping"
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/commands/authtoken"
 	"github.com/fastly/cli/pkg/commands/compute"
@@ -255,6 +257,15 @@ func Define( // nolint:revive // function-length
 	tagsGet := tags.NewGetCommand(tagsRoot.CmdClause, data)
 	tagsList := tags.NewListCommand(tagsRoot.CmdClause, data)
 	tagsUpdate := tags.NewUpdateCommand(tagsRoot.CmdClause, data)
+	auditlogRoot := auditlog.NewRootCommand(app, data)
+	auditlogEventMappingRoot := eventmapping.NewRootCommand(auditlogRoot.CmdClause, data)
+	auditlogEventMappingCreate := eventmapping.NewCreateCommand(auditlogEventMappingRoot.CmdClause, data)
+	auditlogEventMappingList := eventmapping.NewListCommand(auditlogEventMappingRoot.CmdClause, data)
+	auditlogEventMappingDescribe := eventmapping.NewDescribeCommand(auditlogEventMappingRoot.CmdClause, data)
+	auditlogEventMappingUpdate := eventmapping.NewUpdateCommand(auditlogEventMappingRoot.CmdClause, data)
+	auditlogEventMappingDelete := eventmapping.NewDeleteCommand(auditlogEventMappingRoot.CmdClause, data)
+	auditlogEventMappingListEventTypes := eventmapping.NewListEventTypesCommand(auditlogEventMappingRoot.CmdClause, data)
+	auditlogEventMappingListScopeTypes := eventmapping.NewListScopeTypesCommand(auditlogEventMappingRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -1188,6 +1199,15 @@ func Define( // nolint:revive // function-length
 		tagsGet,
 		tagsList,
 		tagsUpdate,
+		auditlogRoot,
+		auditlogEventMappingRoot,
+		auditlogEventMappingCreate,
+		auditlogEventMappingList,
+		auditlogEventMappingDescribe,
+		auditlogEventMappingUpdate,
+		auditlogEventMappingDelete,
+		auditlogEventMappingListEventTypes,
+		auditlogEventMappingListScopeTypes,
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,

@@ -67,6 +67,7 @@ complete -F _fastly_bash_autocomplete fastly
 			WantOutput: `help
 auth
 apisecurity
+audit-log
 compute
 config
 config-store
