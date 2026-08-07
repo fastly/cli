@@ -6,6 +6,14 @@
 
 ### Bug Fixes:
 
+### Enhancements:
+
+### Dependencies:
+
+## [v15.6.0](https://github.com/fastly/cli/releases/tag/v15.6.0) (2026-08-07)
+
+### Bug Fixes:
+
 - fix(compute): add Python starter kit to the static config ([#1877](https://github.com/fastly/cli/pull/1877))
 
 ### Enhancements:
