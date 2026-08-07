@@ -9,6 +9,7 @@
 ### Enhancements:
 
 - feat(audit-log): add event-mapping command group ([#1875](https://github.com/fastly/cli/pull/1875))
+- feat(compute/serve): add `--experimental-websockets-passthrough` flag and `[local_server.websockets_passthrough]` section in `fastly.toml`, allowing local WebSocket passthrough to be disabled (it remains enabled by default)
 
 ### Dependencies:
 
