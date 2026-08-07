@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(compute): add Python starter kit to the static config ([#1877](https://github.com/fastly/cli/pull/1877))
+
 ### Enhancements:
 
 - feat(audit-log): add event-mapping command group ([#1875](https://github.com/fastly/cli/pull/1875))

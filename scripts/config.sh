@@ -21,6 +21,7 @@ kits=(
 	compute-starter-kit-typescript
 	compute-starter-kit-cpp-default
 	compute-starter-kit-cpp-empty
+	compute-starter-kit-python-default
 )
 
 function parse() {
