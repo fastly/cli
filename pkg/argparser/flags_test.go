@@ -17,6 +17,58 @@ import (
 	"github.com/fastly/cli/pkg/testutil"
 )
 
+// TestOptionalServiceVersionParseStagedVersionNotLatest validates that the staged version is correctly
+// identified even when the latest version number is higher. Tests that the code correctly filters for
+// staging=true rather than relying on version ordering.
+func TestOptionalServiceVersionParseStagedVersionNotLatest(t *testing.T) {
+	sv := &argparser.OptionalServiceVersion{
+		OptionalString: argparser.OptionalString{
+			Optional: argparser.Optional{WasSet: true},
+			Value:    "staged",
+		},
+	}
+
+	// Mock API that returns versions where latest (850) != staged (849)
+	v, err := sv.Parse("123", mock.API{
+		ListVersionsFn: func(_ context.Context, i *fastly.ListVersionsInput) ([]*fastly.Version, error) {
+			return []*fastly.Version{
+				{
+					ServiceID: fastly.ToPointer(i.ServiceID),
+					Number:    fastly.ToPointer(850),
+					Staging:   fastly.ToPointer(false),
+					UpdatedAt: testutil.MustParseTimeRFC3339("2026-07-31T14:28:00Z"),
+				},
+				{
+					ServiceID: fastly.ToPointer(i.ServiceID),
+					Number:    fastly.ToPointer(849),
+					Staging:   fastly.ToPointer(true),
+					UpdatedAt: testutil.MustParseTimeRFC3339("2026-06-23T10:23:00Z"),
+				},
+				{
+					ServiceID: fastly.ToPointer(i.ServiceID),
+					Number:    fastly.ToPointer(847),
+					Active:    fastly.ToPointer(true),
+					UpdatedAt: testutil.MustParseTimeRFC3339("2026-01-28T04:24:00Z"),
+				},
+			}, nil
+		},
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Should return version 849 (staged), not 850 (latest)
+	want := 849
+	have := fastly.ToValue(v.Number)
+	if have != want {
+		t.Errorf("wanted %d, have %d", want, have)
+	}
+	if !fastly.ToValue(v.Staging) {
+		t.Errorf("returned version should have staging=true, got %v", fastly.ToValue(v.Staging))
+	}
+}
+
 func TestOptionalServiceVersionParse(t *testing.T) {
 	cases := map[string]struct {
 		flagValue   string
