@@ -8,6 +8,16 @@
 
 ### Enhancements:
 
+### Dependencies:
+
+## [v15.6.0](https://github.com/fastly/cli/releases/tag/v15.6.0) (2026-08-07)
+
+### Bug Fixes:
+
+- fix(compute): add Python starter kit to the static config ([#1877](https://github.com/fastly/cli/pull/1877))
+
+### Enhancements:
+
 - feat(audit-log): add event-mapping command group ([#1875](https://github.com/fastly/cli/pull/1875))
 - feat(compute/serve): add `--experimental-websockets-passthrough` flag and `[local_server.websockets_passthrough]` section in `fastly.toml`, allowing local WebSocket passthrough to be disabled (it remains enabled by default)
 
