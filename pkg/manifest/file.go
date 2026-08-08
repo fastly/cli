@@ -109,6 +109,14 @@ func (f *File) MarshalTOML() ([]byte, error) {
 		localServer["pushpin"] = pushpin
 	}
 
+	if f.LocalServer.WebsocketsPassthrough != nil {
+		websocketsPassthrough := make(map[string]any)
+		if f.LocalServer.WebsocketsPassthrough.EnableWebsocketsPassthrough != nil {
+			websocketsPassthrough["enable"] = *f.LocalServer.WebsocketsPassthrough.EnableWebsocketsPassthrough
+		}
+		localServer["websockets_passthrough"] = websocketsPassthrough
+	}
+
 	if f.LocalServer.SecretStores != nil {
 		secretStores := make(map[string]any)
 		for key, entry := range f.LocalServer.SecretStores {
