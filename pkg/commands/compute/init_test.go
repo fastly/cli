@@ -951,7 +951,7 @@ func TestPromptForStarterKitBounds(t *testing.T) {
 
 // TestPromptForStarterKitBoundsNonInteractive verifies that bounds checks are
 // applied to starter kit selection when either the AcceptDefaults flag or the
-// NonInteractive flag are true, which skips the prompt and prompt validation
+// NonInteractive flag are true, which skips the prompt and prompt validation.
 func TestPromptForStarterKitBoundsNonInteractive(t *testing.T) {
 	var stdout threadsafe.Buffer
 	g := testutil.MockGlobalData(testutil.SplitArgs("compute init"), &stdout)
