@@ -817,6 +817,9 @@ func (c *InitCommand) PromptForStarterKit(kits []config.StarterKit, in io.Reader
 
 	var i int
 	if i, err = strconv.Atoi(option); err == nil {
+		if i < 1 || i > len(kits) {
+			return "", "", "", fmt.Errorf("invalid starter kit option: %s", option)
+		}
 		template := kits[i-1]
 		return template.Path, template.Branch, template.Tag, nil
 	}
@@ -831,7 +834,7 @@ func validateTemplateOptionOrURL(templates []config.StarterKit) func(string) err
 			return nil
 		}
 		if option, err := strconv.Atoi(input); err == nil {
-			if option > len(templates) {
+			if option < 1 || option > len(templates) {
 				return errors.New(msg)
 			}
 			return nil

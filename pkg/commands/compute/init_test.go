@@ -13,6 +13,8 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly"
 
 	"github.com/fastly/cli/pkg/app"
+	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -846,4 +848,119 @@ func TestInit_ExistingService(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestPromptForStarterKitBounds verifies that bounds checks are applied to
+// starter kit selection in the interactive mode prompt.
+func TestPromptForStarterKitBounds(t *testing.T) {
+	kits := []config.StarterKit{
+		{
+			Name:   "Default",
+			Path:   "https://github.com/fastly/compute-starter-kit-rust-default",
+			Branch: "main",
+		},
+		{
+			Name:   "Empty",
+			Path:   "https://github.com/fastly/compute-starter-kit-rust-empty",
+			Branch: "main",
+		},
+	}
+
+	scenarios := []struct {
+		name string
+		// stdin is the input given at the starter kit prompt. An invalid entry
+		// is rejected and the prompt repeats, so those cases supply a valid
+		// follow-up value.
+		stdin      string
+		wantPath   string
+		wantBranch string
+		// wantRejected asserts the validation message was shown to the user.
+		wantRejected bool
+	}{
+		{
+			name:       "first option",
+			stdin:      "1\n",
+			wantPath:   kits[0].Path,
+			wantBranch: "main",
+		},
+		{
+			name:       "last option",
+			stdin:      "2\n",
+			wantPath:   kits[1].Path,
+			wantBranch: "main",
+		},
+		{
+			name:       "no input defaults to the first option",
+			stdin:      "\n",
+			wantPath:   kits[0].Path,
+			wantBranch: "main",
+		},
+		{
+			name:     "git URL is passed through",
+			stdin:    "https://github.com/fastly/compute-starter-kit-rust-websockets\n",
+			wantPath: "https://github.com/fastly/compute-starter-kit-rust-websockets",
+		},
+		{
+			// Without the lower bound this indexed kits[-1] and panicked.
+			name:         "zero is rejected",
+			stdin:        "0\n1\n",
+			wantPath:     kits[0].Path,
+			wantBranch:   "main",
+			wantRejected: true,
+		},
+		{
+			// Without the lower bound this indexed kits[-2] and panicked.
+			name:         "negative is rejected",
+			stdin:        "-1\n2\n",
+			wantPath:     kits[1].Path,
+			wantBranch:   "main",
+			wantRejected: true,
+		},
+		{
+			name:         "above the upper bound is rejected",
+			stdin:        "3\n1\n",
+			wantPath:     kits[0].Path,
+			wantBranch:   "main",
+			wantRejected: true,
+		},
+	}
+
+	for _, testcase := range scenarios {
+		t.Run(testcase.name, func(t *testing.T) {
+			var stdout threadsafe.Buffer
+			c := compute.InitCommand{
+				Base: argparser.Base{
+					Globals: testutil.MockGlobalData(testutil.SplitArgs("compute init"), &stdout),
+				},
+			}
+
+			from, branch, _, err := c.PromptForStarterKit(kits, strings.NewReader(testcase.stdin), &stdout)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			testutil.AssertEqual(t, testcase.wantPath, from)
+			testutil.AssertEqual(t, testcase.wantBranch, branch)
+
+			if testcase.wantRejected {
+				testutil.AssertStringContains(t, stdout.String(), "must be a valid option or git URL")
+			}
+		})
+	}
+}
+
+// TestPromptForStarterKitBoundsNonInteractive verifies that bounds checks are
+// applied to starter kit selection when either the AcceptDefaults flag or the
+// NonInteractive flag are true, which skips the prompt and prompt validation.
+func TestPromptForStarterKitBoundsNonInteractive(t *testing.T) {
+	var stdout threadsafe.Buffer
+	g := testutil.MockGlobalData(testutil.SplitArgs("compute init"), &stdout)
+	g.Flags.AcceptDefaults = true
+
+	c := compute.InitCommand{Base: argparser.Base{Globals: g}}
+
+	// With defaults accepted and no kits configured, the option falls back to
+	// "1" with an empty slice, which is out of range.
+	_, _, _, err := c.PromptForStarterKit([]config.StarterKit{}, strings.NewReader(""), &stdout)
+	testutil.AssertErrorContains(t, err, "no default starter kits configured for this language")
 }
