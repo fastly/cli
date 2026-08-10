@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(compute): Add bounds checking around starter kit selection to avoid a panic and provide a more useful error message ([#1879](https://github.com/fastly/cli/pull/1879))
+
 ### Enhancements:
 
 ### Dependencies:
