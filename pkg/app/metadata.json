@@ -304,7 +304,7 @@
           "title": "Initialize a new Compute package locally"
         },
         {
-          "cmd": "fastly compute init --from=starter-kits/javascript/typescript-default",
+          "cmd": "fastly compute init --from=starter-kit/javascript/typescript-default",
           "description": "Use a [Compute starter kit](https://www.fastly.com/documentation/solutions/starters) as the source for your new package.",
           "title": "Initialize a new Compute package locally using a Compute Starter Kit"
         },
