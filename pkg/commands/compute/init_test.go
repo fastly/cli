@@ -22,6 +22,7 @@ import (
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
 	"github.com/fastly/cli/pkg/mock"
+	"github.com/fastly/cli/pkg/starterkit"
 	"github.com/fastly/cli/pkg/testutil"
 	"github.com/fastly/cli/pkg/threadsafe"
 )
@@ -803,16 +804,16 @@ func TestInit_ExistingService(t *testing.T) {
 // TestPromptForStarterKitBounds verifies that bounds checks are applied to
 // starter kit selection in the interactive mode prompt.
 func TestPromptForStarterKitBounds(t *testing.T) {
-	kits := []config.StarterKit{
+	kits := []starterkit.Kit{
 		{
-			Name:   "Default",
-			Path:   "https://github.com/fastly/compute-starter-kit-rust-default",
-			Branch: "main",
+			ID:       "rust-default",
+			Name:     "Default",
+			Language: "rust",
 		},
 		{
-			Name:   "Empty",
-			Path:   "https://github.com/fastly/compute-starter-kit-rust-empty",
-			Branch: "main",
+			ID:       "rust-empty",
+			Name:     "Empty",
+			Language: "rust",
 		},
 	}
 
@@ -821,56 +822,54 @@ func TestPromptForStarterKitBounds(t *testing.T) {
 		// stdin is the input given at the starter kit prompt. An invalid entry
 		// is rejected and the prompt repeats, so those cases supply a valid
 		// follow-up value.
-		stdin      string
-		wantPath   string
-		wantBranch string
+		stdin    string
+		wantFrom string
 		// wantRejected asserts the validation message was shown to the user.
 		wantRejected bool
 	}{
 		{
-			name:       "first option",
-			stdin:      "1\n",
-			wantPath:   kits[0].Path,
-			wantBranch: "main",
+			name:     "first option",
+			stdin:    "1\n",
+			wantFrom: kits[0].FromValue(),
 		},
 		{
-			name:       "last option",
-			stdin:      "2\n",
-			wantPath:   kits[1].Path,
-			wantBranch: "main",
+			name:     "last option",
+			stdin:    "2\n",
+			wantFrom: kits[1].FromValue(),
 		},
 		{
-			name:       "no input defaults to the first option",
-			stdin:      "\n",
-			wantPath:   kits[0].Path,
-			wantBranch: "main",
+			name:     "no input defaults to the first option",
+			stdin:    "\n",
+			wantFrom: kits[0].FromValue(),
 		},
 		{
 			name:     "git URL is passed through",
 			stdin:    "https://github.com/fastly/compute-starter-kit-rust-websockets\n",
-			wantPath: "https://github.com/fastly/compute-starter-kit-rust-websockets",
+			wantFrom: "https://github.com/fastly/compute-starter-kit-rust-websockets",
+		},
+		{
+			name:     "starter kit reference is passed through",
+			stdin:    "starter-kit/rust/websockets\n",
+			wantFrom: "starter-kit/rust/websockets",
 		},
 		{
 			// Without the lower bound this indexed kits[-1] and panicked.
 			name:         "zero is rejected",
 			stdin:        "0\n1\n",
-			wantPath:     kits[0].Path,
-			wantBranch:   "main",
+			wantFrom:     kits[0].FromValue(),
 			wantRejected: true,
 		},
 		{
 			// Without the lower bound this indexed kits[-2] and panicked.
 			name:         "negative is rejected",
 			stdin:        "-1\n2\n",
-			wantPath:     kits[1].Path,
-			wantBranch:   "main",
+			wantFrom:     kits[1].FromValue(),
 			wantRejected: true,
 		},
 		{
 			name:         "above the upper bound is rejected",
 			stdin:        "3\n1\n",
-			wantPath:     kits[0].Path,
-			wantBranch:   "main",
+			wantFrom:     kits[0].FromValue(),
 			wantRejected: true,
 		},
 	}
@@ -884,16 +883,19 @@ func TestPromptForStarterKitBounds(t *testing.T) {
 				},
 			}
 
-			from, branch, _, err := c.PromptForStarterKit(kits, strings.NewReader(testcase.stdin), &stdout)
+			// The starter-kit edge service has no concept of git refs, so the
+			// branch/tag returned are always empty.
+			from, branch, tag, err := c.PromptForStarterKit(kits, strings.NewReader(testcase.stdin), &stdout)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			testutil.AssertEqual(t, testcase.wantPath, from)
-			testutil.AssertEqual(t, testcase.wantBranch, branch)
+			testutil.AssertEqual(t, testcase.wantFrom, from)
+			testutil.AssertEqual(t, "", branch)
+			testutil.AssertEqual(t, "", tag)
 
 			if testcase.wantRejected {
-				testutil.AssertStringContains(t, stdout.String(), "must be a valid option or git URL")
+				testutil.AssertStringContains(t, stdout.String(), "must be a valid option, git URL, or starter-kit/<lang>/<name> reference")
 			}
 		})
 	}
@@ -909,8 +911,8 @@ func TestPromptForStarterKitBoundsNonInteractive(t *testing.T) {
 
 	c := compute.InitCommand{Base: argparser.Base{Globals: g}}
 
-	// With defaults accepted and no kits configured, the option falls back to
-	// "1" with an empty slice, which is out of range.
-	_, _, _, err := c.PromptForStarterKit([]config.StarterKit{}, strings.NewReader(""), &stdout)
+	// With defaults accepted and no kits available, the option would otherwise
+	// fall back to "1" with an empty slice, which is out of range.
+	_, _, _, err := c.PromptForStarterKit([]starterkit.Kit{}, strings.NewReader(""), &stdout)
 	testutil.AssertErrorContains(t, err, "no default starter kits configured for this language")
 }
