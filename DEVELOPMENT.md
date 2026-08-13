@@ -62,9 +62,9 @@ The CLI dynamically generates the `./pkg/config/config.toml` within the CI relea
 
 The file is added to `.gitignore` to avoid it being added to the git repository.
 
-When compiling the CLI for a new release, it will execute [`./scripts/config.sh`](./scripts/config.sh). The script uses [`./.fastly/config.toml`](./.fastly/config.toml) as a template file to then dynamically inject a list of starter kits (pulling their data from their public repositories).
+When compiling the CLI for a new release, it will execute [`./scripts/config.sh`](./scripts/config.sh), which copies [`./.fastly/config.toml`](./.fastly/config.toml) to `./pkg/config/config.toml`, ready to be embedded into the CLI when compiled.
 
-The resulting configuration is then saved to disk at `./pkg/config/config.toml` and embedded into the CLI when compiled.
+> **NOTE:** Compute starter kits are no longer listed in this config file. `compute init` sources them live from the starter-kit edge service (see `pkg/starterkit`) instead of from an embedded, build-time-generated list.
 
 When a user installs the CLI for the first time, they'll have no existing config and so the embedded config will be used. In the future, when the user updates their CLI, the existing config they have will be used.
 
