@@ -21,7 +21,7 @@ const CommandName = "logging"
 func NewRootCommand(parent argparser.Registerer, g *global.Data) *RootCommand {
 	var c RootCommand
 	c.Globals = g
-	c.CmdClause = parent.Command(CommandName, "Manipulate Fastly service version logging endpoints")
+	c.CmdClause = parent.Command(CommandName, "Inspect and manage Fastly service logging")
 	return &c
 }
 
