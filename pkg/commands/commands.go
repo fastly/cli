@@ -150,8 +150,10 @@ import (
 	serviceloggingheroku "github.com/fastly/cli/pkg/commands/service/logging/heroku"
 	servicelogginghoneycomb "github.com/fastly/cli/pkg/commands/service/logging/honeycomb"
 	servicelogginghttps "github.com/fastly/cli/pkg/commands/service/logging/https"
+	servicelogginginsights "github.com/fastly/cli/pkg/commands/service/logging/insights"
 	serviceloggingkafka "github.com/fastly/cli/pkg/commands/service/logging/kafka"
 	serviceloggingkinesis "github.com/fastly/cli/pkg/commands/service/logging/kinesis"
+	servicelogginglogexplorer "github.com/fastly/cli/pkg/commands/service/logging/logexplorer"
 	serviceloggingloggly "github.com/fastly/cli/pkg/commands/service/logging/loggly"
 	servicelogginglogshuttle "github.com/fastly/cli/pkg/commands/service/logging/logshuttle"
 	serviceloggingnewrelic "github.com/fastly/cli/pkg/commands/service/logging/newrelic"
@@ -639,6 +641,8 @@ func Define( // nolint:revive // function-length
 	servicevclSnippetUpdate := servicevclsnippet.NewUpdateCommand(servicevclSnippetCmdRoot.CmdClause, data)
 	serviceloggingCmdRoot := servicelogging.NewRootCommand(serviceCmdRoot.CmdClause, data)
 	serviceloggingDebugCmd := serviceloggingdebug.NewDebugCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingInsightsCmd := servicelogginginsights.NewInsightsCommand(serviceloggingCmdRoot.CmdClause, data)
+	serviceloggingLogExplorerCmd := servicelogginglogexplorer.NewLogExplorerCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingAzureblobCmdRoot := serviceloggingazureblob.NewRootCommand(serviceloggingCmdRoot.CmdClause, data)
 	serviceloggingAzureblobCreate := serviceloggingazureblob.NewCreateCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
 	serviceloggingAzureblobDelete := serviceloggingazureblob.NewDeleteCommand(serviceloggingAzureblobCmdRoot.CmdClause, data)
@@ -1326,6 +1330,8 @@ func Define( // nolint:revive // function-length
 		kvstoreentryList,
 		logtailCmdRoot,
 		serviceloggingDebugCmd,
+		serviceloggingInsightsCmd,
+		serviceloggingLogExplorerCmd,
 		serviceloggingAzureblobCmdRoot,
 		serviceloggingAzureblobCreate,
 		serviceloggingAzureblobDelete,

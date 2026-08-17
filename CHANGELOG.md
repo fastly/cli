@@ -8,6 +8,8 @@
 
 ### Enhancements:
 
+- feat(service/logging): add Log Explorer and Insights commands ([#1887](https://github.com/fastly/cli/pull/1887))
+
 ### Dependencies:
 
 ## [v16.0.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-08-13)
