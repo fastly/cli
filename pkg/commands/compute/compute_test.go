@@ -103,6 +103,7 @@ func TestFlagDivergenceServe(t *testing.T) {
 		"addr",
 		"debug",
 		"experimental-enable-pushpin",
+		"experimental-websockets-passthrough",
 		"file",
 		"profile-guest",
 		"pushpin-path",
