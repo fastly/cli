@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -385,7 +386,36 @@ func (j *JSONOutput) WriteJSON(out io.Writer, value any) (bool, error) {
 
 	enc := json.NewEncoder(out)
 	enc.SetIndent("", "  ")
-	return true, enc.Encode(value)
+	return true, enc.Encode(emptyNotNull(value))
+}
+
+// emptyNotNull substitutes an empty collection for a nil one so that a command
+// with nothing to report emits `[]` (or `{}`) rather than `null`.
+//
+// Commands accumulate their results into a `var data []T` and hand that to
+// WriteJSON. When the account holds no resources, `data` is still nil and
+// encoding/json writes `null`, so `--json` output is not consistently a JSON
+// list and a caller has to special-case the empty account.
+//
+// Only the value's own nil-ness is considered. A nil pointer, a nil interface
+// and a struct holding nil fields are all left exactly as they were: those
+// encode as `null` because they *are* absent, which is a different statement
+// from "an empty list". A nil []byte is left alone for the same reason -- it
+// encodes as a base64 string rather than a list, so emptying it would turn
+// `null` into `""`, which is not what an empty list looks like either.
+func emptyNotNull(value any) any {
+	v := reflect.ValueOf(value)
+	if !v.IsValid() {
+		return value // an untyped nil; there is no collection here to empty
+	}
+	if v.Kind() == reflect.Slice && v.IsNil() &&
+		v.Type().Elem().Kind() != reflect.Uint8 {
+		return reflect.MakeSlice(v.Type(), 0, 0).Interface()
+	}
+	if v.Kind() == reflect.Map && v.IsNil() {
+		return reflect.MakeMap(v.Type()).Interface()
+	}
+	return value
 }
 
 func ConvertBoolFromStringFlag(value string, argName string) (*bool, error) {
