@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(json): emit `[]` rather than `null` when a `--json` command has nothing to list
+
 ### Enhancements:
 
 ### Dependencies:
