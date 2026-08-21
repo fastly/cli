@@ -8,6 +8,8 @@
 
 ### Enhancements:
 
+- feat(service/logging): add Log Explorer and Insights commands ([#1887](https://github.com/fastly/cli/pull/1887))
+
 ### Dependencies:
 - build(deps): `golang.org/x/crypto` from 0.54.0 to 0.55.0 ([#1888](https://github.com/fastly/cli/pull/1888))
 - build(deps): `golang.org/x/mod` from 0.38.0 to 0.39.0 ([#1888](https://github.com/fastly/cli/pull/1888))
