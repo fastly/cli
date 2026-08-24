@@ -6,7 +6,7 @@
 
 ### Bug Fixes:
 
-- fix(json): emit `[]` rather than `null` when a `--json` command has nothing to list
+- fix(json): `secret-store list --json` emits `[]` rather than `null` on an account with no secret stores
 
 ### Enhancements:
 
