@@ -13,6 +13,7 @@
 - build(deps): `golang.org/x/mod` from 0.38.0 to 0.39.0 ([#1888](https://github.com/fastly/cli/pull/1888))
 - build(deps): `github.com/stretchr/testify` from 1.11.1 to 1.12.0 ([#1888](https://github.com/fastly/cli/pull/1888))
 - build(deps): `golang.org/x/text` from 0.40.0 to 0.41.0 ([#1888](https://github.com/fastly/cli/pull/1888))
+- build(deps): `github.com/fastly/go-fastly` from 17.2.0 to 17.3.0 ([#1893](https://github.com/fastly/cli/pull/1893))
 
 ## [v16.0.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-08-13)
 
