@@ -86,7 +86,7 @@ require (
 require (
 	4d63.com/optional v0.2.0
 	github.com/creack/pty v1.1.24
-	github.com/fastly/go-fastly/v17 v17.2.0
+	github.com/fastly/go-fastly/v17 v17.3.0
 	github.com/mholt/archives v0.1.5
 	github.com/mitchellh/go-ps v1.0.0
 )
