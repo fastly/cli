@@ -63,20 +63,21 @@ type ServeCommand struct {
 	ViceroyVersioner        github.AssetVersioner
 
 	// Serve private fields
-	addr                 string
-	debug                bool
-	enablePushpin        bool
-	pushpinRunnerBinPath string
-	pushpinProxyPort     string
-	pushpinPublishPort   string
-	env                  argparser.OptionalString
-	file                 argparser.OptionalString
-	profileGuest         bool
-	profileGuestDir      argparser.OptionalString
-	projectDir           string
-	skipBuild            bool
-	watch                bool
-	watchDir             argparser.OptionalString
+	addr                        string
+	debug                       bool
+	enablePushpin               bool
+	enableWebsocketsPassthrough argparser.OptionalBool
+	pushpinRunnerBinPath        string
+	pushpinProxyPort            string
+	pushpinPublishPort          string
+	env                         argparser.OptionalString
+	file                        argparser.OptionalString
+	profileGuest                bool
+	profileGuestDir             argparser.OptionalString
+	projectDir                  string
+	skipBuild                   bool
+	watch                       bool
+	watchDir                    argparser.OptionalString
 }
 
 // NewServeCommand returns a usable command registered under the parent.
@@ -102,6 +103,7 @@ func NewServeCommand(parent argparser.Registerer, g *global.Data, build *BuildCo
 	c.CmdClause.Flag("pushpin-path", "The path to a user installed version of the Pushpin runner binary").StringVar(&c.pushpinRunnerBinPath)
 	c.CmdClause.Flag("pushpin-proxy-port", "The port to run the Pushpin runner on. Overrides 'local_server.pushpin.proxy_port' from 'fastly.toml', and if not specified there, defaults to 7677.").StringVar(&c.pushpinProxyPort)
 	c.CmdClause.Flag("pushpin-publish-port", "The port to run the Pushpin publish handler on. Overrides 'local_server.pushpin.publish_port' from 'fastly.toml', and if not specified there, defaults to 5561.").StringVar(&c.pushpinPublishPort)
+	c.CmdClause.Flag("experimental-websockets-passthrough", "Enable WebSocket passthrough support for local testing of WebSockets. Overrides 'local_server.websockets_passthrough.enable' from 'fastly.toml', and if not specified there, defaults to true.").Action(c.enableWebsocketsPassthrough.Set).BoolVar(&c.enableWebsocketsPassthrough.Value)
 	c.CmdClause.Flag("profile-guest", "Profile the Wasm guest under Viceroy (requires Viceroy 0.9.1 or higher). View profiles at https://profiler.firefox.com/.").BoolVar(&c.profileGuest)
 	c.CmdClause.Flag("profile-guest-dir", "The directory where the per-request profiles are saved to. Defaults to guest-profiles.").Action(c.profileGuestDir.Set).StringVar(&c.profileGuestDir.Value)
 	c.CmdClause.Flag("skip-build", "Skip the build step").BoolVar(&c.skipBuild)
@@ -223,6 +225,19 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 		defer pushpinCtx.Close()
 	}
 
+	// WebSocket passthrough is enabled unless it's explicitly disabled via the
+	// --experimental-websockets-passthrough flag, or via
+	// `local_server.websockets_passthrough.enable` in fastly.toml. The flag
+	// takes precedence over the manifest.
+	enableWebsocketsPassthrough := true
+	switch {
+	case c.enableWebsocketsPassthrough.WasSet:
+		enableWebsocketsPassthrough = c.enableWebsocketsPassthrough.Value
+	case c.Globals.Manifest.File.LocalServer.WebsocketsPassthrough != nil &&
+		c.Globals.Manifest.File.LocalServer.WebsocketsPassthrough.EnableWebsocketsPassthrough != nil:
+		enableWebsocketsPassthrough = *c.Globals.Manifest.File.LocalServer.WebsocketsPassthrough.EnableWebsocketsPassthrough
+	}
+
 	err = spinner.Start()
 	if err != nil {
 		return err
@@ -243,21 +258,22 @@ func (c *ServeCommand) Exec(in io.Reader, out io.Writer) (err error) {
 	var restart bool
 	for {
 		err = local(localOpts{
-			addr:             c.addr,
-			bin:              bin,
-			debug:            c.debug,
-			errLog:           c.Globals.ErrLog,
-			extraArgs:        c.ViceroyBinExtraArgs,
-			manifestPath:     manifestPath,
-			out:              out,
-			profileGuest:     c.profileGuest,
-			profileGuestDir:  c.profileGuestDir,
-			pushpinProxyPort: pushpinCtx.proxyPort,
-			restarted:        restart,
-			verbose:          c.Globals.Verbose(),
-			wasmBinPath:      wasmBinaryToRun,
-			watch:            c.watch,
-			watchDir:         c.watchDir,
+			addr:                        c.addr,
+			bin:                         bin,
+			debug:                       c.debug,
+			enableWebsocketsPassthrough: enableWebsocketsPassthrough,
+			errLog:                      c.Globals.ErrLog,
+			extraArgs:                   c.ViceroyBinExtraArgs,
+			manifestPath:                manifestPath,
+			out:                         out,
+			profileGuest:                c.profileGuest,
+			profileGuestDir:             c.profileGuestDir,
+			pushpinProxyPort:            pushpinCtx.proxyPort,
+			restarted:                   restart,
+			verbose:                     c.Globals.Verbose(),
+			wasmBinPath:                 wasmBinaryToRun,
+			watch:                       c.watch,
+			watchDir:                    c.watchDir,
 		})
 		if err != nil {
 			if err != fsterr.ErrViceroyRestart {
@@ -820,21 +836,22 @@ func (c *ServeCommand) startPushpin(spinner text.Spinner, out io.Writer) (pushpi
 
 // localOpts represents the inputs for `local()`.
 type localOpts struct {
-	addr             string
-	bin              string
-	debug            bool
-	errLog           fsterr.LogInterface
-	extraArgs        string
-	manifestPath     string
-	out              io.Writer
-	profileGuest     bool
-	profileGuestDir  argparser.OptionalString
-	pushpinProxyPort uint16
-	restarted        bool
-	verbose          bool
-	wasmBinPath      string
-	watch            bool
-	watchDir         argparser.OptionalString
+	addr                        string
+	bin                         string
+	debug                       bool
+	enableWebsocketsPassthrough bool
+	errLog                      fsterr.LogInterface
+	extraArgs                   string
+	manifestPath                string
+	out                         io.Writer
+	profileGuest                bool
+	profileGuestDir             argparser.OptionalString
+	pushpinProxyPort            uint16
+	restarted                   bool
+	verbose                     bool
+	wasmBinPath                 string
+	watch                       bool
+	watchDir                    argparser.OptionalString
 }
 
 // local spawns a subprocess that runs the compiled binary.
@@ -861,6 +878,12 @@ func local(opts localOpts) error {
 
 	if opts.pushpinProxyPort != 0 {
 		args = append(args, fmt.Sprintf("--local-pushpin-proxy-port=%d", opts.pushpinProxyPort))
+	}
+
+	// Viceroy enables WebSocket passthrough by default, so we only need to pass
+	// the flag when it has been explicitly disabled in the manifest.
+	if !opts.enableWebsocketsPassthrough {
+		args = append(args, "--enable-local-websocket-passthrough=false")
 	}
 
 	if opts.extraArgs != "" {
