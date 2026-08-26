@@ -251,6 +251,8 @@ type Interface interface {
 
 	CreateManagedLogging(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 	GetLoggingEndpointErrors(context.Context, *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error)
+	GetLogRecords(context.Context, *fastly.GetLogRecordsInput) (*fastly.LogRecordsResponse, error)
+	GetLogInsights(context.Context, *fastly.GetLogInsightsInput) (*fastly.LogInsightsResponse, error)
 
 	GetGeneratedVCL(context.Context, *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
 
