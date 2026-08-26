@@ -3,18 +3,51 @@ package compute
 import (
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
-// mockWasmToolsScript generates a mock executable shell script for wasm-tools.
-//
-// Because the production code runs exec.Command under the hood, we mock it by writing
-// a temporary executable bash script to disk that outputs the mock JSON we expect.
-// We use a bash heredoc (cat << 'EOF') so that the JSON structure and inner quotes
-// are written exactly as-is, avoiding platform-specific shell escape/echo issues.
-func mockWasmToolsScript(staticOutput string) string {
-	return "#!/usr/bin/env bash\ncat << 'EOF'\n" + staticOutput + "\nEOF"
+// mockWasmToolsSource is a tiny Go program that stands in for `wasm-tools
+// metadata show --json`: it prints whatever JSON is given via the
+// MOCK_WASM_TOOLS_JSON environment variable to stdout. Compiling a real
+// executable (rather than a bash script) keeps this mock runnable on
+// Windows, where exec.Command cannot interpret a shebang line.
+const mockWasmToolsSource = `package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	fmt.Print(os.Getenv("MOCK_WASM_TOOLS_JSON"))
+}
+`
+
+// buildMockWasmTools compiles mockWasmToolsSource into an executable in dir
+// and returns its path.
+func buildMockWasmTools(t *testing.T, dir string) string {
+	t.Helper()
+
+	src := filepath.Join(dir, "mock_wasm_tools.go")
+	if err := os.WriteFile(src, []byte(mockWasmToolsSource), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	binName := "mock-wasm-tools"
+	if runtime.GOOS == "windows" {
+		binName += ".exe"
+	}
+	bin := filepath.Join(dir, binName)
+
+	// #nosec G204 -- fixed arguments, no user input
+	if out, err := exec.Command("go", "build", "-o", bin, src).CombinedOutput(); err != nil {
+		t.Fatalf("failed to build mock wasm-tools binary: %v\n%s", err, out)
+	}
+
+	return bin
 }
 
 func TestReadExistingPackageInfo(t *testing.T) {
@@ -45,6 +78,8 @@ func TestReadExistingPackageInfo(t *testing.T) {
 	if err := os.WriteFile(binWasmPath, []byte("mock-wasm-binary"), 0o600); err != nil {
 		t.Fatal(err)
 	}
+
+	wasmtoolsBin := buildMockWasmTools(t, rootdir)
 
 	scenarios := []struct {
 		name         string
@@ -79,12 +114,7 @@ func TestReadExistingPackageInfo(t *testing.T) {
 
 	for _, tc := range scenarios {
 		t.Run(tc.name, func(t *testing.T) {
-			wasmtoolsBin := filepath.Join(rootdir, "mock-wasm-tools")
-			scriptContent := mockWasmToolsScript(tc.jsonOutput)
-			// #nosec G306 -- mock binary must be executable
-			if err := os.WriteFile(wasmtoolsBin, []byte(scriptContent), 0o700); err != nil {
-				t.Fatal(err)
-			}
+			t.Setenv("MOCK_WASM_TOOLS_JSON", tc.jsonOutput)
 
 			cmd := &BuildCommand{}
 			actualData := cmd.readExistingPackageInfo(wasmtoolsBin)

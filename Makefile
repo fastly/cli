@@ -8,7 +8,7 @@ SHELL := /usr/bin/env bash -o pipefail ## Set the shell to use for finding Go fi
 # GO_ARGS allows for passing additional arguments.
 # e.g. make build GO_ARGS='--ldflags "-s -w"'
 .PHONY: build
-build: config ## Compile program (CGO disabled)
+build: ## Compile program (CGO disabled)
 	CGO_ENABLED=0 $(GO_BIN) build $(GO_ARGS) ./cmd/fastly
 
 ## Allows overriding go executable.
@@ -23,12 +23,8 @@ ifeq ($(OS), Windows_NT)
 	.SHELLFLAGS = /c
 	GO_FILES = $(shell where /r pkg *.go)
 	GO_FILES += $(shell where /r cmd *.go)
-	CONFIG_SCRIPT = scripts\config.sh
-	CONFIG_FILE = pkg\config\config.toml
 else
 	GO_FILES = $(shell find cmd pkg -type f -name '*.go')
-	CONFIG_SCRIPT = ./scripts/config.sh
-	CONFIG_FILE = pkg/config/config.toml
 endif
 
 # Tooling versions
@@ -53,12 +49,8 @@ release: $(GO_FILES) ## Build executables using goreleaser
 debug:
 	@$(GO_BIN) build -gcflags="all=-N -l" $(GO_ARGS) -o "fastly" ./cmd/fastly
 
-.PHONY: config
-config:
-	@$(CONFIG_SCRIPT)
-
 .PHONY: all
-all: config mod-download tidy fmt lint semgrep test build install ## Run EVERYTHING!
+all: mod-download tidy fmt lint semgrep test build install ## Run EVERYTHING!
 
 ## Downloads the Go modules
 mod-download: 
@@ -96,14 +88,14 @@ lint: install-linter check-linter-version ## Run golangci-lint
 
 # Run tests
 .PHONY: test
-test: config ## Run tests (with race detection)
+test: ## Run tests (with race detection)
 	@$(TEST_COMMAND) -race $(TEST_ARGS)
 
 # Compile and install program.
 #
 # GO_ARGS allows for passing additional arguments.
 .PHONY: install
-install: config ## Compile and install program
+install: ## Compile and install program
 	CGO_ENABLED=0 $(GO_BIN) install $(GO_ARGS) ./cmd/fastly
 
 # Scaffold a new CLI command from template files.
@@ -140,7 +132,7 @@ help:
 	@(grep -h -E '^[0-9a-zA-Z_.-]+\s[:?]?=.*? ## .*$$' $(MAKEFILE_LIST) || true) | sort | awk 'BEGIN {FS = "[:?]?=.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: run
-run: config
+run:
 	$(GO_BIN) run cmd/fastly/main.go $(GO_ARGS)
 
 .PHONY: install-linter
