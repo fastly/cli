@@ -87,7 +87,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Install uv"
-        uses: astral-sh/setup-uv@ae62891fec2bb8e7d6c99fc78c9fec3a63790f8d # v10.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - name: "Install WASI SDK"
         run: |
           wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
@@ -144,7 +144,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Install uv"
-        uses: astral-sh/setup-uv@ae62891fec2bb8e7d6c99fc78c9fec3a63790f8d # v10.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - name: "Install WASI SDK (Ubuntu)"
         if: matrix.platform == 'ubuntu-latest'
         run: |
