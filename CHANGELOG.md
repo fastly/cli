@@ -16,6 +16,11 @@
 - build(deps): `github.com/stretchr/testify` from 1.11.1 to 1.12.0 ([#1888](https://github.com/fastly/cli/pull/1888))
 - build(deps): `golang.org/x/text` from 0.40.0 to 0.41.0 ([#1888](https://github.com/fastly/cli/pull/1888))
 - build(deps): `github.com/fastly/go-fastly` from 17.2.0 to 17.3.0 ([#1893](https://github.com/fastly/cli/pull/1893))
+- build(deps): `golang.org/x/mod` from 0.39.0 to 0.40.0 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/stretchr/testify` from 1.12.0 to 1.12.1 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.27 to 0.0.28 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.28 to 4.1.29 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `golang.org/x/net` from 0.57.0 to 0.58.0 ([#1894](https://github.com/fastly/cli/pull/1894))
 
 ## [v16.0.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-08-13)
 
@@ -41,6 +46,7 @@
 ### Enhancements:
 
 - feat(audit-log): add event-mapping command group ([#1875](https://github.com/fastly/cli/pull/1875))
+- feat(compute/serve): add `--experimental-websockets-passthrough` flag and `[local_server.websockets_passthrough]` section in `fastly.toml`, allowing local WebSocket passthrough to be disabled (it remains enabled by default)
 
 ### Dependencies:
 
