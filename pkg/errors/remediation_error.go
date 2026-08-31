@@ -131,6 +131,12 @@ var WorkspaceIDRemediation = strings.Join([]string{
 	"Please provide one via the --workspace-id flag, or by setting the FASTLY_WORKSPACE_ID environment variable",
 }, " ")
 
+// ARCAPIKeyRemediation suggests providing a provider connection's upstream
+// API key via --api-key flag or via environment variable.
+var ARCAPIKeyRemediation = fmt.Sprintf(
+	"Please provide one via the --api-key flag, or by setting the %s environment variable", env.ARCAPIKey,
+)
+
 // ExistingDirRemediation suggests moving to another directory and retrying.
 var ExistingDirRemediation = strings.Join([]string{
 	"Please create a new directory and initialize a new project using:",

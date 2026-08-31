@@ -257,6 +257,27 @@ func (sv *OptionalWorkspaceID) Parse() error {
 	return nil
 }
 
+// OptionalARCAPIKey represents an AI Runtime Control (ARC) provider
+// connection's upstream API key.
+type OptionalARCAPIKey struct {
+	OptionalString
+}
+
+// Parse returns the provider connection API key either from a flag or from a
+// user defined environment variable (see pkg/env/env.go).
+//
+// NOTE: Will fallback to FASTLY_ARC_API_KEY environment variable if no flag value set.
+func (sv *OptionalARCAPIKey) Parse() error {
+	if sv.Value == "" {
+		if e := os.Getenv(env.ARCAPIKey); e != "" {
+			sv.Value = e
+			return nil
+		}
+		return fsterr.ErrNoARCAPIKey
+	}
+	return nil
+}
+
 // AutoCloneFlagOpts enables easy configuration of the --autoclone flag defined
 // via the RegisterAutoCloneFlag constructor.
 type AutoCloneFlagOpts struct {

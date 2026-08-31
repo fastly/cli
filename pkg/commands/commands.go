@@ -6,6 +6,12 @@ import (
 	"github.com/fastly/kingpin"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/commands/airuntimecontrol"
+	arckey "github.com/fastly/cli/pkg/commands/airuntimecontrol/key"
+	arcprovider "github.com/fastly/cli/pkg/commands/airuntimecontrol/provider"
+	arcproviderconnection "github.com/fastly/cli/pkg/commands/airuntimecontrol/providerconnection"
+	arcsession "github.com/fastly/cli/pkg/commands/airuntimecontrol/session"
+	arcusagemetrics "github.com/fastly/cli/pkg/commands/airuntimecontrol/usagemetrics"
 	aliasacl "github.com/fastly/cli/pkg/commands/alias/acl"
 	aliasaclentry "github.com/fastly/cli/pkg/commands/alias/aclentry"
 	aliasalerts "github.com/fastly/cli/pkg/commands/alias/alerts"
@@ -224,6 +230,30 @@ func Define( // nolint:revive // function-length
 			authtokenDescribe, authtokenList,
 		}
 	}
+
+	// AI Runtime Control (ARC) commands
+	arcRoot := airuntimecontrol.NewRootCommand(app, data)
+	arcKeyRoot := arckey.NewRootCommand(arcRoot.CmdClause, data)
+	arcKeyCreate := arckey.NewCreateCommand(arcKeyRoot.CmdClause, data)
+	arcKeyDelete := arckey.NewDeleteCommand(arcKeyRoot.CmdClause, data)
+	arcKeyGet := arckey.NewGetCommand(arcKeyRoot.CmdClause, data)
+	arcKeyList := arckey.NewListCommand(arcKeyRoot.CmdClause, data)
+	arcKeyRotate := arckey.NewRotateCommand(arcKeyRoot.CmdClause, data)
+	arcKeyUpdate := arckey.NewUpdateCommand(arcKeyRoot.CmdClause, data)
+	arcProviderRoot := arcprovider.NewRootCommand(arcRoot.CmdClause, data)
+	arcProviderList := arcprovider.NewListCommand(arcProviderRoot.CmdClause, data)
+	arcProviderListModels := arcprovider.NewListModelsCommand(arcProviderRoot.CmdClause, data)
+	arcProviderConnectionRoot := arcproviderconnection.NewRootCommand(arcRoot.CmdClause, data)
+	arcProviderConnectionCreate := arcproviderconnection.NewCreateCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcProviderConnectionDelete := arcproviderconnection.NewDeleteCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcProviderConnectionGet := arcproviderconnection.NewGetCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcProviderConnectionList := arcproviderconnection.NewListCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcProviderConnectionUpdate := arcproviderconnection.NewUpdateCommand(arcProviderConnectionRoot.CmdClause, data)
+	arcSessionRoot := arcsession.NewRootCommand(arcRoot.CmdClause, data)
+	arcSessionList := arcsession.NewListCommand(arcSessionRoot.CmdClause, data)
+	arcUsageMetricsRoot := arcusagemetrics.NewRootCommand(arcRoot.CmdClause, data)
+	arcUsageMetricsExport := arcusagemetrics.NewExportCommand(arcUsageMetricsRoot.CmdClause, data)
+	arcUsageMetricsList := arcusagemetrics.NewListCommand(arcUsageMetricsRoot.CmdClause, data)
 
 	// API Security commands
 	apisecurityRoot := apisecurity.NewRootCommand(app, data)
@@ -1118,6 +1148,28 @@ func Define( // nolint:revive // function-length
 	cmds = append(cmds, authCommands...)
 	cmds = append(cmds, authtokenCommands...)
 	cmds = append(cmds, []argparser.Command{
+		arcRoot,
+		arcKeyRoot,
+		arcKeyCreate,
+		arcKeyDelete,
+		arcKeyGet,
+		arcKeyList,
+		arcKeyRotate,
+		arcKeyUpdate,
+		arcProviderRoot,
+		arcProviderList,
+		arcProviderListModels,
+		arcProviderConnectionRoot,
+		arcProviderConnectionCreate,
+		arcProviderConnectionDelete,
+		arcProviderConnectionGet,
+		arcProviderConnectionList,
+		arcProviderConnectionUpdate,
+		arcSessionRoot,
+		arcSessionList,
+		arcUsageMetricsRoot,
+		arcUsageMetricsExport,
+		arcUsageMetricsList,
 		apisecurityRoot,
 		discoveredoperationsRoot,
 		discoveredoperationsList,
