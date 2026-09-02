@@ -19,6 +19,7 @@
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.27 to 0.0.28 ([#1894](https://github.com/fastly/cli/pull/1894))
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.28 to 4.1.29 ([#1894](https://github.com/fastly/cli/pull/1894))
 - build(deps): `golang.org/x/net` from 0.57.0 to 0.58.0 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/nwaples/rardecode/v2` from 2.3.0 to 2.4.1 ([#1898](https://github.com/fastly/cli/pull/1898))
 
 ## [v16.0.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-08-13)
 
