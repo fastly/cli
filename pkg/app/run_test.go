@@ -66,6 +66,7 @@ complete -F _fastly_bash_autocomplete fastly
 			Args: "--completion-bash",
 			WantOutput: `help
 auth
+ai-runtime-control
 apisecurity
 audit-log
 compute
