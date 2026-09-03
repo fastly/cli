@@ -47,7 +47,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mikelolasagasti/xz v1.0.1 // indirect
 	github.com/minio/minlz v1.2.0 // indirect
-	github.com/nwaples/rardecode/v2 v2.3.0 // indirect
+	github.com/nwaples/rardecode/v2 v2.4.1 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
