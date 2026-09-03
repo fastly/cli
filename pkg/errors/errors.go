@@ -65,13 +65,6 @@ var ErrNoWorkspaceID = RemediationError{
 	Remediation: WorkspaceIDRemediation,
 }
 
-// ErrNoARCAPIKey means no --api-key or FASTLY_ARC_API_KEY environment
-// variable found.
-var ErrNoARCAPIKey = RemediationError{
-	Inner:       fmt.Errorf("error reading provider API key: no API key found"),
-	Remediation: ARCAPIKeyRemediation,
-}
-
 // ErrMissingManifestVersion means an invalid manifest (fastly.toml) has been used.
 var ErrMissingManifestVersion = RemediationError{
 	Inner:       fmt.Errorf("no manifest_version found in the fastly.toml"),

@@ -71,24 +71,9 @@ func TestProviderConnectionCreate(t *testing.T) {
 			WantOutput: fstfmt.EncodeJSON(connection),
 		},
 		{
-			Name:      "validate missing --api-key flag and no FASTLY_ARC_API_KEY env var",
+			Name:      "validate missing --api-key flag",
 			Args:      fmt.Sprintf("--name %s --models gpt-4,gpt-4o --base-url %s", name, baseURL),
-			WantError: "error reading provider API key: no API key found",
-		},
-		{
-			Name:    "validate --api-key falls back to FASTLY_ARC_API_KEY env var",
-			Args:    fmt.Sprintf("--name %s --models gpt-4,gpt-4o --base-url %s", name, baseURL),
-			EnvVars: map[string]string{"FASTLY_ARC_API_KEY": apiKey},
-			Client: &http.Client{
-				Transport: &testutil.MockRoundTripper{
-					Response: &http.Response{
-						StatusCode: http.StatusCreated,
-						Status:     http.StatusText(http.StatusCreated),
-						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(connection))),
-					},
-				},
-			},
-			WantOutputs: []string{"ID: " + connID, "Name: " + name},
+			WantError: "error parsing arguments: required flag --api-key not provided",
 		},
 	}
 

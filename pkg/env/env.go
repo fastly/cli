@@ -24,15 +24,6 @@ const (
 	// #nosec
 	APIToken = "FASTLY_API_TOKEN"
 
-	// ARCAPIKey is the env var we look in for an AI Runtime Control (ARC)
-	// provider connection's upstream API key, if none is provided via
-	// --api-key when creating a provider connection.
-	// gosec flagged this:
-	// G101 (CWE-798): Potential hardcoded credentials
-	// Disabling as we use the value in the command help output.
-	// #nosec
-	ARCAPIKey = "FASTLY_ARC_API_KEY"
-
 	// CustomerID is the env var we look in for a Customer ID.
 	CustomerID = "FASTLY_CUSTOMER_ID"
 

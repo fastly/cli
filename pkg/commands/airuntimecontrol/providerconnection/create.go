@@ -25,7 +25,7 @@ type CreateCommand struct {
 	name    string
 	models  []string
 	baseURL string
-	apiKey  argparser.OptionalARCAPIKey
+	apiKey  string
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -41,7 +41,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 	c.CmdClause.Flag("name", "Human-readable name of the provider").Required().StringVar(&c.name)
 	c.CmdClause.Flag("models", "Comma-separated list of allowed AI model identifiers").Required().StringsVar(&c.models, kingpin.Separator(","))
 	c.CmdClause.Flag("base-url", "Base URL for the provider's API").Required().StringVar(&c.baseURL)
-	c.CmdClause.Flag("api-key", "Provider's secret key for authentication (falls back to FASTLY_ARC_API_KEY)").Action(c.apiKey.Set).StringVar(&c.apiKey.Value)
+	c.CmdClause.Flag("api-key", "Provider's secret key for authentication").Required().StringVar(&c.apiKey)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
@@ -54,9 +54,6 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	if c.Globals.Verbose() && c.JSONOutput.Enabled {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
-	if err := c.apiKey.Parse(); err != nil {
-		return err
-	}
 
 	fc, ok := c.Globals.APIClient.(*fastly.Client)
 	if !ok {
@@ -67,7 +64,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		Name:    &c.name,
 		Models:  c.models,
 		BaseURL: &c.baseURL,
-		APIKey:  &c.apiKey.Value,
+		APIKey:  &c.apiKey,
 	})
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
