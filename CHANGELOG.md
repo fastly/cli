@@ -6,13 +6,66 @@
 
 ### Bug Fixes:
 
+### Enhancements:
+
+### Dependencies:
+- build(deps): `golang.org/x/crypto` from 0.54.0 to 0.55.0 ([#1888](https://github.com/fastly/cli/pull/1888))
+- build(deps): `golang.org/x/mod` from 0.38.0 to 0.39.0 ([#1888](https://github.com/fastly/cli/pull/1888))
+- build(deps): `github.com/stretchr/testify` from 1.11.1 to 1.12.0 ([#1888](https://github.com/fastly/cli/pull/1888))
+- build(deps): `golang.org/x/text` from 0.40.0 to 0.41.0 ([#1888](https://github.com/fastly/cli/pull/1888))
+- build(deps): `github.com/fastly/go-fastly` from 17.2.0 to 17.3.0 ([#1893](https://github.com/fastly/cli/pull/1893))
+- build(deps): `golang.org/x/mod` from 0.39.0 to 0.40.0 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/stretchr/testify` from 1.12.0 to 1.12.1 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.27 to 0.0.28 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.28 to 4.1.29 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `golang.org/x/net` from 0.57.0 to 0.58.0 ([#1894](https://github.com/fastly/cli/pull/1894))
+- build(deps): `github.com/nwaples/rardecode/v2` from 2.3.0 to 2.4.1 ([#1898](https://github.com/fastly/cli/pull/1898))
+
+## [v16.0.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-08-13)
+
+### Bug Fixes:
+
+- fix(compute): Add bounds checking around starter kit selection to avoid a panic and provide a more useful error message ([#1879](https://github.com/fastly/cli/pull/1879))
+
+### Enhancements:
+
+- feat(compute/init): Offer all available starter kits for each language. ([#1846](https://github.com/fastly/cli/pull/1846))
+
+### Dependencies:
+
+- build(deps): `github.com/klauspost/compress` from 1.19.1 to 1.19.2 ([#1881](https://github.com/fastly/cli/pull/1881))
+- build(deps): `github.com/pierrec/lz4/v4` from 4.1.27 to 4.1.28 ([#1881](https://github.com/fastly/cli/pull/1881))
+
+## [v15.6.0](https://github.com/fastly/cli/releases/tag/v15.6.0) (2026-08-07)
+
+### Bug Fixes:
+
+- fix(compute): add Python starter kit to the static config ([#1877](https://github.com/fastly/cli/pull/1877))
+
+### Enhancements:
+
+- feat(audit-log): add event-mapping command group ([#1875](https://github.com/fastly/cli/pull/1875))
+- feat(compute/serve): add `--experimental-websockets-passthrough` flag and `[local_server.websockets_passthrough]` section in `fastly.toml`, allowing local WebSocket passthrough to be disabled (it remains enabled by default)
+
+### Dependencies:
+
+- build(deps): `github.com/rogpeppe/go-internal` from 1.15.0 to 1.16.0 ([#1871](https://github.com/fastly/cli/pull/1871))
+
+## [v15.5.0](https://github.com/fastly/cli/releases/tag/v15.5.0) (2026-08-04)
+
+### Bug Fixes:
+
 - fix(service-version): support autoclone when staging a service version. ([#1850](https://github.com/fastly/cli/pull/1850))
 - fix(logging): the `placement` flag for all loggging commands can now be reset back to `null` by setting it's value to `""` when it was previously set to another value ([#1855](https://github.com/fastly/cli/pull/1855))
 - fix(profile): profiles can now be created and updated with service-limited tokens, which cannot access `/current_user` ([#1856](https://github.com/fastly/cli/pull/1856))
 
 ### Enhancements:
 
+- feat(compute/init): add support for Python language ([#1811](https://github.com/fastly/cli/pull/1811))
+- feat(integrations): Add support for Notification Service Integrations ([#1868](https://github.com/fastly/cli/pull/1868))
+
 ### Dependencies:
+
 - build(deps): `golang.org/x/crypto` from 0.53.0 to 0.54.0 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/bodgit/sevenzip` from 1.6.4 to 1.6.5 ([#1847](https://github.com/fastly/cli/pull/1847))
 - build(deps): `github.com/minio/minlz` from 1.1.1 to 1.2.0 ([#1847](https://github.com/fastly/cli/pull/1847))
@@ -22,6 +75,7 @@
 - build(deps): `github.com/mattn/go-isatty` from 0.0.23 to 0.0.24 ([#1857](https://github.com/fastly/cli/pull/1857))
 - build(deps): `github.com/nwaples/rardecode/v2` from 2.2.5 to 2.3.0 ([#1857](https://github.com/fastly/cli/pull/1857))
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.24 to 0.0.27 ([#1857](https://github.com/fastly/cli/pull/1857))
+- build(deps): `github.com/fastly/go-fastly/v17` from 17.0.0 to 17.1.0 ([#1862](https://github.com/fastly/cli/pull/1862))
 
 ## [v15.4.0](https://github.com/fastly/cli/releases/tag/v15.4.0) (2026-07-08)
 

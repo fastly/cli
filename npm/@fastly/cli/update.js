@@ -3,8 +3,8 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join, parse } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import decompress from "decompress";
-import decompressTargz from "decompress-targz";
+import decompress from "@xhmikosr/decompress";
+import decompressTargz from "@xhmikosr/decompress-targz";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const input = process.argv.slice(2).at(0);

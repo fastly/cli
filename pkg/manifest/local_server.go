@@ -9,12 +9,13 @@ import (
 
 // LocalServer represents a list of mocked Viceroy resources.
 type LocalServer struct {
-	Backends       map[string]LocalBackend     `toml:"backends"`
-	ConfigStores   map[string]LocalConfigStore `toml:"config_stores,omitempty"`
-	KVStores       LocalKVStoreMap             `toml:"kv_stores,omitempty"`
-	SecretStores   LocalSecretStoreMap         `toml:"secret_stores,omitempty"`
-	Pushpin        *LocalPushpinMap            `toml:"pushpin,omitempty"`
-	ViceroyVersion string                      `toml:"viceroy_version,omitempty"`
+	Backends              map[string]LocalBackend        `toml:"backends"`
+	ConfigStores          map[string]LocalConfigStore    `toml:"config_stores,omitempty"`
+	KVStores              LocalKVStoreMap                `toml:"kv_stores,omitempty"`
+	SecretStores          LocalSecretStoreMap            `toml:"secret_stores,omitempty"`
+	Pushpin               *LocalPushpinMap               `toml:"pushpin,omitempty"`
+	WebsocketsPassthrough *LocalWebsocketsPassthroughMap `toml:"websockets_passthrough,omitempty"`
+	ViceroyVersion        string                         `toml:"viceroy_version,omitempty"`
 }
 
 // LocalBackend represents a backend to be mocked by the local testing server.
@@ -201,6 +202,12 @@ type LocalPushpinMap struct {
 	PushpinPath        *string `toml:"pushpin_path,omitempty"`
 	PushpinProxyPort   *uint16 `toml:"proxy_port,omitempty"`
 	PushpinPublishPort *uint16 `toml:"publish_port,omitempty"`
+}
+
+// LocalWebsocketsPassthroughMap represents configuration of local WebSocket
+// passthrough support, used for local testing of handoff_websocket.
+type LocalWebsocketsPassthroughMap struct {
+	EnableWebsocketsPassthrough *bool `toml:"enable,omitempty"`
 }
 
 func decodeTOMLMap(m map[string]any, out any) error {

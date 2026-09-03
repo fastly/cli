@@ -901,6 +901,171 @@ func TestBuildCPP(t *testing.T) {
 	}
 }
 
+func TestBuildPython(t *testing.T) {
+	if os.Getenv("TEST_COMPUTE_BUILD_PYTHON") == "" && os.Getenv("TEST_COMPUTE_BUILD") == "" {
+		t.Log("skipping test")
+		t.Skip("Set TEST_COMPUTE_BUILD to run this test")
+	}
+
+	args := testutil.SplitArgs
+
+	scenarios := []struct {
+		name                 string
+		args                 []string
+		applicationConfig    *config.File
+		fastlyManifest       string
+		wantError            string
+		wantRemediationError string
+		wantOutput           []string
+	}{
+		{
+			name:                 "no fastly.toml manifest",
+			args:                 args("compute build"),
+			wantError:            "error reading fastly.toml: file not found",
+			wantRemediationError: "Run `fastly compute init` to ensure a correctly configured manifest.",
+		},
+		// The following test validates that the project compiles successfully even
+		// though the fastly.toml manifest has no build script. There should be a
+		// default build script inserted.
+		//
+		// NOTE: This test passes --verbose so we can validate specific outputs.
+		{
+			name: "build script inserted dynamically when missing",
+			args: args("compute build --verbose"),
+			applicationConfig: &config.File{
+				Language: config.Language{
+					Python: config.Python{
+						ToolchainConstraint: ">= 3.11",
+						UVConstraint:        ">= 0.5.0",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "python"`,
+			wantOutput: []string{
+				"No custom build script found in fastly.toml [scripts.build].", // requires --verbose
+				"Using default build command: uv run fastly-compute-py build",
+				"Built package",
+			},
+		},
+		{
+			name: "build error",
+			args: args("compute build"),
+			applicationConfig: &config.File{
+				Language: config.Language{
+					Python: config.Python{
+						ToolchainConstraint: ">= 3.11",
+						UVConstraint:        ">= 0.5.0",
+					},
+				},
+			},
+			fastlyManifest: `
+			manifest_version = 2
+			name = "test"
+			language = "python"
+
+			[scripts]
+			build = "exit 1"`,
+			wantRemediationError: compute.DefaultBuildErrorRemediation,
+		},
+		// NOTE: This test passes --verbose so we can validate specific outputs.
+		{
+			name: "successful build",
+			args: args("compute build --verbose"),
+			applicationConfig: &config.File{
+				Language: config.Language{
+					Python: config.Python{
+						ToolchainConstraint: ">= 3.11",
+						UVConstraint:        ">= 0.5.0",
+					},
+				},
+			},
+			fastlyManifest: fmt.Sprintf(`
+			manifest_version = 2
+			name = "test"
+			language = "python"
+
+			[scripts]
+			build = "%s"`, compute.PythonDefaultBuildCommand),
+			wantOutput: []string{
+				"Creating ./bin directory (for Wasm binary)",
+				"Built package",
+			},
+		},
+	}
+	for testcaseIdx := range scenarios {
+		testcase := &scenarios[testcaseIdx]
+		t.Run(testcase.name, func(t *testing.T) {
+			pwd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			wasmtoolsBinName := "wasm-tools"
+			latestDownloaded := wasmtoolsBinName + "-latest-downloaded"
+
+			// Create test environment
+			rootdir := testutil.NewEnv(testutil.EnvOpts{
+				T: t,
+				Copy: []testutil.FileIO{
+					{Src: filepath.Join("testdata", "build", "python", "main.py"), Dst: "main.py"},
+					{Src: filepath.Join("testdata", "build", "python", "pyproject.toml"), Dst: "pyproject.toml"},
+					{Src: filepath.Join("testdata", "build", "python", "uv.lock"), Dst: "uv.lock"},
+				},
+				Write: []testutil.FileIO{
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 1.0.4`, Dst: wasmtoolsBinName, Executable: true},
+					{Src: `#!/usr/bin/env bash
+            echo wasm-tools 2.0.0`, Dst: latestDownloaded, Executable: true},
+					{Src: testcase.fastlyManifest, Dst: manifest.Filename},
+				},
+			})
+			defer os.RemoveAll(rootdir)
+			wasmtoolsBinPath := filepath.Join(rootdir, wasmtoolsBinName)
+
+			// Before running the test, chdir into the build environment.
+			if err := os.Chdir(rootdir); err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				_ = os.Chdir(pwd)
+			}()
+
+			var stdout threadsafe.Buffer
+			app.Init = func(_ []string, _ io.Reader) (*global.Data, error) {
+				opts := testutil.MockGlobalData(testcase.args, &stdout)
+				if testcase.applicationConfig != nil {
+					opts.Config = *testcase.applicationConfig
+				}
+				opts.Versioners = global.Versioners{
+					WasmTools: mock.AssetVersioner{
+						AssetVersion:    "1.2.3",
+						BinaryFilename:  wasmtoolsBinName,
+						DownloadOK:      true,
+						DownloadedFile:  latestDownloaded,
+						InstallFilePath: wasmtoolsBinPath,
+					},
+				}
+				return opts, nil
+			}
+			err = app.Run(testcase.args, nil)
+
+			t.Log(stdout.String())
+
+			testutil.AssertRemediationErrorContains(t, err, testcase.wantRemediationError)
+
+			if testcase.wantError != "" {
+				testutil.AssertErrorContains(t, err, testcase.wantError)
+			}
+			for _, s := range testcase.wantOutput {
+				testutil.AssertStringContains(t, stdout.String(), s)
+			}
+		})
+	}
+}
+
 // NOTE: TestBuildOther also validates the post_build settings.
 func TestBuildOther(t *testing.T) {
 	args := testutil.SplitArgs

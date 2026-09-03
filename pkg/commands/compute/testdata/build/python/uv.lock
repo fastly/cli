@@ -1,0 +1,27 @@
+version = 1
+revision = 3
+requires-python = ">=3.12"
+
+[[package]]
+name = "fastly-compute"
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7f/42/a8888d6d2b29cd97efe921a07b4c73f101692bcb5f881caa216717c0328a/fastly_compute-0.1.2.tar.gz", hash = "sha256:0e0bc8dc04a74ff194332d11700776b2d9dfad2ec037871e899654c69d52d019", size = 114101, upload-time = "2026-06-03T20:23:12.934Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2f/07/2cc9d207d4a77c6fdccaa6db66a24a71d6fb5450c253a890c46cc45efcf0/fastly_compute-0.1.2-cp312-abi3-macosx_10_15_x86_64.whl", hash = "sha256:2a90f472d18f73bb20e548716f8d07dcee1b88bb9359b1a810d00aece687c71e", size = 17910850, upload-time = "2026-06-03T20:23:01.029Z" },
+    { url = "https://files.pythonhosted.org/packages/7f/1c/d90fd8095f145475d17b2173a2efae8edfb11dfc0cec26ccbe89999099e9/fastly_compute-0.1.2-cp312-abi3-macosx_11_0_arm64.whl", hash = "sha256:260b89ddbae751acb9a235d6c62cafdd61c03a482a1312b21e44c7c746631cb4", size = 17029539, upload-time = "2026-06-03T20:23:03.354Z" },
+    { url = "https://files.pythonhosted.org/packages/62/40/cc864be3c5c87c0fceeaf2c13943bc9b806e5a7dcaf14f4eb7e75b453fc7/fastly_compute-0.1.2-cp312-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:526b81667ef4daa2ab63fd6852e208b8228074a938eb34b2466492788e572359", size = 18258100, upload-time = "2026-06-03T20:23:05.726Z" },
+    { url = "https://files.pythonhosted.org/packages/67/5c/d181e4aae7c77b6497df736d161c5759b29b2c5264fed27438663249d1de/fastly_compute-0.1.2-cp312-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:54d961dcec75c7d5b3617cf76b82d9a1b7658695c390edb76870a6cb5c738539", size = 18709208, upload-time = "2026-06-03T20:23:08.207Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/77/0b75c814fec3b32d022497283af909709e3477fdcc257e2d9784d0bf4de1/fastly_compute-0.1.2-cp312-abi3-win_amd64.whl", hash = "sha256:5e0cb6ecdb2b84b0936946e232a131851134ba7892e6ba796a296ec0d2aafff6", size = 16308551, upload-time = "2026-06-03T20:23:10.59Z" },
+]
+
+[[package]]
+name = "python-test"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "fastly-compute" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "fastly-compute", specifier = "==0.1.2" }]

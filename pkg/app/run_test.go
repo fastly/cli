@@ -68,6 +68,7 @@ complete -F _fastly_bash_autocomplete fastly
 auth
 ai-runtime-control
 apisecurity
+audit-log
 compute
 config
 config-store
@@ -76,6 +77,7 @@ dashboard
 dns
 domain
 install
+integration
 ip-list
 kv-store
 kv-store-entry

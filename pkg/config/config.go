@@ -104,9 +104,10 @@ type Versioner struct {
 
 // Language represents Compute language specific configuration.
 type Language struct {
-	CPP  CPP  `toml:"cpp"`
-	Go   Go   `toml:"go"`
-	Rust Rust `toml:"rust"`
+	CPP    CPP    `toml:"cpp"`
+	Go     Go     `toml:"go"`
+	Python Python `toml:"python"`
+	Rust   Rust   `toml:"rust"`
 }
 
 // Go represents Go Compute language specific configuration.
@@ -148,6 +149,15 @@ type CPP struct {
 	WasmWasiTarget string `toml:"wasm_wasi_target"`
 }
 
+// Python represents Python Compute language specific configuration.
+type Python struct {
+	// ToolchainConstraint is the Python version that we support (host Python).
+	ToolchainConstraint string `toml:"toolchain_constraint"`
+
+	// UVConstraint is the UV package manager version (optional, for warnings).
+	UVConstraint string `toml:"uv_constraint"`
+}
+
 // Profiles represents multiple profile accounts.
 type Profiles map[string]*Profile
 
@@ -177,23 +187,6 @@ type Profile struct {
 	Token string `toml:"token" json:"token"`
 }
 
-// StarterKitLanguages represents language specific starter kits.
-type StarterKitLanguages struct {
-	CPP        []StarterKit `toml:"cpp"`
-	Go         []StarterKit `toml:"go"`
-	JavaScript []StarterKit `toml:"javascript"`
-	Rust       []StarterKit `toml:"rust"`
-}
-
-// StarterKit represents starter kit specific configuration.
-type StarterKit struct {
-	Name        string `toml:"name"`
-	Description string `toml:"description"`
-	Path        string `toml:"path"`
-	Tag         string `toml:"tag"`
-	Branch      string `toml:"branch"`
-}
-
 // ensureConfigDirExists creates the application configuration directory if it
 // doesn't already exist.
 func ensureConfigDirExists(path string) error {
@@ -215,8 +208,6 @@ type File struct {
 	Language Language `toml:"language"`
 	// Profiles represents legacy profile accounts (migrated to [auth]).
 	Profiles Profiles `toml:"profile,omitempty"`
-	// StarterKitLanguages represents language specific starter kits.
-	StarterKits StarterKitLanguages `toml:"starter-kits"`
 	// Viceroy represents viceroy specific configuration.
 	Viceroy Versioner `toml:"viceroy"`
 	// WasmMetadata represents what metadata will be collected.
