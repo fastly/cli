@@ -1,0 +1,11 @@
+[project]
+name = "python-test"
+version = "0.1.0"
+description = "Fastly Compute Python Test"
+requires-python = ">=3.12"
+dependencies = [
+    "fastly-compute==0.1.2",
+]
+
+[tool.fastly-compute]
+entry = "main"
