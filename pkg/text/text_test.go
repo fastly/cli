@@ -332,3 +332,58 @@ func TestDeprecated(t *testing.T) {
 		t.Errorf("Deprecated output mismatch:\ngot:  %q\nwant: %q", output, want)
 	}
 }
+
+func TestWrapIndentBoundaryConditions(t *testing.T) {
+	tests := []struct {
+		name   string
+		s      string
+		limit  uint
+		indent uint
+		want   string
+	}{
+		{
+			name:   "limit > indent",
+			s:      "hello world",
+			limit:  15,
+			indent: 4,
+			want:   "    hello world",
+		},
+		{
+			name:   "limit < indent wraps words with fallback limit",
+			s:      "hello world",
+			limit:  10,
+			indent: 20,
+			want:   "                    hello\n                    world",
+		},
+		{
+			name:   "limit == indent",
+			s:      "hello world",
+			limit:  10,
+			indent: 10,
+			want:   "          hello\n          world",
+		},
+		{
+			name:   "limit == 0",
+			s:      "hello world",
+			limit:  0,
+			indent: 2,
+			want:   "  hello\n  world",
+		},
+		{
+			name:   "indent == 0",
+			s:      "hello world",
+			limit:  20,
+			indent: 0,
+			want:   "hello world",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := text.WrapIndent(tt.s, tt.limit, tt.indent)
+			if got != tt.want {
+				t.Errorf("WrapIndent(%q, %d, %d)\ngot:  %q\nwant: %q", tt.s, tt.limit, tt.indent, got, tt.want)
+			}
+		})
+	}
+}
