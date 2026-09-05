@@ -332,3 +332,11 @@ func TestDeprecated(t *testing.T) {
 		t.Errorf("Deprecated output mismatch:\ngot:  %q\nwant: %q", output, want)
 	}
 }
+
+func TestWrapIndentUnderflow(t *testing.T) {
+	got := text.WrapIndent("hello world", 10, 20)
+	want := "                    hello world"
+	if got != want {
+		t.Errorf("WrapIndent underflow mismatch:\ngot:  %q\nwant: %q", got, want)
+	}
+}

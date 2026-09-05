@@ -55,7 +55,11 @@ func Wrap(text string, width uint) string {
 // WrapIndent a string at word boundaries with a maximum line length of width
 // and indenting the lines by a specified number of spaces.
 func WrapIndent(s string, limit uint, indent uint) string {
-	limit -= indent
+	if limit > indent {
+		limit -= indent
+	} else {
+		limit = 1
+	}
 	wrapped := wordwrap.WrapString(s, limit)
 	var result []string
 	for _, line := range strings.Split(wrapped, "\n") {
