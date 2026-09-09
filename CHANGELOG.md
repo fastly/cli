@@ -11,7 +11,6 @@
 - feat(ai-runtime-control): add support for AI Runtime Control ([#1901](https://github.com/fastly/cli/pull/1901))
 
 ### Dependencies:
-
 - build(deps): `golang.org/x/crypto` from 0.54.0 to 0.55.0 ([#1888](https://github.com/fastly/cli/pull/1888))
 - build(deps): `golang.org/x/mod` from 0.38.0 to 0.39.0 ([#1888](https://github.com/fastly/cli/pull/1888))
 - build(deps): `github.com/stretchr/testify` from 1.11.1 to 1.12.0 ([#1888](https://github.com/fastly/cli/pull/1888))
@@ -23,6 +22,15 @@
 - build(deps): `github.com/pierrec/lz4/v4` from 4.1.28 to 4.1.29 ([#1894](https://github.com/fastly/cli/pull/1894))
 - build(deps): `golang.org/x/net` from 0.57.0 to 0.58.0 ([#1894](https://github.com/fastly/cli/pull/1894))
 - build(deps): `github.com/nwaples/rardecode/v2` from 2.3.0 to 2.4.1 ([#1898](https://github.com/fastly/cli/pull/1898))
+- build(deps): `github.com/fastly/go-fastly` from 17.3.0 to 17.3.1 ([#1902](https://github.com/fastly/cli/pull/1902))
+- build(deps): `golang.org/x/sys` from 0.47.0 to 0.48.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `golang.org/x/mod` from 0.40.0 to 0.41.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/andybalholm/brotli` from 1.2.2 to 1.2.3 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.20.0 to 3.21.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/klauspost/compress` from 1.19.2 to 1.20.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.28 to 0.0.29 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `golang.org/x/oauth2` from 0.36.0 to 0.37.0 ([#1904](https://github.com/fastly/cli/pull/1904))
+- build(deps): `golang.org/x/sync` from 0.22.0 to 0.23.0 ([#1904](https://github.com/fastly/cli/pull/1904))
 - build(deps): `github.com/fastly/go-fastly` from 17.3.0 to 17.3.1 ([#1902](https://github.com/fastly/cli/pull/1902))
 
 ## [v16.0.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-08-13)
