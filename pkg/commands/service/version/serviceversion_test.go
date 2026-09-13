@@ -574,6 +574,16 @@ func TestVersionValidate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --version not provided",
 		},
 		{
+			Name:    "validate successful - FASTLY_SERVICE_ID env var fallback",
+			Args:    "--version 1",
+			EnvVars: map[string]string{"FASTLY_SERVICE_ID": "123"},
+			API: &mock.API{
+				GetVersionFn:      testutil.GetVersion,
+				ValidateVersionFn: validateVersionValid("All checks passed"),
+			},
+			WantOutput: "Service 123 version 1 is valid: All checks passed",
+		},
+		{
 			Name: "validate successful - valid version without message",
 			Args: "--service-id 123 --version 1",
 			API: &mock.API{
