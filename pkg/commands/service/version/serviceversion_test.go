@@ -566,7 +566,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",
-			WantError: "error parsing arguments: required flag --service-id not provided",
+			WantError: "error reading service: no service ID found",
 		},
 		{
 			Name:      "validate missing --version flag",
