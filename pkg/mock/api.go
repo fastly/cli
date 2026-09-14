@@ -241,6 +241,8 @@ type API struct {
 
 	CreateManagedLoggingFn     func(context.Context, *fastly.CreateManagedLoggingInput) (*fastly.ManagedLogging, error)
 	GetLoggingEndpointErrorsFn func(context.Context, *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error)
+	GetLogRecordsFn            func(context.Context, *fastly.GetLogRecordsInput) (*fastly.LogRecordsResponse, error)
+	GetLogInsightsFn           func(context.Context, *fastly.GetLogInsightsInput) (*fastly.LogInsightsResponse, error)
 
 	GetGeneratedVCLFn func(context.Context, *fastly.GetGeneratedVCLInput) (*fastly.VCL, error)
 
@@ -1387,6 +1389,16 @@ func (m API) CreateManagedLogging(ctx context.Context, i *fastly.CreateManagedLo
 // GetLoggingEndpointErrors implements Interface.
 func (m API) GetLoggingEndpointErrors(ctx context.Context, i *fastly.LoggingEndpointErrorsInput) (*fastly.LoggingEndpointErrorsResponse, error) {
 	return m.GetLoggingEndpointErrorsFn(ctx, i)
+}
+
+// GetLogRecords implements Interface.
+func (m API) GetLogRecords(ctx context.Context, i *fastly.GetLogRecordsInput) (*fastly.LogRecordsResponse, error) {
+	return m.GetLogRecordsFn(ctx, i)
+}
+
+// GetLogInsights implements Interface.
+func (m API) GetLogInsights(ctx context.Context, i *fastly.GetLogInsightsInput) (*fastly.LogInsightsResponse, error) {
+	return m.GetLogInsightsFn(ctx, i)
 }
 
 // GetGeneratedVCL implements Interface.
