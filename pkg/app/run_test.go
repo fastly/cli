@@ -85,6 +85,7 @@ log-tail
 ngwaf
 object-storage
 pops
+product
 products
 secret-store
 secret-store-entry
