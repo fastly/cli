@@ -8,6 +8,12 @@
 
 ### Enhancements:
 
+### Dependencies:
+
+## [v16.1.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-09-14)
+
+### Enhancements:
+
 - feat(service/logging): add Log Explorer and Insights commands ([#1887](https://github.com/fastly/cli/pull/1887))
 - feat(ai-runtime-control): add support for AI Runtime Control ([#1901](https://github.com/fastly/cli/pull/1901))
 
