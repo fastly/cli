@@ -566,6 +566,7 @@ func TestVersionValidate(t *testing.T) {
 		{
 			Name:      "validate missing --service-id flag",
 			Args:      "--version 1",
+			EnvVars:   map[string]string{"FASTLY_SERVICE_ID": ""},
 			WantError: "error reading service: no service ID found",
 		},
 		{
