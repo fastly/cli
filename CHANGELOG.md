@@ -10,7 +10,7 @@
 
 ### Dependencies:
 
-## [v16.1.0](https://github.com/fastly/cli/releases/tag/v16.0.0) (2026-09-14)
+## [v16.1.0](https://github.com/fastly/cli/releases/tag/v16.1.0) (2026-09-14)
 
 ### Enhancements:
 
