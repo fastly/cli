@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(json): `secret-store list --json` emits `[]` rather than `null` on an account with no secret stores
+
 ### Enhancements:
 
 - feat(service/logging): add Log Explorer and Insights commands ([#1887](https://github.com/fastly/cli/pull/1887))
