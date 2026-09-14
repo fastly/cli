@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
+
 ### Enhancements:
 
 - feat(service/logging): add Log Explorer and Insights commands ([#1887](https://github.com/fastly/cli/pull/1887))
