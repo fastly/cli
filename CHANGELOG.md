@@ -6,6 +6,8 @@
 
 ### Bug Fixes:
 
+- fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
+
 ### Enhancements:
 
 ### Dependencies:

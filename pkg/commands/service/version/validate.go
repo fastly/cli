@@ -18,6 +18,7 @@ type ValidateCommand struct {
 	argparser.JSONOutput
 
 	input          fastly.ValidateVersionInput
+	serviceName    argparser.OptionalServiceNameID
 	serviceVersion argparser.OptionalServiceVersion
 }
 
@@ -35,7 +36,12 @@ func NewValidateCommand(parent argparser.Registerer, g *global.Data) *ValidateCo
 		Description: argparser.FlagServiceIDDesc,
 		Dst:         &g.Manifest.Flag.ServiceID,
 		Short:       's',
-		Required:    true,
+	})
+	c.RegisterFlag(argparser.StringFlagOpts{
+		Action:      c.serviceName.Set,
+		Name:        argparser.FlagServiceName,
+		Description: argparser.FlagServiceNameDesc,
+		Dst:         &c.serviceName.Value,
 	})
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagVersionName,
@@ -56,6 +62,7 @@ func (c *ValidateCommand) Exec(_ io.Reader, out io.Writer) error {
 		APIClient:          c.Globals.APIClient,
 		Manifest:           *c.Globals.Manifest,
 		Out:                out,
+		ServiceNameFlag:    c.serviceName,
 		ServiceVersionFlag: c.serviceVersion,
 		VerboseMode:        c.Globals.Flags.Verbose,
 	})
