@@ -3,7 +3,6 @@ package compute
 import (
 	"bytes"
 	"crypto/sha512"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -110,16 +109,14 @@ func (c *HashFilesCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			err = c.Globals.Manifest.File.ReadError()
 		}
 		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				err = fsterr.ErrReadingManifest
-			}
+			err = packageFlagManifestError(err)
 			c.Globals.ErrLog.Add(err)
 			return err
 		}
 
 		projectName, source := c.Globals.Manifest.Name()
 		if source == manifest.SourceUndefined {
-			return fsterr.ErrReadingManifest
+			return fsterr.ErrMissingManifestName
 		}
 		pkgPath = filepath.Join(projectDir, "pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
 	} else {

@@ -97,6 +97,12 @@ var ErrReadingManifest = RemediationError{
 	Remediation: "Ensure the Fastly CLI is being run within a directory containing a fastly.toml file. " + ComputeInitRemediation,
 }
 
+// ErrMissingManifestName means the fastly.toml was read but has no `name`.
+var ErrMissingManifestName = RemediationError{
+	Inner:       fmt.Errorf("no name found in the fastly.toml"),
+	Remediation: "Add a `name` field to the fastly.toml and refer to https://www.fastly.com/documentation/reference/compute/fastly-toml for the manifest structure",
+}
+
 // ErrParsingManifest means there was a problem unmarshalling the fastly.toml.
 var ErrParsingManifest = RemediationError{
 	Inner:       fmt.Errorf("error parsing fastly.toml"),
