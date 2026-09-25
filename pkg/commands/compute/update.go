@@ -81,12 +81,14 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 
 	packagePath := c.path
 	if packagePath == "" {
+		if err := c.Globals.Manifest.File.ReadError(); err != nil {
+			err = packageFlagManifestError(err)
+			c.Globals.ErrLog.Add(err)
+			return err
+		}
 		projectName, source := c.Globals.Manifest.Name()
 		if source == manifest.SourceUndefined {
-			return fsterr.RemediationError{
-				Inner:       fmt.Errorf("failed to read project name: %w", fsterr.ErrReadingManifest),
-				Remediation: "Run `fastly compute build` to produce a Compute package, alternatively use the --package flag to reference a package outside of the current project.",
-			}
+			return fsterr.ErrMissingManifestName
 		}
 		packagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
 	}

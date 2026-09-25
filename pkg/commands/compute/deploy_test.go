@@ -107,8 +107,15 @@ func TestDeploy(t *testing.T) {
 			name:                 "no fastly.toml manifest",
 			args:                 args("compute deploy --token 123"),
 			wantError:            "error reading fastly.toml: file not found",
-			wantRemediationError: errors.ComputeInitRemediation,
+			wantRemediationError: "use the --package flag",
 			noManifest:           true,
+		},
+		{
+			name:                 "fastly.toml missing name",
+			args:                 args("compute deploy --token 123"),
+			manifest:             "manifest_version = 2\n",
+			wantError:            "no name found in the fastly.toml",
+			wantRemediationError: "Add a `name` field to the fastly.toml",
 		},
 		{
 			// If no Service ID defined via flag or manifest, then the expectation is
