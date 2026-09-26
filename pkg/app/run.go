@@ -359,6 +359,9 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// Prevent kingpin from calling os.Exit, this gives us greater control over
 	// error states and output control flow.
 	app.Terminate(nil)
+	if helpFlag := app.GetFlag("help"); helpFlag != nil {
+		helpFlag.Short('h')
+	}
 
 	// IMPORTANT: Kingpin doesn't support global flags.
 	// Any flags defined below must also be added to two other places:
