@@ -283,9 +283,9 @@ func IsHelpOnly(args []string) bool {
 	return len(args) > 0 && args[0] == "help"
 }
 
-// IsHelpFlagOnly indicates if the user called `fastly --help [...]`.
+// IsHelpFlagOnly indicates if the user called `fastly --help [...]` or `fastly -h [...]`.
 func IsHelpFlagOnly(args []string) bool {
-	return len(args) > 0 && args[0] == "--help"
+	return len(args) > 0 && (args[0] == "--help" || args[0] == "-h")
 }
 
 // IsVerboseAndQuiet indicates if the user called `fastly --verbose --quiet`.
@@ -338,6 +338,7 @@ func IsGlobalFlagsOnly(args []string) bool {
 		"--debug-mode":      0,
 		"--enable-sso":      0,
 		"--help":            0,
+		"-h":                0,
 		"--non-interactive": 0,
 		"-i":                0,
 		"--profile":         1,
