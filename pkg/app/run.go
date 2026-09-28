@@ -359,6 +359,11 @@ func configureKingpin(data *global.Data) *kingpin.Application {
 	// Prevent kingpin from calling os.Exit, this gives us greater control over
 	// error states and output control flow.
 	app.Terminate(nil)
+	// The `help` flag is not one we registered ourselves: kingpin defines it
+	// internally when the application is created. We look it up by name to
+	// attach the `-h` shorthand, and only guard with a nil check because if a
+	// future kingpin version renamed or removed its built-in help flag we
+	// would panic here at startup instead of failing gracefully.
 	if helpFlag := app.GetFlag("help"); helpFlag != nil {
 		helpFlag.Short('h')
 	}
