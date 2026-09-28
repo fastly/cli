@@ -7,6 +7,7 @@
 ### Bug Fixes:
 
 - fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
+- fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found".
 
 ### Enhancements:
 

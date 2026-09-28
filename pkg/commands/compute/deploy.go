@@ -153,9 +153,7 @@ func (c *DeployCommand) Exec(in io.Reader, out io.Writer) (err error) {
 			// If the user hasn't specified a package to deploy, then we'll just check
 			// the read error and return it.
 			if c.PackagePath == "" {
-				if errors.Is(err, os.ErrNotExist) {
-					err = fsterr.ErrReadingManifest
-				}
+				err = packageFlagManifestError(err)
 				c.Globals.ErrLog.Add(err)
 				return err
 			}
@@ -381,7 +379,7 @@ func (c *DeployCommand) Setup(out io.Writer) (serviceID string, err error) {
 	if c.PackagePath == "" {
 		projectName, source := c.Globals.Manifest.Name()
 		if source == manifest.SourceUndefined {
-			return serviceID, fsterr.ErrReadingManifest
+			return serviceID, fsterr.ErrMissingManifestName
 		}
 		c.PackagePath = filepath.Join("pkg", fmt.Sprintf("%s.tar.gz", sanitize.BaseName(projectName)))
 	}
