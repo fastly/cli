@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly"
 	"github.com/fastly/go-fastly/v17/fastly/domainmanagement/v1/tools/suggest"
 
 	"github.com/fastly/cli/pkg/commands/tools"
@@ -41,7 +40,7 @@ func TestNewDomainsV1ToolsSuggestCommand(t *testing.T) {
 				Domain:    "fastlytest.in",
 				Subdomain: "fastlytest.",
 				Zone:      "in",
-				Path:      fastly.ToPointer("/g"),
+				Path:      new("/g"),
 			},
 		},
 	}

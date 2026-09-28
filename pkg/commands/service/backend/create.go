@@ -164,7 +164,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.Address = &c.address.Value
 	}
 	if c.autoLoadBalance.WasSet {
-		input.AutoLoadbalance = fastly.ToPointer(fastly.Compatibool(c.autoLoadBalance.Value))
+		input.AutoLoadbalance = new(fastly.Compatibool(c.autoLoadBalance.Value))
 	}
 	if c.betweenBytesTimeout.WasSet {
 		input.BetweenBytesTimeout = &c.betweenBytesTimeout.Value
@@ -197,7 +197,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		input.MinTLSVersion = &c.minTLSVersion.Value
 	}
 	if c.noSSLCheckCert.WasSet {
-		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(false))
+		input.SSLCheckCert = new(fastly.Compatibool(false))
 	}
 	if c.overrideHost.WasSet {
 		input.OverrideHost = &c.overrideHost.Value
@@ -209,7 +209,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 
-		input.PreferIPv6 = fastly.ToPointer(fastly.Compatibool(*preferIPv6))
+		input.PreferIPv6 = new(fastly.Compatibool(*preferIPv6))
 	}
 	if c.requestCondition.WasSet {
 		input.RequestCondition = &c.requestCondition.Value
@@ -225,7 +225,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 	if c.sslCheckCert.WasSet {
 		text.Deprecated("The Fastly API defaults `ssl_check_cert` to true. Use `--no-ssl-check-cert` to disable this setting.\n\n")
-		input.SSLCheckCert = fastly.ToPointer(fastly.Compatibool(c.sslCheckCert.Value))
+		input.SSLCheckCert = new(fastly.Compatibool(c.sslCheckCert.Value))
 	}
 	if c.sslCiphers.WasSet {
 		input.SSLCiphers = &c.sslCiphers.Value
@@ -271,7 +271,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		if c.Globals.Flags.Verbose {
 			text.Warning(out, "Use-ssl was set but no port was specified, using default port 443\n\n")
 		}
-		input.Port = fastly.ToPointer(443)
+		input.Port = new(443)
 	}
 
 	if input.Address != nil && !c.overrideHost.WasSet && !c.sslCertHostname.WasSet && !c.sslSNIHostname.WasSet {

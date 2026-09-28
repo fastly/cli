@@ -167,22 +167,22 @@ func getLogInsightsOK(_ context.Context, input *fastly.GetLogInsightsInput) (*fa
 		Data: []*fastly.LogInsightsData{
 			{
 				Dimensions: &fastly.LogInsightsDimensions{
-					URL: fastly.ToPointer("GET /health"),
+					URL: new("GET /health"),
 				},
 				Values: []*fastly.LogInsightsValue{
 					{
-						RequestPercentage: fastly.ToPointer(0.5161290322580645),
+						RequestPercentage: new(0.5161290322580645),
 					},
 				},
 			},
 		},
 		Meta: &fastly.LogInsightsMeta{
 			Filters: &fastly.LogInsightsFilters{
-				ServiceID:        fastly.ToPointer(testServiceID),
-				Start:            fastly.ToPointer(testStart),
-				End:              fastly.ToPointer(testEnd),
-				DomainExactMatch: fastly.ToPointer(true),
-				Limit:            fastly.ToPointer(10),
+				ServiceID:        new(testServiceID),
+				Start:            new(testStart),
+				End:              new(testEnd),
+				DomainExactMatch: new(true),
+				Limit:            new(10),
 			},
 		},
 	}, nil
@@ -197,11 +197,11 @@ func getLogInsightsStatusCode(_ context.Context, input *fastly.GetLogInsightsInp
 		Data: []*fastly.LogInsightsData{
 			{
 				Dimensions: &fastly.LogInsightsDimensions{
-					StatusCode: fastly.ToPointer("200"),
+					StatusCode: new("200"),
 				},
 				Values: []*fastly.LogInsightsValue{
 					{
-						Rate: fastly.ToPointer(1.0),
+						Rate: new(1.0),
 					},
 				},
 			},
@@ -227,13 +227,13 @@ func getLogInsightsWithOptions(_ context.Context, input *fastly.GetLogInsightsIn
 		Data: []*fastly.LogInsightsData{},
 		Meta: &fastly.LogInsightsMeta{
 			Filters: &fastly.LogInsightsFilters{
-				Domain:           fastly.ToPointer("example.com"),
-				DomainExactMatch: fastly.ToPointer(true),
-				End:              fastly.ToPointer(testEnd),
-				Limit:            fastly.ToPointer(5),
+				Domain:           new("example.com"),
+				DomainExactMatch: new(true),
+				End:              new(testEnd),
+				Limit:            new(5),
 				POPs:             []string{"IAD", "DFW"},
-				ServiceID:        fastly.ToPointer(testServiceID),
-				Start:            fastly.ToPointer(testStart),
+				ServiceID:        new(testServiceID),
+				Start:            new(testStart),
 			},
 		},
 	}, nil

@@ -163,7 +163,7 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 
 	if c.Format.WasSet {
-		input.Format = fastly.ToPointer(argparser.Content(c.Format.Value))
+		input.Format = new(argparser.Content(c.Format.Value))
 	}
 
 	if c.FormatVersion.WasSet {
@@ -209,16 +209,16 @@ func (c *UpdateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	if c.Redundancy.WasSet {
 		redundancy, err := ValidateRedundancy(c.Redundancy.Value)
 		if err == nil {
-			input.Redundancy = fastly.ToPointer(redundancy)
+			input.Redundancy = new(redundancy)
 		}
 	}
 
 	if c.ServerSideEncryption.WasSet {
 		switch c.ServerSideEncryption.Value {
 		case string(fastly.S3ServerSideEncryptionAES):
-			input.ServerSideEncryption = fastly.ToPointer(fastly.S3ServerSideEncryptionAES)
+			input.ServerSideEncryption = new(fastly.S3ServerSideEncryptionAES)
 		case string(fastly.S3ServerSideEncryptionKMS):
-			input.ServerSideEncryption = fastly.ToPointer(fastly.S3ServerSideEncryptionKMS)
+			input.ServerSideEncryption = new(fastly.S3ServerSideEncryptionKMS)
 		}
 	}
 

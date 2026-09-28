@@ -391,9 +391,9 @@ func (j *JSONOutput) WriteJSON(out io.Writer, value any) (bool, error) {
 func ConvertBoolFromStringFlag(value string, argName string) (*bool, error) {
 	switch value {
 	case "true":
-		return fastly.ToPointer(true), nil
+		return new(true), nil
 	case "false":
-		return fastly.ToPointer(false), nil
+		return new(false), nil
 	default:
 		return nil, fmt.Errorf("'%s' flag must be one of the following [true, false]", argName)
 	}

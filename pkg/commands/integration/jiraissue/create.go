@@ -69,7 +69,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.CreateIntegrationInput{
 		Name:   &c.IntegrationName,
-		Type:   fastly.ToPointer(fastly.IntegrationTypeJiraIssue),
+		Type:   new(fastly.IntegrationTypeJiraIssue),
 		Config: config.ToMap(),
 	}
 	if c.Description.WasSet {

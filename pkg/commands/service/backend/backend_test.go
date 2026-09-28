@@ -421,8 +421,8 @@ func TestBackendUpdate(t *testing.T) {
 						return nil, fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
 					}
 					return &fastly.Backend{
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
 						Name:           i.NewName,
 						Comment:        i.Comment,
 					}, nil
@@ -443,8 +443,8 @@ func TestBackendUpdate(t *testing.T) {
 						return nil, fmt.Errorf("expected operation on cloned version 4, got %d", i.ServiceVersion)
 					}
 					return &fastly.Backend{
-						ServiceID:      fastly.ToPointer(i.ServiceID),
-						ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+						ServiceID:      new(i.ServiceID),
+						ServiceVersion: new(i.ServiceVersion),
 						Name:           i.NewName,
 						Comment:        i.Comment,
 					}, nil
@@ -553,11 +553,11 @@ var errTest = errors.New("fixture error")
 
 func createBackendOK(_ context.Context, i *fastly.CreateBackendInput) (*fastly.Backend, error) {
 	if i.Name == nil {
-		i.Name = fastly.ToPointer("")
+		i.Name = new("")
 	}
 	return &fastly.Backend{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
@@ -581,20 +581,20 @@ func createBackendWithPort(wantPort int) func(_ context.Context, _ *fastly.Creat
 func listBackendsOK(_ context.Context, i *fastly.ListBackendsInput) ([]*fastly.Backend, error) {
 	return []*fastly.Backend{
 		{
-			Address:        fastly.ToPointer("www.test.com"),
-			Comment:        fastly.ToPointer("test"),
-			Name:           fastly.ToPointer("test.com"),
-			Port:           fastly.ToPointer(80),
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Address:        new("www.test.com"),
+			Comment:        new("test"),
+			Name:           new("test.com"),
+			Port:           new(80),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
 		},
 		{
-			Address:        fastly.ToPointer("www.example.com"),
-			Comment:        fastly.ToPointer("example"),
-			Name:           fastly.ToPointer("example.com"),
-			Port:           fastly.ToPointer(443),
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+			Address:        new("www.example.com"),
+			Comment:        new("example"),
+			Name:           new("example.com"),
+			Port:           new(443),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
 		},
 	}, nil
 }
@@ -771,12 +771,12 @@ var listBackendsVerboseOutput = strings.Join([]string{
 
 func getBackendOK(_ context.Context, i *fastly.GetBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-		Name:           fastly.ToPointer("test.com"),
-		Address:        fastly.ToPointer("www.test.com"),
-		Port:           fastly.ToPointer(80),
-		Comment:        fastly.ToPointer("test"),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
+		Name:           new("test.com"),
+		Address:        new("www.test.com"),
+		Port:           new(80),
+		Comment:        new("test"),
 	}, nil
 }
 
@@ -822,8 +822,8 @@ var describeBackendOutput = strings.Join([]string{
 
 func updateBackendOK(_ context.Context, i *fastly.UpdateBackendInput) (*fastly.Backend, error) {
 	return &fastly.Backend{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.NewName,
 		Comment:        i.Comment,
 	}, nil

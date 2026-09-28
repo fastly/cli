@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v17/fastly"
 	"github.com/fastly/go-fastly/v17/fastly/dns/v1/dnszones"
 
 	dnsroot "github.com/fastly/cli/pkg/commands/dns"
@@ -24,9 +23,9 @@ const (
 )
 
 var testZone = dnszones.Zone{
-	ID:   fastly.ToPointer(zoneID),
-	Name: fastly.ToPointer(zoneName),
-	Type: fastly.ToPointer(zoneType),
+	ID:   new(zoneID),
+	Name: new(zoneName),
+	Type: new(zoneType),
 }
 
 func TestZoneCreate(t *testing.T) {
@@ -259,10 +258,10 @@ func TestZoneList(t *testing.T) {
 
 func TestZoneUpdate(t *testing.T) {
 	updated := dnszones.Zone{
-		ID:          fastly.ToPointer(zoneID),
-		Name:        fastly.ToPointer(zoneName),
-		Type:        fastly.ToPointer(zoneType),
-		Description: fastly.ToPointer("updated description"),
+		ID:          new(zoneID),
+		Name:        new(zoneName),
+		Type:        new(zoneType),
+		Description: new("updated description"),
 	}
 
 	scenarios := []testutil.CLIScenario{

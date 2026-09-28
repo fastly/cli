@@ -148,19 +148,19 @@ func TestOriginInspector(t *testing.T) {
 
 func originMetricsOKResult() (*fastly.OriginInspector, error) {
 	return &fastly.OriginInspector{
-		Status: fastly.ToPointer("success"),
+		Status: new("success"),
 		Meta: &fastly.OriginMeta{
-			Start: fastly.ToPointer("2024-01-15T10:00:00Z"),
-			End:   fastly.ToPointer("2024-01-15T11:00:00Z"),
+			Start: new("2024-01-15T10:00:00Z"),
+			End:   new("2024-01-15T11:00:00Z"),
 		},
 		Data: []*fastly.OriginData{
 			{
 				Values: []*fastly.OriginMetrics{
 					{
-						Responses: fastly.ToPointer(uint64(200)),
-						Status2xx: fastly.ToPointer(uint64(180)),
-						Status4xx: fastly.ToPointer(uint64(15)),
-						Status5xx: fastly.ToPointer(uint64(5)),
+						Responses: new(uint64(200)),
+						Status2xx: new(uint64(180)),
+						Status4xx: new(uint64(15)),
+						Status5xx: new(uint64(5)),
 					},
 				},
 			},
@@ -184,7 +184,7 @@ func getOriginMetricsJSONNonSuccess(_ context.Context, _ *fastly.GetOriginMetric
 
 func getOriginMetricsNonSuccess(_ context.Context, _ *fastly.GetOriginMetricsInput) (*fastly.OriginInspector, error) {
 	return &fastly.OriginInspector{
-		Status: fastly.ToPointer("error"),
+		Status: new("error"),
 	}, nil
 }
 

@@ -33,46 +33,46 @@ func (p *ServicesPaginator) GetNext() (ss []*fastly.Service, err error) {
 		err = Err
 	}
 	pageOne := fastly.Service{
-		ServiceID:     fastly.ToPointer("123"),
-		Name:          fastly.ToPointer("Foo"),
-		Type:          fastly.ToPointer("wasm"),
-		CustomerID:    fastly.ToPointer("mycustomerid"),
-		ActiveVersion: fastly.ToPointer(2),
+		ServiceID:     new("123"),
+		Name:          new("Foo"),
+		Type:          new("wasm"),
+		CustomerID:    new("mycustomerid"),
+		ActiveVersion: new(2),
 		UpdatedAt:     MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
 		Versions: []*fastly.Version{
 			{
-				Number:    fastly.ToPointer(1),
-				Comment:   fastly.ToPointer("a"),
-				ServiceID: fastly.ToPointer("b"),
+				Number:    new(1),
+				Comment:   new("a"),
+				ServiceID: new("b"),
 				CreatedAt: MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 				UpdatedAt: MustParseTimeRFC3339("2001-02-04T04:05:06Z"),
 				DeletedAt: MustParseTimeRFC3339("2001-02-05T04:05:06Z"),
 			},
 			{
-				Number:    fastly.ToPointer(2),
-				Comment:   fastly.ToPointer("c"),
-				ServiceID: fastly.ToPointer("d"),
-				Active:    fastly.ToPointer(true),
-				Deployed:  fastly.ToPointer(true),
+				Number:    new(2),
+				Comment:   new("c"),
+				ServiceID: new("d"),
+				Active:    new(true),
+				Deployed:  new(true),
 				CreatedAt: MustParseTimeRFC3339("2001-03-03T04:05:06Z"),
 				UpdatedAt: MustParseTimeRFC3339("2001-03-04T04:05:06Z"),
 			},
 		},
 	}
 	pageTwo := fastly.Service{
-		ServiceID:     fastly.ToPointer("456"),
-		Name:          fastly.ToPointer("Bar"),
-		Type:          fastly.ToPointer("wasm"),
-		CustomerID:    fastly.ToPointer("mycustomerid"),
-		ActiveVersion: fastly.ToPointer(1),
+		ServiceID:     new("456"),
+		Name:          new("Bar"),
+		Type:          new("wasm"),
+		CustomerID:    new("mycustomerid"),
+		ActiveVersion: new(1),
 		UpdatedAt:     MustParseTimeRFC3339("2015-03-14T12:59:59Z"),
 	}
 	pageThree := fastly.Service{
-		ServiceID:     fastly.ToPointer("789"),
-		Name:          fastly.ToPointer("Baz"),
-		Type:          fastly.ToPointer("vcl"),
-		CustomerID:    fastly.ToPointer("mycustomerid"),
-		ActiveVersion: fastly.ToPointer(1),
+		ServiceID:     new("789"),
+		Name:          new("Baz"),
+		Type:          new("vcl"),
+		CustomerID:    new("mycustomerid"),
+		ActiveVersion: new(1),
 	}
 	if p.Count == 1 {
 		ss = append(ss, &pageOne)

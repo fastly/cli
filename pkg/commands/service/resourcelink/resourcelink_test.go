@@ -47,11 +47,11 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						LinkID:         fastly.ToPointer("rand-id"),
-						Name:           fastly.ToPointer("the-name"),
-						ResourceID:     fastly.ToPointer("abc"),
-						ServiceID:      fastly.ToPointer("123"),
-						ServiceVersion: fastly.ToPointer(42),
+						LinkID:         new("rand-id"),
+						Name:           new("the-name"),
+						ResourceID:     new("abc"),
+						ServiceID:      new("123"),
+						ServiceVersion: new(42),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -76,11 +76,11 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						LinkID:         fastly.ToPointer("rand-id"),
-						Name:           fastly.ToPointer("a-name"),
-						ResourceID:     fastly.ToPointer("abc"),
-						ServiceID:      fastly.ToPointer("123"),
-						ServiceVersion: fastly.ToPointer(42),
+						LinkID:         new("rand-id"),
+						Name:           new("a-name"),
+						ResourceID:     new("abc"),
+						ServiceID:      new("123"),
+						ServiceVersion: new(42),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -96,10 +96,10 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 				GetServiceDetailsFn: testutil.GetServiceDetails,
 				ListVersionsFn: func(_ context.Context, _ *fastly.ListVersionsInput) ([]*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
-					return []*fastly.Version{{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}}, nil
+					return []*fastly.Version{{Active: new(true), Number: new(42)}}, nil
 				},
 				CloneVersionFn: func(_ context.Context, _ *fastly.CloneVersionInput) (*fastly.Version, error) {
-					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
+					return &fastly.Version{Number: new(43)}, nil
 				},
 				CreateResourceFn: func(_ context.Context, i *fastly.CreateResourceInput) (*fastly.Resource, error) {
 					if got, want := *i.ResourceID, "abc"; got != want {
@@ -113,11 +113,11 @@ func TestCreateServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Now()
 					return &fastly.Resource{
-						LinkID:         fastly.ToPointer("rand-id"),
-						Name:           fastly.ToPointer("cloned"),
-						ResourceID:     fastly.ToPointer("abc"),
-						ServiceID:      fastly.ToPointer("123"),
-						ServiceVersion: fastly.ToPointer(43), // Cloned version.
+						LinkID:         new("rand-id"),
+						Name:           new("cloned"),
+						ResourceID:     new("abc"),
+						ServiceID:      new("123"),
+						ServiceVersion: new(43), // Cloned version.
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -172,10 +172,10 @@ func TestDeleteServiceResourceCommand(t *testing.T) {
 			API: &mock.API{
 				GetVersionFn: func(_ context.Context, _ *fastly.GetVersionInput) (*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
-					return &fastly.Version{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}, nil
+					return &fastly.Version{Active: new(true), Number: new(42)}, nil
 				},
 				CloneVersionFn: func(_ context.Context, _ *fastly.CloneVersionInput) (*fastly.Version, error) {
-					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
+					return &fastly.Version{Number: new(43)}, nil
 				},
 				DeleteResourceFn: func(_ context.Context, i *fastly.DeleteResourceInput) error {
 					if got, want := i.ResourceID, "LINKID"; got != want {
@@ -230,12 +230,12 @@ func TestDescribeServiceResourceCommand(t *testing.T) {
 					}
 					now := time.Unix(1697372322, 0)
 					return &fastly.Resource{
-						LinkID:         fastly.ToPointer("LINKID"),
-						ResourceID:     fastly.ToPointer("abc"),
-						ResourceType:   fastly.ToPointer("secret-store"),
-						Name:           fastly.ToPointer("test-name"),
-						ServiceID:      fastly.ToPointer("123"),
-						ServiceVersion: fastly.ToPointer(42),
+						LinkID:         new("LINKID"),
+						ResourceID:     new("abc"),
+						ResourceType:   new("secret-store"),
+						Name:           new("test-name"),
+						ServiceID:      new("123"),
+						ServiceVersion: new(42),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -286,12 +286,12 @@ func TestListServiceResourceCommand(t *testing.T) {
 					resources := make([]*fastly.Resource, 3)
 					for i := range resources {
 						resources[i] = &fastly.Resource{
-							LinkID:         fastly.ToPointer(fmt.Sprintf("LINKID-%02d", i)),
-							ResourceID:     fastly.ToPointer("abc"),
-							ResourceType:   fastly.ToPointer("secret-store"),
-							Name:           fastly.ToPointer("test-name"),
-							ServiceID:      fastly.ToPointer("123"),
-							ServiceVersion: fastly.ToPointer(42),
+							LinkID:         new(fmt.Sprintf("LINKID-%02d", i)),
+							ResourceID:     new("abc"),
+							ResourceType:   new("secret-store"),
+							Name:           new("test-name"),
+							ServiceID:      new("123"),
+							ServiceVersion: new(42),
 							CreatedAt:      &now,
 							UpdatedAt:      &now,
 						}
@@ -377,12 +377,12 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 
 					now := time.Now()
 					return &fastly.Resource{
-						LinkID:         fastly.ToPointer("LINK-ID"),
-						ResourceID:     fastly.ToPointer("abc"),
-						ResourceType:   fastly.ToPointer("secret-store"),
-						Name:           fastly.ToPointer("new-name"),
-						ServiceID:      fastly.ToPointer("123"),
-						ServiceVersion: fastly.ToPointer(42),
+						LinkID:         new("LINK-ID"),
+						ResourceID:     new("abc"),
+						ResourceType:   new("secret-store"),
+						Name:           new("new-name"),
+						ServiceID:      new("123"),
+						ServiceVersion: new(42),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil
@@ -396,10 +396,10 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 			API: &mock.API{
 				GetVersionFn: func(_ context.Context, _ *fastly.GetVersionInput) (*fastly.Version, error) {
 					// Specified version is active, meaning a service clone will be attempted.
-					return &fastly.Version{Active: fastly.ToPointer(true), Number: fastly.ToPointer(42)}, nil
+					return &fastly.Version{Active: new(true), Number: new(42)}, nil
 				},
 				CloneVersionFn: func(_ context.Context, _ *fastly.CloneVersionInput) (*fastly.Version, error) {
-					return &fastly.Version{Number: fastly.ToPointer(43)}, nil
+					return &fastly.Version{Number: new(43)}, nil
 				},
 				UpdateResourceFn: func(_ context.Context, i *fastly.UpdateResourceInput) (*fastly.Resource, error) {
 					if got, want := i.ResourceID, "LINK-ID"; got != want {
@@ -417,12 +417,12 @@ func TestUpdateServiceResourceCommand(t *testing.T) {
 
 					now := time.Now()
 					return &fastly.Resource{
-						LinkID:         fastly.ToPointer("LINK-ID"),
-						ResourceID:     fastly.ToPointer("abc"),
-						ResourceType:   fastly.ToPointer("secret-store"),
-						Name:           fastly.ToPointer("new-name"),
-						ServiceID:      fastly.ToPointer("123"),
-						ServiceVersion: fastly.ToPointer(43),
+						LinkID:         new("LINK-ID"),
+						ResourceID:     new("abc"),
+						ResourceType:   new("secret-store"),
+						Name:           new("new-name"),
+						ServiceID:      new("123"),
+						ServiceVersion: new(43),
 						CreatedAt:      &now,
 						UpdatedAt:      &now,
 					}, nil

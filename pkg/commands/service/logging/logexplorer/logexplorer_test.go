@@ -154,18 +154,18 @@ func getLogRecordsOK(_ context.Context, input *fastly.GetLogRecordsInput) (*fast
 		return &fastly.LogRecordsResponse{
 			Data: []*fastly.LogRecord{
 				{
-					Timestamp:      fastly.ToPointer("2026-08-13T14:30:23Z"),
-					RequestMethod:  fastly.ToPointer("GET"),
-					RequestHost:    fastly.ToPointer("example.com"),
-					RequestPath:    fastly.ToPointer("/health"),
-					ResponseStatus: fastly.ToPointer(200),
-					FastlyPOP:      fastly.ToPointer("IAD"),
-					IsCacheHit:     fastly.ToPointer(true),
-					ResponseTime:   fastly.ToPointer(0.093),
+					Timestamp:      new("2026-08-13T14:30:23Z"),
+					RequestMethod:  new("GET"),
+					RequestHost:    new("example.com"),
+					RequestPath:    new("/health"),
+					ResponseStatus: new(200),
+					FastlyPOP:      new("IAD"),
+					IsCacheHit:     new(true),
+					ResponseTime:   new(0.093),
 				},
 			},
 			Meta: &fastly.LogExplorerMeta{
-				NextCursor: fastly.ToPointer("cursor-2"),
+				NextCursor: new("cursor-2"),
 			},
 		}, nil
 	}
@@ -177,14 +177,14 @@ func getLogRecordsOK(_ context.Context, input *fastly.GetLogRecordsInput) (*fast
 	return &fastly.LogRecordsResponse{
 		Data: []*fastly.LogRecord{
 			{
-				Timestamp:      fastly.ToPointer("2026-08-13T14:35:00Z"),
-				RequestMethod:  fastly.ToPointer("GET"),
-				RequestHost:    fastly.ToPointer("example.com"),
-				RequestPath:    fastly.ToPointer("/status"),
-				ResponseStatus: fastly.ToPointer(204),
-				FastlyPOP:      fastly.ToPointer("LHR"),
-				IsCacheHit:     fastly.ToPointer(false),
-				ResponseTime:   fastly.ToPointer(0.05),
+				Timestamp:      new("2026-08-13T14:35:00Z"),
+				RequestMethod:  new("GET"),
+				RequestHost:    new("example.com"),
+				RequestPath:    new("/status"),
+				ResponseStatus: new(204),
+				FastlyPOP:      new("LHR"),
+				IsCacheHit:     new(false),
+				ResponseTime:   new(0.05),
 			},
 		},
 	}, nil

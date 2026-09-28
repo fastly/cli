@@ -163,8 +163,8 @@ var errTest = errors.New("fixture error")
 
 func createGrafanaCloudLogsOK(_ context.Context, i *fastly.CreateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return &fastly.GrafanaCloudLogs{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 	}, nil
 }
@@ -176,34 +176,34 @@ func createGrafanaCloudLogsError(_ context.Context, _ *fastly.CreateGrafanaCloud
 func listGrafanaCloudLogsOK(_ context.Context, i *fastly.ListGrafanaCloudLogsInput) ([]*fastly.GrafanaCloudLogs, error) {
 	return []*fastly.GrafanaCloudLogs{
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("logs"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			MessageType:       fastly.ToPointer("classic"),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			User:              fastly.ToPointer("123456"),
-			Token:             fastly.ToPointer("testtoken"),
-			URL:               fastly.ToPointer("https://test123.grafana.net"),
-			Index:             fastly.ToPointer("{\"label\": \"value\"}"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("logs"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			MessageType:       new("classic"),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			User:              new("123456"),
+			Token:             new("testtoken"),
+			URL:               new("https://test123.grafana.net"),
+			Index:             new("{\"label\": \"value\"}"),
+			ProcessingRegion:  new("us"),
 		},
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("analytics"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			MessageType:       fastly.ToPointer("classic"),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			User:              fastly.ToPointer("123456"),
-			Token:             fastly.ToPointer("testtoken"),
-			URL:               fastly.ToPointer("https://test123.grafana.net"),
-			Index:             fastly.ToPointer("{\"label\": \"value\"}"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("analytics"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			MessageType:       new("classic"),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			User:              new("123456"),
+			Token:             new("testtoken"),
+			URL:               new("https://test123.grafana.net"),
+			Index:             new("{\"label\": \"value\"}"),
+			ProcessingRegion:  new("us"),
 		},
 	}, nil
 }
@@ -257,19 +257,19 @@ Version: 1
 
 func getGrafanaCloudLogsOK(_ context.Context, i *fastly.GetGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return &fastly.GrafanaCloudLogs{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("logs"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		MessageType:       fastly.ToPointer("classic"),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
-		User:              fastly.ToPointer("123456"),
-		URL:               fastly.ToPointer("https://test123.grafana.net"),
-		Token:             fastly.ToPointer("testtoken"),
-		Index:             fastly.ToPointer("{\"label\": \"value\"}"),
-		ProcessingRegion:  fastly.ToPointer("us"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("logs"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		MessageType:       new("classic"),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
+		User:              new("123456"),
+		URL:               new("https://test123.grafana.net"),
+		Token:             new("testtoken"),
+		Index:             new("{\"label\": \"value\"}"),
+		ProcessingRegion:  new("us"),
 	}, nil
 }
 
@@ -295,18 +295,18 @@ Version: 1
 
 func updateGrafanaCloudLogsOK(_ context.Context, i *fastly.UpdateGrafanaCloudLogsInput) (*fastly.GrafanaCloudLogs, error) {
 	return &fastly.GrafanaCloudLogs{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("log"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		MessageType:       fastly.ToPointer("classic"),
-		Placement:         fastly.ToPointer("none"),
-		User:              fastly.ToPointer("123456"),
-		URL:               fastly.ToPointer("https://test123.grafana.net"),
-		Token:             fastly.ToPointer("testtoken"),
-		Index:             fastly.ToPointer("{\"label\": \"value\"}"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("log"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
+		MessageType:       new("classic"),
+		Placement:         new("none"),
+		User:              new("123456"),
+		URL:               new("https://test123.grafana.net"),
+		Token:             new("testtoken"),
+		Index:             new("{\"label\": \"value\"}"),
 	}, nil
 }
 

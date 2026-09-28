@@ -60,7 +60,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.UpdateIntegrationInput{
 		ID:   c.ID,
-		Type: fastly.ToPointer(fastly.IntegrationTypeOpsGenie),
+		Type: new(fastly.IntegrationTypeOpsGenie),
 	}
 	if len(config) > 0 {
 		input.Config = config

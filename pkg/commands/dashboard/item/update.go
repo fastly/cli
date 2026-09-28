@@ -127,10 +127,10 @@ func (c *UpdateCommand) constructInput(d *fastly.ObservabilityCustomDashboard) (
 		item.Visualization.Config.PlotType = fastly.PlotType(c.plotType.Value)
 	}
 	if c.calculationMethod.WasSet {
-		item.Visualization.Config.CalculationMethod = fastly.ToPointer(fastly.CalculationMethod(c.calculationMethod.Value))
+		item.Visualization.Config.CalculationMethod = new(fastly.CalculationMethod(c.calculationMethod.Value))
 	}
 	if c.format.WasSet {
-		item.Visualization.Config.Format = fastly.ToPointer(fastly.VisualizationFormat(c.format.Value))
+		item.Visualization.Config.Format = new(fastly.VisualizationFormat(c.format.Value))
 	}
 
 	return &input, nil

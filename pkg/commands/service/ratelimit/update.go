@@ -107,7 +107,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 	if c.action != "" {
 		for _, a := range fastly.ERLActions {
 			if c.action == string(a) {
-				input.Action = fastly.ToPointer(a)
+				input.Action = new(a)
 				break
 			}
 		}
@@ -119,7 +119,7 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 	}
 
 	if c.featRevision > 0 {
-		input.FeatureRevision = fastly.ToPointer(c.featRevision)
+		input.FeatureRevision = new(c.featRevision)
 	}
 
 	if c.httpMethods != "" {
@@ -131,45 +131,45 @@ func (c *UpdateCommand) constructInput() *fastly.UpdateERLInput {
 	if c.loggerType != "" {
 		for _, l := range fastly.ERLLoggers {
 			if c.loggerType == string(l) {
-				input.LoggerType = fastly.ToPointer(l)
+				input.LoggerType = new(l)
 				break
 			}
 		}
 	}
 
 	if c.name != "" {
-		input.Name = fastly.ToPointer(c.name)
+		input.Name = new(c.name)
 	}
 
 	if c.penaltyDuration > 0 {
-		input.PenaltyBoxDuration = fastly.ToPointer(c.penaltyDuration)
+		input.PenaltyBoxDuration = new(c.penaltyDuration)
 	}
 
 	if c.responseContent != "" && c.responseContentType != "" && c.responseStatus > 0 {
 		input.Response = &fastly.ERLResponseType{
-			ERLContent:     fastly.ToPointer(c.responseContent),
-			ERLContentType: fastly.ToPointer(c.responseContentType),
-			ERLStatus:      fastly.ToPointer(c.responseStatus),
+			ERLContent:     new(c.responseContent),
+			ERLContentType: new(c.responseContentType),
+			ERLStatus:      new(c.responseStatus),
 		}
 	}
 
 	if c.responseObjectName != "" {
-		input.ResponseObjectName = fastly.ToPointer(c.responseObjectName)
+		input.ResponseObjectName = new(c.responseObjectName)
 	}
 
 	if c.rpsLimit > 0 {
-		input.RpsLimit = fastly.ToPointer(c.rpsLimit)
+		input.RpsLimit = new(c.rpsLimit)
 	}
 
 	if c.uriDictName != "" {
-		input.URIDictionaryName = fastly.ToPointer(c.uriDictName)
+		input.URIDictionaryName = new(c.uriDictName)
 	}
 
 	// NOTE: rateLimitWindowSizes is defined in ./create.go
 	if c.windowSize != "" {
 		for _, w := range fastly.ERLWindowSizes {
 			if c.windowSize == fmt.Sprint(w) {
-				input.WindowSize = fastly.ToPointer(w)
+				input.WindowSize = new(w)
 				break
 			}
 		}

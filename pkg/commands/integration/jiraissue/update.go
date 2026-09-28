@@ -80,7 +80,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.UpdateIntegrationInput{
 		ID:   c.ID,
-		Type: fastly.ToPointer(fastly.IntegrationTypeJiraIssue),
+		Type: new(fastly.IntegrationTypeJiraIssue),
 	}
 	if len(config) > 0 {
 		input.Config = config
