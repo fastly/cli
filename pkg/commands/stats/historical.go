@@ -76,7 +76,7 @@ func (c *HistoricalCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := fastly.GetStatsInput{
-		Service: fastly.ToPointer(serviceID),
+		Service: new(serviceID),
 	}
 	if c.by != "" {
 		input.By = &c.by

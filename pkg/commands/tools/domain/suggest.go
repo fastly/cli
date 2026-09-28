@@ -61,19 +61,19 @@ func (g *GetDomainSuggestionsCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	if g.defaults.WasSet {
-		input.Defaults = fastly.ToPointer(g.defaults.Value)
+		input.Defaults = new(g.defaults.Value)
 	}
 
 	if g.keywords.WasSet {
-		input.Keywords = fastly.ToPointer(g.keywords.Value)
+		input.Keywords = new(g.keywords.Value)
 	}
 
 	if g.location.WasSet {
-		input.Location = fastly.ToPointer(g.location.Value)
+		input.Location = new(g.location.Value)
 	}
 
 	if g.vendor.WasSet {
-		input.Vendor = fastly.ToPointer(g.vendor.Value)
+		input.Vendor = new(g.vendor.Value)
 	}
 
 	fc, ok := g.Globals.APIClient.(*fastly.Client)

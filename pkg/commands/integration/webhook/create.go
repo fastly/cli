@@ -53,7 +53,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &fastly.CreateIntegrationInput{
 		Name:   &c.IntegrationName,
-		Type:   fastly.ToPointer(CommandName),
+		Type:   new(CommandName),
 		Config: map[string]string{"webhook": c.Webhook},
 	}
 	if c.Description.WasSet {

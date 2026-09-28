@@ -24,7 +24,7 @@ type ListCreateInput struct {
 
 func ListCreate(argsInput ListCreateInput) (*lists.List, error) {
 	input := lists.CreateInput{
-		Entries: fastly.ToPointer(strings.Split(argparser.Content(argsInput.Entries), ",")),
+		Entries: new(strings.Split(argparser.Content(argsInput.Entries), ",")),
 		Name:    &argsInput.Name,
 		Type:    &argsInput.Type,
 	}
@@ -159,7 +159,7 @@ func ListUpdate(argsInput ListUpdateInput) (*lists.List, error) {
 		input.Description = &argsInput.Description.Value
 	}
 	if argsInput.Entries.WasSet {
-		input.Entries = fastly.ToPointer(strings.Split(argparser.Content(argsInput.Entries.Value), ","))
+		input.Entries = new(strings.Split(argparser.Content(argsInput.Entries.Value), ","))
 	}
 	inputWorkspaceID := ""
 	if argsInput.CommandScope == scope.ScopeTypeWorkspace {

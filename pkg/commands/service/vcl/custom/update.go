@@ -141,7 +141,7 @@ func (c *UpdateCommand) constructInput(serviceID string, serviceVersion int) (*f
 		input.NewName = &c.newName.Value
 	}
 	if c.content.WasSet {
-		input.Content = fastly.ToPointer(argparser.Content(c.content.Value))
+		input.Content = new(argparser.Content(c.content.Value))
 	}
 
 	return &input, nil

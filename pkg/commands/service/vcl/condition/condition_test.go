@@ -242,12 +242,12 @@ func createConditionOK(_ context.Context, i *fastly.CreateConditionInput) (*fast
 	}
 
 	return &fastly.Condition{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 		Statement:      i.Statement,
-		Type:           fastly.ToPointer(conditionType),
-		Priority:       fastly.ToPointer(priority),
+		Type:           new(conditionType),
+		Priority:       new(priority),
 	}, nil
 }
 
@@ -280,12 +280,12 @@ func updateConditionOK(_ context.Context, i *fastly.UpdateConditionInput) (*fast
 	}
 
 	return &fastly.Condition{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-		Name:           fastly.ToPointer(i.Name),
-		Statement:      fastly.ToPointer(statement),
-		Type:           fastly.ToPointer(conditionType),
-		Priority:       fastly.ToPointer(priority),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
+		Name:           new(i.Name),
+		Statement:      new(statement),
+		Type:           new(conditionType),
+		Priority:       new(priority),
 	}, nil
 }
 
@@ -299,12 +299,12 @@ func getConditionOK(_ context.Context, i *fastly.GetConditionInput) (*fastly.Con
 	statement := "false"
 
 	return &fastly.Condition{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-		Name:           fastly.ToPointer(i.Name),
-		Statement:      fastly.ToPointer(statement),
-		Type:           fastly.ToPointer(conditionType),
-		Priority:       fastly.ToPointer(priority),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
+		Name:           new(i.Name),
+		Statement:      new(statement),
+		Type:           new(conditionType),
+		Priority:       new(priority),
 	}, nil
 }
 
@@ -315,20 +315,20 @@ func getConditionError(_ context.Context, _ *fastly.GetConditionInput) (*fastly.
 func listConditionsOK(_ context.Context, i *fastly.ListConditionsInput) ([]*fastly.Condition, error) {
 	return []*fastly.Condition{
 		{
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Name:           fastly.ToPointer("always_false_request"),
-			Statement:      fastly.ToPointer("false"),
-			Type:           fastly.ToPointer("REQUEST"),
-			Priority:       fastly.ToPointer(10),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Name:           new("always_false_request"),
+			Statement:      new("false"),
+			Type:           new("REQUEST"),
+			Priority:       new(10),
 		},
 		{
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Name:           fastly.ToPointer("always_false_cache"),
-			Statement:      fastly.ToPointer("false"),
-			Type:           fastly.ToPointer("CACHE"),
-			Priority:       fastly.ToPointer(10),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Name:           new("always_false_cache"),
+			Statement:      new("false"),
+			Type:           new("CACHE"),
+			Priority:       new(10),
 		},
 	}, nil
 }

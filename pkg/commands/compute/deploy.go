@@ -596,7 +596,7 @@ func createService(
 
 	service, err := apiClient.CreateService(context.TODO(), &fastly.CreateServiceInput{
 		Name: &serviceName,
-		Type: fastly.ToPointer("wasm"),
+		Type: new("wasm"),
 	})
 	if err != nil {
 		spinner.StopFailMessage(msg)
@@ -616,7 +616,7 @@ func createService(
 	if err != nil {
 		return "", nil, err
 	}
-	return fastly.ToValue(service.ServiceID), &fastly.Version{Number: fastly.ToPointer(1)}, nil
+	return fastly.ToValue(service.ServiceID), &fastly.Version{Number: new(1)}, nil
 }
 
 // CleanupNewService is executed if a new service flow has errors.
@@ -704,7 +704,7 @@ func (c *DeployCommand) UploadPackage(spinner text.Spinner, serviceID string, ve
 		_, err := c.Globals.APIClient.UpdatePackage(context.TODO(), &fastly.UpdatePackageInput{
 			ServiceID:      serviceID,
 			ServiceVersion: version,
-			PackagePath:    fastly.ToPointer(c.PackagePath),
+			PackagePath:    new(c.PackagePath),
 		})
 		if err != nil {
 			return fmt.Errorf("error uploading package: %w", err)

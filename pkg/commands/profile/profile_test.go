@@ -814,8 +814,8 @@ func TestProfileUpdate(t *testing.T) {
 
 func getCurrentUser(_ context.Context) (*fastly.User, error) {
 	return &fastly.User{
-		Login:      fastly.ToPointer("foo@example.com"),
-		CustomerID: fastly.ToPointer("abc"),
+		Login:      new("foo@example.com"),
+		CustomerID: new("abc"),
 	}, nil
 }
 
@@ -823,12 +823,12 @@ func getToken(_ context.Context) (*fastly.Token, error) {
 	t := testutil.Date
 
 	return &fastly.Token{
-		TokenID:    fastly.ToPointer("123"),
-		Name:       fastly.ToPointer("Foo"),
-		UserID:     fastly.ToPointer("456"),
+		TokenID:    new("123"),
+		Name:       new("Foo"),
+		UserID:     new("456"),
 		Services:   []string{"a", "b"},
-		Scope:      fastly.ToPointer(fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope))),
-		IP:         fastly.ToPointer("127.0.0.1"),
+		Scope:      new(fastly.TokenScope(fmt.Sprintf("%s %s", fastly.PurgeAllScope, fastly.GlobalReadScope))),
+		IP:         new("127.0.0.1"),
 		CreatedAt:  &t,
 		ExpiresAt:  &t,
 		LastUsedAt: &t,

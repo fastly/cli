@@ -139,15 +139,15 @@ func TestSSO(t *testing.T) {
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
-							Name:   fastly.ToPointer("Foobar"),
-							Code:   fastly.ToPointer("FBR"),
-							Group:  fastly.ToPointer("Bar"),
-							Shield: fastly.ToPointer("Baz"),
+							Name:   new("Foobar"),
+							Code:   new("FBR"),
+							Group:  new("Bar"),
+							Shield: new("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:  fastly.ToPointer(float64(1)),
-								Longitude: fastly.ToPointer(float64(2)),
-								X:         fastly.ToPointer(float64(3)),
-								Y:         fastly.ToPointer(float64(4)),
+								Latitude:  new(float64(1)),
+								Longitude: new(float64(2)),
+								X:         new(float64(3)),
+								Y:         new(float64(4)),
 							},
 						},
 					}, nil
@@ -218,15 +218,15 @@ func TestSSO(t *testing.T) {
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
-							Name:   fastly.ToPointer("Foobar"),
-							Code:   fastly.ToPointer("FBR"),
-							Group:  fastly.ToPointer("Bar"),
-							Shield: fastly.ToPointer("Baz"),
+							Name:   new("Foobar"),
+							Code:   new("FBR"),
+							Group:  new("Bar"),
+							Shield: new("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:  fastly.ToPointer(float64(1)),
-								Longitude: fastly.ToPointer(float64(2)),
-								X:         fastly.ToPointer(float64(3)),
-								Y:         fastly.ToPointer(float64(4)),
+								Latitude:  new(float64(1)),
+								Longitude: new(float64(2)),
+								X:         new(float64(3)),
+								Y:         new(float64(4)),
 							},
 						},
 					}, nil
@@ -288,15 +288,15 @@ func TestSSO(t *testing.T) {
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
-							Name:   fastly.ToPointer("Foobar"),
-							Code:   fastly.ToPointer("FBR"),
-							Group:  fastly.ToPointer("Bar"),
-							Shield: fastly.ToPointer("Baz"),
+							Name:   new("Foobar"),
+							Code:   new("FBR"),
+							Group:  new("Bar"),
+							Shield: new("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:  fastly.ToPointer(float64(1)),
-								Longitude: fastly.ToPointer(float64(2)),
-								X:         fastly.ToPointer(float64(3)),
-								Y:         fastly.ToPointer(float64(4)),
+								Latitude:  new(float64(1)),
+								Longitude: new(float64(2)),
+								X:         new(float64(3)),
+								Y:         new(float64(4)),
 							},
 						},
 					}, nil
@@ -338,15 +338,15 @@ func TestSSO(t *testing.T) {
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
-							Name:   fastly.ToPointer("Foobar"),
-							Code:   fastly.ToPointer("FBR"),
-							Group:  fastly.ToPointer("Bar"),
-							Shield: fastly.ToPointer("Baz"),
+							Name:   new("Foobar"),
+							Code:   new("FBR"),
+							Group:  new("Bar"),
+							Shield: new("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:  fastly.ToPointer(float64(1)),
-								Longitude: fastly.ToPointer(float64(2)),
-								X:         fastly.ToPointer(float64(3)),
-								Y:         fastly.ToPointer(float64(4)),
+								Latitude:  new(float64(1)),
+								Longitude: new(float64(2)),
+								X:         new(float64(3)),
+								Y:         new(float64(4)),
 							},
 						},
 					}, nil
@@ -457,15 +457,15 @@ func TestSSO(t *testing.T) {
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
-							Name:   fastly.ToPointer("Foobar"),
-							Code:   fastly.ToPointer("FBR"),
-							Group:  fastly.ToPointer("Bar"),
-							Shield: fastly.ToPointer("Baz"),
+							Name:   new("Foobar"),
+							Code:   new("FBR"),
+							Group:  new("Bar"),
+							Shield: new("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:  fastly.ToPointer(float64(1)),
-								Longitude: fastly.ToPointer(float64(2)),
-								X:         fastly.ToPointer(float64(3)),
-								Y:         fastly.ToPointer(float64(4)),
+								Latitude:  new(float64(1)),
+								Longitude: new(float64(2)),
+								X:         new(float64(3)),
+								Y:         new(float64(4)),
 							},
 						},
 					}, nil
@@ -498,15 +498,15 @@ func TestSSO(t *testing.T) {
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
-							Name:   fastly.ToPointer("Foobar"),
-							Code:   fastly.ToPointer("FBR"),
-							Group:  fastly.ToPointer("Bar"),
-							Shield: fastly.ToPointer("Baz"),
+							Name:   new("Foobar"),
+							Code:   new("FBR"),
+							Group:  new("Bar"),
+							Shield: new("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:  fastly.ToPointer(float64(1)),
-								Longitude: fastly.ToPointer(float64(2)),
-								X:         fastly.ToPointer(float64(3)),
-								Y:         fastly.ToPointer(float64(4)),
+								Latitude:  new(float64(1)),
+								Longitude: new(float64(2)),
+								X:         new(float64(3)),
+								Y:         new(float64(4)),
 							},
 						},
 					}, nil
@@ -536,15 +536,15 @@ func TestSSO(t *testing.T) {
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
-							Name:   fastly.ToPointer("Foobar"),
-							Code:   fastly.ToPointer("FBR"),
-							Group:  fastly.ToPointer("Bar"),
-							Shield: fastly.ToPointer("Baz"),
+							Name:   new("Foobar"),
+							Code:   new("FBR"),
+							Group:  new("Bar"),
+							Shield: new("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:  fastly.ToPointer(float64(1)),
-								Longitude: fastly.ToPointer(float64(2)),
-								X:         fastly.ToPointer(float64(3)),
-								Y:         fastly.ToPointer(float64(4)),
+								Latitude:  new(float64(1)),
+								Longitude: new(float64(2)),
+								X:         new(float64(3)),
+								Y:         new(float64(4)),
 							},
 						},
 					}, nil
@@ -574,8 +574,8 @@ func TestSSO(t *testing.T) {
 			API: &mock.API{
 				GetCurrentUserFn: func(_ context.Context) (*fastly.User, error) {
 					return &fastly.User{
-						Login:      fastly.ToPointer("alice@example.com"),
-						CustomerID: fastly.ToPointer("abc123"),
+						Login:      new("alice@example.com"),
+						CustomerID: new("abc123"),
 					}, nil
 				},
 				GetTokenSelfFn: testTokenSelfFull,
@@ -645,15 +645,15 @@ func TestSSO(t *testing.T) {
 				AllDatacentersFn: func(_ context.Context) ([]fastly.Datacenter, error) {
 					return []fastly.Datacenter{
 						{
-							Name:   fastly.ToPointer("Foobar"),
-							Code:   fastly.ToPointer("FBR"),
-							Group:  fastly.ToPointer("Bar"),
-							Shield: fastly.ToPointer("Baz"),
+							Name:   new("Foobar"),
+							Code:   new("FBR"),
+							Group:  new("Bar"),
+							Shield: new("Baz"),
 							Coordinates: &fastly.Coordinates{
-								Latitude:  fastly.ToPointer(float64(1)),
-								Longitude: fastly.ToPointer(float64(2)),
-								X:         fastly.ToPointer(float64(3)),
-								Y:         fastly.ToPointer(float64(4)),
+								Latitude:  new(float64(1)),
+								Longitude: new(float64(2)),
+								X:         new(float64(3)),
+								Y:         new(float64(4)),
 							},
 						},
 					}, nil
@@ -796,8 +796,8 @@ func TestSSO(t *testing.T) {
 				GetTokenSelfFn: func(_ context.Context) (*fastly.Token, error) {
 					scope := fastly.GlobalScope
 					return &fastly.Token{
-						TokenID: fastly.ToPointer("sso-tok-id"),
-						Name:    fastly.ToPointer("sso-api-token"),
+						TokenID: new("sso-tok-id"),
+						Name:    new("sso-api-token"),
 						Scope:   &scope,
 					}, nil
 				},

@@ -113,7 +113,7 @@ func (c *UpdateCommand) Exec(_ io.Reader, out io.Writer) (err error) {
 		_, err = c.Globals.APIClient.UpdatePackage(context.TODO(), &fastly.UpdatePackageInput{
 			ServiceID:      serviceID,
 			ServiceVersion: serviceVersionNumber,
-			PackagePath:    fastly.ToPointer(packagePath),
+			PackagePath:    new(packagePath),
 		})
 		if err != nil {
 			c.Globals.ErrLog.AddWithContext(err, map[string]any{

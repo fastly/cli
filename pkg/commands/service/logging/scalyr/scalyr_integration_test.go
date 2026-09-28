@@ -174,8 +174,8 @@ var errTest = errors.New("fixture error")
 
 func createScalyrOK(_ context.Context, i *fastly.CreateScalyrInput) (*fastly.Scalyr, error) {
 	s := fastly.Scalyr{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 	}
 
 	// Avoids null pointer dereference for test cases with missing required params.
@@ -214,30 +214,30 @@ func createScalyrError(_ context.Context, _ *fastly.CreateScalyrInput) (*fastly.
 func listScalyrsOK(_ context.Context, i *fastly.ListScalyrsInput) ([]*fastly.Scalyr, error) {
 	return []*fastly.Scalyr{
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("logs"),
-			Token:             fastly.ToPointer("abc"),
-			Region:            fastly.ToPointer("US"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProjectID:         fastly.ToPointer("example-project"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("logs"),
+			Token:             new("abc"),
+			Region:            new("US"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProjectID:         new("example-project"),
+			ProcessingRegion:  new("us"),
 		},
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("analytics"),
-			Token:             fastly.ToPointer("abc"),
-			Region:            fastly.ToPointer("US"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProjectID:         fastly.ToPointer("example-project"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("analytics"),
+			Token:             new("abc"),
+			Region:            new("US"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProjectID:         new("example-project"),
+			ProcessingRegion:  new("us"),
 		},
 	}, nil
 }
@@ -287,17 +287,17 @@ Version: 1
 
 func getScalyrOK(_ context.Context, i *fastly.GetScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("logs"),
-		Token:             fastly.ToPointer("abc"),
-		Region:            fastly.ToPointer("US"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
-		ProjectID:         fastly.ToPointer("example-project"),
-		ProcessingRegion:  fastly.ToPointer("us"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("logs"),
+		Token:             new("abc"),
+		Region:            new("US"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
+		ProjectID:         new("example-project"),
+		ProcessingRegion:  new("us"),
 	}, nil
 }
 
@@ -321,15 +321,15 @@ Version: 1
 
 func updateScalyrOK(_ context.Context, i *fastly.UpdateScalyrInput) (*fastly.Scalyr, error) {
 	return &fastly.Scalyr{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("log"),
-		Token:             fastly.ToPointer("abc"),
-		Region:            fastly.ToPointer("EU"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("log"),
+		Token:             new("abc"),
+		Region:            new("EU"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
 	}, nil
 }
 

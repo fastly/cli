@@ -163,8 +163,8 @@ var errTest = errors.New("fixture error")
 
 func createDatadogOK(_ context.Context, i *fastly.CreateDatadogInput) (*fastly.Datadog, error) {
 	s := fastly.Datadog{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 	}
 
 	if i.Name != nil {
@@ -181,28 +181,28 @@ func createDatadogError(_ context.Context, _ *fastly.CreateDatadogInput) (*fastl
 func listDatadogsOK(_ context.Context, i *fastly.ListDatadogInput) ([]*fastly.Datadog, error) {
 	return []*fastly.Datadog{
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("logs"),
-			Token:             fastly.ToPointer("abc"),
-			Region:            fastly.ToPointer("US"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("logs"),
+			Token:             new("abc"),
+			Region:            new("US"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProcessingRegion:  new("us"),
 		},
 		{
-			ServiceID:         fastly.ToPointer(i.ServiceID),
-			ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-			Name:              fastly.ToPointer("analytics"),
-			Token:             fastly.ToPointer("abc"),
-			Region:            fastly.ToPointer("US"),
-			Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-			FormatVersion:     fastly.ToPointer(2),
-			ResponseCondition: fastly.ToPointer("Prevent default logging"),
-			Placement:         fastly.ToPointer("none"),
-			ProcessingRegion:  fastly.ToPointer("us"),
+			ServiceID:         new(i.ServiceID),
+			ServiceVersion:    new(i.ServiceVersion),
+			Name:              new("analytics"),
+			Token:             new("abc"),
+			Region:            new("US"),
+			Format:            new(`%h %l %u %t "%r" %>s %b`),
+			FormatVersion:     new(2),
+			ResponseCondition: new("Prevent default logging"),
+			Placement:         new("none"),
+			ProcessingRegion:  new("us"),
 		},
 	}, nil
 }
@@ -250,16 +250,16 @@ Version: 1
 
 func getDatadogOK(_ context.Context, i *fastly.GetDatadogInput) (*fastly.Datadog, error) {
 	return &fastly.Datadog{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("logs"),
-		Token:             fastly.ToPointer("abc"),
-		Region:            fastly.ToPointer("US"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
-		Placement:         fastly.ToPointer("none"),
-		ProcessingRegion:  fastly.ToPointer("us"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("logs"),
+		Token:             new("abc"),
+		Region:            new("US"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
+		Placement:         new("none"),
+		ProcessingRegion:  new("us"),
 	}, nil
 }
 
@@ -282,14 +282,14 @@ Version: 1
 
 func updateDatadogOK(_ context.Context, i *fastly.UpdateDatadogInput) (*fastly.Datadog, error) {
 	return &fastly.Datadog{
-		ServiceID:         fastly.ToPointer(i.ServiceID),
-		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
-		Name:              fastly.ToPointer("log"),
-		Token:             fastly.ToPointer("abc"),
-		Region:            fastly.ToPointer("US"),
-		Format:            fastly.ToPointer(`%h %l %u %t "%r" %>s %b`),
-		FormatVersion:     fastly.ToPointer(2),
-		ResponseCondition: fastly.ToPointer("Prevent default logging"),
+		ServiceID:         new(i.ServiceID),
+		ServiceVersion:    new(i.ServiceVersion),
+		Name:              new("log"),
+		Token:             new("abc"),
+		Region:            new("US"),
+		Format:            new(`%h %l %u %t "%r" %>s %b`),
+		FormatVersion:     new(2),
+		ResponseCondition: new("Prevent default logging"),
 	}, nil
 }
 

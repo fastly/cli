@@ -21,29 +21,29 @@ var (
 	testTokenExpiry   = time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
 	testTokenSelfFull = func(_ context.Context) (*fastly.Token, error) {
 		return &fastly.Token{
-			TokenID: fastly.ToPointer("tok-id-123"),
-			Name:    fastly.ToPointer("my-api-token"),
+			TokenID: new("tok-id-123"),
+			Name:    new("my-api-token"),
 			Scope:   &testTokenScope,
 		}, nil
 	}
 	testTokenSelfWithExpiry = func(_ context.Context) (*fastly.Token, error) {
 		return &fastly.Token{
-			TokenID:   fastly.ToPointer("tok-id-expiry"),
-			Name:      fastly.ToPointer("expiring-token"),
+			TokenID:   new("tok-id-expiry"),
+			Name:      new("expiring-token"),
 			Scope:     &testTokenScope,
 			ExpiresAt: &testTokenExpiry,
 		}, nil
 	}
 	testTokenSelfNoName = func(_ context.Context) (*fastly.Token, error) {
 		return &fastly.Token{
-			TokenID: fastly.ToPointer("tok-id-noname"),
+			TokenID: new("tok-id-noname"),
 			Scope:   &testTokenScope,
 		}, nil
 	}
 	testGetCurrentUser = func(_ context.Context) (*fastly.User, error) {
 		return &fastly.User{
-			Login:      fastly.ToPointer("alice@example.com"),
-			CustomerID: fastly.ToPointer("cust-abc123"),
+			Login:      new("alice@example.com"),
+			CustomerID: new("cust-abc123"),
 		}, nil
 	}
 )

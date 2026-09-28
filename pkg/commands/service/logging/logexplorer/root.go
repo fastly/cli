@@ -111,7 +111,7 @@ func (c *Command) Exec(_ io.Reader, out io.Writer) error {
 		Start:     c.start,
 		End:       c.end,
 		Filters:   filters,
-		Limit:     fastly.ToPointer(maxLogExplorerPageSize),
+		Limit:     new(maxLogExplorerPageSize),
 	}
 
 	var records []*fastly.LogRecord

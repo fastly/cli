@@ -225,24 +225,24 @@ func TestUpdateDictionary(t *testing.T) {
 
 func describeDictionaryOK(_ context.Context, i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-		Name:           fastly.ToPointer(i.Name),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
+		Name:           new(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      fastly.ToPointer(false),
-		DictionaryID:   fastly.ToPointer("456"),
+		WriteOnly:      new(false),
+		DictionaryID:   new("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
 func describeDictionaryOKDeleted(_ context.Context, i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-		Name:           fastly.ToPointer(i.Name),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
+		Name:           new(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      fastly.ToPointer(false),
-		DictionaryID:   fastly.ToPointer("456"),
+		WriteOnly:      new(false),
+		DictionaryID:   new("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		DeletedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:08Z"),
 	}, nil
@@ -250,15 +250,15 @@ func describeDictionaryOKDeleted(_ context.Context, i *fastly.GetDictionaryInput
 
 func createDictionaryOK(_ context.Context, i *fastly.CreateDictionaryInput) (*fastly.Dictionary, error) {
 	if i.WriteOnly == nil {
-		i.WriteOnly = fastly.ToPointer(fastly.Compatibool(false))
+		i.WriteOnly = new(fastly.Compatibool(false))
 	}
 	return &fastly.Dictionary{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.Name,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
-		DictionaryID:   fastly.ToPointer("456"),
+		WriteOnly:      new(bool(fastly.ToValue(i.WriteOnly))),
+		DictionaryID:   new("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
@@ -271,9 +271,9 @@ func createDictionaryOK(_ context.Context, i *fastly.CreateDictionaryInput) (*fa
 func getDictionaryInfoOK(_ context.Context, i *fastly.GetDictionaryInfoInput) (*fastly.DictionaryInfo, error) {
 	if i.DictionaryID == "456" {
 		return &fastly.DictionaryInfo{
-			ItemCount:   fastly.ToPointer(2),
+			ItemCount:   new(2),
 			LastUpdated: testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
-			Digest:      fastly.ToPointer("digest_hash"),
+			Digest:      new("digest_hash"),
 		}, nil
 	}
 	return nil, errFail
@@ -285,18 +285,18 @@ func getDictionaryInfoOK(_ context.Context, i *fastly.GetDictionaryInfoInput) (*
 func listDictionaryItemsOK(_ context.Context, i *fastly.ListDictionaryItemsInput) ([]*fastly.DictionaryItem, error) {
 	return []*fastly.DictionaryItem{
 		{
-			ServiceID:    fastly.ToPointer(i.ServiceID),
-			DictionaryID: fastly.ToPointer(i.DictionaryID),
-			ItemKey:      fastly.ToPointer("foo"),
-			ItemValue:    fastly.ToPointer("bar"),
+			ServiceID:    new(i.ServiceID),
+			DictionaryID: new(i.DictionaryID),
+			ItemKey:      new("foo"),
+			ItemValue:    new("bar"),
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 		{
-			ServiceID:    fastly.ToPointer(i.ServiceID),
-			DictionaryID: fastly.ToPointer(i.DictionaryID),
-			ItemKey:      fastly.ToPointer("baz"),
-			ItemValue:    fastly.ToPointer("bear"),
+			ServiceID:    new(i.ServiceID),
+			DictionaryID: new(i.DictionaryID),
+			ItemKey:      new("baz"),
+			ItemValue:    new("bear"),
 			CreatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
 			UpdatedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 			DeletedAt:    testutil.MustParseTimeRFC3339("2001-02-03T04:06:08Z"),
@@ -319,21 +319,21 @@ func deleteDictionaryError(_ context.Context, _ *fastly.DeleteDictionaryInput) e
 func listDictionariesOk(_ context.Context, i *fastly.ListDictionariesInput) ([]*fastly.Dictionary, error) {
 	return []*fastly.Dictionary{
 		{
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Name:           fastly.ToPointer("dict-1"),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Name:           new("dict-1"),
 			CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-			WriteOnly:      fastly.ToPointer(false),
-			DictionaryID:   fastly.ToPointer("456"),
+			WriteOnly:      new(false),
+			DictionaryID:   new("456"),
 			UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 		{
-			ServiceID:      fastly.ToPointer(i.ServiceID),
-			ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-			Name:           fastly.ToPointer("dict-2"),
+			ServiceID:      new(i.ServiceID),
+			ServiceVersion: new(i.ServiceVersion),
+			Name:           new("dict-2"),
 			CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-			WriteOnly:      fastly.ToPointer(false),
-			DictionaryID:   fastly.ToPointer("456"),
+			WriteOnly:      new(false),
+			DictionaryID:   new("456"),
 			UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 		},
 	}, nil
@@ -341,24 +341,24 @@ func listDictionariesOk(_ context.Context, i *fastly.ListDictionariesInput) ([]*
 
 func updateDictionaryNameOK(_ context.Context, i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
 		Name:           i.NewName,
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
-		DictionaryID:   fastly.ToPointer("456"),
+		WriteOnly:      new(bool(fastly.ToValue(i.WriteOnly))),
+		DictionaryID:   new("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
 
 func updateDictionaryWriteOnlyOK(_ context.Context, i *fastly.UpdateDictionaryInput) (*fastly.Dictionary, error) {
 	return &fastly.Dictionary{
-		ServiceID:      fastly.ToPointer(i.ServiceID),
-		ServiceVersion: fastly.ToPointer(i.ServiceVersion),
-		Name:           fastly.ToPointer(i.Name),
+		ServiceID:      new(i.ServiceID),
+		ServiceVersion: new(i.ServiceVersion),
+		Name:           new(i.Name),
 		CreatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:06Z"),
-		WriteOnly:      fastly.ToPointer(bool(fastly.ToValue(i.WriteOnly))),
-		DictionaryID:   fastly.ToPointer("456"),
+		WriteOnly:      new(bool(fastly.ToValue(i.WriteOnly))),
+		DictionaryID:   new("456"),
 		UpdatedAt:      testutil.MustParseTimeRFC3339("2001-02-03T04:05:07Z"),
 	}, nil
 }
