@@ -31,7 +31,6 @@ require (
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/theckman/yacspin v0.13.12
 	golang.org/x/crypto v0.57.0
-	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
 	golang.org/x/mod v0.41.0
 )
 
