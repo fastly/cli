@@ -73,7 +73,6 @@ scrapers        Scrapers        block
 }
 
 func TestCategoryDescribe(t *testing.T) {
-
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "--category-id is required",

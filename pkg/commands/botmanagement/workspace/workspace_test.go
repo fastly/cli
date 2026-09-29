@@ -98,7 +98,6 @@ ws456  Staging     off                          2026-03-01T00:00:00Z
 }
 
 func TestWorkspaceDescribe(t *testing.T) {
-
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "--workspace-id is required",

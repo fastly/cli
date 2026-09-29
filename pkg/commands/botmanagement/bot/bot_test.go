@@ -92,7 +92,6 @@ googlebot  Googlebot  search-engines  inherit
 }
 
 func TestBotDescribe(t *testing.T) {
-
 	scenarios := []testutil.CLIScenario{
 		{
 			Name:      "--bot-id is required",
