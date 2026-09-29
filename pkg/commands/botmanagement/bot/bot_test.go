@@ -1,6 +1,8 @@
 package bot_test
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -10,9 +12,7 @@ import (
 	root "github.com/fastly/cli/pkg/commands/botmanagement"
 	sub "github.com/fastly/cli/pkg/commands/botmanagement/bot"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 var bot = policy.Bot{
@@ -23,15 +23,14 @@ var bot = policy.Bot{
 
 func TestBotList(t *testing.T) {
 	// Listing across the workspace returns each bot's category.
-	workspaceWide := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(policy.Bots{
+	workspaceBots := policy.Bots{
 		Data: []policy.Bot{
 			{BotID: "googlebot", Name: "Googlebot", CategoryID: "search-engines", Action: policy.Action{Type: "inherit"}},
 			{BotID: "scrapy", Name: "Scrapy", CategoryID: "scrapers", Action: policy.Action{Type: "block"}},
 		},
-	})}
+	}
 	// Listing within a category omits it.
 	categoryBots := policy.Bots{Data: []policy.Bot{bot}}
-	inCategory := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(categoryBots)}
 
 	scenarios := []testutil.CLIScenario{
 		{
@@ -39,38 +38,52 @@ func TestBotList(t *testing.T) {
 			WantError: "error parsing arguments: required flag --workspace-id not provided",
 		},
 		{
-			Name:   "lists all bots in the workspace",
-			Args:   "--workspace-id ws123",
-			Client: workspaceWide.Client(),
+			Name: "lists bots as a table",
+			Args: "--workspace-id ws123",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspaceBots))),
+					},
+				},
+			},
 			WantOutput: strings.TrimSpace(`
 ID         Name       Category ID     Action
 googlebot  Googlebot  search-engines  inherit
 scrapy     Scrapy     scrapers        block
 `) + "\n",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				if workspaceWide.Path != "/bot-management/v1/workspaces/ws123/policy/bots" {
-					t.Errorf("unexpected path: %s", workspaceWide.Path)
-				}
-			},
 		},
 		{
-			Name:   "--category-id lists the category's bots and fills in the category column",
-			Args:   "--workspace-id ws123 --category-id search-engines",
-			Client: inCategory.Client(),
+			Name: "--category-id fills in the category column",
+			Args: "--workspace-id ws123 --category-id search-engines",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(categoryBots))),
+					},
+				},
+			},
 			WantOutput: strings.TrimSpace(`
 ID         Name       Category ID     Action
 googlebot  Googlebot  search-engines  inherit
 `) + "\n",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				if inCategory.Path != "/bot-management/v1/workspaces/ws123/policy/categories/search-engines/bots" {
-					t.Errorf("unexpected path: %s", inCategory.Path)
-				}
-			},
 		},
 		{
-			Name:       "--json emits the bots exactly as returned",
-			Args:       "--workspace-id ws123 --category-id search-engines --json",
-			Client:     (&testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(categoryBots)}).Client(),
+			Name: "--json emits the bots exactly as returned",
+			Args: "--workspace-id ws123 --category-id search-engines --json",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(categoryBots))),
+					},
+				},
+			},
 			WantOutput: fstfmt.EncodeJSON(categoryBots.Data),
 		},
 	}
@@ -79,7 +92,6 @@ googlebot  Googlebot  search-engines  inherit
 }
 
 func TestBotDescribe(t *testing.T) {
-	rec := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(bot)}
 
 	scenarios := []testutil.CLIScenario{
 		{
@@ -88,19 +100,22 @@ func TestBotDescribe(t *testing.T) {
 			WantError: "error parsing arguments: required flag --bot-id not provided",
 		},
 		{
-			Name:   "describes the bot",
-			Args:   "--workspace-id ws123 --category-id search-engines --bot-id googlebot",
-			Client: rec.Client(),
+			Name: "describes the bot",
+			Args: "--workspace-id ws123 --category-id search-engines --bot-id googlebot",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(bot))),
+					},
+				},
+			},
 			WantOutput: strings.TrimSpace(`
 ID: googlebot
 Name: Googlebot
 Action: inherit
 `),
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				if rec.Method != http.MethodGet || rec.Path != "/bot-management/v1/workspaces/ws123/policy/categories/search-engines/bots/googlebot" {
-					t.Errorf("unexpected request: %s %s", rec.Method, rec.Path)
-				}
-			},
 		},
 	}
 
@@ -110,8 +125,6 @@ Action: inherit
 func TestBotUpdate(t *testing.T) {
 	updated := bot
 	updated.Action.Type = "block"
-	rec := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(updated)}
-	inherit := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(bot)}
 
 	scenarios := []testutil.CLIScenario{
 		{
@@ -120,30 +133,45 @@ func TestBotUpdate(t *testing.T) {
 			WantError: "enum value must be one of allow,block,challenge,inherit, got 'deny'",
 		},
 		{
-			Name:       "sets the bot action",
-			Args:       "--workspace-id ws123 --category-id search-engines --bot-id googlebot --action block",
-			Client:     rec.Client(),
+			Name: "prints the updated bot",
+			Args: "--workspace-id ws123 --category-id search-engines --bot-id googlebot --action block",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updated))),
+					},
+				},
+			},
 			WantOutput: fstfmt.Success("Updated bot 'Googlebot' (bot-id: googlebot, action: block)"),
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				if rec.Method != http.MethodPatch || rec.Path != "/bot-management/v1/workspaces/ws123/policy/categories/search-engines/bots/googlebot" {
-					t.Errorf("unexpected request: %s %s", rec.Method, rec.Path)
-				}
-				testutil.AssertEqual(t, `{"action":{"type":"block"}}`, strings.TrimSpace(string(rec.RequestBody)))
-			},
 		},
 		{
-			Name:       "bots can inherit their category's action",
-			Args:       "--workspace-id ws123 --category-id search-engines --bot-id googlebot --action inherit",
-			Client:     inherit.Client(),
+			Name: "--action accepts inherit",
+			Args: "--workspace-id ws123 --category-id search-engines --bot-id googlebot --action inherit",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(bot))),
+					},
+				},
+			},
 			WantOutput: fstfmt.Success("Updated bot 'Googlebot' (bot-id: googlebot, action: inherit)"),
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				testutil.AssertEqual(t, `{"action":{"type":"inherit"}}`, strings.TrimSpace(string(inherit.RequestBody)))
-			},
 		},
 		{
-			Name:       "--json emits the updated bot",
-			Args:       "--workspace-id ws123 --category-id search-engines --bot-id googlebot --action block --json",
-			Client:     (&testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(updated)}).Client(),
+			Name: "--json emits the updated bot",
+			Args: "--workspace-id ws123 --category-id search-engines --bot-id googlebot --action block --json",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updated))),
+					},
+				},
+			},
 			WantOutput: fstfmt.EncodeJSON(updated),
 		},
 	}

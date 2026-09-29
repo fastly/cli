@@ -16,7 +16,6 @@ func PrintBotManagementWorkspace(out io.Writer, w *bmworkspaces.Workspace) {
 	fmt.Fprintf(out, "Description: %s\n", w.Description)
 	fmt.Fprintf(out, "Protection Mode: %s\n", w.ProtectionMode)
 	fmt.Fprintf(out, "Services: %s\n", strings.Join(w.Services, ", "))
-	fmt.Fprintf(out, "Created At: %s\n", w.CreatedAt)
 	fmt.Fprintf(out, "Updated At: %s\n", w.UpdatedAt)
 }
 
