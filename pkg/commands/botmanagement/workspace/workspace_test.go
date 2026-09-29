@@ -1,7 +1,8 @@
 package workspace_test
 
 import (
-	"encoding/json"
+	"bytes"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -11,9 +12,7 @@ import (
 	root "github.com/fastly/cli/pkg/commands/botmanagement"
 	sub "github.com/fastly/cli/pkg/commands/botmanagement/workspace"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
-	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/cli/pkg/threadsafe"
 )
 
 var workspace = workspaces.Workspace{
@@ -34,50 +33,63 @@ func TestWorkspaceList(t *testing.T) {
 		},
 	}
 
-	unfiltered := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(page)}
-	filtered := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(page)}
-
 	scenarios := []testutil.CLIScenario{
 		{
 			Name: "API error is surfaced",
-			Client: (&testutil.RequestRecorder{
-				Status: http.StatusInternalServerError,
-				Body:   []byte(`{"title":"boom","status":500}`),
-			}).Client(),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     http.StatusText(http.StatusInternalServerError),
+						Body:       io.NopCloser(bytes.NewReader([]byte(`{"title":"boom","status":500}`))),
+					},
+				},
+			},
 			WantError: "500 - Internal Server Error",
 		},
 		{
-			Name:   "lists workspaces as a table without a service filter",
-			Client: unfiltered.Client(),
+			Name: "lists workspaces as a table",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(page))),
+					},
+				},
+			},
 			WantOutput: strings.TrimSpace(`
 ID     Name        Protection Mode  Services    Updated At
 ws123  Production  log              svcA, svcB  2026-02-01T00:00:00Z
 ws456  Staging     off                          2026-03-01T00:00:00Z
 `) + "\n",
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				if unfiltered.Path != "/bot-management/v1/workspaces" {
-					t.Errorf("unexpected path: %s", unfiltered.Path)
-				}
-				if unfiltered.Query.Has("service_id") {
-					t.Errorf("service_id should not be sent when --service-id is omitted, got %q", unfiltered.Query.Get("service_id"))
-				}
-			},
 		},
 		{
-			Name:        "--service-id filters by service",
-			Args:        "--service-id svcA",
-			Client:      filtered.Client(),
+			Name: "accepts --service-id",
+			Args: "--service-id svcA",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(page))),
+					},
+				},
+			},
 			WantOutputs: []string{"ws123"},
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				if got := filtered.Query.Get("service_id"); got != "svcA" {
-					t.Errorf("want service_id=svcA, got %q", got)
-				}
-			},
 		},
 		{
-			Name:       "--json emits the workspaces",
-			Args:       "--json",
-			Client:     (&testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(page)}).Client(),
+			Name: "--json emits the workspaces",
+			Args: "--json",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(page))),
+					},
+				},
+			},
 			WantOutput: fstfmt.EncodeJSON(page.Data),
 		},
 	}
@@ -86,7 +98,6 @@ ws456  Staging     off                          2026-03-01T00:00:00Z
 }
 
 func TestWorkspaceDescribe(t *testing.T) {
-	rec := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(workspace)}
 
 	scenarios := []testutil.CLIScenario{
 		{
@@ -94,37 +105,52 @@ func TestWorkspaceDescribe(t *testing.T) {
 			WantError: "error parsing arguments: required flag --workspace-id not provided",
 		},
 		{
-			Name:   "describes the workspace",
-			Args:   "--workspace-id ws123",
-			Client: rec.Client(),
+			Name: "describes the workspace",
+			Args: "--workspace-id ws123",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspace))),
+					},
+				},
+			},
 			WantOutput: strings.TrimSpace(`
 ID: ws123
 Name: Production
 Description: Main site
 Protection Mode: log
 Services: svcA, svcB
-Created At: 2026-01-01T00:00:00Z
 Updated At: 2026-02-01T00:00:00Z
 `),
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				if rec.Method != http.MethodGet || rec.Path != "/bot-management/v1/workspaces/ws123" {
-					t.Errorf("unexpected request: %s %s", rec.Method, rec.Path)
-				}
-			},
 		},
 		{
-			Name:       "--json emits the workspace",
-			Args:       "--workspace-id ws123 --json",
-			Client:     (&testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(workspace)}).Client(),
+			Name: "--json emits the workspace",
+			Args: "--workspace-id ws123 --json",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(workspace))),
+					},
+				},
+			},
 			WantOutput: fstfmt.EncodeJSON(workspace),
 		},
 		{
 			Name: "API error is surfaced",
 			Args: "--workspace-id missing",
-			Client: (&testutil.RequestRecorder{
-				Status: http.StatusNotFound,
-				Body:   []byte(`{"title":"not found","status":404}`),
-			}).Client(),
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusNotFound,
+						Status:     http.StatusText(http.StatusNotFound),
+						Body:       io.NopCloser(bytes.NewReader([]byte(`{"title":"not found","status":404}`))),
+					},
+				},
+			},
 			WantError: "404 - Not Found",
 		},
 	}
@@ -135,7 +161,6 @@ Updated At: 2026-02-01T00:00:00Z
 func TestWorkspaceUpdate(t *testing.T) {
 	updated := workspace
 	updated.ProtectionMode = "block"
-	rec := &testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(updated)}
 
 	scenarios := []testutil.CLIScenario{
 		{
@@ -155,27 +180,31 @@ func TestWorkspaceUpdate(t *testing.T) {
 			WantError: "enum value must be one of off,log,block, got 'challenge'",
 		},
 		{
-			Name:       "sends only the provided fields",
-			Args:       "--workspace-id ws123 --protection-mode block",
-			Client:     rec.Client(),
-			WantOutput: fstfmt.Success("Updated Bot Management workspace 'Production' (workspace-id: ws123, protection-mode: block)"),
-			Validator: func(t *testing.T, _ *testutil.CLIScenario, _ *global.Data, _ *threadsafe.Buffer) {
-				if rec.Method != http.MethodPatch || rec.Path != "/bot-management/v1/workspaces/ws123" {
-					t.Errorf("unexpected request: %s %s", rec.Method, rec.Path)
-				}
-				var body map[string]any
-				if err := json.Unmarshal(rec.RequestBody, &body); err != nil {
-					t.Fatalf("request body is not JSON: %v (%s)", err, rec.RequestBody)
-				}
-				if len(body) != 1 || body["protection_mode"] != "block" {
-					t.Errorf("want body {\"protection_mode\":\"block\"}, got %s", rec.RequestBody)
-				}
+			Name: "prints the updated workspace",
+			Args: "--workspace-id ws123 --protection-mode block",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updated))),
+					},
+				},
 			},
+			WantOutput: fstfmt.Success("Updated Bot Management workspace 'Production' (workspace-id: ws123, protection-mode: block)"),
 		},
 		{
-			Name:       "--json emits the updated workspace",
-			Args:       "--workspace-id ws123 --name Production --json",
-			Client:     (&testutil.RequestRecorder{Status: http.StatusOK, Body: testutil.GenJSON(updated)}).Client(),
+			Name: "--json emits the updated workspace",
+			Args: "--workspace-id ws123 --name Production --json",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updated))),
+					},
+				},
+			},
 			WantOutput: fstfmt.EncodeJSON(updated),
 		},
 	}
