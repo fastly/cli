@@ -65,6 +65,10 @@ import (
 	"github.com/fastly/cli/pkg/commands/auditlog/eventmapping"
 	authcmd "github.com/fastly/cli/pkg/commands/auth"
 	"github.com/fastly/cli/pkg/commands/authtoken"
+	"github.com/fastly/cli/pkg/commands/botmanagement"
+	botmanagementbot "github.com/fastly/cli/pkg/commands/botmanagement/bot"
+	botmanagementcategory "github.com/fastly/cli/pkg/commands/botmanagement/category"
+	botmanagementworkspace "github.com/fastly/cli/pkg/commands/botmanagement/workspace"
 	"github.com/fastly/cli/pkg/commands/compute"
 	"github.com/fastly/cli/pkg/commands/compute/computeacl"
 	"github.com/fastly/cli/pkg/commands/config"
@@ -298,6 +302,19 @@ func Define( // nolint:revive // function-length
 	auditlogEventMappingDelete := eventmapping.NewDeleteCommand(auditlogEventMappingRoot.CmdClause, data)
 	auditlogEventMappingListEventTypes := eventmapping.NewListEventTypesCommand(auditlogEventMappingRoot.CmdClause, data)
 	auditlogEventMappingListScopeTypes := eventmapping.NewListScopeTypesCommand(auditlogEventMappingRoot.CmdClause, data)
+	botmanagementRoot := botmanagement.NewRootCommand(app, data)
+	botmanagementWorkspaceRoot := botmanagementworkspace.NewRootCommand(botmanagementRoot.CmdClause, data)
+	botmanagementWorkspaceDescribe := botmanagementworkspace.NewDescribeCommand(botmanagementWorkspaceRoot.CmdClause, data)
+	botmanagementWorkspaceList := botmanagementworkspace.NewListCommand(botmanagementWorkspaceRoot.CmdClause, data)
+	botmanagementWorkspaceUpdate := botmanagementworkspace.NewUpdateCommand(botmanagementWorkspaceRoot.CmdClause, data)
+	botmanagementCategoryRoot := botmanagementcategory.NewRootCommand(botmanagementRoot.CmdClause, data)
+	botmanagementCategoryDescribe := botmanagementcategory.NewDescribeCommand(botmanagementCategoryRoot.CmdClause, data)
+	botmanagementCategoryList := botmanagementcategory.NewListCommand(botmanagementCategoryRoot.CmdClause, data)
+	botmanagementCategoryUpdate := botmanagementcategory.NewUpdateCommand(botmanagementCategoryRoot.CmdClause, data)
+	botmanagementBotRoot := botmanagementbot.NewRootCommand(botmanagementRoot.CmdClause, data)
+	botmanagementBotDescribe := botmanagementbot.NewDescribeCommand(botmanagementBotRoot.CmdClause, data)
+	botmanagementBotList := botmanagementbot.NewListCommand(botmanagementBotRoot.CmdClause, data)
+	botmanagementBotUpdate := botmanagementbot.NewUpdateCommand(botmanagementBotRoot.CmdClause, data)
 	computeCmdRoot := compute.NewRootCommand(app, data)
 	computeACLCmdRoot := computeacl.NewRootCommand(computeCmdRoot.CmdClause, data)
 	computeACLCreate := computeacl.NewCreateCommand(computeACLCmdRoot.CmdClause, data)
@@ -1264,6 +1281,19 @@ func Define( // nolint:revive // function-length
 		auditlogEventMappingDelete,
 		auditlogEventMappingListEventTypes,
 		auditlogEventMappingListScopeTypes,
+		botmanagementRoot,
+		botmanagementWorkspaceRoot,
+		botmanagementWorkspaceDescribe,
+		botmanagementWorkspaceList,
+		botmanagementWorkspaceUpdate,
+		botmanagementCategoryRoot,
+		botmanagementCategoryDescribe,
+		botmanagementCategoryList,
+		botmanagementCategoryUpdate,
+		botmanagementBotRoot,
+		botmanagementBotDescribe,
+		botmanagementBotList,
+		botmanagementBotUpdate,
 		computeCmdRoot,
 		computeACLCmdRoot,
 		computeACLCreate,
