@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces/policy"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/argparser/validate"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -33,7 +34,10 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 	c.CmdClause = parent.Command("list", "List the bot categories in a Bot Management workspace")
 
 	// Required.
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.CmdClause.Flag("workspace-id", "Workspace ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.workspaceID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())

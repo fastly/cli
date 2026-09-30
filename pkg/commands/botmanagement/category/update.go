@@ -23,10 +23,10 @@ type UpdateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	// Required.
-	action      string
-	categoryID  string
-	workspaceID string
+	categoryFilterFields
+
+	// Required payload.
+	action string
 }
 
 // NewUpdateCommand returns a usable command registered under the parent.
@@ -38,10 +38,13 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	}
 	c.CmdClause = parent.Command("update", "Set the action applied to bots in a category that are configured to inherit")
 
+	c.categoryFilterFields.register(c.CmdClause)
+
 	// Required.
-	c.CmdClause.Flag("action", "Action applied to every bot in the category configured with the 'inherit' action").Required().HintOptions(Actions...).EnumVar(&c.action, Actions...)
-	c.CmdClause.Flag("category-id", "Category ID").Required().StringVar(&c.categoryID)
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.CmdClause.Flag("action", "Action applied to every bot in the category configured with the 'inherit' action").
+		Required().
+		HintOptions(Actions...).
+		EnumVar(&c.action, Actions...)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())

@@ -179,6 +179,38 @@ func TestWorkspaceUpdate(t *testing.T) {
 			WantError: "enum value must be one of off,log,block, got 'challenge'",
 		},
 		{
+			Name:            "--name rejects values over 255 characters",
+			Args:            "--workspace-id ws123 --name " + strings.Repeat("a", 256),
+			WantError:       "error parsing arguments: --name must be between 1 and 255 characters, got 256",
+			WantRemediation: "Provide a value for --name that is between 1 and 255 characters long.",
+		},
+		{
+			Name:            "--name rejects an empty value",
+			Args:            "--workspace-id ws123 --name=",
+			WantError:       "error parsing arguments: --name must be between 1 and 255 characters, got 0",
+			WantRemediation: "Provide a value for --name that is between 1 and 255 characters long.",
+		},
+		{
+			Name:            "--description rejects values over 1000 characters",
+			Args:            "--workspace-id ws123 --description " + strings.Repeat("a", 1001),
+			WantError:       "error parsing arguments: --description must be between 0 and 1000 characters, got 1001",
+			WantRemediation: "Provide a value for --description that is between 0 and 1000 characters long.",
+		},
+		{
+			Name: "an empty --description counts as a field to update",
+			Args: "--workspace-id ws123 --description=",
+			Client: &http.Client{
+				Transport: &testutil.MockRoundTripper{
+					Response: &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     http.StatusText(http.StatusOK),
+						Body:       io.NopCloser(bytes.NewReader(testutil.GenJSON(updated))),
+					},
+				},
+			},
+			WantOutput: fstfmt.Success("Updated Bot Management workspace 'Production' (workspace-id: ws123, protection-mode: block)"),
+		},
+		{
 			Name: "prints the updated workspace",
 			Args: "--workspace-id ws123 --protection-mode block",
 			Client: &http.Client{
