@@ -637,6 +637,12 @@ func displayHelp(
 		if err != nil {
 			errLog.Add(err)
 			remediation.Inner = fmt.Errorf("error parsing arguments: %w", err)
+
+			// Surface any remediation from a flag or argument Action, which
+			// would otherwise be lost as only Inner.Error() gets printed.
+			if re, ok := errors.AsType[fsterr.RemediationError](err); ok {
+				remediation.Remediation = re.Remediation
+			}
 		}
 		return remediation
 	}

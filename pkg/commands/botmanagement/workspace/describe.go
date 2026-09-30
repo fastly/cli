@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/argparser/validate"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -33,7 +34,10 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	c.CmdClause = parent.Command("describe", "Show detailed information about a Bot Management workspace").Alias("get")
 
 	// Required.
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.CmdClause.Flag("workspace-id", "Workspace ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.workspaceID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())

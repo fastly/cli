@@ -18,11 +18,7 @@ import (
 type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
-
-	// Required.
-	botID       string
-	categoryID  string
-	workspaceID string
+	botFilterFields
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -34,10 +30,7 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	}
 	c.CmdClause = parent.Command("describe", "Show detailed information about a bot").Alias("get")
 
-	// Required.
-	c.CmdClause.Flag("bot-id", "Bot ID").Required().StringVar(&c.botID)
-	c.CmdClause.Flag("category-id", "Category ID").Required().StringVar(&c.categoryID)
-	c.CmdClause.Flag("workspace-id", "Workspace ID").Required().StringVar(&c.workspaceID)
+	c.botFilterFields.register(c.CmdClause)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
