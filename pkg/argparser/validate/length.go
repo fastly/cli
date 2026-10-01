@@ -9,10 +9,6 @@ import (
 
 // ValidateLength ensures the byte length of an argument.
 // `minLen` and `maxLen` are inclusive bounds.
-//
-// We measure byte length instead of utf-8 chars / runes
-// since what counts as a character varies across languages & string types,
-// and the backend APIs likely measure byte length.
 func validateLength(minLen int, maxLen *int) kingpin.Action {
 	return func(element *kingpin.ParseElement, _ *kingpin.ParseContext) error {
 		if element.Value == nil {
