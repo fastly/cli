@@ -11,6 +11,8 @@
 
 ### Enhancements:
 
+- feat(bot-management): add `bot-management` commands for managing workspaces, bot categories, and bots. ([#1922](https://github.com/fastly/cli/pull/1922))
+
 ### Dependencies:
 - build(deps): `github.com/andybalholm/brotli` from 1.2.3 to 1.2.4 ([#1913](https://github.com/fastly/cli/pull/1913))
 - build(deps): `github.com/mattn/go-runewidth` from 0.0.29 to 0.0.30 ([#1913](https://github.com/fastly/cli/pull/1913))
