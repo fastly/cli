@@ -57,7 +57,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := &workspaces.ListInput{}
 	// unlike some of the other go-fastly methods, this one only treats nil
-	// nil and not empty string as being missing, so we must set it conditionally
+	// and not empty string as being missing, so we must set it conditionally
 	if c.serviceID != "" {
 		input.ServiceID = &c.serviceID
 	}

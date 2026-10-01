@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces/policy"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/argparser/validate"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -23,7 +24,9 @@ type UpdateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	categoryFilterFields
+	// Required.
+	categoryID  string
+	workspaceID string
 
 	// Required payload.
 	action string
@@ -38,7 +41,15 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	}
 	c.CmdClause = parent.Command("update", "Set the action applied to bots in a category that are configured to inherit")
 
-	c.categoryFilterFields.register(c.CmdClause)
+	c.CmdClause.Flag("category-id", "Category ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.categoryID)
+
+	c.CmdClause.Flag("workspace-id", "Workspace ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.workspaceID)
 
 	// Required.
 	c.CmdClause.Flag("action", "Action applied to every bot in the category configured with the 'inherit' action").

@@ -38,6 +38,16 @@ func TestBotList(t *testing.T) {
 			WantError: "error parsing arguments: required flag --workspace-id not provided",
 		},
 		{
+			Name:      "--workspace-id can't be empty",
+			Args:      "--workspace-id=",
+			WantError: "error parsing arguments: --workspace-id must not be empty",
+		},
+		{
+			Name:      "--category-id can't be empty",
+			Args:      "--workspace-id=w --category-id=",
+			WantError: "error parsing arguments: --category-id must not be empty",
+		},
+		{
 			Name: "lists bots as a table",
 			Args: "--workspace-id ws123",
 			Client: &http.Client{
@@ -99,6 +109,21 @@ func TestBotDescribe(t *testing.T) {
 			WantError: "error parsing arguments: required flag --bot-id not provided",
 		},
 		{
+			Name:      "--workspace-id can't be empty",
+			Args:      "--workspace-id= --category-id=c --bot-id=b",
+			WantError: "error parsing arguments: --workspace-id must not be empty",
+		},
+		{
+			Name:      "--category-id can't be empty",
+			Args:      "--workspace-id=w --category-id= --bot-id=b",
+			WantError: "error parsing arguments: --category-id must not be empty",
+		},
+		{
+			Name:      "--bot-id can't be empty",
+			Args:      "--workspace-id=w --category-id=c --bot-id=",
+			WantError: "error parsing arguments: --bot-id must not be empty",
+		},
+		{
 			Name: "describes the bot",
 			Args: "--workspace-id ws123 --category-id search-engines --bot-id googlebot",
 			Client: &http.Client{
@@ -130,6 +155,21 @@ func TestBotUpdate(t *testing.T) {
 			Name:      "--action rejects unknown values",
 			Args:      "--workspace-id ws123 --category-id search-engines --bot-id googlebot --action deny",
 			WantError: "enum value must be one of allow,block,challenge,inherit, got 'deny'",
+		},
+		{
+			Name:      "--workspace-id can't be empty",
+			Args:      "--workspace-id= --category-id=c --bot-id=b --action=inherit",
+			WantError: "error parsing arguments: --workspace-id must not be empty",
+		},
+		{
+			Name:      "--category-id can't be empty",
+			Args:      "--workspace-id=w --category-id= --bot-id=b --action=inherit",
+			WantError: "error parsing arguments: --category-id must not be empty",
+		},
+		{
+			Name:      "--bot-id can't be empty",
+			Args:      "--workspace-id=w --category-id=c --bot-id= --action=inherit",
+			WantError: "error parsing arguments: --bot-id must not be empty",
 		},
 		{
 			Name: "prints the updated bot",

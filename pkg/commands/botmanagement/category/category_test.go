@@ -36,6 +36,11 @@ func TestCategoryList(t *testing.T) {
 			WantError: "error parsing arguments: required flag --workspace-id not provided",
 		},
 		{
+			Name:      "--workspace-id can't be empty",
+			Args:      "--workspace-id=",
+			WantError: "error parsing arguments: --workspace-id must not be empty",
+		},
+		{
 			Name: "lists categories as a table",
 			Args: "--workspace-id ws123",
 			Client: &http.Client{
@@ -80,6 +85,16 @@ func TestCategoryDescribe(t *testing.T) {
 			WantError: "error parsing arguments: required flag --category-id not provided",
 		},
 		{
+			Name:      "--workspace-id can't be empty",
+			Args:      "--workspace-id= --category-id=c",
+			WantError: "error parsing arguments: --workspace-id must not be empty",
+		},
+		{
+			Name:      "--category-id can't be empty",
+			Args:      "--workspace-id=w --category-id=",
+			WantError: "error parsing arguments: --category-id must not be empty",
+		},
+		{
 			Name: "describes the category",
 			Args: "--workspace-id ws123 --category-id search-engines",
 			Client: &http.Client{
@@ -112,6 +127,16 @@ func TestCategoryUpdate(t *testing.T) {
 			Name:      "--action is required",
 			Args:      "--workspace-id ws123 --category-id search-engines",
 			WantError: "error parsing arguments: required flag --action not provided",
+		},
+		{
+			Name:      "--workspace-id can't be empty",
+			Args:      "--workspace-id= --category-id=c --action=challenge",
+			WantError: "error parsing arguments: --workspace-id must not be empty",
+		},
+		{
+			Name:      "--category-id can't be empty",
+			Args:      "--workspace-id=w --category-id= --action=challenge",
+			WantError: "error parsing arguments: --category-id must not be empty",
 		},
 		{
 			Name:      "categories cannot inherit",

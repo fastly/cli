@@ -8,7 +8,11 @@ import (
 )
 
 // ValidateLength ensures the byte length of an argument.
-// minLen and maxLen are inclusive bounds.
+// `minLen` and `maxLen` are inclusive bounds.
+//
+// We measure byte length instead of utf-8 chars / runes
+// since what counts as a character varies across languages & string types,
+// and the backend APIs likely measure byte length.
 func validateLength(minLen int, maxLen *int) kingpin.Action {
 	return func(element *kingpin.ParseElement, _ *kingpin.ParseContext) error {
 		if element.Value == nil {
@@ -18,10 +22,6 @@ func validateLength(minLen int, maxLen *int) kingpin.Action {
 		name := elementName(element)
 		length := len(*element.Value)
 		if length < minLen || (maxLen != nil && length > *maxLen) {
-			// Though this counts byte length instead of "runes", we use "character" in
-			// the error message since it's a more familiar term than rune or byte.
-			// Most APIs will be counting bytes as well. If one doesn't then we can
-			// add a rune-based validator in the future.
 			switch {
 			case maxLen == nil && minLen == 1:
 				return fsterr.RemediationError{
@@ -30,13 +30,13 @@ func validateLength(minLen int, maxLen *int) kingpin.Action {
 				}
 			case maxLen == nil:
 				return fsterr.RemediationError{
-					Inner:       fmt.Errorf("%s must be at least %d characters, got %d", name, minLen, length),
-					Remediation: fmt.Sprintf("Provide a value for %s that is at least %d characters long.", name, minLen),
+					Inner:       fmt.Errorf("%s must be at least %d bytes, got %d", name, minLen, length),
+					Remediation: fmt.Sprintf("Provide a value for %s that is at least %d bytes long.", name, minLen),
 				}
 			default:
 				return fsterr.RemediationError{
-					Inner:       fmt.Errorf("%s must be between %d and %d characters, got %d", name, minLen, *maxLen, length),
-					Remediation: fmt.Sprintf("Provide a value for %s that is between %d and %d characters long.", name, minLen, *maxLen),
+					Inner:       fmt.Errorf("%s must be between %d and %d bytes, got %d", name, minLen, *maxLen, length),
+					Remediation: fmt.Sprintf("Provide a value for %s that is between %d and %d bytes long.", name, minLen, *maxLen),
 				}
 			}
 		}
