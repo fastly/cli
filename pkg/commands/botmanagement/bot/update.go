@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces/policy"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/argparser/validate"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -23,7 +24,10 @@ type UpdateCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	botFilterFields
+	// Required.
+	botID       string
+	categoryID  string
+	workspaceID string
 
 	// The update payload
 	action string
@@ -38,7 +42,25 @@ func NewUpdateCommand(parent argparser.Registerer, g *global.Data) *UpdateComman
 	}
 	c.CmdClause = parent.Command("update", "Set the action applied to requests from a bot")
 
-	c.botFilterFields.register(c.CmdClause)
+	// Though go-fastly validates that the ids are not nil or empty,
+	// we get more consistent error messages by checking length up front.
+	// Otherwise there's nothing linking an API field back to the CLI
+	// flag that was used to set it.
+
+	c.CmdClause.Flag("bot-id", "Bot ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.botID)
+
+	c.CmdClause.Flag("category-id", "Category ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.categoryID)
+
+	c.CmdClause.Flag("workspace-id", "Workspace ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.workspaceID)
 
 	// Required.
 	c.CmdClause.Flag("action", "Action applied to requests from the bot ('inherit' applies the category's action)").

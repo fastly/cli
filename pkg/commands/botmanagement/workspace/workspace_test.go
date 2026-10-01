@@ -104,6 +104,11 @@ func TestWorkspaceDescribe(t *testing.T) {
 			WantError: "error parsing arguments: required flag --workspace-id not provided",
 		},
 		{
+			Name:      "--workspace-id can't be empty",
+			Args:      "--workspace-id=",
+			WantError: "error parsing arguments: --workspace-id must not be empty",
+		},
+		{
 			Name: "describes the workspace",
 			Args: "--workspace-id ws123",
 			Client: &http.Client{
@@ -168,6 +173,11 @@ func TestWorkspaceUpdate(t *testing.T) {
 			WantError: "error parsing arguments: required flag --workspace-id not provided",
 		},
 		{
+			Name:      "--workspace-id can't be empty",
+			Args:      "--workspace-id=",
+			WantError: "error parsing arguments: --workspace-id must not be empty",
+		},
+		{
 			Name:            "at least one field must be provided",
 			Args:            "--workspace-id ws123",
 			WantError:       "no workspace fields to update",
@@ -179,22 +189,22 @@ func TestWorkspaceUpdate(t *testing.T) {
 			WantError: "enum value must be one of off,log,block, got 'challenge'",
 		},
 		{
-			Name:            "--name rejects values over 255 characters",
+			Name:            "--name rejects values over 255 bytes",
 			Args:            "--workspace-id ws123 --name " + strings.Repeat("a", 256),
-			WantError:       "error parsing arguments: --name must be between 1 and 255 characters, got 256",
-			WantRemediation: "Provide a value for --name that is between 1 and 255 characters long.",
+			WantError:       "error parsing arguments: --name must be between 1 and 255 bytes, got 256",
+			WantRemediation: "Provide a value for --name that is between 1 and 255 bytes long.",
 		},
 		{
 			Name:            "--name rejects an empty value",
 			Args:            "--workspace-id ws123 --name=",
-			WantError:       "error parsing arguments: --name must be between 1 and 255 characters, got 0",
-			WantRemediation: "Provide a value for --name that is between 1 and 255 characters long.",
+			WantError:       "error parsing arguments: --name must be between 1 and 255 bytes, got 0",
+			WantRemediation: "Provide a value for --name that is between 1 and 255 bytes long.",
 		},
 		{
-			Name:            "--description rejects values over 1000 characters",
+			Name:            "--description rejects values over 1000 bytes",
 			Args:            "--workspace-id ws123 --description " + strings.Repeat("a", 1001),
-			WantError:       "error parsing arguments: --description must be between 0 and 1000 characters, got 1001",
-			WantRemediation: "Provide a value for --description that is between 0 and 1000 characters long.",
+			WantError:       "error parsing arguments: --description must be between 0 and 1000 bytes, got 1001",
+			WantRemediation: "Provide a value for --description that is between 0 and 1000 bytes long.",
 		},
 		{
 			Name: "an empty --description counts as a field to update",

@@ -9,6 +9,7 @@ import (
 	"github.com/fastly/go-fastly/v17/fastly/botmanagement/v1/workspaces/policy"
 
 	"github.com/fastly/cli/pkg/argparser"
+	"github.com/fastly/cli/pkg/argparser/validate"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -19,7 +20,9 @@ type DescribeCommand struct {
 	argparser.Base
 	argparser.JSONOutput
 
-	categoryFilterFields
+	// Required.
+	categoryID  string
+	workspaceID string
 }
 
 // NewDescribeCommand returns a usable command registered under the parent.
@@ -31,7 +34,15 @@ func NewDescribeCommand(parent argparser.Registerer, g *global.Data) *DescribeCo
 	}
 	c.CmdClause = parent.Command("describe", "Show detailed information about a bot category").Alias("get")
 
-	c.categoryFilterFields.register(c.CmdClause)
+	c.CmdClause.Flag("category-id", "Category ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.categoryID)
+
+	c.CmdClause.Flag("workspace-id", "Workspace ID").
+		Required().
+		Action(validate.MinLength(1)).
+		StringVar(&c.workspaceID)
 
 	// Optional.
 	c.RegisterFlagBool(c.JSONFlag())
