@@ -8,6 +8,9 @@
 
 - fix(service): allow `service version validate` to use `FASTLY_SERVICE_ID`.
 - fix(compute): for `compute` subcommands, properly report a missing `name` in fastly.toml instead of "file not found".
+- fix(compute): remove the hardcoded `-gc=conservative` flag from the tinygo build command. For `tinygo` versions below
+  `0.34`, this will not change behavior. For `0.34` and above, this switches to the default `precise` collector.
+
 
 ### Enhancements:
 
