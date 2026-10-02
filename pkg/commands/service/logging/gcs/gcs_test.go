@@ -55,6 +55,7 @@ func TestCreateGCSInput(t *testing.T) {
 				Placement:         new("none"),
 				CompressionCodec:  new("zstd"),
 				ProcessingRegion:  new("eu"),
+				PublicKey:         new(pgpPublicKey()),
 			},
 		},
 		{
@@ -148,6 +149,7 @@ func TestUpdateGCSInput(t *testing.T) {
 				MessageType:       new("new10"),
 				CompressionCodec:  new("new11"),
 				ProcessingRegion:  new("eu"),
+				PublicKey:         new("new12"),
 			},
 		},
 		{
@@ -177,6 +179,7 @@ func TestUpdateGCSInput(t *testing.T) {
 				MessageType:       new("new10"),
 				CompressionCodec:  new("new11"),
 				ProcessingRegion:  new("eu"),
+				PublicKey:         new("new12"),
 			},
 		},
 		{
@@ -312,6 +315,7 @@ func createCommandAll() *gcs.CreateCommand {
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: pgpPublicKey()},
 	}
 }
 
@@ -400,6 +404,7 @@ func updateCommandAll() *gcs.UpdateCommand {
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new11"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
+		PublicKey:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new12"},
 	}
 }
 
