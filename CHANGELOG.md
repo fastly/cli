@@ -14,7 +14,7 @@
 
 ### Enhancements:
 
-- feat(help): add -h short flag for --help.
+- feat(help): add -h short flag for --help. ([#1918](https://github.com/fastly/cli/pull/1918))
 
 ### Dependencies:
 - build(deps): `github.com/andybalholm/brotli` from 1.2.3 to 1.2.4 ([#1913](https://github.com/fastly/cli/pull/1913))
